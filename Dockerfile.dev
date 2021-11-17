@@ -1,0 +1,3 @@
+FROM techmatters/terraso_backend
+
+RUN make install-dev
