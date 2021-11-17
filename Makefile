@@ -25,7 +25,7 @@ install-dev:
 	pip install -r requirements-dev.txt
 
 lint:
-	black --check terraso_backend && isort -c terraso_backend
+	flake8 terraso_backend && isort -c terraso_backend
 
 lock: pip-tools
 	CUSTOM_COMPILE_COMMAND="make lock" pip-compile --generate-hashes --output-file requirements.txt requirements/base.in requirements/deploy.in
