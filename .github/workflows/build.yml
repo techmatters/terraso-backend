@@ -13,13 +13,18 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-python@v2
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Setup Python
+        uses: actions/setup-python@v2
         with:
           python-version: "3.10"
+
       - name: Install Python dependencies for CI
         run: |
           pip install -r requirements-dev.txt
+
       - name: Run lint checks
         run: |
           make lint
