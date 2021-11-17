@@ -41,10 +41,17 @@ makemigrations: check_rebuild
 
 pip-tools: ${VIRTUAL_ENV}/scripts/pip-sync
 
-run: check_rebuild
-	docker-compose up
+setup-git-hooks:
+	@cp scripts/pre-commit.sample .git/hooks/pre-commit
+	@cp scripts/commit-msg.sample .git/hooks/commit-msg
+	@echo "git hooks installed"
 
-setup: lock build
+pre-commit: lint
+
+run: check_rebuild
+	@docker-compose up
+
+setup: build setup-pre-commit
 
 start-%:
 	@docker-compose up -d $(@:start-%=%)

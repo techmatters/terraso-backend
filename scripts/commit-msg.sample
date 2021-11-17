@@ -1,0 +1,35 @@
+#!/usr/bin/python
+
+import re
+import sys
+
+CC_TYPES = r"build|chore|ci|docs|feat|fix|perf|refactor|revert|style|test"
+CC_PATTERN = r"(" + CC_TYPES + r")(\([\w\-]+\))?:\s.*"
+
+
+def main():
+    commit_msg_file = sys.argv[1]
+
+    with open(commit_msg_file, "r") as commit_msg_content:
+        commit_msg = commit_msg_content.read()
+
+    match = re.match(CC_PATTERN, commit_msg)
+    if match:
+        return sys.exit(0)
+
+    print("")
+    print("The commit message doesn't follow www.conventionalcommits.org convention")
+    print("It should be structured as follows:")
+    print("<type>[optional scope]: <description>")
+    print("")
+    print("[optional body]")
+    print("")
+    print("[optional footer]")
+    print("")
+    print(f"Allowed types: {CC_TYPES}")
+
+    sys.exit(1)
+
+
+if __name__ == "__main__":
+    main()
