@@ -1,0 +1,20 @@
+name: check-commits
+
+on:
+  pull_request:
+    branches:
+      - main
+    types:
+      - opened
+      - edited
+      - synchronize
+
+jobs:
+  check-for-cc:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Check for Conventional Commits
+        uses: agenthunt/conventional-commit-checker-action@v1.0.0

@@ -24,8 +24,8 @@ install:
 install-dev:
 	pip install -r requirements-dev.txt
 
-lint: ${VIRTUAL_ENV}/scripts/black
-	black --check terraso_backend
+lint:
+	flake8 terraso_backend && isort -c terraso_backend
 
 lock: pip-tools
 	CUSTOM_COMPILE_COMMAND="make lock" pip-compile --generate-hashes --output-file requirements.txt requirements/base.in requirements/deploy.in
@@ -54,6 +54,10 @@ stop:
 
 test: clean check_rebuild
 	./scripts/run.sh pytest terraso_backend
+
+test-ci: clean
+	# Same action as 'test' but avoiding to create test cache
+	./scripts/run.sh pytest -p no:cacheprovider terraso_backend
 
 
 ${VIRTUAL_ENV}/scripts/black:
