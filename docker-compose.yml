@@ -13,7 +13,8 @@ services:
     volumes:
       - .:/app:z
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     ports:
       - "${PORT}:${PORT}"
     stdin_open: true
@@ -25,7 +26,7 @@ services:
       org.techmatters.project: terraso_backend
     env_file: .env
     volumes:
-      -  postgresql_data:/var/lib/postgresql/data
+      - postgresql_data:/var/lib/postgresql/data
     hostname: postgres
     environment:
       - POSTGRES_DB=terraso_backend
@@ -33,6 +34,12 @@ services:
       - POSTGRES_PASSWORD=postgres
     ports:
       - "${DATABASE_EXTERNAL_PORT}:5432"
+    healthcheck:
+      test: pg_isready -U postgres -d terraso_backend
+      interval: 3s
+      timeout: 5s
+      start_period: 3s
+      retries: 3
 
 volumes:
   postgresql_data:
