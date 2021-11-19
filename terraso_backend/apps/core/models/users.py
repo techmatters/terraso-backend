@@ -39,9 +39,7 @@ class UserManager(BaseUserManager):
 
 
 class User(AbstractUser):
-    """
-    This model represents a User on Terraso platform.
-    """
+    """This model represents a User on Terraso platform."""
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     created_at = models.DateTimeField(auto_now_add=True)

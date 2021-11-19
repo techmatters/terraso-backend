@@ -17,10 +17,10 @@ class Landscape(SlugModel):
     Landscape can cross several countries.
     """
 
-    name = models.CharField(max_length=128)
-    description = models.TextField(max_length=512)
-    website = models.URLField()
-    location = models.CharField(max_length=128)
+    name = models.CharField(max_length=128, unique=True)
+    description = models.TextField(max_length=512, blank=True, default="")
+    website = models.URLField(blank=True, default="")
+    location = models.CharField(max_length=128, blank=True, default="")
 
     groups = models.ManyToManyField(Group, through="LandscapeGroup")
 
