@@ -20,6 +20,7 @@ class Landscape(SlugModel):
     name = models.CharField(max_length=128)
     description = models.TextField(max_length=512)
     website = models.URLField()
+    location = models.CharField(max_length=128)
 
     groups = models.ManyToManyField(Group, through="LandscapeGroup")
 
