@@ -12,22 +12,26 @@ file created before building the images):
 $ make build
 ```
 
-There's a shortcut to automatically lock and build Docker image:
-
-```sh
-$ make setup
-```
-
 Run the database migrations before the first run:
 
 ```sh
-$ make run migrate
+$ make migrate
 ```
 
 Than the run command can be executed:
 
 ```sh
 $ make run
+```
+
+If you want to have a user to access the admin panel, you need to create
+it:
+
+```sh
+$ ./scripts/run bash
+# (inside the web container)
+$ python terraso_backend/manage.py createsuperuser
+$ exit
 ```
 
 ## Contributing
