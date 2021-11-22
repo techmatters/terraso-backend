@@ -19,7 +19,9 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "graphene_django",
     "apps.core",
+    "apps.graphql",
 ]
 
 MIDDLEWARE = [
@@ -102,4 +104,8 @@ LOGGING = {
             "propagate": True,
         },
     },
+}
+
+GRAPHENE = {
+    "SCHEMA": "apps.graphql.schema.schema",
 }
