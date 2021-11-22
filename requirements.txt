@@ -53,6 +53,12 @@ gunicorn==20.1.0 \
 prettyconf==2.2.1 \
     --hash=sha256:2478d16bc2596c9863e93dd182ca70b71f636f0e169ab23288906c53147cfdbc
     # via -r requirements/base.in
+promise==2.3 \
+    --hash=sha256:dfd18337c523ba4b6a58801c164c1904a9d4d1b1747c7d5dbf45b693a49d93d0
+    # via
+    #   graphene-django
+    #   graphql-core
+    #   graphql-relay
 psycopg2==2.9.2 \
     --hash=sha256:26322c3f114de1f60c1b0febf8fdd595c221b4f624524178f515d07350a71bd1 \
     --hash=sha256:6796ac614412ce374587147150e56d03b7845c9e031b88aacdcadc880e81bb38 \
