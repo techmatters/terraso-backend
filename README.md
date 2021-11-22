@@ -24,6 +24,16 @@ Than the run command can be executed:
 $ make run
 ```
 
+If you want to have a user to access the admin panel, you need to create
+it:
+
+```sh
+$ ./scripts/run bash
+# (inside the web container)
+$ python terraso_backend/manage.py createsuperuser
+$ exit
+```
+
 ## Contributing
 
 Before contributing to the project, it's recommended that you set up
