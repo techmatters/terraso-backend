@@ -1,4 +1,4 @@
 django
 dj-database-url
 prettyconf
-psycopg2-binary
+psycopg2
