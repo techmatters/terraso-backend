@@ -20,6 +20,15 @@ def test_landscape_is_slugifiable_by_name():
     assert landscape.slug == "this-is-my-name"
 
 
+def test_landscape_slug_is_updatable():
+    landscape = mixer.blend(Landscape, name="This is My Name", slug=None)
+    landscape.name = "New name"
+    landscape.save()
+
+    assert landscape.slug == "new-name"
+    assert landscape.name == "New name"
+
+
 def test_landscape_groups_are_created_when_association_added():
     landscape = mixer.blend(Landscape)
     groups = mixer.cycle(3).blend(Group)
