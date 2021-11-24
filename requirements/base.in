@@ -1,4 +1,6 @@
+graphene-django
 django
+django-filter
 dj-database-url
 prettyconf
 psycopg2
