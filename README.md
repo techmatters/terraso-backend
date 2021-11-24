@@ -34,6 +34,31 @@ $ python terraso_backend/manage.py createsuperuser
 $ exit
 ```
 
+## Debugging locally with Docker
+
+To debug while running tests, just use regular Python `breakpoint()` and
+run the tests normally. Pytest will stop properly on break point giving
+you access to the Python debugger.
+
+To debug while using the application locally, it's also possible to use
+Python `breakpoint()`. To have access to the Python debugger, you'll
+need to attach to the application running container.
+
+So, assuming that the application is running with `make run`:
+
+```sh
+# List the running containers
+$ docker ps
+# Get the id of the web container before next step
+$ docker attach <web-container-id>
+# This will give you access to the web running container
+```
+
+Make the application request call that will pass on brak point, like
+calling an API or clicking in some button. As soon as the process get to
+the break point, the attached shell should open the Python debugger. To
+continue the application request processing, just release the debugger.
+
 ## Contributing
 
 Before contributing to the project, it's recommended that you set up
