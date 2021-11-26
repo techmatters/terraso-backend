@@ -2,7 +2,12 @@ import graphene
 from graphene import relay
 from graphene_django.filter import DjangoFilterConnectionField
 
-from .groups import GroupNode
+from .groups import (
+    GroupAddMutation,
+    GroupDeleteMutation,
+    GroupNode,
+    GroupUpdateMutation,
+)
 from .landscapes import (
     LandscapeAddMutation,
     LandscapeDeleteMutation,
@@ -22,8 +27,11 @@ class Query(graphene.ObjectType):
 
 
 class Mutations(graphene.ObjectType):
+    add_group = GroupAddMutation.Field()
     add_landscape = LandscapeAddMutation.Field()
+    update_group = GroupUpdateMutation.Field()
     update_landscape = LandscapeUpdateMutation.Field()
+    delete_group = GroupDeleteMutation.Field()
     delete_landscape = LandscapeDeleteMutation.Field()
 
 
