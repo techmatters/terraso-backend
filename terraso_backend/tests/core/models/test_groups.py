@@ -20,6 +20,15 @@ def test_group_is_slugifiable_by_name():
     assert group.slug == "this-is-my-name"
 
 
+def test_group_slug_is_updatable():
+    group = mixer.blend(Group, name="This is My Name", slug=None)
+    group.name = "New name"
+    group.save()
+
+    assert group.slug == "new-name"
+    assert group.name == "New name"
+
+
 def test_group_can_have_group_associations():
     group = mixer.blend(Group)
     subgroup = mixer.blend(Group)

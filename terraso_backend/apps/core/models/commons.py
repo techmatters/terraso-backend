@@ -19,9 +19,8 @@ class SlugModel(BaseModel):
     slug = models.SlugField(max_length=250, unique=True, blank=True, editable=False)
 
     def save(self, *args, **kwargs):
-        if not self.slug:
-            value_to_slugify = getattr(self, self.field_to_slug)
-            self.slug = slugify(value_to_slugify)
+        value_to_slugify = getattr(self, self.field_to_slug)
+        self.slug = slugify(value_to_slugify)
         return super().save(*args, **kwargs)
 
     class Meta(BaseModel.Meta):
