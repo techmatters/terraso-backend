@@ -1,8 +1,11 @@
+import graphene
 from graphene import relay
 from graphene_django import DjangoObjectType
 from graphene_django.filter import DjangoFilterConnectionField
 
 from apps.core.models import Group, GroupAssociation, Membership
+
+from .commons import BaseDeleteMutation, BaseWriteMutation
 
 
 class GroupAssociationNode(DjangoObjectType):
@@ -42,3 +45,34 @@ class GroupNode(DjangoObjectType):
 
     def resolve_associations_as_child(self, info):
         return self.associations_as_child.all()
+
+
+class GroupAddMutation(BaseWriteMutation):
+    group = graphene.Field(GroupNode)
+
+    model_class = Group
+
+    class Input:
+        name = graphene.String(required=True)
+        description = graphene.String()
+        website = graphene.String()
+
+
+class GroupUpdateMutation(BaseWriteMutation):
+    group = graphene.Field(GroupNode)
+
+    model_class = Group
+
+    class Input:
+        id = graphene.ID(required=True)
+        name = graphene.String()
+        description = graphene.String()
+        website = graphene.String()
+
+
+class GroupDeleteMutation(BaseDeleteMutation):
+    group = graphene.Field(GroupNode)
+    model_class = Group
+
+    class Input:
+        id = graphene.ID()
