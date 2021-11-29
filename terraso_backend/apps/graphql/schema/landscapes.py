@@ -2,7 +2,7 @@ import graphene
 from graphene import relay
 from graphene_django import DjangoObjectType
 
-from apps.core.models import Landscape
+from apps.core.models import Landscape, LandscapeGroup
 
 from .commons import BaseDeleteMutation, BaseWriteMutation
 
