@@ -86,6 +86,65 @@ def test_groups_query(client_query, groups):
         assert group.slug in groups_result
 
 
+def test_group_associations_query(client_query, group_associations):
+    response = client_query(
+        """
+        {groupAssociations {
+          edges {
+            node {
+              parentGroup {
+                slug
+              }
+              childGroup {
+                slug
+              }
+            }
+          }
+        }}
+        """
+    )
+    edges = response.json()["data"]["groupAssociations"]["edges"]
+    nodes = [edge["node"] for edge in edges]
+
+    associations_returned = [
+        (assoc["parentGroup"]["slug"], assoc["childGroup"]["slug"]) for assoc in nodes
+    ]
+
+    associations_expected = [
+        (assoc.parent_group.slug, assoc.child_group.slug) for assoc in group_associations
+    ]
+
+    assert associations_expected == associations_returned
+
+
+def test_memberships_query(client_query, memberships):
+    response = client_query(
+        """
+        {memberships {
+          edges {
+            node {
+              group {
+                slug
+              }
+              user {
+                email
+              }
+              userRole
+            }
+          }
+        }}
+        """
+    )
+    edges = response.json()["data"]["memberships"]["edges"]
+    nodes = [edge["node"] for edge in edges]
+
+    memberships_returned = [(memb["group"]["slug"], memb["user"]["email"]) for memb in nodes]
+
+    memberships_expected = [(memb.group.slug, memb.user.email) for memb in memberships]
+
+    assert memberships_expected == memberships_returned
+
+
 def test_users_query(client_query, users):
     response = client_query(
         """

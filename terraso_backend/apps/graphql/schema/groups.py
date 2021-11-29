@@ -12,6 +12,7 @@ class GroupAssociationNode(DjangoObjectType):
     class Meta:
         model = GroupAssociation
         filter_fields = ["parent_group", "child_group"]
+        fields = ["parent_group", "child_group"]
         interfaces = (relay.Node,)
 
 
@@ -19,6 +20,7 @@ class MembershipNode(DjangoObjectType):
     class Meta:
         model = Membership
         filter_fields = ["group", "user", "user_role"]
+        fields = ["group", "user", "user_role"]
         interfaces = (relay.Node,)
 
 
