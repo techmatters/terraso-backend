@@ -33,6 +33,38 @@ def test_landscapes_query(client_query, landscapes):
         assert landscape.slug in landscapes_result
 
 
+def test_landscape_groups_query(client_query, landscape_groups):
+    response = client_query(
+        """
+        {landscapeGroups {
+          edges {
+            node {
+              landscape {
+                slug
+              }
+              group {
+                slug
+              }
+              isDefaultLandscapeGroup
+            }
+          }
+        }}
+        """
+    )
+    edges = response.json()["data"]["landscapeGroups"]["edges"]
+    nodes = [edge["node"] for edge in edges]
+
+    landscapes_and_groups_returned = [
+        (lsg["landscape"]["slug"], lsg["group"]["slug"]) for lsg in nodes
+    ]
+
+    landscapes_and_groups_expected = [
+        (lsg.landscape.slug, lsg.group.slug) for lsg in landscape_groups
+    ]
+
+    assert landscapes_and_groups_expected == landscapes_and_groups_returned
+
+
 def test_groups_query(client_query, groups):
     response = client_query(
         """
@@ -70,6 +102,5 @@ def test_users_query(client_query, users):
     )
     edges = response.json()["data"]["users"]["edges"]
     users_result = [edge["node"]["email"] for edge in edges]
-
     for user in users:
         assert user.email in users_result
