@@ -5,9 +5,11 @@ from graphene_django.filter import DjangoFilterConnectionField
 from .group_associations import GroupAssociationNode
 from .groups import (
     GroupAddMutation,
+    GroupAssociationNode,
     GroupDeleteMutation,
     GroupNode,
     GroupUpdateMutation,
+    MembershipNode,
 )
 from .landscape_groups import LandscapeGroupNode
 from .landscapes import (
@@ -24,14 +26,12 @@ from .users import UserAddMutation, UserDeleteMutation, UserNode, UserUpdateMuta
 class Query(graphene.ObjectType):
     group = relay.Node.Field(GroupNode)
     landscape = relay.Node.Field(LandscapeNode)
-    landscape_group = relay.Node.Field(LandscapeNode)
     user = relay.Node.Field(UserNode)
     landscape_group = relay.Node.Field(LandscapeGroupNode)
     membership = relay.Node.Field(MembershipNode)
     group_association = relay.Node.Field(GroupAssociationNode)
     groups = DjangoFilterConnectionField(GroupNode)
     landscapes = DjangoFilterConnectionField(LandscapeNode)
-    landscape_groups = DjangoFilterConnectionField(LandscapeGroupNode)
     users = DjangoFilterConnectionField(UserNode)
     landscape_groups = DjangoFilterConnectionField(LandscapeGroupNode)
     memberships = DjangoFilterConnectionField(MembershipNode)
