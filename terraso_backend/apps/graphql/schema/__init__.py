@@ -13,7 +13,6 @@ from .landscape_groups import LandscapeGroupNode
 from .landscapes import (
     LandscapeAddMutation,
     LandscapeDeleteMutation,
-    LandscapeGroupNode,
     LandscapeNode,
     LandscapeUpdateMutation,
 )
