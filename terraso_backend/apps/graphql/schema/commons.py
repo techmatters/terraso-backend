@@ -3,6 +3,8 @@ import re
 import graphql_relay
 from graphene import relay
 
+RE_CAMEL_TO_SNAKE_CASE = re.compile(r"(?<!^)(?=[A-Z])")
+
 
 class BaseWriteMutation(relay.ClientIDMutation):
     model_class = None
@@ -55,7 +57,7 @@ class BaseDeleteMutation(relay.ClientIDMutation):
     def _get_result_attribute_name(cls):
         """
         Transforms model class name from camel case to snake case. MyModel
-        becomes my_model
+        becomes my_model.
         """
         model_class_name = cls.model_class.__name__
-        return re.sub(r"(?<!^)(?=[A-Z])", "_", model_class_name).lower()
+        return RE_CAMEL_TO_SNAKE_CASE.sub("_", model_class_name).lower()
