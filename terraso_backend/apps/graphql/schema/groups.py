@@ -3,23 +3,11 @@ from graphene import relay
 from graphene_django import DjangoObjectType
 from graphene_django.filter import DjangoFilterConnectionField
 
-from apps.core.models import Group, GroupAssociation, Membership
+from apps.core.models import Group
 
 from .commons import BaseDeleteMutation, BaseWriteMutation
-
-
-class GroupAssociationNode(DjangoObjectType):
-    class Meta:
-        model = GroupAssociation
-        filter_fields = ["parent_group", "child_group"]
-        interfaces = (relay.Node,)
-
-
-class MembershipNode(DjangoObjectType):
-    class Meta:
-        model = Membership
-        filter_fields = ["group", "user", "user_role"]
-        interfaces = (relay.Node,)
+from .group_associations import GroupAssociationNode
+from .memberships import MembershipNode
 
 
 class GroupNode(DjangoObjectType):

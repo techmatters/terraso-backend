@@ -41,7 +41,7 @@ def group_associations(groups, subgroups):
         new_associations = mixer.cycle(2).blend(
             GroupAssociation, parent_group=group, child_group=(sg for sg in subgroups)
         )
-        group_associations.append(new_associations)
+        group_associations.extend(new_associations)
 
     return group_associations
 
