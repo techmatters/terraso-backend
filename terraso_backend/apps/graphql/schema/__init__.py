@@ -9,7 +9,12 @@ from .groups import (
     GroupNode,
     GroupUpdateMutation,
 )
-from .landscape_groups import LandscapeGroupNode
+from .landscape_groups import (
+    LandscapeGroupAddMutation,
+    LandscapeGroupDeleteMutation,
+    LandscapeGroupNode,
+    LandscapeGroupUpdateMutation,
+)
 from .landscapes import (
     LandscapeAddMutation,
     LandscapeDeleteMutation,
@@ -41,12 +46,15 @@ class Mutations(graphene.ObjectType):
     add_group = GroupAddMutation.Field()
     add_landscape = LandscapeAddMutation.Field()
     add_user = UserAddMutation.Field()
+    add_landscape_group = LandscapeGroupAddMutation.Field()
     update_group = GroupUpdateMutation.Field()
     update_landscape = LandscapeUpdateMutation.Field()
+    update_landscape_group = LandscapeGroupUpdateMutation.Field()
     update_user = UserUpdateMutation.Field()
     delete_group = GroupDeleteMutation.Field()
     delete_landscape = LandscapeDeleteMutation.Field()
     delete_user = UserDeleteMutation.Field()
+    delete_landscape_group = LandscapeGroupDeleteMutation.Field()
 
 
 schema = graphene.Schema(query=Query, mutation=Mutations)
