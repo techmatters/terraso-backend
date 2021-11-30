@@ -1,17 +1,8 @@
 import pytest
-from graphene_django.utils.testing import graphql_query
 
 from apps.core.models import Group
 
 pytestmark = pytest.mark.django_db
-
-
-@pytest.fixture
-def client_query(client):
-    def _client_query(*args, **kwargs):
-        return graphql_query(*args, **kwargs, client=client)
-
-    return _client_query
 
 
 def test_groups_add(client_query):
