@@ -4,3 +4,4 @@ django-filter
 dj-database-url
 prettyconf
 psycopg2
+django-cors-headers

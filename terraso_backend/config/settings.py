@@ -22,6 +22,7 @@ INSTALLED_APPS = [
     "graphene_django",
     "apps.core",
     "apps.graphql",
+    "corsheaders",
 ]
 
 MIDDLEWARE = [
@@ -32,6 +33,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "corsheaders.middleware.CorsMiddleware",
 ]
 
 ROOT_URLCONF = "config.urls"
@@ -109,3 +111,5 @@ LOGGING = {
 GRAPHENE = {
     "SCHEMA": "apps.graphql.schema.schema",
 }
+
+CORS_ORIGIN_ALLOW_ALL = config("CORS_ORIGIN_ALLOW_ALL", default=False, cast=config.boolean)
