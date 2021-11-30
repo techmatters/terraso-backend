@@ -78,3 +78,10 @@ class Membership(BaseModel):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="memberships")
 
     user_role = models.CharField(max_length=64, choices=ROLES, blank=True, default=ROLE_MEMBER)
+
+    @classmethod
+    def get_user_role_from_str(cls, user_role):
+        if user_role and user_role.lower() == cls.ROLE_MANAGER:
+            return cls.ROLE_MANAGER
+
+        return cls.ROLE_MEMBER

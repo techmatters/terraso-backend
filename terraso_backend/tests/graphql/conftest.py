@@ -58,7 +58,7 @@ def group_associations(groups, subgroups):
 @pytest.fixture
 def memberships(groups, users):
     return mixer.cycle(5).blend(
-        Membership, group=mixer.SELECT, user=mixer.SELECT, user_role=mixer.RANDOM
+        Membership, group=mixer.SELECT, user=mixer.SELECT, user_role=Membership.ROLE_MEMBER
     )
 
 
