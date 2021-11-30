@@ -26,7 +26,7 @@ def main():
     print("")
     print("[optional footer]")
     print("")
-    print(f"Allowed types: {CC_TYPES}")
+    print("Allowed types: " + CC_TYPES)
 
     sys.exit(1)
 
