@@ -37,7 +37,7 @@ class MembershipWriteMutation(relay.ClientIDMutation):
             membership.user = User.objects.get(email=kwargs.pop("user_email"))
             membership.group = Group.objects.get(slug=kwargs.pop("group_slug"))
 
-        membership.user_role = Membership.get_user_role_from_str(kwargs.pop("user_role", None))
+        membership.user_role = Membership.get_user_role_from_text(kwargs.pop("user_role", None))
 
         membership.save()
 
