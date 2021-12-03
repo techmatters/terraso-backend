@@ -1,4 +1,5 @@
 graphene-django
+httpx
 django
 django-cors-headers
 django-filter

@@ -113,3 +113,5 @@ GRAPHENE = {
 }
 
 CORS_ORIGIN_WHITELIST = config("CORS_ORIGIN_WHITELIST", default=[], cast=config.list)
+
+AIRTABLE_API_KEY = config("AIRTABLE_API_KEY", default="")
