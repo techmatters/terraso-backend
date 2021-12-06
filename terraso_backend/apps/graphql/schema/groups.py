@@ -44,6 +44,7 @@ class GroupAddMutation(BaseWriteMutation):
         name = graphene.String(required=True)
         description = graphene.String()
         website = graphene.String()
+        email = graphene.String()
 
 
 class GroupUpdateMutation(BaseWriteMutation):
@@ -56,6 +57,7 @@ class GroupUpdateMutation(BaseWriteMutation):
         name = graphene.String()
         description = graphene.String()
         website = graphene.String()
+        email = graphene.String()
 
 
 class GroupDeleteMutation(BaseDeleteMutation):

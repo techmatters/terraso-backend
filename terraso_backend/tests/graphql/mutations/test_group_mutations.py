@@ -33,6 +33,7 @@ def test_groups_update(client_query, groups):
         "description": "New description",
         "name": "New Name",
         "website": "www.example.com/updated-group",
+        "email": "a-new-email@example.com"
     }
     response = client_query(
         """
@@ -43,6 +44,7 @@ def test_groups_update(client_query, groups):
               name
               description
               website
+              email
             }
           }
         }
