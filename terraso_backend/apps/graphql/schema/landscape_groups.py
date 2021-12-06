@@ -1,9 +1,11 @@
 import graphene
 import graphql_relay
+from django.core.exceptions import ValidationError
 from graphene import relay
 from graphene_django import DjangoObjectType
 
 from apps.core.models import Group, Landscape, LandscapeGroup
+from apps.graphql.exceptions import GraphQLValidationException
 
 from .commons import BaseDeleteMutation
 
@@ -49,6 +51,11 @@ class LandscapeGroupWriteMutation(relay.ClientIDMutation):
         default_group = kwargs.pop("is_default_landscape_group", None)
         if default_group is not None:
             landscape_group.is_default_landscape_group = default_group
+
+        try:
+            landscape_group.full_clean()
+        except ValidationError as exc:
+            raise GraphQLValidationException.from_validation_error(exc)
 
         landscape_group.save()
 

@@ -1,8 +1,10 @@
 import graphene
+from django.core.exceptions import ValidationError
 from graphene import relay
 from graphene_django import DjangoObjectType
 
 from apps.core.models import Group, GroupAssociation
+from apps.graphql.exceptions import GraphQLValidationException
 
 from .commons import BaseDeleteMutation
 
@@ -32,6 +34,11 @@ class GroupAssociationAddMutation(relay.ClientIDMutation):
         group_association = GroupAssociation()
         group_association.parent_group = Group.objects.get(slug=kwargs.pop("parent_group_slug"))
         group_association.child_group = Group.objects.get(slug=kwargs.pop("child_group_slug"))
+
+        try:
+            group_association.full_clean()
+        except ValidationError as exc:
+            raise GraphQLValidationException.from_validation_error(exc)
 
         group_association.save()
 

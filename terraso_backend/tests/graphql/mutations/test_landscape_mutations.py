@@ -26,13 +26,34 @@ def test_landscapes_add(client_query):
     assert landscape_result["name"] == landscape_name
 
 
+def test_landscapes_add_duplicated(client_query, landscapes):
+    landscape_name = landscapes[0].name
+    response = client_query(
+        """
+        mutation addLandscape($input: LandscapeAddMutationInput!){
+          addLandscape(input: $input) {
+            landscape {
+              id
+              name
+            }
+          }
+        }
+        """,
+        variables={"input": {"name": landscape_name}},
+    )
+    error_result = response.json()["errors"][0]
+
+    assert error_result
+    assert "field=name" in error_result["message"]
+
+
 def test_landscapes_update(client_query, landscapes):
     old_landscape = _get_landscapes(client_query)[0]
     new_data = {
         "id": old_landscape["id"],
         "description": "New description",
         "name": "New Name",
-        "website": "www.example.com/updated-landscape",
+        "website": "https://www.example.com/updated-landscape",
     }
     response = client_query(
         """

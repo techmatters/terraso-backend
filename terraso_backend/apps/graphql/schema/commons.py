@@ -1,7 +1,10 @@
 import re
 
 import graphql_relay
+from django.core.exceptions import ValidationError
 from graphene import relay
+
+from apps.graphql.exceptions import GraphQLValidationException
 
 RE_CAMEL_TO_SNAKE_CASE = re.compile(r"(?<!^)(?=[A-Z])")
 
@@ -27,6 +30,11 @@ class BaseWriteMutation(relay.ClientIDMutation):
 
         for attr, value in kwargs.items():
             setattr(model_instance, attr, value)
+
+        try:
+            model_instance.full_clean()
+        except ValidationError as exc:
+            raise GraphQLValidationException.from_validation_error(exc)
 
         model_instance.save()
 

@@ -1,9 +1,11 @@
 import graphene
 import graphql_relay
+from django.core.exceptions import ValidationError
 from graphene import relay
 from graphene_django import DjangoObjectType
 
 from apps.core.models import Group, Membership, User
+from apps.graphql.exceptions import GraphQLValidationException
 
 from .commons import BaseDeleteMutation
 
@@ -38,6 +40,11 @@ class MembershipWriteMutation(relay.ClientIDMutation):
             membership.group = Group.objects.get(slug=kwargs.pop("group_slug"))
 
         membership.user_role = Membership.get_user_role_from_text(kwargs.pop("user_role", None))
+
+        try:
+            membership.full_clean()
+        except ValidationError as exc:
+            raise GraphQLValidationException.from_validation_error(exc)
 
         membership.save()
 
