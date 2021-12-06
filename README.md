@@ -28,7 +28,7 @@ If you want to have a user to access the admin panel, you need to create
 it:
 
 ```sh
-$ ./scripts/run bash
+$ ./scripts/run.sh bash
 # (inside the web container)
 $ python terraso_backend/manage.py createsuperuser
 $ exit
