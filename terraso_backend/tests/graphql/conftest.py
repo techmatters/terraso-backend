@@ -29,7 +29,7 @@ def landscapes():
 
 @pytest.fixture
 def groups():
-    return mixer.cycle(4).blend(Group)
+    return mixer.cycle(5).blend(Group)
 
 
 @pytest.fixture
@@ -39,7 +39,7 @@ def subgroups():
 
 @pytest.fixture
 def users():
-    return mixer.cycle(2).blend(User)
+    return mixer.cycle(5).blend(User)
 
 
 @pytest.fixture
@@ -58,7 +58,10 @@ def group_associations(groups, subgroups):
 @pytest.fixture
 def memberships(groups, users):
     return mixer.cycle(5).blend(
-        Membership, group=mixer.SELECT, user=mixer.SELECT, user_role=Membership.ROLE_MEMBER
+        Membership,
+        group=(g for g in groups),
+        user=(u for u in users),
+        user_role=Membership.ROLE_MEMBER,
     )
 
 
