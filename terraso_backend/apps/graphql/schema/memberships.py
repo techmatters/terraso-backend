@@ -11,8 +11,14 @@ from .commons import BaseDeleteMutation
 class MembershipNode(DjangoObjectType):
     class Meta:
         model = Membership
-        filter_fields = ["group", "user", "user_role"]
-        fields = ["group", "user", "user_role"]
+        filter_fields = {
+            "group": ["exact"],
+            "user": ["exact"],
+            "user_role": ["exact"],
+            "group__slug": ["icontains"],
+            "user__email": ["icontains"],
+        }
+        fields = ("group", "user", "user_role")
         interfaces = (relay.Node,)
 
 

@@ -16,6 +16,7 @@ class UserNode(DjangoObjectType):
             "first_name": ["icontains"],
             "last_name": ["icontains"],
         }
+        fields = ("email", "first_name", "last_name", "memberships")
         interfaces = (relay.Node,)
 
 
