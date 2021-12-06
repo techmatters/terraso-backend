@@ -23,6 +23,7 @@ class Group(SlugModel):
     name = models.CharField(max_length=128, unique=True)
     description = models.TextField(max_length=512, blank=True, default="")
     website = models.URLField(blank=True, default="")
+    email = models.EmailField(blank=True, default="")
 
     # Symmetrical=False is necessary so Group A being parent of Group B
     # doesn't make Django assume Group B is also parent of Group A
