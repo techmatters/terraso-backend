@@ -12,7 +12,12 @@ from .commons import BaseDeleteMutation
 class GroupAssociationNode(DjangoObjectType):
     class Meta:
         model = GroupAssociation
-        filter_fields = ("parent_group", "child_group")
+        filter_fields = {
+            "parent_group": ["exact"],
+            "child_group": ["exact"],
+            "parent_group__slug": ["icontains"],
+            "child_group__slug": ["icontains"],
+        }
         fields = ("parent_group", "child_group")
         interfaces = (relay.Node,)
 

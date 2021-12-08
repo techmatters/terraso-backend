@@ -10,7 +10,13 @@ from .commons import BaseDeleteMutation, BaseWriteMutation
 class LandscapeNode(DjangoObjectType):
     class Meta:
         model = Landscape
-        filter_fields = ["name", "description", "groups"]
+        filter_fields = {
+            "name": ["icontains"],
+            "description": ["icontains"],
+            "website": ["icontains"],
+            "location": ["icontains"],
+        }
+        fields = ("name", "slug", "description", "website", "location", "associated_groups")
         interfaces = (relay.Node,)
 
 

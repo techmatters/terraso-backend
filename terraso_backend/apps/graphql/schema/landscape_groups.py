@@ -13,7 +13,13 @@ from .commons import BaseDeleteMutation
 class LandscapeGroupNode(DjangoObjectType):
     class Meta:
         model = LandscapeGroup
-        filter_fields = ("landscape", "group", "is_default_landscape_group")
+        filter_fields = {
+            "landscape": ["exact"],
+            "landscape__slug": ["icontains"],
+            "group": ["exact"],
+            "group__slug": ["icontains"],
+            "is_default_landscape_group": ["exact"],
+        }
         fields = ("landscape", "group", "is_default_landscape_group")
         interfaces = (relay.Node,)
 
