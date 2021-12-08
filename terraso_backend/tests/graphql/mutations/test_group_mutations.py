@@ -26,14 +26,35 @@ def test_groups_add(client_query):
     assert group_result["name"] == group_name
 
 
+def test_groups_add_duplicated(client_query, groups):
+    group_name = groups[0].name
+    response = client_query(
+        """
+        mutation addGroup($input: GroupAddMutationInput!){
+          addGroup(input: $input) {
+            group {
+              id
+              name
+            }
+          }
+        }
+        """,
+        variables={"input": {"name": group_name}},
+    )
+    error_result = response.json()["errors"][0]
+
+    assert error_result
+    assert "field=name" in error_result["message"]
+
+
 def test_groups_update(client_query, groups):
     old_group = _get_groups(client_query)[0]
     new_data = {
         "id": old_group["id"],
         "description": "New description",
         "name": "New Name",
-        "website": "www.example.com/updated-group",
-        "email": "a-new-email@example.com"
+        "website": "https://www.example.com/updated-group",
+        "email": "a-new-email@example.com",
     }
     response = client_query(
         """
