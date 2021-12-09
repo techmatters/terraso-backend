@@ -13,10 +13,18 @@ class LandscapeNode(DjangoObjectType):
         filter_fields = {
             "name": ["icontains"],
             "description": ["icontains"],
+            "slug": ["exact", "icontains"],
             "website": ["icontains"],
             "location": ["icontains"],
         }
-        fields = ("name", "slug", "description", "website", "location", "associated_groups")
+        fields = (
+            "name",
+            "slug",
+            "description",
+            "website",
+            "location",
+            "associated_groups",
+        )
         interfaces = (relay.Node,)
 
 

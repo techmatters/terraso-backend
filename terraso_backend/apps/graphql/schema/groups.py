@@ -12,7 +12,7 @@ class GroupNode(DjangoObjectType):
         model = Group
         filter_fields = {
             "name": ["exact", "icontains", "istartswith"],
-            "slug": ["icontains"],
+            "slug": ["exact", "icontains"],
             "description": ["icontains"],
             "associations_as_parent__child_group": ["exact"],
             "associations_as_child__parent_group": ["exact"],
