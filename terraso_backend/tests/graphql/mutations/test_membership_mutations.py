@@ -41,6 +41,39 @@ def test_membership_add(client_query, groups, users):
     assert membership["userRole"] == Membership.ROLE_MEMBER.upper()
 
 
+def test_membership_add_duplicated(client_query, memberships):
+    group = memberships[0].group
+    user = memberships[0].user
+
+    response = client_query(
+        """
+        mutation addMembership($input: MembershipAddMutationInput!){
+          addMembership(input: $input) {
+            membership {
+              id
+              userRole
+              user {
+                email
+              }
+              group {
+                slug
+              }
+            }
+          }
+        }
+        """,
+        variables={
+            "input": {
+                "userEmail": user.email,
+                "groupSlug": group.slug,
+            }
+        },
+    )
+    error_result = response.json()["errors"][0]
+
+    assert "Group and User already exists" in error_result["message"]
+
+
 def test_membership_add_manager(client_query, groups, users):
     group = groups[0]
     user = users[0]

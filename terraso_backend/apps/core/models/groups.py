@@ -57,6 +57,14 @@ class GroupAssociation(BaseModel):
         related_name="associations_as_child",
     )
 
+    class Meta:
+        constraints = (
+            models.UniqueConstraint(
+                fields=("parent_group", "child_group"),
+                name="unique_group_association",
+            ),
+        )
+
 
 class Membership(BaseModel):
     """
@@ -79,6 +87,14 @@ class Membership(BaseModel):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="memberships")
 
     user_role = models.CharField(max_length=64, choices=ROLES, blank=True, default=ROLE_MEMBER)
+
+    class Meta:
+        constraints = (
+            models.UniqueConstraint(
+                fields=("group", "user"),
+                name="unique_membership",
+            ),
+        )
 
     @classmethod
     def get_user_role_from_text(cls, user_role):
