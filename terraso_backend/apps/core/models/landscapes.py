@@ -58,3 +58,11 @@ class LandscapeGroup(BaseModel):
     group = models.ForeignKey(Group, on_delete=models.CASCADE, related_name="associated_landscapes")
 
     is_default_landscape_group = models.BooleanField(blank=True, default=False)
+
+    class Meta:
+        constraints = (
+            models.UniqueConstraint(
+                fields=("group", "landscape"),
+                name="unique_landscape_group",
+            ),
+        )

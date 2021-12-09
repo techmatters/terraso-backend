@@ -43,6 +43,39 @@ def test_landscape_groups_add(client_query, landscapes, groups, is_default_group
     assert landscape_group["isDefaultLandscapeGroup"] is is_default_group
 
 
+def test_landscape_groups_add_duplicated(client_query, landscape_groups):
+    landscape = landscape_groups[0].landscape
+    group = landscape_groups[0].group
+
+    response = client_query(
+        """
+        mutation addLandscapeGroup($input: LandscapeGroupAddMutationInput!){
+          addLandscapeGroup(input: $input) {
+            landscapeGroup {
+              id
+              landscape {
+                name
+              }
+              group {
+                name
+              }
+              isDefaultLandscapeGroup
+            }
+          }
+        }
+        """,
+        variables={
+            "input": {
+                "landscapeSlug": landscape.slug,
+                "groupSlug": group.slug,
+            }
+        },
+    )
+    error_result = response.json()["errors"][0]
+
+    assert "Group and Landscape already exists" in error_result["message"]
+
+
 def test_landscape_groups_add_without_default(client_query, landscapes, groups):
     landscape = landscapes[0]
     group = groups[0]

@@ -35,6 +35,35 @@ def test_group_associations_add(client_query, groups):
     assert group_association["childGroup"]["slug"] == child_group.slug
 
 
+def test_group_associations_add_duplicated(client_query, group_associations):
+    parent_group = group_associations[0].parent_group
+    child_group = group_associations[0].child_group
+
+    response = client_query(
+        """
+        mutation addGroupAssociation($input: GroupAssociationAddMutationInput!){
+          addGroupAssociation(input: $input) {
+            groupAssociation {
+              id
+              parentGroup { slug }
+              childGroup { slug }
+            }
+          }
+        }
+        """,
+        variables={
+            "input": {
+                "parentGroupSlug": parent_group.slug,
+                "childGroupSlug": child_group.slug,
+            }
+        },
+    )
+
+    error_result = response.json()["errors"][0]
+
+    assert "Parent group and Child group already exists" in error_result["message"]
+
+
 def test_group_associations_delete(client_query, group_associations):
     old_group_association = _get_group_associations(client_query)[0]
     response = client_query(
