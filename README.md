@@ -59,6 +59,16 @@ calling an API or clicking in some button. As soon as the process get to
 the break point, the attached shell should open the Python debugger. To
 continue the application request processing, just release the debugger.
 
+## Loading sample data
+
+The repository has a file with sample data that can be imported to a new
+installation of the project. The Django built-in command `loaddata` is
+used for it:
+
+```sh
+$ python terraso_backend/manage.py loaddata sampledata.json
+```
+
 ## Contributing
 
 Before contributing to the project, it's recommended that you set up
