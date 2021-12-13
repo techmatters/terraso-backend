@@ -22,6 +22,7 @@ INSTALLED_APPS = [
     "graphene_django",
     "apps.core",
     "apps.graphql",
+    "apps.auth",
     "corsheaders",
 ]
 
@@ -115,3 +116,8 @@ GRAPHENE = {
 CORS_ORIGIN_WHITELIST = config("CORS_ORIGIN_WHITELIST", default=[], cast=config.list)
 
 AIRTABLE_API_KEY = config("AIRTABLE_API_KEY", default="")
+
+
+GOOGLE_CLIENT_ID = config("GOOGLE_CLIENT_ID", default="")
+GOOGLE_CLIENT_SECRET = config("GOOGLE_CLIENT_SECRET", default="")
+GOOGLE_AUTH_REDIRECT_URI = config("GOOGLE_AUTH_REDIRECT_URI", default="")
