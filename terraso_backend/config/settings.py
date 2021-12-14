@@ -128,3 +128,12 @@ APPLE_TEAM_ID = config("APPLE_TEAM_ID", default="")
 APPLE_PRIVATE_KEY = config("APPLE_PRIVATE_KEY", default="")
 APPLE_CLIENT_ID = config("APPLE_CLIENT_ID", default="")
 APPLE_AUTH_REDIRECT_URI = config("APPLE_AUTH_REDIRECT_URI", default="")
+
+JWT_SECRET = config("JWT_SECRET")
+JWT_ALGORITHM = config("JWT_ALGORITHM", default="HS512")
+JWT_ACCESS_EXP_DELTA_SECONDS = config(
+    "JWT_ACCESS_EXP_DELTA_SECONDS", default="360", cast=config.eval
+)
+JWT_REFRESH_EXP_DELTA_SECONDS = config(
+    "JWT_REFRESH_EXP_DELTA_SECONDS", default="3600", cast=config.eval
+)

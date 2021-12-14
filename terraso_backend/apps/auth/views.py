@@ -6,7 +6,7 @@ from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.views import View
 
 from .providers import AppleProvider, GoogleProvider
-from .services import AccountService
+from .services import AccountService, JWTService
 
 User = get_user_model()
 
@@ -29,6 +29,9 @@ class GoogleCallbackView(View):
 
         try:
             user = AccountService().sign_up_with_google(authorization_code)
+            jwt_service = JWTService()
+            access_token = jwt_service.create_access_token(user)
+            refresh_token = jwt_service.create_refresh_token(user)
         except Exception as exc:
             return HttpResponse(f"Error: {exc}", status=400)
 
@@ -37,7 +40,9 @@ class GoogleCallbackView(View):
                 "email": user.email,
                 "first_name": user.first_name,
                 "last_name": user.last_name,
-            }
+                "access_token": access_token,
+                "refresh_token": refresh_token,
+            },
         }
 
         response = HttpResponseRedirect(settings.WEB_CLIENT_URL)
