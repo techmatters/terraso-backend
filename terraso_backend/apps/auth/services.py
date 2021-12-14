@@ -52,6 +52,7 @@ class JWTService:
     JWT_ALGORITHM = settings.JWT_ALGORITHM
     JWT_ACCESS_EXP_DELTA_SECONDS = settings.JWT_ACCESS_EXP_DELTA_SECONDS
     JWT_REFRESH_EXP_DELTA_SECONDS = settings.JWT_REFRESH_EXP_DELTA_SECONDS
+    JWT_ISS = settings.JWT_ISS
 
     def create_access_token(self, user):
         payload = self._get_base_payload(user)
@@ -70,7 +71,7 @@ class JWTService:
 
     def _get_base_payload(self, user):
         return {
-            "iss": "https://terraso.org",
+            "iss": self.JWT_ISS,
             "iat": timezone.now(),
             "sub": str(user.id),
             "jti": uuid4().hex,

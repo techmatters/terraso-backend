@@ -138,3 +138,4 @@ JWT_ACCESS_EXP_DELTA_SECONDS = config(
 JWT_REFRESH_EXP_DELTA_SECONDS = config(
     "JWT_REFRESH_EXP_DELTA_SECONDS", default="3600", cast=config.eval
 )
+JWT_ISS = config("JWT_ISS", default="https://terraso.org")
