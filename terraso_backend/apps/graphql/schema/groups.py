@@ -29,6 +29,7 @@ class GroupNode(DjangoObjectType):
             "memberships",
             "associations_as_parent",
             "associations_as_child",
+            "associated_landscapes",
         )
         interfaces = (relay.Node,)
 
