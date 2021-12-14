@@ -20,6 +20,11 @@ def apple_url():
     return reverse("terraso_auth:google-authorize")
 
 
+@pytest.fixture
+def refresh_tokens_url():
+    return reverse("terraso_auth:tokens")
+
+
 def test_get_google_login_url(client, google_url):
     response = client.get(google_url)
 
@@ -121,3 +126,67 @@ def test_post_apple_callback_with_bad_user(client):
 
     assert response.status_code == 400
     assert "couldn't parse User data from Apple" in response.content.decode()
+
+
+def test_post_refresh_token_without_token(client, refresh_tokens_url, refresh_token):
+    response = client.post(
+        refresh_tokens_url, data={"refresh_token": ""}, content_type="application/json"
+    )
+
+    assert response.status_code == 400
+    assert "error" in response.json()
+
+
+def test_post_refresh_token_successfully(client, refresh_tokens_url, refresh_token):
+    response = client.post(
+        refresh_tokens_url, data={"refresh_token": refresh_token}, content_type="application/json"
+    )
+
+    assert response.status_code == 200
+
+    tokens_data = response.json()
+
+    assert "access_token" in tokens_data
+    assert "refresh_token" in tokens_data
+
+
+def test_post_refresh_token_expired_token(client, refresh_tokens_url, expired_refresh_token):
+    response = client.post(
+        refresh_tokens_url,
+        data={"refresh_token": expired_refresh_token},
+        content_type="application/json",
+    )
+
+    assert response.status_code == 400
+
+    tokens_data = response.json()
+
+    assert tokens_data["error"] == "Signature has expired"
+
+
+def test_post_refresh_token_deleted_user(client, refresh_tokens_url, user, refresh_token):
+    user.delete()
+
+    response = client.post(
+        refresh_tokens_url, data={"refresh_token": refresh_token}, content_type="application/json"
+    )
+
+    assert response.status_code == 400
+
+    tokens_data = response.json()
+
+    assert tokens_data["error"] == "User not found"
+
+
+def test_post_refresh_token_inactive_user(client, refresh_tokens_url, user, refresh_token):
+    user.is_active = False
+    user.save()
+
+    response = client.post(
+        refresh_tokens_url, data={"refresh_token": refresh_token}, content_type="application/json"
+    )
+
+    assert response.status_code == 400
+
+    tokens_data = response.json()
+    assert tokens_data["error"] == "User not found"
