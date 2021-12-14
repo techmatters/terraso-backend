@@ -28,10 +28,10 @@ lint:
 	flake8 terraso_backend && isort -c terraso_backend
 
 lock: pip-tools
-	CUSTOM_COMPILE_COMMAND="make lock" pip-compile --generate-hashes --output-file requirements.txt requirements/base.in requirements/deploy.in
+	CUSTOM_COMPILE_COMMAND="make lock" pip-compile --upgrade --generate-hashes --output-file requirements.txt requirements/base.in requirements/deploy.in
 
 lock-dev: pip-tools
-	CUSTOM_COMPILE_COMMAND="make lock-dev" pip-compile --generate-hashes --output-file requirements-dev.txt requirements/dev.in
+	CUSTOM_COMPILE_COMMAND="make lock-dev" pip-compile --upgrade --generate-hashes --output-file requirements-dev.txt requirements/dev.in
 
 migrate: check_rebuild
 	./scripts/run.sh python terraso_backend/manage.py migrate --no-input
