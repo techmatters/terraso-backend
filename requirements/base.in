@@ -1,6 +1,7 @@
 graphene-django
 httpx
-django
+# graphene-django still doesn't support Django 4
+django<4.0
 django-cors-headers
 django-filter
 dj-database-url
