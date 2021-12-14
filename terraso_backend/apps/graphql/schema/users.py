@@ -12,7 +12,7 @@ class UserNode(DjangoObjectType):
     class Meta:
         model = User
         filter_fields = {
-            "email": ["icontains"],
+            "email": ["exact", "icontains"],
             "first_name": ["icontains"],
             "last_name": ["icontains"],
         }
