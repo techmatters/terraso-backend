@@ -19,6 +19,8 @@ class GroupNode(DjangoObjectType):
             "associations_as_parent__child_group__slug": ["icontains"],
             "associations_as_child__parent_group__slug": ["icontains"],
             "memberships": ["exact"],
+            "associated_landscapes__is_default_landscape_group": ["exact"],
+            "members__email": ["exact"],
         }
         fields = (
             "name",
