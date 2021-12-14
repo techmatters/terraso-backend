@@ -6,6 +6,7 @@ from apps.auth.views import (
     AppleCallbackView,
     GoogleAuthorizeView,
     GoogleCallbackView,
+    RefreshAccessTokenView,
 )
 
 app_name = "apps.auth"
@@ -23,4 +24,5 @@ urlpatterns = [
         csrf_exempt(GoogleCallbackView.as_view()),
         name="google-callback",
     ),
+    path("tokens", csrf_exempt(RefreshAccessTokenView.as_view()), name="tokens"),
 ]
