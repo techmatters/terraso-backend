@@ -228,7 +228,9 @@ pytest-django==4.5.2 \
 python-dateutil==2.8.2 \
     --hash=sha256:0123cacc1627ae19ddf3c27a5de5bd67ee4586fbdd6440d9748f8abb483d3e86 \
     --hash=sha256:961d03dc3453ebbc59dbdea9e4e11c5651520a876d0f4db161e8674aae935da9
-    # via faker
+    # via
+    #   faker
+    #   freezegun
 respx==0.19.0 \
     --hash=sha256:1ac1cc99bf892ffd3e33108ae43d71d8309a58ac226965f4bd81ec055600f265 \
     --hash=sha256:4a09e15803c7450d45303520ec528794c9fd77b05984263bc83b78aabbb39413
