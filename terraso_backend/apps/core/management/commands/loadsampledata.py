@@ -50,7 +50,7 @@ class Command(BaseCommand):
             # Creates Partnership group
             partnership_name = landscape_data.get("Landscape Partnership Name")
             if partnership_name:
-                group, _ = Group.objects.get_or_create(
+                group, _ = Group.objects.update_or_create(
                     name=partnership_name,
                     defaults={"description": landscape_data.get("General Description", "")},
                 )

@@ -58,7 +58,7 @@
   "pk": "0485458f-579e-44d8-b877-1d1af33d6772",
   "fields": {
     "created_at": "2021-12-17T14:10:02.909Z",
-    "updated_at": "2021-12-17T14:50:51.647Z",
+    "updated_at": "2021-12-17T20:45:00.909Z",
     "slug": "umngeni-group",
     "name": "uMngeni Group",
     "description": "",
@@ -71,7 +71,7 @@
   "pk": "10dd75dc-1b2f-4eb1-a5c6-e178b03b8421",
   "fields": {
     "created_at": "2021-12-17T14:10:02.864Z",
-    "updated_at": "2021-12-17T14:50:51.609Z",
+    "updated_at": "2021-12-17T20:45:00.849Z",
     "slug": "cobiocom-group",
     "name": "COBIOCOM Group",
     "description": "",
@@ -97,7 +97,7 @@
   "pk": "21e205fd-95a4-476b-9fbd-61540aea561a",
   "fields": {
     "created_at": "2021-12-17T14:10:02.895Z",
-    "updated_at": "2021-12-17T14:50:51.637Z",
+    "updated_at": "2021-12-17T20:45:00.896Z",
     "slug": "lake-naivasha-basin-landscape-association-lanabla",
     "name": "Lake Naivasha Basin Landscape Association (LANABLA) ",
     "description": "At Lake Naivasha Basin Landscape Association we believe in the spirit of collaboration. We are working closely with the National government, county governments, state agencies and Non-Governmental Organizations (NGOs) involved in Natural resource Management in Lake Naivasha Basin.\n",
@@ -110,7 +110,7 @@
   "pk": "22e86e4a-4f91-483e-9a1b-cc8fb7077357",
   "fields": {
     "created_at": "2021-12-17T14:10:02.841Z",
-    "updated_at": "2021-12-17T14:50:51.599Z",
+    "updated_at": "2021-12-17T20:45:00.836Z",
     "slug": "ecocacao",
     "name": "ECOCACAO",
     "description": "Eco Cacao is part of **[UOPRACAE](https://www.conexionchocolate.com/esmeraldas/)**, a co-operative of approximately 120 farmers from the Esmeraldas region in Ecuador. \n",
@@ -123,7 +123,7 @@
   "pk": "254c812c-35cc-45bc-a524-7340d862bf55",
   "fields": {
     "created_at": "2021-12-17T14:10:02.949Z",
-    "updated_at": "2021-12-17T14:50:51.681Z",
+    "updated_at": "2021-12-17T20:45:00.967Z",
     "slug": "alto-mayo-group",
     "name": "Alto Mayo Group",
     "description": "",
@@ -136,10 +136,10 @@
   "pk": "32da30eb-6db2-4074-9f7c-ae342160a7d7",
   "fields": {
     "created_at": "2021-12-17T14:10:02.934Z",
-    "updated_at": "2021-12-17T14:10:02.934Z",
+    "updated_at": "2021-12-17T20:45:00.946Z",
     "slug": "wwfs-great-sea-reef-resilience-programme",
     "name": "WWF's Great Sea Reef Resilience Programme",
-    "description": "",
+    "description": "The Great Sea Reef (GSR), locally known as the “Cakaulevu” is the southern hemisphere’s third longest continuous barrier reef system. Running over 200km in length from the northern most tip of the island of Vanua Levu to the outer most barrier reefs and the near-shore fringing reefs of the Yasawa Islands, the GSR is home to a high value coral reef biodiversity area. Four of the six major rivers of the country drain into the GSR. Two of the major, deltas, mangrove systems and much of the sea grasses important for turtles and fish nursery grounds.\nThe reef has been part of the Fijian lifestyle for centuries, providing sustenance, protection and supports a diverse range of industries from fishing to tourism being the highest revenue earner for the past decade. The GSR is a test of the fine balance between development and resource management for Fiji.\n\n",
     "website": "",
     "email": ""
   }
@@ -149,7 +149,7 @@
   "pk": "39fecb54-934a-45da-849f-a7e31636cfd5",
   "fields": {
     "created_at": "2021-12-17T14:10:02.749Z",
-    "updated_at": "2021-12-17T14:50:51.525Z",
+    "updated_at": "2021-12-17T20:45:00.712Z",
     "slug": "kiambu-group",
     "name": "Kiambu Group",
     "description": "",
@@ -162,7 +162,7 @@
   "pk": "3e0b74e9-ae66-4841-a446-bf5b2d935a45",
   "fields": {
     "created_at": "2021-12-17T14:10:02.821Z",
-    "updated_at": "2021-12-17T14:50:51.582Z",
+    "updated_at": "2021-12-17T20:45:00.806Z",
     "slug": "wwf",
     "name": "WWF",
     "description": "Sustainable development of this area and the well-being of local communities is a mission of a team of partners: AMZA, WWF, Armeniș City Hall, Rewilding Europe and friends all over the country:\n",
@@ -175,10 +175,10 @@
   "pk": "475ef721-16ec-4452-8d31-1354ed26d9ac",
   "fields": {
     "created_at": "2021-12-17T14:10:02.873Z",
-    "updated_at": "2021-12-17T14:10:02.873Z",
+    "updated_at": "2021-12-17T20:45:00.857Z",
     "slug": "cobiocom",
     "name": "COBIOCOM",
-    "description": "",
+    "description": "The Biocultural Corridor of the Central West of Mexico (COBIOCOM) is an inter-institutional initiative made up of environmental institutions from the federal entities of western Mexico (Jalisco, Nayarit, Zacatecas, Aguascalientes, San Luis Potosí, Guanajuato, Michoacán and Colima), by the National Commission for Natural Protected Areas (CONANP), the National Commission for the Knowledge and Use of Biodiversity (CONABIO), Reforestamos México, Ecosystemics and allies WWF-México and IRPMZ.\n\n",
     "website": "",
     "email": ""
   }
@@ -188,7 +188,7 @@
   "pk": "478f33b0-5ae1-468e-8dfc-4a878973e2d9",
   "fields": {
     "created_at": "2021-12-17T14:10:03.051Z",
-    "updated_at": "2021-12-17T14:50:51.760Z",
+    "updated_at": "2021-12-17T20:45:01.112Z",
     "slug": "ra-indonesia",
     "name": "RA - Indonesia",
     "description": "Our landscape initiative is part of District multi-stakeholder initiative such as District Multi-stakeholder platform for sustainable palm oil. The partnership is at the District Level. \n",
@@ -201,10 +201,10 @@
   "pk": "496f6684-421e-4eda-8ee7-5f7aa2f55d53",
   "fields": {
     "created_at": "2021-12-17T14:10:02.766Z",
-    "updated_at": "2021-12-17T14:10:02.766Z",
+    "updated_at": "2021-12-17T20:45:01.035Z",
     "slug": "no-formal-partnership",
     "name": "No formal partnership",
-    "description": "",
+    "description": "Catchments in the mountains of southern South Africa where collaborations with the local farming community have resulted in large-scale rehabilitation and regenerative agriculture programs.\n",
     "website": "",
     "email": ""
   }
@@ -214,10 +214,10 @@
   "pk": "4bbc51b0-21ad-4d52-b058-f6d2ea80a6e1",
   "fields": {
     "created_at": "2021-12-17T14:10:02.835Z",
-    "updated_at": "2021-12-17T14:10:02.835Z",
+    "updated_at": "2021-12-17T20:45:00.827Z",
     "slug": "acus-penninsula-galera-san-francisco",
     "name": "ACUS Penninsula Galera-San Francisco",
-    "description": "",
+    "description": "The Galera-San Francisco Peninsula is a unique landscape holding some of the last remnants of the coastal Chocó rainforest in Ecuador.\n",
     "website": "",
     "email": ""
   }
@@ -227,7 +227,7 @@
   "pk": "512b6396-e144-4ca5-922b-84cc65af67cc",
   "fields": {
     "created_at": "2021-12-17T14:10:03.039Z",
-    "updated_at": "2021-12-17T14:50:51.751Z",
+    "updated_at": "2021-12-17T20:45:01.095Z",
     "slug": "sintang-group",
     "name": "Sintang Group",
     "description": "",
@@ -240,7 +240,7 @@
   "pk": "5ba89095-bfde-4ee7-a2c9-73177b025c2a",
   "fields": {
     "created_at": "2021-12-17T14:10:02.830Z",
-    "updated_at": "2021-12-17T14:50:51.590Z",
+    "updated_at": "2021-12-17T20:45:00.820Z",
     "slug": "acus-penninsula-galera-san-francisco-group",
     "name": "ACUS Penninsula Galera-San Francisco Group",
     "description": "",
@@ -253,7 +253,7 @@
   "pk": "664fd553-158c-40d0-bcd1-8117e25d6bcc",
   "fields": {
     "created_at": "2021-12-17T14:10:02.796Z",
-    "updated_at": "2021-12-17T14:50:51.563Z",
+    "updated_at": "2021-12-17T20:45:00.770Z",
     "slug": "anei",
     "name": "ANEI",
     "description": "\nANEI is an organization made up of 700 producers from families belonging to 4 native communities (Arhuacos, Koguis, Kankuamos and Wiwas), and farmers from the Sierra Nevada de Santa Marta and Serranía del Perijá.  They share a vision of the world from a social and environmental point of view, where small actions add solutions to the needs of the communities. ANEI was founded in order to improve the living conditions of indigenous communities and peasant families in the region, directing them to a new vision of the world, broader and full of opportunities that links them with the consumers of its products in different parts of the world. , whose purpose is the improvement of their quality of life and the search for their sustainability.\n\n\nsupported by Ethos Agriculture: <https://ethosagriculture.com/> \n\n",
@@ -266,7 +266,7 @@
   "pk": "67b153d7-c33e-49d6-8506-568c98df4ca6",
   "fields": {
     "created_at": "2021-12-17T14:10:03.031Z",
-    "updated_at": "2021-12-17T14:50:51.743Z",
+    "updated_at": "2021-12-17T20:45:01.075Z",
     "slug": "ci-guyana",
     "name": "CI - Guyana",
     "description": "Since 1989, CI has been working in Guyana focusing on species conservation and supporting efforts to establish a national system of protected areas as part of its broader mission to protect nature for the benefit of all. Globally, CI works at every level from villages to Presidents and heads of corporations to find solutions and support the move towards a healthier, more sustainable development path. Through science, policy, and partnerships with countries, communities and companies, CI, over the years, has helped support 1,200 protected areas and interventions across 77 countries, safeguarding more than 601 million hectares of land, marine and coastal areas.\n",
@@ -279,10 +279,10 @@
   "pk": "69d10512-d29c-4b4a-8b01-87b286b0f1b6",
   "fields": {
     "created_at": "2021-12-17T14:10:03.045Z",
-    "updated_at": "2021-12-17T14:10:03.045Z",
+    "updated_at": "2021-12-17T20:45:01.104Z",
     "slug": "sintang-district-multistakeholder-partnership",
     "name": "Sintang District Multistakeholder Partnership",
-    "description": "",
+    "description": "The Sintang district in Indonesia is home to globally significant forests. About half the tree cover is primary tropical rainforest, and about one-third of this is still intact.\n",
     "website": "",
     "email": ""
   }
@@ -292,7 +292,7 @@
   "pk": "7db3169a-e77b-4a37-8e29-eb346c30b2d2",
   "fields": {
     "created_at": "2021-12-17T14:10:02.777Z",
-    "updated_at": "2021-12-17T14:50:51.539Z",
+    "updated_at": "2021-12-17T20:45:00.734Z",
     "slug": "kiambu-county-government",
     "name": "Kiambu County Government",
     "description": "Our developing landscape partnership is made up of National Government, Governor, Tribal Government, and other Landscape Leaders.\n",
@@ -305,7 +305,7 @@
   "pk": "843b9f69-d218-4710-8297-67aa30056ce0",
   "fields": {
     "created_at": "2021-12-17T14:10:03.006Z",
-    "updated_at": "2021-12-17T14:50:51.725Z",
+    "updated_at": "2021-12-17T20:45:01.045Z",
     "slug": "living-lands",
     "name": "Living Lands",
     "description": "",
@@ -318,7 +318,7 @@
   "pk": "89cd79fb-d33f-45a3-8378-f0bba9693825",
   "fields": {
     "created_at": "2021-12-17T14:10:02.940Z",
-    "updated_at": "2021-12-17T14:50:51.673Z",
+    "updated_at": "2021-12-17T20:45:00.956Z",
     "slug": "matanataki",
     "name": "Matanataki",
     "description": "Matanataki is a partnership between the Landscape Finance Lab, The Earth Care Agency, Ikigai and Ennovent, a private company that specialises in under-served markets. Matanataki is a dedicated financial partnership which sources investable businesses and attracts international investors, including private investors and international development institutions. \n",
@@ -331,10 +331,10 @@
   "pk": "98645aaa-c99d-43a9-92ee-535132894f05",
   "fields": {
     "created_at": "2021-12-17T14:10:02.956Z",
-    "updated_at": "2021-12-17T14:10:02.956Z",
+    "updated_at": "2021-12-17T20:45:00.975Z",
     "slug": "alto-mayo",
     "name": "Alto Mayo",
-    "description": "",
+    "description": "Part of the Abiseo- Condor-Kutuku conservation corridor in Peru, the Alto Mayo region is rich in biodiversity and ecosystems that provide important ecosystem services at the local and global levels.\n",
     "website": "",
     "email": ""
   }
@@ -344,7 +344,7 @@
   "pk": "99bb503f-5f45-4010-b9db-138857310140",
   "fields": {
     "created_at": "2021-12-17T14:10:02.810Z",
-    "updated_at": "2021-12-17T14:50:51.572Z",
+    "updated_at": "2021-12-17T20:45:00.788Z",
     "slug": "bison-hillock-group",
     "name": "Bison Hillock Group",
     "description": "",
@@ -357,7 +357,7 @@
   "pk": "99cd3009-3629-4c63-83e9-f8c772493d37",
   "fields": {
     "created_at": "2021-12-17T14:10:02.961Z",
-    "updated_at": "2021-12-17T14:50:51.691Z",
+    "updated_at": "2021-12-17T20:45:00.985Z",
     "slug": "conservation-international-peru",
     "name": "Conservation International Peru",
     "description": "The Alto Mayo Landscape Peru REDD+ Project was started in 2007 to protect and restore the Alto Mayo Protected Forest by working directly with the local community and the Peruvian government. Instead of turning a blind eye to settlers encroaching on the protected area, the project sought to engage them in a holistic solution designed to reduce deforestation, conserve biodiversity, and improve local livelihoods. This project serves as an example of how conservation and sustainable income streams can work in tandem.\n",
@@ -370,7 +370,7 @@
   "pk": "9cc85e4d-7fe7-4fc9-9c5d-caa515ae56bf",
   "fields": {
     "created_at": "2021-12-17T14:10:02.890Z",
-    "updated_at": "2021-12-17T14:50:51.627Z",
+    "updated_at": "2021-12-17T20:45:00.878Z",
     "slug": "lake-naivasha-basin-group",
     "name": "Lake Naivasha Basin Group",
     "description": "",
@@ -383,7 +383,7 @@
   "pk": "a0927aec-1de6-4a5d-b992-9dafab99e851",
   "fields": {
     "created_at": "2021-12-17T14:10:02.990Z",
-    "updated_at": "2021-12-17T14:50:51.716Z",
+    "updated_at": "2021-12-17T20:45:01.027Z",
     "slug": "baviaanskloof-langkloof-group",
     "name": "Baviaanskloof & Langkloof Group",
     "description": "",
@@ -396,10 +396,10 @@
   "pk": "bdc765e7-d528-4688-9fa8-0f8974fffc32",
   "fields": {
     "created_at": "2021-12-17T14:10:03.026Z",
-    "updated_at": "2021-12-17T14:10:03.026Z",
+    "updated_at": "2021-12-17T20:45:01.067Z",
     "slug": "regional-development-consultative-committee-rdcc",
     "name": "Regional Development Consultative Committee (RDCC) ",
-    "description": "",
+    "description": "The Rupununi Savannah encompasses 5000 square miles of grasslands, swamplands, rain-forested mountains and is Guyana’s most biologically diverse region.\n",
     "website": "",
     "email": ""
   }
@@ -409,7 +409,7 @@
   "pk": "c35740f4-f87a-4db2-8738-6d1b67579c89",
   "fields": {
     "created_at": "2021-12-17T14:10:02.969Z",
-    "updated_at": "2021-12-17T14:50:51.699Z",
+    "updated_at": "2021-12-17T20:45:00.995Z",
     "slug": "altiplano-estepario-group",
     "name": "Altiplano Estepario Group",
     "description": "",
@@ -422,7 +422,7 @@
   "pk": "c7103a14-6a3f-473c-8f3a-739ead66db80",
   "fields": {
     "created_at": "2021-12-17T14:10:03.019Z",
-    "updated_at": "2021-12-17T14:50:51.733Z",
+    "updated_at": "2021-12-17T20:45:01.059Z",
     "slug": "rupununi-group",
     "name": "Rupununi Group",
     "description": "",
@@ -435,7 +435,7 @@
   "pk": "cda642a1-9d54-4a6c-803a-03d05ec1ca5a",
   "fields": {
     "created_at": "2021-12-17T14:10:02.915Z",
-    "updated_at": "2021-12-17T14:50:51.655Z",
+    "updated_at": "2021-12-17T20:45:00.926Z",
     "slug": "umngeni-ecological-infrastructure-partnership-ueip",
     "name": "uMngeni Ecological Infrastructure Partnership (UEIP)",
     "description": "The uMngeni Ecological Infrastructure Partnership (UEIP) is a partnership that was formally established in November 2013 upon signing of a Memorandum of Understanding (MoU) by key organisations that are committed to finding ways of integrating ecological infrastructure solutions to support built infrastructure investments in addressing challenges of water security in the uMngeni catchment.  Growing population and economic development in the catchment have led the uMngeni system being unable to meet the demand for delivery of water services in the area. The partnership currently comprises over 20 organisations from national, provincial and local government departments, business and academic institutions as well as civil society. The South African National Biodiversity Institute (SANBI), as a co-founder of the UEIP, has been the centre of coordination for the partnership since its inception. The primary focus of the UEIP is to explore the role that ecological infrastructure can play in improving water security in the catchment.\n",
@@ -448,7 +448,7 @@
   "pk": "cefbaa33-2e97-42ea-bac2-86fb14e191f9",
   "fields": {
     "created_at": "2021-12-17T14:10:02.790Z",
-    "updated_at": "2021-12-17T14:50:51.551Z",
+    "updated_at": "2021-12-17T20:45:00.749Z",
     "slug": "sacred-sierra-group",
     "name": "Sacred Sierra Group",
     "description": "",
@@ -461,10 +461,10 @@
   "pk": "d64b5376-a3e2-4cb3-abf4-debb98df1a1a",
   "fields": {
     "created_at": "2021-12-17T14:10:02.815Z",
-    "updated_at": "2021-12-17T14:10:02.815Z",
+    "updated_at": "2021-12-17T20:45:00.795Z",
     "slug": "bison-hillock-association",
     "name": "Bison Hillock Association",
-    "description": "",
+    "description": "The Bison Hillock stretches over the picturesque landscapes of the community of Armeniș, where an ambitious project on the protection of wildlife has been embraced and developed over the past 4 years. Sustainable development of this area and the well-being of local communities is a mission of a team of partners: AMZA, WWF, Armeniș City Hall, Rewilding Europe and friends all over the country. With the arrival of the first bison in Armeniș, the Bison Hillock Association was born to boost the development of activities that value wildlife and cultural heritage in a sustainable way. AMZA is the umbrella of small or large initiatives that sum up the ecotourism offer in this area: accommodation and meals, specialised guides, local products, trails and tourist infrastructure, promoting them under a single brand of the Bison Hillock.\n",
     "website": "",
     "email": ""
   }
@@ -474,7 +474,7 @@
   "pk": "e894a26a-005b-4b08-b1cb-a2a4d32d8449",
   "fields": {
     "created_at": "2021-12-17T14:10:02.881Z",
-    "updated_at": "2021-12-17T14:50:51.618Z",
+    "updated_at": "2021-12-17T20:45:00.863Z",
     "slug": "reforestamos-mexico",
     "name": "Reforestamos México",
     "description": "The Biocultural Corridor of the Central West of Mexico (COBIOCOM) is an inter-institutional initiative made up of environmental institutions from the federal entities of western Mexico (Jalisco, Nayarit, Zacatecas, Aguascalientes, San Luis Potosí, Guanajuato, Michoacán and Colima), by the National Commission for Natural Protected Areas (CONANP), the National Commission for the Knowledge and Use of Biodiversity (CONABIO), Reforestamos México, Ecosystemics and allies WWF-México and IRPMZ.\n\n",
@@ -487,7 +487,7 @@
   "pk": "eb5dfdad-4bf6-49b1-9f2b-1e55ec742ad9",
   "fields": {
     "created_at": "2021-12-17T14:10:02.974Z",
-    "updated_at": "2021-12-17T14:50:51.708Z",
+    "updated_at": "2021-12-17T20:45:01.013Z",
     "slug": "alvelal",
     "name": "AlVelAl",
     "description": "The AlVelAl association brings together the plateau regions of Granada, Los Veléz, Alto Almanzora, Guadix and the Northeast of Murcia, well known for their production of high quality rain-fed almonds. One of our main aims is to mobilize the local communities and to convey that the vision of a self-sufficient region, full of life and growth, is achievable when ecological agriculture and livestock techniques that improve the soil’s fertility and absorption of water are applied.\n",
@@ -500,7 +500,7 @@
   "pk": "f2295b66-6ceb-48b8-bf77-34aed484c1be",
   "fields": {
     "created_at": "2021-12-17T14:10:02.929Z",
-    "updated_at": "2021-12-17T14:50:51.664Z",
+    "updated_at": "2021-12-17T20:45:00.939Z",
     "slug": "great-sea-reef-cakaulevu-group",
     "name": "Great Sea Reef (Cakaulevu) Group",
     "description": "",
@@ -546,7 +546,7 @@
   "pk": "00408dfd-76e9-448b-8d9f-345d6400eb33",
   "fields": {
     "created_at": "2021-12-17T14:10:02.739Z",
-    "updated_at": "2021-12-17T14:50:51.519Z",
+    "updated_at": "2021-12-17T20:45:00.704Z",
     "slug": "kiambu",
     "name": "Kiambu",
     "description": "Northwest of Nairobi, Kenya, the Kikuyu Escarpment forest lies to and covers the southern slopes of the Aberdare Escarpment.\n",
@@ -559,7 +559,7 @@
   "pk": "566a9090-bf6d-49b0-87b2-a2054b5d8252",
   "fields": {
     "created_at": "2021-12-17T14:10:03.037Z",
-    "updated_at": "2021-12-17T14:50:51.749Z",
+    "updated_at": "2021-12-17T20:45:01.090Z",
     "slug": "sintang",
     "name": "Sintang",
     "description": "The Sintang district in Indonesia is home to globally significant forests. About half the tree cover is primary tropical rainforest, and about one-third of this is still intact.\n",
@@ -572,7 +572,7 @@
   "pk": "57301ec8-0212-4386-8045-96843ef361c3",
   "fields": {
     "created_at": "2021-12-17T14:10:02.827Z",
-    "updated_at": "2021-12-17T14:50:51.587Z",
+    "updated_at": "2021-12-17T20:45:00.814Z",
     "slug": "acus-penninsula-galera-san-francisco",
     "name": "ACUS Penninsula Galera-San Francisco",
     "description": "The Galera-San Francisco Peninsula is a unique landscape holding some of the last remnants of the coastal Chocó rainforest in Ecuador.\n",
@@ -585,7 +585,7 @@
   "pk": "5e97a3e5-f4e3-4831-901f-be66be4b48b8",
   "fields": {
     "created_at": "2021-12-17T14:10:02.946Z",
-    "updated_at": "2021-12-17T14:50:51.678Z",
+    "updated_at": "2021-12-17T20:45:00.963Z",
     "slug": "alto-mayo",
     "name": "Alto Mayo",
     "description": "Part of the Abiseo- Condor-Kutuku conservation corridor in Peru, the Alto Mayo region is rich in biodiversity and ecosystems that provide important ecosystem services at the local and global levels.\n",
@@ -598,7 +598,7 @@
   "pk": "63c57cd1-7ff3-4ec3-b295-9cc2544ce852",
   "fields": {
     "created_at": "2021-12-17T14:10:02.927Z",
-    "updated_at": "2021-12-17T14:50:51.661Z",
+    "updated_at": "2021-12-17T20:45:00.934Z",
     "slug": "great-sea-reef-cakaulevu",
     "name": "Great Sea Reef (Cakaulevu)",
     "description": "The Great Sea Reef (GSR), locally known as the “Cakaulevu” is the southern hemisphere’s third longest continuous barrier reef system. Running over 200km in length from the northern most tip of the island of Vanua Levu to the outer most barrier reefs and the near-shore fringing reefs of the Yasawa Islands, the GSR is home to a high value coral reef biodiversity area. Four of the six major rivers of the country drain into the GSR. Two of the major, deltas, mangrove systems and much of the sea grasses important for turtles and fish nursery grounds.\nThe reef has been part of the Fijian lifestyle for centuries, providing sustenance, protection and supports a diverse range of industries from fishing to tourism being the highest revenue earner for the past decade. The GSR is a test of the fine balance between development and resource management for Fiji.\n\n",
@@ -611,7 +611,7 @@
   "pk": "6c54a8eb-f198-4988-85d7-c3137cfa8da4",
   "fields": {
     "created_at": "2021-12-17T14:10:02.807Z",
-    "updated_at": "2021-12-17T14:50:51.569Z",
+    "updated_at": "2021-12-17T20:45:00.780Z",
     "slug": "bison-hillock",
     "name": "Bison Hillock",
     "description": "The Bison Hillock stretches over the picturesque landscapes of the community of Armeniș, where an ambitious project on the protection of wildlife has been embraced and developed over the past 4 years. Sustainable development of this area and the well-being of local communities is a mission of a team of partners: AMZA, WWF, Armeniș City Hall, Rewilding Europe and friends all over the country. With the arrival of the first bison in Armeniș, the Bison Hillock Association was born to boost the development of activities that value wildlife and cultural heritage in a sustainable way. AMZA is the umbrella of small or large initiatives that sum up the ecotourism offer in this area: accommodation and meals, specialised guides, local products, trails and tourist infrastructure, promoting them under a single brand of the Bison Hillock.\n",
@@ -624,7 +624,7 @@
   "pk": "715feaec-f349-432d-a465-af6f3f76f891",
   "fields": {
     "created_at": "2021-12-17T14:10:02.967Z",
-    "updated_at": "2021-12-17T14:50:51.697Z",
+    "updated_at": "2021-12-17T20:45:00.993Z",
     "slug": "altiplano-estepario",
     "name": "Altiplano Estepario",
     "description": "A landscape in plateau regions of Spain seeking to mobilize local communities toward the vision of a self-sufficient region, full of life and growth.\n",
@@ -637,7 +637,7 @@
   "pk": "7cc77dcd-80e8-4695-afc7-0c8f677ad2cd",
   "fields": {
     "created_at": "2021-12-17T14:10:02.888Z",
-    "updated_at": "2021-12-17T14:50:51.624Z",
+    "updated_at": "2021-12-17T20:45:00.875Z",
     "slug": "lake-naivasha-basin",
     "name": "Lake Naivasha Basin",
     "description": "At Lake Naivasha Basin Landscape Association we believe in the spirit of collaboration. We are working closely with the National government, county governments, state agencies and Non-Governmental Organizations (NGOs) involved in Natural resource Management in Lake Naivasha Basin.\n",
@@ -650,7 +650,7 @@
   "pk": "7deabf81-b8da-4bf8-bcb1-1e82622cfd31",
   "fields": {
     "created_at": "2021-12-17T14:10:02.907Z",
-    "updated_at": "2021-12-17T14:50:51.644Z",
+    "updated_at": "2021-12-17T20:45:00.906Z",
     "slug": "umngeni",
     "name": "uMngeni",
     "description": "",
@@ -663,7 +663,7 @@
   "pk": "89baf52e-46c3-4e3c-a540-e7e9b7d208c3",
   "fields": {
     "created_at": "2021-12-17T14:10:02.786Z",
-    "updated_at": "2021-12-17T14:50:51.547Z",
+    "updated_at": "2021-12-17T20:45:00.743Z",
     "slug": "sacred-sierra",
     "name": "Sacred Sierra",
     "description": "\nANEI is an organization made up of 700 producers from families belonging to 4 native communities (Arhuacos, Koguis, Kankuamos and Wiwas), and farmers from the Sierra Nevada de Santa Marta and Serranía del Perijá.  They share a vision of the world from a social and environmental point of view, where small actions add solutions to the needs of the communities. ANEI was founded in order to improve the living conditions of indigenous communities and peasant families in the region, directing them to a new vision of the world, broader and full of opportunities that links them with the consumers of its products in different parts of the world. , whose purpose is the improvement of their quality of life and the search for their sustainability.\n\n\nsupported by Ethos Agriculture: <https://ethosagriculture.com/> \n\n",
@@ -676,7 +676,7 @@
   "pk": "a3c7c24a-9f2b-4eb7-a6c2-eb1a0c06011f",
   "fields": {
     "created_at": "2021-12-17T14:10:02.986Z",
-    "updated_at": "2021-12-17T14:50:51.714Z",
+    "updated_at": "2021-12-17T20:45:01.024Z",
     "slug": "baviaanskloof-langkloof",
     "name": "Baviaanskloof & Langkloof",
     "description": "Catchments in the mountains of southern South Africa where collaborations with the local farming community have resulted in large-scale rehabilitation and regenerative agriculture programs.\n",
@@ -689,7 +689,7 @@
   "pk": "b99e9f78-7088-4e9f-93c2-39024b60abeb",
   "fields": {
     "created_at": "2021-12-17T14:10:03.016Z",
-    "updated_at": "2021-12-17T14:50:51.730Z",
+    "updated_at": "2021-12-17T20:45:01.056Z",
     "slug": "rupununi",
     "name": "Rupununi",
     "description": "The Rupununi Savannah encompasses 5000 square miles of grasslands, swamplands, rain-forested mountains and is Guyana’s most biologically diverse region.\n",
@@ -702,7 +702,7 @@
   "pk": "fbd5bd37-e374-4222-b65b-f8bf16247387",
   "fields": {
     "created_at": "2021-12-17T14:10:02.859Z",
-    "updated_at": "2021-12-17T14:50:51.604Z",
+    "updated_at": "2021-12-17T20:45:00.844Z",
     "slug": "cobiocom",
     "name": "COBIOCOM",
     "description": "The Biocultural Corridor of the Central West of Mexico (COBIOCOM) is an inter-institutional initiative made up of environmental institutions from the federal entities of western Mexico (Jalisco, Nayarit, Zacatecas, Aguascalientes, San Luis Potosí, Guanajuato, Michoacán and Colima), by the National Commission for Natural Protected Areas (CONANP), the National Commission for the Knowledge and Use of Biodiversity (CONABIO), Reforestamos México, Ecosystemics and allies WWF-México and IRPMZ.\n\n",
@@ -715,7 +715,7 @@
   "pk": "045c8cd3-45e1-4a08-b8fd-ab8c3a078314",
   "fields": {
     "created_at": "2021-12-17T14:10:02.964Z",
-    "updated_at": "2021-12-17T14:50:51.694Z",
+    "updated_at": "2021-12-17T20:45:00.989Z",
     "landscape": "5e97a3e5-f4e3-4831-901f-be66be4b48b8",
     "group": "99cd3009-3629-4c63-83e9-f8c772493d37",
     "is_default_landscape_group": false
@@ -726,7 +726,7 @@
   "pk": "04b6b75e-540f-41a8-9459-b96441053631",
   "fields": {
     "created_at": "2021-12-17T14:10:02.992Z",
-    "updated_at": "2021-12-17T14:50:51.719Z",
+    "updated_at": "2021-12-17T20:45:01.030Z",
     "landscape": "a3c7c24a-9f2b-4eb7-a6c2-eb1a0c06011f",
     "group": "a0927aec-1de6-4a5d-b992-9dafab99e851",
     "is_default_landscape_group": true
@@ -737,7 +737,7 @@
   "pk": "07391711-c4d5-4851-bc29-9c377e51cd58",
   "fields": {
     "created_at": "2021-12-17T14:10:02.771Z",
-    "updated_at": "2021-12-17T14:50:51.535Z",
+    "updated_at": "2021-12-17T20:45:00.728Z",
     "landscape": "00408dfd-76e9-448b-8d9f-345d6400eb33",
     "group": "496f6684-421e-4eda-8ee7-5f7aa2f55d53",
     "is_default_landscape_group": false
@@ -748,7 +748,7 @@
   "pk": "0c4df567-7ccf-4e23-80e6-6b7ef6b9c9bd",
   "fields": {
     "created_at": "2021-12-17T14:10:02.850Z",
-    "updated_at": "2021-12-17T14:50:51.602Z",
+    "updated_at": "2021-12-17T20:45:00.840Z",
     "landscape": "57301ec8-0212-4386-8045-96843ef361c3",
     "group": "22e86e4a-4f91-483e-9a1b-cc8fb7077357",
     "is_default_landscape_group": false
@@ -759,7 +759,7 @@
   "pk": "10006047-8351-4cdd-8258-64f1068efe4d",
   "fields": {
     "created_at": "2021-12-17T14:10:02.869Z",
-    "updated_at": "2021-12-17T14:50:51.612Z",
+    "updated_at": "2021-12-17T20:45:00.853Z",
     "landscape": "fbd5bd37-e374-4222-b65b-f8bf16247387",
     "group": "10dd75dc-1b2f-4eb1-a5c6-e178b03b8421",
     "is_default_landscape_group": true
@@ -770,7 +770,7 @@
   "pk": "16b2a4f1-986a-4219-87e1-0edb3c5ebe18",
   "fields": {
     "created_at": "2021-12-17T14:10:02.912Z",
-    "updated_at": "2021-12-17T14:50:51.650Z",
+    "updated_at": "2021-12-17T20:45:00.913Z",
     "landscape": "7deabf81-b8da-4bf8-bcb1-1e82622cfd31",
     "group": "0485458f-579e-44d8-b877-1d1af33d6772",
     "is_default_landscape_group": true
@@ -781,7 +781,7 @@
   "pk": "1dd73728-64f3-47a4-87aa-bb80c7e4724c",
   "fields": {
     "created_at": "2021-12-17T14:10:02.799Z",
-    "updated_at": "2021-12-17T14:50:51.566Z",
+    "updated_at": "2021-12-17T20:45:00.775Z",
     "landscape": "89baf52e-46c3-4e3c-a540-e7e9b7d208c3",
     "group": "664fd553-158c-40d0-bcd1-8117e25d6bcc",
     "is_default_landscape_group": false
@@ -792,7 +792,7 @@
   "pk": "237c110d-170e-4267-91e3-4490e040770d",
   "fields": {
     "created_at": "2021-12-17T14:10:03.034Z",
-    "updated_at": "2021-12-17T14:50:51.746Z",
+    "updated_at": "2021-12-17T20:45:01.079Z",
     "landscape": "b99e9f78-7088-4e9f-93c2-39024b60abeb",
     "group": "67b153d7-c33e-49d6-8506-568c98df4ca6",
     "is_default_landscape_group": false
@@ -803,7 +803,7 @@
   "pk": "32d74361-ff3e-424e-bbce-ffba1c3b4511",
   "fields": {
     "created_at": "2021-12-17T14:10:02.959Z",
-    "updated_at": "2021-12-17T14:50:51.687Z",
+    "updated_at": "2021-12-17T20:45:00.979Z",
     "landscape": "5e97a3e5-f4e3-4831-901f-be66be4b48b8",
     "group": "98645aaa-c99d-43a9-92ee-535132894f05",
     "is_default_landscape_group": false
@@ -814,7 +814,7 @@
   "pk": "3710da26-9b42-46b7-a79f-9c9b36cb090a",
   "fields": {
     "created_at": "2021-12-17T14:10:02.782Z",
-    "updated_at": "2021-12-17T14:50:51.543Z",
+    "updated_at": "2021-12-17T20:45:00.738Z",
     "landscape": "00408dfd-76e9-448b-8d9f-345d6400eb33",
     "group": "7db3169a-e77b-4a37-8e29-eb346c30b2d2",
     "is_default_landscape_group": false
@@ -825,7 +825,7 @@
   "pk": "3b3c572e-8a9a-469b-89a4-7eb7fbc570d5",
   "fields": {
     "created_at": "2021-12-17T14:10:02.838Z",
-    "updated_at": "2021-12-17T14:50:51.597Z",
+    "updated_at": "2021-12-17T20:45:00.831Z",
     "landscape": "57301ec8-0212-4386-8045-96843ef361c3",
     "group": "4bbc51b0-21ad-4d52-b058-f6d2ea80a6e1",
     "is_default_landscape_group": false
@@ -836,7 +836,7 @@
   "pk": "4674d405-1f28-4ba0-aac8-56cbcd82f491",
   "fields": {
     "created_at": "2021-12-17T14:10:02.943Z",
-    "updated_at": "2021-12-17T14:50:51.675Z",
+    "updated_at": "2021-12-17T20:45:00.960Z",
     "landscape": "63c57cd1-7ff3-4ec3-b295-9cc2544ce852",
     "group": "89cd79fb-d33f-45a3-8378-f0bba9693825",
     "is_default_landscape_group": false
@@ -847,7 +847,7 @@
   "pk": "5b76b5af-0cd8-4bc9-a960-30e643a0b588",
   "fields": {
     "created_at": "2021-12-17T14:10:02.898Z",
-    "updated_at": "2021-12-17T14:50:51.641Z",
+    "updated_at": "2021-12-17T20:45:00.901Z",
     "landscape": "7cc77dcd-80e8-4695-afc7-0c8f677ad2cd",
     "group": "21e205fd-95a4-476b-9fbd-61540aea561a",
     "is_default_landscape_group": false
@@ -858,7 +858,7 @@
   "pk": "5e648d21-eda3-476b-8135-804d787f072c",
   "fields": {
     "created_at": "2021-12-17T14:10:03.023Z",
-    "updated_at": "2021-12-17T14:50:51.737Z",
+    "updated_at": "2021-12-17T20:45:01.062Z",
     "landscape": "b99e9f78-7088-4e9f-93c2-39024b60abeb",
     "group": "c7103a14-6a3f-473c-8f3a-739ead66db80",
     "is_default_landscape_group": true
@@ -869,7 +869,7 @@
   "pk": "5f38177e-a2a6-4568-8688-46dd4a554670",
   "fields": {
     "created_at": "2021-12-17T14:10:02.759Z",
-    "updated_at": "2021-12-17T14:50:51.529Z",
+    "updated_at": "2021-12-17T20:45:00.720Z",
     "landscape": "00408dfd-76e9-448b-8d9f-345d6400eb33",
     "group": "39fecb54-934a-45da-849f-a7e31636cfd5",
     "is_default_landscape_group": true
@@ -880,7 +880,7 @@
   "pk": "6a122284-ac6e-4657-a846-4e72cf0fa046",
   "fields": {
     "created_at": "2021-12-17T14:10:02.919Z",
-    "updated_at": "2021-12-17T14:50:51.658Z",
+    "updated_at": "2021-12-17T20:45:00.929Z",
     "landscape": "7deabf81-b8da-4bf8-bcb1-1e82622cfd31",
     "group": "cda642a1-9d54-4a6c-803a-03d05ec1ca5a",
     "is_default_landscape_group": false
@@ -891,7 +891,7 @@
   "pk": "6babeb6f-5ca1-4861-a505-cacd41f27e88",
   "fields": {
     "created_at": "2021-12-17T14:10:03.054Z",
-    "updated_at": "2021-12-17T14:50:51.763Z",
+    "updated_at": "2021-12-17T20:45:01.116Z",
     "landscape": "566a9090-bf6d-49b0-87b2-a2054b5d8252",
     "group": "478f33b0-5ae1-468e-8dfc-4a878973e2d9",
     "is_default_landscape_group": false
@@ -902,7 +902,7 @@
   "pk": "793bbcd1-ba19-43b7-8d54-9b71e789c8a3",
   "fields": {
     "created_at": "2021-12-17T14:10:02.793Z",
-    "updated_at": "2021-12-17T14:50:51.555Z",
+    "updated_at": "2021-12-17T20:45:00.755Z",
     "landscape": "89baf52e-46c3-4e3c-a540-e7e9b7d208c3",
     "group": "cefbaa33-2e97-42ea-bac2-86fb14e191f9",
     "is_default_landscape_group": true
@@ -913,7 +913,7 @@
   "pk": "811e7d93-b1e1-441e-a7c8-4820e5603af5",
   "fields": {
     "created_at": "2021-12-17T14:10:02.877Z",
-    "updated_at": "2021-12-17T14:50:51.615Z",
+    "updated_at": "2021-12-17T20:45:00.860Z",
     "landscape": "fbd5bd37-e374-4222-b65b-f8bf16247387",
     "group": "475ef721-16ec-4452-8d31-1354ed26d9ac",
     "is_default_landscape_group": false
@@ -924,7 +924,7 @@
   "pk": "872e546b-364f-4ac3-ae48-ba27121ec0f2",
   "fields": {
     "created_at": "2021-12-17T14:10:02.812Z",
-    "updated_at": "2021-12-17T14:50:51.575Z",
+    "updated_at": "2021-12-17T20:45:00.792Z",
     "landscape": "6c54a8eb-f198-4988-85d7-c3137cfa8da4",
     "group": "99bb503f-5f45-4010-b9db-138857310140",
     "is_default_landscape_group": true
@@ -935,7 +935,7 @@
   "pk": "8cf3dcff-2cae-41db-b2c2-a1d4ee18a878",
   "fields": {
     "created_at": "2021-12-17T14:10:03.048Z",
-    "updated_at": "2021-12-17T14:50:51.758Z",
+    "updated_at": "2021-12-17T20:45:01.108Z",
     "landscape": "566a9090-bf6d-49b0-87b2-a2054b5d8252",
     "group": "69d10512-d29c-4b4a-8b01-87b286b0f1b6",
     "is_default_landscape_group": false
@@ -946,7 +946,7 @@
   "pk": "a2fc2056-2405-4062-8ddd-e4bc76f4b915",
   "fields": {
     "created_at": "2021-12-17T14:10:02.893Z",
-    "updated_at": "2021-12-17T14:50:51.630Z",
+    "updated_at": "2021-12-17T20:45:00.885Z",
     "landscape": "7cc77dcd-80e8-4695-afc7-0c8f677ad2cd",
     "group": "9cc85e4d-7fe7-4fc9-9c5d-caa515ae56bf",
     "is_default_landscape_group": true
@@ -957,7 +957,7 @@
   "pk": "a36d75f2-bf92-4bec-800c-7b42a4b2e756",
   "fields": {
     "created_at": "2021-12-17T14:10:03.042Z",
-    "updated_at": "2021-12-17T14:50:51.753Z",
+    "updated_at": "2021-12-17T20:45:01.100Z",
     "landscape": "566a9090-bf6d-49b0-87b2-a2054b5d8252",
     "group": "512b6396-e144-4ca5-922b-84cc65af67cc",
     "is_default_landscape_group": true
@@ -968,7 +968,7 @@
   "pk": "ae537ec0-ec2a-4956-8764-11b1ad00c661",
   "fields": {
     "created_at": "2021-12-17T14:10:02.951Z",
-    "updated_at": "2021-12-17T14:50:51.683Z",
+    "updated_at": "2021-12-17T20:45:00.972Z",
     "landscape": "5e97a3e5-f4e3-4831-901f-be66be4b48b8",
     "group": "254c812c-35cc-45bc-a524-7340d862bf55",
     "is_default_landscape_group": true
@@ -979,7 +979,7 @@
   "pk": "b2722eae-2c63-463b-9075-0965e09ab8b5",
   "fields": {
     "created_at": "2021-12-17T14:10:02.818Z",
-    "updated_at": "2021-12-17T14:50:51.579Z",
+    "updated_at": "2021-12-17T20:45:00.802Z",
     "landscape": "6c54a8eb-f198-4988-85d7-c3137cfa8da4",
     "group": "d64b5376-a3e2-4cb3-abf4-debb98df1a1a",
     "is_default_landscape_group": false
@@ -990,7 +990,7 @@
   "pk": "b6a6f365-0dd2-47a2-ac44-fb7b57d4ada9",
   "fields": {
     "created_at": "2021-12-17T14:10:02.937Z",
-    "updated_at": "2021-12-17T14:50:51.670Z",
+    "updated_at": "2021-12-17T20:45:00.953Z",
     "landscape": "63c57cd1-7ff3-4ec3-b295-9cc2544ce852",
     "group": "32da30eb-6db2-4074-9f7c-ae342160a7d7",
     "is_default_landscape_group": false
@@ -1001,7 +1001,7 @@
   "pk": "bb3bff05-352d-438b-b688-2174b1f6441b",
   "fields": {
     "created_at": "2021-12-17T14:10:02.825Z",
-    "updated_at": "2021-12-17T14:50:51.584Z",
+    "updated_at": "2021-12-17T20:45:00.810Z",
     "landscape": "6c54a8eb-f198-4988-85d7-c3137cfa8da4",
     "group": "3e0b74e9-ae66-4841-a446-bf5b2d935a45",
     "is_default_landscape_group": false
@@ -1012,7 +1012,7 @@
   "pk": "c28181e0-f7db-4b8d-b261-f5145803fc23",
   "fields": {
     "created_at": "2021-12-17T14:10:03.011Z",
-    "updated_at": "2021-12-17T14:50:51.728Z",
+    "updated_at": "2021-12-17T20:45:01.049Z",
     "landscape": "a3c7c24a-9f2b-4eb7-a6c2-eb1a0c06011f",
     "group": "843b9f69-d218-4710-8297-67aa30056ce0",
     "is_default_landscape_group": false
@@ -1023,7 +1023,7 @@
   "pk": "c55d8754-9fda-49f2-953d-bf2d25c11118",
   "fields": {
     "created_at": "2021-12-17T14:10:02.972Z",
-    "updated_at": "2021-12-17T14:50:51.702Z",
+    "updated_at": "2021-12-17T20:45:01.001Z",
     "landscape": "715feaec-f349-432d-a465-af6f3f76f891",
     "group": "c35740f4-f87a-4db2-8738-6d1b67579c89",
     "is_default_landscape_group": true
@@ -1034,7 +1034,7 @@
   "pk": "c6df9a5d-dd78-483a-af20-29d5a346f210",
   "fields": {
     "created_at": "2021-12-17T14:10:02.833Z",
-    "updated_at": "2021-12-17T14:50:51.593Z",
+    "updated_at": "2021-12-17T20:45:00.824Z",
     "landscape": "57301ec8-0212-4386-8045-96843ef361c3",
     "group": "5ba89095-bfde-4ee7-a2c9-73177b025c2a",
     "is_default_landscape_group": true
@@ -1045,7 +1045,7 @@
   "pk": "d4a22124-ab73-4864-be80-6029a013273f",
   "fields": {
     "created_at": "2021-12-17T14:10:02.976Z",
-    "updated_at": "2021-12-17T14:50:51.711Z",
+    "updated_at": "2021-12-17T20:45:01.020Z",
     "landscape": "715feaec-f349-432d-a465-af6f3f76f891",
     "group": "eb5dfdad-4bf6-49b1-9f2b-1e55ec742ad9",
     "is_default_landscape_group": false
@@ -1056,7 +1056,7 @@
   "pk": "e0707fc1-3319-4fca-b645-eaa6b81c1df6",
   "fields": {
     "created_at": "2021-12-17T14:10:02.885Z",
-    "updated_at": "2021-12-17T14:50:51.621Z",
+    "updated_at": "2021-12-17T20:45:00.868Z",
     "landscape": "fbd5bd37-e374-4222-b65b-f8bf16247387",
     "group": "e894a26a-005b-4b08-b1cb-a2a4d32d8449",
     "is_default_landscape_group": false
@@ -1067,7 +1067,7 @@
   "pk": "e4151426-501c-47fb-aee1-944cb7743ddc",
   "fields": {
     "created_at": "2021-12-17T14:10:03.001Z",
-    "updated_at": "2021-12-17T14:50:51.722Z",
+    "updated_at": "2021-12-17T20:45:01.042Z",
     "landscape": "a3c7c24a-9f2b-4eb7-a6c2-eb1a0c06011f",
     "group": "496f6684-421e-4eda-8ee7-5f7aa2f55d53",
     "is_default_landscape_group": false
@@ -1078,7 +1078,7 @@
   "pk": "ee26ae55-e7cd-4192-b6d1-20562446339f",
   "fields": {
     "created_at": "2021-12-17T14:10:03.029Z",
-    "updated_at": "2021-12-17T14:50:51.741Z",
+    "updated_at": "2021-12-17T20:45:01.072Z",
     "landscape": "b99e9f78-7088-4e9f-93c2-39024b60abeb",
     "group": "bdc765e7-d528-4688-9fa8-0f8974fffc32",
     "is_default_landscape_group": false
@@ -1089,7 +1089,7 @@
   "pk": "fdaad3c7-a3a7-4ec7-b364-0de9a73c51dd",
   "fields": {
     "created_at": "2021-12-17T14:10:02.932Z",
-    "updated_at": "2021-12-17T14:50:51.667Z",
+    "updated_at": "2021-12-17T20:45:00.943Z",
     "landscape": "63c57cd1-7ff3-4ec3-b295-9cc2544ce852",
     "group": "f2295b66-6ceb-48b8-bf77-34aed484c1be",
     "is_default_landscape_group": true
