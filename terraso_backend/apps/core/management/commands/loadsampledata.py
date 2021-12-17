@@ -21,6 +21,9 @@ class Command(BaseCommand):
         for landscape_record in landscape_records:
             landscape_data = landscape_record["fields"]
 
+            if not landscape_data.get("Co-Design Partner", False):
+                continue
+
             location = landscape_data.get("Continent", "")
             location += ", " + landscape_data.get("Country", "")
 
@@ -47,7 +50,10 @@ class Command(BaseCommand):
             # Creates Partnership group
             partnership_name = landscape_data.get("Landscape Partnership Name")
             if partnership_name:
-                group, _ = Group.objects.get_or_create(name=partnership_name)
+                group, _ = Group.objects.get_or_create(
+                    name=partnership_name,
+                    defaults={"description": landscape_data.get("General Description", "")},
+                )
                 landscape_group, _ = LandscapeGroup.objects.update_or_create(
                     landscape=landscape,
                     group=group,
@@ -57,7 +63,10 @@ class Command(BaseCommand):
             # Creates Co Design Partner group
             co_design_partner_name = landscape_data.get("Co Design Partner Name (Group)")
             if co_design_partner_name:
-                partner_group, _ = Group.objects.update_or_create(name=co_design_partner_name)
+                partner_group, _ = Group.objects.update_or_create(
+                    name=co_design_partner_name,
+                    defaults={"description": landscape_data.get("Group Description", "")},
+                )
                 landscape_group, _ = LandscapeGroup.objects.update_or_create(
                     landscape=landscape,
                     group=partner_group,
