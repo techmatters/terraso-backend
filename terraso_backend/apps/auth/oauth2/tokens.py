@@ -36,6 +36,17 @@ class Tokens:
             error_description=google_data.get("error_description"),
         )
 
+    @classmethod
+    def from_apple(cls, apple_data):
+        return cls(
+            access_token=apple_data.get("access_token", ""),
+            refresh_token=apple_data.get("refresh_token"),
+            expires_in=apple_data.get("expires_in"),
+            id_token=apple_data.get("id_token"),
+            error=apple_data.get("error"),
+            error_description=apple_data.get("error_description"),
+        )
+
     @property
     def expires_at(self):
         return timezone.now() + timedelta(seconds=int(self.expires_in))
