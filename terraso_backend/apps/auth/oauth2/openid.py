@@ -17,15 +17,15 @@ class OpenID:
 
     @property
     def name(self):
-        return self.data.get("name")
+        return self.data.get("name", "")
 
     @property
     def given_name(self):
-        return self.data.get("given_name")
+        return self.data.get("given_name", "")
 
     @property
     def family_name(self):
-        return self.data.get("family_name")
+        return self.data.get("family_name", "")
 
     @property
     def email(self):
@@ -33,11 +33,11 @@ class OpenID:
 
     @property
     def email_verified(self):
-        return self.data.get("email_verified")
+        return self.data.get("email_verified", False)
 
     @property
     def picture(self):
-        return self.data.get("picture")
+        return self.data.get("picture", "")
 
     def _decode_b64(self, data):
         missing_padding = len(data) % 4
