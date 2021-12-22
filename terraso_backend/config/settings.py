@@ -113,10 +113,11 @@ GRAPHENE = {
     "SCHEMA": "apps.graphql.schema.schema",
 }
 
+WEB_CLIENT_URL = config("WEB_CLIENT_ENDPOINT", default="")
+AUTH_COOKIE_DOMAIN = config("AUTH_COOKIE_DOMAIN", default="terraso.org")
 CORS_ORIGIN_WHITELIST = config("CORS_ORIGIN_WHITELIST", default=[], cast=config.list)
 
 AIRTABLE_API_KEY = config("AIRTABLE_API_KEY", default="")
-
 
 GOOGLE_CLIENT_ID = config("GOOGLE_CLIENT_ID", default="")
 GOOGLE_CLIENT_SECRET = config("GOOGLE_CLIENT_SECRET", default="")
