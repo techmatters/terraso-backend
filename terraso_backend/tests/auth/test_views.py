@@ -1,8 +1,11 @@
+import json
+from unittest import mock
+
 import pytest
 from django.urls import reverse
 from httpx import Response
 
-from apps.auth.providers import GoogleProvider
+from apps.auth.providers import AppleProvider, GoogleProvider
 
 pytestmark = pytest.mark.django_db
 
@@ -61,15 +64,60 @@ def test_get_apple_login_url(client, apple_url):
     assert "request_url" in response.json()
 
 
-def test_post_apple_authorize_no_json_request(client, apple_url):
-    response = client.post(apple_url, data={})
+def test_post_apple_callback(client, access_tokens_apple, respx_mock):
+    respx_mock.post(AppleProvider.TOKEN_URI).mock(
+        return_value=Response(200, json=access_tokens_apple)
+    )
+    url = reverse("terraso_auth:apple-callback")
+
+    with mock.patch("apps.auth.providers.AppleProvider._build_client_secret"):
+        response = client.post(
+            url,
+            {
+                "code": "testing-code-apple-auth",
+                "user": json.dumps(
+                    {
+                        "name": {"firstName": "Testing", "lastName": "Terraso"},
+                        "email": "testingterraso@example.org",
+                    }
+                ),
+            },
+        )
+
+    assert response.status_code == 302, response.content
+
+    auth_cookie = response.cookies.get("user")
+    assert auth_cookie
+    assert "testingterraso@example.com" in auth_cookie.value
+
+
+def test_post_apple_callback_without_code(client):
+    url = reverse("terraso_auth:apple-callback")
+    response = client.post(url)
 
     assert response.status_code == 400
-    assert "error" in response.json()
+    assert "no authorization code" in response.content.decode()
 
 
-def test_post_apple_authorize_without_code(client, apple_url):
-    response = client.post(apple_url, data={}, content_type="application/json")
+def test_post_apple_callback_with_error(client):
+    url = reverse("terraso_auth:apple-callback")
+    response = client.post(url, {"error": "Bad Request: authentication failed"})
 
     assert response.status_code == 400
-    assert "error" in response.json()
+    assert "Bad Request: authentication failed" in response.content.decode()
+
+
+def test_post_apple_callback_with_no_user(client):
+    url = reverse("terraso_auth:apple-callback")
+    response = client.post(url, {"code": "testing-code-apple-auth"})
+
+    assert response.status_code == 400
+    assert "couldn't get User name from Apple" in response.content.decode()
+
+
+def test_post_apple_callback_with_bad_user(client):
+    url = reverse("terraso_auth:apple-callback")
+    response = client.post(url, {"code": "testing-code-apple-auth", "user": "no-json-content"})
+
+    assert response.status_code == 400
+    assert "couldn't parse User data from Apple" in response.content.decode()
