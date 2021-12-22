@@ -23,7 +23,7 @@ def test_sign_up_with_google_creates_user(respx_mock, access_tokens_google):
 
 
 def test_sign_up_with_apple_creates_user(respx_mock, access_tokens_apple):
-    respx_mock.post(AppleProvider.APPLE_TOKEN_URI).mock(
+    respx_mock.post(AppleProvider.TOKEN_URI).mock(
         return_value=Response(200, json=access_tokens_apple)
     )
     service = AccountService()

@@ -43,10 +43,12 @@ class GoogleProvider:
 
 
 class AppleProvider:
-    APPLE_OAUTH_BASE_URL = "https://appleid.apple.com/auth/authorize?"
-    APPLE_TOKEN_URI = "https://appleid.apple.com/auth/token"
+    OAUTH_BASE_URL = "https://appleid.apple.com/auth/authorize?"
+    TOKEN_URI = "https://appleid.apple.com/auth/token"
     CLIENT_ID = settings.APPLE_CLIENT_ID
     REDIRECT_URI = settings.APPLE_AUTH_REDIRECT_URI
+    JWT_ALGORITHM = "ES256"
+    JWT_AUD = "https://appleid.apple.com"
 
     @classmethod
     def login_url(self):
@@ -58,9 +60,7 @@ class AppleProvider:
             "client_id": self.CLIENT_ID,
         }
 
-        return self.APPLE_OAUTH_BASE_URL + urllib.parse.urlencode(
-            params, quote_via=urllib.parse.quote
-        )
+        return self.OAUTH_BASE_URL + urllib.parse.urlencode(params, quote_via=urllib.parse.quote)
 
     def fetch_auth_tokens(self, authorization_code):
         request_data = {
@@ -70,24 +70,24 @@ class AppleProvider:
             "client_secret": self._build_client_secret(),
             "redirect_uri": self.REDIRECT_URI,
         }
-        apple_response = httpx.post(self.APPLE_TOKEN_URI, data=request_data)
+        apple_response = httpx.post(self.TOKEN_URI, data=request_data)
 
         return Tokens.from_apple(apple_response.json())
 
     def _build_client_secret(self):
         claims = {
             "iss": settings.APPLE_TEAM_ID,
-            "aud": "https://appleid.apple.com",
+            "aud": self.JWT_AUD,
             "sub": self.CLIENT_ID,
             "iat": timezone.now(),
             "exp": timezone.now() + timedelta(minutes=15),
         }
 
-        jwt_header = {"kid": settings.APPLE_KEY_ID, "alg": "ES256"}
+        jwt_header = {"kid": settings.APPLE_KEY_ID, "alg": self.JWT_ALGORITHM}
 
         return jwt.encode(
             payload=claims,
             key=settings.APPLE_PRIVATE_KEY.strip(),
-            algorithm="ES256",
+            algorithm=self.JWT_ALGORITHM,
             headers=jwt_header,
         )
