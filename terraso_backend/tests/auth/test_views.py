@@ -1,5 +1,10 @@
 import pytest
 from django.urls import reverse
+from httpx import Response
+
+from apps.auth.providers import GoogleProvider
+
+pytestmark = pytest.mark.django_db
 
 
 @pytest.fixture
@@ -19,18 +24,34 @@ def test_get_google_login_url(client, google_url):
     assert "request_url" in response.json()
 
 
-def test_post_google_authorize_no_json_request(client, google_url):
-    response = client.post(google_url, data={})
+def test_get_google_callback(client, access_tokens_google, respx_mock):
+    respx_mock.post(GoogleProvider.GOOGLE_TOKEN_URI).mock(
+        return_value=Response(200, json=access_tokens_google)
+    )
+    url = reverse("terraso_auth:google-callback")
+    response = client.get(url, {"code": "testing-code-google-auth"})
+
+    assert response.status_code == 302
+
+    auth_cookie = response.cookies.get("user")
+    assert auth_cookie
+    assert "testingterraso@example.com" in auth_cookie.value
+
+
+def test_get_google_callback_without_code(client):
+    url = reverse("terraso_auth:google-callback")
+    response = client.get(url)
 
     assert response.status_code == 400
-    assert "error" in response.json()
+    assert "no authorization code" in response.content.decode()
 
 
-def test_post_google_authorize_without_code(client, google_url):
-    response = client.post(google_url, data={}, content_type="application/json")
+def test_get_google_callback_with_error(client):
+    url = reverse("terraso_auth:google-callback")
+    response = client.get(url, {"error": "Bad Request: authentication failed"})
 
     assert response.status_code == 400
-    assert "error" in response.json()
+    assert "Bad Request: authentication failed" in response.content.decode()
 
 
 def test_get_apple_login_url(client, apple_url):
