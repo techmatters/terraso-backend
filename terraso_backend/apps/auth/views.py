@@ -19,7 +19,7 @@ class GoogleAuthorizeView(View):
             request_data = json.loads(request.body)
         except json.decoder.JSONDecodeError:
             return JsonResponse(
-                {"error": "The authorization request expects a json body"}, status=400
+                {"error": "The authorization request expects a JSON body"}, status=400
             )
 
         try:
@@ -54,7 +54,7 @@ class AppleAuthorizeView(View):
             request_data = json.loads(request.body)
         except json.decoder.JSONDecodeError:
             return JsonResponse(
-                {"error": "The authorization request expects a json body"}, status=400
+                {"error": "The authorization request expects a JSON body"}, status=400
             )
 
         try:
