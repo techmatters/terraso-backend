@@ -1,4 +1,12 @@
+from datetime import timedelta
+
 import pytest
+from django.utils import timezone
+from freezegun import freeze_time
+from mixer.backend.django import mixer
+
+from apps.auth.services import JWTService
+from apps.core.models import User
 
 
 @pytest.fixture
@@ -31,3 +39,24 @@ def access_tokens_apple():
         "expires_in": 3600,
         "id_token": "eyJraWQiOiIxMjM0NSIsImFsZyI6IkhTNTEyIn0.eyJpc3MiOiJodHRwczovL2FwcGxlaWQuYXBwbGUuY29tIiwiYXVkIjoib3JnLnRlcnJhc28ubG9naW4iLCJleHAiOjE2NDAxNzY5MzcsImlhdCI6MTY0MDA5MDUzNywic3ViIjoiMDAwNjE2LjU2N2YyNmY3OGU5YzRlYzVwb2l3M2ViZjU2NzJkY2MyLjEyMzYiLCJhdF9oYXNoIjoiUEJUbEY2MlRLczBWVXR5RG93cGR1ciIsImVtYWlsIjoidGVzdGluZ3RlcnJhc29AZXhhbXBsZS5jb20iLCJlbWFpbF92ZXJpZmllZCI6InRydWUiLCJhdXRoX3RpbWUiOjE2NDAwOTA1MTQsIm5vbmNlX3N1cHBvcnRlZCI6dHJ1ZX0.tYliNF-lfpBgkPv2dq5RM44D8Pr6vISUd7RB1yIBa11E9klLXsApa6N_Le2nFFBaSkS0J3B1J_4eMkaj8HMaXw",  # noqa
     }
+
+
+@pytest.fixture
+def user():
+    return mixer.blend(User)
+
+
+@pytest.fixture
+def access_token(user):
+    return JWTService().create_access_token(user)
+
+
+@pytest.fixture
+def refresh_token(user):
+    return JWTService().create_refresh_token(user)
+
+
+@pytest.fixture
+@freeze_time(timezone.now() - timedelta(days=10))
+def expired_refresh_token(user):
+    return JWTService().create_refresh_token(user)

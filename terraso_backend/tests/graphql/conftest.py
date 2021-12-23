@@ -2,6 +2,7 @@ import pytest
 from graphene_django.utils.testing import graphql_query
 from mixer.backend.django import mixer
 
+from apps.auth.services import JWTService
 from apps.core.models import (
     Group,
     GroupAssociation,
@@ -15,9 +16,18 @@ pytestmark = pytest.mark.django_db
 
 
 @pytest.fixture
-def client_query(client):
+def access_token(users):
+    return JWTService().create_access_token(users[0])
+
+
+@pytest.fixture
+def client_query(client, access_token):
     def _client_query(*args, **kwargs):
-        return graphql_query(*args, **kwargs, client=client)
+        headers = {
+            "CONTENT_TYPE": "application/json",
+            "HTTP_AUTHORIZATION": f"Bearer {access_token}",
+        }
+        return graphql_query(*args, **kwargs, headers=headers, client=client)
 
     return _client_query
 

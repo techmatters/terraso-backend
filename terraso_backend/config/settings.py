@@ -35,6 +35,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "apps.auth.middleware.JWTAuthenticationMiddleware",
 ]
 
 ROOT_URLCONF = "config.urls"
@@ -114,7 +115,7 @@ GRAPHENE = {
 }
 
 WEB_CLIENT_URL = config("WEB_CLIENT_ENDPOINT", default="")
-AUTH_COOKIE_DOMAIN = config("AUTH_COOKIE_DOMAIN", default="terraso.org")
+AUTH_COOKIE_DOMAIN = config("AUTH_COOKIE_DOMAIN", default="")
 CORS_ORIGIN_WHITELIST = config("CORS_ORIGIN_WHITELIST", default=[], cast=config.list)
 
 AIRTABLE_API_KEY = config("AIRTABLE_API_KEY", default="")
@@ -128,3 +129,13 @@ APPLE_TEAM_ID = config("APPLE_TEAM_ID", default="")
 APPLE_PRIVATE_KEY = config("APPLE_PRIVATE_KEY", default="")
 APPLE_CLIENT_ID = config("APPLE_CLIENT_ID", default="")
 APPLE_AUTH_REDIRECT_URI = config("APPLE_AUTH_REDIRECT_URI", default="")
+
+JWT_SECRET = config("JWT_SECRET")
+JWT_ALGORITHM = config("JWT_ALGORITHM", default="HS512")
+JWT_ACCESS_EXP_DELTA_SECONDS = config(
+    "JWT_ACCESS_EXP_DELTA_SECONDS", default="360", cast=config.eval
+)
+JWT_REFRESH_EXP_DELTA_SECONDS = config(
+    "JWT_REFRESH_EXP_DELTA_SECONDS", default="3600", cast=config.eval
+)
+JWT_ISS = config("JWT_ISS", default="https://terraso.org")

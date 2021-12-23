@@ -1,15 +1,6 @@
 import pytest
-from graphene_django.utils.testing import graphql_query
 
 pytestmark = pytest.mark.django_db
-
-
-@pytest.fixture
-def client_query(client):
-    def _client_query(*args, **kwargs):
-        return graphql_query(*args, **kwargs, client=client)
-
-    return _client_query
 
 
 def test_landscapes_query(client_query, landscapes):

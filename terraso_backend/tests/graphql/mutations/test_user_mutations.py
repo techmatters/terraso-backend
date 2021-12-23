@@ -1,21 +1,12 @@
 import pytest
-from graphene_django.utils.testing import graphql_query
 
 from apps.core.models import User
 
 pytestmark = pytest.mark.django_db
 
 
-@pytest.fixture
-def client_query(client):
-    def _client_query(*args, **kwargs):
-        return graphql_query(*args, **kwargs, client=client)
-
-    return _client_query
-
-
 def test_users_add(client_query):
-    user_email = "Testing User"
+    user_email = "testinuser@example.com"
     user_password = "123456"
     response = client_query(
         """
