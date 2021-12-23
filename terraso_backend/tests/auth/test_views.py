@@ -40,10 +40,7 @@ def test_get_google_callback(client, access_tokens_google, respx_mock):
     response = client.get(url, {"code": "testing-code-google-auth"})
 
     assert response.status_code == 302
-
-    auth_cookie = response.cookies.get("user")
-    assert auth_cookie
-    assert "testingterraso@example.com" in auth_cookie.value
+    assert response.cookies.get("tokens")
 
 
 def test_get_google_callback_without_code(client):
@@ -89,11 +86,8 @@ def test_post_apple_callback(client, access_tokens_apple, respx_mock):
             },
         )
 
-    assert response.status_code == 302, response.content
-
-    auth_cookie = response.cookies.get("user")
-    assert auth_cookie
-    assert "testingterraso@example.com" in auth_cookie.value
+    assert response.status_code == 302
+    assert response.cookies.get("tokens")
 
 
 def test_post_apple_callback_without_code(client):

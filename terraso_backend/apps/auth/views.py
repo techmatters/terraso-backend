@@ -35,22 +35,13 @@ class GoogleCallbackView(View):
         except Exception as exc:
             return HttpResponse(f"Error: {exc}", status=400)
 
-        user_data = {
-            "user": {
-                "email": user.email,
-                "first_name": user.first_name,
-                "last_name": user.last_name,
-                "access_token": access_token,
-                "refresh_token": refresh_token,
-            },
+        tokens = {
+            "access_token": access_token,
+            "refresh_token": refresh_token,
         }
 
         response = HttpResponseRedirect(settings.WEB_CLIENT_URL)
-        response.set_cookie(
-            "user",
-            json.dumps(user_data),
-            domain=settings.AUTH_COOKIE_DOMAIN,
-        )
+        response.set_cookie("tokens", json.dumps(tokens), domain=settings.AUTH_COOKIE_DOMAIN)
 
         return response
 
@@ -84,23 +75,19 @@ class AppleCallbackView(View):
             user = AccountService().sign_up_with_apple(
                 authorization_code, first_name=first_name, last_name=last_name
             )
+            jwt_service = JWTService()
+            access_token = jwt_service.create_access_token(user)
+            refresh_token = jwt_service.create_refresh_token(user)
         except Exception as exc:
             return HttpResponse(f"Error: {exc}", status=400)
 
-        user_data = {
-            "email": user.email,
-            "user": {
-                "first_name": user.first_name,
-                "last_name": user.last_name,
-            },
+        tokens = {
+            "access_token": access_token,
+            "refresh_token": refresh_token,
         }
 
         response = HttpResponseRedirect(settings.WEB_CLIENT_URL)
-        response.set_cookie(
-            "user",
-            json.dumps(user_data),
-            domain=settings.AUTH_COOKIE_DOMAIN,
-        )
+        response.set_cookie("tokens", json.dumps(tokens), domain=settings.AUTH_COOKIE_DOMAIN)
 
         return response
 
