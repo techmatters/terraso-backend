@@ -130,3 +130,21 @@ class RefreshAccessTokenView(View):
                 "refresh_token": refresh_token,
             }
         )
+
+
+class CheckUserView(View):
+    def get(self, request, *args, **kwargs):
+        if not request.user.is_authenticated:
+            return JsonResponse(
+                {"error": "Permission denied"}, status=403
+            )
+
+        return JsonResponse(
+            {
+                "user": {
+                    "email": request.user.email,
+                    "first_name": request.user.first_name,
+                    "last_name": request.user.last_name,
+                }
+            }
+        )

@@ -184,3 +184,24 @@ def test_post_refresh_token_inactive_user(client, refresh_tokens_url, user, refr
 
     tokens_data = response.json()
     assert tokens_data["error"] == "User not found"
+
+
+def test_get_user_information_not_logged_in(client):
+    url = reverse("terraso_auth:user")
+    response = client.get(url)
+
+    assert response.status_code == 403
+    assert "error" in response.json()
+
+
+def test_get_user_information(client, user, access_token):
+    url = reverse("terraso_auth:user")
+    response = client.get(url, HTTP_AUTHORIZATION=f"Bearer {access_token}")
+
+    assert response.status_code == 200
+
+    user_data = response.json()["user"]
+
+    assert user_data["email"] == user.email
+    assert user_data["first_name"] == user.first_name
+    assert user_data["last_name"] == user.last_name

@@ -47,6 +47,11 @@ def user():
 
 
 @pytest.fixture
+def access_token(user):
+    return JWTService().create_access_token(user)
+
+
+@pytest.fixture
 def refresh_token(user):
     return JWTService().create_refresh_token(user)
 
