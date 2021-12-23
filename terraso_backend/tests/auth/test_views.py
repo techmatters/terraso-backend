@@ -192,7 +192,7 @@ def test_get_user_information_not_logged_in(client):
     url = reverse("terraso_auth:user")
     response = client.get(url)
 
-    assert response.status_code == 403
+    assert response.status_code == 401
     assert "error" in response.json()
 
 
