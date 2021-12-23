@@ -6,7 +6,7 @@ class TerrasoGraphQLView(GraphQLView):
         # TODO: uncomment following code when client ready for authentication
         #  if not request.user.is_authenticated:
         #      return JsonResponse(
-        #          {"error": "Permission denied"}, status=403
+        #          {"error": "Unauthenticated request"}, status=401
         #      )
 
         return super().dispatch(request, *args, **kwargs)
