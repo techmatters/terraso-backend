@@ -1,6 +1,6 @@
 # Terraso Backend
 
-Terraso backend is a Django project that powers the backend of Terraso
+Terraso backend is a Django project that powers the backend of the Terraso
 platform.
 
 ## Running locally with Docker
