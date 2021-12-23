@@ -1,4 +1,4 @@
-# Terraso - Backend
+# Terraso Backend
 
 Terraso backend is a Django project that powers the backend of Terraso
 platform.
