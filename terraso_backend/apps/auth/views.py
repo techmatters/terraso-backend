@@ -35,13 +35,9 @@ class GoogleCallbackView(View):
         except Exception as exc:
             return HttpResponse(f"Error: {exc}", status=400)
 
-        tokens = {
-            "access_token": access_token,
-            "refresh_token": refresh_token,
-        }
-
         response = HttpResponseRedirect(settings.WEB_CLIENT_URL)
-        response.set_cookie("tokens", json.dumps(tokens), domain=settings.AUTH_COOKIE_DOMAIN)
+        response.set_cookie("atoken", access_token, domain=settings.AUTH_COOKIE_DOMAIN)
+        response.set_cookie("rtoken", refresh_token, domain=settings.AUTH_COOKIE_DOMAIN)
 
         return response
 
@@ -81,13 +77,9 @@ class AppleCallbackView(View):
         except Exception as exc:
             return HttpResponse(f"Error: {exc}", status=400)
 
-        tokens = {
-            "access_token": access_token,
-            "refresh_token": refresh_token,
-        }
-
         response = HttpResponseRedirect(settings.WEB_CLIENT_URL)
-        response.set_cookie("tokens", json.dumps(tokens), domain=settings.AUTH_COOKIE_DOMAIN)
+        response.set_cookie("atoken", access_token, domain=settings.AUTH_COOKIE_DOMAIN)
+        response.set_cookie("rtoken", refresh_token, domain=settings.AUTH_COOKIE_DOMAIN)
 
         return response
 
