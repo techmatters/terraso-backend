@@ -36,12 +36,16 @@ class AccountService:
         if not tokens.is_valid:
             raise Exception("Error fetching auth tokens: " + tokens.error_description)
 
+        name_defaults = {}
+        if first_name:
+            name_defaults["first_name"] = first_name
+
+        if last_name:
+            name_defaults["last_name"] = last_name
+
         user, _ = User.objects.update_or_create(
             email=tokens.open_id.email,
-            defaults={
-                "first_name": first_name,
-                "last_name": last_name,
-            },
+            defaults=name_defaults,
         )
 
         return user

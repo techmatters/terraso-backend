@@ -51,6 +51,8 @@ class AppleCallbackView(View):
     def post(self, request, *args, **kwargs):
         authorization_code = request.POST.get("code")
         error = request.POST.get("error")
+        first_name = None
+        last_name = None
 
         if error:
             return HttpResponse(f"Error: {error}", status=400)
@@ -60,8 +62,9 @@ class AppleCallbackView(View):
 
         try:
             apple_user_data = json.loads(request.POST.get("user", "{}"))
-            first_name = apple_user_data["name"]["firstName"]
-            last_name = apple_user_data["name"]["lastName"]
+            if "name" in apple_user_data:
+                first_name = apple_user_data["name"]["firstName"]
+                last_name = apple_user_data["name"]["lastName"]
         except json.JSONDecodeError:
             return HttpResponse("Error: couldn't parse User data from Apple", status=400)
         except KeyError:
