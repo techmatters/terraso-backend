@@ -60,12 +60,11 @@ class AppleCallbackView(View):
 
         try:
             apple_user_data = json.loads(request.POST.get("user", "{}"))
-            first_name = apple_user_data["name"]["firstName"]
-            last_name = apple_user_data["name"]["lastName"]
         except json.JSONDecodeError:
             return HttpResponse("Error: couldn't parse User data from Apple", status=400)
-        except KeyError:
-            return HttpResponse("Error: couldn't get User name from Apple", status=400)
+
+        first_name = apple_user_data.get("name", {}).get("firstName", "")
+        last_name = apple_user_data.get("name", {}).get("lastName", "")
 
         try:
             user = AccountService().sign_up_with_apple(
