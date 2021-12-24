@@ -126,7 +126,7 @@ GOOGLE_AUTH_REDIRECT_URI = config("GOOGLE_AUTH_REDIRECT_URI", default="")
 
 APPLE_KEY_ID = config("APPLE_KEY_ID", default="")
 APPLE_TEAM_ID = config("APPLE_TEAM_ID", default="")
-APPLE_PRIVATE_KEY = config("APPLE_PRIVATE_KEY", default="")
+APPLE_PRIVATE_KEY = config("APPLE_PRIVATE_KEY", default="").replace("\\n", "\n")
 APPLE_CLIENT_ID = config("APPLE_CLIENT_ID", default="")
 APPLE_AUTH_REDIRECT_URI = config("APPLE_AUTH_REDIRECT_URI", default="")
 
