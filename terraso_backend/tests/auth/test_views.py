@@ -4,8 +4,10 @@ from unittest import mock
 import pytest
 from django.urls import reverse
 from httpx import Response
+from mixer.backend.django import mixer
 
 from apps.auth.providers import AppleProvider, GoogleProvider
+from apps.core.models import User
 
 pytestmark = pytest.mark.django_db
 
@@ -108,12 +110,45 @@ def test_post_apple_callback_with_error(client):
     assert "Bad Request: authentication failed" in response.content.decode()
 
 
-def test_post_apple_callback_with_no_user(client):
+def test_post_apple_callback_with_no_user(client, access_tokens_apple, respx_mock):
+    respx_mock.post(AppleProvider.TOKEN_URI).mock(
+        return_value=Response(200, json=access_tokens_apple)
+    )
     url = reverse("terraso_auth:apple-callback")
-    response = client.post(url, {"code": "testing-code-apple-auth"})
 
-    assert response.status_code == 400
-    assert "couldn't get User name from Apple" in response.content.decode()
+    with mock.patch("apps.auth.providers.AppleProvider._build_client_secret"):
+        response = client.post(url, {"code": "testing-code-apple-auth"})
+
+    assert response.status_code == 302, response.content
+    assert response.cookies.get("atoken")
+    assert response.cookies.get("rtoken")
+
+
+def test_post_apple_callback_nth_login(client, access_tokens_apple, respx_mock):
+    # This is simulating a user already signed up
+    user = mixer.blend(
+        User, email="testingterraso@example.com", first_name="Testing", last_name="Terraso"
+    )
+
+    respx_mock.post(AppleProvider.TOKEN_URI).mock(
+        return_value=Response(200, json=access_tokens_apple)
+    )
+    url = reverse("terraso_auth:apple-callback")
+
+    with mock.patch("apps.auth.providers.AppleProvider._build_client_secret"):
+        # After first login Apple stop sending user names
+        response = client.post(
+            url,
+            {"code": "testing-code-apple-auth"},
+        )
+
+    assert response.status_code == 302
+
+    user.refresh_from_db()
+
+    # Even without receiving user names from Apple, we should keep the original user names
+    assert user.first_name == "Testing"
+    assert user.last_name == "Terraso"
 
 
 def test_post_apple_callback_with_bad_user(client):
@@ -203,7 +238,6 @@ def test_get_user_information(client, user, access_token):
     assert response.status_code == 200
 
     user_data = response.json()["user"]
-
     assert user_data["email"] == user.email
     assert user_data["first_name"] == user.first_name
     assert user_data["last_name"] == user.last_name

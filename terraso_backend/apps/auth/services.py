@@ -19,15 +19,11 @@ class AccountService:
         if not tokens.is_valid:
             raise Exception("Error fetching auth tokens: " + tokens.error_description)
 
-        user, _ = User.objects.update_or_create(
-            email=tokens.open_id.email,
-            defaults={
-                "first_name": tokens.open_id.given_name,
-                "last_name": tokens.open_id.family_name,
-            },
+        return self._persist_user(
+            tokens.open_id.email,
+            first_name=tokens.open_id.given_name,
+            last_name=tokens.open_id.family_name,
         )
-
-        return user
 
     def sign_up_with_apple(self, authorization_code, first_name="", last_name=""):
         provider = AppleProvider()
@@ -36,13 +32,21 @@ class AccountService:
         if not tokens.is_valid:
             raise Exception("Error fetching auth tokens: " + tokens.error_description)
 
-        user, _ = User.objects.update_or_create(
-            email=tokens.open_id.email,
-            defaults={
-                "first_name": first_name,
-                "last_name": last_name,
-            },
-        )
+        return self._persist_user(tokens.open_id.email, first_name=first_name, last_name=last_name)
+
+    def _persist_user(self, email, first_name="", last_name=""):
+        user, _ = User.objects.get_or_create(email=email)
+
+        update_name = first_name or last_name
+
+        if first_name:
+            user.first_name = first_name
+
+        if last_name:
+            user.last_name = last_name
+
+        if update_name:
+            user.save()
 
         return user
 
