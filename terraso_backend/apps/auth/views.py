@@ -11,19 +11,25 @@ from .services import AccountService, JWTService
 User = get_user_model()
 
 
-class AuthorizeView(View):
-    provider = None
-
+class AbstractAuthorizeView(View):
     def get(self, request, *args, **kwargs):
-        return JsonResponse({"request_url": self.provider.login_url() if self.provider else ""})
+        return JsonResponse({"request_url": self.provider.login_url()})
+
+    @property
+    def provider(self):
+        return NotImplementedError("AbstractAuthorizeView must be inherited")
 
 
-class GoogleAuthorizeView(AuthorizeView):
-    provider = GoogleProvider
+class GoogleAuthorizeView(AbstractAuthorizeView):
+    @property
+    def provider(self):
+        return GoogleProvider
 
 
-class AppleAuthorizeView(AuthorizeView):
-    provider = AppleProvider
+class AppleAuthorizeView(AbstractAuthorizeView):
+    @property
+    def provider(self):
+        return AppleProvider
 
 
 class AbstractCallbackView(View):
