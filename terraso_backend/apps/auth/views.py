@@ -11,9 +11,19 @@ from .services import AccountService, JWTService
 User = get_user_model()
 
 
-class GoogleAuthorizeView(View):
+class AuthorizeView(View):
+    provider = None
+
     def get(self, request, *args, **kwargs):
-        return JsonResponse({"request_url": GoogleProvider.login_url()})
+        return JsonResponse({"request_url": self.provider.login_url() if self.provider else ""})
+
+
+class GoogleAuthorizeView(AuthorizeView):
+    provider = GoogleProvider
+
+
+class AppleAuthorizeView(AuthorizeView):
+    provider = AppleProvider
 
 
 class GoogleCallbackView(View):
@@ -40,11 +50,6 @@ class GoogleCallbackView(View):
         response.set_cookie("rtoken", refresh_token, domain=settings.AUTH_COOKIE_DOMAIN)
 
         return response
-
-
-class AppleAuthorizeView(View):
-    def get(self, request, *args, **kwargs):
-        return JsonResponse({"request_url": AppleProvider.login_url()})
 
 
 class AppleCallbackView(View):
@@ -126,9 +131,7 @@ class RefreshAccessTokenView(View):
 class CheckUserView(View):
     def get(self, request, *args, **kwargs):
         if not request.user.is_authenticated:
-            return JsonResponse(
-                {"error": "Unauthenticated request."}, status=401
-            )
+            return JsonResponse({"error": "Unauthenticated request."}, status=401)
 
         return JsonResponse(
             {
