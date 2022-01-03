@@ -11,25 +11,51 @@ from .services import AccountService, JWTService
 User = get_user_model()
 
 
-class GoogleAuthorizeView(View):
+class AbstractAuthorizeView(View):
     def get(self, request, *args, **kwargs):
-        return JsonResponse({"request_url": GoogleProvider.login_url()})
+        return JsonResponse({"request_url": self.provider.login_url()})
+
+    @property
+    def provider(self):
+        return NotImplementedError("AbstractAuthorizeView must be inherited")
 
 
-class GoogleCallbackView(View):
+class GoogleAuthorizeView(AbstractAuthorizeView):
+    @property
+    def provider(self):
+        return GoogleProvider
+
+
+class AppleAuthorizeView(AbstractAuthorizeView):
+    @property
+    def provider(self):
+        return AppleProvider
+
+
+class AbstractCallbackView(View):
     def get(self, request, *args, **kwargs):
-        authorization_code = request.GET.get("code")
-        error = request.GET.get("error")
+        self.authorization_code = self.request.GET.get("code")
+        self.error = self.request.GET.get("error")
 
-        if error:
-            return HttpResponse(f"Error: {error}", status=400)
+        return self.process_callback()
 
-        if not authorization_code:
+    def post(self, request, *args, **kwargs):
+        self.authorization_code = self.request.POST.get("code")
+        self.error = self.request.POST.get("error")
+
+        return self.process_callback()
+
+    def process_callback(self):
+        if self.error:
+            return HttpResponse(f"Error: {self.error}", status=400)
+
+        if not self.authorization_code:
             return HttpResponse("Error: no authorization code informed", status=400)
 
+        jwt_service = JWTService()
+
         try:
-            user = AccountService().sign_up_with_google(authorization_code)
-            jwt_service = JWTService()
+            user = self.process_signup()
             access_token = jwt_service.create_access_token(user)
             refresh_token = jwt_service.create_refresh_token(user)
         except Exception as exc:
@@ -41,46 +67,28 @@ class GoogleCallbackView(View):
 
         return response
 
-
-class AppleAuthorizeView(View):
-    def get(self, request, *args, **kwargs):
-        return JsonResponse({"request_url": AppleProvider.login_url()})
+    def process_signup(self):
+        raise NotImplementedError("AbstractCallbackView must be inherited.")
 
 
-class AppleCallbackView(View):
-    def post(self, request, *args, **kwargs):
-        authorization_code = request.POST.get("code")
-        error = request.POST.get("error")
+class GoogleCallbackView(AbstractCallbackView):
+    def process_signup(self):
+        return AccountService().sign_up_with_google(self.authorization_code)
 
-        if error:
-            return HttpResponse(f"Error: {error}", status=400)
 
-        if not authorization_code:
-            return HttpResponse("Error: no authorization code informed", status=400)
-
+class AppleCallbackView(AbstractCallbackView):
+    def process_signup(self):
         try:
-            apple_user_data = json.loads(request.POST.get("user", "{}"))
+            apple_user_data = json.loads(self.request.POST.get("user", "{}"))
         except json.JSONDecodeError:
-            return HttpResponse("Error: couldn't parse User data from Apple", status=400)
+            raise Exception("couldn't parse User data from Apple")
 
         first_name = apple_user_data.get("name", {}).get("firstName", "")
         last_name = apple_user_data.get("name", {}).get("lastName", "")
 
-        try:
-            user = AccountService().sign_up_with_apple(
-                authorization_code, first_name=first_name, last_name=last_name
-            )
-            jwt_service = JWTService()
-            access_token = jwt_service.create_access_token(user)
-            refresh_token = jwt_service.create_refresh_token(user)
-        except Exception as exc:
-            return HttpResponse(f"Error: {exc}", status=400)
-
-        response = HttpResponseRedirect(settings.WEB_CLIENT_URL)
-        response.set_cookie("atoken", access_token, domain=settings.AUTH_COOKIE_DOMAIN)
-        response.set_cookie("rtoken", refresh_token, domain=settings.AUTH_COOKIE_DOMAIN)
-
-        return response
+        return AccountService().sign_up_with_apple(
+            self.authorization_code, first_name=first_name, last_name=last_name
+        )
 
 
 class RefreshAccessTokenView(View):
@@ -126,9 +134,7 @@ class RefreshAccessTokenView(View):
 class CheckUserView(View):
     def get(self, request, *args, **kwargs):
         if not request.user.is_authenticated:
-            return JsonResponse(
-                {"error": "Unauthenticated request."}, status=401
-            )
+            return JsonResponse({"error": "Unauthenticated request."}, status=401)
 
         return JsonResponse(
             {
