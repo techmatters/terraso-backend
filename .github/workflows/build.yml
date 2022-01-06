@@ -39,6 +39,7 @@ jobs:
 
       - name: Build base Docker image
         run: |
+          cp .env.sample .env
           make build
 
       - name: Run tests using built Docker image
