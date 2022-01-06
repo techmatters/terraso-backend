@@ -5,6 +5,18 @@ platform.
 
 ## Running locally with Docker
 
+Set up your environment file
+
+```sh
+$ cp .env.sample .env
+```
+
+In the `.env` file
+
+* set values for `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET`based on what you have set up in console.cloud.google.com > APIs & Services > Credentials.
+
+* set values for `APPLE_CLIENT_ID`, `APPLE_KEY_ID`, `APPLE_TEAM_ID`, `APPLE_PRIVATE_KEY` and based on what you have set up on developer.apple.com > Certificates, Identifiers & Profiles > Keys.
+
 Start building the Docker images (make sure there's `requirements.txt`
 file created before building the images):
 
