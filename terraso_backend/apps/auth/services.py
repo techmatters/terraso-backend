@@ -6,6 +6,7 @@ from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.utils import timezone
 
+from .exceptions import ExpiredTokenError
 from .providers import AppleProvider, GoogleProvider
 
 User = get_user_model()
@@ -71,7 +72,10 @@ class JWTService:
         return jwt.encode(payload, self.JWT_SECRET, algorithm=self.JWT_ALGORITHM)
 
     def verify_token(self, token):
-        return jwt.decode(token, self.JWT_SECRET, algorithms=self.JWT_ALGORITHM)
+        try:
+            return jwt.decode(token, self.JWT_SECRET, algorithms=self.JWT_ALGORITHM)
+        except jwt.exceptions.ExpiredSignatureError as e:
+            raise ExpiredTokenError(e)
 
     def _get_base_payload(self, user):
         return {
