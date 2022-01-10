@@ -1,5 +1,7 @@
 from django.contrib.auth import get_user_model
+from django.http import JsonResponse
 
+from .exceptions import ExpiredTokenError
 from .services import JWTService
 
 User = get_user_model()
@@ -10,11 +12,22 @@ class JWTAuthenticationMiddleware:
         self.get_response = get_response
 
     def __call__(self, request):
-        if not request.user or not request.user.is_authenticated:
-            user = self._get_user_from_jwt(request)
+        error_response = None
+        user = None
 
-            if user:
-                request.user = user
+        if not request.user or not request.user.is_authenticated:
+            try:
+                user = self._get_user_from_jwt(request)
+            except ExpiredTokenError:
+                error_response = JsonResponse({"error": "Forbidden"}, status=403)
+            except Exception:
+                error_response = JsonResponse({"error": "Unauthorized"}, status=401)
+
+        if error_response:
+            return error_response
+
+        if user:
+            request.user = user
 
         response = self.get_response(request)
 
@@ -39,10 +52,7 @@ class JWTAuthenticationMiddleware:
         if token_type != "Bearer":
             return None
 
-        try:
-            decoded_payload = JWTService().verify_token(token)
-        except Exception:
-            return None
+        decoded_payload = JWTService().verify_token(token)
 
         return self._get_user(decoded_payload["sub"])
 

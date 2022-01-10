@@ -231,6 +231,16 @@ def test_get_user_information_not_logged_in(client):
     assert "error" in response.json()
 
 
+def test_get_user_information_with_expired_token(client, expired_access_token):
+    url = reverse("terraso_auth:user")
+    response = client.get(
+        url, HTTP_AUTHORIZATION=f"Bearer {expired_access_token}", HTTP_ACCEPT="application/json"
+    )
+
+    assert response.status_code == 403
+    assert "error" in response.json()
+
+
 def test_get_user_information(client, user, access_token):
     url = reverse("terraso_auth:user")
     response = client.get(url, HTTP_AUTHORIZATION=f"Bearer {access_token}")
