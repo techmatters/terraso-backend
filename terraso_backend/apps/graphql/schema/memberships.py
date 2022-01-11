@@ -15,11 +15,11 @@ class MembershipNode(DjangoObjectType):
     class Meta:
         model = Membership
         filter_fields = {
-            "group": ["exact"],
-            "user": ["exact"],
+            "group": ["exact", "in"],
+            "group__slug": ["icontains", "in"],
+            "user": ["exact", "in"],
             "user_role": ["exact"],
-            "group__slug": ["icontains"],
-            "user__email": ["icontains"],
+            "user__email": ["icontains", "in"],
         }
         fields = ("group", "user", "user_role")
         interfaces = (relay.Node,)
