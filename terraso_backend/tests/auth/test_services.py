@@ -14,6 +14,7 @@ pytestmark = pytest.mark.django_db
 @mock.patch("urllib.request.urlopen", mock.mock_open(read_data="file content"))
 @mock.patch("apps.storage.services.ProfileImageService.upload_url")
 def test_sign_up_with_google_creates_user(mock_upload, respx_mock, access_tokens_google):
+    mock_upload.return_value = "https://test.com/user-id/image-path"
     respx_mock.post(GoogleProvider.GOOGLE_TOKEN_URI).mock(
         return_value=Response(200, json=access_tokens_google)
     )
