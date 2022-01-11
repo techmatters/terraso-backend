@@ -28,9 +28,9 @@ def test_users_add(client_query):
 
 
 def test_users_update(client_query, users):
-    old_user = _get_users(client_query)[0]
+    old_user = users[0]
     new_data = {
-        "id": old_user["id"],
+        "id": str(old_user.id),
         "firstName": "Tina",
         "lastName": "Testing",
         "email": "tinatesting@example.com",
@@ -58,41 +58,21 @@ def test_users_update(client_query, users):
 
 
 def test_users_delete(client_query, users):
-    old_user = _get_users(client_query)[0]
+    old_user = users[0]
     response = client_query(
         """
         mutation deleteUser($input: UserDeleteMutationInput!){
           deleteUser(input: $input) {
             user {
-              id
               email
             }
           }
         }
         """,
-        variables={"input": {"id": old_user["id"]}},
+        variables={"input": {"id": str(old_user.id)}},
     )
 
     user_result = response.json()["data"]["deleteUser"]["user"]
 
-    assert user_result["email"] == old_user["email"]
+    assert user_result["email"] == old_user.email
     assert not User.objects.filter(email=user_result["email"])
-
-
-def _get_users(client_query):
-    response = client_query(
-        """
-        {
-          users {
-            edges {
-              node {
-                id
-                email
-              }
-            }
-          }
-        }
-        """
-    )
-    edges = response.json()["data"]["users"]["edges"]
-    return [e["node"] for e in edges]

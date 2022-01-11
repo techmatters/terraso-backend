@@ -112,9 +112,9 @@ def test_membership_add_manager(client_query, groups, users):
 
 
 def test_membership_update(client_query, memberships):
-    old_membership = _get_memberships(client_query)[0]
+    old_membership = memberships[0]
 
-    assert old_membership["userRole"] != Membership.ROLE_MANAGER.upper()
+    assert old_membership.user_role != Membership.ROLE_MANAGER.upper()
 
     response = client_query(
         """
@@ -135,7 +135,7 @@ def test_membership_update(client_query, memberships):
         """,
         variables={
             "input": {
-                "id": old_membership["id"],
+                "id": str(old_membership.id),
                 "userRole": Membership.ROLE_MANAGER,
             }
         },
@@ -143,55 +143,34 @@ def test_membership_update(client_query, memberships):
     membership = response.json()["data"]["updateMembership"]["membership"]
 
     assert membership["id"]
-    assert membership["user"]["email"] == old_membership["user"]["email"]
-    assert membership["group"]["slug"] == old_membership["group"]["slug"]
+    assert membership["user"]["email"] == old_membership.user.email
+    assert membership["group"]["slug"] == old_membership.group.slug
     assert membership["userRole"] == Membership.ROLE_MANAGER.upper()
 
 
 def test_membership_delete(client_query, memberships):
-    old_membership = _get_memberships(client_query)[0]
+    old_membership = memberships[0]
 
-    response = client_query(
+    client_query(
         """
         mutation deleteMembership($input: MembershipDeleteMutationInput!){
           deleteMembership(input: $input) {
             membership {
-              id
+              user {
+                email
+              },
+              group {
+                slug
+              }
             }
           }
         }
         """,
         variables={
             "input": {
-                "id": old_membership["id"],
+                "id": str(old_membership.id),
             }
         },
     )
-    membership = response.json()["data"]["deleteMembership"]["membership"]
 
-    assert membership["id"]
-    assert not Membership.objects.filter(
-        user__email=old_membership["user"]["email"],
-        group__slug=old_membership["group"]["slug"],
-    )
-
-
-def _get_memberships(client_query):
-    response = client_query(
-        """
-        {
-          memberships {
-            edges {
-              node {
-                id
-                userRole
-                user { email }
-                group { slug }
-              }
-            }
-          }
-        }
-        """
-    )
-    edges = response.json()["data"]["memberships"]["edges"]
-    return [e["node"] for e in edges]
+    assert not Membership.objects.filter(user=old_membership.user, group=old_membership.group)

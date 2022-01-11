@@ -103,8 +103,8 @@ def test_landscape_groups_add_without_default(client_query, landscapes, groups):
 
 
 def test_landscape_groups_update_is_default_group(client_query, landscape_groups):
-    old_landscape_group = _get_landscape_groups(client_query)[0]
-    old_is_default = old_landscape_group["isDefaultLandscapeGroup"]
+    old_landscape_group = landscape_groups[0]
+    old_is_default = old_landscape_group.is_default_landscape_group
 
     response = client_query(
         """
@@ -119,21 +119,21 @@ def test_landscape_groups_update_is_default_group(client_query, landscape_groups
         """,
         variables={
             "input": {
-                "id": old_landscape_group["id"],
+                "id": str(old_landscape_group.id),
                 "isDefaultLandscapeGroup": not old_is_default,
             }
         },
     )
     landscape_group = response.json()["data"]["updateLandscapeGroup"]["landscapeGroup"]
 
-    assert landscape_group["id"] == old_landscape_group["id"]
+    assert landscape_group["id"] == str(old_landscape_group.id)
     assert landscape_group["isDefaultLandscapeGroup"] is not old_is_default
 
 
 def test_landscape_groups_update_landscape_and_group(
     client_query, landscapes, groups, landscape_groups
 ):
-    old_landscape_group = _get_landscape_groups(client_query)[0]
+    old_landscape_group = landscape_groups[0]
     new_landscape = landscapes[-1]
     new_group = groups[-1]
 
@@ -151,7 +151,7 @@ def test_landscape_groups_update_landscape_and_group(
         """,
         variables={
             "input": {
-                "id": old_landscape_group["id"],
+                "id": str(old_landscape_group.id),
                 "landscapeSlug": new_landscape.slug,
                 "groupSlug": new_group.slug,
             }
@@ -159,52 +159,29 @@ def test_landscape_groups_update_landscape_and_group(
     )
     landscape_group = response.json()["data"]["updateLandscapeGroup"]["landscapeGroup"]
 
-    assert landscape_group["id"] == old_landscape_group["id"]
+    assert landscape_group["id"] == str(old_landscape_group.id)
     assert landscape_group["landscape"]["slug"] == new_landscape.slug
     assert landscape_group["group"]["slug"] == new_group.slug
 
 
 def test_landscape_groups_delete(client_query, landscape_groups):
-    old_landscape_group = _get_landscape_groups(client_query)[0]
+    old_landscape_group = landscape_groups[0]
     response = client_query(
         """
         mutation deleteLandscapeGroup($input: LandscapeGroupDeleteMutationInput!){
           deleteLandscapeGroup(input: $input) {
             landscapeGroup {
-              id
               landscape { slug }
               group { slug }
             }
           }
         }
         """,
-        variables={"input": {"id": old_landscape_group["id"]}},
+        variables={"input": {"id": str(old_landscape_group.id)}},
     )
     landscape_group = response.json()["data"]["deleteLandscapeGroup"]["landscapeGroup"]
 
-    assert landscape_group["id"]
     assert not LandscapeGroup.objects.filter(
         landscape__slug=landscape_group["landscape"]["slug"],
         group__slug=landscape_group["group"]["slug"],
     )
-
-
-def _get_landscape_groups(client_query):
-    response = client_query(
-        """
-        {
-          landscapeGroups {
-            edges {
-              node {
-                id
-                landscape { slug }
-                isDefaultLandscapeGroup
-                group { slug }
-              }
-            }
-          }
-        }
-        """
-    )
-    edges = response.json()["data"]["landscapeGroups"]["edges"]
-    return [e["node"] for e in edges]

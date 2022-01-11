@@ -1,12 +1,19 @@
 import re
 
-import graphql_relay
 from django.core.exceptions import ValidationError
 from graphene import relay
 
 from apps.graphql.exceptions import GraphQLValidationException
 
 RE_CAMEL_TO_SNAKE_CASE = re.compile(r"(?<!^)(?=[A-Z])")
+
+
+def from_camel_to_snake_case(model_class):
+    """
+    Transforms camel case to snake case. MyModel becomes my_model.
+    """
+    model_class_name = model_class.__name__
+    return RE_CAMEL_TO_SNAKE_CASE.sub("_", model_class_name).lower()
 
 
 class BaseWriteMutation(relay.ClientIDMutation):
@@ -20,11 +27,10 @@ class BaseWriteMutation(relay.ClientIDMutation):
         called both when adding and updating a model. The `kwargs` receives
         a dictionary with all inputs informed.
         """
-        graphql_id = kwargs.pop("id", None)
+        _id = kwargs.pop("id", None)
 
-        if graphql_id:
-            _, _pk = graphql_relay.from_global_id(graphql_id)
-            model_instance = cls.model_class.objects.get(pk=_pk)
+        if _id:
+            model_instance = cls.model_class.objects.get(pk=_id)
         else:
             model_instance = cls.model_class()
 
@@ -38,7 +44,7 @@ class BaseWriteMutation(relay.ClientIDMutation):
 
         model_instance.save()
 
-        result_kwargs = {cls.model_class.__name__.lower(): model_instance}
+        result_kwargs = {from_camel_to_snake_case(cls.model_class): model_instance}
 
         return cls(**result_kwargs)
 
@@ -48,24 +54,14 @@ class BaseDeleteMutation(relay.ClientIDMutation):
 
     @classmethod
     def mutate_and_get_payload(cls, root, info, **kwargs):
-        graphql_id = kwargs.pop("id", None)
+        _id = kwargs.pop("id", None)
 
-        if not graphql_id:
+        if not _id:
             model_instance = None
         else:
-            _, _pk = graphql_relay.from_global_id(graphql_id)
-            model_instance = cls.model_class.objects.get(pk=_pk)
+            model_instance = cls.model_class.objects.get(pk=_id)
             model_instance.delete()
 
-        result_kwargs = {cls._get_result_attribute_name(): model_instance}
+        result_kwargs = {from_camel_to_snake_case(cls.model_class): model_instance}
 
         return cls(**result_kwargs)
-
-    @classmethod
-    def _get_result_attribute_name(cls):
-        """
-        Transforms model class name from camel case to snake case. MyModel
-        becomes my_model.
-        """
-        model_class_name = cls.model_class.__name__
-        return RE_CAMEL_TO_SNAKE_CASE.sub("_", model_class_name).lower()

@@ -48,9 +48,9 @@ def test_groups_add_duplicated(client_query, groups):
 
 
 def test_groups_update(client_query, groups):
-    old_group = _get_groups(client_query)[0]
+    old_group = groups[0]
     new_data = {
-        "id": old_group["id"],
+        "id": str(old_group.id),
         "description": "New description",
         "name": "New Name",
         "website": "https://www.example.com/updated-group",
@@ -78,42 +78,22 @@ def test_groups_update(client_query, groups):
 
 
 def test_groups_delete(client_query, groups):
-    old_group = _get_groups(client_query)[0]
+    old_group = groups[0]
     response = client_query(
         """
         mutation deleteGroup($input: GroupDeleteMutationInput!){
           deleteGroup(input: $input) {
             group {
-              id
               slug
             }
           }
         }
 
         """,
-        variables={"input": {"id": old_group["id"]}},
+        variables={"input": {"id": str(old_group.id)}},
     )
 
     group_result = response.json()["data"]["deleteGroup"]["group"]
 
-    assert group_result["slug"] == old_group["slug"]
+    assert group_result["slug"] == old_group.slug
     assert not Group.objects.filter(slug=group_result["slug"])
-
-
-def _get_groups(client_query):
-    response = client_query(
-        """
-        {
-          groups {
-            edges {
-              node {
-                id
-                slug
-              }
-            }
-          }
-        }
-        """
-    )
-    edges = response.json()["data"]["groups"]["edges"]
-    return [e["node"] for e in edges]

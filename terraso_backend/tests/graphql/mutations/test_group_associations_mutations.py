@@ -65,45 +65,23 @@ def test_group_associations_add_duplicated(client_query, group_associations):
 
 
 def test_group_associations_delete(client_query, group_associations):
-    old_group_association = _get_group_associations(client_query)[0]
+    old_group_association = group_associations[0]
     response = client_query(
         """
         mutation deleteGroupAssociation($input: GroupAssociationDeleteMutationInput!){
           deleteGroupAssociation(input: $input) {
             groupAssociation {
-              id
               parentGroup { slug }
               childGroup { slug }
             }
           }
         }
         """,
-        variables={"input": {"id": old_group_association["id"]}},
+        variables={"input": {"id": str(old_group_association.id)}},
     )
     group_association = response.json()["data"]["deleteGroupAssociation"]["groupAssociation"]
 
-    assert group_association["id"]
     assert not GroupAssociation.objects.filter(
         parent_group__slug=group_association["parentGroup"]["slug"],
         child_group__slug=group_association["childGroup"]["slug"],
     )
-
-
-def _get_group_associations(client_query):
-    response = client_query(
-        """
-        {
-          groupAssociations {
-            edges {
-              node {
-                id
-                parentGroup { slug }
-                childGroup { slug }
-              }
-            }
-          }
-        }
-        """
-    )
-    edges = response.json()["data"]["groupAssociations"]["edges"]
-    return [e["node"] for e in edges]

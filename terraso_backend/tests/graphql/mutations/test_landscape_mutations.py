@@ -48,9 +48,9 @@ def test_landscapes_add_duplicated(client_query, landscapes):
 
 
 def test_landscapes_update(client_query, landscapes):
-    old_landscape = _get_landscapes(client_query)[0]
+    old_landscape = landscapes[0]
     new_data = {
-        "id": old_landscape["id"],
+        "id": str(old_landscape.id),
         "description": "New description",
         "name": "New Name",
         "website": "https://www.example.com/updated-landscape",
@@ -76,42 +76,22 @@ def test_landscapes_update(client_query, landscapes):
 
 
 def test_landscapes_delete(client_query, landscapes):
-    old_landscape = _get_landscapes(client_query)[0]
+    old_landscape = landscapes[0]
     response = client_query(
         """
         mutation deleteLandscape($input: LandscapeDeleteMutationInput!){
           deleteLandscape(input: $input) {
             landscape {
-              id
               slug
             }
           }
         }
 
         """,
-        variables={"input": {"id": old_landscape["id"]}},
+        variables={"input": {"id": str(old_landscape.id)}},
     )
 
     landscape_result = response.json()["data"]["deleteLandscape"]["landscape"]
 
-    assert landscape_result["slug"] == old_landscape["slug"]
+    assert landscape_result["slug"] == old_landscape.slug
     assert not Landscape.objects.filter(slug=landscape_result["slug"])
-
-
-def _get_landscapes(client_query):
-    response = client_query(
-        """
-        {
-          landscapes {
-            edges {
-              node {
-                id
-                slug
-              }
-            }
-          }
-        }
-        """
-    )
-    edges = response.json()["data"]["landscapes"]["edges"]
-    return [e["node"] for e in edges]

@@ -1,5 +1,4 @@
 import graphene
-import graphql_relay
 from django.core.exceptions import ValidationError
 from graphene import relay
 from graphene_django import DjangoObjectType
@@ -11,6 +10,8 @@ from .commons import BaseDeleteMutation
 
 
 class MembershipNode(DjangoObjectType):
+    id = graphene.ID(source='pk', required=True)
+
     class Meta:
         model = Membership
         filter_fields = {
@@ -35,11 +36,10 @@ class MembershipWriteMutation(relay.ClientIDMutation):
         called both when adding and updating Memberships. The `kwargs` receives
         a dictionary with all inputs informed.
         """
-        graphql_id = kwargs.pop("id", None)
+        _id = kwargs.pop("id", None)
 
-        if graphql_id:
-            _, _pk = graphql_relay.from_global_id(graphql_id)
-            membership = Membership.objects.get(pk=_pk)
+        if _id:
+            membership = Membership.objects.get(pk=_id)
         else:
             membership = Membership()
             membership.user = User.objects.get(email=kwargs.pop("user_email"))

@@ -8,6 +8,8 @@ from .commons import BaseDeleteMutation, BaseWriteMutation
 
 
 class GroupNode(DjangoObjectType):
+    id = graphene.ID(source='pk', required=True)
+
     class Meta:
         model = Group
         filter_fields = {
