@@ -1,6 +1,5 @@
 import re
 
-import graphql_relay
 from django.core.exceptions import ValidationError
 from graphene import relay
 
@@ -28,11 +27,10 @@ class BaseWriteMutation(relay.ClientIDMutation):
         called both when adding and updating a model. The `kwargs` receives
         a dictionary with all inputs informed.
         """
-        graphql_id = kwargs.pop("id", None)
+        _id = kwargs.pop("id", None)
 
-        if graphql_id:
-            _, _pk = graphql_relay.from_global_id(graphql_id)
-            model_instance = cls.model_class.objects.get(pk=_pk)
+        if _id:
+            model_instance = cls.model_class.objects.get(pk=_id)
         else:
             model_instance = cls.model_class()
 
@@ -56,13 +54,12 @@ class BaseDeleteMutation(relay.ClientIDMutation):
 
     @classmethod
     def mutate_and_get_payload(cls, root, info, **kwargs):
-        graphql_id = kwargs.pop("id", None)
+        _id = kwargs.pop("id", None)
 
-        if not graphql_id:
+        if not _id:
             model_instance = None
         else:
-            _, _pk = graphql_relay.from_global_id(graphql_id)
-            model_instance = cls.model_class.objects.get(pk=_pk)
+            model_instance = cls.model_class.objects.get(pk=_id)
             model_instance.delete()
 
         result_kwargs = {from_camel_to_snake_case(cls.model_class): model_instance}

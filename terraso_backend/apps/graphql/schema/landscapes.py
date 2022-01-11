@@ -8,6 +8,8 @@ from .commons import BaseDeleteMutation, BaseWriteMutation
 
 
 class LandscapeNode(DjangoObjectType):
+    id = graphene.ID(source='pk', required=True)
+
     class Meta:
         model = Landscape
         filter_fields = {

@@ -1,5 +1,4 @@
 import graphene
-import graphql_relay
 from graphene import relay
 from graphene_django import DjangoObjectType
 
@@ -9,6 +8,8 @@ from .commons import BaseDeleteMutation
 
 
 class UserNode(DjangoObjectType):
+    id = graphene.ID(source="pk", required=True)
+
     class Meta:
         model = User
         filter_fields = {
@@ -52,10 +53,9 @@ class UserUpdateMutation(relay.ClientIDMutation):
 
     @classmethod
     def mutate_and_get_payload(cls, root, info, **kwargs):
-        graphql_id = kwargs.pop("id")
+        _id = kwargs.pop("id")
 
-        _, _pk = graphql_relay.from_global_id(graphql_id)
-        user = User.objects.get(pk=_pk)
+        user = User.objects.get(pk=_id)
         new_password = kwargs.pop("password", None)
 
         if new_password:

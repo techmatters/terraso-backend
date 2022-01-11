@@ -10,6 +10,8 @@ from .commons import BaseDeleteMutation
 
 
 class GroupAssociationNode(DjangoObjectType):
+    id = graphene.ID(source='pk', required=True)
+
     class Meta:
         model = GroupAssociation
         filter_fields = {

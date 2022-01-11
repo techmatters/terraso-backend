@@ -1,5 +1,4 @@
 import graphene
-import graphql_relay
 from django.core.exceptions import ValidationError
 from graphene import relay
 from graphene_django import DjangoObjectType
@@ -11,6 +10,8 @@ from .commons import BaseDeleteMutation
 
 
 class LandscapeGroupNode(DjangoObjectType):
+    id = graphene.ID(source="pk", required=True)
+
     class Meta:
         model = LandscapeGroup
         filter_fields = {
@@ -35,11 +36,10 @@ class LandscapeGroupWriteMutation(relay.ClientIDMutation):
         called both when adding and updating Landscape Groups. The `kwargs`
         receives a dictionary with all inputs informed.
         """
-        graphql_id = kwargs.pop("id", None)
+        _id = kwargs.pop("id", None)
 
-        if graphql_id:
-            _, _pk = graphql_relay.from_global_id(graphql_id)
-            landscape_group = LandscapeGroup.objects.get(pk=_pk)
+        if _id:
+            landscape_group = LandscapeGroup.objects.get(pk=_id)
             new_landscape = kwargs.pop("landscape_slug", None)
             new_group = kwargs.pop("group_slug", None)
 
