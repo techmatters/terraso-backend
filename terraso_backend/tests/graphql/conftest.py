@@ -1,4 +1,8 @@
+from datetime import timedelta
+
 import pytest
+from django.utils import timezone
+from freezegun import freeze_time
 from graphene_django.utils.testing import graphql_query
 from mixer.backend.django import mixer
 
@@ -21,11 +25,29 @@ def access_token(users):
 
 
 @pytest.fixture
+@freeze_time(timezone.now() - timedelta(days=10))
+def expired_access_token(users):
+    return JWTService().create_access_token(users[0])
+
+
+@pytest.fixture
 def client_query(client, access_token):
     def _client_query(*args, **kwargs):
         headers = {
             "CONTENT_TYPE": "application/json",
             "HTTP_AUTHORIZATION": f"Bearer {access_token}",
+        }
+        return graphql_query(*args, **kwargs, headers=headers, client=client)
+
+    return _client_query
+
+
+@pytest.fixture
+def expired_client_query(client, expired_access_token):
+    def _client_query(*args, **kwargs):
+        headers = {
+            "CONTENT_TYPE": "application/json",
+            "HTTP_AUTHORIZATION": f"Bearer {expired_access_token}",
         }
         return graphql_query(*args, **kwargs, headers=headers, client=client)
 

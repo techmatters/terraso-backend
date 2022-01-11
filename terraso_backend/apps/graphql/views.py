@@ -1,12 +1,7 @@
 from graphene_django.views import GraphQLView
 
+from apps.auth.mixins import AuthenticationRequiredMixin
 
-class TerrasoGraphQLView(GraphQLView):
-    def dispatch(self, request, *args, **kwargs):
-        # TODO: uncomment following code when client ready for authentication
-        #  if not request.user.is_authenticated:
-        #      return JsonResponse(
-        #          {"error": "Unauthenticated request"}, status=401
-        #      )
 
-        return super().dispatch(request, *args, **kwargs)
+class TerrasoGraphQLView(AuthenticationRequiredMixin, GraphQLView):
+    pass
