@@ -9,6 +9,14 @@ from apps.graphql.exceptions import GraphQLValidationException
 RE_CAMEL_TO_SNAKE_CASE = re.compile(r"(?<!^)(?=[A-Z])")
 
 
+def from_camel_to_snake_case(model_class):
+    """
+    Transforms camel case to snake case. MyModel becomes my_model.
+    """
+    model_class_name = model_class.__name__
+    return RE_CAMEL_TO_SNAKE_CASE.sub("_", model_class_name).lower()
+
+
 class BaseWriteMutation(relay.ClientIDMutation):
     model_class = None
 
@@ -38,7 +46,7 @@ class BaseWriteMutation(relay.ClientIDMutation):
 
         model_instance.save()
 
-        result_kwargs = {cls.model_class.__name__.lower(): model_instance}
+        result_kwargs = {from_camel_to_snake_case(cls.model_class): model_instance}
 
         return cls(**result_kwargs)
 
@@ -57,15 +65,6 @@ class BaseDeleteMutation(relay.ClientIDMutation):
             model_instance = cls.model_class.objects.get(pk=_pk)
             model_instance.delete()
 
-        result_kwargs = {cls._get_result_attribute_name(): model_instance}
+        result_kwargs = {from_camel_to_snake_case(cls.model_class): model_instance}
 
         return cls(**result_kwargs)
-
-    @classmethod
-    def _get_result_attribute_name(cls):
-        """
-        Transforms model class name from camel case to snake case. MyModel
-        becomes my_model.
-        """
-        model_class_name = cls.model_class.__name__
-        return RE_CAMEL_TO_SNAKE_CASE.sub("_", model_class_name).lower()
