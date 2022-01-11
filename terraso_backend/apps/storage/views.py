@@ -4,6 +4,7 @@ from django.http import JsonResponse
 from django.views.generic.edit import FormView
 
 from apps.auth.mixins import AuthenticationRequiredMixin
+
 from .services import ProfileImageService
 
 logger = logging.getLogger(__name__)
