@@ -47,6 +47,7 @@ class User(AbstractUser):
 
     username = None
     email = models.EmailField(unique=True)
+    profile_image = models.URLField(null=True)
 
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = []

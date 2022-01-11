@@ -134,12 +134,14 @@ class RefreshAccessTokenView(View):
 
 class CheckUserView(AuthenticationRequiredMixin, View):
     def get(self, request, *args, **kwargs):
+        user = request.user
         return JsonResponse(
             {
                 "user": {
-                    "email": request.user.email,
-                    "first_name": request.user.first_name,
-                    "last_name": request.user.last_name,
+                    "email": user.email,
+                    "first_name": user.first_name,
+                    "last_name": user.last_name,
+                    "profile_image": user.profile_image,
                 }
             }
         )
