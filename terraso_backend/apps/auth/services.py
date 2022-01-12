@@ -1,3 +1,4 @@
+import logging
 from datetime import timedelta
 from uuid import uuid4
 
@@ -6,8 +7,11 @@ from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.utils import timezone
 
+from apps.storage.services import ProfileImageService
+
 from .providers import AppleProvider, GoogleProvider
 
+logger = logging.getLogger(__name__)
 User = get_user_model()
 
 
@@ -23,6 +27,7 @@ class AccountService:
             tokens.open_id.email,
             first_name=tokens.open_id.given_name,
             last_name=tokens.open_id.family_name,
+            profile_image_url=tokens.open_id.picture,
         )
 
     def sign_up_with_apple(self, authorization_code, first_name="", last_name=""):
@@ -34,7 +39,8 @@ class AccountService:
 
         return self._persist_user(tokens.open_id.email, first_name=first_name, last_name=last_name)
 
-    def _persist_user(self, email, first_name="", last_name=""):
+    def _persist_user(self, email, first_name="", last_name="", profile_image_url=None):
+        profile_image_service = ProfileImageService()
         user, _ = User.objects.get_or_create(email=email)
 
         update_name = first_name or last_name
@@ -44,6 +50,13 @@ class AccountService:
 
         if last_name:
             user.last_name = last_name
+
+        user_id = str(user.id)
+        try:
+            if not user.profile_image and profile_image_url:
+                user.profile_image = profile_image_service.upload_url(user_id, profile_image_url)
+        except Exception:
+            logger.exception("Failed to upload profile image. User ID: {}".format(user_id))
 
         if update_name:
             user.save()

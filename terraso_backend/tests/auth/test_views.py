@@ -5,6 +5,7 @@ import pytest
 from django.urls import reverse
 from httpx import Response
 from mixer.backend.django import mixer
+from moto import mock_s3
 
 from apps.auth.providers import AppleProvider, GoogleProvider
 from apps.core.models import User
@@ -34,6 +35,7 @@ def test_get_google_login_url(client, google_url):
     assert "request_url" in response.json()
 
 
+@mock_s3
 def test_get_google_callback(client, access_tokens_google, respx_mock):
     respx_mock.post(GoogleProvider.GOOGLE_TOKEN_URI).mock(
         return_value=Response(200, json=access_tokens_google)
@@ -69,6 +71,7 @@ def test_get_apple_login_url(client, apple_url):
     assert "request_url" in response.json()
 
 
+@mock_s3
 def test_post_apple_callback(client, access_tokens_apple, respx_mock):
     respx_mock.post(AppleProvider.TOKEN_URI).mock(
         return_value=Response(200, json=access_tokens_apple)
@@ -110,6 +113,7 @@ def test_post_apple_callback_with_error(client):
     assert "Bad Request: authentication failed" in response.content.decode()
 
 
+@mock_s3
 def test_post_apple_callback_with_no_user(client, access_tokens_apple, respx_mock):
     respx_mock.post(AppleProvider.TOKEN_URI).mock(
         return_value=Response(200, json=access_tokens_apple)
@@ -124,6 +128,7 @@ def test_post_apple_callback_with_no_user(client, access_tokens_apple, respx_moc
     assert response.cookies.get("rtoken")
 
 
+@mock_s3
 def test_post_apple_callback_nth_login(client, access_tokens_apple, respx_mock):
     # This is simulating a user already signed up
     user = mixer.blend(

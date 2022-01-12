@@ -4,6 +4,7 @@ freezegun
 ipdb
 isort
 mixer
+moto
 pytest
 pytest-cov
 pytest-django
