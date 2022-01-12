@@ -152,9 +152,8 @@ def test_users_query(client_query, users):
         """
     )
     edges = response.json()["data"]["users"]["edges"]
-    users_result_emails = [edge["node"]["email"] for edge in edges]
-    users_result_profile_images = [edge["node"]["profileImage"] for edge in edges]
-    print(users)
+    users_result_nodes = [edge["node"] for edge in edges]
     for user in users:
-        assert user.email in users_result_emails
-        assert user.profile_image in users_result_profile_images
+        user_node = next(item for item in users_result_nodes if item["email"] == user.email)
+        assert user_node
+        assert user.profile_image == user_node["profileImage"]
