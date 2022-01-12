@@ -144,6 +144,7 @@ def test_users_query(client_query, users):
                 edges {
                     node {
                         email
+                        profileImage
                     }
                 }
             }
@@ -151,6 +152,9 @@ def test_users_query(client_query, users):
         """
     )
     edges = response.json()["data"]["users"]["edges"]
-    users_result = [edge["node"]["email"] for edge in edges]
+    users_result_emails = [edge["node"]["email"] for edge in edges]
+    users_result_profile_images = [edge["node"]["profileImage"] for edge in edges]
+    print(users)
     for user in users:
-        assert user.email in users_result
+        assert user.email in users_result_emails
+        assert user.profile_image in users_result_profile_images
