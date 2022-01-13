@@ -26,6 +26,31 @@ def test_groups_add(client_query):
     assert group_result["name"] == group_name
 
 
+def test_groups_add_has_created_by_filled_out(client_query, users):
+    group_name = "Testing Group"
+    group_creator = users[0]
+
+    response = client_query(
+        """
+        mutation addGroup($input: GroupAddMutationInput!){
+          addGroup(input: $input) {
+            group {
+              id
+              name
+              createdBy { email }
+            }
+          }
+        }
+        """,
+        variables={"input": {"name": group_name}},
+    )
+    group_result = response.json()["data"]["addGroup"]["group"]
+
+    assert group_result["id"]
+    assert group_result["name"] == group_name
+    assert group_result["createdBy"]["email"] == group_creator.email
+
+
 def test_groups_add_duplicated(client_query, groups):
     group_name = groups[0].name
     response = client_query(

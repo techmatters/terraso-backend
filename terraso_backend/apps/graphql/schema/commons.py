@@ -48,6 +48,10 @@ class BaseWriteMutation(relay.ClientIDMutation):
 
         return cls(**result_kwargs)
 
+    @classmethod
+    def is_update(cls, data):
+        return "id" in data
+
 
 class BaseDeleteMutation(relay.ClientIDMutation):
     model_class = None

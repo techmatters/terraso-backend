@@ -25,6 +25,7 @@ class LandscapeNode(DjangoObjectType):
             "description",
             "website",
             "location",
+            "created_by",
             "associated_groups",
         )
         interfaces = (relay.Node,)
@@ -40,6 +41,15 @@ class LandscapeAddMutation(BaseWriteMutation):
         description = graphene.String()
         website = graphene.String()
         location = graphene.String()
+
+    @classmethod
+    def mutate_and_get_payload(cls, root, info, **kwargs):
+        user = info.context.user
+
+        if not cls.is_update(kwargs):
+            kwargs["created_by"] = user
+
+        return super().mutate_and_get_payload(root, info, **kwargs)
 
 
 class LandscapeUpdateMutation(BaseWriteMutation):
