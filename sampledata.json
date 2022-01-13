@@ -198,19 +198,6 @@
 },
 {
   "model": "core.group",
-  "pk": "496f6684-421e-4eda-8ee7-5f7aa2f55d53",
-  "fields": {
-    "created_at": "2021-12-17T14:10:02.766Z",
-    "updated_at": "2021-12-17T20:45:01.035Z",
-    "slug": "no-formal-partnership",
-    "name": "No formal partnership",
-    "description": "Catchments in the mountains of southern South Africa where collaborations with the local farming community have resulted in large-scale rehabilitation and regenerative agriculture programs.\n",
-    "website": "",
-    "email": ""
-  }
-},
-{
-  "model": "core.group",
   "pk": "4bbc51b0-21ad-4d52-b058-f6d2ea80a6e1",
   "fields": {
     "created_at": "2021-12-17T14:10:02.835Z",
@@ -743,17 +730,6 @@
     "landscape": "a3c7c24a-9f2b-4eb7-a6c2-eb1a0c06011f",
     "group": "a0927aec-1de6-4a5d-b992-9dafab99e851",
     "is_default_landscape_group": true
-  }
-},
-{
-  "model": "core.landscapegroup",
-  "pk": "07391711-c4d5-4851-bc29-9c377e51cd58",
-  "fields": {
-    "created_at": "2021-12-17T14:10:02.771Z",
-    "updated_at": "2021-12-17T20:45:00.728Z",
-    "landscape": "00408dfd-76e9-448b-8d9f-345d6400eb33",
-    "group": "496f6684-421e-4eda-8ee7-5f7aa2f55d53",
-    "is_default_landscape_group": false
   }
 },
 {
