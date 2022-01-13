@@ -68,3 +68,12 @@ def test_membership_is_created_when_group_member_added():
 
     assert group.members.count() == 3
     assert Membership.objects.count() == 3
+
+
+def test_group_creator_becomes_manager():
+    user = mixer.blend(User)
+    group = mixer.blend(Group, pk=None, created_by=user)
+
+    manager_membership = Membership.objects.get(group=group, user=user)
+
+    assert manager_membership.user_role == Membership.ROLE_MANAGER

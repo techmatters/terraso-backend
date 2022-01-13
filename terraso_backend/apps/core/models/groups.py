@@ -1,4 +1,4 @@
-from django.db import models
+from django.db import models, transaction
 from django.utils.translation import gettext_lazy as _
 
 from .commons import BaseModel, SlugModel
@@ -44,6 +44,20 @@ class Group(SlugModel):
     members = models.ManyToManyField(User, through="Membership")
 
     field_to_slug = "name"
+
+    def save(self, *args, **kwargs):
+        creating = not bool(self.pk)
+
+        with transaction.atomic():
+            super().save(*args, **kwargs)
+
+            if creating and self.created_by:
+                membership = Membership(
+                    group=self,
+                    user=self.created_by,
+                    user_role=Membership.ROLE_MANAGER,
+                )
+                membership.save()
 
     def __str__(self):
         return self.name
