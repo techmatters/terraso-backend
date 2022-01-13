@@ -25,6 +25,14 @@ class Group(SlugModel):
     website = models.URLField(blank=True, default="")
     email = models.EmailField(blank=True, default="")
 
+    created_by = models.ForeignKey(
+        User,
+        blank=True,
+        null=True,
+        on_delete=models.PROTECT,
+        related_name="created_groups",
+    )
+
     # Symmetrical=False is necessary so Group A being parent of Group B
     # doesn't make Django assume Group B is also parent of Group A
     group_associations = models.ManyToManyField(
