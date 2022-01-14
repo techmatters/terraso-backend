@@ -41,9 +41,9 @@ class MembershipWriteMutation(relay.ClientIDMutation):
         if _id:
             membership = Membership.objects.get(pk=_id)
         else:
-            membership = Membership()
-            membership.user = User.objects.get(email=kwargs.pop("user_email"))
-            membership.group = Group.objects.get(slug=kwargs.pop("group_slug"))
+            group = Group.objects.get(slug=kwargs.pop("group_slug"))
+            user = User.objects.get(email=kwargs.pop("user_email"))
+            membership, _ = Membership.objects.get_or_create(user=user, group=group)
 
         membership.user_role = Membership.get_user_role_from_text(kwargs.pop("user_role", None))
 
