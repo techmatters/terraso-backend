@@ -6,15 +6,13 @@ pytestmark = pytest.mark.django_db
 def test_landscapes_query(client_query, landscapes):
     response = client_query(
         """
-        query {
-            landscapes {
-                edges {
-                    node {
-                        slug
-                    }
-                }
+        {landscapes {
+          edges {
+            node {
+              slug
             }
-        }
+          }
+        }}
         """
     )
     edges = response.json()["data"]["landscapes"]["edges"]
@@ -59,15 +57,13 @@ def test_landscape_groups_query(client_query, landscape_groups):
 def test_groups_query(client_query, groups):
     response = client_query(
         """
-        query {
-            groups {
-                edges {
-                    node {
-                        slug
-                    }
-                }
+        {groups {
+          edges {
+            node {
+              slug
             }
-        }
+          }
+        }}
         """
     )
     edges = response.json()["data"]["groups"]["edges"]
@@ -139,16 +135,14 @@ def test_memberships_query(client_query, memberships):
 def test_users_query(client_query, users):
     response = client_query(
         """
-        query {
-            users {
-                edges {
-                    node {
-                        email
-                        profileImage
-                    }
-                }
+        {users {
+          edges {
+            node {
+              email
+              profileImage
             }
-        }
+          }
+        }}
         """
     )
     edges = response.json()["data"]["users"]["edges"]
