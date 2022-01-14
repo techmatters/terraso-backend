@@ -48,8 +48,8 @@ setup-git-hooks:
 
 pre-commit: lint
 
-run: check_rebuild
-	@docker-compose up
+run:
+	@./scripts/docker.sh
 
 setup: build setup-pre-commit
 
