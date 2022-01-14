@@ -8,7 +8,7 @@ from .commons import BaseDeleteMutation, BaseWriteMutation
 
 
 class GroupNode(DjangoObjectType):
-    id = graphene.ID(source='pk', required=True)
+    id = graphene.ID(source="pk", required=True)
 
     class Meta:
         model = Group
@@ -31,6 +31,7 @@ class GroupNode(DjangoObjectType):
             "description",
             "website",
             "email",
+            "created_by",
             "memberships",
             "associations_as_parent",
             "associations_as_child",
@@ -49,6 +50,15 @@ class GroupAddMutation(BaseWriteMutation):
         description = graphene.String()
         website = graphene.String()
         email = graphene.String()
+
+    @classmethod
+    def mutate_and_get_payload(cls, root, info, **kwargs):
+        user = info.context.user
+
+        if not cls.is_update(kwargs):
+            kwargs["created_by"] = user
+
+        return super().mutate_and_get_payload(root, info, **kwargs)
 
 
 class GroupUpdateMutation(BaseWriteMutation):

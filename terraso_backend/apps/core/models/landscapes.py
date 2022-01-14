@@ -2,6 +2,7 @@ from django.db import models
 
 from .commons import BaseModel, SlugModel
 from .groups import Group
+from .users import User
 
 
 class Landscape(SlugModel):
@@ -22,6 +23,13 @@ class Landscape(SlugModel):
     website = models.URLField(blank=True, default="")
     location = models.CharField(max_length=128, blank=True, default="")
 
+    created_by = models.ForeignKey(
+        User,
+        blank=True,
+        null=True,
+        on_delete=models.PROTECT,
+        related_name="created_landscapes",
+    )
     groups = models.ManyToManyField(Group, through="LandscapeGroup")
 
     field_to_slug = "name"

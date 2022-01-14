@@ -26,6 +26,30 @@ def test_landscapes_add(client_query):
     assert landscape_result["name"] == landscape_name
 
 
+def test_landscapes_add_has_created_by_filled_out(client_query, users):
+    landscape_name = "Testing Landscape"
+    landscape_creator = users[0]
+    response = client_query(
+        """
+        mutation addLandscape($input: LandscapeAddMutationInput!){
+          addLandscape(input: $input) {
+            landscape {
+              id
+              name
+              createdBy { email }
+            }
+          }
+        }
+        """,
+        variables={"input": {"name": landscape_name}},
+    )
+    landscape_result = response.json()["data"]["addLandscape"]["landscape"]
+
+    assert landscape_result["id"]
+    assert landscape_result["name"] == landscape_name
+    assert landscape_result["createdBy"]["email"] == landscape_creator.email
+
+
 def test_landscapes_add_duplicated(client_query, landscapes):
     landscape_name = landscapes[0].name
     response = client_query(
