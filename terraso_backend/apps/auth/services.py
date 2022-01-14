@@ -40,9 +40,12 @@ class AccountService:
         return self._persist_user(tokens.open_id.email, first_name=first_name, last_name=last_name)
 
     def _persist_user(self, email, first_name="", last_name="", profile_image_url=None):
-        profile_image_service = ProfileImageService()
-        user, _ = User.objects.get_or_create(email=email)
+        user, created = User.objects.get_or_create(email=email)
 
+        if not created:
+            return user
+
+        profile_image_service = ProfileImageService()
         update_name = first_name or last_name
 
         if first_name:
