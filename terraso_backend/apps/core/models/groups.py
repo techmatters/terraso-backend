@@ -46,9 +46,9 @@ class Group(SlugModel):
     field_to_slug = "name"
 
     def save(self, *args, **kwargs):
-        creating = not bool(self.pk)
-
         with transaction.atomic():
+            creating = not Group.objects.filter(pk=self.pk).exists()
+
             super().save(*args, **kwargs)
 
             if creating and self.created_by:

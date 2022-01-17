@@ -72,7 +72,7 @@ def test_membership_is_created_when_group_member_added():
 
 def test_group_creator_becomes_manager():
     user = mixer.blend(User)
-    group = mixer.blend(Group, pk=None, created_by=user)
+    group = mixer.blend(Group, created_by=user)
 
     manager_membership = Membership.objects.get(group=group, user=user)
 
