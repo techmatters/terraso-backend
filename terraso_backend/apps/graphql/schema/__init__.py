@@ -1,7 +1,7 @@
 import graphene
-from graphene import relay
 from graphene_django.filter import DjangoFilterConnectionField
 
+from .commons import TerrasoRelayNode
 from .group_associations import (
     GroupAssociationAddMutation,
     GroupAssociationDeleteMutation,
@@ -35,13 +35,13 @@ from .users import UserAddMutation, UserDeleteMutation, UserNode, UserUpdateMuta
 
 
 class Query(graphene.ObjectType):
-    group = relay.Node.Field(GroupNode)
-    landscape = relay.Node.Field(LandscapeNode)
-    landscape_group = relay.Node.Field(LandscapeNode)
-    user = relay.Node.Field(UserNode)
-    landscape_group = relay.Node.Field(LandscapeGroupNode)
-    membership = relay.Node.Field(MembershipNode)
-    group_association = relay.Node.Field(GroupAssociationNode)
+    group = TerrasoRelayNode.Field(GroupNode)
+    landscape = TerrasoRelayNode.Field(LandscapeNode)
+    landscape_group = TerrasoRelayNode.Field(LandscapeNode)
+    user = TerrasoRelayNode.Field(UserNode)
+    landscape_group = TerrasoRelayNode.Field(LandscapeGroupNode)
+    membership = TerrasoRelayNode.Field(MembershipNode)
+    group_association = TerrasoRelayNode.Field(GroupAssociationNode)
     groups = DjangoFilterConnectionField(GroupNode)
     landscapes = DjangoFilterConnectionField(LandscapeNode)
     landscape_groups = DjangoFilterConnectionField(LandscapeGroupNode)

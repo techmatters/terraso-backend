@@ -16,6 +16,12 @@ def from_camel_to_snake_case(model_class):
     return RE_CAMEL_TO_SNAKE_CASE.sub("_", model_class_name).lower()
 
 
+class TerrasoRelayNode(relay.Node):
+    @staticmethod
+    def get_node_from_global_id(info, global_id, only_type=None):
+        return info.return_type.graphene_type._meta.model.objects.get(pk=global_id)
+
+
 class BaseWriteMutation(relay.ClientIDMutation):
     model_class = None
 
