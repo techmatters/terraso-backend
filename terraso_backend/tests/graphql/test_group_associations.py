@@ -49,3 +49,21 @@ def test_group_association_get_one_by_id(client_query, group_associations):
     group_association_result = response.json()["data"]["groupAssociation"]
 
     assert group_association_result["id"] == str(group_association.id)
+
+
+def test_group_associations_query_has_total_count(client_query, group_associations):
+    response = client_query(
+        """
+        {groupAssociations {
+          totalCount
+          edges {
+            node {
+              id
+            }
+          }
+        }}
+        """
+    )
+    total_count = response.json()["data"]["groupAssociations"]["totalCount"]
+
+    assert total_count == len(group_associations)

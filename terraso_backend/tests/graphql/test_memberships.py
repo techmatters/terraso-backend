@@ -45,3 +45,21 @@ def test_membership_get_one_by_id(client_query, memberships):
     membership_result = response.json()["data"]["membership"]
 
     assert membership_result["id"] == str(membership.id)
+
+
+def test_memberships_query_has_total_count(client_query, memberships):
+    response = client_query(
+        """
+        {memberships {
+          totalCount
+          edges {
+            node {
+              id
+            }
+          }
+        }}
+        """
+    )
+    total_count = response.json()["data"]["memberships"]["totalCount"]
+
+    assert total_count == len(memberships)

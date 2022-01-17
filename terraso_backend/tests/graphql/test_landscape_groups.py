@@ -50,3 +50,21 @@ def test_landscape_group_get_one_by_id(client_query, landscape_groups):
     landscape_group_response = response.json()["data"]["landscapeGroup"]
 
     assert landscape_group_response["id"] == str(landscape_group.id)
+
+
+def test_landscape_groups_query_has_total_count(client_query, landscape_groups):
+    response = client_query(
+        """
+        {landscapeGroups {
+          totalCount
+          edges {
+            node {
+              id
+            }
+          }
+        }}
+        """
+    )
+    total_count = response.json()["data"]["landscapeGroups"]["totalCount"]
+
+    assert total_count == len(landscape_groups)

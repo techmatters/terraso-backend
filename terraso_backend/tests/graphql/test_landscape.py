@@ -39,3 +39,21 @@ def test_landscape_get_one_by_id(client_query, landscapes):
 
     assert landscape_result["id"] == str(landscape.id)
     assert landscape_result["slug"] == landscape.slug
+
+
+def test_landscapes_query_has_total_count(client_query, landscapes):
+    response = client_query(
+        """
+        {landscapes {
+          totalCount
+          edges {
+            node {
+              slug
+            }
+          }
+        }}
+        """
+    )
+    total_count = response.json()["data"]["landscapes"]["totalCount"]
+
+    assert total_count == len(landscapes)

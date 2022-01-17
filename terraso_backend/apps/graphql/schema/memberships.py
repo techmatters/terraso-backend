@@ -6,7 +6,7 @@ from graphene_django import DjangoObjectType
 from apps.core.models import Group, Membership, User
 from apps.graphql.exceptions import GraphQLValidationException
 
-from .commons import BaseDeleteMutation
+from .commons import BaseDeleteMutation, TerrasoConnection
 
 
 class MembershipNode(DjangoObjectType):
@@ -23,6 +23,7 @@ class MembershipNode(DjangoObjectType):
         }
         fields = ("group", "user", "user_role")
         interfaces = (relay.Node,)
+        connection_class = TerrasoConnection
 
 
 class MembershipWriteMutation(relay.ClientIDMutation):

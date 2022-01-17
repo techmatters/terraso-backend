@@ -4,7 +4,7 @@ from graphene_django import DjangoObjectType
 
 from apps.core.models import User
 
-from .commons import BaseDeleteMutation
+from .commons import BaseDeleteMutation, TerrasoConnection
 
 
 class UserNode(DjangoObjectType):
@@ -19,6 +19,7 @@ class UserNode(DjangoObjectType):
         }
         fields = ("email", "first_name", "last_name", "profile_image", "memberships")
         interfaces = (relay.Node,)
+        connection_class = TerrasoConnection
 
 
 class UserAddMutation(relay.ClientIDMutation):

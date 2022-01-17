@@ -41,3 +41,21 @@ def test_user_get_one_by_id(client_query, users):
     assert user_result["id"] == str(user.id)
     assert user_result["email"] == user.email
     assert user_result["profileImage"] == user.profile_image
+
+
+def test_users_query_has_total_count(client_query, users):
+    response = client_query(
+        """
+        {users {
+          totalCount
+          edges {
+            node {
+              email
+            }
+          }
+        }}
+        """
+    )
+    total_count = response.json()["data"]["users"]["totalCount"]
+
+    assert total_count == len(users)

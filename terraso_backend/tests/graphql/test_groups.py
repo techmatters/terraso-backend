@@ -38,3 +38,21 @@ def test_group_get_by_one_by_id(client_query, groups):
 
     assert group_result["id"] == str(group.id)
     assert group_result["slug"] == group.slug
+
+
+def test_groups_query_has_total_count(client_query, groups):
+    response = client_query(
+        """
+        {groups {
+          totalCount
+          edges {
+            node {
+              slug
+            }
+          }
+        }}
+        """
+    )
+    total_count = response.json()["data"]["groups"]["totalCount"]
+
+    assert total_count == len(groups)
