@@ -41,9 +41,10 @@ def test_membership_add(client_query, groups, users):
     assert membership["userRole"] == Membership.ROLE_MEMBER.upper()
 
 
-def test_membership_add_duplicated(client_query, memberships):
-    group = memberships[0].group
-    user = memberships[0].user
+def test_membership_adding_duplicated_returns_previously_created(client_query, memberships):
+    membership = memberships[0]
+    group = membership.group
+    user = membership.user
 
     response = client_query(
         """
@@ -69,9 +70,12 @@ def test_membership_add_duplicated(client_query, memberships):
             }
         },
     )
-    error_result = response.json()["errors"][0]
+    membership_response = response.json()["data"]["addMembership"]["membership"]
 
-    assert "Group and User already exists" in error_result["message"]
+    assert membership_response["id"] == str(membership.id)
+    assert membership_response["userRole"] == membership.user_role.upper()
+    assert membership_response["user"]["email"] == user.email
+    assert membership_response["group"]["slug"] == group.slug
 
 
 def test_membership_add_manager(client_query, groups, users):
