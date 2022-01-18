@@ -4,6 +4,7 @@ httpx
 django<4.0
 django-cors-headers
 django-filter
+django-safedelete
 django-storages
 dj-database-url
 prettyconf
