@@ -4,7 +4,7 @@ from graphene_django import DjangoObjectType
 
 from apps.core.models import Group
 
-from .commons import BaseDeleteMutation, BaseWriteMutation
+from .commons import BaseDeleteMutation, BaseWriteMutation, TerrasoConnection
 
 
 class GroupNode(DjangoObjectType):
@@ -38,6 +38,7 @@ class GroupNode(DjangoObjectType):
             "associated_landscapes",
         )
         interfaces = (relay.Node,)
+        connection_class = TerrasoConnection
 
 
 class GroupAddMutation(BaseWriteMutation):

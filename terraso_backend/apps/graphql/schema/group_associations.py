@@ -6,7 +6,7 @@ from graphene_django import DjangoObjectType
 from apps.core.models import Group, GroupAssociation
 from apps.graphql.exceptions import GraphQLValidationException
 
-from .commons import BaseDeleteMutation
+from .commons import BaseDeleteMutation, TerrasoConnection
 
 
 class GroupAssociationNode(DjangoObjectType):
@@ -22,6 +22,7 @@ class GroupAssociationNode(DjangoObjectType):
         }
         fields = ("parent_group", "child_group")
         interfaces = (relay.Node,)
+        connection_class = TerrasoConnection
 
 
 class GroupAssociationAddMutation(relay.ClientIDMutation):

@@ -6,7 +6,7 @@ from graphene_django import DjangoObjectType
 from apps.core.models import Group, Landscape, LandscapeGroup
 from apps.graphql.exceptions import GraphQLValidationException
 
-from .commons import BaseDeleteMutation
+from .commons import BaseDeleteMutation, TerrasoConnection
 
 
 class LandscapeGroupNode(DjangoObjectType):
@@ -23,6 +23,7 @@ class LandscapeGroupNode(DjangoObjectType):
         }
         fields = ("landscape", "group", "is_default_landscape_group")
         interfaces = (relay.Node,)
+        connection_class = TerrasoConnection
 
 
 class LandscapeGroupWriteMutation(relay.ClientIDMutation):

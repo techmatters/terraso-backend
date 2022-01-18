@@ -1,7 +1,7 @@
 import re
 
 from django.core.exceptions import ValidationError
-from graphene import relay
+from graphene import Connection, Int, relay
 
 from apps.graphql.exceptions import GraphQLValidationException
 
@@ -20,6 +20,16 @@ class TerrasoRelayNode(relay.Node):
     @staticmethod
     def get_node_from_global_id(info, global_id, only_type=None):
         return info.return_type.graphene_type._meta.model.objects.get(pk=global_id)
+
+
+class TerrasoConnection(Connection):
+    class Meta:
+        abstract = True
+
+    total_count = Int()
+
+    def resolve_total_count(self, info, **kwargs):
+        return self.length
 
 
 class BaseWriteMutation(relay.ClientIDMutation):
