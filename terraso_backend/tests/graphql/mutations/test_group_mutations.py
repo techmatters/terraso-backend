@@ -72,8 +72,11 @@ def test_groups_add_duplicated(client_query, groups):
     assert "field=name" in error_result["message"]
 
 
-def test_groups_update(client_query, groups):
+def test_groups_update_by_manager_works(client_query, groups, users):
     old_group = groups[0]
+    # Makes sure user is group manager before update
+    old_group.add_manager(users[0])
+
     new_data = {
         "id": str(old_group.id),
         "description": "New description",
@@ -100,6 +103,30 @@ def test_groups_update(client_query, groups):
     group_result = response.json()["data"]["updateGroup"]["group"]
 
     assert group_result == new_data
+
+
+def test_groups_update_by_member_fails_due_permission_check(client_query, groups):
+    old_group = groups[0]
+    new_data = {
+        "id": str(old_group.id),
+        "description": "New description",
+    }
+    response = client_query(
+        """
+        mutation updateGroup($input: GroupUpdateMutationInput!) {
+          updateGroup(input: $input) {
+            group {
+              id
+            }
+          }
+        }
+        """,
+        variables={"input": new_data},
+    )
+    response = response.json()
+
+    assert "errors" in response
+    assert "has no permission to change" in response["errors"][0]["message"]
 
 
 def test_groups_delete(client_query, groups):

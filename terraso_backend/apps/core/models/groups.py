@@ -1,6 +1,8 @@
 from django.db import models, transaction
 from django.utils.translation import gettext_lazy as _
 
+from apps.core import permission_rules as perm_rules
+
 from .commons import BaseModel, SlugModel
 from .users import User
 
@@ -44,6 +46,11 @@ class Group(SlugModel):
     members = models.ManyToManyField(User, through="Membership")
 
     field_to_slug = "name"
+
+    class Meta:
+        rules_permissions = {
+            "change": perm_rules.is_group_manager,
+        }
 
     def save(self, *args, **kwargs):
         with transaction.atomic():

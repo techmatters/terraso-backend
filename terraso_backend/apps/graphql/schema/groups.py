@@ -3,6 +3,7 @@ from graphene import relay
 from graphene_django import DjangoObjectType
 
 from apps.core.models import Group
+from apps.graphql.exceptions import GraphQLValidationException
 
 from .commons import BaseDeleteMutation, BaseWriteMutation, TerrasoConnection
 
@@ -73,6 +74,15 @@ class GroupUpdateMutation(BaseWriteMutation):
         description = graphene.String()
         website = graphene.String()
         email = graphene.String()
+
+    @classmethod
+    def mutate_and_get_payload(cls, root, info, **kwargs):
+        user = info.context.user
+
+        if not user.has_perm(Group.get_perm("change"), obj=kwargs["id"]):
+            raise GraphQLValidationException("User has no permission to change the Group.")
+
+        return super().mutate_and_get_payload(root, info, **kwargs)
 
 
 class GroupDeleteMutation(BaseDeleteMutation):
