@@ -59,7 +59,7 @@ class User(AbstractUser):
         ordering = ["-created_at"]
 
     def is_group_manager(self, group_id):
-        return self.memberships.manager_only().filter(group__pk=group_id).exists()
+        return self.memberships.managers_only().filter(group__pk=group_id).exists()
 
     def __str__(self):
         return self.email

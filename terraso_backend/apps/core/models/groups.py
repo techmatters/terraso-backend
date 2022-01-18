@@ -101,7 +101,7 @@ class GroupAssociation(BaseModel):
 
 
 class MembershipManager(models.Manager):
-    def manager_only(self):
+    def managers_only(self):
         return self.filter(user_role=Membership.ROLE_MANAGER)
 
 
