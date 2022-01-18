@@ -29,6 +29,34 @@ def test_group_slug_is_updatable():
     assert group.name == "New name"
 
 
+def test_group_add_manager():
+    group = mixer.blend(Group)
+    user = mixer.blend(User)
+
+    group.add_manager(user)
+
+    assert Membership.objects.filter(
+        user=user, group=group, user_role=Membership.ROLE_MANAGER
+    ).exists()
+
+
+def test_group_add_manager_updates_previous_membership():
+    group = mixer.blend(Group)
+    user = mixer.blend(User)
+    old_membership = mixer.blend(
+        Membership, user=user, group=group, user_role=Membership.ROLE_MEMBER
+    )
+
+    group.add_manager(user)
+
+    updated_membership = Membership.objects.get(
+        user=user, group=group, user_role=Membership.ROLE_MANAGER
+    )
+
+    assert old_membership.id == updated_membership.id
+    assert updated_membership.user_role == Membership.ROLE_MANAGER
+
+
 def test_group_can_have_group_associations():
     group = mixer.blend(Group)
     subgroup = mixer.blend(Group)

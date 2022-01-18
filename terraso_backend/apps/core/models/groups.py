@@ -59,6 +59,11 @@ class Group(SlugModel):
                 )
                 membership.save()
 
+    def add_manager(self, user):
+        self.memberships.update_or_create(
+            group=self, user=user, defaults={"user_role": Membership.ROLE_MANAGER}
+        )
+
     def __str__(self):
         return self.name
 
@@ -88,6 +93,11 @@ class GroupAssociation(BaseModel):
         )
 
 
+class MembershipManager(models.Manager):
+    def manager_only(self):
+        return self.filter(user_role=Membership.ROLE_MANAGER)
+
+
 class Membership(BaseModel):
     """
     This model represents the association between a User and a Group on
@@ -109,6 +119,8 @@ class Membership(BaseModel):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="memberships")
 
     user_role = models.CharField(max_length=64, choices=ROLES, blank=True, default=ROLE_MEMBER)
+
+    objects = MembershipManager()
 
     class Meta:
         constraints = (
