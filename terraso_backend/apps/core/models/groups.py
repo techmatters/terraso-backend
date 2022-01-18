@@ -100,7 +100,7 @@ class GroupAssociation(BaseModel):
         )
 
 
-class MembershipManager(models.Manager):
+class MembershipObjectsManager(models.Manager):
     def managers_only(self):
         return self.filter(user_role=Membership.ROLE_MANAGER)
 
@@ -127,7 +127,7 @@ class Membership(BaseModel):
 
     user_role = models.CharField(max_length=64, choices=ROLES, blank=True, default=ROLE_MEMBER)
 
-    objects = MembershipManager()
+    objects = MembershipObjectsManager()
 
     class Meta:
         constraints = (
