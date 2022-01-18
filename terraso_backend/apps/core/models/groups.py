@@ -49,7 +49,7 @@ class Group(SlugModel):
 
     class Meta:
         rules_permissions = {
-            "change": perm_rules.is_group_manager,
+            "change": perm_rules.allowed_to_change_group,
         }
 
     def save(self, *args, **kwargs):

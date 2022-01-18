@@ -2,5 +2,5 @@ import rules
 
 
 @rules.predicate
-def is_group_manager(user, group_id):
+def allowed_to_change_group(user, group_id):
     return user.is_group_manager(group_id)
