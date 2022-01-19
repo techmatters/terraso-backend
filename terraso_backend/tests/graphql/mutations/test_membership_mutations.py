@@ -152,8 +152,10 @@ def test_membership_update(client_query, memberships):
     assert membership["userRole"] == Membership.ROLE_MANAGER.upper()
 
 
-def test_membership_delete(client_query, memberships):
+def test_membership_delete(settings, client_query, memberships):
     old_membership = memberships[0]
+
+    settings.FEATURE_FLAGS["CHECK_PERMISSIONS"] = True
 
     client_query(
         """
@@ -178,3 +180,72 @@ def test_membership_delete(client_query, memberships):
     )
 
     assert not Membership.objects.filter(user=old_membership.user, group=old_membership.group)
+
+
+def test_membership_delete_by_group_manager(settings, client_query, memberships, users):
+    # This test tries to delete memberships[1], from user[1] with user[0] as
+    # manager from membership group
+    old_membership = memberships[1]
+    manager = users[0]
+    old_membership.group.add_manager(manager)
+
+    settings.FEATURE_FLAGS["CHECK_PERMISSIONS"] = True
+
+    client_query(
+        """
+        mutation deleteMembership($input: MembershipDeleteMutationInput!){
+          deleteMembership(input: $input) {
+            membership {
+              user {
+                email
+              },
+              group {
+                slug
+              }
+            }
+          }
+        }
+        """,
+        variables={
+            "input": {
+                "id": str(old_membership.id),
+            }
+        },
+    )
+
+    assert not Membership.objects.filter(user=old_membership.user, group=old_membership.group)
+
+
+def test_membership_delete_by_any_other_user(settings, client_query, memberships):
+    # Client query runs with user[0] from memberships[0]
+    # This test tries to delete memberships[1], from user[1] with user[0]
+    old_membership = memberships[1]
+
+    settings.FEATURE_FLAGS["CHECK_PERMISSIONS"] = True
+
+    response = client_query(
+        """
+        mutation deleteMembership($input: MembershipDeleteMutationInput!){
+          deleteMembership(input: $input) {
+            membership {
+              user {
+                email
+              },
+              group {
+                slug
+              }
+            }
+          }
+        }
+        """,
+        variables={
+            "input": {
+                "id": str(old_membership.id),
+            }
+        },
+    )
+
+    response = response.json()
+
+    assert "errors" in response
+    assert "has no permission to delete" in response["errors"][0]["message"]

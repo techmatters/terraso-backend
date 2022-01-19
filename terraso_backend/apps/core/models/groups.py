@@ -137,6 +137,9 @@ class Membership(BaseModel):
                 name="unique_membership",
             ),
         )
+        rules_permissions = {
+            "delete": perm_rules.allowed_to_delete_membership,
+        }
 
     @classmethod
     def get_user_role_from_text(cls, user_role):

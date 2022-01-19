@@ -1,4 +1,5 @@
 import graphene
+from django.conf import settings
 from django.core.exceptions import ValidationError
 from graphene import relay
 from graphene_django import DjangoObjectType
@@ -78,3 +79,15 @@ class MembershipDeleteMutation(BaseDeleteMutation):
 
     class Input:
         id = graphene.ID()
+
+    @classmethod
+    def mutate_and_get_payload(cls, root, info, **kwargs):
+        user = info.context.user
+
+        if not settings.FEATURE_FLAGS["CHECK_PERMISSIONS"]:
+            return super().mutate_and_get_payload(root, info, **kwargs)
+
+        if not user.has_perm(Membership.get_perm("delete"), obj=kwargs["id"]):
+            raise GraphQLValidationException("User has no permission to delete Membership.")
+
+        return super().mutate_and_get_payload(root, info, **kwargs)
