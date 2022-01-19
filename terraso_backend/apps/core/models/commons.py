@@ -3,9 +3,12 @@ import uuid
 from django.db import models
 from django.utils.text import slugify
 from rules.contrib.models import RulesModelBase, RulesModelMixin
+from safedelete.models import SOFT_DELETE_CASCADE, SafeDeleteModel
 
 
-class BaseModel(RulesModelMixin, models.Model, metaclass=RulesModelBase):
+class BaseModel(RulesModelMixin, SafeDeleteModel, metaclass=RulesModelBase):
+    _safedelete_policy = SOFT_DELETE_CASCADE
+
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

@@ -21,6 +21,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "graphene_django",
     "rules",
+    "safedelete",
     "apps.core",
     "apps.graphql",
     "apps.auth",
@@ -67,6 +68,8 @@ AUTHENTICATION_BACKENDS = (
     "rules.permissions.ObjectPermissionBackend",
     "django.contrib.auth.backends.ModelBackend",
 )
+
+SAFE_DELETE_FIELD_NAME = "deleted_at"
 
 AUTH_USER_MODEL = "core.User"
 

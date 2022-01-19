@@ -1,5 +1,6 @@
 from django.db import models, transaction
 from django.utils.translation import gettext_lazy as _
+from safedelete.models import SafeDeleteManager
 
 from apps.core import permission_rules as perm_rules
 
@@ -100,7 +101,7 @@ class GroupAssociation(BaseModel):
         )
 
 
-class MembershipObjectsManager(models.Manager):
+class MembershipObjectsManager(SafeDeleteManager):
     def managers_only(self):
         return self.filter(user_role=Membership.ROLE_MANAGER)
 

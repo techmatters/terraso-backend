@@ -2,9 +2,10 @@ import uuid
 
 from django.contrib.auth.models import AbstractUser, BaseUserManager
 from django.db import models
+from safedelete.models import SafeDeleteManager, SafeDeleteModel
 
 
-class UserManager(BaseUserManager):
+class UserManager(SafeDeleteManager, BaseUserManager):
     use_in_migrations = True
 
     def _create_user(self, email, password, **extra_fields):
@@ -38,7 +39,7 @@ class UserManager(BaseUserManager):
         return self._create_user(email, password, **extra_fields)
 
 
-class User(AbstractUser):
+class User(SafeDeleteModel, AbstractUser):
     """This model represents a User on Terraso platform."""
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)

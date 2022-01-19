@@ -16,13 +16,13 @@ asgiref==3.4.1 \
     --hash=sha256:4ef1ab46b484e3c706329cedeff284a5d40824200638503f5768edb6de7d58e9 \
     --hash=sha256:ffc141aa908e6f175673e7b1b3b7af4fdb0ecb738fc5c8b88f69f055c2415214
     # via django
-boto3==1.20.37 \
-    --hash=sha256:0e2f8aa8ee71f144d8afbe9ff7d0bb40525b94535e0695bdb200687970c9f452 \
-    --hash=sha256:55c7004af4296648ee497417dfc454d9c39770c265f67e28e1c5f10e11f3b644
+boto3==1.20.38 \
+    --hash=sha256:22b243302f526df9c599c6b81092cb3c62f785bc06cedceeff9054489df4ffb3 \
+    --hash=sha256:edeae6d38c98691cb9da187c541f3033e0f30d6b2a0b54b5399a44d9b3ba4f61
     # via -r requirements/base.in
-botocore==1.23.37 \
-    --hash=sha256:9ea3eb6e507684900418ad100e5accd1d98979d41c49bacf15f970f0d72f75d4 \
-    --hash=sha256:f3077f1ca19e6ab6b7a84c61e01e136a97c7732078a8d806908aee44f1042f5f
+botocore==1.23.38 \
+    --hash=sha256:49b304d9d4a782d7108f6a5ca0df6557da20a22b74d5bf745f02fea5cffc35ca \
+    --hash=sha256:f733bc565f144f0ec97ffe0d51235d358ad2f5f12b331563b69d9e9227262a36
     # via
     #   boto3
     #   s3transfer
@@ -121,6 +121,7 @@ django==3.2.11 \
     #   -r requirements/base.in
     #   django-cors-headers
     #   django-filter
+    #   django-safedelete
     #   django-storages
     #   graphene-django
 django-cors-headers==3.11.0 \
@@ -130,6 +131,10 @@ django-cors-headers==3.11.0 \
 django-filter==21.1 \
     --hash=sha256:632a251fa8f1aadb4b8cceff932bb52fe2f826dd7dfe7f3eac40e5c463d6836e \
     --hash=sha256:f4a6737a30104c98d2e2a5fb93043f36dd7978e0c7ddc92f5998e85433ea5063
+    # via -r requirements/base.in
+django-safedelete==1.1.2 \
+    --hash=sha256:36581eb9d18e1cf9c3f25cd63c2d5833096a627234850e4c1dccfd3bece71d29 \
+    --hash=sha256:d675db57c98a8068b40dedcf802d13c1b8e85287806f79d80049d62c359ca872
     # via -r requirements/base.in
 django-storages==1.12.3 \
     --hash=sha256:204a99f218b747c46edbfeeb1310d357f83f90fa6a6024d8d0a3f422570cee84 \
