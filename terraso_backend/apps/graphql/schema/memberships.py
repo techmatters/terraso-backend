@@ -10,7 +10,7 @@ from .commons import BaseDeleteMutation, TerrasoConnection
 
 
 class MembershipNode(DjangoObjectType):
-    id = graphene.ID(source='pk', required=True)
+    id = graphene.ID(source="pk", required=True)
 
     class Meta:
         model = Membership
