@@ -105,12 +105,15 @@ def test_groups_update_by_manager_works(client_query, groups, users):
     assert group_result == new_data
 
 
-def test_groups_update_by_member_fails_due_permission_check(client_query, groups):
+def test_groups_update_by_member_fails_due_permission_check(settings, client_query, groups):
     old_group = groups[0]
     new_data = {
         "id": str(old_group.id),
         "description": "New description",
     }
+
+    settings.FEATURE_FLAGS["CHECK_PERMISSIONS"] = True
+
     response = client_query(
         """
         mutation updateGroup($input: GroupUpdateMutationInput!) {
