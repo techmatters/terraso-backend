@@ -1,6 +1,8 @@
 from django.db import models, transaction
 from django.utils.translation import gettext_lazy as _
 
+from apps.core import permission_rules as perm_rules
+
 from .commons import BaseModel, SlugModel
 from .users import User
 
@@ -45,6 +47,11 @@ class Group(SlugModel):
 
     field_to_slug = "name"
 
+    class Meta:
+        rules_permissions = {
+            "change": perm_rules.allowed_to_change_group,
+        }
+
     def save(self, *args, **kwargs):
         with transaction.atomic():
             creating = not Group.objects.filter(pk=self.pk).exists()
@@ -58,6 +65,11 @@ class Group(SlugModel):
                     user_role=Membership.ROLE_MANAGER,
                 )
                 membership.save()
+
+    def add_manager(self, user):
+        self.memberships.update_or_create(
+            group=self, user=user, defaults={"user_role": Membership.ROLE_MANAGER}
+        )
 
     def __str__(self):
         return self.name
@@ -88,6 +100,11 @@ class GroupAssociation(BaseModel):
         )
 
 
+class MembershipObjectsManager(models.Manager):
+    def managers_only(self):
+        return self.filter(user_role=Membership.ROLE_MANAGER)
+
+
 class Membership(BaseModel):
     """
     This model represents the association between a User and a Group on
@@ -109,6 +126,8 @@ class Membership(BaseModel):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="memberships")
 
     user_role = models.CharField(max_length=64, choices=ROLES, blank=True, default=ROLE_MEMBER)
+
+    objects = MembershipObjectsManager()
 
     class Meta:
         constraints = (

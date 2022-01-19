@@ -9,4 +9,5 @@ dj-database-url
 prettyconf
 psycopg2
 pyjwt[crypto]
+rules
 boto3

@@ -20,6 +20,7 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "graphene_django",
+    "rules",
     "apps.core",
     "apps.graphql",
     "apps.auth",
@@ -61,6 +62,11 @@ default_dburl = "sqlite:///" + os.path.join(BASE_DIR, "db.sqlite3")
 DATABASES = {
     "default": config("DATABASE_URL", default=default_dburl, cast=parse_db_url),
 }
+
+AUTHENTICATION_BACKENDS = (
+    "rules.permissions.ObjectPermissionBackend",
+    "django.contrib.auth.backends.ModelBackend",
+)
 
 AUTH_USER_MODEL = "core.User"
 
@@ -112,6 +118,10 @@ LOGGING = {
 
 GRAPHENE = {
     "SCHEMA": "apps.graphql.schema.schema",
+}
+
+FEATURE_FLAGS = {
+    "CHECK_PERMISSIONS": config("FF_CHECK_PERMISSIONS", default=False, cast=config.boolean)
 }
 
 WEB_CLIENT_URL = config("WEB_CLIENT_ENDPOINT", default="")
