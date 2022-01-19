@@ -1064,17 +1064,6 @@
 },
 {
   "model": "core.landscapegroup",
-  "pk": "e4151426-501c-47fb-aee1-944cb7743ddc",
-  "fields": {
-    "created_at": "2021-12-17T14:10:03.001Z",
-    "updated_at": "2021-12-17T20:45:01.042Z",
-    "landscape": "a3c7c24a-9f2b-4eb7-a6c2-eb1a0c06011f",
-    "group": "496f6684-421e-4eda-8ee7-5f7aa2f55d53",
-    "is_default_landscape_group": false
-  }
-},
-{
-  "model": "core.landscapegroup",
   "pk": "ee26ae55-e7cd-4192-b6d1-20562446339f",
   "fields": {
     "created_at": "2021-12-17T14:10:03.029Z",
