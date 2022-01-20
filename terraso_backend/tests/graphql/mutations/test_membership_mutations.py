@@ -1,4 +1,5 @@
 import pytest
+from mixer.backend.django import mixer
 
 from apps.core.models import Membership
 
@@ -152,8 +153,13 @@ def test_membership_update(client_query, memberships):
     assert membership["userRole"] == Membership.ROLE_MANAGER.upper()
 
 
-def test_membership_delete(settings, client_query, memberships):
-    old_membership = memberships[0]
+def test_membership_delete(settings, client_query, users, groups):
+    member = users[0]
+    manager = users[1]
+    group = groups[0]
+
+    old_membership = mixer.blend(Membership, user=member, group=group)
+    mixer.blend(Membership, user=manager, group=group, user_role=Membership.ROLE_MANAGER)
 
     settings.FEATURE_FLAGS["CHECK_PERMISSIONS"] = True
 
@@ -249,3 +255,36 @@ def test_membership_delete_by_any_other_user(settings, client_query, memberships
 
     assert "errors" in response
     assert "has no permission to delete" in response["errors"][0]["message"]
+
+
+def test_membership_delete_by_last_manager(settings, client_query, memberships, users):
+    old_membership = memberships[0]
+
+    settings.FEATURE_FLAGS["CHECK_PERMISSIONS"] = True
+
+    response = client_query(
+        """
+        mutation deleteMembership($input: MembershipDeleteMutationInput!){
+          deleteMembership(input: $input) {
+            membership {
+              user {
+                email
+              },
+              group {
+                slug
+              }
+            }
+          }
+        }
+        """,
+        variables={
+            "input": {
+                "id": str(old_membership.id),
+            }
+        },
+    )
+
+    response = response.json()
+
+    assert "errors" in response
+    assert "at least one manager" in response["errors"][0]["message"]

@@ -93,7 +93,7 @@ def memberships(groups, users):
         Membership,
         group=(g for g in groups),
         user=(u for u in users),
-        user_role=Membership.ROLE_MEMBER,
+        user_role=Membership.ROLE_MANAGER,
     )
 
 
