@@ -202,8 +202,8 @@
   "fields": {
     "created_at": "2021-12-17T14:10:02.835Z",
     "updated_at": "2022-01-04T23:45:08.594Z",
-    "slug": "acus-penninsula-galera-san-francisco",
-    "name": "ACUS Penninsula Galera-San Francisco",
+    "slug": "acus-peninsula-galera-san-francisco",
+    "name": "ACUS Peninsula Galera-San Francisco",
     "description": "The Galera-San Francisco Peninsula is a unique landscape holding some of the last remnants of the coastal Chocó rainforest in Ecuador.\n",
     "website": "",
     "email": ""
@@ -228,8 +228,8 @@
   "fields": {
     "created_at": "2021-12-17T14:10:02.830Z",
     "updated_at": "2022-01-04T23:45:08.586Z",
-    "slug": "acus-penninsula-galera-san-francisco-group",
-    "name": "ACUS Penninsula Galera-San Francisco Group",
+    "slug": "acus-peninsula-galera-san-francisco-group",
+    "name": "ACUS Peninsula Galera-San Francisco Group",
     "description": "",
     "website": "",
     "email": ""
@@ -573,8 +573,8 @@
   "fields": {
     "created_at": "2021-12-17T14:10:02.827Z",
     "updated_at": "2022-01-04T23:45:08.584Z",
-    "slug": "acus-penninsula-galera-san-francisco",
-    "name": "ACUS Penninsula Galera-San Francisco",
+    "slug": "acus-peninsula-galera-san-francisco",
+    "name": "ACUS Peninsula Galera-San Francisco",
     "description": "The Galera-San Francisco Peninsula is a unique landscape holding some of the last remnants of the coastal Chocó rainforest in Ecuador.\n",
     "website": "https://www.regen.network/case-studies/eco-cacao/\n",
     "location": "South America, Ecuador"
