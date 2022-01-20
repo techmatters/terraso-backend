@@ -47,7 +47,9 @@ class MembershipWriteMutation(relay.ClientIDMutation):
             user = User.objects.get(email=kwargs.pop("user_email"))
             membership, _ = Membership.objects.get_or_create(user=user, group=group)
 
-        membership.user_role = Membership.get_user_role_from_text(kwargs.pop("user_role", None))
+        user_role = kwargs.pop("user_role", None)
+        if user_role:
+            membership.user_role = Membership.get_user_role_from_text(user_role)
 
         try:
             membership.full_clean()
