@@ -61,7 +61,7 @@ def test_group_associations_add_duplicated(client_query, group_associations):
 
     error_result = response.json()["errors"][0]
 
-    assert "Parent group and Child group already exists" in error_result["message"]
+    assert "duplicate key value" in error_result["message"]
 
 
 def test_group_associations_delete(client_query, group_associations):

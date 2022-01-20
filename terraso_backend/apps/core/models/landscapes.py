@@ -71,6 +71,7 @@ class LandscapeGroup(BaseModel):
         constraints = (
             models.UniqueConstraint(
                 fields=("group", "landscape"),
-                name="unique_landscape_group",
+                condition=models.Q(deleted_at__isnull=True),
+                name="unique_active_landscape_group",
             ),
         )
