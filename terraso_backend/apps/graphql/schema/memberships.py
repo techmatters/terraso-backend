@@ -1,4 +1,6 @@
 import graphene
+import rules
+from django.conf import settings
 from django.core.exceptions import ValidationError
 from graphene import relay
 from graphene_django import DjangoObjectType
@@ -10,7 +12,7 @@ from .commons import BaseDeleteMutation, TerrasoConnection
 
 
 class MembershipNode(DjangoObjectType):
-    id = graphene.ID(source='pk', required=True)
+    id = graphene.ID(source="pk", required=True)
 
     class Meta:
         model = Membership
@@ -46,7 +48,9 @@ class MembershipWriteMutation(relay.ClientIDMutation):
             user = User.objects.get(email=kwargs.pop("user_email"))
             membership, _ = Membership.objects.get_or_create(user=user, group=group)
 
-        membership.user_role = Membership.get_user_role_from_text(kwargs.pop("user_role", None))
+        user_role = kwargs.pop("user_role", None)
+        if user_role:
+            membership.user_role = Membership.get_user_role_from_text(user_role)
 
         try:
             membership.full_clean()
@@ -78,3 +82,18 @@ class MembershipDeleteMutation(BaseDeleteMutation):
 
     class Input:
         id = graphene.ID()
+
+    @classmethod
+    def mutate_and_get_payload(cls, root, info, **kwargs):
+        user = info.context.user
+
+        if not settings.FEATURE_FLAGS["CHECK_PERMISSIONS"]:
+            return super().mutate_and_get_payload(root, info, **kwargs)
+
+        if not user.has_perm(Membership.get_perm("delete"), obj=kwargs["id"]):
+            raise GraphQLValidationException("User has no permission to delete Membership.")
+
+        if not rules.test_rule("allowed_group_managers_count", user, kwargs["id"]):
+            raise GraphQLValidationException("A Group needs to have at least one manager.")
+
+        return super().mutate_and_get_payload(root, info, **kwargs)
