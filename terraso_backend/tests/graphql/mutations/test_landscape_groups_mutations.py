@@ -73,7 +73,7 @@ def test_landscape_groups_add_duplicated(client_query, landscape_groups):
     )
     error_result = response.json()["errors"][0]
 
-    assert "Group and Landscape already exists" in error_result["message"]
+    assert "duplicate key" in error_result["message"]
 
 
 def test_landscape_groups_add_without_default(client_query, landscapes, groups):

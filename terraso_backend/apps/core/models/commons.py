@@ -20,7 +20,7 @@ class BaseModel(RulesModelMixin, SafeDeleteModel, metaclass=RulesModelBase):
 
 
 class SlugModel(BaseModel):
-    slug = models.SlugField(max_length=250, unique=True, blank=True, editable=False)
+    slug = models.SlugField(max_length=250, blank=True, editable=False)
 
     def save(self, *args, **kwargs):
         value_to_slugify = getattr(self, self.field_to_slug)
@@ -29,3 +29,10 @@ class SlugModel(BaseModel):
 
     class Meta(BaseModel.Meta):
         abstract = True
+        constraints = (
+            models.UniqueConstraint(
+                fields=("slug",),
+                condition=models.Q(deleted_at__isnull=True),
+                name="unique_active_slug",
+            ),
+        )

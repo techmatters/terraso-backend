@@ -188,6 +188,44 @@ def test_membership_delete(settings, client_query, users, groups):
     assert not Membership.objects.filter(user=old_membership.user, group=old_membership.group)
 
 
+def test_membership_soft_deleted_can_be_created_again(settings, client_query, memberships):
+    old_membership = memberships[0]
+    old_membership.delete()
+
+    settings.FEATURE_FLAGS["CHECK_PERMISSIONS"] = True
+
+    response = client_query(
+        """
+        mutation addMembership($input: MembershipAddMutationInput!){
+          addMembership(input: $input) {
+            membership {
+              id
+              userRole
+              user {
+                email
+              }
+              group {
+                slug
+              }
+            }
+          }
+        }
+        """,
+        variables={
+            "input": {
+                "userEmail": old_membership.user.email,
+                "groupSlug": old_membership.group.slug,
+            }
+        },
+    )
+    membership = response.json()["data"]["addMembership"]["membership"]
+
+    assert membership["id"]
+    assert membership["user"]["email"] == old_membership.user.email
+    assert membership["group"]["slug"] == old_membership.group.slug
+    assert membership["userRole"] == Membership.ROLE_MEMBER.upper()
+
+
 def test_membership_delete_by_group_manager(settings, client_query, memberships, users):
     # This test tries to delete memberships[1], from user[1] with user[0] as
     # manager from membership group

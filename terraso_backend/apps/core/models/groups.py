@@ -96,6 +96,7 @@ class GroupAssociation(BaseModel):
         constraints = (
             models.UniqueConstraint(
                 fields=("parent_group", "child_group"),
+                condition=models.Q(deleted_at__isnull=True),
                 name="unique_group_association",
             ),
         )
@@ -134,7 +135,8 @@ class Membership(BaseModel):
         constraints = (
             models.UniqueConstraint(
                 fields=("group", "user"),
-                name="unique_membership",
+                condition=models.Q(deleted_at__isnull=True),
+                name="unique_active_membership",
             ),
         )
         rules_permissions = {

@@ -47,7 +47,7 @@ class User(SafeDeleteModel, AbstractUser):
     updated_at = models.DateTimeField(auto_now=True)
 
     username = None
-    email = models.EmailField(unique=True)
+    email = models.EmailField()
     profile_image = models.URLField(blank=True, default="")
 
     USERNAME_FIELD = "email"
@@ -58,6 +58,13 @@ class User(SafeDeleteModel, AbstractUser):
     class Meta:
         get_latest_by = "created_at"
         ordering = ["-created_at"]
+        constraints = (
+            models.UniqueConstraint(
+                fields=("email",),
+                condition=models.Q(deleted_at__isnull=True),
+                name="unique_active_email",
+            ),
+        )
 
     def is_group_manager(self, group_id):
         return self.memberships.managers_only().filter(group__pk=group_id).exists()
