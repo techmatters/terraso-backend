@@ -38,6 +38,7 @@ class Landscape(SlugModel):
 
     class Meta:
         rules_permissions = {
+            "change": perm_rules.allowed_to_change_landscape,
             "delete": perm_rules.allowed_to_delete_landscape,
         }
 

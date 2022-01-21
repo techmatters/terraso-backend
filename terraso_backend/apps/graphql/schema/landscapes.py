@@ -67,6 +67,18 @@ class LandscapeUpdateMutation(BaseWriteMutation):
         website = graphene.String()
         location = graphene.String()
 
+    @classmethod
+    def mutate_and_get_payload(cls, root, info, **kwargs):
+        user = info.context.user
+
+        if not settings.FEATURE_FLAGS["CHECK_PERMISSIONS"]:
+            return super().mutate_and_get_payload(root, info, **kwargs)
+
+        if not user.has_perm(Landscape.get_perm("change"), obj=kwargs["id"]):
+            raise GraphQLValidationException("User has no permission to change the Landscape.")
+
+        return super().mutate_and_get_payload(root, info, **kwargs)
+
 
 class LandscapeDeleteMutation(BaseDeleteMutation):
     landscape = graphene.Field(LandscapeNode)
