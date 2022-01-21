@@ -60,6 +60,23 @@ def landscapes():
 
 
 @pytest.fixture
+def managed_landscapes(users):
+    landscapes = mixer.cycle(2).blend(Landscape)
+
+    for i in range(len(landscapes)):
+        group = mixer.blend(Group)
+        group.add_manager(users[i])
+        mixer.blend(
+            LandscapeGroup,
+            landscape=landscapes[i],
+            group=group,
+            is_default_landscape_group=True,
+        )
+
+    return landscapes
+
+
+@pytest.fixture
 def groups():
     return mixer.cycle(5).blend(Group)
 

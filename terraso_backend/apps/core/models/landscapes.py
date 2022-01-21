@@ -1,5 +1,7 @@
 from django.db import models
 
+from apps.core import permission_rules as perm_rules
+
 from .commons import BaseModel, SlugModel
 from .groups import Group
 from .users import User
@@ -33,6 +35,11 @@ class Landscape(SlugModel):
     groups = models.ManyToManyField(Group, through="LandscapeGroup")
 
     field_to_slug = "name"
+
+    class Meta:
+        rules_permissions = {
+            "delete": perm_rules.allowed_to_delete_landscape,
+        }
 
     def get_default_group(self):
         """
