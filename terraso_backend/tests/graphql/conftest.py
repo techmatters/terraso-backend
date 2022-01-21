@@ -82,6 +82,14 @@ def groups():
 
 
 @pytest.fixture
+def managed_groups(users, groups):
+    for i in range(len(groups)):
+        groups[i].add_manager(users[i])
+
+    return groups
+
+
+@pytest.fixture
 def subgroups():
     return mixer.cycle(2).blend(Group)
 
