@@ -12,6 +12,8 @@ DEBUG = config("DEBUG", default=False, cast=config.boolean)
 ALLOWED_HOSTS = config("ALLOWED_HOSTS", default="*", cast=config.list)
 SECRET_KEY = config("SECRET_KEY")
 
+SILENCED_SYSTEM_CHECKS = ["auth.W004"]
+
 INSTALLED_APPS = [
     "django.contrib.admin",
     "django.contrib.auth",
