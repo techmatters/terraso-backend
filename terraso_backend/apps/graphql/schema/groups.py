@@ -95,3 +95,15 @@ class GroupDeleteMutation(BaseDeleteMutation):
 
     class Input:
         id = graphene.ID()
+
+    @classmethod
+    def mutate_and_get_payload(cls, root, info, **kwargs):
+        user = info.context.user
+
+        ff_check_permission_on = settings.FEATURE_FLAGS["CHECK_PERMISSIONS"]
+        user_has_delete_permission = user.has_perm(Group.get_perm("delete"), obj=kwargs["id"])
+
+        if ff_check_permission_on and not user_has_delete_permission:
+            raise GraphQLValidationException("User has no permission to delete this data.")
+
+        return super().mutate_and_get_payload(root, info, **kwargs)

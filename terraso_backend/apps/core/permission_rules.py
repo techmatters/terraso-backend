@@ -7,6 +7,21 @@ def allowed_to_change_group(user, group_id):
 
 
 @rules.predicate
+def allowed_to_delete_group(user, group_id):
+    return user.is_group_manager(group_id)
+
+
+@rules.predicate
+def allowed_to_change_landscape(user, landscape_id):
+    return user.is_landscape_manager(landscape_id)
+
+
+@rules.predicate
+def allowed_to_delete_landscape(user, landscape_id):
+    return user.is_landscape_manager(landscape_id)
+
+
+@rules.predicate
 def allowed_to_delete_membership(user, membership_id):
     from apps.core.models import Membership
 

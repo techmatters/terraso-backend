@@ -1,8 +1,10 @@
 import graphene
+from django.conf import settings
 from graphene import relay
 from graphene_django import DjangoObjectType
 
 from apps.core.models import Landscape
+from apps.graphql.exceptions import GraphQLValidationException
 
 from .commons import BaseDeleteMutation, BaseWriteMutation, TerrasoConnection
 
@@ -65,6 +67,18 @@ class LandscapeUpdateMutation(BaseWriteMutation):
         website = graphene.String()
         location = graphene.String()
 
+    @classmethod
+    def mutate_and_get_payload(cls, root, info, **kwargs):
+        user = info.context.user
+
+        if not settings.FEATURE_FLAGS["CHECK_PERMISSIONS"]:
+            return super().mutate_and_get_payload(root, info, **kwargs)
+
+        if not user.has_perm(Landscape.get_perm("change"), obj=kwargs["id"]):
+            raise GraphQLValidationException("User has no permission to change the Landscape.")
+
+        return super().mutate_and_get_payload(root, info, **kwargs)
+
 
 class LandscapeDeleteMutation(BaseDeleteMutation):
     landscape = graphene.Field(LandscapeNode)
@@ -73,3 +87,15 @@ class LandscapeDeleteMutation(BaseDeleteMutation):
 
     class Input:
         id = graphene.ID()
+
+    @classmethod
+    def mutate_and_get_payload(cls, root, info, **kwargs):
+        user = info.context.user
+
+        ff_check_permission_on = settings.FEATURE_FLAGS["CHECK_PERMISSIONS"]
+        user_has_delete_permission = user.has_perm(Landscape.get_perm("delete"), obj=kwargs["id"])
+
+        if ff_check_permission_on and not user_has_delete_permission:
+            raise GraphQLValidationException("User has no permission to delete this data.")
+
+        return super().mutate_and_get_payload(root, info, **kwargs)

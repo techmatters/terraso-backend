@@ -71,14 +71,17 @@ def test_landscapes_add_duplicated(client_query, landscapes):
     assert "field=name" in error_result["message"]
 
 
-def test_landscapes_update(client_query, landscapes):
-    old_landscape = landscapes[0]
+def test_landscapes_update_by_manager_works(settings, client_query, managed_landscapes):
+    old_landscape = managed_landscapes[0]
     new_data = {
         "id": str(old_landscape.id),
         "description": "New description",
         "name": "New Name",
         "website": "https://www.example.com/updated-landscape",
     }
+
+    settings.FEATURE_FLAGS["CHECK_PERMISSIONS"] = True
+
     response = client_query(
         """
         mutation updateLandscape($input: LandscapeUpdateMutationInput!) {
@@ -99,8 +102,44 @@ def test_landscapes_update(client_query, landscapes):
     assert landscape_result == new_data
 
 
-def test_landscapes_delete(client_query, landscapes):
+def test_landscapes_update_by_member_fails_due_permission_check(settings, client_query, landscapes):
     old_landscape = landscapes[0]
+    new_data = {
+        "id": str(old_landscape.id),
+        "description": "New description",
+        "name": "New Name",
+        "website": "https://www.example.com/updated-landscape",
+    }
+
+    settings.FEATURE_FLAGS["CHECK_PERMISSIONS"] = True
+
+    response = client_query(
+        """
+        mutation updateLandscape($input: LandscapeUpdateMutationInput!) {
+          updateLandscape(input: $input) {
+            landscape {
+              id
+              name
+              description
+              website
+            }
+          }
+        }
+        """,
+        variables={"input": new_data},
+    )
+
+    response = response.json()
+
+    assert "errors" in response
+    assert "has no permission to change" in response["errors"][0]["message"]
+
+
+def test_landscapes_delete_by_manager(settings, client_query, managed_landscapes):
+    old_landscape = managed_landscapes[0]
+
+    settings.FEATURE_FLAGS["CHECK_PERMISSIONS"] = True
+
     response = client_query(
         """
         mutation deleteLandscape($input: LandscapeDeleteMutationInput!){
@@ -119,3 +158,28 @@ def test_landscapes_delete(client_query, landscapes):
 
     assert landscape_result["slug"] == old_landscape.slug
     assert not Landscape.objects.filter(slug=landscape_result["slug"])
+
+
+def test_landscapes_delete_by_non_manager(settings, client_query, landscapes):
+    old_landscape = landscapes[0]
+
+    settings.FEATURE_FLAGS["CHECK_PERMISSIONS"] = True
+
+    response = client_query(
+        """
+        mutation deleteLandscape($input: LandscapeDeleteMutationInput!){
+          deleteLandscape(input: $input) {
+            landscape {
+              slug
+            }
+          }
+        }
+
+        """,
+        variables={"input": {"id": str(old_landscape.id)}},
+    )
+
+    response = response.json()
+
+    assert "errors" in response
+    assert "has no permission" in response["errors"][0]["message"]

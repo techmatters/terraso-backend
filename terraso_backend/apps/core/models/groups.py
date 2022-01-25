@@ -51,6 +51,7 @@ class Group(SlugModel):
     class Meta:
         rules_permissions = {
             "change": perm_rules.allowed_to_change_group,
+            "delete": perm_rules.allowed_to_delete_group,
         }
 
     def save(self, *args, **kwargs):

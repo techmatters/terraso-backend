@@ -132,8 +132,11 @@ def test_groups_update_by_member_fails_due_permission_check(settings, client_que
     assert "has no permission to change" in response["errors"][0]["message"]
 
 
-def test_groups_delete(client_query, groups):
-    old_group = groups[0]
+def test_groups_delete_by_manager(settings, client_query, managed_groups):
+    old_group = managed_groups[0]
+
+    settings.FEATURE_FLAGS["CHECK_PERMISSIONS"] = True
+
     response = client_query(
         """
         mutation deleteGroup($input: GroupDeleteMutationInput!){
@@ -152,3 +155,28 @@ def test_groups_delete(client_query, groups):
 
     assert group_result["slug"] == old_group.slug
     assert not Group.objects.filter(slug=group_result["slug"])
+
+
+def test_groups_delete_by_non_manager(settings, client_query, groups):
+    old_group = groups[0]
+
+    settings.FEATURE_FLAGS["CHECK_PERMISSIONS"] = True
+
+    response = client_query(
+        """
+        mutation deleteGroup($input: GroupDeleteMutationInput!){
+          deleteGroup(input: $input) {
+            group {
+              slug
+            }
+          }
+        }
+
+        """,
+        variables={"input": {"id": str(old_group.id)}},
+    )
+
+    response = response.json()
+
+    assert "has no permission" in response["errors"][0]["message"]
+    assert "errors" in response

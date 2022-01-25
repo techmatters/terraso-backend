@@ -66,6 +66,16 @@ class User(SafeDeleteModel, AbstractUser):
             ),
         )
 
+    def is_landscape_manager(self, landscape_id):
+        return (
+            self.memberships.managers_only()
+            .filter(
+                group__associated_landscapes__is_default_landscape_group=True,
+                group__associated_landscapes__landscape__pk=landscape_id,
+            )
+            .exists()
+        )
+
     def is_group_manager(self, group_id):
         return self.memberships.managers_only().filter(group__pk=group_id).exists()
 
