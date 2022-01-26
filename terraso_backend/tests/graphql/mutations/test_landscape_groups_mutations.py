@@ -1,6 +1,7 @@
 import pytest
+from mixer.backend.django import mixer
 
-from apps.core.models import LandscapeGroup
+from apps.core.models import Group, LandscapeGroup
 
 pytestmark = pytest.mark.django_db
 
@@ -119,9 +120,9 @@ def test_landscape_groups_add_duplicated(settings, client_query, users, landscap
     assert "duplicate key" in error_result["message"]
 
 
-def test_landscape_groups_delete(settings, client_query, users, landscape_groups):
+def test_landscape_groups_delete_by_group_manager(settings, client_query, users, landscape_groups):
     user = users[0]
-    old_landscape_group = landscape_groups[0]
+    _, old_landscape_group = landscape_groups
     old_landscape_group.group.add_manager(user)
 
     settings.FEATURE_FLAGS["CHECK_PERMISSIONS"] = True
@@ -145,3 +146,59 @@ def test_landscape_groups_delete(settings, client_query, users, landscape_groups
         landscape__slug=landscape_group["landscape"]["slug"],
         group__slug=landscape_group["group"]["slug"],
     )
+
+
+def test_landscape_groups_delete_by_landscape_manager(
+    settings, client_query, users, managed_landscapes
+):
+    landscape = managed_landscapes[0]
+    group = mixer.blend(Group)
+    old_landscape_group = mixer.blend(LandscapeGroup, landscape=landscape, group=group)
+
+    settings.FEATURE_FLAGS["CHECK_PERMISSIONS"] = True
+
+    response = client_query(
+        """
+        mutation deleteLandscapeGroup($input: LandscapeGroupDeleteMutationInput!){
+          deleteLandscapeGroup(input: $input) {
+            landscapeGroup {
+              landscape { slug }
+              group { slug }
+            }
+          }
+        }
+        """,
+        variables={"input": {"id": str(old_landscape_group.id)}},
+    )
+    landscape_group = response.json()["data"]["deleteLandscapeGroup"]["landscapeGroup"]
+
+    assert not LandscapeGroup.objects.filter(
+        landscape__slug=landscape_group["landscape"]["slug"],
+        group__slug=landscape_group["group"]["slug"],
+    )
+
+
+def test_landscape_groups_delete_by_non_managers_not_allowed(
+    settings, client_query, users, landscape_groups
+):
+    _, old_landscape_group = landscape_groups
+
+    settings.FEATURE_FLAGS["CHECK_PERMISSIONS"] = True
+
+    response = client_query(
+        """
+        mutation deleteLandscapeGroup($input: LandscapeGroupDeleteMutationInput!){
+          deleteLandscapeGroup(input: $input) {
+            landscapeGroup {
+              landscape { slug }
+              group { slug }
+            }
+          }
+        }
+        """,
+        variables={"input": {"id": str(old_landscape_group.id)}},
+    )
+    response = response.json()
+
+    assert "errors" in response
+    assert "no permission" in response["errors"][0]["message"]

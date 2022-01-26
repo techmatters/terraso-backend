@@ -78,6 +78,7 @@ class LandscapeGroup(BaseModel):
     class Meta:
         rules_permissions = {
             "add": perm_rules.allowed_to_add_landscape_group,
+            "delete": perm_rules.allowed_to_delete_landscape_group,
         }
         constraints = (
             models.UniqueConstraint(

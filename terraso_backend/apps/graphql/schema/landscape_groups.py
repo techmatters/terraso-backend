@@ -47,9 +47,9 @@ class LandscapeGroupAddMutation(relay.ClientIDMutation):
         group = Group.objects.get(slug=kwargs.pop("group_slug"))
 
         ff_check_permission_on = settings.FEATURE_FLAGS["CHECK_PERMISSIONS"]
-        user_has_delete_permission = user.has_perm(LandscapeGroup.get_perm("add"), obj=landscape.pk)
+        user_has_add_permission = user.has_perm(LandscapeGroup.get_perm("add"), obj=landscape.pk)
 
-        if ff_check_permission_on and not user_has_delete_permission:
+        if ff_check_permission_on and not user_has_add_permission:
             raise GraphQLValidationException("User has no permission to create this data.")
 
         landscape_group = LandscapeGroup()
@@ -73,3 +73,18 @@ class LandscapeGroupDeleteMutation(BaseDeleteMutation):
 
     class Input:
         id = graphene.ID()
+
+    @classmethod
+    def mutate_and_get_payload(cls, root, info, **kwargs):
+        user = info.context.user
+        landscape_group = LandscapeGroup.objects.get(pk=kwargs["id"])
+
+        ff_check_permission_on = settings.FEATURE_FLAGS["CHECK_PERMISSIONS"]
+        user_has_delete_permission = user.has_perm(
+            LandscapeGroup.get_perm("delete"), obj=landscape_group
+        )
+
+        if ff_check_permission_on and not user_has_delete_permission:
+            raise GraphQLValidationException("User has no permission to delete this data.")
+
+        return super().mutate_and_get_payload(root, info, **kwargs)
