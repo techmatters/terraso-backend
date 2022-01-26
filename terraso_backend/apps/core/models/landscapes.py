@@ -76,6 +76,10 @@ class LandscapeGroup(BaseModel):
     is_default_landscape_group = models.BooleanField(blank=True, default=False)
 
     class Meta:
+        rules_permissions = {
+            "add": perm_rules.allowed_to_add_landscape_group,
+            "delete": perm_rules.allowed_to_delete_landscape_group,
+        }
         constraints = (
             models.UniqueConstraint(
                 fields=("group", "landscape"),
