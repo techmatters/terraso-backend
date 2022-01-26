@@ -5,7 +5,6 @@ from django.contrib.auth import get_user_model
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.views import View
 
-from .mixins import AuthenticationRequiredMixin
 from .providers import AppleProvider, GoogleProvider
 from .services import AccountService, JWTService
 
@@ -128,20 +127,5 @@ class RefreshAccessTokenView(View):
             {
                 "access_token": access_token,
                 "refresh_token": refresh_token,
-            }
-        )
-
-
-class CheckUserView(AuthenticationRequiredMixin, View):
-    def get(self, request, *args, **kwargs):
-        user = request.user
-        return JsonResponse(
-            {
-                "user": {
-                    "email": user.email,
-                    "first_name": user.first_name,
-                    "last_name": user.last_name,
-                    "profile_image": user.profile_image,
-                }
             }
         )

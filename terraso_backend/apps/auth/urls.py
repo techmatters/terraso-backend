@@ -4,7 +4,6 @@ from django.views.decorators.csrf import csrf_exempt
 from apps.auth.views import (
     AppleAuthorizeView,
     AppleCallbackView,
-    CheckUserView,
     GoogleAuthorizeView,
     GoogleCallbackView,
     RefreshAccessTokenView,
@@ -26,5 +25,4 @@ urlpatterns = [
         name="google-callback",
     ),
     path("tokens", csrf_exempt(RefreshAccessTokenView.as_view()), name="tokens"),
-    path("user", csrf_exempt(CheckUserView.as_view()), name="user"),
 ]
