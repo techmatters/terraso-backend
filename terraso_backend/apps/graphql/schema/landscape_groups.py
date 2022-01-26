@@ -43,13 +43,22 @@ class LandscapeGroupAddMutation(relay.ClientIDMutation):
         receives a dictionary with all inputs informed.
         """
         user = info.context.user
-        landscape = Landscape.objects.get(slug=kwargs.pop("landscape_slug"))
-        group = Group.objects.get(slug=kwargs.pop("group_slug"))
+
+        try:
+            landscape = Landscape.objects.get(slug=kwargs.pop("landscape_slug"))
+        except Landscape.DoesNotExist:
+            raise GraphQLValidationException("Landscape not found.")
+
+        try:
+            group = Group.objects.get(slug=kwargs.pop("group_slug"))
+        except Group.DoesNotExist:
+            raise GraphQLValidationException("Group not found.")
 
         ff_check_permission_on = settings.FEATURE_FLAGS["CHECK_PERMISSIONS"]
-        user_has_add_permission = user.has_perm(LandscapeGroup.get_perm("add"), obj=landscape.pk)
 
-        if ff_check_permission_on and not user_has_add_permission:
+        if ff_check_permission_on and not user.has_perm(
+            LandscapeGroup.get_perm("add"), obj=landscape.pk
+        ):
             raise GraphQLValidationException("User has no permission to create this data.")
 
         landscape_group = LandscapeGroup()
@@ -77,14 +86,16 @@ class LandscapeGroupDeleteMutation(BaseDeleteMutation):
     @classmethod
     def mutate_and_get_payload(cls, root, info, **kwargs):
         user = info.context.user
-        landscape_group = LandscapeGroup.objects.get(pk=kwargs["id"])
+        try:
+            landscape_group = LandscapeGroup.objects.get(pk=kwargs["id"])
+        except LandscapeGroup.DoesNotExist:
+            raise GraphQLValidationException("Landscape Group not found.")
 
         ff_check_permission_on = settings.FEATURE_FLAGS["CHECK_PERMISSIONS"]
-        user_has_delete_permission = user.has_perm(
-            LandscapeGroup.get_perm("delete"), obj=landscape_group
-        )
 
-        if ff_check_permission_on and not user_has_delete_permission:
+        if ff_check_permission_on and not user.has_perm(
+            LandscapeGroup.get_perm("delete"), obj=landscape_group
+        ):
             raise GraphQLValidationException("User has no permission to delete this data.")
 
         return super().mutate_and_get_payload(root, info, **kwargs)

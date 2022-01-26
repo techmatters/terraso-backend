@@ -1,3 +1,5 @@
+import uuid
+
 import pytest
 from mixer.backend.django import mixer
 
@@ -120,6 +122,74 @@ def test_landscape_groups_add_duplicated(settings, client_query, users, landscap
     assert "duplicate key" in error_result["message"]
 
 
+def test_landscape_groups_add_landscape_not_found(settings, client_query, groups):
+    group = groups[0]
+    settings.FEATURE_FLAGS["CHECK_PERMISSIONS"] = True
+
+    response = client_query(
+        """
+        mutation addLandscapeGroup($input: LandscapeGroupAddMutationInput!){
+          addLandscapeGroup(input: $input) {
+            landscapeGroup {
+              id
+              landscape {
+                name
+              }
+              group {
+                name
+              }
+              isDefaultLandscapeGroup
+            }
+          }
+        }
+        """,
+        variables={
+            "input": {
+                "landscapeSlug": "non-existing-landscape",
+                "groupSlug": group.slug,
+            }
+        },
+    )
+    response = response.json()
+
+    assert "errors" in response
+    assert "Landscape not found" in response["errors"][0]["message"]
+
+
+def test_landscape_groups_add_group_not_found(settings, client_query, managed_landscapes):
+    landscape = managed_landscapes[0]
+    settings.FEATURE_FLAGS["CHECK_PERMISSIONS"] = True
+
+    response = client_query(
+        """
+        mutation addLandscapeGroup($input: LandscapeGroupAddMutationInput!){
+          addLandscapeGroup(input: $input) {
+            landscapeGroup {
+              id
+              landscape {
+                name
+              }
+              group {
+                name
+              }
+              isDefaultLandscapeGroup
+            }
+          }
+        }
+        """,
+        variables={
+            "input": {
+                "landscapeSlug": landscape.slug,
+                "groupSlug": "non-existing-group",
+            }
+        },
+    )
+    response = response.json()
+
+    assert "errors" in response
+    assert "Group not found" in response["errors"][0]["message"]
+
+
 def test_landscape_groups_delete_by_group_manager(settings, client_query, users, landscape_groups):
     user = users[0]
     _, old_landscape_group = landscape_groups
@@ -202,3 +272,25 @@ def test_landscape_groups_delete_by_non_managers_not_allowed(
 
     assert "errors" in response
     assert "no permission" in response["errors"][0]["message"]
+
+
+def test_landscape_groups_delete_not_found(settings, client_query, users):
+    settings.FEATURE_FLAGS["CHECK_PERMISSIONS"] = True
+
+    response = client_query(
+        """
+        mutation deleteLandscapeGroup($input: LandscapeGroupDeleteMutationInput!){
+          deleteLandscapeGroup(input: $input) {
+            landscapeGroup {
+              landscape { slug }
+              group { slug }
+            }
+          }
+        }
+        """,
+        variables={"input": {"id": str(uuid.uuid4())}},
+    )
+    response = response.json()
+
+    assert "errors" in response
+    assert "Landscape Group not found" in response["errors"][0]["message"]
