@@ -5,7 +5,6 @@ from django.contrib.auth import get_user_model
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.views import View
 
-from .mixins import AuthenticationRequiredMixin
 from .providers import AppleProvider, GoogleProvider
 from .services import AccountService, JWTService
 
