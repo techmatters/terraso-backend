@@ -64,6 +64,62 @@ def test_group_associations_add_duplicated(client_query, group_associations):
     assert "duplicate key value" in error_result["message"]
 
 
+def test_group_associations_add_parent_group_not_found(client_query, groups):
+    child_group = groups[1]
+
+    response = client_query(
+        """
+        mutation addGroupAssociation($input: GroupAssociationAddMutationInput!){
+          addGroupAssociation(input: $input) {
+            groupAssociation {
+              id
+              parentGroup { slug }
+              childGroup { slug }
+            }
+          }
+        }
+        """,
+        variables={
+            "input": {
+                "parentGroupSlug": "non-existing-group",
+                "childGroupSlug": child_group.slug,
+            }
+        },
+    )
+    response = response.json()
+
+    assert "errors" in response
+    assert "Parent Group not found" in response["errors"][0]["message"]
+
+
+def test_group_associations_add_child_group_not_found(client_query, groups):
+    parent_group = groups[0]
+
+    response = client_query(
+        """
+        mutation addGroupAssociation($input: GroupAssociationAddMutationInput!){
+          addGroupAssociation(input: $input) {
+            groupAssociation {
+              id
+              parentGroup { slug }
+              childGroup { slug }
+            }
+          }
+        }
+        """,
+        variables={
+            "input": {
+                "parentGroupSlug": parent_group.slug,
+                "childGroupSlug": "non-existing-group",
+            }
+        },
+    )
+    response = response.json()
+
+    assert "errors" in response
+    assert "Child Group not found" in response["errors"][0]["message"]
+
+
 def test_group_associations_delete(client_query, group_associations):
     old_group_association = group_associations[0]
     response = client_query(

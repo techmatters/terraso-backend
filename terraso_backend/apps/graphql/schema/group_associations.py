@@ -39,9 +39,19 @@ class GroupAssociationAddMutation(relay.ClientIDMutation):
         This method will be called when adding Group Associations. The `kwargs`
         receives a dictionary with all inputs informed.
         """
+        try:
+            parent_group = Group.objects.get(slug=kwargs.pop("parent_group_slug"))
+        except Group.DoesNotExist:
+            raise GraphQLValidationException("Parent Group not found.")
+
+        try:
+            child_group = Group.objects.get(slug=kwargs.pop("child_group_slug"))
+        except Group.DoesNotExist:
+            raise GraphQLValidationException("Child Group not found.")
+
         group_association = GroupAssociation()
-        group_association.parent_group = Group.objects.get(slug=kwargs.pop("parent_group_slug"))
-        group_association.child_group = Group.objects.get(slug=kwargs.pop("child_group_slug"))
+        group_association.parent_group = parent_group
+        group_association.child_group = child_group
 
         try:
             group_association.full_clean()
