@@ -1,4 +1,5 @@
 import graphene
+from django.conf import settings
 from django.core.exceptions import ValidationError
 from graphene import relay
 from graphene_django import DjangoObjectType
@@ -41,9 +42,19 @@ class LandscapeGroupAddMutation(relay.ClientIDMutation):
         called both when adding and updating Landscape Groups. The `kwargs`
         receives a dictionary with all inputs informed.
         """
+        user = info.context.user
+        landscape = Landscape.objects.get(slug=kwargs.pop("landscape_slug"))
+        group = Group.objects.get(slug=kwargs.pop("group_slug"))
+
+        ff_check_permission_on = settings.FEATURE_FLAGS["CHECK_PERMISSIONS"]
+        user_has_delete_permission = user.has_perm(LandscapeGroup.get_perm("add"), obj=landscape.pk)
+
+        if ff_check_permission_on and not user_has_delete_permission:
+            raise GraphQLValidationException("User has no permission to create this data.")
+
         landscape_group = LandscapeGroup()
-        landscape_group.landscape = Landscape.objects.get(slug=kwargs.pop("landscape_slug"))
-        landscape_group.group = Group.objects.get(slug=kwargs.pop("group_slug"))
+        landscape_group.landscape = landscape
+        landscape_group.group = group
 
         try:
             landscape_group.full_clean()

@@ -5,9 +5,12 @@ from apps.core.models import LandscapeGroup
 pytestmark = pytest.mark.django_db
 
 
-def test_landscape_groups_add(client_query, landscapes, groups):
-    landscape = landscapes[0]
+def test_landscape_groups_add_by_landscape_manager(
+    settings, client_query, managed_landscapes, groups
+):
+    landscape = managed_landscapes[0]
     group = groups[0]
+    settings.FEATURE_FLAGS["CHECK_PERMISSIONS"] = True
 
     response = client_query(
         """
@@ -41,9 +44,51 @@ def test_landscape_groups_add(client_query, landscapes, groups):
     assert not landscape_group["isDefaultLandscapeGroup"]
 
 
-def test_landscape_groups_add_duplicated(client_query, landscape_groups):
+def test_landscape_groups_add_by_non_landscape_manager_not_allowed(
+    settings, client_query, landscapes, groups
+):
+    landscape = landscapes[0]
+    group = groups[0]
+
+    settings.FEATURE_FLAGS["CHECK_PERMISSIONS"] = True
+
+    response = client_query(
+        """
+        mutation addLandscapeGroup($input: LandscapeGroupAddMutationInput!){
+          addLandscapeGroup(input: $input) {
+            landscapeGroup {
+              id
+              landscape {
+                name
+              }
+              group {
+                name
+              }
+              isDefaultLandscapeGroup
+            }
+          }
+        }
+        """,
+        variables={
+            "input": {
+                "landscapeSlug": landscape.slug,
+                "groupSlug": group.slug,
+            }
+        },
+    )
+    response = response.json()
+
+    assert "errors" in response
+    assert "no permission" in response["errors"][0]["message"]
+
+
+def test_landscape_groups_add_duplicated(settings, client_query, users, landscape_groups):
+    user = users[0]
     landscape = landscape_groups[0].landscape
     group = landscape_groups[0].group
+    group.add_manager(user)
+
+    settings.FEATURE_FLAGS["CHECK_PERMISSIONS"] = True
 
     response = client_query(
         """
@@ -74,34 +119,13 @@ def test_landscape_groups_add_duplicated(client_query, landscape_groups):
     assert "duplicate key" in error_result["message"]
 
 
-def test_landscape_groups_add_without_default(client_query, landscapes, groups):
-    landscape = landscapes[0]
-    group = groups[0]
-
-    response = client_query(
-        """
-        mutation addLandscapeGroup($input: LandscapeGroupAddMutationInput!){
-          addLandscapeGroup(input: $input) {
-            landscapeGroup {
-              isDefaultLandscapeGroup
-            }
-          }
-        }
-        """,
-        variables={
-            "input": {
-                "landscapeSlug": landscape.slug,
-                "groupSlug": group.slug,
-            }
-        },
-    )
-    landscape_group = response.json()["data"]["addLandscapeGroup"]["landscapeGroup"]
-
-    assert not landscape_group["isDefaultLandscapeGroup"]
-
-
-def test_landscape_groups_delete(client_query, landscape_groups):
+def test_landscape_groups_delete(settings, client_query, users, landscape_groups):
+    user = users[0]
     old_landscape_group = landscape_groups[0]
+    old_landscape_group.group.add_manager(user)
+
+    settings.FEATURE_FLAGS["CHECK_PERMISSIONS"] = True
+
     response = client_query(
         """
         mutation deleteLandscapeGroup($input: LandscapeGroupDeleteMutationInput!){
