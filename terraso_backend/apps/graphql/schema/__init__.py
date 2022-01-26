@@ -17,7 +17,6 @@ from .landscape_groups import (
     LandscapeGroupAddMutation,
     LandscapeGroupDeleteMutation,
     LandscapeGroupNode,
-    LandscapeGroupUpdateMutation,
 )
 from .landscapes import (
     LandscapeAddMutation,
@@ -60,7 +59,6 @@ class Mutations(graphene.ObjectType):
     add_membership = MembershipAddMutation.Field()
     update_group = GroupUpdateMutation.Field()
     update_landscape = LandscapeUpdateMutation.Field()
-    update_landscape_group = LandscapeGroupUpdateMutation.Field()
     update_membership = MembershipUpdateMutation.Field()
     update_user = UserUpdateMutation.Field()
     delete_group = GroupDeleteMutation.Field()
