@@ -1,3 +1,5 @@
+import uuid
+
 import pytest
 from mixer.backend.django import mixer
 
@@ -116,10 +118,15 @@ def test_membership_add_manager(client_query, groups, users):
     assert membership["userRole"] == Membership.ROLE_MANAGER.upper()
 
 
-def test_membership_update(client_query, memberships):
+def test_membership_update(settings, client_query, users, memberships):
+    user = users[0]
     old_membership = memberships[0]
 
+    old_membership.group.add_manager(user)
+
     assert old_membership.user_role != Membership.ROLE_MANAGER.upper()
+
+    settings.FEATURE_FLAGS["CHECK_PERMISSIONS"] = True
 
     response = client_query(
         """
@@ -151,6 +158,60 @@ def test_membership_update(client_query, memberships):
     assert membership["user"]["email"] == old_membership.user.email
     assert membership["group"]["slug"] == old_membership.group.slug
     assert membership["userRole"] == Membership.ROLE_MANAGER.upper()
+
+
+def test_membership_update_by_non_manager_fail(settings, client_query, memberships):
+    old_membership = memberships[0]
+    old_membership.user_role = Membership.ROLE_MEMBER
+    old_membership.save()
+
+    settings.FEATURE_FLAGS["CHECK_PERMISSIONS"] = True
+
+    response = client_query(
+        """
+        mutation updateMembership($input: MembershipUpdateMutationInput!){
+          updateMembership(input: $input) {
+            membership {
+              userRole
+            }
+          }
+        }
+        """,
+        variables={
+            "input": {
+                "id": str(old_membership.id),
+                "userRole": Membership.ROLE_MANAGER,
+            }
+        },
+    )
+    response = response.json()
+
+    assert "errors" in response
+    assert "no permission" in response["errors"][0]["message"]
+
+
+def test_membership_update_not_found(client_query, memberships):
+    response = client_query(
+        """
+        mutation updateMembership($input: MembershipUpdateMutationInput!){
+          updateMembership(input: $input) {
+            membership {
+              userRole
+            }
+          }
+        }
+        """,
+        variables={
+            "input": {
+                "id": str(uuid.uuid4()),
+                "userRole": Membership.ROLE_MANAGER,
+            }
+        },
+    )
+    response = response.json()
+
+    assert "errors" in response
+    assert "not found" in response["errors"][0]["message"]
 
 
 def test_membership_delete(settings, client_query, users, groups):
