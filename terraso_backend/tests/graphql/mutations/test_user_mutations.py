@@ -57,6 +57,30 @@ def test_users_update(client_query, users):
     assert user_result == new_data
 
 
+def test_users_update_by_other_user_fail(client_query, users):
+    old_user = users[1]
+    new_data = {
+        "id": str(old_user.id),
+        "email": "tinatesting@example.com",
+    }
+    response = client_query(
+        """
+        mutation updateUser($input: UserUpdateMutationInput!) {
+          updateUser(input: $input) {
+            user {
+              email
+            }
+          }
+        }
+        """,
+        variables={"input": new_data},
+    )
+    response = response.json()
+
+    assert "errors" in response
+    assert "no permission" in response["errors"][0]["message"]
+
+
 def test_users_delete(client_query, users):
     old_user = users[0]
     response = client_query(
@@ -76,3 +100,23 @@ def test_users_delete(client_query, users):
 
     assert user_result["email"] == old_user.email
     assert not User.objects.filter(email=user_result["email"])
+
+
+def test_users_delete_by_other_user_fail(client_query, users):
+    old_user = users[1]
+    response = client_query(
+        """
+        mutation deleteUser($input: UserDeleteMutationInput!){
+          deleteUser(input: $input) {
+            user {
+              email
+            }
+          }
+        }
+        """,
+        variables={"input": {"id": str(old_user.id)}},
+    )
+    response = response.json()
+
+    assert "errors" in response
+    assert "no permission" in response["errors"][0]["message"]
