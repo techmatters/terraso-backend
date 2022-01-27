@@ -94,6 +94,10 @@ class GroupAssociation(BaseModel):
     )
 
     class Meta:
+        rules_permissions = {
+            "add": perm_rules.allowed_to_add_group_association,
+            "delete": perm_rules.allowed_to_delete_group_association,
+        }
         constraints = (
             models.UniqueConstraint(
                 fields=("parent_group", "child_group"),

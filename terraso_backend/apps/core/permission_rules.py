@@ -12,6 +12,18 @@ def allowed_to_delete_group(user, group_id):
 
 
 @rules.predicate
+def allowed_to_add_group_association(user, parent_group_id):
+    return user.is_group_manager(parent_group_id)
+
+
+@rules.predicate
+def allowed_to_delete_group_association(user, group_association):
+    return user.is_group_manager(group_association.parent_group.pk) or user.is_group_manager(
+        group_association.child_group.pk
+    )
+
+
+@rules.predicate
 def allowed_to_change_landscape(user, landscape_id):
     return user.is_landscape_manager(landscape_id)
 
