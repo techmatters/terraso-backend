@@ -1,7 +1,15 @@
 import os
 
+import django
 from dj_database_url import parse as parse_db_url
+from django.utils.encoding import force_str
 from prettyconf import config
+
+# Monkey patching force_text function to make the application work with Django
+# 4.0. This is necessary until graphene-django fully supports the new Django
+# version. This will probably be necessary until the following PR be merged.
+# https://github.com/graphql-python/graphene-django/pull/1275
+django.utils.encoding.force_text = force_str
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -94,7 +102,6 @@ AUTH_PASSWORD_VALIDATORS = [
 LANGUAGE_CODE = "en-us"
 TIME_ZONE = "UTC"
 USE_I18N = True
-USE_L10N = True
 USE_TZ = True
 
 MEDIA_URL = "/media/"
