@@ -3,6 +3,7 @@ from graphene import relay
 from graphene_django import DjangoObjectType
 
 from apps.core.models import User
+from apps.graphql.exceptions import GraphQLValidationException
 
 from .commons import BaseDeleteMutation, TerrasoConnection
 
@@ -54,7 +55,13 @@ class UserUpdateMutation(relay.ClientIDMutation):
 
     @classmethod
     def mutate_and_get_payload(cls, root, info, **kwargs):
+        request_user = info.context.user
         _id = kwargs.pop("id")
+
+        if str(request_user.id) != _id:
+            raise GraphQLValidationException(
+                f"User {request_user.id} has no permission to change data for user {_id}."
+            )
 
         user = User.objects.get(pk=_id)
         new_password = kwargs.pop("password", None)
@@ -76,3 +83,15 @@ class UserDeleteMutation(BaseDeleteMutation):
 
     class Input:
         id = graphene.ID()
+
+    @classmethod
+    def mutate_and_get_payload(cls, root, info, **kwargs):
+        request_user = info.context.user
+        _id = kwargs.get("id")
+
+        if str(request_user.id) != _id:
+            raise GraphQLValidationException(
+                f"User {request_user.id} has no permission to delete user {_id}."
+            )
+
+        return super().mutate_and_get_payload(root, info, **kwargs)
