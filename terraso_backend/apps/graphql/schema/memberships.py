@@ -89,6 +89,9 @@ class MembershipUpdateMutation(MembershipWriteMutation):
         if not user.has_perm(Membership.get_perm("change"), obj=membership.group.id):
             raise GraphQLValidationException("User has no permission to change Membership.")
 
+        if not rules.test_rule("allowed_group_managers_count", user, kwargs["id"]):
+            raise GraphQLValidationException("A Group needs to have at least one manager.")
+
         return super().mutate_and_get_payload(root, info, **kwargs)
 
 

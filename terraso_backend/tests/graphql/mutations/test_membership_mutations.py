@@ -120,6 +120,50 @@ def test_membership_add_manager(client_query, groups, users):
 
 def test_membership_update(settings, client_query, users, memberships):
     user = users[0]
+    other_manager = users[1]
+    old_membership = memberships[0]
+
+    old_membership.group.add_manager(user)
+    old_membership.group.add_manager(other_manager)
+
+    assert old_membership.user_role != Membership.ROLE_MANAGER.upper()
+
+    settings.FEATURE_FLAGS["CHECK_PERMISSIONS"] = True
+
+    response = client_query(
+        """
+        mutation updateMembership($input: MembershipUpdateMutationInput!){
+          updateMembership(input: $input) {
+            membership {
+              id
+              userRole
+              user {
+                email
+              }
+              group {
+                slug
+              }
+            }
+          }
+        }
+        """,
+        variables={
+            "input": {
+                "id": str(old_membership.id),
+                "userRole": Membership.ROLE_MEMBER,
+            }
+        },
+    )
+    membership = response.json()["data"]["updateMembership"]["membership"]
+
+    assert membership["id"]
+    assert membership["user"]["email"] == old_membership.user.email
+    assert membership["group"]["slug"] == old_membership.group.slug
+    assert membership["userRole"] == Membership.ROLE_MEMBER.upper()
+
+
+def test_membership_update_role_by_last_manager_fails(settings, client_query, users, memberships):
+    user = users[0]
     old_membership = memberships[0]
 
     old_membership.group.add_manager(user)
@@ -148,16 +192,14 @@ def test_membership_update(settings, client_query, users, memberships):
         variables={
             "input": {
                 "id": str(old_membership.id),
-                "userRole": Membership.ROLE_MANAGER,
+                "userRole": Membership.ROLE_MEMBER,
             }
         },
     )
-    membership = response.json()["data"]["updateMembership"]["membership"]
+    response = response.json()
 
-    assert membership["id"]
-    assert membership["user"]["email"] == old_membership.user.email
-    assert membership["group"]["slug"] == old_membership.group.slug
-    assert membership["userRole"] == Membership.ROLE_MANAGER.upper()
+    assert "errors" in response
+    assert "at least one manager" in response["errors"][0]["message"]
 
 
 def test_membership_update_by_non_manager_fail(settings, client_query, memberships):
