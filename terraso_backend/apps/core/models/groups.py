@@ -142,6 +142,7 @@ class Membership(BaseModel):
         )
         rules_permissions = {
             "delete": perm_rules.allowed_to_delete_membership,
+            "change": perm_rules.allowed_to_change_membership,
         }
 
     @classmethod

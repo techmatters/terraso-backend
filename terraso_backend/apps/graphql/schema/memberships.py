@@ -74,6 +74,23 @@ class MembershipUpdateMutation(MembershipWriteMutation):
         id = graphene.ID(required=True)
         user_role = graphene.String(required=True)
 
+    @classmethod
+    def mutate_and_get_payload(cls, root, info, **kwargs):
+        if not settings.FEATURE_FLAGS["CHECK_PERMISSIONS"]:
+            return super().mutate_and_get_payload(root, info, **kwargs)
+
+        user = info.context.user
+
+        try:
+            membership = Membership.objects.get(pk=kwargs["id"])
+        except Membership.DoesNotExist:
+            raise GraphQLValidationException("Membership not found.")
+
+        if not user.has_perm(Membership.get_perm("change"), obj=membership.group.id):
+            raise GraphQLValidationException("User has no permission to change Membership.")
+
+        return super().mutate_and_get_payload(root, info, **kwargs)
+
 
 class MembershipDeleteMutation(BaseDeleteMutation):
     membership = graphene.Field(MembershipNode)
