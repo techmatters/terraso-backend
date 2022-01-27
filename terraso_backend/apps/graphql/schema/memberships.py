@@ -1,7 +1,6 @@
 import graphene
 import rules
 from django.conf import settings
-from django.core.exceptions import ValidationError
 from graphene import relay
 from graphene_django import DjangoObjectType
 
@@ -28,48 +27,43 @@ class MembershipNode(DjangoObjectType):
         connection_class = TerrasoConnection
 
 
-class MembershipWriteMutation(relay.ClientIDMutation):
+class MembershipAddMutation(relay.ClientIDMutation):
     membership = graphene.Field(MembershipNode)
 
-    @classmethod
-    def mutate_and_get_payload(cls, root, info, **kwargs):
-        """
-        This is the method performed everytime this mutation is submitted.
-        Since this is the base class for write operations, this method will be
-        called both when adding and updating Memberships. The `kwargs` receives
-        a dictionary with all inputs informed.
-        """
-        _id = kwargs.pop("id", None)
-
-        if _id:
-            membership = Membership.objects.get(pk=_id)
-        else:
-            group = Group.objects.get(slug=kwargs.pop("group_slug"))
-            user = User.objects.get(email=kwargs.pop("user_email"))
-            membership, _ = Membership.objects.get_or_create(user=user, group=group)
-
-        user_role = kwargs.pop("user_role", None)
-        if user_role:
-            membership.user_role = Membership.get_user_role_from_text(user_role)
-
-        try:
-            membership.full_clean()
-        except ValidationError as exc:
-            raise GraphQLValidationException.from_validation_error(exc)
-
-        membership.save()
-
-        return cls(membership=membership)
-
-
-class MembershipAddMutation(MembershipWriteMutation):
     class Input:
         user_email = graphene.String(required=True)
         group_slug = graphene.String(required=True)
         user_role = graphene.String()
 
+    @classmethod
+    def mutate_and_get_payload(cls, root, info, **kwargs):
+        try:
+            user = User.objects.get(email=kwargs.pop("user_email"))
+        except User.DoesNotExist:
+            raise GraphQLValidationException("User not found.")
 
-class MembershipUpdateMutation(MembershipWriteMutation):
+        try:
+            group = Group.objects.get(slug=kwargs.pop("group_slug"))
+        except Group.DoesNotExist:
+            raise GraphQLValidationException("Group not found.")
+
+        membership, was_created = Membership.objects.get_or_create(user=user, group=group)
+        if was_created:
+            user_role = Membership.get_user_role_from_text(kwargs.pop("user_role", None))
+        else:
+            user_role = Membership.get_user_role_from_text(
+                kwargs.pop("user_role", membership.user_role)
+            )
+
+        membership.user_role = user_role
+        membership.save()
+
+        return cls(membership=membership)
+
+
+class MembershipUpdateMutation(relay.ClientIDMutation):
+    membership = graphene.Field(MembershipNode)
+
     class Input:
         id = graphene.ID(required=True)
         user_role = graphene.String(required=True)
@@ -86,13 +80,20 @@ class MembershipUpdateMutation(MembershipWriteMutation):
         except Membership.DoesNotExist:
             raise GraphQLValidationException("Membership not found.")
 
+        user_role = kwargs.pop("user_role", None)
+        if not user_role:
+            return cls(membership=membership)
+
         if not user.has_perm(Membership.get_perm("change"), obj=membership.group.id):
             raise GraphQLValidationException("User has no permission to change Membership.")
 
         if not rules.test_rule("allowed_group_managers_count", user, kwargs["id"]):
             raise GraphQLValidationException("A Group needs to have at least one manager.")
 
-        return super().mutate_and_get_payload(root, info, **kwargs)
+        membership.user_role = Membership.get_user_role_from_text(user_role)
+        membership.save()
+
+        return cls(membership=membership)
 
 
 class MembershipDeleteMutation(BaseDeleteMutation):
