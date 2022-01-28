@@ -13,7 +13,8 @@ User = get_user_model()
 
 class AbstractAuthorizeView(View):
     def get(self, request, *args, **kwargs):
-        return JsonResponse({"request_url": self.provider.login_url()})
+        state = request.GET.get("state")
+        return JsonResponse({"request_url": self.provider.login_url(state=state)})
 
     @property
     def provider(self):
@@ -36,12 +37,14 @@ class AbstractCallbackView(View):
     def get(self, request, *args, **kwargs):
         self.authorization_code = self.request.GET.get("code")
         self.error = self.request.GET.get("error")
+        self.state = self.request.GET.get("state", "")
 
         return self.process_callback()
 
     def post(self, request, *args, **kwargs):
         self.authorization_code = self.request.POST.get("code")
         self.error = self.request.POST.get("error")
+        self.state = self.request.POST.get("state", "")
 
         return self.process_callback()
 
@@ -61,7 +64,7 @@ class AbstractCallbackView(View):
         except Exception as exc:
             return HttpResponse(f"Error: {exc}", status=400)
 
-        response = HttpResponseRedirect(settings.WEB_CLIENT_URL)
+        response = HttpResponseRedirect(f"{settings.WEB_CLIENT_URL}/{self.state}")
         response.set_cookie("atoken", access_token, domain=settings.AUTH_COOKIE_DOMAIN)
         response.set_cookie("rtoken", refresh_token, domain=settings.AUTH_COOKIE_DOMAIN)
 
