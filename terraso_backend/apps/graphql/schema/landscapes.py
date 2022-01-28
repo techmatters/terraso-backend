@@ -4,7 +4,7 @@ from graphene import relay
 from graphene_django import DjangoObjectType
 
 from apps.core.models import Landscape
-from apps.graphql.exceptions import GraphQLValidationException
+from apps.graphql.exceptions import GraphQLNotAllowedException
 
 from .commons import BaseDeleteMutation, BaseWriteMutation, TerrasoConnection
 
@@ -75,7 +75,7 @@ class LandscapeUpdateMutation(BaseWriteMutation):
             return super().mutate_and_get_payload(root, info, **kwargs)
 
         if not user.has_perm(Landscape.get_perm("change"), obj=kwargs["id"]):
-            raise GraphQLValidationException("User has no permission to change the Landscape.")
+            raise GraphQLNotAllowedException(field="landscape", operation="change")
 
         return super().mutate_and_get_payload(root, info, **kwargs)
 
@@ -96,6 +96,6 @@ class LandscapeDeleteMutation(BaseDeleteMutation):
         user_has_delete_permission = user.has_perm(Landscape.get_perm("delete"), obj=kwargs["id"])
 
         if ff_check_permission_on and not user_has_delete_permission:
-            raise GraphQLValidationException("User has no permission to delete this data.")
+            raise GraphQLNotAllowedException(field="landscape", operation="delete")
 
         return super().mutate_and_get_payload(root, info, **kwargs)

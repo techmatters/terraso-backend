@@ -132,7 +132,7 @@ def test_landscapes_update_by_member_fails_due_permission_check(settings, client
     response = response.json()
 
     assert "errors" in response
-    assert "has no permission to change" in response["errors"][0]["message"]
+    assert "not_allowed" in response["errors"][0]["message"]
 
 
 def test_landscapes_delete_by_manager(settings, client_query, managed_landscapes):
@@ -182,4 +182,4 @@ def test_landscapes_delete_by_non_manager(settings, client_query, landscapes):
     response = response.json()
 
     assert "errors" in response
-    assert "has no permission" in response["errors"][0]["message"]
+    assert "not_allowed" in response["errors"][0]["message"]
