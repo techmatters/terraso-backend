@@ -68,7 +68,7 @@ def test_group_associations_add_by_non_parent_manager_fails(settings, client_que
     response = response.json()
 
     assert "errors" in response
-    assert "no permission" in response["errors"][0]["message"]
+    assert "not_allowed" in response["errors"][0]["message"]
 
 
 def test_group_associations_add_duplicated(settings, client_query, users, group_associations):
@@ -132,7 +132,7 @@ def test_group_associations_add_parent_group_not_found(settings, client_query, g
     response = response.json()
 
     assert "errors" in response
-    assert "Parent Group not found" in response["errors"][0]["message"]
+    assert "not_found" in response["errors"][0]["message"]
 
 
 def test_group_associations_add_child_group_not_found(settings, client_query, groups):
@@ -162,7 +162,7 @@ def test_group_associations_add_child_group_not_found(settings, client_query, gr
     response = response.json()
 
     assert "errors" in response
-    assert "Child Group not found" in response["errors"][0]["message"]
+    assert "not_found" in response["errors"][0]["message"]
 
 
 def test_group_associations_delete_by_parent_manager(
@@ -246,4 +246,4 @@ def test_group_associations_delete_by_non_manager_fail(settings, client_query, g
     response = response.json()
 
     assert "errors" in response
-    assert "no permission" in response["errors"][0]["message"]
+    assert "not_allowed" in response["errors"][0]["message"]
