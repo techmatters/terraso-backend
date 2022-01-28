@@ -17,14 +17,14 @@ class GoogleProvider:
     REDIRECT_URI = settings.GOOGLE_AUTH_REDIRECT_URI
 
     @classmethod
-    def login_url(self):
+    def login_url(cls, state=None):
         params = {
             "scope": "openid email profile",
             "access_type": "offline",
             "include_granted_scopes": "true",
             "response_type": "code",
-            "redirect_uri": self.REDIRECT_URI,
-            "client_id": self.CLIENT_ID,
+            "redirect_uri": cls.REDIRECT_URI,
+            "client_id": cls.CLIENT_ID,
         }
 
         return self.GOOGLE_OAUTH_BASE_URL + urllib.parse.urlencode(params)
@@ -51,13 +51,13 @@ class AppleProvider:
     JWT_AUD = "https://appleid.apple.com"
 
     @classmethod
-    def login_url(self):
+    def login_url(cls, state=None):
         params = {
             "scope": "name email openid",
             "response_type": "code",
             "response_mode": "form_post",
-            "redirect_uri": self.REDIRECT_URI,
-            "client_id": self.CLIENT_ID,
+            "redirect_uri": cls.REDIRECT_URI,
+            "client_id": cls.CLIENT_ID,
         }
 
         return self.OAUTH_BASE_URL + urllib.parse.urlencode(params, quote_via=urllib.parse.quote)
