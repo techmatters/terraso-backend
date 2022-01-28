@@ -44,6 +44,72 @@ def test_membership_add(client_query, groups, users):
     assert membership["userRole"] == Membership.ROLE_MEMBER.upper()
 
 
+def test_membership_add_group_not_found(client_query, users):
+    user = users[0]
+
+    response = client_query(
+        """
+        mutation addMembership($input: MembershipAddMutationInput!){
+          addMembership(input: $input) {
+            membership {
+              id
+              userRole
+              user {
+                email
+              }
+              group {
+                slug
+              }
+            }
+          }
+        }
+        """,
+        variables={
+            "input": {
+                "userEmail": user.email,
+                "groupSlug": "non-existing-group",
+            }
+        },
+    )
+    response = response.json()
+
+    assert "errors" in response
+    assert "Group not found" in response["errors"][0]["message"]
+
+
+def test_membership_add_user_not_found(client_query, groups):
+    group = groups[0]
+
+    response = client_query(
+        """
+        mutation addMembership($input: MembershipAddMutationInput!){
+          addMembership(input: $input) {
+            membership {
+              id
+              userRole
+              user {
+                email
+              }
+              group {
+                slug
+              }
+            }
+          }
+        }
+        """,
+        variables={
+            "input": {
+                "userEmail": "no-existing@user.com",
+                "groupSlug": group.slug,
+            }
+        },
+    )
+    response = response.json()
+
+    assert "errors" in response
+    assert "User not found" in response["errors"][0]["message"]
+
+
 def test_membership_adding_duplicated_returns_previously_created(client_query, memberships):
     membership = memberships[0]
     group = membership.group
