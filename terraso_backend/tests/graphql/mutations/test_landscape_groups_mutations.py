@@ -82,7 +82,7 @@ def test_landscape_groups_add_by_non_landscape_manager_not_allowed(
     response = response.json()
 
     assert "errors" in response
-    assert "no permission" in response["errors"][0]["message"]
+    assert "not_allowed" in response["errors"][0]["message"]
 
 
 def test_landscape_groups_add_duplicated(settings, client_query, users, landscape_groups):
@@ -153,7 +153,7 @@ def test_landscape_groups_add_landscape_not_found(settings, client_query, groups
     response = response.json()
 
     assert "errors" in response
-    assert "Landscape not found" in response["errors"][0]["message"]
+    assert "not_found" in response["errors"][0]["message"]
 
 
 def test_landscape_groups_add_group_not_found(settings, client_query, managed_landscapes):
@@ -187,7 +187,7 @@ def test_landscape_groups_add_group_not_found(settings, client_query, managed_la
     response = response.json()
 
     assert "errors" in response
-    assert "Group not found" in response["errors"][0]["message"]
+    assert "not_found" in response["errors"][0]["message"]
 
 
 def test_landscape_groups_delete_by_group_manager(settings, client_query, users, landscape_groups):
@@ -271,7 +271,7 @@ def test_landscape_groups_delete_by_non_managers_not_allowed(
     response = response.json()
 
     assert "errors" in response
-    assert "no permission" in response["errors"][0]["message"]
+    assert "not_allowed" in response["errors"][0]["message"]
 
 
 def test_landscape_groups_delete_not_found(settings, client_query, users):
@@ -293,4 +293,4 @@ def test_landscape_groups_delete_not_found(settings, client_query, users):
     response = response.json()
 
     assert "errors" in response
-    assert "Landscape Group not found" in response["errors"][0]["message"]
+    assert "not_found" in response["errors"][0]["message"]
