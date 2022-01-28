@@ -6,6 +6,7 @@ from apps.core.models import User
 from apps.graphql.exceptions import GraphQLNotAllowedException
 
 from .commons import BaseDeleteMutation, TerrasoConnection
+from .constants import MutationTypes
 
 
 class UserNode(DjangoObjectType):
@@ -59,7 +60,7 @@ class UserUpdateMutation(relay.ClientIDMutation):
         _id = kwargs.pop("id")
 
         if str(request_user.id) != _id:
-            raise GraphQLNotAllowedException(field="user", operation="change")
+            raise GraphQLNotAllowedException(field="user", operation=MutationTypes.UPDATE)
 
         user = User.objects.get(pk=_id)
         new_password = kwargs.pop("password", None)
@@ -88,6 +89,6 @@ class UserDeleteMutation(BaseDeleteMutation):
         _id = kwargs.get("id")
 
         if str(request_user.id) != _id:
-            raise GraphQLNotAllowedException(field="user", operation="delete")
+            raise GraphQLNotAllowedException(field="user", operation=MutationTypes.DELETE)
 
         return super().mutate_and_get_payload(root, info, **kwargs)

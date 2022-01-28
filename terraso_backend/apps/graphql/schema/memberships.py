@@ -12,6 +12,7 @@ from apps.graphql.exceptions import (
 )
 
 from .commons import BaseDeleteMutation, TerrasoConnection
+from .constants import MutationTypes
 
 
 class MembershipNode(DjangoObjectType):
@@ -89,11 +90,11 @@ class MembershipUpdateMutation(relay.ClientIDMutation):
             return cls(membership=membership)
 
         if not user.has_perm(Membership.get_perm("change"), obj=membership.group.id):
-            raise GraphQLNotAllowedException(field="membership", operation="change")
+            raise GraphQLNotAllowedException(field="membership", operation=MutationTypes.UPDATE)
 
         if not rules.test_rule("allowed_group_managers_count", user, kwargs["id"]):
             raise GraphQLNotAllowedException(
-                field="membership", operation="change", message="manager_count"
+                field="membership", operation=MutationTypes.UPDATE, message="manager_count"
             )
 
         membership.user_role = Membership.get_user_role_from_text(user_role)
@@ -118,11 +119,11 @@ class MembershipDeleteMutation(BaseDeleteMutation):
             return super().mutate_and_get_payload(root, info, **kwargs)
 
         if not user.has_perm(Membership.get_perm("delete"), obj=kwargs["id"]):
-            raise GraphQLNotAllowedException(field="membership", operation="delete")
+            raise GraphQLNotAllowedException(field="membership", operation=MutationTypes.DELETE)
 
         if not rules.test_rule("allowed_group_managers_count", user, kwargs["id"]):
             raise GraphQLNotAllowedException(
-                field="membership", operation="change", message="manager_count"
+                field="membership", operation=MutationTypes.DELETE, message="manager_count"
             )
 
         return super().mutate_and_get_payload(root, info, **kwargs)

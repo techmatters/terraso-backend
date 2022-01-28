@@ -8,6 +8,7 @@ from apps.core.models import Group
 from apps.graphql.exceptions import GraphQLNotAllowedException
 
 from .commons import BaseDeleteMutation, BaseWriteMutation, TerrasoConnection
+from .constants import MutationTypes
 
 
 class GroupFilterSet(django_filters.FilterSet):
@@ -102,7 +103,7 @@ class GroupUpdateMutation(BaseWriteMutation):
             return super().mutate_and_get_payload(root, info, **kwargs)
 
         if not user.has_perm(Group.get_perm("change"), obj=kwargs["id"]):
-            raise GraphQLNotAllowedException(field="group", operation="change")
+            raise GraphQLNotAllowedException(field="group", operation=MutationTypes.UPDATE)
 
         return super().mutate_and_get_payload(root, info, **kwargs)
 
@@ -122,6 +123,6 @@ class GroupDeleteMutation(BaseDeleteMutation):
         user_has_delete_permission = user.has_perm(Group.get_perm("delete"), obj=kwargs["id"])
 
         if ff_check_permission_on and not user_has_delete_permission:
-            raise GraphQLNotAllowedException(field="group", operation="delete")
+            raise GraphQLNotAllowedException(field="group", operation=MutationTypes.DELETE)
 
         return super().mutate_and_get_payload(root, info, **kwargs)

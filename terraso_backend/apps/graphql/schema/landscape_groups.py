@@ -12,6 +12,7 @@ from apps.graphql.exceptions import (
 )
 
 from .commons import BaseDeleteMutation, TerrasoConnection
+from .constants import MutationTypes
 
 
 class LandscapeGroupNode(DjangoObjectType):
@@ -63,7 +64,9 @@ class LandscapeGroupAddMutation(relay.ClientIDMutation):
         if ff_check_permission_on and not user.has_perm(
             LandscapeGroup.get_perm("add"), obj=landscape.pk
         ):
-            raise GraphQLNotAllowedException(field="landscape_group", operation="create")
+            raise GraphQLNotAllowedException(
+                field="landscape_group", operation=MutationTypes.CREATE
+            )
 
         landscape_group = LandscapeGroup()
         landscape_group.landscape = landscape
@@ -100,6 +103,8 @@ class LandscapeGroupDeleteMutation(BaseDeleteMutation):
         if ff_check_permission_on and not user.has_perm(
             LandscapeGroup.get_perm("delete"), obj=landscape_group
         ):
-            raise GraphQLNotAllowedException(field="landscape_group", operation="delete")
+            raise GraphQLNotAllowedException(
+                field="landscape_group", operation=MutationTypes.DELETE
+            )
 
         return super().mutate_and_get_payload(root, info, **kwargs)

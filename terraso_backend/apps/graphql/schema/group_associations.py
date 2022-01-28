@@ -12,6 +12,7 @@ from apps.graphql.exceptions import (
 )
 
 from .commons import BaseDeleteMutation, TerrasoConnection
+from .constants import MutationTypes
 
 
 class GroupAssociationNode(DjangoObjectType):
@@ -65,7 +66,9 @@ class GroupAssociationAddMutation(relay.ClientIDMutation):
         if ff_check_permission_on and not user.has_perm(
             GroupAssociation.get_perm("add"), obj=parent_group.pk
         ):
-            raise GraphQLNotAllowedException(field="group_association", operation="add")
+            raise GraphQLNotAllowedException(
+                field="group_association", operation=MutationTypes.CREATE
+            )
 
         try:
             group_association.full_clean()
@@ -99,6 +102,8 @@ class GroupAssociationDeleteMutation(BaseDeleteMutation):
         if ff_check_permission_on and not user.has_perm(
             GroupAssociation.get_perm("delete"), obj=group_association
         ):
-            raise GraphQLNotAllowedException(field="group_association", operation="delete")
+            raise GraphQLNotAllowedException(
+                field="group_association", operation=MutationTypes.DELETE
+            )
 
         return super().mutate_and_get_payload(root, info, **kwargs)
