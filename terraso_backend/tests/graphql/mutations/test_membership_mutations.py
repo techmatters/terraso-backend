@@ -74,7 +74,7 @@ def test_membership_add_group_not_found(client_query, users):
     response = response.json()
 
     assert "errors" in response
-    assert "Group not found" in response["errors"][0]["message"]
+    assert "notFound" in response["errors"][0]["message"]
 
 
 def test_membership_add_user_not_found(client_query, groups):
@@ -107,7 +107,7 @@ def test_membership_add_user_not_found(client_query, groups):
     response = response.json()
 
     assert "errors" in response
-    assert "User not found" in response["errors"][0]["message"]
+    assert "notFound" in response["errors"][0]["message"]
 
 
 def test_membership_adding_duplicated_returns_previously_created(client_query, memberships):
@@ -265,7 +265,7 @@ def test_membership_update_role_by_last_manager_fails(settings, client_query, us
     response = response.json()
 
     assert "errors" in response
-    assert "not_allowed" in response["errors"][0]["message"]
+    assert "updateNotAllowed" in response["errors"][0]["message"]
 
 
 def test_membership_update_by_non_manager_fail(settings, client_query, memberships):
@@ -295,7 +295,7 @@ def test_membership_update_by_non_manager_fail(settings, client_query, membershi
     response = response.json()
 
     assert "errors" in response
-    assert "not_allowed" in response["errors"][0]["message"]
+    assert "updateNotAllowed" in response["errors"][0]["message"]
 
 
 def test_membership_update_not_found(client_query, memberships):
@@ -319,7 +319,7 @@ def test_membership_update_not_found(client_query, memberships):
     response = response.json()
 
     assert "errors" in response
-    assert "not_found" in response["errors"][0]["message"]
+    assert "notFound" in response["errors"][0]["message"]
 
 
 def test_membership_delete(settings, client_query, users, groups):
@@ -461,7 +461,7 @@ def test_membership_delete_by_any_other_user(settings, client_query, memberships
     response = response.json()
 
     assert "errors" in response
-    assert "not_allowed" in response["errors"][0]["message"]
+    assert "deleteNotAllowed" in response["errors"][0]["message"]
 
 
 def test_membership_delete_by_last_manager(settings, client_query, memberships, users):
@@ -494,4 +494,4 @@ def test_membership_delete_by_last_manager(settings, client_query, memberships, 
     response = response.json()
 
     assert "errors" in response
-    assert "not_allowed" in response["errors"][0]["message"]
+    assert "deleteNotAllowed" in response["errors"][0]["message"]

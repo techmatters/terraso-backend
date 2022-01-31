@@ -76,7 +76,9 @@ class LandscapeUpdateMutation(BaseWriteMutation):
             return super().mutate_and_get_payload(root, info, **kwargs)
 
         if not user.has_perm(Landscape.get_perm("change"), obj=kwargs["id"]):
-            raise GraphQLNotAllowedException(field="landscape", operation=MutationTypes.UPDATE)
+            raise GraphQLNotAllowedException(
+                model_name=Landscape.__name__, operation=MutationTypes.UPDATE
+            )
 
         return super().mutate_and_get_payload(root, info, **kwargs)
 
@@ -97,6 +99,8 @@ class LandscapeDeleteMutation(BaseDeleteMutation):
         user_has_delete_permission = user.has_perm(Landscape.get_perm("delete"), obj=kwargs["id"])
 
         if ff_check_permission_on and not user_has_delete_permission:
-            raise GraphQLNotAllowedException(field="landscape", operation=MutationTypes.DELETE)
+            raise GraphQLNotAllowedException(
+                model_name=Landscape.__name__, operation=MutationTypes.DELETE
+            )
 
         return super().mutate_and_get_payload(root, info, **kwargs)

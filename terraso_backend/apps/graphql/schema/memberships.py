@@ -5,11 +5,7 @@ from graphene import relay
 from graphene_django import DjangoObjectType
 
 from apps.core.models import Group, Membership, User
-from apps.graphql.exceptions import (
-    GraphQLNotAllowedException,
-    GraphQLNotFoundException,
-    GraphQLValidationException,
-)
+from apps.graphql.exceptions import GraphQLNotAllowedException, GraphQLNotFoundException
 
 from .commons import BaseDeleteMutation, TerrasoConnection
 from .constants import MutationTypes
@@ -45,12 +41,12 @@ class MembershipAddMutation(relay.ClientIDMutation):
         try:
             user = User.objects.get(email=kwargs.pop("user_email"))
         except User.DoesNotExist:
-            raise GraphQLValidationException("User not found.")
+            raise GraphQLNotFoundException(field="user", model_name=Membership.__name__)
 
         try:
             group = Group.objects.get(slug=kwargs.pop("group_slug"))
         except Group.DoesNotExist:
-            raise GraphQLValidationException("Group not found.")
+            raise GraphQLNotFoundException(field="group", model_name=Membership.__name__)
 
         membership, was_created = Membership.objects.get_or_create(user=user, group=group)
         if was_created:
@@ -83,18 +79,22 @@ class MembershipUpdateMutation(relay.ClientIDMutation):
         try:
             membership = Membership.objects.get(pk=kwargs["id"])
         except Membership.DoesNotExist:
-            raise GraphQLNotFoundException(field="membership")
+            raise GraphQLNotFoundException(model_name=Membership.__name__)
 
         user_role = kwargs.pop("user_role", None)
         if not user_role:
             return cls(membership=membership)
 
         if not user.has_perm(Membership.get_perm("change"), obj=membership.group.id):
-            raise GraphQLNotAllowedException(field="membership", operation=MutationTypes.UPDATE)
+            raise GraphQLNotAllowedException(
+                model_name=Membership.__name__, operation=MutationTypes.UPDATE
+            )
 
         if not rules.test_rule("allowed_group_managers_count", user, kwargs["id"]):
             raise GraphQLNotAllowedException(
-                field="membership", operation=MutationTypes.UPDATE, message="manager_count"
+                model_name=Membership.__name__,
+                operation=MutationTypes.UPDATE,
+                message="manager_count",
             )
 
         membership.user_role = Membership.get_user_role_from_text(user_role)
@@ -119,11 +119,15 @@ class MembershipDeleteMutation(BaseDeleteMutation):
             return super().mutate_and_get_payload(root, info, **kwargs)
 
         if not user.has_perm(Membership.get_perm("delete"), obj=kwargs["id"]):
-            raise GraphQLNotAllowedException(field="membership", operation=MutationTypes.DELETE)
+            raise GraphQLNotAllowedException(
+                model_name=Membership.__name__, operation=MutationTypes.DELETE
+            )
 
         if not rules.test_rule("allowed_group_managers_count", user, kwargs["id"]):
             raise GraphQLNotAllowedException(
-                field="membership", operation=MutationTypes.DELETE, message="manager_count"
+                model_name=Membership.__name__,
+                operation=MutationTypes.DELETE,
+                message="manager_count",
             )
 
         return super().mutate_and_get_payload(root, info, **kwargs)

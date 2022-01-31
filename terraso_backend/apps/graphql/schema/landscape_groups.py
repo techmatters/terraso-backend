@@ -52,12 +52,12 @@ class LandscapeGroupAddMutation(relay.ClientIDMutation):
         try:
             landscape = Landscape.objects.get(slug=kwargs.pop("landscape_slug"))
         except Landscape.DoesNotExist:
-            raise GraphQLNotFoundException(field="landscape")
+            raise GraphQLNotFoundException(field="landscape", model_name=LandscapeGroup.__name__)
 
         try:
             group = Group.objects.get(slug=kwargs.pop("group_slug"))
         except Group.DoesNotExist:
-            raise GraphQLNotFoundException(field="group")
+            raise GraphQLNotFoundException(field="group", model_name=LandscapeGroup.__name__)
 
         ff_check_permission_on = settings.FEATURE_FLAGS["CHECK_PERMISSIONS"]
 
@@ -65,7 +65,7 @@ class LandscapeGroupAddMutation(relay.ClientIDMutation):
             LandscapeGroup.get_perm("add"), obj=landscape.pk
         ):
             raise GraphQLNotAllowedException(
-                field="landscape_group", operation=MutationTypes.CREATE
+                model_name=LandscapeGroup.__name__, operation=MutationTypes.CREATE
             )
 
         landscape_group = LandscapeGroup()
@@ -96,7 +96,7 @@ class LandscapeGroupDeleteMutation(BaseDeleteMutation):
         try:
             landscape_group = LandscapeGroup.objects.get(pk=kwargs["id"])
         except LandscapeGroup.DoesNotExist:
-            raise GraphQLNotFoundException(field="landscape_group")
+            raise GraphQLNotFoundException(model_name=LandscapeGroup.__name__)
 
         ff_check_permission_on = settings.FEATURE_FLAGS["CHECK_PERMISSIONS"]
 
@@ -104,7 +104,7 @@ class LandscapeGroupDeleteMutation(BaseDeleteMutation):
             LandscapeGroup.get_perm("delete"), obj=landscape_group
         ):
             raise GraphQLNotAllowedException(
-                field="landscape_group", operation=MutationTypes.DELETE
+                model_name=LandscapeGroup.__name__, operation=MutationTypes.DELETE
             )
 
         return super().mutate_and_get_payload(root, info, **kwargs)

@@ -50,12 +50,16 @@ class GroupAssociationAddMutation(relay.ClientIDMutation):
         try:
             parent_group = Group.objects.get(slug=kwargs.pop("parent_group_slug"))
         except Group.DoesNotExist:
-            raise GraphQLNotFoundException(field="parent_group")
+            raise GraphQLNotFoundException(
+                field="parent_group", model_name=GroupAssociation.__name__
+            )
 
         try:
             child_group = Group.objects.get(slug=kwargs.pop("child_group_slug"))
         except Group.DoesNotExist:
-            raise GraphQLNotFoundException(field="child_group")
+            raise GraphQLNotFoundException(
+                field="child_group", model_name=GroupAssociation.__name__
+            )
 
         group_association = GroupAssociation()
         group_association.parent_group = parent_group
@@ -67,7 +71,7 @@ class GroupAssociationAddMutation(relay.ClientIDMutation):
             GroupAssociation.get_perm("add"), obj=parent_group.pk
         ):
             raise GraphQLNotAllowedException(
-                field="group_association", operation=MutationTypes.CREATE
+                model_name=GroupAssociation.__name__, operation=MutationTypes.CREATE
             )
 
         try:
@@ -95,7 +99,7 @@ class GroupAssociationDeleteMutation(BaseDeleteMutation):
         try:
             group_association = GroupAssociation.objects.get(pk=kwargs["id"])
         except GroupAssociation.DoesNotExist:
-            raise GraphQLNotFoundException(field="group_association")
+            raise GraphQLNotFoundException(model_name=GroupAssociation.__name__)
 
         ff_check_permission_on = settings.FEATURE_FLAGS["CHECK_PERMISSIONS"]
 
@@ -103,7 +107,7 @@ class GroupAssociationDeleteMutation(BaseDeleteMutation):
             GroupAssociation.get_perm("delete"), obj=group_association
         ):
             raise GraphQLNotAllowedException(
-                field="group_association", operation=MutationTypes.DELETE
+                model_name=GroupAssociation.__name__, operation=MutationTypes.DELETE
             )
 
         return super().mutate_and_get_payload(root, info, **kwargs)

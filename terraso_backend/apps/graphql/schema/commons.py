@@ -1,19 +1,8 @@
-import re
-
 from django.core.exceptions import ValidationError
 from graphene import Connection, Int, relay
 
 from apps.graphql.exceptions import GraphQLValidationException
-
-RE_CAMEL_TO_SNAKE_CASE = re.compile(r"(?<!^)(?=[A-Z])")
-
-
-def from_camel_to_snake_case(model_class):
-    """
-    Transforms camel case to snake case. MyModel becomes my_model.
-    """
-    model_class_name = model_class.__name__
-    return RE_CAMEL_TO_SNAKE_CASE.sub("_", model_class_name).lower()
+from apps.graphql.formatters import from_camel_to_snake_case
 
 
 class TerrasoRelayNode(relay.Node):
@@ -56,11 +45,13 @@ class BaseWriteMutation(relay.ClientIDMutation):
         try:
             model_instance.full_clean()
         except ValidationError as exc:
-            raise GraphQLValidationException.from_validation_error(exc)
+            raise GraphQLValidationException.from_validation_error(
+                exc, model_name=cls.model_class.__name__
+            )
 
         model_instance.save()
 
-        result_kwargs = {from_camel_to_snake_case(cls.model_class): model_instance}
+        result_kwargs = {from_camel_to_snake_case(cls.model_class.__name__): model_instance}
 
         return cls(**result_kwargs)
 
@@ -82,6 +73,6 @@ class BaseDeleteMutation(relay.ClientIDMutation):
             model_instance = cls.model_class.objects.get(pk=_id)
             model_instance.delete()
 
-        result_kwargs = {from_camel_to_snake_case(cls.model_class): model_instance}
+        result_kwargs = {from_camel_to_snake_case(cls.model_class.__name__): model_instance}
 
         return cls(**result_kwargs)

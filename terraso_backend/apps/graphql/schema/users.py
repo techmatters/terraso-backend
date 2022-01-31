@@ -60,7 +60,9 @@ class UserUpdateMutation(relay.ClientIDMutation):
         _id = kwargs.pop("id")
 
         if str(request_user.id) != _id:
-            raise GraphQLNotAllowedException(field="user", operation=MutationTypes.UPDATE)
+            raise GraphQLNotAllowedException(
+                model_name=User.__name__, operation=MutationTypes.UPDATE
+            )
 
         user = User.objects.get(pk=_id)
         new_password = kwargs.pop("password", None)
@@ -89,6 +91,8 @@ class UserDeleteMutation(BaseDeleteMutation):
         _id = kwargs.get("id")
 
         if str(request_user.id) != _id:
-            raise GraphQLNotAllowedException(field="user", operation=MutationTypes.DELETE)
+            raise GraphQLNotAllowedException(
+                model_name=User.__name__, operation=MutationTypes.DELETE
+            )
 
         return super().mutate_and_get_payload(root, info, **kwargs)
