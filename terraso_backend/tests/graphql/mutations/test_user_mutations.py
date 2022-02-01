@@ -78,7 +78,7 @@ def test_users_update_by_other_user_fail(client_query, users):
     response = response.json()
 
     assert "errors" in response
-    assert "no permission" in response["errors"][0]["message"]
+    assert "updateNotAllowed" in response["errors"][0]["message"]
 
 
 def test_users_delete(client_query, users):
@@ -119,4 +119,4 @@ def test_users_delete_by_other_user_fail(client_query, users):
     response = response.json()
 
     assert "errors" in response
-    assert "no permission" in response["errors"][0]["message"]
+    assert "deleteNotAllowed" in response["errors"][0]["message"]

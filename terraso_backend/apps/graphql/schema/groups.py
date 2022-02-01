@@ -5,9 +5,10 @@ from graphene import relay
 from graphene_django import DjangoObjectType
 
 from apps.core.models import Group
-from apps.graphql.exceptions import GraphQLValidationException
+from apps.graphql.exceptions import GraphQLNotAllowedException
 
 from .commons import BaseDeleteMutation, BaseWriteMutation, TerrasoConnection
+from .constants import MutationTypes
 
 
 class GroupFilterSet(django_filters.FilterSet):
@@ -102,7 +103,9 @@ class GroupUpdateMutation(BaseWriteMutation):
             return super().mutate_and_get_payload(root, info, **kwargs)
 
         if not user.has_perm(Group.get_perm("change"), obj=kwargs["id"]):
-            raise GraphQLValidationException("User has no permission to change the Group.")
+            raise GraphQLNotAllowedException(
+                model_name=Group.__name__, operation=MutationTypes.UPDATE
+            )
 
         return super().mutate_and_get_payload(root, info, **kwargs)
 
@@ -120,6 +123,10 @@ class GroupDeleteMutation(BaseDeleteMutation):
 
         ff_check_permission_on = settings.FEATURE_FLAGS["CHECK_PERMISSIONS"]
         user_has_delete_permission = user.has_perm(Group.get_perm("delete"), obj=kwargs["id"])
+
         if ff_check_permission_on and not user_has_delete_permission:
-            raise GraphQLValidationException("User has no permission to delete this data.")
+            raise GraphQLNotAllowedException(
+                model_name=Group.__name__, operation=MutationTypes.DELETE
+            )
+
         return super().mutate_and_get_payload(root, info, **kwargs)

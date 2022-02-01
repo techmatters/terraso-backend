@@ -5,9 +5,14 @@ from graphene import relay
 from graphene_django import DjangoObjectType
 
 from apps.core.models import Group, GroupAssociation
-from apps.graphql.exceptions import GraphQLValidationException
+from apps.graphql.exceptions import (
+    GraphQLNotAllowedException,
+    GraphQLNotFoundException,
+    GraphQLValidationException,
+)
 
 from .commons import BaseDeleteMutation, TerrasoConnection
+from .constants import MutationTypes
 
 
 class GroupAssociationNode(DjangoObjectType):
@@ -45,12 +50,16 @@ class GroupAssociationAddMutation(relay.ClientIDMutation):
         try:
             parent_group = Group.objects.get(slug=kwargs.pop("parent_group_slug"))
         except Group.DoesNotExist:
-            raise GraphQLValidationException("Parent Group not found.")
+            raise GraphQLNotFoundException(
+                field="parent_group", model_name=GroupAssociation.__name__
+            )
 
         try:
             child_group = Group.objects.get(slug=kwargs.pop("child_group_slug"))
         except Group.DoesNotExist:
-            raise GraphQLValidationException("Child Group not found.")
+            raise GraphQLNotFoundException(
+                field="child_group", model_name=GroupAssociation.__name__
+            )
 
         group_association = GroupAssociation()
         group_association.parent_group = parent_group
@@ -61,7 +70,9 @@ class GroupAssociationAddMutation(relay.ClientIDMutation):
         if ff_check_permission_on and not user.has_perm(
             GroupAssociation.get_perm("add"), obj=parent_group.pk
         ):
-            raise GraphQLValidationException("User has no permission to add this data.")
+            raise GraphQLNotAllowedException(
+                model_name=GroupAssociation.__name__, operation=MutationTypes.CREATE
+            )
 
         try:
             group_association.full_clean()
@@ -88,13 +99,15 @@ class GroupAssociationDeleteMutation(BaseDeleteMutation):
         try:
             group_association = GroupAssociation.objects.get(pk=kwargs["id"])
         except GroupAssociation.DoesNotExist:
-            raise GraphQLValidationException("Group Association not found.")
+            raise GraphQLNotFoundException(model_name=GroupAssociation.__name__)
 
         ff_check_permission_on = settings.FEATURE_FLAGS["CHECK_PERMISSIONS"]
 
         if ff_check_permission_on and not user.has_perm(
             GroupAssociation.get_perm("delete"), obj=group_association
         ):
-            raise GraphQLValidationException("User has no permission to delete this data.")
+            raise GraphQLNotAllowedException(
+                model_name=GroupAssociation.__name__, operation=MutationTypes.DELETE
+            )
 
         return super().mutate_and_get_payload(root, info, **kwargs)

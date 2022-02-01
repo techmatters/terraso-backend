@@ -5,9 +5,14 @@ from graphene import relay
 from graphene_django import DjangoObjectType
 
 from apps.core.models import Group, Landscape, LandscapeGroup
-from apps.graphql.exceptions import GraphQLValidationException
+from apps.graphql.exceptions import (
+    GraphQLNotAllowedException,
+    GraphQLNotFoundException,
+    GraphQLValidationException,
+)
 
 from .commons import BaseDeleteMutation, TerrasoConnection
+from .constants import MutationTypes
 
 
 class LandscapeGroupNode(DjangoObjectType):
@@ -47,19 +52,21 @@ class LandscapeGroupAddMutation(relay.ClientIDMutation):
         try:
             landscape = Landscape.objects.get(slug=kwargs.pop("landscape_slug"))
         except Landscape.DoesNotExist:
-            raise GraphQLValidationException("Landscape not found.")
+            raise GraphQLNotFoundException(field="landscape", model_name=LandscapeGroup.__name__)
 
         try:
             group = Group.objects.get(slug=kwargs.pop("group_slug"))
         except Group.DoesNotExist:
-            raise GraphQLValidationException("Group not found.")
+            raise GraphQLNotFoundException(field="group", model_name=LandscapeGroup.__name__)
 
         ff_check_permission_on = settings.FEATURE_FLAGS["CHECK_PERMISSIONS"]
 
         if ff_check_permission_on and not user.has_perm(
             LandscapeGroup.get_perm("add"), obj=landscape.pk
         ):
-            raise GraphQLValidationException("User has no permission to create this data.")
+            raise GraphQLNotAllowedException(
+                model_name=LandscapeGroup.__name__, operation=MutationTypes.CREATE
+            )
 
         landscape_group = LandscapeGroup()
         landscape_group.landscape = landscape
@@ -89,13 +96,15 @@ class LandscapeGroupDeleteMutation(BaseDeleteMutation):
         try:
             landscape_group = LandscapeGroup.objects.get(pk=kwargs["id"])
         except LandscapeGroup.DoesNotExist:
-            raise GraphQLValidationException("Landscape Group not found.")
+            raise GraphQLNotFoundException(model_name=LandscapeGroup.__name__)
 
         ff_check_permission_on = settings.FEATURE_FLAGS["CHECK_PERMISSIONS"]
 
         if ff_check_permission_on and not user.has_perm(
             LandscapeGroup.get_perm("delete"), obj=landscape_group
         ):
-            raise GraphQLValidationException("User has no permission to delete this data.")
+            raise GraphQLNotAllowedException(
+                model_name=LandscapeGroup.__name__, operation=MutationTypes.DELETE
+            )
 
         return super().mutate_and_get_payload(root, info, **kwargs)

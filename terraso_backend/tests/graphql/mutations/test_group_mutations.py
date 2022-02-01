@@ -1,3 +1,5 @@
+import json
+
 import pytest
 
 from apps.core.models import Group
@@ -69,7 +71,10 @@ def test_groups_add_duplicated(client_query, groups):
     error_result = response.json()["errors"][0]
 
     assert error_result
-    assert "field=name" in error_result["message"]
+
+    error_message = json.loads(error_result["message"])[0]
+    assert error_message["code"] == "unique"
+    assert error_message["context"]["field"] == "name"
 
 
 def test_groups_update_by_manager_works(client_query, groups, users):
@@ -129,7 +134,7 @@ def test_groups_update_by_member_fails_due_permission_check(settings, client_que
     response = response.json()
 
     assert "errors" in response
-    assert "has no permission to change" in response["errors"][0]["message"]
+    assert "updateNotAllowed" in response["errors"][0]["message"]
 
 
 def test_groups_delete_by_manager(settings, client_query, managed_groups):
@@ -178,5 +183,5 @@ def test_groups_delete_by_non_manager(settings, client_query, groups):
 
     response = response.json()
 
-    assert "has no permission" in response["errors"][0]["message"]
     assert "errors" in response
+    assert "deleteNotAllowed" in response["errors"][0]["message"]
