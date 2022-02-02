@@ -48,7 +48,7 @@ class Group(SlugModel):
 
     field_to_slug = "name"
 
-    class Meta:
+    class Meta(SlugModel.Meta):
         rules_permissions = {
             "change": perm_rules.allowed_to_change_group,
             "delete": perm_rules.allowed_to_delete_group,
