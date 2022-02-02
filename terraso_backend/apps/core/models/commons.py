@@ -33,6 +33,6 @@ class SlugModel(BaseModel):
             models.UniqueConstraint(
                 fields=("slug",),
                 condition=models.Q(deleted_at__isnull=True),
-                name="unique_active_slug",
+                name="%(app_label)s_%(class)s_unique_active_slug",
             ),
         )
