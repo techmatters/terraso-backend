@@ -28,6 +28,7 @@ class LandscapeNode(DjangoObjectType):
             "description",
             "website",
             "location",
+            "area_polygon",
             "created_by",
             "associated_groups",
         )

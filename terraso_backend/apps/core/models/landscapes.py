@@ -24,6 +24,7 @@ class Landscape(SlugModel):
     description = models.TextField(max_length=512, blank=True, default="")
     website = models.URLField(blank=True, default="")
     location = models.CharField(max_length=128, blank=True, default="")
+    area_polygon = models.JSONField(blank=True, null=True)
 
     created_by = models.ForeignKey(
         User,

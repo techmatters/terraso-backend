@@ -56,7 +56,13 @@ def expired_client_query(client, expired_access_token):
 
 @pytest.fixture
 def landscapes():
-    return mixer.cycle(2).blend(Landscape)
+    return mixer.cycle(2).blend(
+        Landscape,
+        area_polygon={
+            "type": "Feature",
+            "geometry": {"type": "Point", "coordinates": [-104.9, 39.7]},
+        },
+    )
 
 
 @pytest.fixture
