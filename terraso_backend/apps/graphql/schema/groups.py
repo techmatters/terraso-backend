@@ -12,9 +12,6 @@ from .constants import MutationTypes
 
 
 class GroupFilterSet(django_filters.FilterSet):
-    # TODO: members__email was kept for backward compatibility. Remove as soon
-    # as the web client be updated to use memberships__email filter
-    members__email = django_filters.CharFilter(method="filter_memberships_email")
     memberships__email = django_filters.CharFilter(method="filter_memberships_email")
     associated_landscapes__is_default_landscape_group = django_filters.BooleanFilter(
         method="filter_associated_landscapes"
