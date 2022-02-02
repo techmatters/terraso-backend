@@ -1,3 +1,5 @@
+import json
+
 import pytest
 
 pytestmark = pytest.mark.django_db
@@ -57,3 +59,22 @@ def test_landscapes_query_has_total_count(client_query, landscapes):
     total_count = response.json()["data"]["landscapes"]["totalCount"]
 
     assert total_count == len(landscapes)
+
+
+def test_landscapes_query_with_json_polygon(client_query, landscapes):
+    response = client_query(
+        """
+        {landscapes {
+          edges {
+            node {
+              areaPolygon
+            }
+          }
+        }}
+        """
+    )
+    edges = response.json()["data"]["landscapes"]["edges"]
+    landscapes_result = [json.loads(edge["node"]["areaPolygon"]) for edge in edges]
+
+    for landscape in landscapes:
+        assert landscape.area_polygon in landscapes_result
