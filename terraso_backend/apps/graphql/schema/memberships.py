@@ -71,9 +71,6 @@ class MembershipUpdateMutation(relay.ClientIDMutation):
 
     @classmethod
     def mutate_and_get_payload(cls, root, info, **kwargs):
-        if not settings.FEATURE_FLAGS["CHECK_PERMISSIONS"]:
-            return super().mutate_and_get_payload(root, info, **kwargs)
-
         user = info.context.user
 
         try:
@@ -85,7 +82,11 @@ class MembershipUpdateMutation(relay.ClientIDMutation):
         if not user_role:
             return cls(membership=membership)
 
-        if not user.has_perm(Membership.get_perm("change"), obj=membership.group.id):
+        ff_check_permission_on = settings.FEATURE_FLAGS["CHECK_PERMISSIONS"]
+
+        if ff_check_permission_on and not user.has_perm(
+            Membership.get_perm("change"), obj=membership.group.id
+        ):
             raise GraphQLNotAllowedException(
                 model_name=Membership.__name__, operation=MutationTypes.UPDATE
             )
