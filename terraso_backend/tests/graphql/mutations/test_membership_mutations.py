@@ -184,7 +184,8 @@ def test_membership_add_manager(client_query, groups, users):
     assert membership["userRole"] == Membership.ROLE_MANAGER.upper()
 
 
-def test_membership_update(settings, client_query, users, memberships):
+@pytest.mark.parametrize("check_permission_on", (True, False))
+def test_membership_update(check_permission_on, settings, client_query, users, memberships):
     user = users[0]
     other_manager = users[1]
     old_membership = memberships[0]
@@ -194,7 +195,7 @@ def test_membership_update(settings, client_query, users, memberships):
 
     assert old_membership.user_role != Membership.ROLE_MANAGER.upper()
 
-    settings.FEATURE_FLAGS["CHECK_PERMISSIONS"] = True
+    settings.FEATURE_FLAGS["CHECK_PERMISSIONS"] = check_permission_on
 
     response = client_query(
         """
