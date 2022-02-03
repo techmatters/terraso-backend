@@ -1,22 +1,15 @@
-import httpx
-from django.conf import settings
-from django.core.management.base import BaseCommand
-
 from apps.core.models import Group, Landscape, LandscapeGroup
 
-AT_LANDSCAPES_ENDPOINT = "https://api.airtable.com/v0/appIE3c0ExjlY2N7l/Landscapes"
+from ._base_airtable import BaseAirtableCommand
 
 
-class Command(BaseCommand):
+class Command(BaseAirtableCommand):
     help = "Import sample data from AirTable Landscapes table"
 
-    def add_arguments(self, parser):
-        parser.add_argument("--airtable_api_key", type=str, default="")
-
     def handle(self, *args, **kwargs):
-        self.api_key = self._get_airtable_api_key(**kwargs)
+        self.api_key = self.get_airtable_api_key(**kwargs)
 
-        landscape_records = self._fetch_landscape_records()
+        landscape_records = self.fetch_landscape_records()
 
         for landscape_record in landscape_records:
             landscape_data = landscape_record["fields"]
@@ -74,23 +67,6 @@ class Command(BaseCommand):
                 )
 
             if created:
-                self.stdout.write(self.style.SUCCESS(f"Sucessfully created {landscape}"))
+                self.stdout.write(self.style.SUCCESS(f"Successfully created {landscape}"))
             else:
-                self.stdout.write(self.style.SUCCESS(f"Sucessfully updated {landscape}"))
-
-    def _get_airtable_api_key(self, **kwargs):
-        api_key = kwargs.get("airtable_api_key")
-
-        if not api_key:
-            api_key = settings.AIRTABLE_API_KEY
-
-        assert api_key, "AirTable API key is necessary to load sample data."
-
-        return api_key
-
-    def _fetch_landscape_records(self):
-        response = httpx.get(
-            AT_LANDSCAPES_ENDPOINT, headers={"Authorization": f"Bearer {self.api_key}"}
-        )
-        response.raise_for_status()
-        return response.json()["records"]
+                self.stdout.write(self.style.SUCCESS(f"Successfully updated {landscape}"))
