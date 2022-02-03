@@ -2,7 +2,7 @@ import httpx
 
 from apps.core.models import Landscape
 
-from .base_airtable import BaseAirtableCommand
+from ._base_airtable import BaseAirtableCommand
 
 GEOJSON_COLUMN_NAME = "Polygon (geojson)"
 

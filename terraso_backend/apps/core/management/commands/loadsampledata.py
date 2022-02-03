@@ -1,6 +1,6 @@
 from apps.core.models import Group, Landscape, LandscapeGroup
 
-from .base_airtable import BaseAirtableCommand
+from ._base_airtable import BaseAirtableCommand
 
 
 class Command(BaseAirtableCommand):
