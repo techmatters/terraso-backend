@@ -18,6 +18,10 @@ PROJECT_DIR = os.path.dirname(os.path.abspath(BASE_DIR))
 DEBUG = config("DEBUG", default=False, cast=config.boolean)
 
 ALLOWED_HOSTS = config("ALLOWED_HOSTS", default="*", cast=config.list)
+CSRF_TRUSTED_ORIGINS = config(
+    "CSRF_TRUSTED_ORIGINS", default="https://*.terraso.org", cast=config.list
+)
+
 SECRET_KEY = config("SECRET_KEY")
 
 SILENCED_SYSTEM_CHECKS = ["auth.W004"]
