@@ -108,6 +108,13 @@ USE_TZ = True
 MEDIA_URL = "/media/"
 STATIC_URL = "/static/"
 
+if not DEBUG:
+    CDN_STATIC_DOMAIN = config("CDN_STATIC_DOMAIN")
+    AWS_S3_CUSTOM_DOMAIN = CDN_STATIC_DOMAIN
+    AWS_STORAGE_BUCKET_NAME = CDN_STATIC_DOMAIN
+    STATIC_URL = f"{CDN_STATIC_DOMAIN}/"
+    STATICFILES_STORAGE = "storages.backends.s3boto3.S3StaticStorage"
+
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
