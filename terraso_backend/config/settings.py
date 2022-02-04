@@ -29,13 +29,14 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "corsheaders",
     "graphene_django",
     "rules",
+    "storages",
     "safedelete",
     "apps.core",
     "apps.graphql",
     "apps.auth",
-    "corsheaders",
 ]
 
 MIDDLEWARE = [
