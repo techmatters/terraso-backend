@@ -18,6 +18,10 @@ PROJECT_DIR = os.path.dirname(os.path.abspath(BASE_DIR))
 DEBUG = config("DEBUG", default=False, cast=config.boolean)
 
 ALLOWED_HOSTS = config("ALLOWED_HOSTS", default="*", cast=config.list)
+CSRF_TRUSTED_ORIGINS = config(
+    "CSRF_TRUSTED_ORIGINS", default="https://*.terraso.org", cast=config.list
+)
+
 SECRET_KEY = config("SECRET_KEY")
 
 SILENCED_SYSTEM_CHECKS = ["auth.W004"]
@@ -29,13 +33,14 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "corsheaders",
     "graphene_django",
     "rules",
+    "storages",
     "safedelete",
     "apps.core",
     "apps.graphql",
     "apps.auth",
-    "corsheaders",
 ]
 
 MIDDLEWARE = [
@@ -106,6 +111,13 @@ USE_TZ = True
 
 MEDIA_URL = "/media/"
 STATIC_URL = "/static/"
+
+if not DEBUG:
+    CDN_STATIC_DOMAIN = config("CDN_STATIC_DOMAIN")
+    AWS_S3_CUSTOM_DOMAIN = CDN_STATIC_DOMAIN
+    AWS_STORAGE_BUCKET_NAME = CDN_STATIC_DOMAIN
+    STATIC_URL = f"{CDN_STATIC_DOMAIN}/"
+    STATICFILES_STORAGE = "storages.backends.s3boto3.S3StaticStorage"
 
 LOGGING = {
     "version": 1,
