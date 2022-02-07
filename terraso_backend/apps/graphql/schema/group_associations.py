@@ -65,7 +65,7 @@ class GroupAssociationAddMutation(relay.ClientIDMutation):
             )
 
         try:
-            child_group = Group.objects.get(slug=kwargs.pop("child_group_slug"))
+            child_group = Group.objects.get(slug=child_group_slug)
         except Group.DoesNotExist:
             logger.error(
                 "Child group not found when adding Group Association",

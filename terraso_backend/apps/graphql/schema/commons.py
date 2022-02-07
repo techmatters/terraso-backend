@@ -50,7 +50,7 @@ class BaseWriteMutation(relay.ClientIDMutation):
         except ValidationError as exc:
             logger.info(
                 "Attempt to mutate an model, but it's invalid",
-                extra={"model": cls.model_instance.__name__, "validation_error": exc},
+                extra={"model": cls.model_class.__name__, "validation_error": exc},
             )
             raise GraphQLValidationException.from_validation_error(
                 exc, model_name=cls.model_class.__name__
