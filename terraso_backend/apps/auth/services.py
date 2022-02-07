@@ -1,8 +1,8 @@
-import logging
 from datetime import timedelta
 from uuid import uuid4
 
 import jwt
+import structlog
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.utils import timezone
@@ -11,7 +11,7 @@ from apps.storage.services import ProfileImageService
 
 from .providers import AppleProvider, GoogleProvider
 
-logger = logging.getLogger(__name__)
+logger = structlog.get_logger(__name__)
 User = get_user_model()
 
 
