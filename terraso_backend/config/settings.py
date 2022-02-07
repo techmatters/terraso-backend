@@ -125,19 +125,9 @@ LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
     "formatters": {
-        "json_formatter": {
-            "()": structlog.stdlib.ProcessorFormatter,
-            "processor": structlog.processors.JSONRenderer(),
-        },
         "plain_console": {
             "()": structlog.stdlib.ProcessorFormatter,
             "processor": structlog.dev.ConsoleRenderer(),
-        },
-        "key_value": {
-            "()": structlog.stdlib.ProcessorFormatter,
-            "processor": structlog.processors.KeyValueRenderer(
-                key_order=["timestamp", "level", "event", "logger"]
-            ),
         },
     },
     "handlers": {
@@ -145,28 +135,14 @@ LOGGING = {
             "class": "logging.StreamHandler",
             "formatter": "plain_console",
         },
-        "json_file": {
-            "class": "logging.handlers.RotatingFileHandler",
-            "filename": "terraso_backend_json.log",
-            "maxBytes": 10485760,  # 1024 * 1024 * 10B = 10MB
-            "backupCount": 5,
-            "formatter": "json_formatter",
-        },
-        "flat_line_file": {
-            "class": "logging.handlers.RotatingFileHandler",
-            "filename": "terraso_backend_flat_line.log",
-            "maxBytes": 10485760,  # 1024 * 1024 * 10B = 10MB
-            "backupCount": 5,
-            "formatter": "key_value",
-        },
     },
     "loggers": {
         "": {
-            "handlers": ["console", "flat_line_file", "json_file"],
+            "handlers": ["console"],
             "level": "INFO",
         },
         "django": {
-            "handlers": ["console", "flat_line_file", "json_file"],
+            "handlers": ["console"],
             "level": "ERROR",
         },
     },
