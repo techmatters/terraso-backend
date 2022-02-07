@@ -21,7 +21,9 @@ class AccountService:
         tokens = provider.fetch_auth_tokens(authorization_code)
 
         if not tokens.is_valid:
-            raise Exception("Error fetching auth tokens: " + tokens.error_description)
+            error_msg = f"Error fetching auth tokens: {tokens.error_description}"
+            logger.error(error_msg)
+            raise Exception(error_msg)
 
         return self._persist_user(
             tokens.open_id.email,
@@ -35,7 +37,9 @@ class AccountService:
         tokens = provider.fetch_auth_tokens(authorization_code)
 
         if not tokens.is_valid:
-            raise Exception("Error fetching auth tokens: " + tokens.error_description)
+            error_msg = f"Error fetching auth tokens: {tokens.error_description}"
+            logger.error(error_msg)
+            raise Exception(error_msg)
 
         return self._persist_user(tokens.open_id.email, first_name=first_name, last_name=last_name)
 

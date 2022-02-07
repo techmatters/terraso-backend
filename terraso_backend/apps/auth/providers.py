@@ -3,10 +3,13 @@ from datetime import timedelta
 
 import httpx
 import jwt
+import structlog
 from django.conf import settings
 from django.utils import timezone
 
 from .oauth2.tokens import Tokens
+
+logger = structlog.get_logger(__name__)
 
 
 class GoogleProvider:
@@ -40,7 +43,24 @@ class GoogleProvider:
             "client_secret": self.CLIENT_SECRET,
             "redirect_uri": self.REDIRECT_URI,
         }
-        google_response = httpx.post(self.GOOGLE_TOKEN_URI, data=request_data)
+
+        try:
+            google_response = httpx.post(self.GOOGLE_TOKEN_URI, data=request_data)
+        except httpx.RequestError as exc:
+            error_msg = (
+                f"Failed to get Google authorization code while requesting {exc.request.url!r}"
+            )
+            logger.error(error_msg)
+            return Tokens.from_google({"error": "request_error", "error_description": error_msg})
+
+        try:
+            google_response.raise_for_status()
+        except httpx.HTTPStatusError as exc:
+            error_msg = (
+                f"Error response {exc.response.status_code} while requesting {exc.request.url!r}."
+            )
+            logger.error(error_msg)
+            return Tokens.from_google({"error": "response_error", "error_description": error_msg})
 
         return Tokens.from_google(google_response.json())
 
@@ -76,7 +96,24 @@ class AppleProvider:
             "client_secret": self._build_client_secret(),
             "redirect_uri": self.REDIRECT_URI,
         }
-        apple_response = httpx.post(self.TOKEN_URI, data=request_data)
+
+        try:
+            apple_response = httpx.post(self.TOKEN_URI, data=request_data)
+        except httpx.RequestError as exc:
+            error_msg = (
+                f"Failed to get Apple authorization code while requesting {exc.request.url!r}"
+            )
+            logger.error(error_msg)
+            return Tokens.from_apple({"error": "request_error", "error_description": error_msg})
+
+        try:
+            apple_response.raise_for_status()
+        except httpx.HTTPStatusError as exc:
+            error_msg = (
+                f"Error response {exc.response.status_code} while requesting {exc.request.url!r}."
+            )
+            logger.error(error_msg)
+            return Tokens.from_apple({"error": "response_error", "error_description": error_msg})
 
         return Tokens.from_apple(apple_response.json())
 
