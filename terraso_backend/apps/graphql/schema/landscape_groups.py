@@ -1,4 +1,5 @@
 import graphene
+import structlog
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from graphene import relay
@@ -13,6 +14,8 @@ from apps.graphql.exceptions import (
 
 from .commons import BaseDeleteMutation, TerrasoConnection
 from .constants import MutationTypes
+
+logger = structlog.get_logger(__name__)
 
 
 class LandscapeGroupNode(DjangoObjectType):
@@ -48,15 +51,24 @@ class LandscapeGroupAddMutation(relay.ClientIDMutation):
         receives a dictionary with all inputs informed.
         """
         user = info.context.user
+        landscape_slug = kwargs.pop("landscape_slug")
+        group_slug = kwargs.pop("group_slug")
 
         try:
-            landscape = Landscape.objects.get(slug=kwargs.pop("landscape_slug"))
+            landscape = Landscape.objects.get(slug=landscape_slug)
         except Landscape.DoesNotExist:
+            logger.error(
+                "Landscape not found when adding Landscape Group",
+                extra={"landscape_slug": landscape_slug},
+            )
             raise GraphQLNotFoundException(field="landscape", model_name=LandscapeGroup.__name__)
 
         try:
-            group = Group.objects.get(slug=kwargs.pop("group_slug"))
+            group = Group.objects.get(slug=group_slug)
         except Group.DoesNotExist:
+            logger.error(
+                "Group not found when adding Landscape Group", extra={"group_slug": group_slug}
+            )
             raise GraphQLNotFoundException(field="group", model_name=LandscapeGroup.__name__)
 
         ff_check_permission_on = settings.FEATURE_FLAGS["CHECK_PERMISSIONS"]
@@ -64,6 +76,14 @@ class LandscapeGroupAddMutation(relay.ClientIDMutation):
         if ff_check_permission_on and not user.has_perm(
             LandscapeGroup.get_perm("add"), obj=landscape.pk
         ):
+            logger.info(
+                "Attempt to add a Landscape Group, but user has no permission",
+                extra={
+                    "user_id": user.pk,
+                    "landscape_slug": landscape_slug,
+                    "group_slug": group_slug,
+                },
+            )
             raise GraphQLNotAllowedException(
                 model_name=LandscapeGroup.__name__, operation=MutationTypes.CREATE
             )
@@ -75,6 +95,10 @@ class LandscapeGroupAddMutation(relay.ClientIDMutation):
         try:
             landscape_group.full_clean()
         except ValidationError as exc:
+            logger.error(
+                "Attempt to create a Landscape Group, but model is invalid",
+                extra={"validation_error": exc},
+            )
             raise GraphQLValidationException.from_validation_error(exc)
 
         landscape_group.save()
@@ -93,9 +117,15 @@ class LandscapeGroupDeleteMutation(BaseDeleteMutation):
     @classmethod
     def mutate_and_get_payload(cls, root, info, **kwargs):
         user = info.context.user
+        landscape_group_id = kwargs["id"]
+
         try:
-            landscape_group = LandscapeGroup.objects.get(pk=kwargs["id"])
+            landscape_group = LandscapeGroup.objects.get(pk=landscape_group_id)
         except LandscapeGroup.DoesNotExist:
+            logger.error(
+                "Attempt to delete a Landscape Group, but it as not found",
+                extra={"landscape_group_id": landscape_group_id},
+            )
             raise GraphQLNotFoundException(model_name=LandscapeGroup.__name__)
 
         ff_check_permission_on = settings.FEATURE_FLAGS["CHECK_PERMISSIONS"]
@@ -103,6 +133,10 @@ class LandscapeGroupDeleteMutation(BaseDeleteMutation):
         if ff_check_permission_on and not user.has_perm(
             LandscapeGroup.get_perm("delete"), obj=landscape_group
         ):
+            logger.info(
+                "Attempt to delete a Landscape Group, but user has no permission",
+                extra={"user_id": user.pk, "landscape_group_id": landscape_group_id},
+            )
             raise GraphQLNotAllowedException(
                 model_name=LandscapeGroup.__name__, operation=MutationTypes.DELETE
             )

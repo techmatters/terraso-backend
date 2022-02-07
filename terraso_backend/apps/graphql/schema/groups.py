@@ -1,5 +1,6 @@
 import django_filters
 import graphene
+import structlog
 from django.conf import settings
 from graphene import relay
 from graphene_django import DjangoObjectType
@@ -9,6 +10,8 @@ from apps.graphql.exceptions import GraphQLNotAllowedException
 
 from .commons import BaseDeleteMutation, BaseWriteMutation, TerrasoConnection
 from .constants import MutationTypes
+
+logger = structlog.get_logger(__name__)
 
 
 class GroupFilterSet(django_filters.FilterSet):
@@ -95,11 +98,16 @@ class GroupUpdateMutation(BaseWriteMutation):
     @classmethod
     def mutate_and_get_payload(cls, root, info, **kwargs):
         user = info.context.user
+        group_id = kwargs["id"]
 
         if not settings.FEATURE_FLAGS["CHECK_PERMISSIONS"]:
             return super().mutate_and_get_payload(root, info, **kwargs)
 
-        if not user.has_perm(Group.get_perm("change"), obj=kwargs["id"]):
+        if not user.has_perm(Group.get_perm("change"), obj=group_id):
+            logger.info(
+                "Attempt to update a Group, but user has no permission",
+                extra={"user_id": user.pk, "group_id": group_id},
+            )
             raise GraphQLNotAllowedException(
                 model_name=Group.__name__, operation=MutationTypes.UPDATE
             )
@@ -117,11 +125,16 @@ class GroupDeleteMutation(BaseDeleteMutation):
     @classmethod
     def mutate_and_get_payload(cls, root, info, **kwargs):
         user = info.context.user
+        group_id = kwargs["id"]
 
         ff_check_permission_on = settings.FEATURE_FLAGS["CHECK_PERMISSIONS"]
-        user_has_delete_permission = user.has_perm(Group.get_perm("delete"), obj=kwargs["id"])
+        user_has_delete_permission = user.has_perm(Group.get_perm("delete"), obj=group_id)
 
         if ff_check_permission_on and not user_has_delete_permission:
+            logger.info(
+                "Attempt to delete a Group, but user has no permission",
+                extra={"user_id": user.pk, "group_id": group_id},
+            )
             raise GraphQLNotAllowedException(
                 model_name=Group.__name__, operation=MutationTypes.DELETE
             )

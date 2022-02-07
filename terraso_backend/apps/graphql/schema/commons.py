@@ -1,8 +1,11 @@
+import structlog
 from django.core.exceptions import ValidationError
 from graphene import Connection, Int, relay
 
 from apps.graphql.exceptions import GraphQLValidationException
 from apps.graphql.formatters import from_camel_to_snake_case
+
+logger = structlog.get_logger(__name__)
 
 
 class TerrasoRelayNode(relay.Node):
@@ -45,6 +48,10 @@ class BaseWriteMutation(relay.ClientIDMutation):
         try:
             model_instance.full_clean()
         except ValidationError as exc:
+            logger.info(
+                "Attempt to mutate an model, but it's invalid",
+                extra={"model": cls.model_instance.__name__, "validation_error": exc},
+            )
             raise GraphQLValidationException.from_validation_error(
                 exc, model_name=cls.model_class.__name__
             )
@@ -74,5 +81,4 @@ class BaseDeleteMutation(relay.ClientIDMutation):
             model_instance.delete()
 
         result_kwargs = {from_camel_to_snake_case(cls.model_class.__name__): model_instance}
-
         return cls(**result_kwargs)
