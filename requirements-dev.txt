@@ -47,13 +47,13 @@ black==22.1.0 \
     # via
     #   -r requirements/dev.in
     #   ipython
-boto3==1.20.49 \
-    --hash=sha256:09d7ffbbfcc212d22c92acf127ebc8c8ab89a2c03fa6360ab35b14d52b0df8ab \
-    --hash=sha256:34d170d24d10adb8ffe2a907ff35878e22ed2ceb24d16d191f8070053f11fc18
+boto3==1.20.50 \
+    --hash=sha256:87994c3753ef386189a222556eaf7cb1ef63432d516b4344c7b2899ce544ad2a \
+    --hash=sha256:c62362e3105c918272a95c9f4881587c3a3c68aa5fedcd322313def3688c9f7b
     # via moto
-botocore==1.23.49 \
-    --hash=sha256:3f72d20c65c89b694d9c7d164eb499877331783577f0207739088d11eaf315e7 \
-    --hash=sha256:b013b2911379d1de896eb6ef375126bb2fc2b77b3e0af75821661b7ea817d029
+botocore==1.23.50 \
+    --hash=sha256:109d9a200f70268d5429423fd8052f6fed5e041853d6621081692ea5ad7f70c7 \
+    --hash=sha256:aa953d9767ff99a7aa35dde770a1405c8877cef9caf280859b94104483b8368d
     # via
     #   boto3
     #   moto
@@ -202,9 +202,9 @@ executing==0.8.2 \
     --hash=sha256:32fc6077b103bd19e6494a72682d66d5763cf20a106d5aa7c5ccbea4e47b0df7 \
     --hash=sha256:c23bf42e9a7b9b212f185b1b2c3c91feb895963378887bb10e64a2e612ec0023
     # via stack-data
-faker==12.1.0 \
-    --hash=sha256:534c9410cd003b794900504d37f0afaf8275bfe8865583250799f696cf227cd3 \
-    --hash=sha256:820e55f62b428a4d55f6700358167e84a6ba3f8371e9ef39f9ca03a504dcae18
+faker==12.0.1 \
+    --hash=sha256:1dc2811f20e163892fefe7006f2ce00778f8099a40aee265bfa60a13400de63d \
+    --hash=sha256:aa7103805ae793277abbb85da9f6f05e76a1a295a9384a8e17c2fba2b3a690cb
     # via mixer
 flake8==4.0.1 \
     --hash=sha256:479b1304f72536a55948cb40a32dce8bb0ffe3501e26eaf292c7e60eb5e0428d \
@@ -343,9 +343,9 @@ mccabe==0.6.1 \
     --hash=sha256:ab8a6258860da4b6677da4bd2fe5dc2c659cff31b3ee4f7f5d64e79735b80d42 \
     --hash=sha256:dd8d182285a0fe56bace7f45b5e7d1a6ebcbf524e8f3bd87eb0f125271b8831f
     # via flake8
-mixer==7.2.0 \
-    --hash=sha256:7cc84aecea63144a12dd295ee6d407cd02298d1698e4794193e0776568788a78 \
-    --hash=sha256:d5d6466bd6227f9d3c5002b443f01ca13f4cd8dc3bd5f7715f0788dc9632975f
+mixer==7.2.1 \
+    --hash=sha256:1ba97631092d6cc139173500b12a2296791bf28948dfc05f1103044c6ae8b494 \
+    --hash=sha256:a9e5e391fe4656b595aaa1f1e8123802d140b8b0cc7ea0688403f324443b80fe
     # via -r requirements/dev.in
 moto==3.0.2 \
     --hash=sha256:b489cb7e794e4722afb9a0dd17e5009570c74e359c1cf4c3d7c2bce455e79427 \
@@ -513,9 +513,9 @@ wcwidth==0.2.5 \
     --hash=sha256:beb4802a9cebb9144e99086eff703a642a13d6a0052920003a230f3294bbe784 \
     --hash=sha256:c4d647b99872929fdb7bdcaa4fbe7f01413ed3d98077df798530e5b04f116c83
     # via prompt-toolkit
-werkzeug==2.0.2 \
-    --hash=sha256:63d3dc1cf60e7b7e35e97fa9861f7397283b75d765afcaefd993d6046899de8f \
-    --hash=sha256:aa2bb6fc8dee8d6c504c0ac1e7f5f7dc5810a9903e793b6f715a9f015bdadb9a
+werkzeug==2.0.3 \
+    --hash=sha256:1421ebfc7648a39a5c58c601b154165d05cf47a3cd0ccb70857cbdacf6c8f2b8 \
+    --hash=sha256:b863f8ff057c522164b6067c9e28b041161b4be5ba4d0daceeaa50a163822d3c
     # via moto
 xmltodict==0.12.0 \
     --hash=sha256:50d8c638ed7ecb88d90561beedbf720c9b4e851a9fa6c47ebd64e99d166d8a21 \
