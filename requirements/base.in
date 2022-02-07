@@ -5,6 +5,7 @@ django-cors-headers
 django-filter
 django-safedelete
 django-storages
+django-structlog
 dj-database-url
 prettyconf
 psycopg2

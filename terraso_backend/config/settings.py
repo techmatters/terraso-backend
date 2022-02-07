@@ -1,6 +1,7 @@
 import os
 
 import django
+import structlog
 from dj_database_url import parse as parse_db_url
 from django.utils.encoding import force_str
 from prettyconf import config
@@ -53,6 +54,7 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "apps.auth.middleware.JWTAuthenticationMiddleware",
+    "django_structlog.middlewares.RequestMiddleware",
 ]
 
 ROOT_URLCONF = "config.urls"
@@ -123,22 +125,74 @@ LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
     "formatters": {
-        "default": {"format": "%(asctime)s %(levelname)s %(name)s:%(lineno)s %(message)s"},
+        "json_formatter": {
+            "()": structlog.stdlib.ProcessorFormatter,
+            "processor": structlog.processors.JSONRenderer(),
+        },
+        "plain_console": {
+            "()": structlog.stdlib.ProcessorFormatter,
+            "processor": structlog.dev.ConsoleRenderer(),
+        },
+        "key_value": {
+            "()": structlog.stdlib.ProcessorFormatter,
+            "processor": structlog.processors.KeyValueRenderer(
+                key_order=["timestamp", "level", "event", "logger"]
+            ),
+        },
     },
-    "handlers": {"console": {"class": "logging.StreamHandler", "formatter": "default"}},
+    "handlers": {
+        "console": {
+            "class": "logging.StreamHandler",
+            "formatter": "plain_console",
+        },
+        "json_file": {
+            "class": "logging.handlers.RotatingFileHandler",
+            "filename": "terraso_backend_json.log",
+            "maxBytes": 10485760,  # 1024 * 1024 * 10B = 10MB
+            "backupCount": 5,
+            "formatter": "json_formatter",
+        },
+        "flat_line_file": {
+            "class": "logging.handlers.RotatingFileHandler",
+            "filename": "terraso_backend_flat_line.log",
+            "maxBytes": 10485760,  # 1024 * 1024 * 10B = 10MB
+            "backupCount": 5,
+            "formatter": "key_value",
+        },
+    },
     "loggers": {
         "django": {
-            "handlers": ["console"],
+            "handlers": ["console", "flat_line_file", "json_file"],
+            "level": "ERROR",
+        },
+        "django_structlog": {
+            "handlers": ["console", "flat_line_file", "json_file"],
             "level": "INFO",
-            "propagate": True,
         },
         "terraso_backend": {
-            "handlers": ["console"],
-            "level": "DEBUG",
-            "propagate": True,
+            "handlers": ["console", "flat_line_file", "json_file"],
+            "level": "INFO",
         },
     },
 }
+
+structlog.configure(
+    processors=[
+        structlog.stdlib.filter_by_level,
+        structlog.processors.TimeStamper(fmt="iso"),
+        structlog.stdlib.add_logger_name,
+        structlog.stdlib.add_log_level,
+        structlog.stdlib.PositionalArgumentsFormatter(),
+        structlog.processors.StackInfoRenderer(),
+        structlog.processors.format_exc_info,
+        structlog.processors.UnicodeDecoder(),
+        structlog.stdlib.ProcessorFormatter.wrap_for_formatter,
+    ],
+    context_class=structlog.threadlocal.wrap_dict(dict),
+    logger_factory=structlog.stdlib.LoggerFactory(),
+    wrapper_class=structlog.stdlib.BoundLogger,
+    cache_logger_on_first_use=True,
+)
 
 GRAPHENE = {
     "SCHEMA": "apps.graphql.schema.schema",
