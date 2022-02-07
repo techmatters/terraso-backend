@@ -161,17 +161,13 @@ LOGGING = {
         },
     },
     "loggers": {
+        "": {
+            "handlers": ["console", "flat_line_file", "json_file"],
+            "level": "INFO",
+        },
         "django": {
             "handlers": ["console", "flat_line_file", "json_file"],
             "level": "ERROR",
-        },
-        "django_structlog": {
-            "handlers": ["console", "flat_line_file", "json_file"],
-            "level": "INFO",
-        },
-        "terraso_backend": {
-            "handlers": ["console", "flat_line_file", "json_file"],
-            "level": "INFO",
         },
     },
 }
