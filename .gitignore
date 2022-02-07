@@ -72,3 +72,4 @@ pids
 *.seed
 *.pid.lock
 .pytest_cache/
+*.log
