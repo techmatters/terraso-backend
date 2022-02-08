@@ -1,3 +1,4 @@
+import structlog
 from django.db import models
 
 from apps.core import permission_rules as perm_rules
@@ -5,6 +6,8 @@ from apps.core import permission_rules as perm_rules
 from .commons import BaseModel, SlugModel
 from .groups import Group
 from .users import User
+
+logger = structlog.get_logger(__name__)
 
 
 class Landscape(SlugModel):
@@ -55,6 +58,9 @@ class Landscape(SlugModel):
             # queryset of LandscapeGroup
             landscape_group = self.associated_groups.get(is_default_landscape_group=True)
         except LandscapeGroup.DoesNotExist:
+            logger.error(
+                "Landscape has no default group, but it must have", extra={"landscape_id": self.pk}
+            )
             return None
 
         return landscape_group.group

@@ -1,6 +1,7 @@
 import os
 
 import django
+import structlog
 from dj_database_url import parse as parse_db_url
 from django.utils.encoding import force_str
 from prettyconf import config
@@ -53,6 +54,7 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "apps.auth.middleware.JWTAuthenticationMiddleware",
+    "django_structlog.middlewares.RequestMiddleware",
 ]
 
 ROOT_URLCONF = "config.urls"
@@ -123,22 +125,46 @@ LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
     "formatters": {
-        "default": {"format": "%(asctime)s %(levelname)s %(name)s:%(lineno)s %(message)s"},
+        "plain_console": {
+            "()": structlog.stdlib.ProcessorFormatter,
+            "processor": structlog.dev.ConsoleRenderer(),
+        },
     },
-    "handlers": {"console": {"class": "logging.StreamHandler", "formatter": "default"}},
+    "handlers": {
+        "console": {
+            "class": "logging.StreamHandler",
+            "formatter": "plain_console",
+        },
+    },
     "loggers": {
-        "django": {
+        "": {
             "handlers": ["console"],
             "level": "INFO",
-            "propagate": True,
         },
-        "terraso_backend": {
+        "django": {
             "handlers": ["console"],
-            "level": "DEBUG",
-            "propagate": True,
+            "level": "ERROR",
         },
     },
 }
+
+structlog.configure(
+    processors=[
+        structlog.stdlib.filter_by_level,
+        structlog.processors.TimeStamper(fmt="iso"),
+        structlog.stdlib.add_logger_name,
+        structlog.stdlib.add_log_level,
+        structlog.stdlib.PositionalArgumentsFormatter(),
+        structlog.processors.StackInfoRenderer(),
+        structlog.processors.format_exc_info,
+        structlog.processors.UnicodeDecoder(),
+        structlog.stdlib.ProcessorFormatter.wrap_for_formatter,
+    ],
+    context_class=structlog.threadlocal.wrap_dict(dict),
+    logger_factory=structlog.stdlib.LoggerFactory(),
+    wrapper_class=structlog.stdlib.BoundLogger,
+    cache_logger_on_first_use=True,
+)
 
 GRAPHENE = {
     "SCHEMA": "apps.graphql.schema.schema",

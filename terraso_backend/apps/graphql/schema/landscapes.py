@@ -1,4 +1,5 @@
 import graphene
+import structlog
 from django.conf import settings
 from graphene import relay
 from graphene_django import DjangoObjectType
@@ -8,6 +9,8 @@ from apps.graphql.exceptions import GraphQLNotAllowedException
 
 from .commons import BaseDeleteMutation, BaseWriteMutation, TerrasoConnection
 from .constants import MutationTypes
+
+logger = structlog.get_logger(__name__)
 
 
 class LandscapeNode(DjangoObjectType):
@@ -72,11 +75,16 @@ class LandscapeUpdateMutation(BaseWriteMutation):
     @classmethod
     def mutate_and_get_payload(cls, root, info, **kwargs):
         user = info.context.user
+        landscape_id = kwargs["id"]
 
         if not settings.FEATURE_FLAGS["CHECK_PERMISSIONS"]:
             return super().mutate_and_get_payload(root, info, **kwargs)
 
-        if not user.has_perm(Landscape.get_perm("change"), obj=kwargs["id"]):
+        if not user.has_perm(Landscape.get_perm("change"), obj=landscape_id):
+            logger.info(
+                "Attempt to update a Landscape, but user has no permission",
+                extra={"user_id": user.pk, "landscape_id": landscape_id},
+            )
             raise GraphQLNotAllowedException(
                 model_name=Landscape.__name__, operation=MutationTypes.UPDATE
             )
@@ -95,13 +103,17 @@ class LandscapeDeleteMutation(BaseDeleteMutation):
     @classmethod
     def mutate_and_get_payload(cls, root, info, **kwargs):
         user = info.context.user
+        landscape_id = kwargs["id"]
 
         ff_check_permission_on = settings.FEATURE_FLAGS["CHECK_PERMISSIONS"]
-        user_has_delete_permission = user.has_perm(Landscape.get_perm("delete"), obj=kwargs["id"])
+        user_has_delete_permission = user.has_perm(Landscape.get_perm("delete"), obj=landscape_id)
 
         if ff_check_permission_on and not user_has_delete_permission:
+            logger.info(
+                "Attempt to delete a Landscape, but user has no permission",
+                extra={"user_id": user.pk, "landscape_id": landscape_id},
+            )
             raise GraphQLNotAllowedException(
                 model_name=Landscape.__name__, operation=MutationTypes.DELETE
             )
-
         return super().mutate_and_get_payload(root, info, **kwargs)

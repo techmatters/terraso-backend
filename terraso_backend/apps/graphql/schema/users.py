@@ -1,4 +1,5 @@
 import graphene
+import structlog
 from graphene import relay
 from graphene_django import DjangoObjectType
 
@@ -7,6 +8,8 @@ from apps.graphql.exceptions import GraphQLNotAllowedException
 
 from .commons import BaseDeleteMutation, TerrasoConnection
 from .constants import MutationTypes
+
+logger = structlog.get_logger(__name__)
 
 
 class UserNode(DjangoObjectType):
@@ -60,6 +63,10 @@ class UserUpdateMutation(relay.ClientIDMutation):
         _id = kwargs.pop("id")
 
         if str(request_user.id) != _id:
+            logger.error(
+                "Attempt to update a User by another user, not allowed",
+                extra={"request_user_id": request_user.id, "target_user_id": _id},
+            )
             raise GraphQLNotAllowedException(
                 model_name=User.__name__, operation=MutationTypes.UPDATE
             )
@@ -91,6 +98,10 @@ class UserDeleteMutation(BaseDeleteMutation):
         _id = kwargs.get("id")
 
         if str(request_user.id) != _id:
+            logger.error(
+                "Attempt to delete a User by another user, not allowed",
+                extra={"request_user_id": request_user.id, "target_user_id": _id},
+            )
             raise GraphQLNotAllowedException(
                 model_name=User.__name__, operation=MutationTypes.DELETE
             )

@@ -1,8 +1,8 @@
-import logging
 from datetime import timedelta
 from uuid import uuid4
 
 import jwt
+import structlog
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.utils import timezone
@@ -11,7 +11,7 @@ from apps.storage.services import ProfileImageService
 
 from .providers import AppleProvider, GoogleProvider
 
-logger = logging.getLogger(__name__)
+logger = structlog.get_logger(__name__)
 User = get_user_model()
 
 
@@ -21,7 +21,9 @@ class AccountService:
         tokens = provider.fetch_auth_tokens(authorization_code)
 
         if not tokens.is_valid:
-            raise Exception("Error fetching auth tokens: " + tokens.error_description)
+            error_msg = f"Error fetching auth tokens: {tokens.error_description}"
+            logger.error(error_msg)
+            raise Exception(error_msg)
 
         return self._persist_user(
             tokens.open_id.email,
@@ -35,7 +37,9 @@ class AccountService:
         tokens = provider.fetch_auth_tokens(authorization_code)
 
         if not tokens.is_valid:
-            raise Exception("Error fetching auth tokens: " + tokens.error_description)
+            error_msg = f"Error fetching auth tokens: {tokens.error_description}"
+            logger.error(error_msg)
+            raise Exception(error_msg)
 
         return self._persist_user(tokens.open_id.email, first_name=first_name, last_name=last_name)
 

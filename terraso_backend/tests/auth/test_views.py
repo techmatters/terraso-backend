@@ -161,7 +161,7 @@ def test_post_apple_callback_with_bad_user(client):
     response = client.post(url, {"code": "testing-code-apple-auth", "user": "no-json-content"})
 
     assert response.status_code == 400
-    assert "couldn't parse User data from Apple" in response.content.decode()
+    assert "Couldn't parse User data from Apple" in response.content.decode()
 
 
 def test_post_refresh_token_without_token(client, refresh_tokens_url, refresh_token):

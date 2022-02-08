@@ -1,5 +1,6 @@
 import json
 
+import structlog
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
@@ -8,6 +9,7 @@ from django.views import View
 from .providers import AppleProvider, GoogleProvider
 from .services import AccountService, JWTService
 
+logger = structlog.get_logger(__name__)
 User = get_user_model()
 
 
@@ -50,9 +52,11 @@ class AbstractCallbackView(View):
 
     def process_callback(self):
         if self.error:
+            logger.error("Auth provider returned error on callback", extra={"error": self.error})
             return HttpResponse(f"Error: {self.error}", status=400)
 
         if not self.authorization_code:
+            logger.error("No authorization code from auth provider on callback")
             return HttpResponse("Error: no authorization code informed", status=400)
 
         jwt_service = JWTService()
@@ -62,6 +66,7 @@ class AbstractCallbackView(View):
             access_token = jwt_service.create_access_token(user)
             refresh_token = jwt_service.create_refresh_token(user)
         except Exception as exc:
+            logger.exception("Error attempting create access and refresh tokens")
             return HttpResponse(f"Error: {exc}", status=400)
 
         response = HttpResponseRedirect(f"{settings.WEB_CLIENT_URL}/{self.state}")
@@ -81,10 +86,13 @@ class GoogleCallbackView(AbstractCallbackView):
 
 class AppleCallbackView(AbstractCallbackView):
     def process_signup(self):
+        user_obj = self.request.POST.get("user", "{}")
         try:
-            apple_user_data = json.loads(self.request.POST.get("user", "{}"))
+            apple_user_data = json.loads(user_obj)
         except json.JSONDecodeError:
-            raise Exception("couldn't parse User data from Apple")
+            error_msg = "Couldn't parse User data from Apple"
+            logger.error(error_msg, extra={"user_obj", user_obj})
+            raise Exception(error_msg)
 
         first_name = apple_user_data.get("name", {}).get("firstName", "")
         last_name = apple_user_data.get("name", {}).get("lastName", "")
@@ -99,11 +107,13 @@ class RefreshAccessTokenView(View):
         try:
             request_data = json.loads(request.body)
         except json.decoder.JSONDecodeError:
-            return JsonResponse({"error": "The request expects a json body"}, status=400)
+            logger.error("Failure parsing refresh token request body", extra={"body": request.body})
+            return JsonResponse({"error": "The request expects a JSON body"}, status=400)
 
         try:
             refresh_token = request_data["refresh_token"]
         except KeyError:
+            logger.error("Refresh token request without 'refresh_token' parameter")
             return JsonResponse(
                 {"error": "The request expects a 'refresh_token' parameter"}, status=400
             )
@@ -113,14 +123,20 @@ class RefreshAccessTokenView(View):
         try:
             refresh_payload = jwt_service.verify_token(refresh_token)
         except Exception as exc:
+            logger.exception("Error verifying refresh token")
             return JsonResponse({"error": str(exc)}, status=400)
 
+        user_id = refresh_payload["sub"]
         try:
-            user = User.objects.get(id=refresh_payload["sub"])
+            user = User.objects.get(id=user_id)
         except User.DoesNotExist:
+            logger.error("User from refresh token not found", extra={"user_id": user_id})
             return JsonResponse({"error": "User not found"}, status=400)
 
         if not user.is_active:
+            logger.error(
+                "User from refresh token is not active anymore", extra={"user_id": user_id}
+            )
             return JsonResponse({"error": "User not found"}, status=400)
 
         access_token = jwt_service.create_access_token(user)
