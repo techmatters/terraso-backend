@@ -110,14 +110,12 @@ def test_groups_update_by_manager_works(client_query, groups, users):
     assert group_result == new_data
 
 
-def test_groups_update_by_member_fails_due_permission_check(settings, client_query, groups):
+def test_groups_update_by_member_fails_due_permission_check(client_query, groups):
     old_group = groups[0]
     new_data = {
         "id": str(old_group.id),
         "description": "New description",
     }
-
-    settings.FEATURE_FLAGS["CHECK_PERMISSIONS"] = True
 
     response = client_query(
         """
@@ -137,10 +135,8 @@ def test_groups_update_by_member_fails_due_permission_check(settings, client_que
     assert "updateNotAllowed" in response["errors"][0]["message"]
 
 
-def test_groups_delete_by_manager(settings, client_query, managed_groups):
+def test_groups_delete_by_manager(client_query, managed_groups):
     old_group = managed_groups[0]
-
-    settings.FEATURE_FLAGS["CHECK_PERMISSIONS"] = True
 
     response = client_query(
         """
@@ -162,10 +158,8 @@ def test_groups_delete_by_manager(settings, client_query, managed_groups):
     assert not Group.objects.filter(slug=group_result["slug"])
 
 
-def test_groups_delete_by_non_manager(settings, client_query, groups):
+def test_groups_delete_by_non_manager(client_query, groups):
     old_group = groups[0]
-
-    settings.FEATURE_FLAGS["CHECK_PERMISSIONS"] = True
 
     response = client_query(
         """

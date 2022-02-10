@@ -174,10 +174,6 @@ GRAPHENE = {
     "SCHEMA": "apps.graphql.schema.schema",
 }
 
-FEATURE_FLAGS = {
-    "CHECK_PERMISSIONS": config("FF_CHECK_PERMISSIONS", default=False, cast=config.boolean)
-}
-
 WEB_CLIENT_URL = config("WEB_CLIENT_ENDPOINT", default="")
 AUTH_COOKIE_DOMAIN = config("AUTH_COOKIE_DOMAIN", default="")
 CORS_ORIGIN_WHITELIST = config("CORS_ORIGIN_WHITELIST", default=[], cast=config.list)

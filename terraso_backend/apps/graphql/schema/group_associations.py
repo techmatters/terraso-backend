@@ -1,6 +1,5 @@
 import graphene
 import structlog
-from django.conf import settings
 from django.core.exceptions import ValidationError
 from graphene import relay
 from graphene_django import DjangoObjectType
@@ -79,11 +78,7 @@ class GroupAssociationAddMutation(relay.ClientIDMutation):
         group_association.parent_group = parent_group
         group_association.child_group = child_group
 
-        ff_check_permission_on = settings.FEATURE_FLAGS["CHECK_PERMISSIONS"]
-
-        if ff_check_permission_on and not user.has_perm(
-            GroupAssociation.get_perm("add"), obj=parent_group.pk
-        ):
+        if not user.has_perm(GroupAssociation.get_perm("add"), obj=parent_group.pk):
             logger.info(
                 "Attempt to create a Group Association, but user has no permission",
                 extra={"user_id": user.pk},
@@ -129,11 +124,7 @@ class GroupAssociationDeleteMutation(BaseDeleteMutation):
             )
             raise GraphQLNotFoundException(model_name=GroupAssociation.__name__)
 
-        ff_check_permission_on = settings.FEATURE_FLAGS["CHECK_PERMISSIONS"]
-
-        if ff_check_permission_on and not user.has_perm(
-            GroupAssociation.get_perm("delete"), obj=group_association
-        ):
+        if not user.has_perm(GroupAssociation.get_perm("delete"), obj=group_association):
             logger.info(
                 "Attempt to delete a Group Association, but user has no permission",
                 extra={"user_id": user.pk, "group_association": group_association_id},

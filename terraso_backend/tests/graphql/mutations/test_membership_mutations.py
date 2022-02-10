@@ -184,8 +184,7 @@ def test_membership_add_manager(client_query, groups, users):
     assert membership["userRole"] == Membership.ROLE_MANAGER.upper()
 
 
-@pytest.mark.parametrize("check_permission_on", (True, False))
-def test_membership_update(check_permission_on, settings, client_query, users, memberships):
+def test_membership_update(client_query, users, memberships):
     user = users[0]
     other_manager = users[1]
     old_membership = memberships[0]
@@ -194,8 +193,6 @@ def test_membership_update(check_permission_on, settings, client_query, users, m
     old_membership.group.add_manager(other_manager)
 
     assert old_membership.user_role != Membership.ROLE_MANAGER.upper()
-
-    settings.FEATURE_FLAGS["CHECK_PERMISSIONS"] = check_permission_on
 
     response = client_query(
         """
@@ -229,15 +226,13 @@ def test_membership_update(check_permission_on, settings, client_query, users, m
     assert membership["userRole"] == Membership.ROLE_MEMBER.upper()
 
 
-def test_membership_update_role_by_last_manager_fails(settings, client_query, users, memberships):
+def test_membership_update_role_by_last_manager_fails(client_query, users, memberships):
     user = users[0]
     old_membership = memberships[0]
 
     old_membership.group.add_manager(user)
 
     assert old_membership.user_role != Membership.ROLE_MANAGER.upper()
-
-    settings.FEATURE_FLAGS["CHECK_PERMISSIONS"] = True
 
     response = client_query(
         """
@@ -269,12 +264,10 @@ def test_membership_update_role_by_last_manager_fails(settings, client_query, us
     assert "updateNotAllowed" in response["errors"][0]["message"]
 
 
-def test_membership_update_by_non_manager_fail(settings, client_query, memberships):
+def test_membership_update_by_non_manager_fail(client_query, memberships):
     old_membership = memberships[0]
     old_membership.user_role = Membership.ROLE_MEMBER
     old_membership.save()
-
-    settings.FEATURE_FLAGS["CHECK_PERMISSIONS"] = True
 
     response = client_query(
         """
@@ -323,15 +316,13 @@ def test_membership_update_not_found(client_query, memberships):
     assert "notFound" in response["errors"][0]["message"]
 
 
-def test_membership_delete(settings, client_query, users, groups):
+def test_membership_delete(client_query, users, groups):
     member = users[0]
     manager = users[1]
     group = groups[0]
 
     old_membership = mixer.blend(Membership, user=member, group=group)
     mixer.blend(Membership, user=manager, group=group, user_role=Membership.ROLE_MANAGER)
-
-    settings.FEATURE_FLAGS["CHECK_PERMISSIONS"] = True
 
     client_query(
         """
@@ -358,11 +349,9 @@ def test_membership_delete(settings, client_query, users, groups):
     assert not Membership.objects.filter(user=old_membership.user, group=old_membership.group)
 
 
-def test_membership_soft_deleted_can_be_created_again(settings, client_query, memberships):
+def test_membership_soft_deleted_can_be_created_again(client_query, memberships):
     old_membership = memberships[0]
     old_membership.delete()
-
-    settings.FEATURE_FLAGS["CHECK_PERMISSIONS"] = True
 
     response = client_query(
         """
@@ -396,14 +385,12 @@ def test_membership_soft_deleted_can_be_created_again(settings, client_query, me
     assert membership["userRole"] == Membership.ROLE_MEMBER.upper()
 
 
-def test_membership_delete_by_group_manager(settings, client_query, memberships, users):
+def test_membership_delete_by_group_manager(client_query, memberships, users):
     # This test tries to delete memberships[1], from user[1] with user[0] as
     # manager from membership group
     old_membership = memberships[1]
     manager = users[0]
     old_membership.group.add_manager(manager)
-
-    settings.FEATURE_FLAGS["CHECK_PERMISSIONS"] = True
 
     client_query(
         """
@@ -430,12 +417,10 @@ def test_membership_delete_by_group_manager(settings, client_query, memberships,
     assert not Membership.objects.filter(user=old_membership.user, group=old_membership.group)
 
 
-def test_membership_delete_by_any_other_user(settings, client_query, memberships):
+def test_membership_delete_by_any_other_user(client_query, memberships):
     # Client query runs with user[0] from memberships[0]
     # This test tries to delete memberships[1], from user[1] with user[0]
     old_membership = memberships[1]
-
-    settings.FEATURE_FLAGS["CHECK_PERMISSIONS"] = True
 
     response = client_query(
         """
@@ -465,10 +450,8 @@ def test_membership_delete_by_any_other_user(settings, client_query, memberships
     assert "deleteNotAllowed" in response["errors"][0]["message"]
 
 
-def test_membership_delete_by_last_manager(settings, client_query, memberships, users):
+def test_membership_delete_by_last_manager(client_query, memberships, users):
     old_membership = memberships[0]
-
-    settings.FEATURE_FLAGS["CHECK_PERMISSIONS"] = True
 
     response = client_query(
         """
