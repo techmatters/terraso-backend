@@ -1,6 +1,5 @@
 import graphene
 import structlog
-from django.conf import settings
 from graphene import relay
 from graphene_django import DjangoObjectType
 
@@ -77,9 +76,6 @@ class LandscapeUpdateMutation(BaseWriteMutation):
         user = info.context.user
         landscape_id = kwargs["id"]
 
-        if not settings.FEATURE_FLAGS["CHECK_PERMISSIONS"]:
-            return super().mutate_and_get_payload(root, info, **kwargs)
-
         if not user.has_perm(Landscape.get_perm("change"), obj=landscape_id):
             logger.info(
                 "Attempt to update a Landscape, but user has no permission",
@@ -105,10 +101,7 @@ class LandscapeDeleteMutation(BaseDeleteMutation):
         user = info.context.user
         landscape_id = kwargs["id"]
 
-        ff_check_permission_on = settings.FEATURE_FLAGS["CHECK_PERMISSIONS"]
-        user_has_delete_permission = user.has_perm(Landscape.get_perm("delete"), obj=landscape_id)
-
-        if ff_check_permission_on and not user_has_delete_permission:
+        if not user.has_perm(Landscape.get_perm("delete"), obj=landscape_id):
             logger.info(
                 "Attempt to delete a Landscape, but user has no permission",
                 extra={"user_id": user.pk, "landscape_id": landscape_id},

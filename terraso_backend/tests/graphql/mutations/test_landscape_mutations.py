@@ -76,7 +76,7 @@ def test_landscapes_add_duplicated(client_query, landscapes):
     assert error_message["context"]["field"] == "name"
 
 
-def test_landscapes_update_by_manager_works(settings, client_query, managed_landscapes):
+def test_landscapes_update_by_manager_works(client_query, managed_landscapes):
     old_landscape = managed_landscapes[0]
     new_data = {
         "id": str(old_landscape.id),
@@ -84,8 +84,6 @@ def test_landscapes_update_by_manager_works(settings, client_query, managed_land
         "name": "New Name",
         "website": "https://www.example.com/updated-landscape",
     }
-
-    settings.FEATURE_FLAGS["CHECK_PERMISSIONS"] = True
 
     response = client_query(
         """
@@ -107,7 +105,7 @@ def test_landscapes_update_by_manager_works(settings, client_query, managed_land
     assert landscape_result == new_data
 
 
-def test_landscapes_update_by_member_fails_due_permission_check(settings, client_query, landscapes):
+def test_landscapes_update_by_member_fails_due_permission_check(client_query, landscapes):
     old_landscape = landscapes[0]
     new_data = {
         "id": str(old_landscape.id),
@@ -115,8 +113,6 @@ def test_landscapes_update_by_member_fails_due_permission_check(settings, client
         "name": "New Name",
         "website": "https://www.example.com/updated-landscape",
     }
-
-    settings.FEATURE_FLAGS["CHECK_PERMISSIONS"] = True
 
     response = client_query(
         """
@@ -140,10 +136,8 @@ def test_landscapes_update_by_member_fails_due_permission_check(settings, client
     assert "updateNotAllowed" in response["errors"][0]["message"]
 
 
-def test_landscapes_delete_by_manager(settings, client_query, managed_landscapes):
+def test_landscapes_delete_by_manager(client_query, managed_landscapes):
     old_landscape = managed_landscapes[0]
-
-    settings.FEATURE_FLAGS["CHECK_PERMISSIONS"] = True
 
     response = client_query(
         """
@@ -165,10 +159,8 @@ def test_landscapes_delete_by_manager(settings, client_query, managed_landscapes
     assert not Landscape.objects.filter(slug=landscape_result["slug"])
 
 
-def test_landscapes_delete_by_non_manager(settings, client_query, landscapes):
+def test_landscapes_delete_by_non_manager(client_query, landscapes):
     old_landscape = landscapes[0]
-
-    settings.FEATURE_FLAGS["CHECK_PERMISSIONS"] = True
 
     response = client_query(
         """

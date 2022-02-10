@@ -1,7 +1,6 @@
 import django_filters
 import graphene
 import structlog
-from django.conf import settings
 from graphene import relay
 from graphene_django import DjangoObjectType
 
@@ -100,9 +99,6 @@ class GroupUpdateMutation(BaseWriteMutation):
         user = info.context.user
         group_id = kwargs["id"]
 
-        if not settings.FEATURE_FLAGS["CHECK_PERMISSIONS"]:
-            return super().mutate_and_get_payload(root, info, **kwargs)
-
         if not user.has_perm(Group.get_perm("change"), obj=group_id):
             logger.info(
                 "Attempt to update a Group, but user has no permission",
@@ -127,10 +123,7 @@ class GroupDeleteMutation(BaseDeleteMutation):
         user = info.context.user
         group_id = kwargs["id"]
 
-        ff_check_permission_on = settings.FEATURE_FLAGS["CHECK_PERMISSIONS"]
-        user_has_delete_permission = user.has_perm(Group.get_perm("delete"), obj=group_id)
-
-        if ff_check_permission_on and not user_has_delete_permission:
+        if not user.has_perm(Group.get_perm("delete"), obj=group_id):
             logger.info(
                 "Attempt to delete a Group, but user has no permission",
                 extra={"user_id": user.pk, "group_id": group_id},

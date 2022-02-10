@@ -1,7 +1,6 @@
 import graphene
 import rules
 import structlog
-from django.conf import settings
 from graphene import relay
 from graphene_django import DjangoObjectType
 
@@ -101,11 +100,7 @@ class MembershipUpdateMutation(relay.ClientIDMutation):
         if not user_role:
             return cls(membership=membership)
 
-        ff_check_permission_on = settings.FEATURE_FLAGS["CHECK_PERMISSIONS"]
-
-        if ff_check_permission_on and not user.has_perm(
-            Membership.get_perm("change"), obj=membership.group.id
-        ):
+        if not user.has_perm(Membership.get_perm("change"), obj=membership.group.id):
             logger.info(
                 "Attempt to update a Membership, but user has no permission",
                 extra={"user_id": user.pk, "membership_id": membership_id},
@@ -143,9 +138,6 @@ class MembershipDeleteMutation(BaseDeleteMutation):
     def mutate_and_get_payload(cls, root, info, **kwargs):
         user = info.context.user
         membership_id = kwargs["id"]
-
-        if not settings.FEATURE_FLAGS["CHECK_PERMISSIONS"]:
-            return super().mutate_and_get_payload(root, info, **kwargs)
 
         if not user.has_perm(Membership.get_perm("delete"), obj=membership_id):
             logger.info(

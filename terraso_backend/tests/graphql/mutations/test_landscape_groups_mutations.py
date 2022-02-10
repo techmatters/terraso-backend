@@ -8,12 +8,9 @@ from apps.core.models import Group, LandscapeGroup
 pytestmark = pytest.mark.django_db
 
 
-def test_landscape_groups_add_by_landscape_manager(
-    settings, client_query, managed_landscapes, groups
-):
+def test_landscape_groups_add_by_landscape_manager(client_query, managed_landscapes, groups):
     landscape = managed_landscapes[0]
     group = groups[0]
-    settings.FEATURE_FLAGS["CHECK_PERMISSIONS"] = True
 
     response = client_query(
         """
@@ -48,12 +45,10 @@ def test_landscape_groups_add_by_landscape_manager(
 
 
 def test_landscape_groups_add_by_non_landscape_manager_not_allowed(
-    settings, client_query, landscapes, groups
+    client_query, landscapes, groups
 ):
     landscape = landscapes[0]
     group = groups[0]
-
-    settings.FEATURE_FLAGS["CHECK_PERMISSIONS"] = True
 
     response = client_query(
         """
@@ -85,13 +80,11 @@ def test_landscape_groups_add_by_non_landscape_manager_not_allowed(
     assert "createNotAllowed" in response["errors"][0]["message"]
 
 
-def test_landscape_groups_add_duplicated(settings, client_query, users, landscape_groups):
+def test_landscape_groups_add_duplicated(client_query, users, landscape_groups):
     user = users[0]
     landscape = landscape_groups[0].landscape
     group = landscape_groups[0].group
     group.add_manager(user)
-
-    settings.FEATURE_FLAGS["CHECK_PERMISSIONS"] = True
 
     response = client_query(
         """
@@ -122,9 +115,8 @@ def test_landscape_groups_add_duplicated(settings, client_query, users, landscap
     assert "duplicate key" in error_result["message"]
 
 
-def test_landscape_groups_add_landscape_not_found(settings, client_query, groups):
+def test_landscape_groups_add_landscape_not_found(client_query, groups):
     group = groups[0]
-    settings.FEATURE_FLAGS["CHECK_PERMISSIONS"] = True
 
     response = client_query(
         """
@@ -156,9 +148,8 @@ def test_landscape_groups_add_landscape_not_found(settings, client_query, groups
     assert "notFound" in response["errors"][0]["message"]
 
 
-def test_landscape_groups_add_group_not_found(settings, client_query, managed_landscapes):
+def test_landscape_groups_add_group_not_found(client_query, managed_landscapes):
     landscape = managed_landscapes[0]
-    settings.FEATURE_FLAGS["CHECK_PERMISSIONS"] = True
 
     response = client_query(
         """
@@ -190,13 +181,11 @@ def test_landscape_groups_add_group_not_found(settings, client_query, managed_la
     assert "notFound" in response["errors"][0]["message"]
 
 
-def test_landscape_groups_delete_by_group_manager(settings, client_query, users, landscape_groups):
+def test_landscape_groups_delete_by_group_manager(client_query, users, landscape_groups):
     user = users[0]
     _, old_landscape_group = landscape_groups
     old_landscape_group.group.add_manager(user)
 
-    settings.FEATURE_FLAGS["CHECK_PERMISSIONS"] = True
-
     response = client_query(
         """
         mutation deleteLandscapeGroup($input: LandscapeGroupDeleteMutationInput!){
@@ -218,15 +207,11 @@ def test_landscape_groups_delete_by_group_manager(settings, client_query, users,
     )
 
 
-def test_landscape_groups_delete_by_landscape_manager(
-    settings, client_query, users, managed_landscapes
-):
+def test_landscape_groups_delete_by_landscape_manager(client_query, users, managed_landscapes):
     landscape = managed_landscapes[0]
     group = mixer.blend(Group)
     old_landscape_group = mixer.blend(LandscapeGroup, landscape=landscape, group=group)
 
-    settings.FEATURE_FLAGS["CHECK_PERMISSIONS"] = True
-
     response = client_query(
         """
         mutation deleteLandscapeGroup($input: LandscapeGroupDeleteMutationInput!){
@@ -248,12 +233,8 @@ def test_landscape_groups_delete_by_landscape_manager(
     )
 
 
-def test_landscape_groups_delete_by_non_managers_not_allowed(
-    settings, client_query, users, landscape_groups
-):
+def test_landscape_groups_delete_by_non_managers_not_allowed(client_query, users, landscape_groups):
     _, old_landscape_group = landscape_groups
-
-    settings.FEATURE_FLAGS["CHECK_PERMISSIONS"] = True
 
     response = client_query(
         """
@@ -274,9 +255,7 @@ def test_landscape_groups_delete_by_non_managers_not_allowed(
     assert "deleteNotAllowed" in response["errors"][0]["message"]
 
 
-def test_landscape_groups_delete_not_found(settings, client_query, users):
-    settings.FEATURE_FLAGS["CHECK_PERMISSIONS"] = True
-
+def test_landscape_groups_delete_not_found(client_query, users):
     response = client_query(
         """
         mutation deleteLandscapeGroup($input: LandscapeGroupDeleteMutationInput!){

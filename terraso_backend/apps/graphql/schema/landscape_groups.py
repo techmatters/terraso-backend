@@ -1,6 +1,5 @@
 import graphene
 import structlog
-from django.conf import settings
 from django.core.exceptions import ValidationError
 from graphene import relay
 from graphene_django import DjangoObjectType
@@ -71,11 +70,7 @@ class LandscapeGroupAddMutation(relay.ClientIDMutation):
             )
             raise GraphQLNotFoundException(field="group", model_name=LandscapeGroup.__name__)
 
-        ff_check_permission_on = settings.FEATURE_FLAGS["CHECK_PERMISSIONS"]
-
-        if ff_check_permission_on and not user.has_perm(
-            LandscapeGroup.get_perm("add"), obj=landscape.pk
-        ):
+        if not user.has_perm(LandscapeGroup.get_perm("add"), obj=landscape.pk):
             logger.info(
                 "Attempt to add a Landscape Group, but user has no permission",
                 extra={
@@ -128,11 +123,7 @@ class LandscapeGroupDeleteMutation(BaseDeleteMutation):
             )
             raise GraphQLNotFoundException(model_name=LandscapeGroup.__name__)
 
-        ff_check_permission_on = settings.FEATURE_FLAGS["CHECK_PERMISSIONS"]
-
-        if ff_check_permission_on and not user.has_perm(
-            LandscapeGroup.get_perm("delete"), obj=landscape_group
-        ):
+        if not user.has_perm(LandscapeGroup.get_perm("delete"), obj=landscape_group):
             logger.info(
                 "Attempt to delete a Landscape Group, but user has no permission",
                 extra={"user_id": user.pk, "landscape_group_id": landscape_group_id},
