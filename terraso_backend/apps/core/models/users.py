@@ -4,8 +4,6 @@ from django.contrib.auth.models import AbstractUser, BaseUserManager
 from django.db import models
 from safedelete.models import SafeDeleteManager, SafeDeleteModel
 
-from apps.core import permission_rules as perm_rules
-
 from .commons import BaseModel
 
 
@@ -104,6 +102,3 @@ class UserPreference(BaseModel):
                 name="unique_user_preference",
             ),
         )
-        rules_permissions = {
-            "change": perm_rules.allowed_to_change_preferences,
-        }

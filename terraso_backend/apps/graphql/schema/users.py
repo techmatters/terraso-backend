@@ -1,4 +1,5 @@
 import graphene
+import rules
 import structlog
 from graphene import relay
 from graphene_django import DjangoObjectType
@@ -136,10 +137,11 @@ class UserPreferenceUpdate(relay.ClientIDMutation):
         key = kwargs.pop("key")
         value = kwargs.pop("value")
         user = User.objects.get(email=user_email)
+        preference, _ = UserPreference.objects.get_or_create(user_id=user.id, key=key)
 
-        if str(request_user.id) != str(user.id):
+        if not rules.test_rule("allowed_to_update_preferences", request_user, preference):
             logger.error(
-                "Attempt to update a User preferences by another user, not allowed",
+                "Attempt to update a User preferences, not allowed",
                 extra={"request_user_id": request_user.id, "target_user_id": user.id},
             )
             raise GraphQLNotAllowedException(
