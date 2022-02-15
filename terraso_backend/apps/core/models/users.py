@@ -4,6 +4,10 @@ from django.contrib.auth.models import AbstractUser, BaseUserManager
 from django.db import models
 from safedelete.models import SafeDeleteManager, SafeDeleteModel
 
+from apps.core import permission_rules as perm_rules
+
+from .commons import BaseModel
+
 
 class UserManager(SafeDeleteManager, BaseUserManager):
     use_in_migrations = True
@@ -37,6 +41,9 @@ class UserManager(SafeDeleteManager, BaseUserManager):
             raise ValueError("Superuser must have is_superuser=True.")
 
         return self._create_user(email, password, **extra_fields)
+
+    def update_preference(self, user, key, value):
+        self.preferences.update_or_create(user=user, key=key, value=value)
 
 
 class User(SafeDeleteModel, AbstractUser):
@@ -81,3 +88,22 @@ class User(SafeDeleteModel, AbstractUser):
 
     def __str__(self):
         return self.email
+
+
+class UserPreference(BaseModel):
+    key = models.CharField(max_length=128)
+    value = models.TextField(max_length=512, blank=True, default="")
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="preferences")
+
+    class Meta:
+        constraints = (
+            models.UniqueConstraint(
+                fields=("key", "user"),
+                condition=models.Q(deleted_at__isnull=True),
+                name="unique_user_preference",
+            ),
+        )
+        rules_permissions = {
+            "change": perm_rules.allowed_to_change_preferences,
+        }
