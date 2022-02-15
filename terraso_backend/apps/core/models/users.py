@@ -40,9 +40,6 @@ class UserManager(SafeDeleteManager, BaseUserManager):
 
         return self._create_user(email, password, **extra_fields)
 
-    def update_preference(self, user, key, value):
-        self.preferences.update_or_create(user=user, key=key, value=value)
-
 
 class User(SafeDeleteModel, AbstractUser):
     """This model represents a User on Terraso platform."""
