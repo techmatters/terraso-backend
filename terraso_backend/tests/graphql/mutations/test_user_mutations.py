@@ -139,7 +139,7 @@ def test_users_preference_update(client_query, users):
             "input": {
                 "userEmail": str(old_user.email),
                 "key": "language",
-                "value": '{ "locale": "es-ES" }',
+                "value": "es-EC",
             }
         },
     )
@@ -147,31 +147,7 @@ def test_users_preference_update(client_query, users):
     result = response.json()["data"]["updateUserPreference"]["preference"]
 
     assert result["key"] == "language"
-    assert result["value"] == '{"locale": "es-ES"}'
-
-
-def test_users_preference_update_not_json(client_query, users):
-    old_user = users[0]
-    response = client_query(
-        """
-        mutation updateUserPreference($input: UserPreferenceUpdateInput!){
-          updateUserPreference(input: $input) {
-            preference {
-              key
-              value
-            }
-          }
-        }
-        """,
-        variables={
-            "input": {"userEmail": str(old_user.email), "key": "language", "value": "value1"}
-        },
-    )
-
-    response = response.json()
-
-    assert "errors" in response
-    assert "badFormat" in response["errors"][0]["message"]
+    assert result["value"] == "es-EC"
 
 
 def test_users_preference_update_by_other_fail(client_query, users):

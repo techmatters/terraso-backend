@@ -4,8 +4,6 @@ from django.contrib.auth.models import AbstractUser, BaseUserManager
 from django.db import models
 from safedelete.models import SafeDeleteManager, SafeDeleteModel
 
-from .commons import BaseModel
-
 
 class UserManager(SafeDeleteManager, BaseUserManager):
     use_in_migrations = True
@@ -85,9 +83,12 @@ class User(SafeDeleteModel, AbstractUser):
         return self.email
 
 
-class UserPreference(BaseModel):
+class UserPreference(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
     key = models.CharField(max_length=128)
-    value = models.JSONField(blank=True, null=True)
+    value = models.CharField(max_length=512, blank=True, default="")
 
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="preferences")
 
