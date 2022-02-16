@@ -87,7 +87,7 @@ class User(SafeDeleteModel, AbstractUser):
 
 class UserPreference(BaseModel):
     key = models.CharField(max_length=128)
-    value = models.TextField(max_length=512, blank=True, default="")
+    value = models.JSONField(blank=True, null=True)
 
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="preferences")
 

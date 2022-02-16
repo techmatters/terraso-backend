@@ -26,6 +26,20 @@ class GraphQLValidationException(Exception):
 
         return cls(error_messages=error_messages)
 
+    @classmethod
+    def from_custom_errors(cls, validation_errors, model_name=""):
+        error_messages = []
+
+        for validation_error in validation_errors:
+            error_messages.append(
+                ErrorMessage(
+                    code=validation_error["code"],
+                    context=ErrorContext(model=model_name, field=validation_error["field"]),
+                )
+            )
+
+        return cls(error_messages=error_messages)
+
 
 class GraphQLNotFoundException(GraphQLValidationException):
     def __init__(self, message="", field=None, model_name=None):

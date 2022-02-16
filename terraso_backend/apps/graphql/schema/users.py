@@ -1,3 +1,5 @@
+import json
+
 import graphene
 import rules
 import structlog
@@ -5,7 +7,10 @@ from graphene import relay
 from graphene_django import DjangoObjectType
 
 from apps.core.models import User, UserPreference
-from apps.graphql.exceptions import GraphQLNotAllowedException
+from apps.graphql.exceptions import (
+    GraphQLNotAllowedException,
+    GraphQLValidationException,
+)
 
 from .commons import BaseDeleteMutation, TerrasoConnection
 from .constants import MutationTypes
@@ -135,7 +140,7 @@ class UserPreferenceUpdate(relay.ClientIDMutation):
         request_user = info.context.user
         user_email = kwargs.pop("user_email")
         key = kwargs.pop("key")
-        value = kwargs.pop("value")
+        value_raw = kwargs.pop("value")
         user = User.objects.get(email=user_email)
         preference, _ = UserPreference.objects.get_or_create(user_id=user.id, key=key)
 
@@ -148,8 +153,14 @@ class UserPreferenceUpdate(relay.ClientIDMutation):
                 model_name=UserPreference.__name__, operation=MutationTypes.UPDATE
             )
 
-        preference, _ = UserPreference.objects.get_or_create(user_id=user.id, key=key)
-        preference.value = value
+        try:
+            value_json = json.loads(value_raw)
+        except json.JSONDecodeError:
+            raise GraphQLValidationException.from_custom_errors(
+                [{"field": "value", "code": "bad_format"}], cls.model_class.__name__
+            )
+
+        preference.value = value_json
         preference.save()
 
         return cls(preference=preference)
