@@ -1,0 +1,21 @@
+introspection:
+  url: http://127.0.0.1:8000/graphql/
+
+servers:
+  - url: https://api.terraso.org/graphql/
+    description: Production Server
+    production: true
+  - url: https://api.staging.terraso.org/graphql/
+    description: Staging Server
+    production: false
+
+info:
+  title: Terraso GraphQL API
+  description: This is the Terraso API. This is under active development. To make requests you must have an account created. The API uses JWT for authentication.
+  contact:
+    name: Terraso
+    email: info@terraso.org
+    url: https://terraso.org/contact-us/
+  license:
+    name: AGPL-3.0 License
+    url: https://github.com/techmatters/terraso-backend/blob/main/LICENSE

@@ -1,3 +1,6 @@
+api_docs:
+	npx spectaql --one-file --target-file=docs.html --target-dir=terraso_backend/apps/graphql/templates/ terraso_backend/apps/graphql/spectaql.yml
+
 build_base_image:
 	docker build --tag=techmatters/terraso_backend --file=Dockerfile .
 
