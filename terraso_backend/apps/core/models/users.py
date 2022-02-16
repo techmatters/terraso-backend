@@ -96,7 +96,6 @@ class UserPreference(models.Model):
         constraints = (
             models.UniqueConstraint(
                 fields=("key", "user"),
-                condition=models.Q(deleted_at__isnull=True),
                 name="unique_user_preference",
             ),
         )

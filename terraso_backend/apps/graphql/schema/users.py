@@ -152,3 +152,34 @@ class UserPreferenceUpdate(relay.ClientIDMutation):
         preference.save()
 
         return cls(preference=preference)
+
+
+class UserPreferenceDelete(relay.ClientIDMutation):
+    preference = graphene.Field(UserPreferenceNode)
+
+    model_class = UserPreference
+
+    class Input:
+        user_email = graphene.String(required=True)
+        key = graphene.String(required=True)
+
+    @classmethod
+    def mutate_and_get_payload(cls, root, info, **kwargs):
+        request_user = info.context.user
+        user_email = kwargs.pop("user_email")
+        key = kwargs.pop("key")
+        user = User.objects.get(email=user_email)
+        preference, _ = UserPreference.objects.get_or_create(user_id=user.id, key=key)
+
+        if not rules.test_rule("allowed_to_update_preferences", request_user, preference):
+            logger.error(
+                "Attempt to delete a User preferences, not allowed",
+                extra={"request_user_id": request_user.id, "target_user_id": user.id},
+            )
+            raise GraphQLNotAllowedException(
+                model_name=UserPreference.__name__, operation=MutationTypes.DELETE
+            )
+
+        preference.delete()
+
+        return cls(preference=preference)
