@@ -73,13 +73,26 @@ continue the application request processing, just release the debugger.
 
 ## Loading sample data
 
-The repository has a file with sample data that can be imported to a new
-installation of the project. The Django built-in command `loaddata` is
-used for it:
+Import sample landscape data (names, descriptions, links):
 
 ```sh
 $ python terraso_backend/manage.py loaddata sampledata.json
 ```
+
+Import landscape boundaries geodata:
+
+```sh
+$ python terraso_backend/manage.py load_landscapes_geojson --airtable_api_key xxxxx
+```
+
+## Reset the database
+
+You can reset the database back to its default state:
+
+```sh
+$ python terraso_backend/manage.py flush
+```
+
 
 ## Contributing
 
