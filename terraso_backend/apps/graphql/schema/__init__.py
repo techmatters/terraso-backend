@@ -30,7 +30,14 @@ from .memberships import (
     MembershipNode,
     MembershipUpdateMutation,
 )
-from .users import UserAddMutation, UserDeleteMutation, UserNode, UserUpdateMutation
+from .users import (
+    UserAddMutation,
+    UserDeleteMutation,
+    UserNode,
+    UserPreferenceDelete,
+    UserPreferenceUpdate,
+    UserUpdateMutation,
+)
 
 
 class Query(graphene.ObjectType):
@@ -67,6 +74,8 @@ class Mutations(graphene.ObjectType):
     delete_landscape_group = LandscapeGroupDeleteMutation.Field()
     delete_group_association = GroupAssociationDeleteMutation.Field()
     delete_membership = MembershipDeleteMutation.Field()
+    update_user_preference = UserPreferenceUpdate.Field()
+    delete_user_preference = UserPreferenceDelete.Field()
 
 
 schema = graphene.Schema(query=Query, mutation=Mutations)

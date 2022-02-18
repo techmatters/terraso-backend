@@ -1,9 +1,10 @@
 import graphene
+import rules
 import structlog
 from graphene import relay
 from graphene_django import DjangoObjectType
 
-from apps.core.models import User
+from apps.core.models import User, UserPreference
 from apps.graphql.exceptions import GraphQLNotAllowedException
 
 from .commons import BaseDeleteMutation, TerrasoConnection
@@ -22,7 +23,17 @@ class UserNode(DjangoObjectType):
             "first_name": ["icontains"],
             "last_name": ["icontains"],
         }
-        fields = ("email", "first_name", "last_name", "profile_image", "memberships")
+        fields = ("email", "first_name", "last_name", "profile_image", "memberships", "preferences")
+        interfaces = (relay.Node,)
+        connection_class = TerrasoConnection
+
+
+class UserPreferenceNode(DjangoObjectType):
+    id = graphene.ID(source="pk", required=True)
+
+    class Meta:
+        model = UserPreference
+        fields = ("key", "value", "user")
         interfaces = (relay.Node,)
         connection_class = TerrasoConnection
 
@@ -107,3 +118,68 @@ class UserDeleteMutation(BaseDeleteMutation):
             )
 
         return super().mutate_and_get_payload(root, info, **kwargs)
+
+
+class UserPreferenceUpdate(relay.ClientIDMutation):
+    preference = graphene.Field(UserPreferenceNode)
+
+    model_class = UserPreference
+
+    class Input:
+        user_email = graphene.String(required=True)
+        key = graphene.String(required=True)
+        value = graphene.String(required=True)
+
+    @classmethod
+    def mutate_and_get_payload(cls, root, info, **kwargs):
+        request_user = info.context.user
+        user_email = kwargs.pop("user_email")
+        key = kwargs.pop("key")
+        value = kwargs.pop("value")
+        user = User.objects.get(email=user_email)
+        preference, _ = UserPreference.objects.get_or_create(user_id=user.id, key=key)
+
+        if not rules.test_rule("allowed_to_update_preferences", request_user, preference):
+            logger.error(
+                "Attempt to update a User preferences, not allowed",
+                extra={"request_user_id": request_user.id, "target_user_id": user.id},
+            )
+            raise GraphQLNotAllowedException(
+                model_name=UserPreference.__name__, operation=MutationTypes.UPDATE
+            )
+
+        preference.value = value
+        preference.save()
+
+        return cls(preference=preference)
+
+
+class UserPreferenceDelete(relay.ClientIDMutation):
+    preference = graphene.Field(UserPreferenceNode)
+
+    model_class = UserPreference
+
+    class Input:
+        user_email = graphene.String(required=True)
+        key = graphene.String(required=True)
+
+    @classmethod
+    def mutate_and_get_payload(cls, root, info, **kwargs):
+        request_user = info.context.user
+        user_email = kwargs.pop("user_email")
+        key = kwargs.pop("key")
+        user = User.objects.get(email=user_email)
+        preference, _ = UserPreference.objects.get_or_create(user_id=user.id, key=key)
+
+        if not rules.test_rule("allowed_to_update_preferences", request_user, preference):
+            logger.error(
+                "Attempt to delete a User preferences, not allowed",
+                extra={"request_user_id": request_user.id, "target_user_id": user.id},
+            )
+            raise GraphQLNotAllowedException(
+                model_name=UserPreference.__name__, operation=MutationTypes.DELETE
+            )
+
+        preference.delete()
+
+        return cls(preference=preference)

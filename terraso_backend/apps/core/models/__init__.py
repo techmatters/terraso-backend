@@ -1,6 +1,6 @@
 from .groups import Group, GroupAssociation, Membership
 from .landscapes import Landscape, LandscapeGroup
-from .users import User
+from .users import User, UserPreference
 
 __all__ = [
     "Group",
@@ -9,4 +9,5 @@ __all__ = [
     "LandscapeGroup",
     "Membership",
     "User",
+    "UserPreference",
 ]

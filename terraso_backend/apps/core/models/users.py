@@ -81,3 +81,21 @@ class User(SafeDeleteModel, AbstractUser):
 
     def __str__(self):
         return self.email
+
+
+class UserPreference(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    key = models.CharField(max_length=128)
+    value = models.CharField(max_length=512, blank=True, default="")
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="preferences")
+
+    class Meta:
+        constraints = (
+            models.UniqueConstraint(
+                fields=("key", "user"),
+                name="unique_user_preference",
+            ),
+        )
