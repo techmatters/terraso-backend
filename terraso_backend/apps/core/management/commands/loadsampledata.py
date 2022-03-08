@@ -17,8 +17,8 @@ class Command(BaseAirtableCommand):
             if not landscape_data.get("Co-Design Partner", False):
                 continue
 
-            location = landscape_data.get("Continent", "")
-            location += ", " + landscape_data.get("Country", "")
+            location = landscape_data.get("Country", "")
+            location += ", " + landscape_data.get("Continent", "")
 
             landscape_name = landscape_data.get("Landscape Name")
             model_data = {
