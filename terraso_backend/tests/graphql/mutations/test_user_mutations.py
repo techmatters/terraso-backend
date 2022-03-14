@@ -78,7 +78,7 @@ def test_users_update_by_other_user_fail(client_query, users):
     response = response.json()
 
     assert "errors" in response
-    assert "updateNotAllowed" in response["errors"][0]["message"]
+    assert "update_not_allowed" in response["errors"][0]["message"]
 
 
 def test_users_delete(client_query, users):
@@ -119,7 +119,7 @@ def test_users_delete_by_other_user_fail(client_query, users):
     response = response.json()
 
     assert "errors" in response
-    assert "deleteNotAllowed" in response["errors"][0]["message"]
+    assert "delete_not_allowed" in response["errors"][0]["message"]
 
 
 def test_users_preference_update(client_query, users):
@@ -168,7 +168,7 @@ def test_users_preference_update_by_other_fail(client_query, users):
     response = response.json()
 
     assert "errors" in response
-    assert "updateNotAllowed" in response["errors"][0]["message"]
+    assert "update_not_allowed" in response["errors"][0]["message"]
 
 
 def test_users_preference_delete(client_query, users):
@@ -235,4 +235,4 @@ def test_users_preference_delete_by_other_fail(client_query, users):
     response = response.json()
 
     assert "errors" in response
-    assert "deleteNotAllowed" in response["errors"][0]["message"]
+    assert "delete_not_allowed" in response["errors"][0]["message"]

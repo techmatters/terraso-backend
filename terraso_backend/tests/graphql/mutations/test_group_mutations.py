@@ -132,7 +132,7 @@ def test_groups_update_by_member_fails_due_permission_check(client_query, groups
     response = response.json()
 
     assert "errors" in response
-    assert "updateNotAllowed" in response["errors"][0]["message"]
+    assert "update_not_allowed" in response["errors"][0]["message"]
 
 
 def test_groups_delete_by_manager(client_query, managed_groups):
@@ -178,4 +178,4 @@ def test_groups_delete_by_non_manager(client_query, groups):
     response = response.json()
 
     assert "errors" in response
-    assert "deleteNotAllowed" in response["errors"][0]["message"]
+    assert "delete_not_allowed" in response["errors"][0]["message"]

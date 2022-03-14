@@ -59,6 +59,3 @@ class ErrorContext:
 class ErrorMessage:
     code: str
     context: ErrorContext
-
-    def __post_init__(self):
-        self.code = from_snake_to_camel_case(self.code) if self.code else self.code
