@@ -1,5 +1,5 @@
 import structlog
-from django.db import models
+from django.db import models, transaction
 
 from apps.core import permission_rules as perm_rules
 
@@ -45,6 +45,24 @@ class Landscape(SlugModel):
             "change": perm_rules.allowed_to_change_landscape,
             "delete": perm_rules.allowed_to_delete_landscape,
         }
+
+    def save(self, *args, **kwargs):
+        with transaction.atomic():
+            creating = not Landscape.objects.filter(pk=self.pk).exists()
+
+            super().save(*args, **kwargs)
+
+            if creating and self.created_by:
+                group = Group(
+                    name="Group {}".format(self.slug),
+                    description="",
+                    created_by=self.created_by,
+                )
+                group.save()
+                landscape_group = LandscapeGroup(
+                    group=group, landscape=self, is_default_landscape_group=True
+                )
+                landscape_group.save()
 
     def get_default_group(self):
         """
