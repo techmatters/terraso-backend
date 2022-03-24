@@ -3,6 +3,8 @@ import json
 import structlog
 from django.conf import settings
 from django.contrib.auth import get_user_model
+from django.contrib.auth import login as dj_login
+from django.contrib.auth import logout as dj_logout
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.views import View
 
@@ -11,6 +13,7 @@ from .services import AccountService, JWTService
 
 logger = structlog.get_logger(__name__)
 User = get_user_model()
+jwt_service = JWTService()
 
 
 class AbstractAuthorizeView(View):
@@ -59,12 +62,9 @@ class AbstractCallbackView(View):
             logger.error("No authorization code from auth provider on callback")
             return HttpResponse("Error: no authorization code informed", status=400)
 
-        jwt_service = JWTService()
-
         try:
             user = self.process_signup()
-            access_token = jwt_service.create_access_token(user)
-            refresh_token = jwt_service.create_refresh_token(user)
+            access_token, refresh_token = terraso_login(self.request, user)
         except Exception as exc:
             logger.exception("Error attempting create access and refresh tokens")
             return HttpResponse(f"Error: {exc}", status=400)
@@ -118,8 +118,6 @@ class RefreshAccessTokenView(View):
                 {"error": "The request expects a 'refresh_token' parameter"}, status=400
             )
 
-        jwt_service = JWTService()
-
         try:
             refresh_payload = jwt_service.verify_token(refresh_token)
         except Exception as exc:
@@ -139,8 +137,7 @@ class RefreshAccessTokenView(View):
             )
             return JsonResponse({"error": "User not found"}, status=400)
 
-        access_token = jwt_service.create_access_token(user)
-        refresh_token = jwt_service.create_refresh_token(user)
+        access_token, refresh_token = terraso_login(self.request, user)
 
         return JsonResponse(
             {
@@ -148,3 +145,17 @@ class RefreshAccessTokenView(View):
                 "refresh_token": refresh_token,
             }
         )
+
+
+class LogoutView(View):
+    def post(self, request, *args, **kwargs):
+        dj_logout(request)
+        return HttpResponse("OK", status=200)
+
+
+def terraso_login(request, user):
+    access_token = jwt_service.create_access_token(user)
+    refresh_token = jwt_service.create_refresh_token(user)
+    dj_login(request, user, backend="django.contrib.auth.backends.ModelBackend")
+
+    return access_token, refresh_token

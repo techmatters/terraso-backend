@@ -46,6 +46,7 @@ def test_get_google_callback(client, access_tokens_google, respx_mock):
     assert response.status_code == 302
     assert response.cookies.get("atoken")
     assert response.cookies.get("rtoken")
+    assert response.cookies.get("sessionid")
 
 
 def test_get_google_callback_without_code(client):
@@ -95,6 +96,7 @@ def test_post_apple_callback(client, access_tokens_apple, respx_mock):
     assert response.status_code == 302
     assert response.cookies.get("atoken")
     assert response.cookies.get("rtoken")
+    assert response.cookies.get("sessionid")
 
 
 def test_post_apple_callback_without_code(client):
@@ -126,6 +128,7 @@ def test_post_apple_callback_with_no_user(client, access_tokens_apple, respx_moc
     assert response.status_code == 302, response.content
     assert response.cookies.get("atoken")
     assert response.cookies.get("rtoken")
+    assert response.cookies.get("sessionid")
 
 
 @mock_s3
