@@ -1,8 +1,9 @@
 import pytest
 from mixer.backend.django import mixer
 
-from apps.core.models.groups import Group
+from apps.core.models.groups import Group, Membership
 from apps.core.models.landscapes import Landscape, LandscapeGroup
+from apps.core.models.users import User
 
 pytestmark = pytest.mark.django_db
 
@@ -66,3 +67,12 @@ def test_landscape_get_default_group_without_group_returns_none():
     landscape = mixer.blend(Landscape)
 
     assert landscape.get_default_group() is None
+
+
+def test_landscape_creator_becomes_manager():
+    user = mixer.blend(User)
+    landscape = mixer.blend(Landscape, created_by=user)
+
+    manager_membership = Membership.objects.get(group=landscape.get_default_group(), user=user)
+
+    assert manager_membership.user_role == Membership.ROLE_MANAGER
