@@ -73,3 +73,6 @@ pids
 *.pid.lock
 .pytest_cache/
 *.log
+
+# macOS
+.DS_Store
