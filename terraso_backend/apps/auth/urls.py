@@ -6,6 +6,7 @@ from apps.auth.views import (
     AppleCallbackView,
     GoogleAuthorizeView,
     GoogleCallbackView,
+    LogoutView,
     RefreshAccessTokenView,
 )
 
@@ -25,4 +26,5 @@ urlpatterns = [
         name="google-callback",
     ),
     path("tokens", csrf_exempt(RefreshAccessTokenView.as_view()), name="tokens"),
+    path("logout", csrf_exempt(LogoutView.as_view()), name="logout"),
 ]
