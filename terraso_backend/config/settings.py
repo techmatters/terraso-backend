@@ -34,6 +34,7 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "oauth2_provider",
     "corsheaders",
     "graphene_django",
     "rules",
@@ -105,6 +106,17 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+OAUTH2_PROVIDER = {
+    "OIDC_ENABLED": True,
+    "SCOPES": {
+        "email": "User's email scope",
+        "openid": "OpenID Connect scope",
+        "profile": "User's information scope",
+    },
+    "OAUTH2_VALIDATOR_CLASS": "apps.auth.provider.oauth_validator.TerrasoOAuth2Validator",
+    "OIDC_RSA_PRIVATE_KEY": config("OAUTH_OIDC_KEY", default=""),
+}
+
 
 LANGUAGE_CODE = "en-us"
 TIME_ZONE = "UTC"
@@ -175,6 +187,7 @@ GRAPHENE = {
 }
 
 WEB_CLIENT_URL = config("WEB_CLIENT_ENDPOINT", default="")
+LOGIN_URL = f"{WEB_CLIENT_URL}/account"
 AUTH_COOKIE_DOMAIN = config("AUTH_COOKIE_DOMAIN", default="")
 CORS_ORIGIN_WHITELIST = config("CORS_ORIGIN_WHITELIST", default=[], cast=config.list)
 
@@ -202,7 +215,6 @@ JWT_ISS = config("JWT_ISS", default="https://terraso.org")
 
 PROFILE_IMAGES_S3_BUCKET = config("PROFILE_IMAGES_S3_BUCKET", default="")
 PROFILE_IMAGES_BASE_URL = config("PROFILE_IMAGES_BASE_URL", default="")
-
 AWS_ACCESS_KEY_ID = config("AWS_ACCESS_KEY_ID", default="")
 AWS_SECRET_ACCESS_KEY = config("AWS_SECRET_ACCESS_KEY", default="")
 AWS_S3_REGION_NAME = config("AWS_S3_REGION_NAME", default="us-east-2")
