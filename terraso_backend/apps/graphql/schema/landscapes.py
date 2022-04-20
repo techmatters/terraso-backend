@@ -48,6 +48,7 @@ class LandscapeAddMutation(BaseWriteMutation):
         description = graphene.String()
         website = graphene.String()
         location = graphene.String()
+        area_polygon = graphene.JSONString()
 
     @classmethod
     def mutate_and_get_payload(cls, root, info, **kwargs):
