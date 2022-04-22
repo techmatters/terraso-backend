@@ -1,5 +1,6 @@
 import structlog
-from django.core.exceptions import ValidationError
+from django.core.exceptions import NON_FIELD_ERRORS, ValidationError
+from django.db import IntegrityError
 from graphene import Connection, Int, relay
 
 from apps.graphql.exceptions import GraphQLValidationException
@@ -56,7 +57,27 @@ class BaseWriteMutation(relay.ClientIDMutation):
                 exc, model_name=cls.model_class.__name__
             )
 
-        model_instance.save()
+        try:
+            model_instance.save()
+        except IntegrityError as exc:
+            logger.info(
+                "Attempt to mutate an model, but it's not unique",
+                extra={"model": cls.model_class.__name__, "integrity_error": exc},
+            )
+
+            # It's not trivial identify the exact field(s) that originated the integrity errror
+            # here, so we identify the error as NON_FIELD_ERROR with the unique code.
+            validation_error = ValidationError(
+                message={
+                    NON_FIELD_ERRORS: ValidationError(
+                        message=f"This {cls.model_class.__name__} already exists",
+                        code="unique",
+                    )
+                },
+            )
+            raise GraphQLValidationException.from_validation_error(
+                validation_error, model_name=cls.model_class.__name__
+            )
 
         result_kwargs = {from_camel_to_snake_case(cls.model_class.__name__): model_instance}
 
