@@ -77,6 +77,29 @@ def test_groups_add_duplicated(client_query, groups):
     assert error_message["context"]["field"] == "name"
 
 
+def test_groups_add_duplicated_by_slug(client_query, groups):
+    group_name = groups[0].name
+    response = client_query(
+        """
+        mutation addGroup($input: GroupAddMutationInput!){
+          addGroup(input: $input) {
+            group {
+              id
+              name
+            }
+          }
+        }
+        """,
+        variables={"input": {"name": group_name.upper()}},
+    )
+    error_result = response.json()["errors"][0]
+    assert error_result
+
+    error_message = json.loads(error_result["message"])[0]
+    assert error_message["code"] == "unique"
+    assert error_message["context"]["field"] == "All"
+
+
 def test_groups_update_by_manager_works(client_query, groups, users):
     old_group = groups[0]
     # Makes sure user is group manager before update
