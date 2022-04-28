@@ -46,6 +46,7 @@ class DataEntry(SlugModel):
         rules_permissions = {
             "change": perm_rules.allowed_to_change_data_entry,
             "delete": perm_rules.allowed_to_delete_data_entry,
+            "view": perm_rules.allowed_to_view_data_entry,
         }
 
     def __str__(self):

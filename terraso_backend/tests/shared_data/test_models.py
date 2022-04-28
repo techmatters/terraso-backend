@@ -41,3 +41,21 @@ def test_data_entry_cannot_be_deleted_by_non_creator(user, user_b):
     any_data_entry = mixer.blend(DataEntry, created_by=user_b)
 
     assert not user.has_perm(DataEntry.get_perm("delete"), obj=any_data_entry)
+
+
+def test_data_entry_can_be_viewed_by_group_members(user, user_b, group):
+    group.members.add(user, user_b)
+
+    group_data_entry = mixer.blend(DataEntry, created_by=user)
+    group_data_entry.groups.add(group)
+
+    assert user_b.has_perm(DataEntry.get_perm("view"), obj=group_data_entry)
+
+
+def test_data_entry_cannot_be_viewed_by_non_group_members(user, user_b, group):
+    group.members.add(user)
+
+    group_data_entry = mixer.blend(DataEntry, created_by=user)
+    group_data_entry.groups.add(group)
+
+    assert not user_b.has_perm(DataEntry.get_perm("view"), obj=group_data_entry)

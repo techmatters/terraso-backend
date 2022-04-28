@@ -1,7 +1,7 @@
 import pytest
 from mixer.backend.django import mixer
 
-from apps.core.models import User
+from apps.core.models import Group, User
 
 
 @pytest.fixture
@@ -12,3 +12,8 @@ def user():
 @pytest.fixture
 def user_b():
     return mixer.blend(User)
+
+
+@pytest.fixture
+def group():
+    return mixer.blend(Group)
