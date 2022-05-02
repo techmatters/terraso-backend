@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     "apps.core",
     "apps.graphql",
     "apps.auth",
+    "apps.shared_data",
 ]
 
 MIDDLEWARE = [
