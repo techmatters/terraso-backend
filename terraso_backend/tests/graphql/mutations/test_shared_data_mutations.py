@@ -6,7 +6,7 @@ pytestmark = pytest.mark.django_db
 
 
 def test_data_entry_update_by_creator_works(client_query, data_entries):
-    # Fixtures make sure that the user on client query is the data entry creator
+    # The data entries' owner is the same user on client query
     old_data_entry = data_entries[0]
 
     new_data = {
