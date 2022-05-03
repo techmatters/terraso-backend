@@ -43,6 +43,7 @@ class DataEntry(SlugModel):
     field_to_slug = "name"
 
     class Meta(SlugModel.Meta):
+        verbose_name_plural = "Data Entries"
         rules_permissions = {
             "change": perm_rules.allowed_to_change_data_entry,
             "delete": perm_rules.allowed_to_delete_data_entry,

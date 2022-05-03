@@ -30,6 +30,7 @@ from .memberships import (
     MembershipNode,
     MembershipUpdateMutation,
 )
+from .shared_data import DataEntryDeleteMutation, DataEntryNode, DataEntryUpdateMutation
 from .users import (
     UserAddMutation,
     UserDeleteMutation,
@@ -55,6 +56,8 @@ class Query(graphene.ObjectType):
     landscape_groups = DjangoFilterConnectionField(LandscapeGroupNode)
     memberships = DjangoFilterConnectionField(MembershipNode)
     group_associations = DjangoFilterConnectionField(GroupAssociationNode)
+    data_entry = TerrasoRelayNode.Field(DataEntryNode)
+    data_entries = DjangoFilterConnectionField(DataEntryNode)
 
 
 class Mutations(graphene.ObjectType):
@@ -76,6 +79,8 @@ class Mutations(graphene.ObjectType):
     delete_membership = MembershipDeleteMutation.Field()
     update_user_preference = UserPreferenceUpdate.Field()
     delete_user_preference = UserPreferenceDelete.Field()
+    update_data_entry = DataEntryUpdateMutation.Field()
+    delete_data_entry = DataEntryDeleteMutation.Field()
 
 
 schema = graphene.Schema(query=Query, mutation=Mutations)
