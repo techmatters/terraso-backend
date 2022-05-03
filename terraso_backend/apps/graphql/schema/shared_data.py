@@ -55,7 +55,7 @@ class DataEntryUpdateMutation(BaseWriteMutation):
 
         if not user.has_perm(DataEntry.get_perm("change"), obj=data_entry):
             logger.info(
-                "Attempt to update a DataEntry, but user has no permission",
+                "Attempt to update a DataEntry, but user lacks permission",
                 extra={"user_id": user.pk, "data_entry_id": str(data_entry.pk)},
             )
             raise GraphQLNotAllowedException(
@@ -80,7 +80,7 @@ class DataEntryDeleteMutation(BaseDeleteMutation):
 
         if not user.has_perm(DataEntry.get_perm("delete"), obj=data_entry):
             logger.info(
-                "Attempt to delete a DataEntry, but user has no permission",
+                "Attempt to delete a DataEntry, but user lacks permission",
                 extra={"user_id": user.pk, "data_entry_id": str(data_entry.pk)},
             )
             raise GraphQLNotAllowedException(
