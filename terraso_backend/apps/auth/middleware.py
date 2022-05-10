@@ -36,7 +36,8 @@ class JWTAuthenticationMiddleware:
 
         if len(auth_header_parts) != 2:
             logger.warning(
-                "Authorization header incorrectly formatted", extra={"HTTP_AUTHORIZATION": auth_header}
+                "Authorization header incorrectly formatted",
+                extra={"HTTP_AUTHORIZATION": auth_header},
             )
             return None
 
