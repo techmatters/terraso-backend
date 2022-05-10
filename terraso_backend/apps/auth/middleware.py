@@ -29,14 +29,15 @@ class JWTAuthenticationMiddleware:
         auth_header = request.META.get("HTTP_AUTHORIZATION")
 
         if not auth_header:
-            logger.info("Authorization header not informed")
+            logger.info("Authorization header missing")
             return None
 
         auth_header_parts = auth_header.split()
 
         if len(auth_header_parts) != 2:
             logger.warning(
-                "Authorization header bad formatted", extra={"HTTP_AUTHORIZATION": auth_header}
+                "Authorization header incorrectly formatted",
+                extra={"HTTP_AUTHORIZATION": auth_header},
             )
             return None
 

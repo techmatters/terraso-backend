@@ -7,4 +7,5 @@ urlpatterns = [
     path("graphql/", include("apps.graphql.urls", namespace="terraso_graphql")),
     path("storage/", include("apps.storage.urls", namespace="terraso_storage")),
     path("oauth/", include("oauth2_provider.urls", namespace="oauth2_provider")),
+    path("", include("apps.core.urls", namespace="terraso_core")),
 ]
