@@ -27,9 +27,6 @@ class DataEntryForm(forms.ModelForm):
             "created_by",
         )
 
-    def save(self, *args, **kwargs):
-        return super().save(*args, **kwargs)
-
     def clean(self):
         cleaned_data = super().clean()
 
