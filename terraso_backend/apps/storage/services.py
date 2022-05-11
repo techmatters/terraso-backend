@@ -52,7 +52,7 @@ class UploadService:
         counter = 1
 
         given_path = directory.joinpath(f"{file_name}_{counter}{file_extension}")
-        while self.storage.exists(given_path):
+        while self.storage.exists(str(given_path)):
             counter += 1
 
         return given_path

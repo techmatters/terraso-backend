@@ -51,5 +51,16 @@ class DataEntry(SlugModel):
             "view": perm_rules.allowed_to_view_data_entry,
         }
 
+    def to_dict(self):
+        return dict(
+            id=str(self.id),
+            name=self.name,
+            description=self.description,
+            url=self.url,
+            resource_type=self.resource_type,
+            created_by=str(self.created_by.id),
+            groups=[str(group.id) for group in self.groups.all()],
+        )
+
     def __str__(self):
         return self.name
