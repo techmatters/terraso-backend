@@ -11,5 +11,6 @@ dj-database-url
 prettyconf
 psycopg2
 pyjwt[crypto]
+python-magic
 rules
 boto3
