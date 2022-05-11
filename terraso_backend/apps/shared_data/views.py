@@ -6,14 +6,7 @@ from django.views.generic.edit import FormView
 
 from apps.auth.mixins import AuthenticationRequiredMixin
 
-# from .exceptions import WrongFileExtensionForFileType
 from .forms import DataEntryForm
-
-# from .models import DataEntry
-#  from .services import data_entry_upload_service
-
-# from apps.core.models import Group
-
 
 logger = structlog.get_logger(__name__)
 
