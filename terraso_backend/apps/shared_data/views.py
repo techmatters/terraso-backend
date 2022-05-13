@@ -21,7 +21,7 @@ class DataEntryFileUploadView(AuthenticationRequiredMixin, FormView):
         entry_form = DataEntryForm(data=form_data, files=request.FILES)
 
         if not entry_form.is_valid():
-            return JsonResponse({"error": "Failure validating data"}, status=400)
+            return JsonResponse({"error": dict(entry_form.errors.items())}, status=400)
 
         data_entry = entry_form.save()
 
