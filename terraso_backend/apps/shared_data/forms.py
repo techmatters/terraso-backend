@@ -1,6 +1,7 @@
 import mimetypes
 
 import magic
+import structlog
 from django import forms
 from django.core.exceptions import ValidationError
 
@@ -8,6 +9,7 @@ from .models import DataEntry
 from .services import data_entry_upload_service
 
 mimetypes.init()
+logger = structlog.get_logger(__name__)
 
 
 class DataEntryForm(forms.ModelForm):
@@ -42,10 +44,9 @@ class DataEntryForm(forms.ModelForm):
                 file_type != file_type_from_extension,
             )
         ):
-            raise ValidationError(
-                f"Invalid file extension {file_type_from_extension} for type {file_type}.",
-                code="invalid",
-            )
+            message = f"Invalid file extension {file_type_from_extension} for type {file_type}"
+            logger.info(message)
+            raise ValidationError(message, code="invalid")
 
         cleaned_data["resource_type"] = file_type
 
@@ -56,6 +57,8 @@ class DataEntryForm(forms.ModelForm):
                 file_name=data_file.name,
             )
         except Exception:
-            raise ValidationError("Failed to upload the data file.", code="error")
+            error_msg = "Failed to upload the data file"
+            logger.exception(error_msg)
+            raise ValidationError(error_msg, code="error")
 
         return cleaned_data
