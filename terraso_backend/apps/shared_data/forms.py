@@ -5,6 +5,8 @@ import structlog
 from django import forms
 from django.core.exceptions import ValidationError
 
+from apps.core.models import Group
+
 from .models import DataEntry
 from .services import data_entry_upload_service
 
@@ -16,6 +18,9 @@ class DataEntryForm(forms.ModelForm):
     data_file = forms.FileField()
     url = forms.URLField(required=False)
     resource_type = forms.CharField(max_length=255, required=False)
+    groups = forms.ModelMultipleChoiceField(
+        required=True, to_field_name="slug", queryset=Group.objects.all()
+    )
 
     class Meta:
         model = DataEntry
