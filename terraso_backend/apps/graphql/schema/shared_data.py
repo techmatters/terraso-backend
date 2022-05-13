@@ -32,6 +32,7 @@ class DataEntryNode(DjangoObjectType):
             "resource_type",
             "url",
             "created_by",
+            "created_at",
             "groups",
         )
         interfaces = (relay.Node,)
