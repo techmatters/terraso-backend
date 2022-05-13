@@ -35,8 +35,17 @@ class DataEntryForm(forms.ModelForm):
         file_type = magic.from_buffer(data_file.open("rb").read(2048), mime=True)
         file_type_from_extension = mimetypes.guess_type(data_file.name)[0]
 
-        if file_type != file_type_from_extension:
-            raise ValidationError("Invalid file extension for the file type.", code="invalid")
+        if all(
+            (
+                file_type,
+                file_type_from_extension,
+                file_type != file_type_from_extension,
+            )
+        ):
+            raise ValidationError(
+                f"Invalid file extension {file_type_from_extension} for type {file_type}.",
+                code="invalid",
+            )
 
         cleaned_data["resource_type"] = file_type
 
