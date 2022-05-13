@@ -44,9 +44,9 @@ class UploadService:
             return file.read()
 
     def _uniquify(self, path):
-        path_object = pathlib.Path(path).resolve()
-        directory = path_object.home()
-        file_name = path_object.name
+        path_object = pathlib.Path(path)
+        directory = path_object.parent
+        file_name = path_object.stem
         file_extension = path_object.suffix
 
         counter = 1
@@ -54,8 +54,9 @@ class UploadService:
         given_path = directory.joinpath(f"{file_name}_{counter}{file_extension}")
         while self.storage.exists(str(given_path)):
             counter += 1
+            given_path = directory.joinpath(f"{file_name}_{counter}{file_extension}")
 
-        return given_path
+        return str(given_path)
 
 
 class ProfileImageService(UploadService):
