@@ -6,6 +6,7 @@ from apps.shared_data.models import DataEntry
 pytestmark = pytest.mark.django_db
 data_entry_size = 100
 
+
 def test_data_entry_string_format_is_its_name():
     data_entry_name = "Test Survey Questions"
     data_entry = mixer.blend(DataEntry, name=data_entry_name, size=data_entry_size)
