@@ -1,4 +1,5 @@
 import mimetypes
+import pathlib
 
 import magic
 import structlog
@@ -39,21 +40,22 @@ class DataEntryForm(forms.ModelForm):
 
         data_file = cleaned_data["data_file"]
 
-        file_type = magic.from_buffer(data_file.open("rb").read(2048), mime=True)
-        file_type_from_extension = mimetypes.guess_type(data_file.name)[0]
+        file_mime_type = magic.from_buffer(data_file.open("rb").read(2048), mime=True)
+        allowed_file_extensions = mimetypes.guess_all_extensions(file_mime_type)
+        file_extension = pathlib.Path(data_file.name).suffix
 
-        if all(
-            (
-                file_type,
-                file_type_from_extension,
-                file_type != file_type_from_extension,
-            )
+        if (
+            file_mime_type
+            and allowed_file_extensions
+            and file_extension not in allowed_file_extensions
         ):
-            message = f"Invalid file extension {file_type_from_extension} for type {file_type}"
+            message = (
+                f"Invalid file extension ({file_extension}) for the file type {file_mime_type}"
+            )
             logger.info(message)
             raise ValidationError(message, code="invalid")
 
-        cleaned_data["resource_type"] = file_type
+        cleaned_data["resource_type"] = file_mime_type
 
         try:
             cleaned_data["url"] = data_entry_upload_service.upload_file(
