@@ -152,4 +152,4 @@ def make_core_db_records(
 @pytest.fixture
 def data_entries(users):
     creator = users[0]
-    return mixer.cycle(5).blend(DataEntry, created_by=creator)
+    return mixer.cycle(5).blend(DataEntry, created_by=creator, size=100)
