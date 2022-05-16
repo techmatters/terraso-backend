@@ -31,6 +31,7 @@ class DataEntryNode(DjangoObjectType):
             "description",
             "resource_type",
             "url",
+            "size",
             "created_by",
             "created_at",
             "groups",
