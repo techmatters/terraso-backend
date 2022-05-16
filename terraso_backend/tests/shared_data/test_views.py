@@ -18,7 +18,7 @@ def data_entry_payload(group):
     return dict(
         name="Testing Data File",
         description="This is the description of the testing data file",
-        groups=[str(group.id)],
+        groups=[group.slug],
         data_file=SimpleUploadedFile(
             name="data_file.json",
             content=json.dumps({"key": "value", "keyN": "valueN"}).encode(),
@@ -43,6 +43,7 @@ def test_create_data_entry_successfully(logged_client, upload_url, data_entry_pa
 
     assert "id" in response_data
     assert "url" in response_data
+    assert response_data["size"]
 
 
 def test_create_data_entry_file_type_different_from_extension(
