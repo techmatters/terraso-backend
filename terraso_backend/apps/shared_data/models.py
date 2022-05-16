@@ -36,6 +36,7 @@ class DataEntry(SlugModel):
     description = models.TextField(blank=True, default="")
     resource_type = models.CharField(max_length=255)
     url = models.URLField()
+    size = models.PositiveBigIntegerField(null=True)
 
     groups = models.ManyToManyField(Group, related_name="data_entries")
     created_by = models.ForeignKey(User, on_delete=models.PROTECT)
