@@ -19,6 +19,7 @@ class DataEntryForm(forms.ModelForm):
     data_file = forms.FileField()
     url = forms.URLField(required=False)
     resource_type = forms.CharField(max_length=255, required=False)
+    size = forms.IntegerField(required=False)
     groups = forms.ModelMultipleChoiceField(
         required=True, to_field_name="slug", queryset=Group.objects.all()
     )
@@ -30,6 +31,7 @@ class DataEntryForm(forms.ModelForm):
             "description",
             "data_file",
             "resource_type",
+            "size",
             "url",
             "groups",
             "created_by",
@@ -56,6 +58,7 @@ class DataEntryForm(forms.ModelForm):
             raise ValidationError(message, code="invalid")
 
         cleaned_data["resource_type"] = file_mime_type
+        cleaned_data["size"] = data_file.size
 
         try:
             cleaned_data["url"] = data_entry_upload_service.upload_file(

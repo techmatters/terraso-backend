@@ -58,6 +58,7 @@ class DataEntry(SlugModel):
             description=self.description,
             url=self.url,
             resource_type=self.resource_type,
+            size=self.size,
             created_by=str(self.created_by.id),
             groups=[str(group.id) for group in self.groups.all()],
         )
