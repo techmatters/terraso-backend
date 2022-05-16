@@ -6,13 +6,13 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('core', '0011_userpreference_userpreference_unique_user_preference'),
+        ("core", "0011_userpreference_userpreference_unique_user_preference"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='landscape',
-            name='description',
-            field=models.TextField(blank=True, default=''),
+            model_name="landscape",
+            name="description",
+            field=models.TextField(blank=True, default=""),
         ),
     ]
