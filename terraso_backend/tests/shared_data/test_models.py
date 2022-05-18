@@ -1,4 +1,5 @@
 import pytest
+from django.conf import settings
 from mixer.backend.django import mixer
 
 from apps.shared_data.models import DataEntry
@@ -18,6 +19,26 @@ def test_data_entry_is_slugifiable_by_name():
     data_entry = mixer.blend(DataEntry, name="Test Survey Data", slug=None, size=data_entry_size)
 
     assert data_entry.slug == "test-survey-data"
+
+
+def test_data_entry_get_s3_object_name(user):
+    filename = "testdata.csv"
+    data_entry = mixer.blend(
+        DataEntry,
+        name="Test Survey Data",
+        slug=None,
+        size=data_entry_size,
+        url=f"{settings.DATA_ENTRY_FILE_BASE_URL}/{user.id}/{filename}",
+    )
+
+    assert data_entry.s3_object_name == f"{user.id}/{filename}"
+
+
+def test_data_entry_get_signed_url():
+    data_entry = mixer.blend(DataEntry, name="Test Survey Data", slug=None, size=data_entry_size)
+
+    assert data_entry.s3_object_name in data_entry.signed_url
+    assert "X-Amz-Expires" in data_entry.signed_url
 
 
 def test_data_entry_can_be_updated_by_its_creator(user):
