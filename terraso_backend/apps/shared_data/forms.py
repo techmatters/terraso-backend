@@ -57,7 +57,7 @@ class DataEntryForm(forms.ModelForm):
             logger.info(message)
             raise ValidationError(message, code="invalid")
 
-        cleaned_data["resource_type"] = file_mime_type
+        cleaned_data["resource_type"] = file_extension[1:]
         cleaned_data["size"] = data_file.size
 
         try:
