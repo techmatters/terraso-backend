@@ -39,6 +39,9 @@ class DataEntryNode(DjangoObjectType):
         interfaces = (relay.Node,)
         connection_class = TerrasoConnection
 
+    def resolve_url(self, info):
+        return self.signed_url
+
 
 class DataEntryUpdateMutation(BaseWriteMutation):
     data_entry = graphene.Field(DataEntryNode)

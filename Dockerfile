@@ -5,7 +5,7 @@ RUN adduser --disabled-password terraso
 ENV PATH /home/terraso/.local/bin:$PATH
 
 RUN apt-get update && \
-    apt-get install -q -y --no-install-recommends build-essential libpq-dev && \
+    apt-get install -q -y --no-install-recommends build-essential libpq-dev libmagic-dev mailcap && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
