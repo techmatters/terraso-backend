@@ -63,10 +63,10 @@ def test_data_entries_filter_by_group_slug_filters_successfuly(client_query, dat
     data_entry_a = data_entries[0]
     data_entry_b = data_entries[1]
 
-    data_entry_a.groups.add(*groups)
-    data_entry_b.groups.add(*groups)
+    data_entry_a.groups.add(groups[-1])
+    data_entry_b.groups.add(groups[-1])
 
-    group_filter = groups[0]
+    group_filter = groups[-1]
 
     response = client_query(
         """
@@ -93,10 +93,10 @@ def test_data_entries_filter_by_group_id_filters_successfuly(client_query, data_
     data_entry_a = data_entries[0]
     data_entry_b = data_entries[1]
 
-    data_entry_a.groups.add(*groups)
-    data_entry_b.groups.add(*groups)
+    data_entry_a.groups.add(groups[-1])
+    data_entry_b.groups.add(groups[-1])
 
-    group_filter = groups[0]
+    group_filter = groups[-1]
 
     response = client_query(
         """
@@ -119,45 +119,25 @@ def test_data_entries_filter_by_group_id_filters_successfuly(client_query, data_
     assert str(data_entry_b.id) in data_entries_result
 
 
-def test_data_entries_filter_by_group_slug_returns_empty_if_no_associations(
-    client_query, data_entries, groups
+def test_data_entries_returns_only_for_users_groups(
+    client_query, data_entry_current_user, data_entry_other_user
 ):
-    # All data entries aren't associated to any group, the result must be empty
-    group_filter = groups[0]
-
+    # It's being done a request for all data entries, but only the data entries
+    # from logged user's group is expected to return.
     response = client_query(
         """
-        {dataEntries(groups_Slug_Icontains: "%s") {
+        {dataEntries {
           edges {
             node {
-              id
+              slug
             }
           }
         }}
         """
-        % group_filter.slug
     )
 
-    assert not response.json()["data"]["dataEntries"]["edges"]
+    edges = response.json()["data"]["dataEntries"]["edges"]
+    entries_result = [edge["node"]["slug"] for edge in edges]
 
-
-def test_data_entries_filter_by_group_id_returns_empty_if_no_associations(
-    client_query, data_entries, groups
-):
-    # All data entries aren't associated to any group, the result must be empty
-    group_filter = groups[0]
-
-    response = client_query(
-        """
-        {dataEntries(groups_Id: "%s") {
-          edges {
-            node {
-              id
-            }
-          }
-        }}
-        """
-        % group_filter.id
-    )
-
-    assert not response.json()["data"]["dataEntries"]["edges"]
+    assert len(entries_result) == 1
+    assert entries_result[0] == data_entry_current_user.slug
