@@ -18,7 +18,10 @@ def test_data_entry_get_s3_object_name(user, data_entry, data_entry_filename):
     assert data_entry.s3_object_name == f"{user.id}/{data_entry_filename}"
 
 
-def test_data_entry_get_signed_url(data_entry):
+def test_data_entry_get_signed_url(settings, data_entry):
+    # Set custom domain to make sure the signed URLs works properly with it set
+    settings.AWS_S3_CUSTOM_DOMAIN = "testing.terraso.org"
+
     assert data_entry.s3_object_name in data_entry.signed_url
     assert "X-Amz-Expires" in data_entry.signed_url
 

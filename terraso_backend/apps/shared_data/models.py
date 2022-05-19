@@ -58,7 +58,7 @@ class DataEntry(SlugModel):
 
     @property
     def signed_url(self):
-        storage = DataEntryFileStorage()
+        storage = DataEntryFileStorage(custom_domain=None)
         return storage.url(self.s3_object_name)
 
     def to_dict(self):
