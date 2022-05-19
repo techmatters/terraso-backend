@@ -2,6 +2,7 @@ from django.db import models
 
 from apps.core.models import Group, SlugModel, User
 from apps.shared_data import permission_rules as perm_rules
+from apps.shared_data.services import DataEntryFileStorage
 
 
 class DataEntry(SlugModel):
@@ -50,6 +51,27 @@ class DataEntry(SlugModel):
             "delete": perm_rules.allowed_to_delete_data_entry,
             "view": perm_rules.allowed_to_view_data_entry,
         }
+
+    @property
+    def s3_object_name(self):
+        return "/".join(self.url.split("/")[-2:]) if self.url else ""
+
+    @property
+    def signed_url(self):
+        storage = DataEntryFileStorage()
+        return storage.url(self.s3_object_name)
+
+    def to_dict(self):
+        return dict(
+            id=str(self.id),
+            name=self.name,
+            description=self.description,
+            url=self.signed_url,
+            resource_type=self.resource_type,
+            size=self.size,
+            created_by=str(self.created_by.id),
+            groups=[str(group.id) for group in self.groups.all()],
+        )
 
     def __str__(self):
         return self.name
