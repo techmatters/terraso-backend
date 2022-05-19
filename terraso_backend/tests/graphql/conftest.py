@@ -150,6 +150,26 @@ def make_core_db_records(
 
 
 @pytest.fixture
-def data_entries(users):
+def data_entry_current_user(users, groups):
     creator = users[0]
-    return mixer.cycle(5).blend(DataEntry, created_by=creator, size=100)
+    creator_group = groups[0]
+    creator_group.members.add(creator)
+    return mixer.blend(DataEntry, slug=None, created_by=creator, size=100, groups=creator_group)
+
+
+@pytest.fixture
+def data_entry_other_user(users, groups):
+    creator = users[1]
+    creator_group = groups[1]
+    creator_group.members.add(creator)
+    return mixer.blend(DataEntry, slug=None, created_by=creator, size=100, groups=creator_group)
+
+
+@pytest.fixture
+def data_entries(users, groups):
+    creator = users[0]
+    creator_group = groups[0]
+    creator_group.members.add(creator)
+    return mixer.cycle(5).blend(
+        DataEntry, slug=None, created_by=creator, size=100, groups=creator_group
+    )

@@ -39,6 +39,10 @@ class DataEntryNode(DjangoObjectType):
         interfaces = (relay.Node,)
         connection_class = TerrasoConnection
 
+    @classmethod
+    def get_queryset(cls, queryset, info):
+        return queryset.filter(groups__members=info.context.user)
+
     def resolve_url(self, info):
         return self.signed_url
 
