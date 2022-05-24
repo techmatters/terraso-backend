@@ -37,7 +37,13 @@ class UploadService:
         return f"{user_id}/{file_name}"
 
     def get_uploaded_file_url(self, path):
-        return f"{self.base_url}/{path}"
+        # We want to replace space chars by the encoded %20 value. It's
+        # necessary for the result URL be a valid URL to be persisted on
+        # URLField, for example. Special characters are ok to be kept.
+        clean_filename = path.split("/")[-1].replace(" ", "%20")
+        object_name_prefix = "/".join(path.split("/")[:-1])
+
+        return f"{self.base_url}/{object_name_prefix}/{clean_filename}"
 
     def _download_from_url(self, url):
         with urllib.request.urlopen(url) as file:

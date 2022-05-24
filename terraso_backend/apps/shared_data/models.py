@@ -54,7 +54,11 @@ class DataEntry(SlugModel):
 
     @property
     def s3_object_name(self):
-        return "/".join(self.url.split("/")[-2:]) if self.url else ""
+        object_name = "/".join(self.url.split("/")[-2:]) if self.url else ""
+
+        # We want to put back the space character so the sign url works properly
+        object_name = object_name.replace("%20", " ")
+        return object_name
 
     @property
     def signed_url(self):
