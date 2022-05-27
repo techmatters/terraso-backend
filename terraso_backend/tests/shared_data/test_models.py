@@ -1,5 +1,4 @@
 import pytest
-from django.utils.text import slugify
 
 from apps.shared_data.models import DataEntry
 
@@ -8,10 +7,6 @@ pytestmark = pytest.mark.django_db
 
 def test_data_entry_string_format_is_its_name(data_entry):
     assert data_entry.name == str(data_entry)
-
-
-def test_data_entry_is_slugifiable_by_name(data_entry):
-    assert data_entry.slug == slugify(data_entry.name)
 
 
 def test_data_entry_get_s3_object_name(user, data_entry, data_entry_filename):

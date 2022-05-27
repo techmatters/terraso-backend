@@ -9,7 +9,7 @@ def test_data_entries_query(client_query, data_entries):
         {dataEntries {
           edges {
             node {
-              slug
+              name
             }
           }
         }}
@@ -17,10 +17,10 @@ def test_data_entries_query(client_query, data_entries):
     )
 
     edges = response.json()["data"]["dataEntries"]["edges"]
-    entries_result = [edge["node"]["slug"] for edge in edges]
+    entries_result = [edge["node"]["name"] for edge in edges]
 
     for data_entry in data_entries:
-        assert data_entry.slug in entries_result
+        assert data_entry.name in entries_result
 
 
 def test_data_entry_get_one_by_id(client_query, data_entries):
@@ -29,7 +29,7 @@ def test_data_entry_get_one_by_id(client_query, data_entries):
         """
         {dataEntry(id: "%s") {
           id
-          slug
+          name
         }}
         """
         % data_entry.id
@@ -38,7 +38,7 @@ def test_data_entry_get_one_by_id(client_query, data_entries):
     data_entry_result = response.json()["data"]["dataEntry"]
 
     assert data_entry_result["id"] == str(data_entry.id)
-    assert data_entry_result["slug"] == data_entry.slug
+    assert data_entry_result["name"] == data_entry.name
 
 
 def test_data_entries_query_has_total_count(client_query, data_entries):
@@ -48,7 +48,7 @@ def test_data_entries_query_has_total_count(client_query, data_entries):
           totalCount
           edges {
             node {
-              slug
+              name
             }
           }
         }}
@@ -129,7 +129,7 @@ def test_data_entries_returns_only_for_users_groups(
         {dataEntries {
           edges {
             node {
-              slug
+              id
             }
           }
         }}
@@ -137,7 +137,7 @@ def test_data_entries_returns_only_for_users_groups(
     )
 
     edges = response.json()["data"]["dataEntries"]["edges"]
-    entries_result = [edge["node"]["slug"] for edge in edges]
+    entries_result = [edge["node"]["id"] for edge in edges]
 
     assert len(entries_result) == 1
-    assert entries_result[0] == data_entry_current_user.slug
+    assert entries_result[0] == str(data_entry_current_user.id)

@@ -73,7 +73,7 @@ def test_data_entry_delete_by_creator_works(client_query, data_entries):
         mutation deleteDataEntry($input: DataEntryDeleteMutationInput!){
           deleteDataEntry(input: $input) {
             dataEntry {
-              slug
+              name
             }
           }
         }
@@ -84,8 +84,8 @@ def test_data_entry_delete_by_creator_works(client_query, data_entries):
 
     data_entry_result = response.json()["data"]["deleteDataEntry"]["dataEntry"]
 
-    assert data_entry_result["slug"] == old_data_entry.slug
-    assert not DataEntry.objects.filter(slug=data_entry_result["slug"])
+    assert data_entry_result["name"] == old_data_entry.name
+    assert not DataEntry.objects.filter(name=data_entry_result["name"])
 
 
 def test_data_entry_delete_by_non_creator_fails_due_permission_check(
@@ -102,7 +102,7 @@ def test_data_entry_delete_by_non_creator_fails_due_permission_check(
         mutation deleteDataEntry($input: DataEntryDeleteMutationInput!){
           deleteDataEntry(input: $input) {
             dataEntry {
-              slug
+              name
             }
           }
         }
