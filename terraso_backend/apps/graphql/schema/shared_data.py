@@ -3,6 +3,7 @@ import structlog
 from graphene import relay
 from graphene_django import DjangoObjectType
 
+from apps.core.models import Membership
 from apps.graphql.exceptions import GraphQLNotAllowedException
 from apps.shared_data.models import DataEntry
 
@@ -41,7 +42,10 @@ class DataEntryNode(DjangoObjectType):
 
     @classmethod
     def get_queryset(cls, queryset, info):
-        return queryset.filter(groups__members=info.context.user)
+        user_groups_ids = Membership.objects.filter(user=info.context.user).values_list(
+            "group", flat=True
+        )
+        return queryset.filter(groups__in=user_groups_ids)
 
     def resolve_url(self, info):
         return self.signed_url
