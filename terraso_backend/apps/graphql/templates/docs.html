@@ -24,6 +24,12 @@
             <a href="#tag-Queries">Queries</a>
             <ul>
               <li>
+                <a href="#operation-dataentries-Queries"> dataEntries </a>
+              </li>
+              <li>
+                <a href="#operation-dataentry-Queries"> dataEntry </a>
+              </li>
+              <li>
                 <a href="#operation-group-Queries"> group </a>
               </li>
               <li>
@@ -83,6 +89,9 @@
                 <a href="#operation-adduser-Mutations"> addUser </a>
               </li>
               <li>
+                <a href="#operation-deletedataentry-Mutations"> deleteDataEntry </a>
+              </li>
+              <li>
                 <a href="#operation-deletegroup-Mutations"> deleteGroup </a>
               </li>
               <li>
@@ -101,6 +110,12 @@
                 <a href="#operation-deleteuser-Mutations"> deleteUser </a>
               </li>
               <li>
+                <a href="#operation-deleteuserpreference-Mutations"> deleteUserPreference </a>
+              </li>
+              <li>
+                <a href="#operation-updatedataentry-Mutations"> updateDataEntry </a>
+              </li>
+              <li>
                 <a href="#operation-updategroup-Mutations"> updateGroup </a>
               </li>
               <li>
@@ -112,10 +127,21 @@
               <li>
                 <a href="#operation-updateuser-Mutations"> updateUser </a>
               </li>
+              <li>
+                <a href="#operation-updateuserpreference-Mutations"> updateUserPreference </a>
+              </li>
             </ul>
           </section>
           <h5>Types</h5>
           <a href="#definition-Boolean"> Boolean </a>
+          <a href="#definition-DataEntryDeleteMutationInput"> DataEntryDeleteMutationInput </a>
+          <a href="#definition-DataEntryDeleteMutationPayload"> DataEntryDeleteMutationPayload </a>
+          <a href="#definition-DataEntryNode"> DataEntryNode </a>
+          <a href="#definition-DataEntryNodeConnection"> DataEntryNodeConnection </a>
+          <a href="#definition-DataEntryNodeEdge"> DataEntryNodeEdge </a>
+          <a href="#definition-DataEntryUpdateMutationInput"> DataEntryUpdateMutationInput </a>
+          <a href="#definition-DataEntryUpdateMutationPayload"> DataEntryUpdateMutationPayload </a>
+          <a href="#definition-DateTime"> DateTime </a>
           <a href="#definition-GroupAddMutationInput"> GroupAddMutationInput </a>
           <a href="#definition-GroupAddMutationPayload"> GroupAddMutationPayload </a>
           <a href="#definition-GroupAssociationAddMutationInput"> GroupAssociationAddMutationInput </a>
@@ -164,6 +190,7 @@
           <a href="#definition-Node"> Node </a>
           <a href="#definition-PageInfo"> PageInfo </a>
           <a href="#definition-String"> String </a>
+          <a href="#definition-UUID"> UUID </a>
           <a href="#definition-UserAddMutationInput"> UserAddMutationInput </a>
           <a href="#definition-UserAddMutationPayload"> UserAddMutationPayload </a>
           <a href="#definition-UserDeleteMutationInput"> UserDeleteMutationInput </a>
@@ -171,6 +198,13 @@
           <a href="#definition-UserNode"> UserNode </a>
           <a href="#definition-UserNodeConnection"> UserNodeConnection </a>
           <a href="#definition-UserNodeEdge"> UserNodeEdge </a>
+          <a href="#definition-UserPreferenceDeleteInput"> UserPreferenceDeleteInput </a>
+          <a href="#definition-UserPreferenceDeletePayload"> UserPreferenceDeletePayload </a>
+          <a href="#definition-UserPreferenceNode"> UserPreferenceNode </a>
+          <a href="#definition-UserPreferenceNodeConnection"> UserPreferenceNodeConnection </a>
+          <a href="#definition-UserPreferenceNodeEdge"> UserPreferenceNodeEdge </a>
+          <a href="#definition-UserPreferenceUpdateInput"> UserPreferenceUpdateInput </a>
+          <a href="#definition-UserPreferenceUpdatePayload"> UserPreferenceUpdatePayload </a>
           <a href="#definition-UserUpdateMutationInput"> UserUpdateMutationInput </a>
           <a href="#definition-UserUpdateMutationPayload"> UserUpdateMutationPayload </a>
         </nav>
@@ -208,7 +242,271 @@ https://api.staging.terraso.org/graphql/
             </div>
           </div>
           <h1 id="tag-Queries" class="swagger-summary-tag tag-name" data-traverse-target="tag-Queries">Queries</h1>
+          <div id="operation-dataentries-Queries" class="operation panel" data-traverse-target="operation-dataentries-Queries">
+            <h2 class="operation-name "> <code>dataEntries</code> </h2>
+            <div class="doc-row">
+              <div class="doc-copy">
+                <section class="swagger-request-body"> </section>
+                <section class="swagger-responses"> Returns a
+                  <a href="#definition-DataEntryNodeConnection"><code>DataEntryNodeConnection</code></a>
+                </section>
+                <br>
+                <section class="swagger-request-params">
+                  <table>
+                    <tr>
+                      <th>Name</th>
+                      <th>Description</th>
+                    </tr>
+                    <tr>
+                      <td><code>offset</code> -
+                        <a href="#definition-Int"><code>Int</code></a>
+                      </td>
+                      <td> </td>
+                    </tr>
+                    <tr>
+                      <td><code>before</code> -
+                        <a href="#definition-String"><code>String</code></a>
+                      </td>
+                      <td> </td>
+                    </tr>
+                    <tr>
+                      <td><code>after</code> -
+                        <a href="#definition-String"><code>String</code></a>
+                      </td>
+                      <td> </td>
+                    </tr>
+                    <tr>
+                      <td><code>first</code> -
+                        <a href="#definition-Int"><code>Int</code></a>
+                      </td>
+                      <td> </td>
+                    </tr>
+                    <tr>
+                      <td><code>last</code> -
+                        <a href="#definition-Int"><code>Int</code></a>
+                      </td>
+                      <td> </td>
+                    </tr>
+                    <tr>
+                      <td><code>name_Icontains</code> -
+                        <a href="#definition-String"><code>String</code></a>
+                      </td>
+                      <td> </td>
+                    </tr>
+                    <tr>
+                      <td><code>description_Icontains</code> -
+                        <a href="#definition-String"><code>String</code></a>
+                      </td>
+                      <td> </td>
+                    </tr>
+                    <tr>
+                      <td><code>slug</code> -
+                        <a href="#definition-String"><code>String</code></a>
+                      </td>
+                      <td> </td>
+                    </tr>
+                    <tr>
+                      <td><code>slug_Icontains</code> -
+                        <a href="#definition-String"><code>String</code></a>
+                      </td>
+                      <td> </td>
+                    </tr>
+                    <tr>
+                      <td><code>url_Icontains</code> -
+                        <a href="#definition-String"><code>String</code></a>
+                      </td>
+                      <td> </td>
+                    </tr>
+                    <tr>
+                      <td><code>groups_Slug</code> -
+                        <a href="#definition-String"><code>String</code></a>
+                      </td>
+                      <td> </td>
+                    </tr>
+                    <tr>
+                      <td><code>groups_Slug_Icontains</code> -
+                        <a href="#definition-String"><code>String</code></a>
+                      </td>
+                      <td> </td>
+                    </tr>
+                    <tr>
+                      <td><code>groups_Id</code> -
+                        <a href="#definition-UUID"><code>UUID</code></a>
+                      </td>
+                      <td> </td>
+                    </tr>
+                  </table>
+                </section>
+              </div>
+              <div class="doc-examples">
+                <section>
+                  <h4>Example</h4>
+                  <h5>Query</h5>
+                  <html>
+                  <head></head>
+                  <body><pre><code class="hljs language-gql"><span class="hljs-symbol"><span class="hljs-keyword">query</span> dataEntries<span class="hljs-tag">(<span class="hljs-code">$offset</span>:<span class="hljs-type"> Int,</span> <span class="hljs-code">$before</span>:<span class="hljs-type"> String,</span> <span class="hljs-code">$after</span>:<span class="hljs-type"> String,</span> <span class="hljs-code">$first</span>:<span class="hljs-type"> Int,</span> <span class="hljs-code">$last</span>:<span class="hljs-type"> Int,</span> <span class="hljs-code">$name_Icontains</span>:<span class="hljs-type"> String,</span> <span class="hljs-code">$description_Icontains</span>:<span class="hljs-type"> String,</span> <span class="hljs-code">$slug</span>:<span class="hljs-type"> String,</span> <span class="hljs-code">$slug_Icontains</span>:<span class="hljs-type"> String,</span> <span class="hljs-code">$url_Icontains</span>:<span class="hljs-type"> String,</span> <span class="hljs-code">$groups_Slug</span>:<span class="hljs-type"> String,</span> <span class="hljs-code">$groups_Slug_Icontains</span>:<span class="hljs-type"> String,</span> <span class="hljs-code">$groups_Id</span>: UUID)</span> <span class="hljs-tag">{
+  <span class="hljs-symbol">dataEntries<span class="hljs-tag">(offset: <span class="hljs-code">$offset</span>, before: <span class="hljs-code">$before</span>, after: <span class="hljs-code">$after</span>, first: <span class="hljs-code">$first</span>, last: <span class="hljs-code">$last</span>, name_Icontains: <span class="hljs-code">$name_Icontains</span>, description_Icontains: <span class="hljs-code">$description_Icontains</span>, slug: <span class="hljs-code">$slug</span>, slug_Icontains: <span class="hljs-code">$slug_Icontains</span>, url_Icontains: <span class="hljs-code">$url_Icontains</span>, groups_Slug: <span class="hljs-code">$groups_Slug</span>, groups_Slug_Icontains: <span class="hljs-code">$groups_Slug_Icontains</span>, groups_Id: <span class="hljs-code">$groups_Id</span>)</span> <span class="hljs-tag">{
+    <span class="hljs-symbol">pageInfo <span class="hljs-tag">{
+      <span class="hljs-type">...PageInfoFragment</span>
+    }</span></span>
+    <span class="hljs-symbol">edges <span class="hljs-tag">{
+      <span class="hljs-type">...DataEntryNodeEdgeFragment</span>
+    }</span></span>
+    <span class="hljs-symbol">totalCount</span>
+  }</span></span>
+}</span></span>
+</code></pre> </body>
+                  </html>
+                  <h5>Variables</h5>
+                  <html>
+                  <head></head>
+                  <body><pre><code class="hljs language-json">{
+  <span class="hljs-attr">"offset"</span>: <span class="hljs-number">123</span>,
+  <span class="hljs-attr">"before"</span>: <span class="hljs-string">"abc123"</span>,
+  <span class="hljs-attr">"after"</span>: <span class="hljs-string">"abc123"</span>,
+  <span class="hljs-attr">"first"</span>: <span class="hljs-number">987</span>,
+  <span class="hljs-attr">"last"</span>: <span class="hljs-number">987</span>,
+  <span class="hljs-attr">"name_Icontains"</span>: <span class="hljs-string">"abc123"</span>,
+  <span class="hljs-attr">"description_Icontains"</span>: <span class="hljs-string">"xyz789"</span>,
+  <span class="hljs-attr">"slug"</span>: <span class="hljs-string">"abc123"</span>,
+  <span class="hljs-attr">"slug_Icontains"</span>: <span class="hljs-string">"abc123"</span>,
+  <span class="hljs-attr">"url_Icontains"</span>: <span class="hljs-string">"xyz789"</span>,
+  <span class="hljs-attr">"groups_Slug"</span>: <span class="hljs-string">"xyz789"</span>,
+  <span class="hljs-attr">"groups_Slug_Icontains"</span>: <span class="hljs-string">"abc123"</span>,
+  <span class="hljs-attr">"groups_Id"</span>: <span class="hljs-string">UUID</span>
+}
+</code></pre> </body>
+                  </html>
+                </section>
+              </div>
+            </div>
+            <div class="doc-row">
+              <div class="doc-copy"> </div>
+              <div class="doc-examples">
+                <section>
+                  <h5>Response </h5>
+                  <html>
+                  <head></head>
+                  <body><pre><code class="hljs language-json">{
+  <span class="hljs-attr">"data"</span>: {
+    <span class="hljs-attr">"dataEntries"</span>: {
+      <span class="hljs-attr">"pageInfo"</span>: <span class="hljs-string">PageInfo</span>,
+      <span class="hljs-attr">"edges"</span>: [<span class="hljs-string">DataEntryNodeEdge</span>],
+      <span class="hljs-attr">"totalCount"</span>: <span class="hljs-number">987</span>
+    }
+  }
+}
+</code></pre> </body>
+                  </html>
+                </section>
+              </div>
+            </div>
+          </div>
+          <div id="operation-dataentry-Queries" class="operation panel" data-traverse-target="operation-dataentry-Queries">
+            <!-- <section class="operation-tags row"> -->
+            <!-- <div class="doc-copy"> -->
+            <div class="operation-tags">
+              <a class="label" href="#tag-Queries">Queries</a>
+              <!---->
+            </div>
+            <!-- </div> -->
+            <!-- </section> -->
+            <h2 class="operation-name "> <code>dataEntry</code> </h2>
+            <div class="doc-row">
+              <div class="doc-copy">
+                <section class="swagger-request-body"> </section>
+                <section class="swagger-responses"> Returns a
+                  <a href="#definition-DataEntryNode"><code>DataEntryNode</code></a>
+                </section>
+                <br>
+                <section class="swagger-request-params">
+                  <table>
+                    <tr>
+                      <th>Name</th>
+                      <th>Description</th>
+                    </tr>
+                    <tr>
+                      <td><code>id</code> -
+                        <a href="#definition-ID"><code>ID!</code></a>
+                      </td>
+                      <td> The ID of the object </td>
+                    </tr>
+                  </table>
+                </section>
+              </div>
+              <div class="doc-examples">
+                <section>
+                  <h4>Example</h4>
+                  <h5>Query</h5>
+                  <html>
+                  <head></head>
+                  <body><pre><code class="hljs language-gql"><span class="hljs-symbol"><span class="hljs-keyword">query</span> dataEntry<span class="hljs-tag">(<span class="hljs-code">$id</span>: ID!)</span> <span class="hljs-tag">{
+  <span class="hljs-symbol">dataEntry<span class="hljs-tag">(id: <span class="hljs-code">$id</span>)</span> <span class="hljs-tag">{
+    <span class="hljs-symbol">createdAt</span>
+    <span class="hljs-symbol">slug</span>
+    <span class="hljs-symbol">name</span>
+    <span class="hljs-symbol">description</span>
+    <span class="hljs-symbol">resourceType</span>
+    <span class="hljs-symbol">url</span>
+    <span class="hljs-symbol">size</span>
+    <span class="hljs-symbol">groups <span class="hljs-tag">{
+      <span class="hljs-type">...GroupNodeConnectionFragment</span>
+    }</span></span>
+    <span class="hljs-symbol">createdBy <span class="hljs-tag">{
+      <span class="hljs-type">...UserNodeFragment</span>
+    }</span></span>
+    <span class="hljs-symbol">id</span>
+  }</span></span>
+}</span></span>
+</code></pre> </body>
+                  </html>
+                  <h5>Variables</h5>
+                  <html>
+                  <head></head>
+                  <body><pre><code class="hljs language-json">{<span class="hljs-attr">"id"</span>: <span class="hljs-string">ID</span>}
+</code></pre> </body>
+                  </html>
+                </section>
+              </div>
+            </div>
+            <div class="doc-row">
+              <div class="doc-copy"> </div>
+              <div class="doc-examples">
+                <section>
+                  <h5>Response </h5>
+                  <html>
+                  <head></head>
+                  <body><pre><code class="hljs language-json">{
+  <span class="hljs-attr">"data"</span>: {
+    <span class="hljs-attr">"dataEntry"</span>: {
+      <span class="hljs-attr">"createdAt"</span>: <span class="hljs-string">DateTime</span>,
+      <span class="hljs-attr">"slug"</span>: <span class="hljs-string">"xyz789"</span>,
+      <span class="hljs-attr">"name"</span>: <span class="hljs-string">"abc123"</span>,
+      <span class="hljs-attr">"description"</span>: <span class="hljs-string">"abc123"</span>,
+      <span class="hljs-attr">"resourceType"</span>: <span class="hljs-string">"abc123"</span>,
+      <span class="hljs-attr">"url"</span>: <span class="hljs-string">"xyz789"</span>,
+      <span class="hljs-attr">"size"</span>: <span class="hljs-number">987</span>,
+      <span class="hljs-attr">"groups"</span>: <span class="hljs-string">GroupNodeConnection</span>,
+      <span class="hljs-attr">"createdBy"</span>: <span class="hljs-string">UserNode</span>,
+      <span class="hljs-attr">"id"</span>: <span class="hljs-string">ID</span>
+    }
+  }
+}
+</code></pre> </body>
+                  </html>
+                </section>
+              </div>
+            </div>
+          </div>
           <div id="operation-group-Queries" class="operation panel" data-traverse-target="operation-group-Queries">
+            <!-- <section class="operation-tags row"> -->
+            <!-- <div class="doc-copy"> -->
+            <div class="operation-tags">
+              <a class="label" href="#tag-Queries">Queries</a>
+              <!---->
+            </div>
+            <!-- </div> -->
+            <!-- </section> -->
             <h2 class="operation-name "> <code>group</code> </h2>
             <div class="doc-row">
               <div class="doc-copy">
@@ -260,6 +558,9 @@ https://api.staging.terraso.org/graphql/
     <span class="hljs-symbol">associatedLandscapes <span class="hljs-tag">{
       <span class="hljs-type">...LandscapeGroupNodeConnectionFragment</span>
     }</span></span>
+    <span class="hljs-symbol">dataEntries <span class="hljs-tag">{
+      <span class="hljs-type">...DataEntryNodeConnectionFragment</span>
+    }</span></span>
     <span class="hljs-symbol">id</span>
   }</span></span>
 }</span></span>
@@ -284,9 +585,9 @@ https://api.staging.terraso.org/graphql/
                   <body><pre><code class="hljs language-json">{
   <span class="hljs-attr">"data"</span>: {
     <span class="hljs-attr">"group"</span>: {
-      <span class="hljs-attr">"slug"</span>: <span class="hljs-string">"abc123"</span>,
-      <span class="hljs-attr">"name"</span>: <span class="hljs-string">"abc123"</span>,
-      <span class="hljs-attr">"description"</span>: <span class="hljs-string">"abc123"</span>,
+      <span class="hljs-attr">"slug"</span>: <span class="hljs-string">"xyz789"</span>,
+      <span class="hljs-attr">"name"</span>: <span class="hljs-string">"xyz789"</span>,
+      <span class="hljs-attr">"description"</span>: <span class="hljs-string">"xyz789"</span>,
       <span class="hljs-attr">"website"</span>: <span class="hljs-string">"abc123"</span>,
       <span class="hljs-attr">"email"</span>: <span class="hljs-string">"xyz789"</span>,
       <span class="hljs-attr">"createdBy"</span>: <span class="hljs-string">UserNode</span>,
@@ -294,6 +595,7 @@ https://api.staging.terraso.org/graphql/
       <span class="hljs-attr">"associationsAsChild"</span>: <span class="hljs-string">GroupAssociationNodeConnection</span>,
       <span class="hljs-attr">"memberships"</span>: <span class="hljs-string">MembershipNodeConnection</span>,
       <span class="hljs-attr">"associatedLandscapes"</span>: <span class="hljs-string">LandscapeGroupNodeConnection</span>,
+      <span class="hljs-attr">"dataEntries"</span>: <span class="hljs-string">DataEntryNodeConnection</span>,
       <span class="hljs-attr">"id"</span>: <span class="hljs-string">ID</span>
     }
   }
@@ -489,15 +791,15 @@ https://api.staging.terraso.org/graphql/
                   <html>
                   <head></head>
                   <body><pre><code class="hljs language-json">{
-  <span class="hljs-attr">"offset"</span>: <span class="hljs-number">123</span>,
-  <span class="hljs-attr">"before"</span>: <span class="hljs-string">"xyz789"</span>,
-  <span class="hljs-attr">"after"</span>: <span class="hljs-string">"xyz789"</span>,
+  <span class="hljs-attr">"offset"</span>: <span class="hljs-number">987</span>,
+  <span class="hljs-attr">"before"</span>: <span class="hljs-string">"abc123"</span>,
+  <span class="hljs-attr">"after"</span>: <span class="hljs-string">"abc123"</span>,
   <span class="hljs-attr">"first"</span>: <span class="hljs-number">123</span>,
-  <span class="hljs-attr">"last"</span>: <span class="hljs-number">123</span>,
+  <span class="hljs-attr">"last"</span>: <span class="hljs-number">987</span>,
   <span class="hljs-attr">"parentGroup"</span>: <span class="hljs-string">ID</span>,
   <span class="hljs-attr">"childGroup"</span>: <span class="hljs-string">ID</span>,
   <span class="hljs-attr">"parentGroup_Slug_Icontains"</span>: <span class="hljs-string">"xyz789"</span>,
-  <span class="hljs-attr">"childGroup_Slug_Icontains"</span>: <span class="hljs-string">"abc123"</span>
+  <span class="hljs-attr">"childGroup_Slug_Icontains"</span>: <span class="hljs-string">"xyz789"</span>
 }
 </code></pre> </body>
                   </html>
@@ -516,7 +818,7 @@ https://api.staging.terraso.org/graphql/
     <span class="hljs-attr">"groupAssociations"</span>: {
       <span class="hljs-attr">"pageInfo"</span>: <span class="hljs-string">PageInfo</span>,
       <span class="hljs-attr">"edges"</span>: [<span class="hljs-string">GroupAssociationNodeEdge</span>],
-      <span class="hljs-attr">"totalCount"</span>: <span class="hljs-number">123</span>
+      <span class="hljs-attr">"totalCount"</span>: <span class="hljs-number">987</span>
     }
   }
 }
@@ -659,20 +961,20 @@ https://api.staging.terraso.org/graphql/
                   <html>
                   <head></head>
                   <body><pre><code class="hljs language-json">{
-  <span class="hljs-attr">"offset"</span>: <span class="hljs-number">123</span>,
-  <span class="hljs-attr">"before"</span>: <span class="hljs-string">"xyz789"</span>,
+  <span class="hljs-attr">"offset"</span>: <span class="hljs-number">987</span>,
+  <span class="hljs-attr">"before"</span>: <span class="hljs-string">"abc123"</span>,
   <span class="hljs-attr">"after"</span>: <span class="hljs-string">"abc123"</span>,
-  <span class="hljs-attr">"first"</span>: <span class="hljs-number">987</span>,
-  <span class="hljs-attr">"last"</span>: <span class="hljs-number">123</span>,
+  <span class="hljs-attr">"first"</span>: <span class="hljs-number">123</span>,
+  <span class="hljs-attr">"last"</span>: <span class="hljs-number">987</span>,
   <span class="hljs-attr">"name"</span>: <span class="hljs-string">"abc123"</span>,
-  <span class="hljs-attr">"name_Icontains"</span>: <span class="hljs-string">"abc123"</span>,
+  <span class="hljs-attr">"name_Icontains"</span>: <span class="hljs-string">"xyz789"</span>,
   <span class="hljs-attr">"name_Istartswith"</span>: <span class="hljs-string">"xyz789"</span>,
-  <span class="hljs-attr">"slug"</span>: <span class="hljs-string">"xyz789"</span>,
+  <span class="hljs-attr">"slug"</span>: <span class="hljs-string">"abc123"</span>,
   <span class="hljs-attr">"slug_Icontains"</span>: <span class="hljs-string">"abc123"</span>,
-  <span class="hljs-attr">"description_Icontains"</span>: <span class="hljs-string">"xyz789"</span>,
-  <span class="hljs-attr">"memberships_Email"</span>: <span class="hljs-string">"xyz789"</span>,
-  <span class="hljs-attr">"associatedLandscapes_IsDefaultLandscapeGroup"</span>: <span class="hljs-literal">false</span>,
-  <span class="hljs-attr">"associatedLandscapes_Isnull"</span>: <span class="hljs-literal">false</span>
+  <span class="hljs-attr">"description_Icontains"</span>: <span class="hljs-string">"abc123"</span>,
+  <span class="hljs-attr">"memberships_Email"</span>: <span class="hljs-string">"abc123"</span>,
+  <span class="hljs-attr">"associatedLandscapes_IsDefaultLandscapeGroup"</span>: <span class="hljs-literal">true</span>,
+  <span class="hljs-attr">"associatedLandscapes_Isnull"</span>: <span class="hljs-literal">true</span>
 }
 </code></pre> </body>
                   </html>
@@ -691,7 +993,7 @@ https://api.staging.terraso.org/graphql/
     <span class="hljs-attr">"groups"</span>: {
       <span class="hljs-attr">"pageInfo"</span>: <span class="hljs-string">PageInfo</span>,
       <span class="hljs-attr">"edges"</span>: [<span class="hljs-string">GroupNodeEdge</span>],
-      <span class="hljs-attr">"totalCount"</span>: <span class="hljs-number">123</span>
+      <span class="hljs-attr">"totalCount"</span>: <span class="hljs-number">987</span>
     }
   }
 }
@@ -777,10 +1079,10 @@ https://api.staging.terraso.org/graphql/
                   <body><pre><code class="hljs language-json">{
   <span class="hljs-attr">"data"</span>: {
     <span class="hljs-attr">"landscape"</span>: {
-      <span class="hljs-attr">"slug"</span>: <span class="hljs-string">"abc123"</span>,
+      <span class="hljs-attr">"slug"</span>: <span class="hljs-string">"xyz789"</span>,
       <span class="hljs-attr">"name"</span>: <span class="hljs-string">"abc123"</span>,
       <span class="hljs-attr">"description"</span>: <span class="hljs-string">"xyz789"</span>,
-      <span class="hljs-attr">"website"</span>: <span class="hljs-string">"abc123"</span>,
+      <span class="hljs-attr">"website"</span>: <span class="hljs-string">"xyz789"</span>,
       <span class="hljs-attr">"location"</span>: <span class="hljs-string">"xyz789"</span>,
       <span class="hljs-attr">"areaPolygon"</span>: <span class="hljs-string">JSONString</span>,
       <span class="hljs-attr">"createdBy"</span>: <span class="hljs-string">UserNode</span>,
@@ -989,15 +1291,15 @@ https://api.staging.terraso.org/graphql/
                   <head></head>
                   <body><pre><code class="hljs language-json">{
   <span class="hljs-attr">"offset"</span>: <span class="hljs-number">987</span>,
-  <span class="hljs-attr">"before"</span>: <span class="hljs-string">"xyz789"</span>,
+  <span class="hljs-attr">"before"</span>: <span class="hljs-string">"abc123"</span>,
   <span class="hljs-attr">"after"</span>: <span class="hljs-string">"xyz789"</span>,
-  <span class="hljs-attr">"first"</span>: <span class="hljs-number">987</span>,
+  <span class="hljs-attr">"first"</span>: <span class="hljs-number">123</span>,
   <span class="hljs-attr">"last"</span>: <span class="hljs-number">987</span>,
   <span class="hljs-attr">"landscape"</span>: <span class="hljs-string">ID</span>,
   <span class="hljs-attr">"landscape_Slug_Icontains"</span>: <span class="hljs-string">"xyz789"</span>,
   <span class="hljs-attr">"group"</span>: <span class="hljs-string">ID</span>,
   <span class="hljs-attr">"group_Slug_Icontains"</span>: <span class="hljs-string">"abc123"</span>,
-  <span class="hljs-attr">"isDefaultLandscapeGroup"</span>: <span class="hljs-literal">true</span>
+  <span class="hljs-attr">"isDefaultLandscapeGroup"</span>: <span class="hljs-literal">false</span>
 }
 </code></pre> </body>
                   </html>
@@ -1016,7 +1318,7 @@ https://api.staging.terraso.org/graphql/
     <span class="hljs-attr">"landscapeGroups"</span>: {
       <span class="hljs-attr">"pageInfo"</span>: <span class="hljs-string">PageInfo</span>,
       <span class="hljs-attr">"edges"</span>: [<span class="hljs-string">LandscapeGroupNodeEdge</span>],
-      <span class="hljs-attr">"totalCount"</span>: <span class="hljs-number">987</span>
+      <span class="hljs-attr">"totalCount"</span>: <span class="hljs-number">123</span>
     }
   }
 }
@@ -1142,16 +1444,16 @@ https://api.staging.terraso.org/graphql/
                   <head></head>
                   <body><pre><code class="hljs language-json">{
   <span class="hljs-attr">"offset"</span>: <span class="hljs-number">123</span>,
-  <span class="hljs-attr">"before"</span>: <span class="hljs-string">"abc123"</span>,
+  <span class="hljs-attr">"before"</span>: <span class="hljs-string">"xyz789"</span>,
   <span class="hljs-attr">"after"</span>: <span class="hljs-string">"xyz789"</span>,
   <span class="hljs-attr">"first"</span>: <span class="hljs-number">987</span>,
   <span class="hljs-attr">"last"</span>: <span class="hljs-number">123</span>,
   <span class="hljs-attr">"name_Icontains"</span>: <span class="hljs-string">"abc123"</span>,
-  <span class="hljs-attr">"description_Icontains"</span>: <span class="hljs-string">"abc123"</span>,
+  <span class="hljs-attr">"description_Icontains"</span>: <span class="hljs-string">"xyz789"</span>,
   <span class="hljs-attr">"slug"</span>: <span class="hljs-string">"xyz789"</span>,
   <span class="hljs-attr">"slug_Icontains"</span>: <span class="hljs-string">"abc123"</span>,
-  <span class="hljs-attr">"website_Icontains"</span>: <span class="hljs-string">"abc123"</span>,
-  <span class="hljs-attr">"location_Icontains"</span>: <span class="hljs-string">"xyz789"</span>
+  <span class="hljs-attr">"website_Icontains"</span>: <span class="hljs-string">"xyz789"</span>,
+  <span class="hljs-attr">"location_Icontains"</span>: <span class="hljs-string">"abc123"</span>
 }
 </code></pre> </body>
                   </html>
@@ -1170,7 +1472,7 @@ https://api.staging.terraso.org/graphql/
     <span class="hljs-attr">"landscapes"</span>: {
       <span class="hljs-attr">"pageInfo"</span>: <span class="hljs-string">PageInfo</span>,
       <span class="hljs-attr">"edges"</span>: [<span class="hljs-string">LandscapeNodeEdge</span>],
-      <span class="hljs-attr">"totalCount"</span>: <span class="hljs-number">987</span>
+      <span class="hljs-attr">"totalCount"</span>: <span class="hljs-number">123</span>
     }
   }
 }
@@ -1397,18 +1699,18 @@ https://api.staging.terraso.org/graphql/
                   <html>
                   <head></head>
                   <body><pre><code class="hljs language-json">{
-  <span class="hljs-attr">"offset"</span>: <span class="hljs-number">123</span>,
-  <span class="hljs-attr">"before"</span>: <span class="hljs-string">"abc123"</span>,
-  <span class="hljs-attr">"after"</span>: <span class="hljs-string">"xyz789"</span>,
-  <span class="hljs-attr">"first"</span>: <span class="hljs-number">987</span>,
-  <span class="hljs-attr">"last"</span>: <span class="hljs-number">123</span>,
+  <span class="hljs-attr">"offset"</span>: <span class="hljs-number">987</span>,
+  <span class="hljs-attr">"before"</span>: <span class="hljs-string">"xyz789"</span>,
+  <span class="hljs-attr">"after"</span>: <span class="hljs-string">"abc123"</span>,
+  <span class="hljs-attr">"first"</span>: <span class="hljs-number">123</span>,
+  <span class="hljs-attr">"last"</span>: <span class="hljs-number">987</span>,
   <span class="hljs-attr">"group"</span>: <span class="hljs-string">ID</span>,
   <span class="hljs-attr">"group_In"</span>: [<span class="hljs-string">ID</span>],
-  <span class="hljs-attr">"group_Slug_Icontains"</span>: <span class="hljs-string">"xyz789"</span>,
+  <span class="hljs-attr">"group_Slug_Icontains"</span>: <span class="hljs-string">"abc123"</span>,
   <span class="hljs-attr">"group_Slug_In"</span>: [<span class="hljs-string">"abc123"</span>],
   <span class="hljs-attr">"user"</span>: <span class="hljs-string">ID</span>,
   <span class="hljs-attr">"user_In"</span>: [<span class="hljs-string">ID</span>],
-  <span class="hljs-attr">"userRole"</span>: <span class="hljs-string">"abc123"</span>,
+  <span class="hljs-attr">"userRole"</span>: <span class="hljs-string">"xyz789"</span>,
   <span class="hljs-attr">"user_Email_Icontains"</span>: <span class="hljs-string">"abc123"</span>,
   <span class="hljs-attr">"user_Email_In"</span>: [<span class="hljs-string">"xyz789"</span>]
 }
@@ -1483,6 +1785,9 @@ https://api.staging.terraso.org/graphql/
     <span class="hljs-symbol">lastName</span>
     <span class="hljs-symbol">email</span>
     <span class="hljs-symbol">profileImage</span>
+    <span class="hljs-symbol">preferences <span class="hljs-tag">{
+      <span class="hljs-type">...UserPreferenceNodeConnectionFragment</span>
+    }</span></span>
     <span class="hljs-symbol">memberships <span class="hljs-tag">{
       <span class="hljs-type">...MembershipNodeConnectionFragment</span>
     }</span></span>
@@ -1510,10 +1815,11 @@ https://api.staging.terraso.org/graphql/
                   <body><pre><code class="hljs language-json">{
   <span class="hljs-attr">"data"</span>: {
     <span class="hljs-attr">"user"</span>: {
-      <span class="hljs-attr">"firstName"</span>: <span class="hljs-string">"xyz789"</span>,
-      <span class="hljs-attr">"lastName"</span>: <span class="hljs-string">"abc123"</span>,
-      <span class="hljs-attr">"email"</span>: <span class="hljs-string">"abc123"</span>,
+      <span class="hljs-attr">"firstName"</span>: <span class="hljs-string">"abc123"</span>,
+      <span class="hljs-attr">"lastName"</span>: <span class="hljs-string">"xyz789"</span>,
+      <span class="hljs-attr">"email"</span>: <span class="hljs-string">"xyz789"</span>,
       <span class="hljs-attr">"profileImage"</span>: <span class="hljs-string">"abc123"</span>,
+      <span class="hljs-attr">"preferences"</span>: <span class="hljs-string">UserPreferenceNodeConnection</span>,
       <span class="hljs-attr">"memberships"</span>: <span class="hljs-string">MembershipNodeConnection</span>,
       <span class="hljs-attr">"id"</span>: <span class="hljs-string">ID</span>
     }
@@ -1628,14 +1934,14 @@ https://api.staging.terraso.org/graphql/
                   <html>
                   <head></head>
                   <body><pre><code class="hljs language-json">{
-  <span class="hljs-attr">"offset"</span>: <span class="hljs-number">987</span>,
-  <span class="hljs-attr">"before"</span>: <span class="hljs-string">"xyz789"</span>,
+  <span class="hljs-attr">"offset"</span>: <span class="hljs-number">123</span>,
+  <span class="hljs-attr">"before"</span>: <span class="hljs-string">"abc123"</span>,
   <span class="hljs-attr">"after"</span>: <span class="hljs-string">"abc123"</span>,
-  <span class="hljs-attr">"first"</span>: <span class="hljs-number">987</span>,
+  <span class="hljs-attr">"first"</span>: <span class="hljs-number">123</span>,
   <span class="hljs-attr">"last"</span>: <span class="hljs-number">123</span>,
   <span class="hljs-attr">"email"</span>: <span class="hljs-string">"abc123"</span>,
   <span class="hljs-attr">"email_Icontains"</span>: <span class="hljs-string">"xyz789"</span>,
-  <span class="hljs-attr">"firstName_Icontains"</span>: <span class="hljs-string">"abc123"</span>,
+  <span class="hljs-attr">"firstName_Icontains"</span>: <span class="hljs-string">"xyz789"</span>,
   <span class="hljs-attr">"lastName_Icontains"</span>: <span class="hljs-string">"abc123"</span>
 }
 </code></pre> </body>
@@ -1882,7 +2188,7 @@ https://api.staging.terraso.org/graphql/
   <span class="hljs-attr">"data"</span>: {
     <span class="hljs-attr">"addLandscape"</span>: {
       <span class="hljs-attr">"landscape"</span>: <span class="hljs-string">LandscapeNode</span>,
-      <span class="hljs-attr">"clientMutationId"</span>: <span class="hljs-string">"xyz789"</span>
+      <span class="hljs-attr">"clientMutationId"</span>: <span class="hljs-string">"abc123"</span>
     }
   }
 }
@@ -1960,7 +2266,7 @@ https://api.staging.terraso.org/graphql/
   <span class="hljs-attr">"data"</span>: {
     <span class="hljs-attr">"addLandscapeGroup"</span>: {
       <span class="hljs-attr">"landscapeGroup"</span>: <span class="hljs-string">LandscapeGroupNode</span>,
-      <span class="hljs-attr">"clientMutationId"</span>: <span class="hljs-string">"abc123"</span>
+      <span class="hljs-attr">"clientMutationId"</span>: <span class="hljs-string">"xyz789"</span>
     }
   }
 }
@@ -2038,7 +2344,7 @@ https://api.staging.terraso.org/graphql/
   <span class="hljs-attr">"data"</span>: {
     <span class="hljs-attr">"addMembership"</span>: {
       <span class="hljs-attr">"membership"</span>: <span class="hljs-string">MembershipNode</span>,
-      <span class="hljs-attr">"clientMutationId"</span>: <span class="hljs-string">"xyz789"</span>
+      <span class="hljs-attr">"clientMutationId"</span>: <span class="hljs-string">"abc123"</span>
     }
   }
 }
@@ -2116,6 +2422,84 @@ https://api.staging.terraso.org/graphql/
   <span class="hljs-attr">"data"</span>: {
     <span class="hljs-attr">"addUser"</span>: {
       <span class="hljs-attr">"user"</span>: <span class="hljs-string">UserNode</span>,
+      <span class="hljs-attr">"clientMutationId"</span>: <span class="hljs-string">"xyz789"</span>
+    }
+  }
+}
+</code></pre> </body>
+                  </html>
+                </section>
+              </div>
+            </div>
+          </div>
+          <div id="operation-deletedataentry-Mutations" class="operation panel" data-traverse-target="operation-deletedataentry-Mutations">
+            <!-- <section class="operation-tags row"> -->
+            <!-- <div class="doc-copy"> -->
+            <div class="operation-tags">
+              <a class="label" href="#tag-Mutations">Mutations</a>
+              <!---->
+            </div>
+            <!-- </div> -->
+            <!-- </section> -->
+            <h2 class="operation-name "> <code>deleteDataEntry</code> </h2>
+            <div class="doc-row">
+              <div class="doc-copy">
+                <section class="swagger-request-body"> </section>
+                <section class="swagger-responses"> Returns a
+                  <a href="#definition-DataEntryDeleteMutationPayload"><code>DataEntryDeleteMutationPayload</code></a>
+                </section>
+                <br>
+                <section class="swagger-request-params">
+                  <table>
+                    <tr>
+                      <th>Name</th>
+                      <th>Description</th>
+                    </tr>
+                    <tr>
+                      <td><code>input</code> -
+                        <a href="#definition-DataEntryDeleteMutationInput"><code>DataEntryDeleteMutationInput!</code></a>
+                      </td>
+                      <td> </td>
+                    </tr>
+                  </table>
+                </section>
+              </div>
+              <div class="doc-examples">
+                <section>
+                  <h4>Example</h4>
+                  <h5>Query</h5>
+                  <html>
+                  <head></head>
+                  <body><pre><code class="hljs language-gql"><span class="hljs-symbol"><span class="hljs-keyword">mutation</span> deleteDataEntry<span class="hljs-tag">(<span class="hljs-code">$input</span>:<span class="hljs-type"> DataEntryDeleteMutationInput!</span>)</span> <span class="hljs-tag">{
+  <span class="hljs-symbol">deleteDataEntry<span class="hljs-tag">(input: <span class="hljs-code">$input</span>)</span> <span class="hljs-tag">{
+    <span class="hljs-symbol">dataEntry <span class="hljs-tag">{
+      <span class="hljs-type">...DataEntryNodeFragment</span>
+    }</span></span>
+    <span class="hljs-symbol">clientMutationId</span>
+  }</span></span>
+}</span></span>
+</code></pre> </body>
+                  </html>
+                  <h5>Variables</h5>
+                  <html>
+                  <head></head>
+                  <body><pre><code class="hljs language-json">{<span class="hljs-attr">"input"</span>: <span class="hljs-string">DataEntryDeleteMutationInput</span>}
+</code></pre> </body>
+                  </html>
+                </section>
+              </div>
+            </div>
+            <div class="doc-row">
+              <div class="doc-copy"> </div>
+              <div class="doc-examples">
+                <section>
+                  <h5>Response </h5>
+                  <html>
+                  <head></head>
+                  <body><pre><code class="hljs language-json">{
+  <span class="hljs-attr">"data"</span>: {
+    <span class="hljs-attr">"deleteDataEntry"</span>: {
+      <span class="hljs-attr">"dataEntry"</span>: <span class="hljs-string">DataEntryNode</span>,
       <span class="hljs-attr">"clientMutationId"</span>: <span class="hljs-string">"abc123"</span>
     }
   }
@@ -2272,7 +2656,7 @@ https://api.staging.terraso.org/graphql/
   <span class="hljs-attr">"data"</span>: {
     <span class="hljs-attr">"deleteGroupAssociation"</span>: {
       <span class="hljs-attr">"groupAssociation"</span>: <span class="hljs-string">GroupAssociationNode</span>,
-      <span class="hljs-attr">"clientMutationId"</span>: <span class="hljs-string">"abc123"</span>
+      <span class="hljs-attr">"clientMutationId"</span>: <span class="hljs-string">"xyz789"</span>
     }
   }
 }
@@ -2350,7 +2734,7 @@ https://api.staging.terraso.org/graphql/
   <span class="hljs-attr">"data"</span>: {
     <span class="hljs-attr">"deleteLandscape"</span>: {
       <span class="hljs-attr">"landscape"</span>: <span class="hljs-string">LandscapeNode</span>,
-      <span class="hljs-attr">"clientMutationId"</span>: <span class="hljs-string">"abc123"</span>
+      <span class="hljs-attr">"clientMutationId"</span>: <span class="hljs-string">"xyz789"</span>
     }
   }
 }
@@ -2428,7 +2812,7 @@ https://api.staging.terraso.org/graphql/
   <span class="hljs-attr">"data"</span>: {
     <span class="hljs-attr">"deleteLandscapeGroup"</span>: {
       <span class="hljs-attr">"landscapeGroup"</span>: <span class="hljs-string">LandscapeGroupNode</span>,
-      <span class="hljs-attr">"clientMutationId"</span>: <span class="hljs-string">"xyz789"</span>
+      <span class="hljs-attr">"clientMutationId"</span>: <span class="hljs-string">"abc123"</span>
     }
   }
 }
@@ -2506,7 +2890,7 @@ https://api.staging.terraso.org/graphql/
   <span class="hljs-attr">"data"</span>: {
     <span class="hljs-attr">"deleteMembership"</span>: {
       <span class="hljs-attr">"membership"</span>: <span class="hljs-string">MembershipNode</span>,
-      <span class="hljs-attr">"clientMutationId"</span>: <span class="hljs-string">"abc123"</span>
+      <span class="hljs-attr">"clientMutationId"</span>: <span class="hljs-string">"xyz789"</span>
     }
   }
 }
@@ -2584,6 +2968,162 @@ https://api.staging.terraso.org/graphql/
   <span class="hljs-attr">"data"</span>: {
     <span class="hljs-attr">"deleteUser"</span>: {
       <span class="hljs-attr">"user"</span>: <span class="hljs-string">UserNode</span>,
+      <span class="hljs-attr">"clientMutationId"</span>: <span class="hljs-string">"abc123"</span>
+    }
+  }
+}
+</code></pre> </body>
+                  </html>
+                </section>
+              </div>
+            </div>
+          </div>
+          <div id="operation-deleteuserpreference-Mutations" class="operation panel" data-traverse-target="operation-deleteuserpreference-Mutations">
+            <!-- <section class="operation-tags row"> -->
+            <!-- <div class="doc-copy"> -->
+            <div class="operation-tags">
+              <a class="label" href="#tag-Mutations">Mutations</a>
+              <!---->
+            </div>
+            <!-- </div> -->
+            <!-- </section> -->
+            <h2 class="operation-name "> <code>deleteUserPreference</code> </h2>
+            <div class="doc-row">
+              <div class="doc-copy">
+                <section class="swagger-request-body"> </section>
+                <section class="swagger-responses"> Returns a
+                  <a href="#definition-UserPreferenceDeletePayload"><code>UserPreferenceDeletePayload</code></a>
+                </section>
+                <br>
+                <section class="swagger-request-params">
+                  <table>
+                    <tr>
+                      <th>Name</th>
+                      <th>Description</th>
+                    </tr>
+                    <tr>
+                      <td><code>input</code> -
+                        <a href="#definition-UserPreferenceDeleteInput"><code>UserPreferenceDeleteInput!</code></a>
+                      </td>
+                      <td> </td>
+                    </tr>
+                  </table>
+                </section>
+              </div>
+              <div class="doc-examples">
+                <section>
+                  <h4>Example</h4>
+                  <h5>Query</h5>
+                  <html>
+                  <head></head>
+                  <body><pre><code class="hljs language-gql"><span class="hljs-symbol"><span class="hljs-keyword">mutation</span> deleteUserPreference<span class="hljs-tag">(<span class="hljs-code">$input</span>:<span class="hljs-type"> UserPreferenceDeleteInput!</span>)</span> <span class="hljs-tag">{
+  <span class="hljs-symbol">deleteUserPreference<span class="hljs-tag">(input: <span class="hljs-code">$input</span>)</span> <span class="hljs-tag">{
+    <span class="hljs-symbol">preference <span class="hljs-tag">{
+      <span class="hljs-type">...UserPreferenceNodeFragment</span>
+    }</span></span>
+    <span class="hljs-symbol">clientMutationId</span>
+  }</span></span>
+}</span></span>
+</code></pre> </body>
+                  </html>
+                  <h5>Variables</h5>
+                  <html>
+                  <head></head>
+                  <body><pre><code class="hljs language-json">{<span class="hljs-attr">"input"</span>: <span class="hljs-string">UserPreferenceDeleteInput</span>}
+</code></pre> </body>
+                  </html>
+                </section>
+              </div>
+            </div>
+            <div class="doc-row">
+              <div class="doc-copy"> </div>
+              <div class="doc-examples">
+                <section>
+                  <h5>Response </h5>
+                  <html>
+                  <head></head>
+                  <body><pre><code class="hljs language-json">{
+  <span class="hljs-attr">"data"</span>: {
+    <span class="hljs-attr">"deleteUserPreference"</span>: {
+      <span class="hljs-attr">"preference"</span>: <span class="hljs-string">UserPreferenceNode</span>,
+      <span class="hljs-attr">"clientMutationId"</span>: <span class="hljs-string">"abc123"</span>
+    }
+  }
+}
+</code></pre> </body>
+                  </html>
+                </section>
+              </div>
+            </div>
+          </div>
+          <div id="operation-updatedataentry-Mutations" class="operation panel" data-traverse-target="operation-updatedataentry-Mutations">
+            <!-- <section class="operation-tags row"> -->
+            <!-- <div class="doc-copy"> -->
+            <div class="operation-tags">
+              <a class="label" href="#tag-Mutations">Mutations</a>
+              <!---->
+            </div>
+            <!-- </div> -->
+            <!-- </section> -->
+            <h2 class="operation-name "> <code>updateDataEntry</code> </h2>
+            <div class="doc-row">
+              <div class="doc-copy">
+                <section class="swagger-request-body"> </section>
+                <section class="swagger-responses"> Returns a
+                  <a href="#definition-DataEntryUpdateMutationPayload"><code>DataEntryUpdateMutationPayload</code></a>
+                </section>
+                <br>
+                <section class="swagger-request-params">
+                  <table>
+                    <tr>
+                      <th>Name</th>
+                      <th>Description</th>
+                    </tr>
+                    <tr>
+                      <td><code>input</code> -
+                        <a href="#definition-DataEntryUpdateMutationInput"><code>DataEntryUpdateMutationInput!</code></a>
+                      </td>
+                      <td> </td>
+                    </tr>
+                  </table>
+                </section>
+              </div>
+              <div class="doc-examples">
+                <section>
+                  <h4>Example</h4>
+                  <h5>Query</h5>
+                  <html>
+                  <head></head>
+                  <body><pre><code class="hljs language-gql"><span class="hljs-symbol"><span class="hljs-keyword">mutation</span> updateDataEntry<span class="hljs-tag">(<span class="hljs-code">$input</span>:<span class="hljs-type"> DataEntryUpdateMutationInput!</span>)</span> <span class="hljs-tag">{
+  <span class="hljs-symbol">updateDataEntry<span class="hljs-tag">(input: <span class="hljs-code">$input</span>)</span> <span class="hljs-tag">{
+    <span class="hljs-symbol">dataEntry <span class="hljs-tag">{
+      <span class="hljs-type">...DataEntryNodeFragment</span>
+    }</span></span>
+    <span class="hljs-symbol">clientMutationId</span>
+  }</span></span>
+}</span></span>
+</code></pre> </body>
+                  </html>
+                  <h5>Variables</h5>
+                  <html>
+                  <head></head>
+                  <body><pre><code class="hljs language-json">{<span class="hljs-attr">"input"</span>: <span class="hljs-string">DataEntryUpdateMutationInput</span>}
+</code></pre> </body>
+                  </html>
+                </section>
+              </div>
+            </div>
+            <div class="doc-row">
+              <div class="doc-copy"> </div>
+              <div class="doc-examples">
+                <section>
+                  <h5>Response </h5>
+                  <html>
+                  <head></head>
+                  <body><pre><code class="hljs language-json">{
+  <span class="hljs-attr">"data"</span>: {
+    <span class="hljs-attr">"updateDataEntry"</span>: {
+      <span class="hljs-attr">"dataEntry"</span>: <span class="hljs-string">DataEntryNode</span>,
       <span class="hljs-attr">"clientMutationId"</span>: <span class="hljs-string">"xyz789"</span>
     }
   }
@@ -2906,6 +3446,84 @@ https://api.staging.terraso.org/graphql/
               </div>
             </div>
           </div>
+          <div id="operation-updateuserpreference-Mutations" class="operation panel" data-traverse-target="operation-updateuserpreference-Mutations">
+            <!-- <section class="operation-tags row"> -->
+            <!-- <div class="doc-copy"> -->
+            <div class="operation-tags">
+              <a class="label" href="#tag-Mutations">Mutations</a>
+              <!---->
+            </div>
+            <!-- </div> -->
+            <!-- </section> -->
+            <h2 class="operation-name "> <code>updateUserPreference</code> </h2>
+            <div class="doc-row">
+              <div class="doc-copy">
+                <section class="swagger-request-body"> </section>
+                <section class="swagger-responses"> Returns a
+                  <a href="#definition-UserPreferenceUpdatePayload"><code>UserPreferenceUpdatePayload</code></a>
+                </section>
+                <br>
+                <section class="swagger-request-params">
+                  <table>
+                    <tr>
+                      <th>Name</th>
+                      <th>Description</th>
+                    </tr>
+                    <tr>
+                      <td><code>input</code> -
+                        <a href="#definition-UserPreferenceUpdateInput"><code>UserPreferenceUpdateInput!</code></a>
+                      </td>
+                      <td> </td>
+                    </tr>
+                  </table>
+                </section>
+              </div>
+              <div class="doc-examples">
+                <section>
+                  <h4>Example</h4>
+                  <h5>Query</h5>
+                  <html>
+                  <head></head>
+                  <body><pre><code class="hljs language-gql"><span class="hljs-symbol"><span class="hljs-keyword">mutation</span> updateUserPreference<span class="hljs-tag">(<span class="hljs-code">$input</span>:<span class="hljs-type"> UserPreferenceUpdateInput!</span>)</span> <span class="hljs-tag">{
+  <span class="hljs-symbol">updateUserPreference<span class="hljs-tag">(input: <span class="hljs-code">$input</span>)</span> <span class="hljs-tag">{
+    <span class="hljs-symbol">preference <span class="hljs-tag">{
+      <span class="hljs-type">...UserPreferenceNodeFragment</span>
+    }</span></span>
+    <span class="hljs-symbol">clientMutationId</span>
+  }</span></span>
+}</span></span>
+</code></pre> </body>
+                  </html>
+                  <h5>Variables</h5>
+                  <html>
+                  <head></head>
+                  <body><pre><code class="hljs language-json">{<span class="hljs-attr">"input"</span>: <span class="hljs-string">UserPreferenceUpdateInput</span>}
+</code></pre> </body>
+                  </html>
+                </section>
+              </div>
+            </div>
+            <div class="doc-row">
+              <div class="doc-copy"> </div>
+              <div class="doc-examples">
+                <section>
+                  <h5>Response </h5>
+                  <html>
+                  <head></head>
+                  <body><pre><code class="hljs language-json">{
+  <span class="hljs-attr">"data"</span>: {
+    <span class="hljs-attr">"updateUserPreference"</span>: {
+      <span class="hljs-attr">"preference"</span>: <span class="hljs-string">UserPreferenceNode</span>,
+      <span class="hljs-attr">"clientMutationId"</span>: <span class="hljs-string">"xyz789"</span>
+    }
+  }
+}
+</code></pre> </body>
+                  </html>
+                </section>
+              </div>
+            </div>
+          </div>
           <span id="tag-types"></span>
           <h1>Types</h1>
           <div id="definition-Boolean" class="definition panel" data-traverse-target="definition-Boolean">
@@ -2925,6 +3543,500 @@ https://api.staging.terraso.org/graphql/
                   <html>
                   <head></head>
                   <body><pre><code class="hljs language-gql"><span class="hljs-symbol"><span class="hljs-literal">false</span></span>
+</code></pre> </body>
+                  </html>
+                </section>
+              </div>
+            </div>
+          </div>
+          <div id="definition-DataEntryDeleteMutationInput" class="definition panel" data-traverse-target="definition-DataEntryDeleteMutationInput">
+            <div class="definition-tags">
+              <a class="label" href="#tag-types">Types</a>
+            </div>
+            <h2 class="panel-title">
+              <a name="/definitions/DataEntryDeleteMutationInput"></a>
+              <p><code>DataEntryDeleteMutationInput</code></p>
+            </h2>
+            <div class="doc-row">
+              <div class="doc-copy">
+                <section class="json-schema-properties-blank">
+                  <table>
+                    <tr>
+                      <th>Input Field</th>
+                      <th>Description</th>
+                    </tr>
+                    <tr>
+                      <td><code>id</code> -
+                        <a href="#definition-ID"><code>ID</code></a>
+                      </td>
+                      <td> </td>
+                    </tr>
+                    <tr>
+                      <td><code>clientMutationId</code> -
+                        <a href="#definition-String"><code>String</code></a>
+                      </td>
+                      <td> </td>
+                    </tr>
+                  </table>
+                </section>
+              </div>
+              <div class="doc-examples">
+                <section>
+                  <h5>Example</h5>
+                  <html>
+                  <head></head>
+                  <body><pre><code class="hljs language-json">{<span class="hljs-attr">"id"</span>: <span class="hljs-string">ID</span>, <span class="hljs-attr">"clientMutationId"</span>: <span class="hljs-string">"abc123"</span>}
+</code></pre> </body>
+                  </html>
+                </section>
+              </div>
+            </div>
+          </div>
+          <div id="definition-DataEntryDeleteMutationPayload" class="definition panel" data-traverse-target="definition-DataEntryDeleteMutationPayload">
+            <div class="definition-tags">
+              <a class="label" href="#tag-types">Types</a>
+            </div>
+            <h2 class="panel-title">
+              <a name="/definitions/DataEntryDeleteMutationPayload"></a>
+              <p><code>DataEntryDeleteMutationPayload</code></p>
+            </h2>
+            <div class="doc-row">
+              <div class="doc-copy">
+                <section class="json-schema-properties-blank">
+                  <table>
+                    <tr>
+                      <th>Field Name</th>
+                      <th>Description</th>
+                    </tr>
+                    <tr>
+                      <td data-property-name="dataEntry"> <code>dataEntry</code> -
+                        <a href="#definition-DataEntryNode"><code>DataEntryNode</code></a>
+                      </td>
+                      <td> </td>
+                    </tr>
+                    <tr>
+                      <td data-property-name="clientMutationId"> <code>clientMutationId</code> -
+                        <a href="#definition-String"><code>String</code></a>
+                      </td>
+                      <td> </td>
+                    </tr>
+                  </table>
+                </section>
+              </div>
+              <div class="doc-examples">
+                <section>
+                  <h5>Example</h5>
+                  <html>
+                  <head></head>
+                  <body><pre><code class="hljs language-json">{<span class="hljs-attr">"dataEntry"</span>: <span class="hljs-string">DataEntryNode</span>, <span class="hljs-attr">"clientMutationId"</span>: <span class="hljs-string">"xyz789"</span>}
+</code></pre> </body>
+                  </html>
+                </section>
+              </div>
+            </div>
+          </div>
+          <div id="definition-DataEntryNode" class="definition panel" data-traverse-target="definition-DataEntryNode">
+            <div class="definition-tags">
+              <a class="label" href="#tag-types">Types</a>
+            </div>
+            <h2 class="panel-title">
+              <a name="/definitions/DataEntryNode"></a>
+              <p><code>DataEntryNode</code></p>
+            </h2>
+            <div class="doc-row">
+              <div class="doc-copy">
+                <section class="json-schema-properties-blank">
+                  <table>
+                    <tr>
+                      <th>Field Name</th>
+                      <th>Description</th>
+                    </tr>
+                    <tr>
+                      <td data-property-name="createdAt"> <code>createdAt</code> -
+                        <a href="#definition-DateTime"><code>DateTime!</code></a>
+                      </td>
+                      <td> </td>
+                    </tr>
+                    <tr>
+                      <td data-property-name="slug"> <code>slug</code> -
+                        <a href="#definition-String"><code>String!</code></a>
+                      </td>
+                      <td> </td>
+                    </tr>
+                    <tr>
+                      <td data-property-name="name"> <code>name</code> -
+                        <a href="#definition-String"><code>String!</code></a>
+                      </td>
+                      <td> </td>
+                    </tr>
+                    <tr>
+                      <td data-property-name="description"> <code>description</code> -
+                        <a href="#definition-String"><code>String!</code></a>
+                      </td>
+                      <td> </td>
+                    </tr>
+                    <tr>
+                      <td data-property-name="resourceType"> <code>resourceType</code> -
+                        <a href="#definition-String"><code>String!</code></a>
+                      </td>
+                      <td> </td>
+                    </tr>
+                    <tr>
+                      <td data-property-name="url"> <code>url</code> -
+                        <a href="#definition-String"><code>String!</code></a>
+                      </td>
+                      <td> </td>
+                    </tr>
+                    <tr>
+                      <td data-property-name="size"> <code>size</code> -
+                        <a href="#definition-Int"><code>Int</code></a>
+                      </td>
+                      <td> </td>
+                    </tr>
+                    <tr>
+                      <td data-property-name="groups"> <code>groups</code> -
+                        <a href="#definition-GroupNodeConnection"><code>GroupNodeConnection!</code></a>
+                      </td>
+                      <td> </td>
+                    </tr>
+                    <tr>
+                      <td colspan="2" class="no-top-border">
+                        <div class="field-arguments">
+                          <p class="field-arguments-header"> Arguments </p>
+                          <div class="field-argument">
+                            <p class="field-argument-name"><code>offset</code> -
+                              <a href="#definition-Int"><code>Int</code></a>
+                            </p>
+                          </div>
+                          <div class="field-argument">
+                            <p class="field-argument-name"><code>before</code> -
+                              <a href="#definition-String"><code>String</code></a>
+                            </p>
+                          </div>
+                          <div class="field-argument">
+                            <p class="field-argument-name"><code>after</code> -
+                              <a href="#definition-String"><code>String</code></a>
+                            </p>
+                          </div>
+                          <div class="field-argument">
+                            <p class="field-argument-name"><code>first</code> -
+                              <a href="#definition-Int"><code>Int</code></a>
+                            </p>
+                          </div>
+                          <div class="field-argument">
+                            <p class="field-argument-name"><code>last</code> -
+                              <a href="#definition-Int"><code>Int</code></a>
+                            </p>
+                          </div>
+                          <div class="field-argument">
+                            <p class="field-argument-name"><code>name</code> -
+                              <a href="#definition-String"><code>String</code></a>
+                            </p>
+                          </div>
+                          <div class="field-argument">
+                            <p class="field-argument-name"><code>name_Icontains</code> -
+                              <a href="#definition-String"><code>String</code></a>
+                            </p>
+                          </div>
+                          <div class="field-argument">
+                            <p class="field-argument-name"><code>name_Istartswith</code> -
+                              <a href="#definition-String"><code>String</code></a>
+                            </p>
+                          </div>
+                          <div class="field-argument">
+                            <p class="field-argument-name"><code>slug</code> -
+                              <a href="#definition-String"><code>String</code></a>
+                            </p>
+                          </div>
+                          <div class="field-argument">
+                            <p class="field-argument-name"><code>slug_Icontains</code> -
+                              <a href="#definition-String"><code>String</code></a>
+                            </p>
+                          </div>
+                          <div class="field-argument">
+                            <p class="field-argument-name"><code>description_Icontains</code> -
+                              <a href="#definition-String"><code>String</code></a>
+                            </p>
+                          </div>
+                          <div class="field-argument">
+                            <p class="field-argument-name"><code>memberships_Email</code> -
+                              <a href="#definition-String"><code>String</code></a>
+                            </p>
+                          </div>
+                          <div class="field-argument">
+                            <p class="field-argument-name"><code>associatedLandscapes_IsDefaultLandscapeGroup</code> -
+                              <a href="#definition-Boolean"><code>Boolean</code></a>
+                            </p>
+                          </div>
+                          <div class="field-argument">
+                            <p class="field-argument-name"><code>associatedLandscapes_Isnull</code> -
+                              <a href="#definition-Boolean"><code>Boolean</code></a>
+                            </p>
+                          </div>
+                        </div>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td data-property-name="createdBy"> <code>createdBy</code> -
+                        <a href="#definition-UserNode"><code>UserNode!</code></a>
+                      </td>
+                      <td> </td>
+                    </tr>
+                    <tr>
+                      <td data-property-name="id"> <code>id</code> -
+                        <a href="#definition-ID"><code>ID!</code></a>
+                      </td>
+                      <td> </td>
+                    </tr>
+                  </table>
+                </section>
+              </div>
+              <div class="doc-examples">
+                <section>
+                  <h5>Example</h5>
+                  <html>
+                  <head></head>
+                  <body><pre><code class="hljs language-json">{
+  <span class="hljs-attr">"createdAt"</span>: <span class="hljs-string">DateTime</span>,
+  <span class="hljs-attr">"slug"</span>: <span class="hljs-string">"xyz789"</span>,
+  <span class="hljs-attr">"name"</span>: <span class="hljs-string">"abc123"</span>,
+  <span class="hljs-attr">"description"</span>: <span class="hljs-string">"xyz789"</span>,
+  <span class="hljs-attr">"resourceType"</span>: <span class="hljs-string">"xyz789"</span>,
+  <span class="hljs-attr">"url"</span>: <span class="hljs-string">"abc123"</span>,
+  <span class="hljs-attr">"size"</span>: <span class="hljs-number">123</span>,
+  <span class="hljs-attr">"groups"</span>: <span class="hljs-string">GroupNodeConnection</span>,
+  <span class="hljs-attr">"createdBy"</span>: <span class="hljs-string">UserNode</span>,
+  <span class="hljs-attr">"id"</span>: <span class="hljs-string">ID</span>
+}
+</code></pre> </body>
+                  </html>
+                </section>
+              </div>
+            </div>
+          </div>
+          <div id="definition-DataEntryNodeConnection" class="definition panel" data-traverse-target="definition-DataEntryNodeConnection">
+            <div class="definition-tags">
+              <a class="label" href="#tag-types">Types</a>
+            </div>
+            <h2 class="panel-title">
+              <a name="/definitions/DataEntryNodeConnection"></a>
+              <p><code>DataEntryNodeConnection</code></p>
+            </h2>
+            <div class="doc-row">
+              <div class="doc-copy">
+                <section class="json-schema-properties-blank">
+                  <table>
+                    <tr>
+                      <th>Field Name</th>
+                      <th>Description</th>
+                    </tr>
+                    <tr>
+                      <td data-property-name="pageInfo"> <code>pageInfo</code> -
+                        <a href="#definition-PageInfo"><code>PageInfo!</code></a>
+                      </td>
+                      <td> Pagination data for this connection. </td>
+                    </tr>
+                    <tr>
+                      <td data-property-name="edges"> <code>edges</code> -
+                        <a href="#definition-DataEntryNodeEdge"><code>[DataEntryNodeEdge]!</code></a>
+                      </td>
+                      <td> Contains the nodes in this connection. </td>
+                    </tr>
+                    <tr>
+                      <td data-property-name="totalCount"> <code>totalCount</code> -
+                        <a href="#definition-Int"><code>Int</code></a>
+                      </td>
+                      <td> </td>
+                    </tr>
+                  </table>
+                </section>
+              </div>
+              <div class="doc-examples">
+                <section>
+                  <h5>Example</h5>
+                  <html>
+                  <head></head>
+                  <body><pre><code class="hljs language-json">{
+  <span class="hljs-attr">"pageInfo"</span>: <span class="hljs-string">PageInfo</span>,
+  <span class="hljs-attr">"edges"</span>: [<span class="hljs-string">DataEntryNodeEdge</span>],
+  <span class="hljs-attr">"totalCount"</span>: <span class="hljs-number">123</span>
+}
+</code></pre> </body>
+                  </html>
+                </section>
+              </div>
+            </div>
+          </div>
+          <div id="definition-DataEntryNodeEdge" class="definition panel" data-traverse-target="definition-DataEntryNodeEdge">
+            <div class="definition-tags">
+              <a class="label" href="#tag-types">Types</a>
+            </div>
+            <h2 class="panel-title">
+              <a name="/definitions/DataEntryNodeEdge"></a>
+              <p><code>DataEntryNodeEdge</code></p>
+            </h2>
+            <div class="doc-row">
+              <div class="doc-copy">
+                <section class="json-schema-description">
+                  <p>A Relay edge containing a <code>DataEntryNode</code> and its cursor.</p>
+                </section>
+                <section class="json-schema-properties-blank">
+                  <table>
+                    <tr>
+                      <th>Field Name</th>
+                      <th>Description</th>
+                    </tr>
+                    <tr>
+                      <td data-property-name="node"> <code>node</code> -
+                        <a href="#definition-DataEntryNode"><code>DataEntryNode</code></a>
+                      </td>
+                      <td> The item at the end of the edge </td>
+                    </tr>
+                    <tr>
+                      <td data-property-name="cursor"> <code>cursor</code> -
+                        <a href="#definition-String"><code>String!</code></a>
+                      </td>
+                      <td> A cursor for use in pagination </td>
+                    </tr>
+                  </table>
+                </section>
+              </div>
+              <div class="doc-examples">
+                <section>
+                  <h5>Example</h5>
+                  <html>
+                  <head></head>
+                  <body><pre><code class="hljs language-json">{<span class="hljs-attr">"node"</span>: <span class="hljs-string">DataEntryNode</span>, <span class="hljs-attr">"cursor"</span>: <span class="hljs-string">"xyz789"</span>}
+</code></pre> </body>
+                  </html>
+                </section>
+              </div>
+            </div>
+          </div>
+          <div id="definition-DataEntryUpdateMutationInput" class="definition panel" data-traverse-target="definition-DataEntryUpdateMutationInput">
+            <div class="definition-tags">
+              <a class="label" href="#tag-types">Types</a>
+            </div>
+            <h2 class="panel-title">
+              <a name="/definitions/DataEntryUpdateMutationInput"></a>
+              <p><code>DataEntryUpdateMutationInput</code></p>
+            </h2>
+            <div class="doc-row">
+              <div class="doc-copy">
+                <section class="json-schema-properties-blank">
+                  <table>
+                    <tr>
+                      <th>Input Field</th>
+                      <th>Description</th>
+                    </tr>
+                    <tr>
+                      <td><code>id</code> -
+                        <a href="#definition-ID"><code>ID!</code></a>
+                      </td>
+                      <td> </td>
+                    </tr>
+                    <tr>
+                      <td><code>name</code> -
+                        <a href="#definition-String"><code>String</code></a>
+                      </td>
+                      <td> </td>
+                    </tr>
+                    <tr>
+                      <td><code>description</code> -
+                        <a href="#definition-String"><code>String</code></a>
+                      </td>
+                      <td> </td>
+                    </tr>
+                    <tr>
+                      <td><code>clientMutationId</code> -
+                        <a href="#definition-String"><code>String</code></a>
+                      </td>
+                      <td> </td>
+                    </tr>
+                  </table>
+                </section>
+              </div>
+              <div class="doc-examples">
+                <section>
+                  <h5>Example</h5>
+                  <html>
+                  <head></head>
+                  <body><pre><code class="hljs language-json">{
+  <span class="hljs-attr">"id"</span>: <span class="hljs-string">ID</span>,
+  <span class="hljs-attr">"name"</span>: <span class="hljs-string">"xyz789"</span>,
+  <span class="hljs-attr">"description"</span>: <span class="hljs-string">"abc123"</span>,
+  <span class="hljs-attr">"clientMutationId"</span>: <span class="hljs-string">"xyz789"</span>
+}
+</code></pre> </body>
+                  </html>
+                </section>
+              </div>
+            </div>
+          </div>
+          <div id="definition-DataEntryUpdateMutationPayload" class="definition panel" data-traverse-target="definition-DataEntryUpdateMutationPayload">
+            <div class="definition-tags">
+              <a class="label" href="#tag-types">Types</a>
+            </div>
+            <h2 class="panel-title">
+              <a name="/definitions/DataEntryUpdateMutationPayload"></a>
+              <p><code>DataEntryUpdateMutationPayload</code></p>
+            </h2>
+            <div class="doc-row">
+              <div class="doc-copy">
+                <section class="json-schema-properties-blank">
+                  <table>
+                    <tr>
+                      <th>Field Name</th>
+                      <th>Description</th>
+                    </tr>
+                    <tr>
+                      <td data-property-name="dataEntry"> <code>dataEntry</code> -
+                        <a href="#definition-DataEntryNode"><code>DataEntryNode</code></a>
+                      </td>
+                      <td> </td>
+                    </tr>
+                    <tr>
+                      <td data-property-name="clientMutationId"> <code>clientMutationId</code> -
+                        <a href="#definition-String"><code>String</code></a>
+                      </td>
+                      <td> </td>
+                    </tr>
+                  </table>
+                </section>
+              </div>
+              <div class="doc-examples">
+                <section>
+                  <h5>Example</h5>
+                  <html>
+                  <head></head>
+                  <body><pre><code class="hljs language-json">{<span class="hljs-attr">"dataEntry"</span>: <span class="hljs-string">DataEntryNode</span>, <span class="hljs-attr">"clientMutationId"</span>: <span class="hljs-string">"abc123"</span>}
+</code></pre> </body>
+                  </html>
+                </section>
+              </div>
+            </div>
+          </div>
+          <div id="definition-DateTime" class="definition panel" data-traverse-target="definition-DateTime">
+            <div class="definition-tags">
+              <a class="label" href="#tag-types">Types</a>
+            </div>
+            <h2 class="panel-title">
+              <a name="/definitions/DateTime"></a>
+              <p><code>DateTime</code></p>
+            </h2>
+            <div class="doc-row">
+              <div class="doc-copy">
+                <section class="json-schema-description">
+                  <p>The <code>DateTime</code> scalar type represents a DateTime value as specified by
+                    <a href="https://en.wikipedia.org/wiki/ISO_8601">iso8601</a>.</p>
+                </section>
+              </div>
+              <div class="doc-examples">
+                <section>
+                  <h5>Example</h5>
+                  <html>
+                  <head></head>
+                  <body><pre><code class="hljs language-gql"><span class="hljs-symbol">object</span>
 </code></pre> </body>
                   </html>
                 </section>
@@ -2986,10 +4098,10 @@ https://api.staging.terraso.org/graphql/
                   <html>
                   <head></head>
                   <body><pre><code class="hljs language-json">{
-  <span class="hljs-attr">"name"</span>: <span class="hljs-string">"abc123"</span>,
-  <span class="hljs-attr">"description"</span>: <span class="hljs-string">"abc123"</span>,
-  <span class="hljs-attr">"website"</span>: <span class="hljs-string">"abc123"</span>,
-  <span class="hljs-attr">"email"</span>: <span class="hljs-string">"abc123"</span>,
+  <span class="hljs-attr">"name"</span>: <span class="hljs-string">"xyz789"</span>,
+  <span class="hljs-attr">"description"</span>: <span class="hljs-string">"xyz789"</span>,
+  <span class="hljs-attr">"website"</span>: <span class="hljs-string">"xyz789"</span>,
+  <span class="hljs-attr">"email"</span>: <span class="hljs-string">"xyz789"</span>,
   <span class="hljs-attr">"clientMutationId"</span>: <span class="hljs-string">"abc123"</span>
 }
 </code></pre> </body>
@@ -3034,7 +4146,7 @@ https://api.staging.terraso.org/graphql/
                   <h5>Example</h5>
                   <html>
                   <head></head>
-                  <body><pre><code class="hljs language-json">{<span class="hljs-attr">"group"</span>: <span class="hljs-string">GroupNode</span>, <span class="hljs-attr">"clientMutationId"</span>: <span class="hljs-string">"xyz789"</span>}
+                  <body><pre><code class="hljs language-json">{<span class="hljs-attr">"group"</span>: <span class="hljs-string">GroupNode</span>, <span class="hljs-attr">"clientMutationId"</span>: <span class="hljs-string">"abc123"</span>}
 </code></pre> </body>
                   </html>
                 </section>
@@ -3132,7 +4244,7 @@ https://api.staging.terraso.org/graphql/
                   <head></head>
                   <body><pre><code class="hljs language-json">{
   <span class="hljs-attr">"groupAssociation"</span>: <span class="hljs-string">GroupAssociationNode</span>,
-  <span class="hljs-attr">"clientMutationId"</span>: <span class="hljs-string">"abc123"</span>
+  <span class="hljs-attr">"clientMutationId"</span>: <span class="hljs-string">"xyz789"</span>
 }
 </code></pre> </body>
                   </html>
@@ -3221,7 +4333,7 @@ https://api.staging.terraso.org/graphql/
                   <head></head>
                   <body><pre><code class="hljs language-json">{
   <span class="hljs-attr">"groupAssociation"</span>: <span class="hljs-string">GroupAssociationNode</span>,
-  <span class="hljs-attr">"clientMutationId"</span>: <span class="hljs-string">"abc123"</span>
+  <span class="hljs-attr">"clientMutationId"</span>: <span class="hljs-string">"xyz789"</span>
 }
 </code></pre> </body>
                   </html>
@@ -3374,7 +4486,7 @@ https://api.staging.terraso.org/graphql/
                   <h5>Example</h5>
                   <html>
                   <head></head>
-                  <body><pre><code class="hljs language-json">{<span class="hljs-attr">"node"</span>: <span class="hljs-string">GroupAssociationNode</span>, <span class="hljs-attr">"cursor"</span>: <span class="hljs-string">"xyz789"</span>}
+                  <body><pre><code class="hljs language-json">{<span class="hljs-attr">"node"</span>: <span class="hljs-string">GroupAssociationNode</span>, <span class="hljs-attr">"cursor"</span>: <span class="hljs-string">"abc123"</span>}
 </code></pre> </body>
                   </html>
                 </section>
@@ -3782,6 +4894,84 @@ https://api.staging.terraso.org/graphql/
                       </td>
                     </tr>
                     <tr>
+                      <td data-property-name="dataEntries"> <code>dataEntries</code> -
+                        <a href="#definition-DataEntryNodeConnection"><code>DataEntryNodeConnection!</code></a>
+                      </td>
+                      <td> </td>
+                    </tr>
+                    <tr>
+                      <td colspan="2" class="no-top-border">
+                        <div class="field-arguments">
+                          <p class="field-arguments-header"> Arguments </p>
+                          <div class="field-argument">
+                            <p class="field-argument-name"><code>offset</code> -
+                              <a href="#definition-Int"><code>Int</code></a>
+                            </p>
+                          </div>
+                          <div class="field-argument">
+                            <p class="field-argument-name"><code>before</code> -
+                              <a href="#definition-String"><code>String</code></a>
+                            </p>
+                          </div>
+                          <div class="field-argument">
+                            <p class="field-argument-name"><code>after</code> -
+                              <a href="#definition-String"><code>String</code></a>
+                            </p>
+                          </div>
+                          <div class="field-argument">
+                            <p class="field-argument-name"><code>first</code> -
+                              <a href="#definition-Int"><code>Int</code></a>
+                            </p>
+                          </div>
+                          <div class="field-argument">
+                            <p class="field-argument-name"><code>last</code> -
+                              <a href="#definition-Int"><code>Int</code></a>
+                            </p>
+                          </div>
+                          <div class="field-argument">
+                            <p class="field-argument-name"><code>name_Icontains</code> -
+                              <a href="#definition-String"><code>String</code></a>
+                            </p>
+                          </div>
+                          <div class="field-argument">
+                            <p class="field-argument-name"><code>description_Icontains</code> -
+                              <a href="#definition-String"><code>String</code></a>
+                            </p>
+                          </div>
+                          <div class="field-argument">
+                            <p class="field-argument-name"><code>slug</code> -
+                              <a href="#definition-String"><code>String</code></a>
+                            </p>
+                          </div>
+                          <div class="field-argument">
+                            <p class="field-argument-name"><code>slug_Icontains</code> -
+                              <a href="#definition-String"><code>String</code></a>
+                            </p>
+                          </div>
+                          <div class="field-argument">
+                            <p class="field-argument-name"><code>url_Icontains</code> -
+                              <a href="#definition-String"><code>String</code></a>
+                            </p>
+                          </div>
+                          <div class="field-argument">
+                            <p class="field-argument-name"><code>groups_Slug</code> -
+                              <a href="#definition-String"><code>String</code></a>
+                            </p>
+                          </div>
+                          <div class="field-argument">
+                            <p class="field-argument-name"><code>groups_Slug_Icontains</code> -
+                              <a href="#definition-String"><code>String</code></a>
+                            </p>
+                          </div>
+                          <div class="field-argument">
+                            <p class="field-argument-name"><code>groups_Id</code> -
+                              <a href="#definition-UUID"><code>UUID</code></a>
+                            </p>
+                          </div>
+                        </div>
+                      </td>
+                    </tr>
+                    <tr>
                       <td data-property-name="id"> <code>id</code> -
                         <a href="#definition-ID"><code>ID!</code></a>
                       </td>
@@ -3796,16 +4986,17 @@ https://api.staging.terraso.org/graphql/
                   <html>
                   <head></head>
                   <body><pre><code class="hljs language-json">{
-  <span class="hljs-attr">"slug"</span>: <span class="hljs-string">"xyz789"</span>,
-  <span class="hljs-attr">"name"</span>: <span class="hljs-string">"abc123"</span>,
-  <span class="hljs-attr">"description"</span>: <span class="hljs-string">"xyz789"</span>,
-  <span class="hljs-attr">"website"</span>: <span class="hljs-string">"xyz789"</span>,
-  <span class="hljs-attr">"email"</span>: <span class="hljs-string">"xyz789"</span>,
+  <span class="hljs-attr">"slug"</span>: <span class="hljs-string">"abc123"</span>,
+  <span class="hljs-attr">"name"</span>: <span class="hljs-string">"xyz789"</span>,
+  <span class="hljs-attr">"description"</span>: <span class="hljs-string">"abc123"</span>,
+  <span class="hljs-attr">"website"</span>: <span class="hljs-string">"abc123"</span>,
+  <span class="hljs-attr">"email"</span>: <span class="hljs-string">"abc123"</span>,
   <span class="hljs-attr">"createdBy"</span>: <span class="hljs-string">UserNode</span>,
   <span class="hljs-attr">"associationsAsParent"</span>: <span class="hljs-string">GroupAssociationNodeConnection</span>,
   <span class="hljs-attr">"associationsAsChild"</span>: <span class="hljs-string">GroupAssociationNodeConnection</span>,
   <span class="hljs-attr">"memberships"</span>: <span class="hljs-string">MembershipNodeConnection</span>,
   <span class="hljs-attr">"associatedLandscapes"</span>: <span class="hljs-string">LandscapeGroupNodeConnection</span>,
+  <span class="hljs-attr">"dataEntries"</span>: <span class="hljs-string">DataEntryNodeConnection</span>,
   <span class="hljs-attr">"id"</span>: <span class="hljs-string">ID</span>
 }
 </code></pre> </body>
@@ -3859,7 +5050,7 @@ https://api.staging.terraso.org/graphql/
                   <body><pre><code class="hljs language-json">{
   <span class="hljs-attr">"pageInfo"</span>: <span class="hljs-string">PageInfo</span>,
   <span class="hljs-attr">"edges"</span>: [<span class="hljs-string">GroupNodeEdge</span>],
-  <span class="hljs-attr">"totalCount"</span>: <span class="hljs-number">987</span>
+  <span class="hljs-attr">"totalCount"</span>: <span class="hljs-number">123</span>
 }
 </code></pre> </body>
                   </html>
@@ -3906,7 +5097,7 @@ https://api.staging.terraso.org/graphql/
                   <h5>Example</h5>
                   <html>
                   <head></head>
-                  <body><pre><code class="hljs language-json">{<span class="hljs-attr">"node"</span>: <span class="hljs-string">GroupNode</span>, <span class="hljs-attr">"cursor"</span>: <span class="hljs-string">"abc123"</span>}
+                  <body><pre><code class="hljs language-json">{<span class="hljs-attr">"node"</span>: <span class="hljs-string">GroupNode</span>, <span class="hljs-attr">"cursor"</span>: <span class="hljs-string">"xyz789"</span>}
 </code></pre> </body>
                   </html>
                 </section>
@@ -3977,9 +5168,9 @@ https://api.staging.terraso.org/graphql/
   <span class="hljs-attr">"id"</span>: <span class="hljs-string">ID</span>,
   <span class="hljs-attr">"name"</span>: <span class="hljs-string">"abc123"</span>,
   <span class="hljs-attr">"description"</span>: <span class="hljs-string">"xyz789"</span>,
-  <span class="hljs-attr">"website"</span>: <span class="hljs-string">"abc123"</span>,
+  <span class="hljs-attr">"website"</span>: <span class="hljs-string">"xyz789"</span>,
   <span class="hljs-attr">"email"</span>: <span class="hljs-string">"abc123"</span>,
-  <span class="hljs-attr">"clientMutationId"</span>: <span class="hljs-string">"abc123"</span>
+  <span class="hljs-attr">"clientMutationId"</span>: <span class="hljs-string">"xyz789"</span>
 }
 </code></pre> </body>
                   </html>
@@ -4152,6 +5343,12 @@ https://api.staging.terraso.org/graphql/
                       <td> </td>
                     </tr>
                     <tr>
+                      <td><code>areaPolygon</code> -
+                        <a href="#definition-JSONString"><code>JSONString</code></a>
+                      </td>
+                      <td> </td>
+                    </tr>
+                    <tr>
                       <td><code>clientMutationId</code> -
                         <a href="#definition-String"><code>String</code></a>
                       </td>
@@ -4168,8 +5365,9 @@ https://api.staging.terraso.org/graphql/
                   <body><pre><code class="hljs language-json">{
   <span class="hljs-attr">"name"</span>: <span class="hljs-string">"abc123"</span>,
   <span class="hljs-attr">"description"</span>: <span class="hljs-string">"abc123"</span>,
-  <span class="hljs-attr">"website"</span>: <span class="hljs-string">"xyz789"</span>,
-  <span class="hljs-attr">"location"</span>: <span class="hljs-string">"abc123"</span>,
+  <span class="hljs-attr">"website"</span>: <span class="hljs-string">"abc123"</span>,
+  <span class="hljs-attr">"location"</span>: <span class="hljs-string">"xyz789"</span>,
+  <span class="hljs-attr">"areaPolygon"</span>: <span class="hljs-string">JSONString</span>,
   <span class="hljs-attr">"clientMutationId"</span>: <span class="hljs-string">"abc123"</span>
 }
 </code></pre> </body>
@@ -4300,7 +5498,7 @@ https://api.staging.terraso.org/graphql/
                   <h5>Example</h5>
                   <html>
                   <head></head>
-                  <body><pre><code class="hljs language-json">{<span class="hljs-attr">"landscape"</span>: <span class="hljs-string">LandscapeNode</span>, <span class="hljs-attr">"clientMutationId"</span>: <span class="hljs-string">"xyz789"</span>}
+                  <body><pre><code class="hljs language-json">{<span class="hljs-attr">"landscape"</span>: <span class="hljs-string">LandscapeNode</span>, <span class="hljs-attr">"clientMutationId"</span>: <span class="hljs-string">"abc123"</span>}
 </code></pre> </body>
                   </html>
                 </section>
@@ -4349,7 +5547,7 @@ https://api.staging.terraso.org/graphql/
                   <h5>Example</h5>
                   <html>
                   <head></head>
-                  <body><pre><code class="hljs language-json">{<span class="hljs-attr">"landscapeSlug"</span>: <span class="hljs-string">"xyz789"</span>, <span class="hljs-attr">"groupSlug"</span>: <span class="hljs-string">"xyz789"</span>, <span class="hljs-attr">"clientMutationId"</span>: <span class="hljs-string">"abc123"</span>}
+                  <body><pre><code class="hljs language-json">{<span class="hljs-attr">"landscapeSlug"</span>: <span class="hljs-string">"xyz789"</span>, <span class="hljs-attr">"groupSlug"</span>: <span class="hljs-string">"abc123"</span>, <span class="hljs-attr">"clientMutationId"</span>: <span class="hljs-string">"xyz789"</span>}
 </code></pre> </body>
                   </html>
                 </section>
@@ -4438,7 +5636,7 @@ https://api.staging.terraso.org/graphql/
                   <h5>Example</h5>
                   <html>
                   <head></head>
-                  <body><pre><code class="hljs language-json">{<span class="hljs-attr">"id"</span>: <span class="hljs-string">ID</span>, <span class="hljs-attr">"clientMutationId"</span>: <span class="hljs-string">"xyz789"</span>}
+                  <body><pre><code class="hljs language-json">{<span class="hljs-attr">"id"</span>: <span class="hljs-string">ID</span>, <span class="hljs-attr">"clientMutationId"</span>: <span class="hljs-string">"abc123"</span>}
 </code></pre> </body>
                   </html>
                 </section>
@@ -4596,7 +5794,7 @@ https://api.staging.terraso.org/graphql/
                   <body><pre><code class="hljs language-json">{
   <span class="hljs-attr">"pageInfo"</span>: <span class="hljs-string">PageInfo</span>,
   <span class="hljs-attr">"edges"</span>: [<span class="hljs-string">LandscapeGroupNodeEdge</span>],
-  <span class="hljs-attr">"totalCount"</span>: <span class="hljs-number">987</span>
+  <span class="hljs-attr">"totalCount"</span>: <span class="hljs-number">123</span>
 }
 </code></pre> </body>
                   </html>
@@ -4643,7 +5841,7 @@ https://api.staging.terraso.org/graphql/
                   <h5>Example</h5>
                   <html>
                   <head></head>
-                  <body><pre><code class="hljs language-json">{<span class="hljs-attr">"node"</span>: <span class="hljs-string">LandscapeGroupNode</span>, <span class="hljs-attr">"cursor"</span>: <span class="hljs-string">"abc123"</span>}
+                  <body><pre><code class="hljs language-json">{<span class="hljs-attr">"node"</span>: <span class="hljs-string">LandscapeGroupNode</span>, <span class="hljs-attr">"cursor"</span>: <span class="hljs-string">"xyz789"</span>}
 </code></pre> </body>
                   </html>
                 </section>
@@ -4786,8 +5984,8 @@ https://api.staging.terraso.org/graphql/
                   <html>
                   <head></head>
                   <body><pre><code class="hljs language-json">{
-  <span class="hljs-attr">"slug"</span>: <span class="hljs-string">"xyz789"</span>,
-  <span class="hljs-attr">"name"</span>: <span class="hljs-string">"abc123"</span>,
+  <span class="hljs-attr">"slug"</span>: <span class="hljs-string">"abc123"</span>,
+  <span class="hljs-attr">"name"</span>: <span class="hljs-string">"xyz789"</span>,
   <span class="hljs-attr">"description"</span>: <span class="hljs-string">"xyz789"</span>,
   <span class="hljs-attr">"website"</span>: <span class="hljs-string">"abc123"</span>,
   <span class="hljs-attr">"location"</span>: <span class="hljs-string">"xyz789"</span>,
@@ -4847,7 +6045,7 @@ https://api.staging.terraso.org/graphql/
                   <body><pre><code class="hljs language-json">{
   <span class="hljs-attr">"pageInfo"</span>: <span class="hljs-string">PageInfo</span>,
   <span class="hljs-attr">"edges"</span>: [<span class="hljs-string">LandscapeNodeEdge</span>],
-  <span class="hljs-attr">"totalCount"</span>: <span class="hljs-number">123</span>
+  <span class="hljs-attr">"totalCount"</span>: <span class="hljs-number">987</span>
 }
 </code></pre> </body>
                   </html>
@@ -4948,6 +6146,12 @@ https://api.staging.terraso.org/graphql/
                       <td> </td>
                     </tr>
                     <tr>
+                      <td><code>areaPolygon</code> -
+                        <a href="#definition-JSONString"><code>JSONString</code></a>
+                      </td>
+                      <td> </td>
+                    </tr>
+                    <tr>
                       <td><code>clientMutationId</code> -
                         <a href="#definition-String"><code>String</code></a>
                       </td>
@@ -4965,8 +6169,9 @@ https://api.staging.terraso.org/graphql/
   <span class="hljs-attr">"id"</span>: <span class="hljs-string">ID</span>,
   <span class="hljs-attr">"name"</span>: <span class="hljs-string">"xyz789"</span>,
   <span class="hljs-attr">"description"</span>: <span class="hljs-string">"xyz789"</span>,
-  <span class="hljs-attr">"website"</span>: <span class="hljs-string">"xyz789"</span>,
+  <span class="hljs-attr">"website"</span>: <span class="hljs-string">"abc123"</span>,
   <span class="hljs-attr">"location"</span>: <span class="hljs-string">"xyz789"</span>,
+  <span class="hljs-attr">"areaPolygon"</span>: <span class="hljs-string">JSONString</span>,
   <span class="hljs-attr">"clientMutationId"</span>: <span class="hljs-string">"abc123"</span>
 }
 </code></pre> </body>
@@ -5011,7 +6216,7 @@ https://api.staging.terraso.org/graphql/
                   <h5>Example</h5>
                   <html>
                   <head></head>
-                  <body><pre><code class="hljs language-json">{<span class="hljs-attr">"landscape"</span>: <span class="hljs-string">LandscapeNode</span>, <span class="hljs-attr">"clientMutationId"</span>: <span class="hljs-string">"abc123"</span>}
+                  <body><pre><code class="hljs language-json">{<span class="hljs-attr">"landscape"</span>: <span class="hljs-string">LandscapeNode</span>, <span class="hljs-attr">"clientMutationId"</span>: <span class="hljs-string">"xyz789"</span>}
 </code></pre> </body>
                   </html>
                 </section>
@@ -5068,9 +6273,9 @@ https://api.staging.terraso.org/graphql/
                   <head></head>
                   <body><pre><code class="hljs language-json">{
   <span class="hljs-attr">"userEmail"</span>: <span class="hljs-string">"xyz789"</span>,
-  <span class="hljs-attr">"groupSlug"</span>: <span class="hljs-string">"abc123"</span>,
+  <span class="hljs-attr">"groupSlug"</span>: <span class="hljs-string">"xyz789"</span>,
   <span class="hljs-attr">"userRole"</span>: <span class="hljs-string">"abc123"</span>,
-  <span class="hljs-attr">"clientMutationId"</span>: <span class="hljs-string">"xyz789"</span>
+  <span class="hljs-attr">"clientMutationId"</span>: <span class="hljs-string">"abc123"</span>
 }
 </code></pre> </body>
                   </html>
@@ -5160,7 +6365,7 @@ https://api.staging.terraso.org/graphql/
                   <h5>Example</h5>
                   <html>
                   <head></head>
-                  <body><pre><code class="hljs language-json">{<span class="hljs-attr">"id"</span>: <span class="hljs-string">ID</span>, <span class="hljs-attr">"clientMutationId"</span>: <span class="hljs-string">"abc123"</span>}
+                  <body><pre><code class="hljs language-json">{<span class="hljs-attr">"id"</span>: <span class="hljs-string">ID</span>, <span class="hljs-attr">"clientMutationId"</span>: <span class="hljs-string">"xyz789"</span>}
 </code></pre> </body>
                   </html>
                 </section>
@@ -5205,7 +6410,7 @@ https://api.staging.terraso.org/graphql/
                   <head></head>
                   <body><pre><code class="hljs language-json">{
   <span class="hljs-attr">"membership"</span>: <span class="hljs-string">MembershipNode</span>,
-  <span class="hljs-attr">"clientMutationId"</span>: <span class="hljs-string">"xyz789"</span>
+  <span class="hljs-attr">"clientMutationId"</span>: <span class="hljs-string">"abc123"</span>
 }
 </code></pre> </body>
                   </html>
@@ -5416,7 +6621,7 @@ https://api.staging.terraso.org/graphql/
                   <head></head>
                   <body><pre><code class="hljs language-json">{
   <span class="hljs-attr">"id"</span>: <span class="hljs-string">ID</span>,
-  <span class="hljs-attr">"userRole"</span>: <span class="hljs-string">"xyz789"</span>,
+  <span class="hljs-attr">"userRole"</span>: <span class="hljs-string">"abc123"</span>,
   <span class="hljs-attr">"clientMutationId"</span>: <span class="hljs-string">"abc123"</span>
 }
 </code></pre> </body>
@@ -5600,9 +6805,9 @@ https://api.staging.terraso.org/graphql/
                   <head></head>
                   <body><pre><code class="hljs language-json">{
   <span class="hljs-attr">"hasNextPage"</span>: <span class="hljs-literal">false</span>,
-  <span class="hljs-attr">"hasPreviousPage"</span>: <span class="hljs-literal">false</span>,
+  <span class="hljs-attr">"hasPreviousPage"</span>: <span class="hljs-literal">true</span>,
   <span class="hljs-attr">"startCursor"</span>: <span class="hljs-string">"xyz789"</span>,
-  <span class="hljs-attr">"endCursor"</span>: <span class="hljs-string">"xyz789"</span>
+  <span class="hljs-attr">"endCursor"</span>: <span class="hljs-string">"abc123"</span>
 }
 </code></pre> </body>
                   </html>
@@ -5622,6 +6827,32 @@ https://api.staging.terraso.org/graphql/
               <div class="doc-copy">
                 <section class="json-schema-description">
                   <p>The <code>String</code> scalar type represents textual data, represented as UTF-8 character sequences. The String type is most often used by GraphQL to represent free-form human-readable text.</p>
+                </section>
+              </div>
+            </div>
+          </div>
+          <div id="definition-UUID" class="definition panel" data-traverse-target="definition-UUID">
+            <div class="definition-tags">
+              <a class="label" href="#tag-types">Types</a>
+            </div>
+            <h2 class="panel-title">
+              <a name="/definitions/UUID"></a>
+              <p><code>UUID</code></p>
+            </h2>
+            <div class="doc-row">
+              <div class="doc-copy">
+                <section class="json-schema-description">
+                  <p>Leverages the internal Python implmeentation of UUID (uuid.UUID) to provide native UUID objects in fields, resolvers and input.</p>
+                </section>
+              </div>
+              <div class="doc-examples">
+                <section>
+                  <h5>Example</h5>
+                  <html>
+                  <head></head>
+                  <body><pre><code class="hljs language-gql"><span class="hljs-symbol">object</span>
+</code></pre> </body>
+                  </html>
                 </section>
               </div>
             </div>
@@ -5682,8 +6913,8 @@ https://api.staging.terraso.org/graphql/
                   <head></head>
                   <body><pre><code class="hljs language-json">{
   <span class="hljs-attr">"firstName"</span>: <span class="hljs-string">"xyz789"</span>,
-  <span class="hljs-attr">"lastName"</span>: <span class="hljs-string">"abc123"</span>,
-  <span class="hljs-attr">"email"</span>: <span class="hljs-string">"abc123"</span>,
+  <span class="hljs-attr">"lastName"</span>: <span class="hljs-string">"xyz789"</span>,
+  <span class="hljs-attr">"email"</span>: <span class="hljs-string">"xyz789"</span>,
   <span class="hljs-attr">"password"</span>: <span class="hljs-string">"xyz789"</span>,
   <span class="hljs-attr">"clientMutationId"</span>: <span class="hljs-string">"abc123"</span>
 }
@@ -5863,6 +7094,44 @@ https://api.staging.terraso.org/graphql/
                       <td> </td>
                     </tr>
                     <tr>
+                      <td data-property-name="preferences"> <code>preferences</code> -
+                        <a href="#definition-UserPreferenceNodeConnection"><code>UserPreferenceNodeConnection!</code></a>
+                      </td>
+                      <td> </td>
+                    </tr>
+                    <tr>
+                      <td colspan="2" class="no-top-border">
+                        <div class="field-arguments">
+                          <p class="field-arguments-header"> Arguments </p>
+                          <div class="field-argument">
+                            <p class="field-argument-name"><code>offset</code> -
+                              <a href="#definition-Int"><code>Int</code></a>
+                            </p>
+                          </div>
+                          <div class="field-argument">
+                            <p class="field-argument-name"><code>before</code> -
+                              <a href="#definition-String"><code>String</code></a>
+                            </p>
+                          </div>
+                          <div class="field-argument">
+                            <p class="field-argument-name"><code>after</code> -
+                              <a href="#definition-String"><code>String</code></a>
+                            </p>
+                          </div>
+                          <div class="field-argument">
+                            <p class="field-argument-name"><code>first</code> -
+                              <a href="#definition-Int"><code>Int</code></a>
+                            </p>
+                          </div>
+                          <div class="field-argument">
+                            <p class="field-argument-name"><code>last</code> -
+                              <a href="#definition-Int"><code>Int</code></a>
+                            </p>
+                          </div>
+                        </div>
+                      </td>
+                    </tr>
+                    <tr>
                       <td data-property-name="memberships"> <code>memberships</code> -
                         <a href="#definition-MembershipNodeConnection"><code>MembershipNodeConnection!</code></a>
                       </td>
@@ -5962,8 +7231,9 @@ https://api.staging.terraso.org/graphql/
                   <body><pre><code class="hljs language-json">{
   <span class="hljs-attr">"firstName"</span>: <span class="hljs-string">"xyz789"</span>,
   <span class="hljs-attr">"lastName"</span>: <span class="hljs-string">"abc123"</span>,
-  <span class="hljs-attr">"email"</span>: <span class="hljs-string">"abc123"</span>,
-  <span class="hljs-attr">"profileImage"</span>: <span class="hljs-string">"abc123"</span>,
+  <span class="hljs-attr">"email"</span>: <span class="hljs-string">"xyz789"</span>,
+  <span class="hljs-attr">"profileImage"</span>: <span class="hljs-string">"xyz789"</span>,
+  <span class="hljs-attr">"preferences"</span>: <span class="hljs-string">UserPreferenceNodeConnection</span>,
   <span class="hljs-attr">"memberships"</span>: <span class="hljs-string">MembershipNodeConnection</span>,
   <span class="hljs-attr">"id"</span>: <span class="hljs-string">ID</span>
 }
@@ -6072,6 +7342,366 @@ https://api.staging.terraso.org/graphql/
               </div>
             </div>
           </div>
+          <div id="definition-UserPreferenceDeleteInput" class="definition panel" data-traverse-target="definition-UserPreferenceDeleteInput">
+            <div class="definition-tags">
+              <a class="label" href="#tag-types">Types</a>
+            </div>
+            <h2 class="panel-title">
+              <a name="/definitions/UserPreferenceDeleteInput"></a>
+              <p><code>UserPreferenceDeleteInput</code></p>
+            </h2>
+            <div class="doc-row">
+              <div class="doc-copy">
+                <section class="json-schema-properties-blank">
+                  <table>
+                    <tr>
+                      <th>Input Field</th>
+                      <th>Description</th>
+                    </tr>
+                    <tr>
+                      <td><code>userEmail</code> -
+                        <a href="#definition-String"><code>String!</code></a>
+                      </td>
+                      <td> </td>
+                    </tr>
+                    <tr>
+                      <td><code>key</code> -
+                        <a href="#definition-String"><code>String!</code></a>
+                      </td>
+                      <td> </td>
+                    </tr>
+                    <tr>
+                      <td><code>clientMutationId</code> -
+                        <a href="#definition-String"><code>String</code></a>
+                      </td>
+                      <td> </td>
+                    </tr>
+                  </table>
+                </section>
+              </div>
+              <div class="doc-examples">
+                <section>
+                  <h5>Example</h5>
+                  <html>
+                  <head></head>
+                  <body><pre><code class="hljs language-json">{<span class="hljs-attr">"userEmail"</span>: <span class="hljs-string">"abc123"</span>, <span class="hljs-attr">"key"</span>: <span class="hljs-string">"xyz789"</span>, <span class="hljs-attr">"clientMutationId"</span>: <span class="hljs-string">"abc123"</span>}
+</code></pre> </body>
+                  </html>
+                </section>
+              </div>
+            </div>
+          </div>
+          <div id="definition-UserPreferenceDeletePayload" class="definition panel" data-traverse-target="definition-UserPreferenceDeletePayload">
+            <div class="definition-tags">
+              <a class="label" href="#tag-types">Types</a>
+            </div>
+            <h2 class="panel-title">
+              <a name="/definitions/UserPreferenceDeletePayload"></a>
+              <p><code>UserPreferenceDeletePayload</code></p>
+            </h2>
+            <div class="doc-row">
+              <div class="doc-copy">
+                <section class="json-schema-properties-blank">
+                  <table>
+                    <tr>
+                      <th>Field Name</th>
+                      <th>Description</th>
+                    </tr>
+                    <tr>
+                      <td data-property-name="preference"> <code>preference</code> -
+                        <a href="#definition-UserPreferenceNode"><code>UserPreferenceNode</code></a>
+                      </td>
+                      <td> </td>
+                    </tr>
+                    <tr>
+                      <td data-property-name="clientMutationId"> <code>clientMutationId</code> -
+                        <a href="#definition-String"><code>String</code></a>
+                      </td>
+                      <td> </td>
+                    </tr>
+                  </table>
+                </section>
+              </div>
+              <div class="doc-examples">
+                <section>
+                  <h5>Example</h5>
+                  <html>
+                  <head></head>
+                  <body><pre><code class="hljs language-json">{
+  <span class="hljs-attr">"preference"</span>: <span class="hljs-string">UserPreferenceNode</span>,
+  <span class="hljs-attr">"clientMutationId"</span>: <span class="hljs-string">"xyz789"</span>
+}
+</code></pre> </body>
+                  </html>
+                </section>
+              </div>
+            </div>
+          </div>
+          <div id="definition-UserPreferenceNode" class="definition panel" data-traverse-target="definition-UserPreferenceNode">
+            <div class="definition-tags">
+              <a class="label" href="#tag-types">Types</a>
+            </div>
+            <h2 class="panel-title">
+              <a name="/definitions/UserPreferenceNode"></a>
+              <p><code>UserPreferenceNode</code></p>
+            </h2>
+            <div class="doc-row">
+              <div class="doc-copy">
+                <section class="json-schema-properties-blank">
+                  <table>
+                    <tr>
+                      <th>Field Name</th>
+                      <th>Description</th>
+                    </tr>
+                    <tr>
+                      <td data-property-name="key"> <code>key</code> -
+                        <a href="#definition-String"><code>String!</code></a>
+                      </td>
+                      <td> </td>
+                    </tr>
+                    <tr>
+                      <td data-property-name="value"> <code>value</code> -
+                        <a href="#definition-String"><code>String!</code></a>
+                      </td>
+                      <td> </td>
+                    </tr>
+                    <tr>
+                      <td data-property-name="user"> <code>user</code> -
+                        <a href="#definition-UserNode"><code>UserNode!</code></a>
+                      </td>
+                      <td> </td>
+                    </tr>
+                    <tr>
+                      <td data-property-name="id"> <code>id</code> -
+                        <a href="#definition-ID"><code>ID!</code></a>
+                      </td>
+                      <td> </td>
+                    </tr>
+                  </table>
+                </section>
+              </div>
+              <div class="doc-examples">
+                <section>
+                  <h5>Example</h5>
+                  <html>
+                  <head></head>
+                  <body><pre><code class="hljs language-json">{
+  <span class="hljs-attr">"key"</span>: <span class="hljs-string">"xyz789"</span>,
+  <span class="hljs-attr">"value"</span>: <span class="hljs-string">"abc123"</span>,
+  <span class="hljs-attr">"user"</span>: <span class="hljs-string">UserNode</span>,
+  <span class="hljs-attr">"id"</span>: <span class="hljs-string">ID</span>
+}
+</code></pre> </body>
+                  </html>
+                </section>
+              </div>
+            </div>
+          </div>
+          <div id="definition-UserPreferenceNodeConnection" class="definition panel" data-traverse-target="definition-UserPreferenceNodeConnection">
+            <div class="definition-tags">
+              <a class="label" href="#tag-types">Types</a>
+            </div>
+            <h2 class="panel-title">
+              <a name="/definitions/UserPreferenceNodeConnection"></a>
+              <p><code>UserPreferenceNodeConnection</code></p>
+            </h2>
+            <div class="doc-row">
+              <div class="doc-copy">
+                <section class="json-schema-properties-blank">
+                  <table>
+                    <tr>
+                      <th>Field Name</th>
+                      <th>Description</th>
+                    </tr>
+                    <tr>
+                      <td data-property-name="pageInfo"> <code>pageInfo</code> -
+                        <a href="#definition-PageInfo"><code>PageInfo!</code></a>
+                      </td>
+                      <td> Pagination data for this connection. </td>
+                    </tr>
+                    <tr>
+                      <td data-property-name="edges"> <code>edges</code> -
+                        <a href="#definition-UserPreferenceNodeEdge"><code>[UserPreferenceNodeEdge]!</code></a>
+                      </td>
+                      <td> Contains the nodes in this connection. </td>
+                    </tr>
+                    <tr>
+                      <td data-property-name="totalCount"> <code>totalCount</code> -
+                        <a href="#definition-Int"><code>Int</code></a>
+                      </td>
+                      <td> </td>
+                    </tr>
+                  </table>
+                </section>
+              </div>
+              <div class="doc-examples">
+                <section>
+                  <h5>Example</h5>
+                  <html>
+                  <head></head>
+                  <body><pre><code class="hljs language-json">{
+  <span class="hljs-attr">"pageInfo"</span>: <span class="hljs-string">PageInfo</span>,
+  <span class="hljs-attr">"edges"</span>: [<span class="hljs-string">UserPreferenceNodeEdge</span>],
+  <span class="hljs-attr">"totalCount"</span>: <span class="hljs-number">123</span>
+}
+</code></pre> </body>
+                  </html>
+                </section>
+              </div>
+            </div>
+          </div>
+          <div id="definition-UserPreferenceNodeEdge" class="definition panel" data-traverse-target="definition-UserPreferenceNodeEdge">
+            <div class="definition-tags">
+              <a class="label" href="#tag-types">Types</a>
+            </div>
+            <h2 class="panel-title">
+              <a name="/definitions/UserPreferenceNodeEdge"></a>
+              <p><code>UserPreferenceNodeEdge</code></p>
+            </h2>
+            <div class="doc-row">
+              <div class="doc-copy">
+                <section class="json-schema-description">
+                  <p>A Relay edge containing a <code>UserPreferenceNode</code> and its cursor.</p>
+                </section>
+                <section class="json-schema-properties-blank">
+                  <table>
+                    <tr>
+                      <th>Field Name</th>
+                      <th>Description</th>
+                    </tr>
+                    <tr>
+                      <td data-property-name="node"> <code>node</code> -
+                        <a href="#definition-UserPreferenceNode"><code>UserPreferenceNode</code></a>
+                      </td>
+                      <td> The item at the end of the edge </td>
+                    </tr>
+                    <tr>
+                      <td data-property-name="cursor"> <code>cursor</code> -
+                        <a href="#definition-String"><code>String!</code></a>
+                      </td>
+                      <td> A cursor for use in pagination </td>
+                    </tr>
+                  </table>
+                </section>
+              </div>
+              <div class="doc-examples">
+                <section>
+                  <h5>Example</h5>
+                  <html>
+                  <head></head>
+                  <body><pre><code class="hljs language-json">{<span class="hljs-attr">"node"</span>: <span class="hljs-string">UserPreferenceNode</span>, <span class="hljs-attr">"cursor"</span>: <span class="hljs-string">"xyz789"</span>}
+</code></pre> </body>
+                  </html>
+                </section>
+              </div>
+            </div>
+          </div>
+          <div id="definition-UserPreferenceUpdateInput" class="definition panel" data-traverse-target="definition-UserPreferenceUpdateInput">
+            <div class="definition-tags">
+              <a class="label" href="#tag-types">Types</a>
+            </div>
+            <h2 class="panel-title">
+              <a name="/definitions/UserPreferenceUpdateInput"></a>
+              <p><code>UserPreferenceUpdateInput</code></p>
+            </h2>
+            <div class="doc-row">
+              <div class="doc-copy">
+                <section class="json-schema-properties-blank">
+                  <table>
+                    <tr>
+                      <th>Input Field</th>
+                      <th>Description</th>
+                    </tr>
+                    <tr>
+                      <td><code>userEmail</code> -
+                        <a href="#definition-String"><code>String!</code></a>
+                      </td>
+                      <td> </td>
+                    </tr>
+                    <tr>
+                      <td><code>key</code> -
+                        <a href="#definition-String"><code>String!</code></a>
+                      </td>
+                      <td> </td>
+                    </tr>
+                    <tr>
+                      <td><code>value</code> -
+                        <a href="#definition-String"><code>String!</code></a>
+                      </td>
+                      <td> </td>
+                    </tr>
+                    <tr>
+                      <td><code>clientMutationId</code> -
+                        <a href="#definition-String"><code>String</code></a>
+                      </td>
+                      <td> </td>
+                    </tr>
+                  </table>
+                </section>
+              </div>
+              <div class="doc-examples">
+                <section>
+                  <h5>Example</h5>
+                  <html>
+                  <head></head>
+                  <body><pre><code class="hljs language-json">{
+  <span class="hljs-attr">"userEmail"</span>: <span class="hljs-string">"xyz789"</span>,
+  <span class="hljs-attr">"key"</span>: <span class="hljs-string">"xyz789"</span>,
+  <span class="hljs-attr">"value"</span>: <span class="hljs-string">"abc123"</span>,
+  <span class="hljs-attr">"clientMutationId"</span>: <span class="hljs-string">"abc123"</span>
+}
+</code></pre> </body>
+                  </html>
+                </section>
+              </div>
+            </div>
+          </div>
+          <div id="definition-UserPreferenceUpdatePayload" class="definition panel" data-traverse-target="definition-UserPreferenceUpdatePayload">
+            <div class="definition-tags">
+              <a class="label" href="#tag-types">Types</a>
+            </div>
+            <h2 class="panel-title">
+              <a name="/definitions/UserPreferenceUpdatePayload"></a>
+              <p><code>UserPreferenceUpdatePayload</code></p>
+            </h2>
+            <div class="doc-row">
+              <div class="doc-copy">
+                <section class="json-schema-properties-blank">
+                  <table>
+                    <tr>
+                      <th>Field Name</th>
+                      <th>Description</th>
+                    </tr>
+                    <tr>
+                      <td data-property-name="preference"> <code>preference</code> -
+                        <a href="#definition-UserPreferenceNode"><code>UserPreferenceNode</code></a>
+                      </td>
+                      <td> </td>
+                    </tr>
+                    <tr>
+                      <td data-property-name="clientMutationId"> <code>clientMutationId</code> -
+                        <a href="#definition-String"><code>String</code></a>
+                      </td>
+                      <td> </td>
+                    </tr>
+                  </table>
+                </section>
+              </div>
+              <div class="doc-examples">
+                <section>
+                  <h5>Example</h5>
+                  <html>
+                  <head></head>
+                  <body><pre><code class="hljs language-json">{
+  <span class="hljs-attr">"preference"</span>: <span class="hljs-string">UserPreferenceNode</span>,
+  <span class="hljs-attr">"clientMutationId"</span>: <span class="hljs-string">"abc123"</span>
+}
+</code></pre> </body>
+                  </html>
+                </section>
+              </div>
+            </div>
+          </div>
           <div id="definition-UserUpdateMutationInput" class="definition panel" data-traverse-target="definition-UserUpdateMutationInput">
             <div class="definition-tags">
               <a class="label" href="#tag-types">Types</a>
@@ -6134,7 +7764,7 @@ https://api.staging.terraso.org/graphql/
                   <head></head>
                   <body><pre><code class="hljs language-json">{
   <span class="hljs-attr">"id"</span>: <span class="hljs-string">ID</span>,
-  <span class="hljs-attr">"firstName"</span>: <span class="hljs-string">"xyz789"</span>,
+  <span class="hljs-attr">"firstName"</span>: <span class="hljs-string">"abc123"</span>,
   <span class="hljs-attr">"lastName"</span>: <span class="hljs-string">"abc123"</span>,
   <span class="hljs-attr">"email"</span>: <span class="hljs-string">"xyz789"</span>,
   <span class="hljs-attr">"password"</span>: <span class="hljs-string">"abc123"</span>,
@@ -6182,7 +7812,7 @@ https://api.staging.terraso.org/graphql/
                   <h5>Example</h5>
                   <html>
                   <head></head>
-                  <body><pre><code class="hljs language-json">{<span class="hljs-attr">"user"</span>: <span class="hljs-string">UserNode</span>, <span class="hljs-attr">"clientMutationId"</span>: <span class="hljs-string">"abc123"</span>}
+                  <body><pre><code class="hljs language-json">{<span class="hljs-attr">"user"</span>: <span class="hljs-string">UserNode</span>, <span class="hljs-attr">"clientMutationId"</span>: <span class="hljs-string">"xyz789"</span>}
 </code></pre> </body>
                   </html>
                 </section>

@@ -15,6 +15,7 @@ from apps.core.models import (
     Membership,
     User,
 )
+from apps.shared_data.models import DataEntry
 
 pytestmark = pytest.mark.django_db
 
@@ -146,3 +147,29 @@ def make_core_db_records(
     group_associations, landscapes, landscape_groups, memberships, groups, subgroups, users
 ):
     return
+
+
+@pytest.fixture
+def data_entry_current_user(users, groups):
+    creator = users[0]
+    creator_group = groups[0]
+    creator_group.members.add(creator)
+    return mixer.blend(DataEntry, slug=None, created_by=creator, size=100, groups=creator_group)
+
+
+@pytest.fixture
+def data_entry_other_user(users, groups):
+    creator = users[1]
+    creator_group = groups[1]
+    creator_group.members.add(creator)
+    return mixer.blend(DataEntry, slug=None, created_by=creator, size=100, groups=creator_group)
+
+
+@pytest.fixture
+def data_entries(users, groups):
+    creator = users[0]
+    creator_group = groups[0]
+    creator_group.members.add(creator)
+    return mixer.cycle(5).blend(
+        DataEntry, slug=None, created_by=creator, size=100, groups=creator_group
+    )

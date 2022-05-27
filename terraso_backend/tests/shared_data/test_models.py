@@ -1,0 +1,56 @@
+import pytest
+from django.utils.text import slugify
+
+from apps.shared_data.models import DataEntry
+
+pytestmark = pytest.mark.django_db
+
+
+def test_data_entry_string_format_is_its_name(data_entry):
+    assert data_entry.name == str(data_entry)
+
+
+def test_data_entry_is_slugifiable_by_name(data_entry):
+    assert data_entry.slug == slugify(data_entry.name)
+
+
+def test_data_entry_get_s3_object_name(user, data_entry, data_entry_filename):
+    assert data_entry.s3_object_name == f"{user.id}/{data_entry_filename}"
+
+
+def test_data_entry_get_signed_url(settings, data_entry):
+    # Set custom domain to make sure the signed URLs works properly with it set
+    settings.AWS_S3_CUSTOM_DOMAIN = "testing.terraso.org"
+
+    assert data_entry.s3_object_name in data_entry.signed_url
+    assert "X-Amz-Expires" in data_entry.signed_url
+
+
+def test_data_entry_can_be_updated_by_its_creator(user, data_entry):
+    assert user.has_perm(DataEntry.get_perm("change"), obj=data_entry)
+
+
+def test_data_entry_cannot_be_updated_by_non_creator(user, user_b, data_entry_user_b):
+    assert not user.has_perm(DataEntry.get_perm("change"), obj=data_entry_user_b)
+
+
+def test_data_entry_can_be_deleted_by_its_creator(user, data_entry):
+    assert user.has_perm(DataEntry.get_perm("delete"), obj=data_entry)
+
+
+def test_data_entry_cannot_be_deleted_by_non_creator(user, user_b, data_entry_user_b):
+    assert not user.has_perm(DataEntry.get_perm("delete"), obj=data_entry_user_b)
+
+
+def test_data_entry_can_be_viewed_by_group_members(user, user_b, group, data_entry):
+    group.members.add(user, user_b)
+    data_entry.groups.add(group)
+
+    assert user_b.has_perm(DataEntry.get_perm("view"), obj=data_entry)
+
+
+def test_data_entry_cannot_be_viewed_by_non_group_members(user, user_b, group, data_entry):
+    group.members.add(user)
+    data_entry.groups.add(group)
+
+    assert not user_b.has_perm(DataEntry.get_perm("view"), obj=data_entry)
