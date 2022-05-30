@@ -69,4 +69,4 @@ def test_create_data_entry_file_type_different_from_extension(
 
     response_data = response.json()
 
-    assert "error" in response_data
+    assert "errors" in response_data

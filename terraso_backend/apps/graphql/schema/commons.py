@@ -3,8 +3,8 @@ from django.core.exceptions import NON_FIELD_ERRORS, ValidationError
 from django.db import IntegrityError
 from graphene import Connection, Int, relay
 
+from apps.core.formatters import from_camel_to_snake_case
 from apps.graphql.exceptions import GraphQLValidationException
-from apps.graphql.formatters import from_camel_to_snake_case
 
 logger = structlog.get_logger(__name__)
 

@@ -1,7 +1,7 @@
 import json
-from dataclasses import asdict, dataclass
+from dataclasses import asdict
 
-from .formatters import from_snake_to_camel_case
+from apps.core.exceptions import ErrorContext, ErrorMessage
 
 
 class GraphQLValidationException(Exception):
@@ -43,19 +43,3 @@ class GraphQLNotAllowedException(GraphQLValidationException):
             code=operation_name, context=ErrorContext(model=model_name, field=field, extra=message)
         )
         super().__init__(error_messages=[error_message])
-
-
-@dataclass
-class ErrorContext:
-    model: str
-    field: str
-    extra: str = ""
-
-    def __post_init__(self):
-        self.field = from_snake_to_camel_case(self.field) if self.field else self.field
-
-
-@dataclass
-class ErrorMessage:
-    code: str
-    context: ErrorContext

@@ -1,6 +1,6 @@
 import pytest
 
-from apps.graphql.formatters import from_camel_to_snake_case, from_snake_to_camel_case
+from apps.core.formatters import from_camel_to_snake_case, from_snake_to_camel_case
 
 
 @pytest.mark.parametrize(
