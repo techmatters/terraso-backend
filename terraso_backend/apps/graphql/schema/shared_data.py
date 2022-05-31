@@ -21,14 +21,12 @@ class DataEntryNode(DjangoObjectType):
         filter_fields = {
             "name": ["icontains"],
             "description": ["icontains"],
-            "slug": ["exact", "icontains"],
             "url": ["icontains"],
             "groups__slug": ["exact", "icontains"],
             "groups__id": ["exact"],
         }
         fields = (
             "name",
-            "slug",
             "description",
             "resource_type",
             "url",

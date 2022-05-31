@@ -1,11 +1,11 @@
 from django.db import models
 
-from apps.core.models import Group, SlugModel, User
+from apps.core.models import BaseModel, Group, User
 from apps.shared_data import permission_rules as perm_rules
 from apps.shared_data.services import DataEntryFileStorage
 
 
-class DataEntry(SlugModel):
+class DataEntry(BaseModel):
     """
     Data Entry stores information about resources (usually files) that contain
     different kind of data used by Landscape managers. Common resource types are
@@ -33,7 +33,7 @@ class DataEntry(SlugModel):
         User who created the resource
     """
 
-    name = models.CharField(max_length=128, unique=True)
+    name = models.CharField(max_length=128)
     description = models.TextField(blank=True, default="")
     resource_type = models.CharField(max_length=255)
     url = models.URLField()
@@ -42,9 +42,7 @@ class DataEntry(SlugModel):
     groups = models.ManyToManyField(Group, related_name="data_entries")
     created_by = models.ForeignKey(User, on_delete=models.PROTECT)
 
-    field_to_slug = "name"
-
-    class Meta(SlugModel.Meta):
+    class Meta(BaseModel.Meta):
         verbose_name_plural = "Data Entries"
         rules_permissions = {
             "change": perm_rules.allowed_to_change_data_entry,
