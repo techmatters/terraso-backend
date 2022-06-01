@@ -2,7 +2,7 @@ import uuid
 
 from django.contrib.auth.models import AbstractUser, BaseUserManager
 from django.db import models
-from safedelete.models import SafeDeleteManager, SafeDeleteModel
+from safedelete.models import SOFT_DELETE_CASCADE, SafeDeleteManager, SafeDeleteModel
 
 
 class UserManager(SafeDeleteManager, BaseUserManager):
@@ -41,6 +41,8 @@ class UserManager(SafeDeleteManager, BaseUserManager):
 
 class User(SafeDeleteModel, AbstractUser):
     """This model represents a User on Terraso platform."""
+
+    _safedelete_policy = SOFT_DELETE_CASCADE
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     created_at = models.DateTimeField(auto_now_add=True)

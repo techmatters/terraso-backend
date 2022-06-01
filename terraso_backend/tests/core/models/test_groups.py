@@ -88,16 +88,6 @@ def test_group_associations_are_asymmetrical():
     assert group.associations_as_child.count() == 0
 
 
-def test_membership_is_created_when_group_member_added():
-    group = mixer.blend(Group, name="This is My Name", slug=None)
-    users = mixer.cycle(3).blend(User)
-
-    group.members.add(*users)
-
-    assert group.members.count() == 3
-    assert Membership.objects.count() == 3
-
-
 def test_group_creator_becomes_manager():
     user = mixer.blend(User)
     group = mixer.blend(Group, created_by=user)
