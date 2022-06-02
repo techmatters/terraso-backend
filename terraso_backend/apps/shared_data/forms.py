@@ -37,10 +37,8 @@ class DataEntryForm(forms.ModelForm):
             "created_by",
         )
 
-    def clean(self):
-        cleaned_data = super().clean()
-
-        data_file = cleaned_data["data_file"]
+    def clean_data_file(self):
+        data_file = self.cleaned_data["data_file"]
 
         file_mime_type = magic.from_buffer(data_file.open("rb").read(2048), mime=True)
         allowed_file_extensions = mimetypes.guess_all_extensions(file_mime_type)
@@ -55,20 +53,28 @@ class DataEntryForm(forms.ModelForm):
                 f"Invalid file extension ({file_extension}) for the file type {file_mime_type}"
             )
             logger.info(message)
-            raise ValidationError(message, code="invalid")
+            raise ValidationError(message, code="invalid_extension")
 
-        cleaned_data["resource_type"] = file_extension[1:]
-        cleaned_data["size"] = data_file.size
+        return data_file
 
-        try:
-            cleaned_data["url"] = data_entry_upload_service.upload_file(
-                str(cleaned_data["created_by"].id),
-                cleaned_data["data_file"],
-                file_name=data_file.name,
-            )
-        except Exception:
-            error_msg = "Failed to upload the data file"
-            logger.exception(error_msg)
-            raise ValidationError(error_msg, code="error")
+    def clean(self):
+        data = self.cleaned_data
+        data_file = data.get("data_file")
 
-        return cleaned_data
+        if data_file:
+            file_extension = pathlib.Path(data_file.name).suffix
+            data["resource_type"] = file_extension[1:]
+            data["size"] = data_file.size
+
+            try:
+                data["url"] = data_entry_upload_service.upload_file(
+                    str(data["created_by"].id),
+                    data["data_file"],
+                    file_name=data_file.name,
+                )
+            except Exception:
+                error_msg = "Failed to upload the data file"
+                logger.exception(error_msg)
+                raise ValidationError(error_msg, code="error")
+
+        return data
