@@ -33,7 +33,14 @@ def test_data_entry_can_be_deleted_by_its_creator(user, data_entry):
     assert user.has_perm(DataEntry.get_perm("delete"), obj=data_entry)
 
 
-def test_data_entry_cannot_be_deleted_by_non_creator(user, user_b, data_entry_user_b):
+def test_data_entry_can_be_deleted_by_group_manager(user_b, group, data_entry):
+    group.add_manager(user_b)
+    data_entry.groups.add(group)
+
+    assert user_b.has_perm(DataEntry.get_perm("delete"), obj=data_entry)
+
+
+def test_data_entry_cannot_be_deleted_by_non_creator_or_manager(user, user_b, data_entry_user_b):
     assert not user.has_perm(DataEntry.get_perm("delete"), obj=data_entry_user_b)
 
 
