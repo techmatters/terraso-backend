@@ -46,10 +46,11 @@ class AccountService:
     def _persist_user(self, email, first_name="", last_name="", profile_image_url=None):
         user, created = User.objects.get_or_create(email=email)
 
+        self._update_profile_image(user, profile_image_url)
+
         if not created:
             return user
 
-        profile_image_service = ProfileImageService()
         update_name = first_name or last_name
 
         if first_name:
@@ -58,17 +59,23 @@ class AccountService:
         if last_name:
             user.last_name = last_name
 
-        user_id = str(user.id)
-        try:
-            if not user.profile_image and profile_image_url:
-                user.profile_image = profile_image_service.upload_url(user_id, profile_image_url)
-        except Exception:
-            logger.exception("Failed to upload profile image. User ID: {}".format(user_id))
-
         if update_name:
             user.save()
 
         return user
+
+    def _update_profile_image(self, user, profile_image_url):
+        if not profile_image_url:
+            return
+
+        profile_image_service = ProfileImageService()
+        user_id = str(user.id)
+
+        try:
+            user.profile_image = profile_image_service.upload_url(user_id, profile_image_url)
+            user.save()
+        except Exception:
+            logger.exception("Failed to upload profile image. User ID: {}".format(user_id))
 
 
 class JWTService:
