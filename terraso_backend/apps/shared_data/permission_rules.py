@@ -8,7 +8,10 @@ def allowed_to_change_data_entry(user, data_entry):
 
 @rules.predicate
 def allowed_to_delete_data_entry(user, data_entry):
-    return data_entry.created_by == user
+    return (
+        data_entry.created_by == user
+        or user.memberships.managers_only().filter(group__in=data_entry.groups.all()).exists()
+    )
 
 
 @rules.predicate
