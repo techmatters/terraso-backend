@@ -128,6 +128,9 @@ USE_TZ = True
 MEDIA_URL = "/media/"
 STATIC_URL = "/static/"
 
+# don't allow "new" as a name, as the view route conflicts with the create route
+DISALLOWED_NAMES_LIST = ["new"]
+
 if not DEBUG:
     CDN_STATIC_DOMAIN = config("CDN_STATIC_DOMAIN")
     AWS_S3_CUSTOM_DOMAIN = CDN_STATIC_DOMAIN
