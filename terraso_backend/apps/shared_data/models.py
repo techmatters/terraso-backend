@@ -1,4 +1,5 @@
 from django.db import models
+from django.utils import timezone
 
 from apps.core.models import BaseModel, Group, User
 from apps.shared_data import permission_rules as perm_rules
@@ -41,6 +42,7 @@ class DataEntry(BaseModel):
 
     groups = models.ManyToManyField(Group, related_name="data_entries")
     created_by = models.ForeignKey(User, on_delete=models.PROTECT)
+    file_removed_at = models.DateTimeField(blank=True, null=True)
 
     class Meta(BaseModel.Meta):
         verbose_name_plural = "Data Entries"
@@ -62,6 +64,20 @@ class DataEntry(BaseModel):
     def signed_url(self):
         storage = DataEntryFileStorage(custom_domain=None)
         return storage.url(self.s3_object_name)
+
+    def delete_file_on_storage(self):
+        if not self.deleted_at:
+            raise RuntimeError(
+                f"Storage object cannot be deleted if its DataEntry ({self.id}) is not deleted."
+            )
+
+        if self.file_removed_at:
+            return
+
+        storage = DataEntryFileStorage(custom_domain=None)
+        storage.delete(self.s3_object_name)
+        self.file_removed_at = timezone.now()
+        self.save(keep_deleted=True)
 
     def to_dict(self):
         return dict(
