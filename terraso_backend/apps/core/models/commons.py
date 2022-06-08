@@ -1,9 +1,19 @@
 import uuid
 
+from django.conf import settings
+from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils.text import slugify
+from django.utils.translation import gettext_lazy as _
 from rules.contrib.models import RulesModelBase, RulesModelMixin
 from safedelete.models import SOFT_DELETE_CASCADE, SafeDeleteModel
+
+
+def validate_name(value):
+    if value.lower() in settings.DISALLOWED_NAMES_LIST:
+        raise ValidationError(
+            _("%(value)s is not allowed as a name"), params={"value": value}, code="invalid"
+        )
 
 
 class BaseModel(RulesModelMixin, SafeDeleteModel, metaclass=RulesModelBase):
