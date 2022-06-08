@@ -9,6 +9,8 @@ from safedelete.models import SOFT_DELETE_CASCADE, SafeDeleteModel
 class BaseModel(RulesModelMixin, SafeDeleteModel, metaclass=RulesModelBase):
     _safedelete_policy = SOFT_DELETE_CASCADE
 
+    fields_to_trim = []
+
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -17,6 +19,11 @@ class BaseModel(RulesModelMixin, SafeDeleteModel, metaclass=RulesModelBase):
         abstract = True
         get_latest_by = "-created_at"
         ordering = ["created_at"]
+
+    def save(self, *args, **kwargs):
+        for field in self.fields_to_trim:
+            setattr(self, field, getattr(self, field).strip())
+        return super().save(*args, **kwargs)
 
 
 class SlugModel(BaseModel):
