@@ -42,6 +42,8 @@ class UserManager(SafeDeleteManager, BaseUserManager):
 class User(SafeDeleteModel, AbstractUser):
     """This model represents a User on Terraso platform."""
 
+    fields_to_trim = ["first_name", "last_name"]
+
     _safedelete_policy = SOFT_DELETE_CASCADE
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
