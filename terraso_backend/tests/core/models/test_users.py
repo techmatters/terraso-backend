@@ -13,6 +13,15 @@ def test_user_string_format_is_its_email():
     assert user_email == str(user)
 
 
+def test_user_string_remove_spaces_from_name():
+    user_first_name = "First Name "
+    user_last_name = "Last Name "
+    user = mixer.blend(User, first_name=user_first_name, last_name=user_last_name)
+
+    assert user_first_name.strip() == user.first_name
+    assert user_last_name.strip() == user.last_name
+
+
 @pytest.mark.parametrize(
     "is_default_landscape_group, is_expected_to_be_manager",
     (
