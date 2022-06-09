@@ -21,6 +21,23 @@ def test_landscape_is_slugifiable_by_name():
     assert landscape.slug == "this-is-my-name"
 
 
+def test_landscape_string_remove_spaces_from_name():
+    landscape_name = "Terraso Landscape Name "
+    landscape = mixer.blend(Landscape, name=landscape_name)
+
+    assert landscape_name.strip() == str(landscape)
+
+
+def test_landscape_string_remove_spaces_from_description():
+    landscape_name = "Terraso Landscape Name"
+    landscape_description = "Terraso Landscape Description "
+    landscape = mixer.blend(Landscape, name=landscape_name)
+    landscape.description = landscape_description
+    landscape.save()
+
+    assert landscape_description.strip() == landscape.description
+
+
 def test_landscape_slug_is_updatable():
     landscape = mixer.blend(Landscape, name="This is My Name", slug=None)
     landscape.name = "New name"

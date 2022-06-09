@@ -23,6 +23,8 @@ class Group(SlugModel):
     Terraso backend platform is made by the GroupAssociation model.
     """
 
+    fields_to_trim = ["name", "description"]
+
     name = models.CharField(max_length=128, unique=True)
     description = models.TextField(max_length=512, blank=True, default="")
     website = models.URLField(blank=True, default="")

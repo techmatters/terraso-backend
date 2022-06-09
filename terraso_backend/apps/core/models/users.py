@@ -42,6 +42,8 @@ class UserManager(SafeDeleteManager, BaseUserManager):
 class User(SafeDeleteModel, AbstractUser):
     """This model represents a User on Terraso platform."""
 
+    fields_to_trim = ["first_name", "last_name"]
+
     _safedelete_policy = SOFT_DELETE_CASCADE
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -67,6 +69,11 @@ class User(SafeDeleteModel, AbstractUser):
                 name="unique_active_email",
             ),
         )
+
+    def save(self, *args, **kwargs):
+        for field in self.fields_to_trim:
+            setattr(self, field, getattr(self, field).strip())
+        return super().save(*args, **kwargs)
 
     def is_landscape_manager(self, landscape_id):
         return (

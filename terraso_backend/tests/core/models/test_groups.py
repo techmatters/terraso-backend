@@ -20,6 +20,23 @@ def test_group_is_slugifiable_by_name():
     assert group.slug == "this-is-my-name"
 
 
+def test_group_string_remove_spaces_from_name():
+    group_name = "Terraso Group Name "
+    group = mixer.blend(Group, name=group_name)
+
+    assert group_name.strip() == str(group)
+
+
+def test_group_string_remove_spaces_from_description():
+    group_name = "Terraso Group Name"
+    group_description = "Terraso Group Description "
+    group = mixer.blend(Group, name=group_name)
+    group.description = group_description
+    group.save()
+
+    assert group_description.strip() == group.description
+
+
 def test_group_slug_is_updatable():
     group = mixer.blend(Group, name="This is My Name", slug=None)
     group.name = "New name"
