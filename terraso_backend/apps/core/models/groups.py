@@ -4,7 +4,7 @@ from safedelete.models import SafeDeleteManager
 
 from apps.core import permission_rules as perm_rules
 
-from .commons import BaseModel, SlugModel
+from .commons import BaseModel, SlugModel, validate_name
 from .users import User
 
 
@@ -25,7 +25,7 @@ class Group(SlugModel):
 
     fields_to_trim = ["name", "description"]
 
-    name = models.CharField(max_length=128, unique=True)
+    name = models.CharField(max_length=128, unique=True, validators=[validate_name])
     description = models.TextField(max_length=512, blank=True, default="")
     website = models.URLField(blank=True, default="")
     email = models.EmailField(blank=True, default="")

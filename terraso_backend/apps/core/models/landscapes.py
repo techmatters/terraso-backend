@@ -3,7 +3,7 @@ from django.db import models, transaction
 
 from apps.core import permission_rules as perm_rules
 
-from .commons import BaseModel, SlugModel
+from .commons import BaseModel, SlugModel, validate_name
 from .groups import Group
 from .users import User
 
@@ -25,7 +25,7 @@ class Landscape(SlugModel):
 
     fields_to_trim = ["name", "description"]
 
-    name = models.CharField(max_length=128, unique=True)
+    name = models.CharField(max_length=128, unique=True, validators=[validate_name])
     description = models.TextField(blank=True, default="")
     website = models.URLField(blank=True, default="")
     location = models.CharField(max_length=128, blank=True, default="")
