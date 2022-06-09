@@ -1,4 +1,5 @@
 import pytest
+from django.core.exceptions import ValidationError
 from mixer.backend.django import mixer
 
 from apps.core.models.groups import Group, Membership
@@ -36,6 +37,14 @@ def test_landscape_string_remove_spaces_from_description():
     landscape.save()
 
     assert landscape_description.strip() == landscape.description
+
+
+def test_landscape_disallowed_name():
+    landscape_name = "New"
+    landscape = mixer.blend(Landscape, name=landscape_name)
+
+    with pytest.raises(ValidationError, match="New is not allowed as a name"):
+        landscape.full_clean()
 
 
 def test_landscape_slug_is_updatable():
