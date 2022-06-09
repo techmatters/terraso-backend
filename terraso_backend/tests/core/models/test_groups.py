@@ -1,5 +1,4 @@
 import pytest
-from django.conf import settings
 from django.core.exceptions import ValidationError
 from mixer.backend.django import mixer
 
@@ -47,7 +46,7 @@ def test_group_disallowed_name():
         group.full_clean()
 
 
-def test_group_additional_disallowed_name():
+def test_group_additional_disallowed_name(settings):
     group_name = "Foobar"
     settings.DISALLOWED_NAMES_LIST = ["new", "foobar"]
     group = mixer.blend(Group, name=group_name)
