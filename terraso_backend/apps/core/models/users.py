@@ -75,7 +75,6 @@ class User(SafeDeleteModel, AbstractUser):
             setattr(self, field, getattr(self, field).strip())
         return super().save(*args, **kwargs)
 
-
     def is_landscape_manager(self, landscape_id):
         return (
             self.memberships.managers_only()
