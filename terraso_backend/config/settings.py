@@ -115,7 +115,7 @@ OAUTH2_PROVIDER = {
         "profile": "User's information scope",
     },
     "OAUTH2_VALIDATOR_CLASS": "apps.auth.provider.oauth_validator.TerrasoOAuth2Validator",
-    "OIDC_RSA_PRIVATE_KEY": config("OAUTH_OIDC_KEY", default=""),
+    "OIDC_RSA_PRIVATE_KEY": config("OAUTH_OIDC_KEY", default="").replace("\\n", "\n"),
 }
 
 
