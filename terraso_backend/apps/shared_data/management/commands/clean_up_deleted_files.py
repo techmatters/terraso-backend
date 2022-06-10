@@ -14,7 +14,12 @@ class Command(BaseCommand):
         total_files_removed = 0
         older_than_date = timezone.now() - timezone.timedelta(days=past_days)
         data_entries = (
-            DataEntry.objects.deleted_only().filter(deleted_at__date__lt=older_than_date).iterator()
+            DataEntry.objects.deleted_only()
+            .filter(
+                deleted_at__date__lt=older_than_date,
+                file_removed_at__isnull=True,
+            )
+            .iterator()
         )
 
         for data_entry in data_entries:
