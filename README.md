@@ -66,7 +66,7 @@ $ docker attach <web-container-id>
 # This will give you access to the web running container
 ```
 
-Make the application request call that will pass on brak point, like
+Make the application request call that will pass on breakpoint, like
 calling an API or clicking in some button. As soon as the process get to
 the break point, the attached shell should open the Python debugger. To
 continue the application request processing, just release the debugger.
