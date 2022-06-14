@@ -1,4 +1,3 @@
-from django.conf import settings
 from django.db import models, transaction
 from django.utils.translation import gettext_lazy as _
 from safedelete.models import SafeDeleteManager
@@ -23,6 +22,12 @@ class Group(SlugModel):
     A Group might have other subgroups associated. This association, on
     Terraso backend platform is made by the GroupAssociation model.
     """
+
+    GROUP_MEMBERSHIP_TYPE_OPEN = "open"
+    GROUP_MEMBERSHIP_TYPE_CLOSED = "closed"
+    DEFAULT_GROUP_MEMERBSHIP_TYPE = GROUP_MEMBERSHIP_TYPE_OPEN
+
+    GROUP_MEMBERSHIP_TYPES = [GROUP_MEMBERSHIP_TYPE_OPEN, GROUP_MEMBERSHIP_TYPE_OPEN]
 
     fields_to_trim = ["name", "description"]
 
@@ -51,8 +56,8 @@ class Group(SlugModel):
 
     membership_type = models.CharField(
         max_length=32,
-        choices=settings.GROUP_MEMBERSHIP_TYPES,
-        default=settings.DEFAULT_GROUP_MEMERBSHIP_TYPE,
+        choices=GROUP_MEMBERSHIP_TYPES,
+        default=DEFAULT_GROUP_MEMERBSHIP_TYPE,
     )
 
     field_to_slug = "name"
