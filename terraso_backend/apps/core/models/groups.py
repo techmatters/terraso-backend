@@ -23,11 +23,14 @@ class Group(SlugModel):
     Terraso backend platform is made by the GroupAssociation model.
     """
 
-    GROUP_MEMBERSHIP_TYPE_OPEN = "open"
-    GROUP_MEMBERSHIP_TYPE_CLOSED = "closed"
-    DEFAULT_GROUP_MEMERBSHIP_TYPE = GROUP_MEMBERSHIP_TYPE_OPEN
+    MEMBERSHIP_TYPE_OPEN = "open"
+    MEMBERSHIP_TYPE_CLOSED = "closed"
+    DEFAULT_MEMERBSHIP_TYPE = MEMBERSHIP_TYPE_OPEN
 
-    GROUP_MEMBERSHIP_TYPES = [GROUP_MEMBERSHIP_TYPE_OPEN, GROUP_MEMBERSHIP_TYPE_OPEN]
+    MEMBERSHIP_TYPES = (
+        (MEMBERSHIP_TYPE_OPEN, _("Open")),
+        (MEMBERSHIP_TYPE_CLOSED, _("Closed")),
+    )
 
     fields_to_trim = ["name", "description"]
 
@@ -56,8 +59,8 @@ class Group(SlugModel):
 
     membership_type = models.CharField(
         max_length=32,
-        choices=GROUP_MEMBERSHIP_TYPES,
-        default=DEFAULT_GROUP_MEMERBSHIP_TYPE,
+        choices=MEMBERSHIP_TYPES,
+        default=DEFAULT_MEMERBSHIP_TYPE,
     )
 
     field_to_slug = "name"
