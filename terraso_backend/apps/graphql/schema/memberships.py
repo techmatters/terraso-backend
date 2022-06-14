@@ -80,6 +80,9 @@ class MembershipAddMutation(relay.ClientIDMutation):
                 kwargs.pop("user_role", membership.user_role)
             )
 
+        if group.membership_type == Group.MEMBERSHIP_TYPE_CLOSED:
+            membership.membership_status = Membership.PENDING
+
         membership.user_role = user_role
         membership.save()
 
