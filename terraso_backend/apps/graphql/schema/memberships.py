@@ -32,13 +32,14 @@ class MembershipNode(DjangoObjectType):
 
     @classmethod
     def get_queryset(cls, queryset, info):
-        user_groups_ids = Membership.objects.filter(user=info.context.user).values_list(
-            "group", flat=True
-        )
+        user_groups_ids = Membership.objects.filter(
+            user=info.context.user, membership_status=Membership.APPROVED
+        ).values_list("group", flat=True)
 
         return queryset.filter(
             Q(group__membership_type=Group.MEMBERSHIP_TYPE_OPEN) | Q(group__in=user_groups_ids)
         )
+
 
 class MembershipAddMutation(relay.ClientIDMutation):
     membership = graphene.Field(MembershipNode)
