@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.db import models, transaction
 from django.utils.translation import gettext_lazy as _
 from safedelete.models import SafeDeleteManager
@@ -47,6 +48,12 @@ class Group(SlugModel):
         symmetrical=False,
     )
     members = models.ManyToManyField(User, through="Membership")
+
+    membership_type = models.CharField(
+        max_length=32,
+        choices=settings.GROUP_MEMBERSHIP_TYPES,
+        default=settings.DEFAULT_GROUP_MEMERBSHIP_TYPE,
+    )
 
     field_to_slug = "name"
 
