@@ -1,6 +1,7 @@
 import graphene
 import rules
 import structlog
+from django.db.models import Q
 from graphene import relay
 from graphene_django import DjangoObjectType
 
@@ -29,6 +30,15 @@ class MembershipNode(DjangoObjectType):
         interfaces = (relay.Node,)
         connection_class = TerrasoConnection
 
+    @classmethod
+    def get_queryset(cls, queryset, info):
+        user_groups_ids = Membership.objects.filter(user=info.context.user).values_list(
+            "group", flat=True
+        )
+
+        return queryset.filter(
+            Q(group__membership_type=Group.MEMBERSHIP_TYPE_OPEN) | Q(group__in=user_groups_ids)
+        )
 
 class MembershipAddMutation(relay.ClientIDMutation):
     membership = graphene.Field(MembershipNode)
