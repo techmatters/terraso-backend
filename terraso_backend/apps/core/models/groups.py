@@ -146,10 +146,20 @@ class Membership(BaseModel):
         (ROLE_MEMBER, _("Member")),
     )
 
+    APPROVED = "approved"
+    PENDING = "pending"
+
+    APPROVAL_STATUS = (
+        (APPROVED, _("Approved")),
+        (PENDING, _("Pending")),
+    )
+
     group = models.ForeignKey(Group, on_delete=models.CASCADE, related_name="memberships")
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="memberships")
 
     user_role = models.CharField(max_length=64, choices=ROLES, blank=True, default=ROLE_MEMBER)
+
+    membership_status = models.CharField(max_length=64, choices=APPROVAL_STATUS, default=APPROVED)
 
     objects = MembershipObjectsManager()
 
