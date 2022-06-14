@@ -52,6 +52,7 @@ class GroupNode(DjangoObjectType):
             "email",
             "created_by",
             "memberships",
+            "membership_type",
             "associations_as_parent",
             "associations_as_child",
             "associated_landscapes",
