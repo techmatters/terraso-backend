@@ -40,9 +40,9 @@ class DataEntryNode(DjangoObjectType):
 
     @classmethod
     def get_queryset(cls, queryset, info):
-        user_groups_ids = Membership.objects.filter(user=info.context.user).values_list(
-            "group", flat=True
-        )
+        user_groups_ids = Membership.objects.filter(
+            user=info.context.user, membership_status=Membership.APPROVED
+        ).values_list("group", flat=True)
         return queryset.filter(groups__in=user_groups_ids)
 
     def resolve_url(self, info):
