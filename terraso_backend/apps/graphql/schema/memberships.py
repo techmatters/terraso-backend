@@ -26,7 +26,7 @@ class MembershipNode(DjangoObjectType):
             "user_role": ["exact"],
             "user__email": ["icontains", "in"],
         }
-        fields = ("group", "user", "user_role")
+        fields = ("group", "user", "user_role", "membership_status")
         interfaces = (relay.Node,)
         connection_class = TerrasoConnection
 
@@ -37,7 +37,9 @@ class MembershipNode(DjangoObjectType):
         ).values_list("group", flat=True)
 
         return queryset.filter(
-            Q(group__membership_type=Group.MEMBERSHIP_TYPE_OPEN) | Q(group__in=user_groups_ids)
+            Q(group__membership_type=Group.MEMBERSHIP_TYPE_OPEN)
+            | Q(group__in=user_groups_ids)
+            | Q(user=info.context.user)
         )
 
 
