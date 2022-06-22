@@ -96,7 +96,8 @@ class MembershipUpdateMutation(relay.ClientIDMutation):
 
     class Input:
         id = graphene.ID(required=True)
-        user_role = graphene.String(required=True)
+        user_role = graphene.String()
+        membership_status = graphene.String()
 
     @classmethod
     def mutate_and_get_payload(cls, root, info, **kwargs):
@@ -111,10 +112,6 @@ class MembershipUpdateMutation(relay.ClientIDMutation):
                 extra={"membership_id": membership_id},
             )
             raise GraphQLNotFoundException(model_name=Membership.__name__)
-
-        user_role = kwargs.pop("user_role", None)
-        if not user_role:
-            return cls(membership=membership)
 
         if not user.has_perm(Membership.get_perm("change"), obj=membership.group.id):
             logger.info(
@@ -136,7 +133,14 @@ class MembershipUpdateMutation(relay.ClientIDMutation):
                 message="manager_count",
             )
 
-        membership.user_role = Membership.get_user_role_from_text(user_role)
+        user_role = kwargs.pop("user_role", None)
+        if user_role:
+            membership.user_role = Membership.get_user_role_from_text(user_role)
+        membership_status = kwargs.pop("membership_status", None)
+        if membership_status:
+            membership.membership_status = Membership.get_membership_status_from_text(
+                membership_status
+            )
         membership.save()
 
         return cls(membership=membership)

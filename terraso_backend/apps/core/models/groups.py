@@ -182,3 +182,9 @@ class Membership(BaseModel):
             return cls.ROLE_MANAGER
 
         return cls.ROLE_MEMBER
+
+    @classmethod
+    def get_membership_status_from_text(cls, membership_status):
+        if membership_status and membership_status.lower() == cls.APPROVED:
+            return cls.APPROVED
+        return cls.PENDING
