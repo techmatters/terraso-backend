@@ -93,6 +93,12 @@ class Group(SlugModel):
     def __str__(self):
         return self.name
 
+    @classmethod
+    def get_membership_type_from_text(cls, membership_type):
+        if membership_type and membership_type.lower() == cls.MEMBERSHIP_TYPE_CLOSED:
+            return cls.MEMBERSHIP_TYPE_CLOSED
+        return cls.MEMBERSHIP_TYPE_OPEN
+
 
 class GroupAssociation(BaseModel):
     """
