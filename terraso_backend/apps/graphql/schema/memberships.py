@@ -25,6 +25,7 @@ class MembershipNode(DjangoObjectType):
             "user": ["exact", "in"],
             "user_role": ["exact"],
             "user__email": ["icontains", "in"],
+            "membership_status": ["exact"],
         }
         fields = ("group", "user", "user_role", "membership_status")
         interfaces = (relay.Node,)
