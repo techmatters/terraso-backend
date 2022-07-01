@@ -82,7 +82,10 @@ class GroupAddMutation(BaseWriteMutation):
         if not cls.is_update(kwargs):
             kwargs["created_by"] = user
 
-        kwargs["membership_type"] = Group.get_membership_type_from_text(kwargs["membership_type"])
+        if "membership_type" in kwargs:
+            kwargs["membership_type"] = Group.get_membership_type_from_text(
+                kwargs["membership_type"]
+            )
 
         return super().mutate_and_get_payload(root, info, **kwargs)
 
@@ -114,7 +117,10 @@ class GroupUpdateMutation(BaseWriteMutation):
                 model_name=Group.__name__, operation=MutationTypes.UPDATE
             )
 
-        kwargs["membership_type"] = Group.get_membership_type_from_text(kwargs["membership_type"])
+        if "membership_type" in kwargs:
+            kwargs["membership_type"] = Group.get_membership_type_from_text(
+                kwargs["membership_type"]
+            )
 
         return super().mutate_and_get_payload(root, info, **kwargs)
 

@@ -24,11 +24,13 @@ def test_memberships_query(client_query, memberships):
     edges = response.json()["data"]["memberships"]["edges"]
     nodes = [edge["node"] for edge in edges]
 
-    memberships_returned = [(memb["group"]["slug"], memb["user"]["email"]) for memb in nodes]
+    memberships_email_returned = [
+        (memb["group"]["slug"], memb["user"]["email"]) for memb in nodes
+    ].sort()
 
-    memberships_expected = [(memb.group.slug, memb.user.email) for memb in memberships]
+    memberships_email_expected = [(memb.group.slug, memb.user.email) for memb in memberships].sort()
 
-    assert memberships_expected == memberships_returned
+    assert memberships_email_returned == memberships_email_expected
 
 
 def test_membership_get_one_by_id(client_query, memberships):
