@@ -147,7 +147,7 @@ def test_membership_adding_duplicated_returns_previously_created(client_query, m
     assert membership_response["group"]["slug"] == group.slug
 
 
-def test_membership_add_manager(client_query, groups, users):
+def test_membership_add_manager_opened(client_query, groups, users):
     group = groups[0]
     user = users[0]
 
@@ -158,6 +158,7 @@ def test_membership_add_manager(client_query, groups, users):
             membership {
               id
               userRole
+              membershipStatus
               user {
                 email
               }
@@ -182,17 +183,58 @@ def test_membership_add_manager(client_query, groups, users):
     assert membership["user"]["email"] == user.email
     assert membership["group"]["slug"] == group.slug
     assert membership["userRole"] == Membership.ROLE_MANAGER.upper()
+    assert membership["membershipStatus"] == Membership.APPROVED.upper()
 
 
-def test_membership_update(client_query, users, memberships):
+def test_membership_add_manager_closed(client_query, groups_closed, users):
+    group = groups_closed[0]
+    user = users[0]
+
+    response = client_query(
+        """
+        mutation addMembership($input: MembershipAddMutationInput!){
+          addMembership(input: $input) {
+            membership {
+              id
+              userRole
+              membershipStatus
+              user {
+                email
+              }
+              group {
+                slug
+              }
+            }
+          }
+        }
+        """,
+        variables={
+            "input": {
+                "userEmail": user.email,
+                "groupSlug": group.slug,
+                "userRole": Membership.ROLE_MANAGER,
+            }
+        },
+    )
+    membership = response.json()["data"]["addMembership"]["membership"]
+
+    assert membership["id"]
+    assert membership["user"]["email"] == user.email
+    assert membership["group"]["slug"] == group.slug
+    assert membership["userRole"] == Membership.ROLE_MANAGER.upper()
+    assert membership["membershipStatus"] == Membership.PENDING.upper()
+
+
+def test_membership_update(client_query, users, memberships_pending):
     user = users[0]
     other_manager = users[1]
-    old_membership = memberships[0]
+    old_membership = memberships_pending[0]
 
     old_membership.group.add_manager(user)
     old_membership.group.add_manager(other_manager)
 
     assert old_membership.user_role != Membership.ROLE_MANAGER.upper()
+    assert old_membership.membership_status != Membership.PENDING.upper()
 
     response = client_query(
         """
@@ -201,6 +243,7 @@ def test_membership_update(client_query, users, memberships):
             membership {
               id
               userRole
+              membershipStatus
               user {
                 email
               }
@@ -214,7 +257,8 @@ def test_membership_update(client_query, users, memberships):
         variables={
             "input": {
                 "id": str(old_membership.id),
-                "userRole": Membership.ROLE_MEMBER,
+                "userRole": Membership.ROLE_MANAGER,
+                "membershipStatus": Membership.APPROVED,
             }
         },
     )
@@ -223,7 +267,8 @@ def test_membership_update(client_query, users, memberships):
     assert membership["id"]
     assert membership["user"]["email"] == old_membership.user.email
     assert membership["group"]["slug"] == old_membership.group.slug
-    assert membership["userRole"] == Membership.ROLE_MEMBER.upper()
+    assert membership["userRole"] == Membership.ROLE_MANAGER.upper()
+    assert membership["membershipStatus"] == Membership.APPROVED.upper()
 
 
 def test_membership_update_role_by_last_manager_fails(client_query, users, memberships):

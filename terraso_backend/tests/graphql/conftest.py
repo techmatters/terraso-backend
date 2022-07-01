@@ -89,6 +89,11 @@ def groups():
 
 
 @pytest.fixture
+def groups_closed():
+    return mixer.cycle(2).blend(Group, membership_type=Group.MEMBERSHIP_TYPE_CLOSED)
+
+
+@pytest.fixture
 def managed_groups(users, groups):
     for i in range(len(groups)):
         groups[i].add_manager(users[i])
@@ -126,6 +131,17 @@ def memberships(groups, users):
         group=(g for g in groups),
         user=(u for u in users),
         user_role=Membership.ROLE_MANAGER,
+    )
+
+
+@pytest.fixture
+def memberships_pending(groups, users):
+    return mixer.cycle(5).blend(
+        Membership,
+        group=(g for g in groups),
+        user=(u for u in users),
+        user_role=Membership.ROLE_MEMBER,
+        membership_status=Membership.PENDING,
     )
 
 

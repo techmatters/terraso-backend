@@ -16,6 +16,7 @@ def test_groups_add(client_query):
             group {
               id
               name
+              membershipType
             }
           }
         }
@@ -25,6 +26,7 @@ def test_groups_add(client_query):
     group_result = response.json()["data"]["addGroup"]["group"]
 
     assert group_result["id"]
+    assert group_result["membershipType"] == "OPEN"
     assert group_result["name"] == group_name
 
 
@@ -111,6 +113,7 @@ def test_groups_update_by_manager_works(client_query, groups, users):
         "name": "New Name",
         "website": "https://www.example.com/updated-group",
         "email": "a-new-email@example.com",
+        "membershipType": "CLOSED",
     }
     response = client_query(
         """
@@ -122,6 +125,7 @@ def test_groups_update_by_manager_works(client_query, groups, users):
               description
               website
               email
+              membershipType
             }
           }
         }
