@@ -25,7 +25,7 @@ class LandscapeAdmin(admin.ModelAdmin):
 
 @admin.register(Membership)
 class MembershipAdmin(admin.ModelAdmin):
-    list_display = ("user", "group", "user_role", "created_at")
+    list_display = ("user", "group", "user_role", "membership_status", "created_at")
 
 
 @admin.register(User)

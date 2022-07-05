@@ -52,6 +52,7 @@ class GroupNode(DjangoObjectType):
             "email",
             "created_by",
             "memberships",
+            "membership_type",
             "associations_as_parent",
             "associations_as_child",
             "associated_landscapes",
@@ -72,6 +73,7 @@ class GroupAddMutation(BaseWriteMutation):
         description = graphene.String()
         website = graphene.String()
         email = graphene.String()
+        membership_type = graphene.String()
 
     @classmethod
     def mutate_and_get_payload(cls, root, info, **kwargs):
@@ -79,6 +81,11 @@ class GroupAddMutation(BaseWriteMutation):
 
         if not cls.is_update(kwargs):
             kwargs["created_by"] = user
+
+        if "membership_type" in kwargs:
+            kwargs["membership_type"] = Group.get_membership_type_from_text(
+                kwargs["membership_type"]
+            )
 
         return super().mutate_and_get_payload(root, info, **kwargs)
 
@@ -94,6 +101,7 @@ class GroupUpdateMutation(BaseWriteMutation):
         description = graphene.String()
         website = graphene.String()
         email = graphene.String()
+        membership_type = graphene.String()
 
     @classmethod
     def mutate_and_get_payload(cls, root, info, **kwargs):
@@ -107,6 +115,11 @@ class GroupUpdateMutation(BaseWriteMutation):
             )
             raise GraphQLNotAllowedException(
                 model_name=Group.__name__, operation=MutationTypes.UPDATE
+            )
+
+        if "membership_type" in kwargs:
+            kwargs["membership_type"] = Group.get_membership_type_from_text(
+                kwargs["membership_type"]
             )
 
         return super().mutate_and_get_payload(root, info, **kwargs)

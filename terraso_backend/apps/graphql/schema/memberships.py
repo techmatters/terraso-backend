@@ -1,6 +1,7 @@
 import graphene
 import rules
 import structlog
+from django.db.models import Q
 from graphene import relay
 from graphene_django import DjangoObjectType
 
@@ -24,10 +25,23 @@ class MembershipNode(DjangoObjectType):
             "user": ["exact", "in"],
             "user_role": ["exact"],
             "user__email": ["icontains", "in"],
+            "membership_status": ["exact"],
         }
-        fields = ("group", "user", "user_role")
+        fields = ("group", "user", "user_role", "membership_status")
         interfaces = (relay.Node,)
         connection_class = TerrasoConnection
+
+    @classmethod
+    def get_queryset(cls, queryset, info):
+        user_groups_ids = Membership.objects.filter(
+            user=info.context.user, membership_status=Membership.APPROVED
+        ).values_list("group", flat=True)
+
+        return queryset.filter(
+            Q(group__membership_type=Group.MEMBERSHIP_TYPE_OPEN)
+            | Q(group__in=user_groups_ids)
+            | Q(user=info.context.user)
+        )
 
 
 class MembershipAddMutation(relay.ClientIDMutation):
@@ -69,6 +83,9 @@ class MembershipAddMutation(relay.ClientIDMutation):
                 kwargs.pop("user_role", membership.user_role)
             )
 
+        if group.membership_type == Group.MEMBERSHIP_TYPE_CLOSED:
+            membership.membership_status = Membership.PENDING
+
         membership.user_role = user_role
         membership.save()
 
@@ -80,7 +97,8 @@ class MembershipUpdateMutation(relay.ClientIDMutation):
 
     class Input:
         id = graphene.ID(required=True)
-        user_role = graphene.String(required=True)
+        user_role = graphene.String()
+        membership_status = graphene.String()
 
     @classmethod
     def mutate_and_get_payload(cls, root, info, **kwargs):
@@ -95,10 +113,6 @@ class MembershipUpdateMutation(relay.ClientIDMutation):
                 extra={"membership_id": membership_id},
             )
             raise GraphQLNotFoundException(model_name=Membership.__name__)
-
-        user_role = kwargs.pop("user_role", None)
-        if not user_role:
-            return cls(membership=membership)
 
         if not user.has_perm(Membership.get_perm("change"), obj=membership.group.id):
             logger.info(
@@ -120,7 +134,14 @@ class MembershipUpdateMutation(relay.ClientIDMutation):
                 message="manager_count",
             )
 
-        membership.user_role = Membership.get_user_role_from_text(user_role)
+        user_role = kwargs.pop("user_role", None)
+        if user_role:
+            membership.user_role = Membership.get_user_role_from_text(user_role)
+        membership_status = kwargs.pop("membership_status", None)
+        if membership_status:
+            membership.membership_status = Membership.get_membership_status_from_text(
+                membership_status
+            )
         membership.save()
 
         return cls(membership=membership)

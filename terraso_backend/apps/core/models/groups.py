@@ -23,6 +23,15 @@ class Group(SlugModel):
     Terraso backend platform is made by the GroupAssociation model.
     """
 
+    MEMBERSHIP_TYPE_OPEN = "open"
+    MEMBERSHIP_TYPE_CLOSED = "closed"
+    DEFAULT_MEMERBSHIP_TYPE = MEMBERSHIP_TYPE_OPEN
+
+    MEMBERSHIP_TYPES = (
+        (MEMBERSHIP_TYPE_OPEN, _("Open")),
+        (MEMBERSHIP_TYPE_CLOSED, _("Closed")),
+    )
+
     fields_to_trim = ["name", "description"]
 
     name = models.CharField(max_length=128, unique=True, validators=[validate_name])
@@ -47,6 +56,12 @@ class Group(SlugModel):
         symmetrical=False,
     )
     members = models.ManyToManyField(User, through="Membership")
+
+    membership_type = models.CharField(
+        max_length=32,
+        choices=MEMBERSHIP_TYPES,
+        default=DEFAULT_MEMERBSHIP_TYPE,
+    )
 
     field_to_slug = "name"
 
@@ -77,6 +92,12 @@ class Group(SlugModel):
 
     def __str__(self):
         return self.name
+
+    @classmethod
+    def get_membership_type_from_text(cls, membership_type):
+        if membership_type and membership_type.lower() == cls.MEMBERSHIP_TYPE_CLOSED:
+            return cls.MEMBERSHIP_TYPE_CLOSED
+        return cls.MEMBERSHIP_TYPE_OPEN
 
 
 class GroupAssociation(BaseModel):
@@ -131,10 +152,20 @@ class Membership(BaseModel):
         (ROLE_MEMBER, _("Member")),
     )
 
+    APPROVED = "approved"
+    PENDING = "pending"
+
+    APPROVAL_STATUS = (
+        (APPROVED, _("Approved")),
+        (PENDING, _("Pending")),
+    )
+
     group = models.ForeignKey(Group, on_delete=models.CASCADE, related_name="memberships")
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="memberships")
 
     user_role = models.CharField(max_length=64, choices=ROLES, blank=True, default=ROLE_MEMBER)
+
+    membership_status = models.CharField(max_length=64, choices=APPROVAL_STATUS, default=APPROVED)
 
     objects = MembershipObjectsManager()
 
@@ -157,3 +188,9 @@ class Membership(BaseModel):
             return cls.ROLE_MANAGER
 
         return cls.ROLE_MEMBER
+
+    @classmethod
+    def get_membership_status_from_text(cls, membership_status):
+        if membership_status and membership_status.lower() == cls.APPROVED:
+            return cls.APPROVED
+        return cls.PENDING
