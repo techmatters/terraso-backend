@@ -88,11 +88,12 @@ class GroupAssociationAddMutation(relay.ClientIDMutation):
             )
 
         try:
-            # Do not call full_clean(), as it calls validate_unique(). Validating uniqueness
+            # Do not call full_clean(), as it calls validate_constraints(). Validating uniqueness
             # in Python (instead of in the database) provides less information -- no row ID
             # for the violation is included.
             group_association.clean_fields()
             group_association.clean()
+            group_association.validate_unique()
 
         except ValidationError as exc:
             logger.error(
