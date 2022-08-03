@@ -88,7 +88,12 @@ class GroupAssociationAddMutation(relay.ClientIDMutation):
             )
 
         try:
-            group_association.full_clean()
+            # Do not call full_clean(), as it calls validate_unique(). Validating uniqueness
+            # in Python (instead of in the database) provides less information -- no row ID
+            # for the violation is included.
+            group_association.clean_fields()
+            group_association.clean()
+
         except ValidationError as exc:
             logger.error(
                 "Attempt to create a Group Association, but model is invalid",

@@ -88,7 +88,11 @@ class LandscapeGroupAddMutation(relay.ClientIDMutation):
         landscape_group.group = group
 
         try:
-            landscape_group.full_clean()
+            # Do not call full_clean(), as it calls validate_unique(). Validating uniqueness
+            # in Python (instead of in the database) provides less information -- no row ID
+            # for the violation is included.
+            landscape_group.clean_fields()
+            landscape_group.clean()
         except ValidationError as exc:
             logger.error(
                 "Attempt to create a Landscape Group, but model is invalid",
