@@ -34,6 +34,7 @@ class DataEntryNode(DjangoObjectType):
             "created_by",
             "created_at",
             "groups",
+            "visualizations",
         )
         interfaces = (relay.Node,)
         connection_class = TerrasoConnection

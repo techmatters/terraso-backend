@@ -2,6 +2,11 @@ import graphene
 from graphene_django.filter import DjangoFilterConnectionField
 
 from .commons import TerrasoRelayNode
+from .data_entries import (
+    DataEntryDeleteMutation,
+    DataEntryNode,
+    DataEntryUpdateMutation,
+)
 from .group_associations import (
     GroupAssociationAddMutation,
     GroupAssociationDeleteMutation,
@@ -30,7 +35,6 @@ from .memberships import (
     MembershipNode,
     MembershipUpdateMutation,
 )
-from .shared_data import DataEntryDeleteMutation, DataEntryNode, DataEntryUpdateMutation
 from .users import (
     UserAddMutation,
     UserDeleteMutation,
@@ -38,6 +42,12 @@ from .users import (
     UserPreferenceDelete,
     UserPreferenceUpdate,
     UserUpdateMutation,
+)
+from .visualization_config import (
+    VisualizationConfigAddMutation,
+    VisualizationConfigDeleteMutation,
+    VisualizationConfigNode,
+    VisualizationConfigUpdateMutation,
 )
 
 
@@ -58,6 +68,7 @@ class Query(graphene.ObjectType):
     group_associations = DjangoFilterConnectionField(GroupAssociationNode)
     data_entry = TerrasoRelayNode.Field(DataEntryNode)
     data_entries = DjangoFilterConnectionField(DataEntryNode)
+    visualization_config = DjangoFilterConnectionField(VisualizationConfigNode)
 
 
 class Mutations(graphene.ObjectType):
@@ -81,6 +92,9 @@ class Mutations(graphene.ObjectType):
     delete_user_preference = UserPreferenceDelete.Field()
     update_data_entry = DataEntryUpdateMutation.Field()
     delete_data_entry = DataEntryDeleteMutation.Field()
+    add_visualization_config = VisualizationConfigAddMutation.Field()
+    update_visualization_config = VisualizationConfigUpdateMutation.Field()
+    delete_visualization_config = VisualizationConfigDeleteMutation.Field()
 
 
 schema = graphene.Schema(query=Query, mutation=Mutations)
