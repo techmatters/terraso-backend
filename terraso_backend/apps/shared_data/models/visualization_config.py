@@ -1,5 +1,4 @@
 from django.db import models
-from django.utils import timezone
 
 from apps.core.models import BaseModel, User
 from apps.shared_data import permission_rules as perm_rules
