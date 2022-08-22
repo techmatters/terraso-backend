@@ -5,10 +5,10 @@ from graphene_django import DjangoObjectType
 
 from apps.core.models import Membership
 from apps.graphql.exceptions import GraphQLNotAllowedException
-from apps.shared_data.models.visualization_config import VisualizationConfig
 from apps.shared_data.models.data_entries import DataEntry
-from ..exceptions import GraphQLNotFoundException
+from apps.shared_data.models.visualization_config import VisualizationConfig
 
+from ..exceptions import GraphQLNotFoundException
 from .commons import BaseDeleteMutation, BaseWriteMutation, TerrasoConnection
 from .constants import MutationTypes
 
@@ -46,7 +46,7 @@ class VisualizationConfigAddMutation(BaseWriteMutation):
     model_class = VisualizationConfig
 
     class Input:
-        configuration = graphene.String()
+        configuration = graphene.JSONString()
         data_entry_id = graphene.ID(required=True)
 
     @classmethod
@@ -77,7 +77,7 @@ class VisualizationConfigUpdateMutation(BaseWriteMutation):
 
     class Input:
         id = graphene.ID(required=True)
-        configuration = graphene.String()
+        configuration = graphene.JSONString()
 
     @classmethod
     def mutate_and_get_payload(cls, root, info, **kwargs):
