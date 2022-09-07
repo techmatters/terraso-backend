@@ -28,6 +28,7 @@ class VisualizationConfigNode(DjangoObjectType):
             "configuration",
             "created_by",
             "created_at",
+            "data_entry",
         )
         interfaces = (relay.Node,)
         connection_class = TerrasoConnection

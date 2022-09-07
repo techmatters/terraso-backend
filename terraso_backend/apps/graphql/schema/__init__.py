@@ -68,7 +68,8 @@ class Query(graphene.ObjectType):
     group_associations = DjangoFilterConnectionField(GroupAssociationNode)
     data_entry = TerrasoRelayNode.Field(DataEntryNode)
     data_entries = DjangoFilterConnectionField(DataEntryNode)
-    visualization_config = DjangoFilterConnectionField(VisualizationConfigNode)
+    visualization_config = TerrasoRelayNode.Field(VisualizationConfigNode)
+    visualization_configs = DjangoFilterConnectionField(VisualizationConfigNode)
 
 
 class Mutations(graphene.ObjectType):
