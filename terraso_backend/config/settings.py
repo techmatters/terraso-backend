@@ -224,14 +224,18 @@ DATA_ENTRY_FILE_S3_BUCKET = config("DATA_ENTRY_FILE_S3_BUCKET", default="")
 DATA_ENTRY_FILE_BASE_URL = config("DATA_ENTRY_FILE_BASE_URL", default="")
 
 DATA_ENTRY_ACCEPTED_EXTENSIONS = [
-    "csv",
-    "doc",
-    "docx",
-    "pdf",
-    "ppt",
-    "pptx",
-    "xlsx",
-    "xls",
+    ".geojson",
+    ".json",
+    ".csv",
+    ".doc",
+    ".csv",
+    ".doc",
+    ".docx",
+    ".pdf",
+    ".ppt",
+    ".pptx",
+    ".xlsx",
+    ".xls",
 ]
 
 AWS_ACCESS_KEY_ID = config("AWS_ACCESS_KEY_ID", default="")
