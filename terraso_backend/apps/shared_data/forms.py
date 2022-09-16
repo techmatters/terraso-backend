@@ -4,6 +4,7 @@ import pathlib
 import magic
 import structlog
 from django import forms
+from django.conf import settings
 from django.core.exceptions import ValidationError
 
 from apps.core.models import Group
@@ -40,14 +41,20 @@ class DataEntryForm(forms.ModelForm):
     def clean_data_file(self):
         data_file = self.cleaned_data["data_file"]
 
+        accepted_file_extensions = settings.DATA_ENTRY_ACCEPTED_EXTENSIONS
+        if accepted_file_extensions and file_extension not in accepted_file_extensions:
+            message = f"Disallowed file extension ({file_extension})"
+            logger.info(message)
+            raise ValidationError(message, code="disallowed_extension")
+
         file_mime_type = magic.from_buffer(data_file.open("rb").read(2048), mime=True)
-        allowed_file_extensions = mimetypes.guess_all_extensions(file_mime_type)
+        allowed_file_extensions_for_type = mimetypes.guess_all_extensions(file_mime_type)
         file_extension = pathlib.Path(data_file.name).suffix
 
         if (
             file_mime_type
-            and allowed_file_extensions
-            and file_extension not in allowed_file_extensions
+            and allowed_file_extensions_for_type
+            and file_extension not in allowed_file_extensions_for_type
         ):
             message = (
                 f"Invalid file extension ({file_extension}) for the file type {file_mime_type}"
