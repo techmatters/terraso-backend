@@ -15,7 +15,7 @@ from apps.core.models import (
     Membership,
     User,
 )
-from apps.shared_data.models import DataEntry
+from apps.shared_data.models import DataEntry, VisualizationConfig
 
 pytestmark = pytest.mark.django_db
 
@@ -188,4 +188,35 @@ def data_entries(users, groups):
     creator_group.members.add(creator)
     return mixer.cycle(5).blend(
         DataEntry, slug=None, created_by=creator, size=100, groups=creator_group
+    )
+
+
+@pytest.fixture
+def visualization_config_current_user(users, data_entry_current_user, groups):
+    creator = users[0]
+    creator_group = groups[0]
+    creator_group.members.add(creator)
+    return mixer.blend(VisualizationConfig, created_by=creator, data_entry=data_entry_current_user)
+
+
+@pytest.fixture
+def visualization_config_other_user(users, data_entry_other_user, groups):
+    creator = users[1]
+    creator_group = groups[1]
+    creator_group.members.add(creator)
+    return mixer.blend(VisualizationConfig, created_by=creator, data_entry=data_entry_other_user)
+
+
+@pytest.fixture
+def visualization_configs(users, groups):
+    creator = users[0]
+    creator_group = groups[1]
+    creator_group.members.add(creator)
+    return mixer.cycle(5).blend(
+        VisualizationConfig,
+        created_by=creator,
+        size=100,
+        data_entry=lambda: mixer.blend(
+            DataEntry, slug=None, created_by=creator, size=100, groups=creator_group
+        ),
     )

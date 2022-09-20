@@ -3,7 +3,7 @@ from django.conf import settings
 from mixer.backend.django import mixer
 
 from apps.core.models import Group, User
-from apps.shared_data.models import DataEntry
+from apps.shared_data.models import DataEntry, VisualizationConfig
 
 
 @pytest.fixture
@@ -42,5 +42,25 @@ def data_entry_user_b(user_b, data_entry_filename):
         DataEntry,
         size=1,
         url=f"{settings.DATA_ENTRY_FILE_BASE_URL}/{user_b.id}/{data_entry_filename}",
+        created_by=user_b,
+    )
+
+
+@pytest.fixture
+def visualization_config(user, data_entry):
+    return mixer.blend(
+        VisualizationConfig,
+        size=1,
+        data_entry=data_entry,
+        created_by=user,
+    )
+
+
+@pytest.fixture
+def visualization_config_b(user_b, data_entry):
+    return mixer.blend(
+        VisualizationConfig,
+        size=1,
+        data_entry=data_entry,
         created_by=user_b,
     )
