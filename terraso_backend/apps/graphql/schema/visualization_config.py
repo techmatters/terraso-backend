@@ -22,6 +22,7 @@ class VisualizationConfigNode(DjangoObjectType):
         model = VisualizationConfig
         filter_fields = {
             "data_entry__groups__slug": ["exact", "icontains"],
+            "data_entry__groups__id": ["exact"],
         }
         fields = (
             "id",
