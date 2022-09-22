@@ -22,6 +22,7 @@ class DataEntryNode(DjangoObjectType):
             "name": ["icontains"],
             "description": ["icontains"],
             "url": ["icontains"],
+            "resource_type": ["in"],
             "groups__slug": ["exact", "icontains"],
             "groups__id": ["exact"],
         }
