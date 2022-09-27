@@ -1,8 +1,39 @@
+import json
+
 import pytest
 
 from apps.shared_data.models import VisualizationConfig
 
 pytestmark = pytest.mark.django_db
+
+
+def test_visualization_config_add_fails_due_uniqueness_check(
+    client_query, visualization_configs, data_entries
+):
+    new_data = {
+        "title": visualization_configs[0].title,
+        "configuration": '{"key": "value"}',
+        "groupId": str(visualization_configs[0].group.id),
+        "dataEntryId": str(data_entries[0].id),
+    }
+
+    response = client_query(
+        """
+        mutation addVisualizationConfig($input: VisualizationConfigAddMutationInput!) {
+          addVisualizationConfig(input: $input) {
+            visualizationConfig {
+              id
+            }
+          }
+        }
+        """,
+        variables={"input": new_data},
+    )
+    response = response.json()
+
+    assert "errors" in response
+    error_message = json.loads(response["errors"][0]["message"])[0]
+    assert error_message["code"] == "unique"
 
 
 def test_visualization_config_update_by_creator_works(client_query, visualization_configs):
