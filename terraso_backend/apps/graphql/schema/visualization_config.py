@@ -3,7 +3,7 @@ import structlog
 from graphene import relay
 from graphene_django import DjangoObjectType
 
-from apps.core.models import Membership
+from apps.core.models import Group, Membership
 from apps.graphql.exceptions import GraphQLNotAllowedException
 from apps.shared_data.models.data_entries import DataEntry
 from apps.shared_data.models.visualization_config import VisualizationConfig
@@ -21,15 +21,19 @@ class VisualizationConfigNode(DjangoObjectType):
     class Meta:
         model = VisualizationConfig
         filter_fields = {
+            "slug": ["exact", "icontains"],
             "data_entry__groups__slug": ["exact", "icontains"],
             "data_entry__groups__id": ["exact"],
         }
         fields = (
             "id",
+            "slug",
+            "title",
             "configuration",
             "created_by",
             "created_at",
             "data_entry",
+            "group",
         )
         interfaces = (relay.Node,)
         connection_class = TerrasoConnection
@@ -48,23 +52,36 @@ class VisualizationConfigAddMutation(BaseWriteMutation):
     model_class = VisualizationConfig
 
     class Input:
+        title = graphene.String(required=True)
         configuration = graphene.JSONString()
         data_entry_id = graphene.ID(required=True)
+        group_id = graphene.ID(required=True)
 
     @classmethod
     def mutate_and_get_payload(cls, root, info, **kwargs):
         user = info.context.user
 
         try:
+            group_entry = Group.objects.get(id=kwargs["group_id"])
+        except Group.DoesNotExist:
+            logger.error(
+                "Group not found when adding a VisualizationConfig",
+                extra={"group_id": kwargs["group_id"]},
+            )
+            raise GraphQLNotFoundException(field="group", model_name=Group.__name__)
+
+        try:
             data_entry = DataEntry.objects.get(id=kwargs["data_entry_id"])
+
         except DataEntry.DoesNotExist:
             logger.error(
                 "DataEntry not found when adding a VisualizationConfig",
                 extra={"data_entry_id": kwargs["data_entry_id"]},
             )
-            raise GraphQLNotFoundException(field="data_entry", model_name=Membership.__name__)
+            raise GraphQLNotFoundException(field="data_entry", model_name=DataEntry.__name__)
 
         kwargs["data_entry"] = data_entry
+        kwargs["group"] = group_entry
 
         if not cls.is_update(kwargs):
             kwargs["created_by"] = user

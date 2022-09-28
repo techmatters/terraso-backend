@@ -10,4 +10,4 @@ class DataEntryAdmin(admin.ModelAdmin):
 
 @admin.register(VisualizationConfig)
 class VisualizationConfigAdmin(admin.ModelAdmin):
-    list_display = ("id", "data_entry", "configuration", "created_by", "created_at")
+    list_display = ("id", "title", "data_entry", "configuration", "created_by", "created_at")

@@ -186,9 +186,7 @@ def data_entries(users, groups):
     creator = users[0]
     creator_group = groups[0]
     creator_group.members.add(creator)
-    return mixer.cycle(5).blend(
-        DataEntry, slug=None, created_by=creator, size=100, groups=creator_group
-    )
+    return mixer.cycle(5).blend(DataEntry, created_by=creator, size=100, groups=creator_group)
 
 
 @pytest.fixture
@@ -212,11 +210,12 @@ def visualization_configs(users, groups):
     creator = users[0]
     creator_group = groups[1]
     creator_group.members.add(creator)
-    return mixer.cycle(5).blend(
+    visualizations = mixer.cycle(5).blend(
         VisualizationConfig,
         created_by=creator,
-        size=100,
         data_entry=lambda: mixer.blend(
-            DataEntry, slug=None, created_by=creator, size=100, groups=creator_group
+            DataEntry, created_by=creator, size=100, groups=creator_group
         ),
+        group=groups[0],
     )
+    return visualizations

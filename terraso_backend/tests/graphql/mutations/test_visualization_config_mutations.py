@@ -1,8 +1,77 @@
+import json
+
 import pytest
 
 from apps.shared_data.models import VisualizationConfig
 
 pytestmark = pytest.mark.django_db
+
+
+def test_visualization_config_add(client_query, visualization_configs, data_entries):
+    group_id = str(visualization_configs[0].group.id)
+    data_entry_id = str(data_entries[0].id)
+    new_data = {
+        "title": "Test title",
+        "configuration": '{"key": "value"}',
+        "groupId": group_id,
+        "dataEntryId": data_entry_id,
+    }
+
+    response = client_query(
+        """
+        mutation addVisualizationConfig($input: VisualizationConfigAddMutationInput!) {
+          addVisualizationConfig(input: $input) {
+            visualizationConfig {
+              slug
+              title
+              configuration
+              group { id }
+              dataEntry { id }
+            }
+          }
+        }
+        """,
+        variables={"input": new_data},
+    )
+
+    result = response.json()["data"]["addVisualizationConfig"]["visualizationConfig"]
+
+    assert result == {
+        "slug": "test-title",
+        "title": "Test title",
+        "configuration": '{"key": "value"}',
+        "group": {"id": group_id},
+        "dataEntry": {"id": data_entry_id},
+    }
+
+
+def test_visualization_config_add_fails_due_uniqueness_check(
+    client_query, visualization_configs, data_entries
+):
+    new_data = {
+        "title": visualization_configs[0].title,
+        "configuration": '{"key": "value"}',
+        "groupId": str(visualization_configs[0].group.id),
+        "dataEntryId": str(data_entries[0].id),
+    }
+
+    response = client_query(
+        """
+        mutation addVisualizationConfig($input: VisualizationConfigAddMutationInput!) {
+          addVisualizationConfig(input: $input) {
+            visualizationConfig {
+              id
+            }
+          }
+        }
+        """,
+        variables={"input": new_data},
+    )
+    response = response.json()
+
+    assert "errors" in response
+    error_message = json.loads(response["errors"][0]["message"])[0]
+    assert error_message["code"] == "unique"
 
 
 def test_visualization_config_update_by_creator_works(client_query, visualization_configs):
