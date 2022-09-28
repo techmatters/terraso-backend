@@ -1,0 +1,185 @@
+import json
+
+import pytest
+
+from apps.shared_data.models import VisualizationConfig
+
+pytestmark = pytest.mark.django_db
+
+
+def test_visualization_config_add(client_query, visualization_configs, data_entries):
+    group_id = str(visualization_configs[0].group.id)
+    data_entry_id = str(data_entries[0].id)
+    new_data = {
+        "title": "Test title",
+        "configuration": '{"key": "value"}',
+        "groupId": group_id,
+        "dataEntryId": data_entry_id,
+    }
+
+    response = client_query(
+        """
+        mutation addVisualizationConfig($input: VisualizationConfigAddMutationInput!) {
+          addVisualizationConfig(input: $input) {
+            visualizationConfig {
+              slug
+              title
+              configuration
+              group { id }
+              dataEntry { id }
+            }
+          }
+        }
+        """,
+        variables={"input": new_data},
+    )
+
+    result = response.json()["data"]["addVisualizationConfig"]["visualizationConfig"]
+
+    assert result == {
+        "slug": "test-title",
+        "title": "Test title",
+        "configuration": '{"key": "value"}',
+        "group": {"id": group_id},
+        "dataEntry": {"id": data_entry_id},
+    }
+
+
+def test_visualization_config_add_fails_due_uniqueness_check(
+    client_query, visualization_configs, data_entries
+):
+    new_data = {
+        "title": visualization_configs[0].title,
+        "configuration": '{"key": "value"}',
+        "groupId": str(visualization_configs[0].group.id),
+        "dataEntryId": str(data_entries[0].id),
+    }
+
+    response = client_query(
+        """
+        mutation addVisualizationConfig($input: VisualizationConfigAddMutationInput!) {
+          addVisualizationConfig(input: $input) {
+            visualizationConfig {
+              id
+            }
+          }
+        }
+        """,
+        variables={"input": new_data},
+    )
+    response = response.json()
+
+    assert "errors" in response
+    error_message = json.loads(response["errors"][0]["message"])[0]
+    assert error_message["code"] == "unique"
+
+
+def test_visualization_config_update_by_creator_works(client_query, visualization_configs):
+    old_visualization_config = visualization_configs[0]
+
+    new_data = {
+        "id": str(old_visualization_config.id),
+        "configuration": '{"key": "value"}',
+    }
+    response = client_query(
+        """
+        mutation updateVisualizationConfig($input: VisualizationConfigUpdateMutationInput!) {
+          updateVisualizationConfig(input: $input) {
+            visualizationConfig {
+              id
+              configuration
+            }
+          }
+        }
+        """,
+        variables={"input": new_data},
+    )
+    result = response.json()["data"]["updateVisualizationConfig"]["visualizationConfig"]
+
+    assert result == new_data
+
+
+def test_visualization_config_update_by_non_creator_fails_due_permission_check(
+    client_query, visualization_configs, users
+):
+    old_visualization_config = visualization_configs[0]
+
+    # Let's force old data creator be different from client query user
+    old_visualization_config.created_by = users[2]
+    old_visualization_config.save()
+
+    new_data = {
+        "id": str(old_visualization_config.id),
+        "configuration": '{"key": "value"}',
+    }
+
+    response = client_query(
+        """
+        mutation updateVisualizationConfig($input: VisualizationConfigUpdateMutationInput!) {
+          updateVisualizationConfig(input: $input) {
+            visualizationConfig {
+              id
+            }
+          }
+        }
+        """,
+        variables={"input": new_data},
+    )
+    response = response.json()
+
+    assert "errors" in response
+    assert "update_not_allowed" in response["errors"][0]["message"]
+
+
+def test_visualization_config_delete_by_creator_works(client_query, visualization_configs):
+    old_visualization_config = visualization_configs[0]
+
+    response = client_query(
+        """
+        mutation deleteVisualizationConfig($input: VisualizationConfigDeleteMutationInput!){
+          deleteVisualizationConfig(input: $input) {
+            visualizationConfig {
+              configuration
+            }
+          }
+        }
+
+        """,
+        variables={"input": {"id": str(old_visualization_config.id)}},
+    )
+
+    visualization_config_result = response.json()["data"]["deleteVisualizationConfig"][
+        "visualizationConfig"
+    ]
+
+    assert visualization_config_result["configuration"] == old_visualization_config.configuration
+    assert not VisualizationConfig.objects.filter(id=old_visualization_config.id)
+
+
+def test_visualization_config_delete_by_non_creator_fails_due_permission_check(
+    client_query, visualization_configs, users
+):
+    old_visualization_config = visualization_configs[0]
+
+    # Let's force old data creator be different from client query user
+    old_visualization_config.created_by = users[2]
+    old_visualization_config.save()
+
+    response = client_query(
+        """
+        mutation deleteVisualizationConfig($input: VisualizationConfigDeleteMutationInput!){
+          deleteVisualizationConfig(input: $input) {
+            visualizationConfig {
+              configuration
+            }
+          }
+        }
+
+        """,
+        variables={"input": {"id": str(old_visualization_config.id)}},
+    )
+
+    response = response.json()
+
+    assert "errors" in response
+    assert "delete_not_allowed" in response["errors"][0]["message"]
