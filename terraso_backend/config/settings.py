@@ -188,6 +188,7 @@ structlog.configure(
 
 GRAPHENE = {
     "SCHEMA": "apps.graphql.schema.schema",
+    'TESTING_ENDPOINT': "/graphql/",
 }
 
 WEB_CLIENT_URL = config("WEB_CLIENT_ENDPOINT", default="")
