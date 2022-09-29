@@ -4,9 +4,9 @@
 #
 #    make lock
 #
-aniso8601==9.0.1 \
-    --hash=sha256:1d2b7ef82963909e93c4f24ce48d4de9e66009a21bf1c1e1c85bdd0812fe412f \
-    --hash=sha256:72e3117667eedf66951bb2d93f4296a56b94b078a8a95905a052611fb3f1b973
+aniso8601==7.0.0 \
+    --hash=sha256:513d2b6637b7853806ae79ffaca6f3e8754bdd547048f5ccc1420aec4b714f1e \
+    --hash=sha256:d10a4bf949f619f719b227ef5386e31f49a2b6d453004b21f02661ccc8670c7b
     # via graphene
 anyio==3.6.1 \
     --hash=sha256:413adf95f93886e442aea925f3ee43baa5a765a64a0f52c6081894f9992fdd0b \
@@ -269,27 +269,25 @@ exceptiongroup==1.0.0rc9 \
     --hash=sha256:2e3c3fc1538a094aab74fad52d6c33fc94de3dfee3ee01f187c0e0c72aec5337 \
     --hash=sha256:9086a4a21ef9b31c72181c77c040a074ba0889ee56a7b289ff0afb0d97655f96
     # via cattrs
-graphene==3.1.1 \
-    --hash=sha256:1c0d43560a86536b7816bb05e3685beebf140118e091a9c445cd10f55acb20fd \
-    --hash=sha256:ff251dbc39a6409106c41de444358d93b2c5588d161dce2245bea7d74b445c86
+graphene==2.1.9 \
+    --hash=sha256:3d446eb1237c551052bc31155cf1a3a607053e4f58c9172b83a1b597beaa0868 \
+    --hash=sha256:b9f2850e064eebfee9a3ef4a1f8aa0742848d97652173ab44c82cc8a62b9ed93
     # via graphene-django
-graphene-django==3.0.0 \
-    --hash=sha256:018a8dc4736d99b5bb4a15d7fd0b46c98010e9201cb52a290f6d1f16ae6fefda \
-    --hash=sha256:9fa531d319d5c8f9e08274628f547574ee684e74dddd1c969abf38142bc32df2
+graphene-django===2.15.0 \
+    --hash=sha256:02671d195f0c09c8649acff2a8f4ad4f297d0f7d98ea6e6cdf034b81bab92880 \
+    --hash=sha256:b78c9b05bc899016b9cc5bf13faa1f37fe1faa8c5407552c6ddd1a28f46fc31a
     # via -r requirements/base.in
-graphql-core==3.2.3 \
-    --hash=sha256:06d2aad0ac723e35b1cb47885d3e5c45e956a53bc1b209a9fc5369007fe46676 \
-    --hash=sha256:5766780452bd5ec8ba133f8bf287dc92713e3868ddd83aee4faab9fc3e303dc3
+graphql-core==2.3.2 \
+    --hash=sha256:44c9bac4514e5e30c5a595fac8e3c76c1975cae14db215e8174c7fe995825bad \
+    --hash=sha256:aac46a9ac524c9855910c14c48fc5d60474def7f99fd10245e76608eba7af746
     # via
     #   graphene
     #   graphene-django
     #   graphql-relay
-graphql-relay==3.2.0 \
-    --hash=sha256:1ff1c51298356e481a0be009ccdff249832ce53f30559c1338f22a0e0d17250c \
-    --hash=sha256:c9b22bd28b170ba1fe674c74384a8ff30a76c8e26f88ac3aa1584dd3179953e5
-    # via
-    #   graphene
-    #   graphene-django
+graphql-relay==2.0.1 \
+    --hash=sha256:870b6b5304123a38a0b215a79eace021acce5a466bf40cd39fa18cb8528afabb \
+    --hash=sha256:ac514cb86db9a43014d7e73511d521137ac12cf0101b2eaa5f0a3da2e10d913d
+    # via graphene
 gunicorn==20.1.0 \
     --hash=sha256:9dcc4547dbb1cb284accfb15ab5667a0e5d1881cc443e0677b4882a4067a807e \
     --hash=sha256:e0a968b5ba15f8a328fdfd7ab1fcb5af4470c28aaf7e55df02a99bc13138e6e8
@@ -343,7 +341,10 @@ prettyconf==2.2.1 \
     # via -r requirements/base.in
 promise==2.3 \
     --hash=sha256:dfd18337c523ba4b6a58801c164c1904a9d4d1b1747c7d5dbf45b693a49d93d0
-    # via graphene-django
+    # via
+    #   graphene-django
+    #   graphql-core
+    #   graphql-relay
 protobuf==4.21.6 \
     --hash=sha256:07a0bb9cc6114f16a39c866dc28b6e3d96fa4ffb9cc1033057412547e6e75cb9 \
     --hash=sha256:308173d3e5a3528787bb8c93abea81d5a950bdce62840d9760effc84127fb39c \
@@ -430,18 +431,31 @@ rules==3.3 \
     --hash=sha256:12c8bbab5f54560e68528fcca7abc0e162c35ac882e3cc0daed40ac49c963070 \
     --hash=sha256:bf7bea8b724b73c36a622714c1b3557620c187a2ee05321a2ac8ab7472dc4464
     # via -r requirements/base.in
+rx==1.6.1 \
+    --hash=sha256:13a1d8d9e252625c173dc795471e614eadfe1cf40ffc684e08b8fff0d9748c23 \
+    --hash=sha256:7357592bc7e881a95e0c2013b73326f704953301ab551fbc8133a6fadab84105
+    # via graphql-core
 s3transfer==0.6.0 \
     --hash=sha256:06176b74f3a15f61f1b4f25a1fc29a4429040b7647133a463da8fa5bd28d5ecd \
     --hash=sha256:2ed07d3866f523cc561bf4a00fc5535827981b117dd7876f036b0c1aca42c947
     # via boto3
+singledispatch==3.7.0 \
+    --hash=sha256:bc77afa97c8a22596d6d4fc20f1b7bdd2b86edc2a65a4262bdd7cc3cc19aa989 \
+    --hash=sha256:c1a4d5c1da310c3fd8fccfb8d4e1cb7df076148fd5d858a819e37fffe44f3092
+    # via graphene-django
 six==1.16.0 \
     --hash=sha256:1e61c37477a1626458e36f7b1d82aa5c9b094fa4802892072e49de9c60c4c926 \
     --hash=sha256:8abb2f1d86890a2dfb989f9a77cfcfd3e47c2a354b01111771326f8aa26e0254
     # via
     #   ddsketch
     #   ddtrace
+    #   graphene
+    #   graphene-django
+    #   graphql-core
+    #   graphql-relay
     #   promise
     #   python-dateutil
+    #   singledispatch
 sniffio==1.3.0 \
     --hash=sha256:e60305c5e5d314f5389259b7f22aaa33d8f7dee49763119234af3755c55b9101 \
     --hash=sha256:eecefdce1e5bbfb7ad2eeaabf7c1eeb404d7757c379bd1f7e5cce9d8bf425384
