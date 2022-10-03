@@ -49,7 +49,7 @@ class AccountService:
         self._update_profile_image(user, profile_image_url)
 
         if not created:
-            return user
+            return user, False
 
         update_name = first_name or last_name
 
@@ -62,7 +62,7 @@ class AccountService:
         if update_name:
             user.save()
 
-        return user
+        return user, True
 
     def _update_profile_image(self, user, profile_image_url):
         if not profile_image_url:

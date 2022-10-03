@@ -1,3 +1,4 @@
+import functools
 import json
 
 import structlog
@@ -63,7 +64,7 @@ class AbstractCallbackView(View):
             return HttpResponse("Error: no authorization code informed", status=400)
 
         try:
-            user = self.process_signup()
+            user, created_with_service = self.process_signup()
             access_token, refresh_token = terraso_login(self.request, user)
         except Exception as exc:
             logger.exception("Error attempting create access and refresh tokens")
@@ -72,6 +73,9 @@ class AbstractCallbackView(View):
         response = HttpResponseRedirect(f"{settings.WEB_CLIENT_URL}/{self.state}")
         response.set_cookie("atoken", access_token, domain=settings.AUTH_COOKIE_DOMAIN)
         response.set_cookie("rtoken", refresh_token, domain=settings.AUTH_COOKIE_DOMAIN)
+        if created_with_service:
+            # Set samesite to avoid warnings
+            response.set_cookie("new_signup", created_with_service, samesite="Strict")
 
         return response
 
@@ -79,12 +83,31 @@ class AbstractCallbackView(View):
         raise NotImplementedError("AbstractCallbackView must be inherited.")
 
 
+def record_creation(service):
+    """A simple decorator to store if a new user has been created, and by which service"""
+
+    def wrapper(f):
+        @functools.wraps(f)
+        def g(*args, **kwargs):
+            user, created = f(*args, **kwargs)
+            if created:
+                return user, service
+            else:
+                return user, None
+
+        return g
+
+    return wrapper
+
+
 class GoogleCallbackView(AbstractCallbackView):
+    @record_creation("google")
     def process_signup(self):
         return AccountService().sign_up_with_google(self.authorization_code)
 
 
 class AppleCallbackView(AbstractCallbackView):
+    @record_creation("apple")
     def process_signup(self):
         user_obj = self.request.POST.get("user", "{}")
         try:

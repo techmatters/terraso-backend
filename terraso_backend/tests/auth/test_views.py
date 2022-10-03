@@ -47,6 +47,7 @@ def test_get_google_callback(client, access_tokens_google, respx_mock):
     assert response.cookies.get("atoken")
     assert response.cookies.get("rtoken")
     assert response.cookies.get("sessionid")
+    assert response.cookies.get("new_signup").value == "google"
 
 
 def test_get_google_callback_without_code(client):
@@ -97,6 +98,7 @@ def test_post_apple_callback(client, access_tokens_apple, respx_mock):
     assert response.cookies.get("atoken")
     assert response.cookies.get("rtoken")
     assert response.cookies.get("sessionid")
+    assert response.cookies.get("new_signup").value == "apple"
 
 
 def test_post_apple_callback_without_code(client):
