@@ -1,7 +1,7 @@
 import functools
 import json
+from urllib.parse import urlparse
 
-import httpx
 import structlog
 from django.conf import settings
 from django.contrib.auth import get_user_model
@@ -9,9 +9,10 @@ from django.contrib.auth import login as dj_login
 from django.contrib.auth import logout as dj_logout
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.views import View
+from plausible_events import PlausibleEvents
 
 from .providers import AppleProvider, GoogleProvider
-from .services import AccountService, JWTService, PlausibleService
+from .services import AccountService, JWTService
 
 logger = structlog.get_logger(__name__)
 User = get_user_model()
@@ -76,17 +77,10 @@ class AbstractCallbackView(View):
         response.set_cookie("rtoken", refresh_token, domain=settings.AUTH_COOKIE_DOMAIN)
         if created_with_service:
             # Set samesite to avoid warnings
-            plausible_service = PlausibleService()
-            try:
-                plausible_service.track_signup(created_with_service, self.request)
-            except httpx.HTTPStatusError as e:
-                logger.error(
-                    "Error tracking signup: received status code %s when querying %s",
-                    e.response.status_code,
-                    e.request.url,
-                )
-            except Exception:
-                logger.exception("Error tracking signup")
+            domain = urlparse(settings.WEB_CLIENT_URL).hostname
+            path = f"https://{domain}/signup"
+            pe = PlausibleEvents(domain)
+            pe.event("User signup", props={"service": created_with_service}, path=path)
 
         return response
 
