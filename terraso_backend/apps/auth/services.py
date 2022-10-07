@@ -1,6 +1,10 @@
+import ipaddress
 from datetime import timedelta
+from typing import Any, Optional
+from urllib.parse import urlparse
 from uuid import uuid4
 
+import httpx
 import jwt
 import structlog
 from django.conf import settings
@@ -108,3 +112,89 @@ class JWTService:
             "jti": uuid4().hex,
             "email": user.email,
         }
+
+
+class PlausibleService:
+    """Service for making API calls to plausible service.
+
+    See documentation at https://plausible.io/docs/events-api .
+    """
+
+    PLAUSIBLE_URL = "https://plausible.io/api/event"
+    FRONTEND_URL = settings.WEB_CLIENT_URL
+
+    @staticmethod
+    def _prepare_headers(user_agent: str, ip_address: str) -> dict[str, str]:
+        return {
+            "User-Agent": user_agent,
+            "X-Forwarded-For": ip_address,
+            "Content-Type": "application/json",
+        }
+
+    @classmethod
+    def _prepare_body_params(
+        cls, event_name: str, event_url: str, referrer: str, props: Optional[dict[str, Any]]
+    ):
+        return {
+            "domain": urlparse(cls.FRONTEND_URL).hostname,
+            "name": event_name,
+            "url": event_url,
+            "referrer": referrer,
+            "props": props,
+        }
+
+    @staticmethod
+    def _get_first_ip_address(string: str):
+        addresses = string.split(",")
+        for addr in addresses:
+            try:
+                ip_address = ipaddress.ip_address(addr)
+                break
+            except ValueError:
+                pass
+        else:
+            # we only get to this branch if we never break
+            # i.e. none of the candidates are valid ip addresses
+            return None
+        return str(ip_address)
+
+    def track_event(
+        self,
+        event_name: str,
+        user_agent: str,
+        ip_address: str,
+        event_url: str,
+        props: Optional[dict[str, Any]] = None,
+        referrer: str = "",
+    ) -> None:
+        """Send a tracking event to Plausible through the HTTP API.
+        Throws exception if not succesful."""
+        headers = self._prepare_headers(user_agent, ip_address)
+        data = self._prepare_body_params(event_name, event_url, referrer, props)
+        resp = httpx.post(self.PLAUSIBLE_URL, headers=headers, json=data)
+        # make sure we throw an exception if there was a failure
+        resp.raise_for_status()
+
+    def track_signup(self, auth_provider: str, req) -> None:
+        """Track a successful signup. Include information on which service was used for signup."""
+        event_name = "User signup"
+        if "user-agent" not in req.headers:
+            logger.error("During signup tracking, request missing header 'user-agent'")
+            return
+        user_agent = req.headers["user-agent"]
+        # here we just assume we are testing locally if 'x-forwarded-for' header is not present
+        # this is a mandatory header for the Plausible API, see docs for details
+        ip_address = "127.0.0.1"
+        if "x-forwarded-for" in req.headers:
+            ip_address = self._get_first_ip_address(req.headers["x-forwarded-for"])
+            if not ip_address:
+                logger.error(
+                    "During signup tracking, request header 'x-forwarded-for' was set,"
+                    " but no valid ip addresses were found"
+                )
+                return
+        # making up a fake URL here, because there is no real "signup" URL
+        # see Plausible API docs for "url" param
+        event_url = self.FRONTEND_URL + "/signup"
+        props = {"service": auth_provider}
+        self.track_event(event_name, user_agent, ip_address, event_url, props)
