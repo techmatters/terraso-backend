@@ -120,8 +120,11 @@ class PlausibleService:
     See documentation at https://plausible.io/docs/events-api .
     """
 
-    PLAUSIBLE_URL = "https://plausible.io/api/event"
+    PLAUSIBLE_URL = settings.PLAUSIBLE_URL
     FRONTEND_URL = settings.WEB_CLIENT_URL
+    # fake URL here, because there is no real "signup" URL
+    # see Plausible API docs for "url" param
+    EVENT_URL = self.FRONTEND_URL + "/signup"
 
     @staticmethod
     def _prepare_headers(user_agent: str, ip_address: str) -> dict[str, str]:
@@ -172,7 +175,7 @@ class PlausibleService:
         headers = self._prepare_headers(user_agent, ip_address)
         data = self._prepare_body_params(event_name, event_url, referrer, props)
         resp = httpx.post(self.PLAUSIBLE_URL, headers=headers, json=data)
-        # make sure we throw an exception if there was a failure
+
         resp.raise_for_status()
 
     def track_signup(self, auth_provider: str, req) -> None:
@@ -193,8 +196,5 @@ class PlausibleService:
                     " but no valid ip addresses were found"
                 )
                 return
-        # making up a fake URL here, because there is no real "signup" URL
-        # see Plausible API docs for "url" param
-        event_url = self.FRONTEND_URL + "/signup"
         props = {"service": auth_provider}
-        self.track_event(event_name, user_agent, ip_address, event_url, props)
+        self.track_event(event_name, user_agent, ip_address, self.EVENT_URL, props)
