@@ -124,7 +124,7 @@ class PlausibleService:
     FRONTEND_URL = settings.WEB_CLIENT_URL
     # fake URL here, because there is no real "signup" URL
     # see Plausible API docs for "url" param
-    EVENT_URL = self.FRONTEND_URL + "/signup"
+    EVENT_URL = f"{FRONTEND_URL}/signup"
 
     @staticmethod
     def _prepare_headers(user_agent: str, ip_address: str) -> dict[str, str]:
