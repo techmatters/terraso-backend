@@ -226,3 +226,5 @@ DATA_ENTRY_FILE_BASE_URL = config("DATA_ENTRY_FILE_BASE_URL", default="")
 AWS_ACCESS_KEY_ID = config("AWS_ACCESS_KEY_ID", default="")
 AWS_SECRET_ACCESS_KEY = config("AWS_SECRET_ACCESS_KEY", default="")
 AWS_S3_REGION_NAME = config("AWS_S3_REGION_NAME", default="us-east-2")
+
+PLAUSIBLE_URL = config("PLAUSIBLE_URL", default="https://plausible.io/api/event")
