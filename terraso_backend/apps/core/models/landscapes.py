@@ -1,13 +1,22 @@
 import structlog
 from django.db import models, transaction
+from django.utils.translation import gettext_lazy as _
 
 from apps.core import permission_rules as perm_rules
+from apps.core.models.taxonomy_terms import TaxonomyTerm
 
 from .commons import BaseModel, SlugModel, validate_name
 from .groups import Group
 from .users import User
 
 logger = structlog.get_logger(__name__)
+
+
+class LandscapeDevelopmentStrategy(BaseModel):
+    objectives = models.TextField(blank=True, default="")
+    problem_situtation = models.TextField(blank=True, default="")
+    intervention_strategy = models.TextField(blank=True, default="")
+    other_information = models.TextField(blank=True, default="")
 
 
 class Landscape(SlugModel):
@@ -30,6 +39,7 @@ class Landscape(SlugModel):
     website = models.URLField(blank=True, default="")
     location = models.CharField(max_length=128, blank=True, default="")
     area_polygon = models.JSONField(blank=True, null=True)
+    email = models.EmailField(blank=True, default="")
 
     created_by = models.ForeignKey(
         User,
@@ -39,6 +49,27 @@ class Landscape(SlugModel):
         related_name="created_landscapes",
     )
     groups = models.ManyToManyField(Group, through="LandscapeGroup")
+
+    development_strategy = models.OneToOneField(
+        LandscapeDevelopmentStrategy, on_delete=models.CASCADE, null=True
+    )
+
+    AREA_TYPE_RURAL = "rural"
+    AREA_TYPE_PERI_URBAN = "peri-urban"
+    AREA_TYPE_URBAN = "urban"
+    AREA_TYPES = (
+        (AREA_TYPE_RURAL, _("Rural")),
+        (AREA_TYPE_PERI_URBAN, _("Peri-Urban")),
+        (AREA_TYPE_URBAN, _("Urban")),
+    )
+    area_type = models.CharField(
+        blank=True,
+        default="",
+        max_length=32,
+        choices=AREA_TYPES,
+    )
+    taxonomy_terms = models.ManyToManyField(TaxonomyTerm)
+    population = models.FloatField(null=True)
 
     field_to_slug = "name"
 
@@ -101,6 +132,7 @@ class LandscapeGroup(BaseModel):
     group = models.ForeignKey(Group, on_delete=models.CASCADE, related_name="associated_landscapes")
 
     is_default_landscape_group = models.BooleanField(blank=True, default=False)
+    is_partnership = models.BooleanField(blank=True, default=False)
 
     class Meta:
         rules_permissions = {

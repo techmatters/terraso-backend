@@ -21,6 +21,9 @@ class GroupFilterSet(django_filters.FilterSet):
     associated_landscapes__isnull = django_filters.BooleanFilter(
         method="filter_associated_landscapes"
     )
+    associated_landscapes__is_partnership = django_filters.BooleanFilter(
+        method="filter_associated_landscapes"
+    )
 
     class Meta:
         model = Group
