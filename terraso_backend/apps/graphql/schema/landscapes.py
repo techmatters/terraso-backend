@@ -33,6 +33,7 @@ class LandscapeNode(DjangoObjectType):
             "area_polygon",
             "created_by",
             "associated_groups",
+            "taxonomy_terms",
         )
         interfaces = (relay.Node,)
         connection_class = TerrasoConnection
