@@ -35,4 +35,4 @@ class UserAdmin(admin.ModelAdmin):
 
 @admin.register(TaxonomyTerm)
 class TaxonomyTermAdmin(admin.ModelAdmin):
-    list_display = ("name", "type")
+    list_display = ("value_original", "type", "value_en", "value_es")

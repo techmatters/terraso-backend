@@ -20,8 +20,10 @@ class TaxonomyTerm(SlugModel):
         (TYPE_ORGANIZATION, _("Organization")),
     )
 
-    name = models.CharField(max_length=128, unique=True, validators=[validate_name])
-    type = models.CharField(max_length=128, unique=True, choices=TYPES)
+    value_original = models.CharField(max_length=128, default="", validators=[validate_name])
+    value_es = models.CharField(max_length=128, blank=True, default="")
+    value_en = models.CharField(max_length=128, blank=True, default="")
+    type = models.CharField(max_length=128, choices=TYPES)
 
     created_by = models.ForeignKey(
         User,
@@ -31,10 +33,10 @@ class TaxonomyTerm(SlugModel):
         related_name="created_taxonomy_terms",
     )
 
-    field_to_slug = "name"
+    field_to_slug = "value_original"
 
     def __str__(self):
-        return "{}.{}".format(self.type, self.name)
+        return "{}.{}".format(self.type, self.value_original)
 
     class Meta(SlugModel.Meta):
         constraints = (

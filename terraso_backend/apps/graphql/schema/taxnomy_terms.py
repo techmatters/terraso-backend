@@ -16,11 +16,11 @@ class TaxonomyTermNode(DjangoObjectType):
     class Meta:
         model = TaxonomyTerm
         filter_fields = {
-            "name": ["icontains"],
-            "type": ["icontains"],
+            "type": ["exact", "in"],
         }
         fields = (
-            "name",
+            "value_es",
+            "value_en",
             "type",
             "slug",
         )
