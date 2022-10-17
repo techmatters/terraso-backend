@@ -1,6 +1,5 @@
 import structlog
 from django.db import models, transaction
-from django.utils.translation import gettext_lazy as _
 
 from apps.core import permission_rules as perm_rules
 from apps.core.models.taxonomy_terms import TaxonomyTerm
@@ -54,20 +53,7 @@ class Landscape(SlugModel):
         LandscapeDevelopmentStrategy, on_delete=models.CASCADE, null=True
     )
 
-    AREA_TYPE_RURAL = "rural"
-    AREA_TYPE_PERI_URBAN = "peri-urban"
-    AREA_TYPE_URBAN = "urban"
-    AREA_TYPES = (
-        (AREA_TYPE_RURAL, _("Rural")),
-        (AREA_TYPE_PERI_URBAN, _("Peri-Urban")),
-        (AREA_TYPE_URBAN, _("Urban")),
-    )
-    area_type = models.CharField(
-        blank=True,
-        default="",
-        max_length=32,
-        choices=AREA_TYPES,
-    )
+    area_types = models.JSONField(blank=True, null=True)
     taxonomy_terms = models.ManyToManyField(TaxonomyTerm)
     population = models.FloatField(null=True)
 
