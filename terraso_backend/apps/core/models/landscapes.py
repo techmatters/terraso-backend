@@ -50,12 +50,15 @@ class Landscape(SlugModel):
     groups = models.ManyToManyField(Group, through="LandscapeGroup")
 
     development_strategy = models.OneToOneField(
-        LandscapeDevelopmentStrategy, on_delete=models.CASCADE, null=True
+        LandscapeDevelopmentStrategy,
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
     )
 
     area_types = models.JSONField(blank=True, null=True)
     taxonomy_terms = models.ManyToManyField(TaxonomyTerm)
-    population = models.FloatField(null=True)
+    population = models.FloatField(blank=True, null=True)
 
     field_to_slug = "name"
 

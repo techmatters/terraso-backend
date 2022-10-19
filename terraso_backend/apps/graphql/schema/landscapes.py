@@ -1,9 +1,10 @@
 import graphene
 import structlog
+from django.db import transaction
 from graphene import relay
 from graphene_django import DjangoObjectType
 
-from apps.core.models import Landscape
+from apps.core.models import Landscape, TaxonomyTerm
 from apps.graphql.exceptions import GraphQLNotAllowedException
 
 from .commons import BaseDeleteMutation, BaseWriteMutation, TerrasoConnection
@@ -50,15 +51,36 @@ class LandscapeAddMutation(BaseWriteMutation):
         website = graphene.String()
         location = graphene.String()
         area_polygon = graphene.JSONString()
+        area_types = graphene.JSONString()
+        population = graphene.Int()
+        taxonomy_type_terms = graphene.JSONString()
 
     @classmethod
     def mutate_and_get_payload(cls, root, info, **kwargs):
-        user = info.context.user
+        with transaction.atomic():
+            user = info.context.user
 
-        if not cls.is_update(kwargs):
-            kwargs["created_by"] = user
+            if not cls.is_update(kwargs):
+                kwargs["created_by"] = user
 
-        return super().mutate_and_get_payload(root, info, **kwargs)
+            result = super().mutate_and_get_payload(root, info, **kwargs)
+
+            if "taxonomy_type_terms" in kwargs:
+                taxonomy_terms = []
+                taxonomy_type_terms = kwargs.pop("taxonomy_type_terms")
+                for type in taxonomy_type_terms:
+                    for input_term in taxonomy_type_terms[type]:
+                        taxonomy_term, created = TaxonomyTerm.objects.get_or_create(
+                            value_original=input_term["valueOriginal"],
+                            value_es=input_term["valueEs"],
+                            value_en=input_term["valueEn"],
+                            type=input_term["type"],
+                        )
+                        taxonomy_terms.append(taxonomy_term)
+
+                result.landscape.taxonomy_terms.set(taxonomy_terms)
+
+            return cls(landscape=result.landscape)
 
 
 class LandscapeUpdateMutation(BaseWriteMutation):
@@ -73,6 +95,9 @@ class LandscapeUpdateMutation(BaseWriteMutation):
         website = graphene.String()
         location = graphene.String()
         area_polygon = graphene.JSONString()
+        area_types = graphene.JSONString()
+        population = graphene.Int()
+        taxonomy_terms = graphene.JSONString()
 
     @classmethod
     def mutate_and_get_payload(cls, root, info, **kwargs):

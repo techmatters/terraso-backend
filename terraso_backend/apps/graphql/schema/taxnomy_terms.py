@@ -19,6 +19,7 @@ class TaxonomyTermNode(DjangoObjectType):
             "type": ["exact", "in"],
         }
         fields = (
+            "value_original",
             "value_es",
             "value_en",
             "type",
