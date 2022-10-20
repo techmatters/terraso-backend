@@ -58,7 +58,7 @@ class Landscape(SlugModel):
 
     area_types = models.JSONField(blank=True, null=True)
     taxonomy_terms = models.ManyToManyField(TaxonomyTerm)
-    population = models.FloatField(blank=True, null=True)
+    population = models.IntegerField(blank=True, null=True)
 
     field_to_slug = "name"
 
