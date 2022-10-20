@@ -4,7 +4,7 @@ from django.db import transaction
 from graphene import relay
 from graphene_django import DjangoObjectType
 
-from apps.core.models import Landscape, TaxonomyTerm
+from apps.core.models import Landscape, LandscapeDevelopmentStrategy, TaxonomyTerm
 from apps.graphql.exceptions import GraphQLNotAllowedException
 
 from .commons import BaseDeleteMutation, BaseWriteMutation, TerrasoConnection
@@ -15,6 +15,7 @@ logger = structlog.get_logger(__name__)
 
 class LandscapeNode(DjangoObjectType):
     id = graphene.ID(source="pk", required=True)
+    area_types = graphene.List(graphene.String)
 
     class Meta:
         model = Landscape
@@ -34,10 +35,44 @@ class LandscapeNode(DjangoObjectType):
             "area_polygon",
             "created_by",
             "associated_groups",
+            "population",
+            "development_strategy",
             "taxonomy_terms",
         )
         interfaces = (relay.Node,)
         connection_class = TerrasoConnection
+
+
+class LandscapeDevelopmentStrategyNode(DjangoObjectType):
+    id = graphene.ID(source="pk", required=True)
+
+    class Meta:
+        model = LandscapeDevelopmentStrategy
+        fields = (
+            "objectives",
+            "problem_situtation",
+            "problem_situtation",
+            "other_information",
+        )
+        interfaces = (relay.Node,)
+        connection_class = TerrasoConnection
+
+
+def set_landscape_taxonomy_terms(landscape, kwargs):
+    if "taxonomy_type_terms" in kwargs:
+        taxonomy_type_terms = kwargs.pop("taxonomy_type_terms")
+        taxonomy_terms = [
+            TaxonomyTerm.objects.get_or_create(
+                value_original=input_term["valueOriginal"],
+                value_es=input_term["valueEs"],
+                value_en=input_term["valueEn"],
+                type=input_term["type"],
+            )[0]
+            for type in taxonomy_type_terms
+            for input_term in taxonomy_type_terms[type]
+        ]
+
+        landscape.taxonomy_terms.set(taxonomy_terms)
 
 
 class LandscapeAddMutation(BaseWriteMutation):
@@ -65,20 +100,7 @@ class LandscapeAddMutation(BaseWriteMutation):
 
             result = super().mutate_and_get_payload(root, info, **kwargs)
 
-            if "taxonomy_type_terms" in kwargs:
-                taxonomy_terms = []
-                taxonomy_type_terms = kwargs.pop("taxonomy_type_terms")
-                for type in taxonomy_type_terms:
-                    for input_term in taxonomy_type_terms[type]:
-                        taxonomy_term, created = TaxonomyTerm.objects.get_or_create(
-                            value_original=input_term["valueOriginal"],
-                            value_es=input_term["valueEs"],
-                            value_en=input_term["valueEn"],
-                            type=input_term["type"],
-                        )
-                        taxonomy_terms.append(taxonomy_term)
-
-                result.landscape.taxonomy_terms.set(taxonomy_terms)
+            set_landscape_taxonomy_terms(result.landscape, kwargs)
 
             return cls(landscape=result.landscape)
 
@@ -97,7 +119,7 @@ class LandscapeUpdateMutation(BaseWriteMutation):
         area_polygon = graphene.JSONString()
         area_types = graphene.JSONString()
         population = graphene.Int()
-        taxonomy_terms = graphene.JSONString()
+        taxonomy_type_terms = graphene.JSONString()
 
     @classmethod
     def mutate_and_get_payload(cls, root, info, **kwargs):
@@ -113,7 +135,11 @@ class LandscapeUpdateMutation(BaseWriteMutation):
                 model_name=Landscape.__name__, operation=MutationTypes.UPDATE
             )
 
-        return super().mutate_and_get_payload(root, info, **kwargs)
+        result = super().mutate_and_get_payload(root, info, **kwargs)
+
+        set_landscape_taxonomy_terms(result.landscape, kwargs)
+
+        return result
 
 
 class LandscapeDeleteMutation(BaseDeleteMutation):
