@@ -42,7 +42,7 @@ class Command(BaseCommand):
         data_file, migration_file = self._generate_filenames()
 
         try:
-            management.call_command("dumpdata", output=data_file, verbosity=0)
+            management.call_command("dumpdata", output=data_file, verbosity=0, natural_foreign=True)
 
             migrations = self._query_migration_versions()
             self._save_migration_versions(migration_file, migrations)
