@@ -85,6 +85,9 @@ def set_landscape_taxonomy_terms(landscape, kwargs):
 def set_landscape_groups(landscape, kwargs):
     if "group_associations" in kwargs:
         group_associations = kwargs.pop("group_associations")
+        LandscapeGroup.objects.filter(
+            landscape=landscape, is_default_landscape_group=False
+        ).delete()
         for group_association in group_associations:
             group = Group.objects.get(slug=group_association["slug"])
             landscape_group = LandscapeGroup(
@@ -146,6 +149,7 @@ class LandscapeUpdateMutation(BaseWriteMutation):
         population = graphene.Int()
         taxonomy_type_terms = graphene.JSONString()
         partnership_status = graphene.String()
+        group_associations = graphene.JSONString()
 
     @classmethod
     def mutate_and_get_payload(cls, root, info, **kwargs):
@@ -165,6 +169,7 @@ class LandscapeUpdateMutation(BaseWriteMutation):
             result = super().mutate_and_get_payload(root, info, **kwargs)
 
             set_landscape_taxonomy_terms(result.landscape, kwargs)
+            set_landscape_groups(result.landscape, kwargs)
 
             return result
 
