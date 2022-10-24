@@ -4,7 +4,13 @@ from django.db import transaction
 from graphene import relay
 from graphene_django import DjangoObjectType
 
-from apps.core.models import Landscape, LandscapeDevelopmentStrategy, TaxonomyTerm
+from apps.core.models import (
+    Group,
+    Landscape,
+    LandscapeDevelopmentStrategy,
+    LandscapeGroup,
+    TaxonomyTerm,
+)
 from apps.graphql.exceptions import GraphQLNotAllowedException
 
 from .commons import BaseDeleteMutation, BaseWriteMutation, TerrasoConnection
@@ -38,6 +44,7 @@ class LandscapeNode(DjangoObjectType):
             "population",
             "development_strategy",
             "taxonomy_terms",
+            "partnership_status",
         )
         interfaces = (relay.Node,)
         connection_class = TerrasoConnection
@@ -64,8 +71,8 @@ def set_landscape_taxonomy_terms(landscape, kwargs):
         taxonomy_terms = [
             TaxonomyTerm.objects.get_or_create(
                 value_original=input_term["valueOriginal"],
-                value_es=input_term["valueEs"],
-                value_en=input_term["valueEn"],
+                value_es=input_term.get("valueEs", ""),
+                value_en=input_term.get("valueEn", ""),
                 type=input_term["type"],
             )[0]
             for type in taxonomy_type_terms
@@ -73,6 +80,21 @@ def set_landscape_taxonomy_terms(landscape, kwargs):
         ]
 
         landscape.taxonomy_terms.set(taxonomy_terms)
+
+
+def set_landscape_groups(landscape, kwargs):
+    if "group_associations" in kwargs:
+        group_associations = kwargs.pop("group_associations")
+        for group_association in group_associations:
+            group = Group.objects.get(slug=group_association["slug"])
+            landscape_group = LandscapeGroup(
+                group=group, landscape=landscape, is_default_landscape_group=False
+            )
+            if "isPartnership" in group_association:
+                landscape_group.is_partnership = group_association["isPartnership"]
+            if "partnershipYear" in group_association:
+                landscape_group.partnership_year = group_association["partnershipYear"]
+            landscape_group.save()
 
 
 class LandscapeAddMutation(BaseWriteMutation):
@@ -89,6 +111,8 @@ class LandscapeAddMutation(BaseWriteMutation):
         area_types = graphene.JSONString()
         population = graphene.Int()
         taxonomy_type_terms = graphene.JSONString()
+        partnership_status = graphene.String()
+        group_associations = graphene.JSONString()
 
     @classmethod
     def mutate_and_get_payload(cls, root, info, **kwargs):
@@ -101,6 +125,7 @@ class LandscapeAddMutation(BaseWriteMutation):
             result = super().mutate_and_get_payload(root, info, **kwargs)
 
             set_landscape_taxonomy_terms(result.landscape, kwargs)
+            set_landscape_groups(result.landscape, kwargs)
 
             return cls(landscape=result.landscape)
 
@@ -120,26 +145,28 @@ class LandscapeUpdateMutation(BaseWriteMutation):
         area_types = graphene.JSONString()
         population = graphene.Int()
         taxonomy_type_terms = graphene.JSONString()
+        partnership_status = graphene.String()
 
     @classmethod
     def mutate_and_get_payload(cls, root, info, **kwargs):
-        user = info.context.user
-        landscape_id = kwargs["id"]
+        with transaction.atomic():
+            user = info.context.user
+            landscape_id = kwargs["id"]
 
-        if not user.has_perm(Landscape.get_perm("change"), obj=landscape_id):
-            logger.info(
-                "Attempt to update a Landscape, but user has no permission",
-                extra={"user_id": user.pk, "landscape_id": landscape_id},
-            )
-            raise GraphQLNotAllowedException(
-                model_name=Landscape.__name__, operation=MutationTypes.UPDATE
-            )
+            if not user.has_perm(Landscape.get_perm("change"), obj=landscape_id):
+                logger.info(
+                    "Attempt to update a Landscape, but user has no permission",
+                    extra={"user_id": user.pk, "landscape_id": landscape_id},
+                )
+                raise GraphQLNotAllowedException(
+                    model_name=Landscape.__name__, operation=MutationTypes.UPDATE
+                )
 
-        result = super().mutate_and_get_payload(root, info, **kwargs)
+            result = super().mutate_and_get_payload(root, info, **kwargs)
 
-        set_landscape_taxonomy_terms(result.landscape, kwargs)
+            set_landscape_taxonomy_terms(result.landscape, kwargs)
 
-        return result
+            return result
 
 
 class LandscapeDeleteMutation(BaseDeleteMutation):

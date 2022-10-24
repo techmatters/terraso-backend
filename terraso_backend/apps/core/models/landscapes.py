@@ -1,5 +1,6 @@
 import structlog
 from django.db import models, transaction
+from django.utils.translation import gettext_lazy as _
 
 from apps.core import permission_rules as perm_rules
 from apps.core.models.taxonomy_terms import TaxonomyTerm
@@ -59,6 +60,22 @@ class Landscape(SlugModel):
     area_types = models.JSONField(blank=True, null=True)
     taxonomy_terms = models.ManyToManyField(TaxonomyTerm)
     population = models.IntegerField(blank=True, null=True)
+
+    PARTNERSHIP_STATUS_NO = "no"
+    PARTNERSHIP_STATUS_IN_PROGRESS = "in-progress"
+    PARTNERSHIP_STATUS_YES = "yes"
+    DEFAULT_PARTNERSHIP_STATUS = PARTNERSHIP_STATUS_NO
+
+    MEMBERSHIP_TYPES = (
+        (PARTNERSHIP_STATUS_NO, _("No")),
+        (PARTNERSHIP_STATUS_IN_PROGRESS, _("In Progress")),
+        (PARTNERSHIP_STATUS_YES, _("Yes")),
+    )
+    partnership_status = models.CharField(
+        max_length=32,
+        choices=MEMBERSHIP_TYPES,
+        default=DEFAULT_PARTNERSHIP_STATUS,
+    )
 
     field_to_slug = "name"
 
@@ -122,6 +139,7 @@ class LandscapeGroup(BaseModel):
 
     is_default_landscape_group = models.BooleanField(blank=True, default=False)
     is_partnership = models.BooleanField(blank=True, default=False)
+    partnership_year = models.IntegerField(blank=True, null=True)
 
     class Meta:
         rules_permissions = {
