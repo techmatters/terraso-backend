@@ -39,7 +39,8 @@ class Command(BaseCommand):
         if len(files) < 2:
             raise RuntimeError(f"Couldn't find any backup files in {directory}")
         # default is to sort ascending, so latest files at end
-        return files[-2:]
+        data_file, migrations_file = files[-2:]
+        return data_file, migrations_file
 
     @staticmethod
     def _copy_s3_file(storage, path, suffix):
