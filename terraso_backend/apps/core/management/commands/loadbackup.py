@@ -45,9 +45,9 @@ class Command(BaseCommand):
     def _copy_s3_file(storage, path, suffix):
         """Copies the S3 file to a temporary file on local filesystem."""
         _, tmp_file_path = mkstemp(suffix=suffix)
-        with storage.open(path, "rb") as fp, open(tmp_file_path, "wb") as temp_file:
-            for chunk in fp.chunks():
-                temp_file.write(chunk)
+        bucket_name = storage.bucket.name
+        with open(tmp_file_path, "wb") as temp_file:
+            storage.bucket.meta.client.download_fileobj(bucket_name, path, temp_file)
         return tmp_file_path
 
     @classmethod
