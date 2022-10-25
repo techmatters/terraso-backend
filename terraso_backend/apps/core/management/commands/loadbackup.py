@@ -1,12 +1,18 @@
 import json
 import os
+import re
+from configparser import ConfigParser
 from pathlib import Path
 from tempfile import mkstemp
+from urllib.parse import urlsplit, urlunsplit
 
 import structlog
+from django.apps import apps
+from django.conf import settings
 from django.core import management
 from django.core.management.base import BaseCommand
 from django.db import connection
+from django.db.models.fields import URLField
 
 from ._backup_storage import S3BackupStorage
 
@@ -28,6 +34,55 @@ class Command(BaseCommand):
             help="Directory where backups can be found",
         )
         group.add_argument("--s3", action="store_true", help="Retrieve backups from S3 bucket.")
+        parser.add_argument(
+            "--url-rewrites", type=Path, help="Path to file containing URL rewriting urls"
+        )
+
+    @staticmethod
+    def _convert_url(url, patterns):
+        url_parts = urlsplit(url)
+        matches = [new_url for new_url, pattern in patterns if pattern.match(url_parts.hostname)]
+        if not matches:
+            return
+        new_hostname, *_ = matches
+        # deal with case schema in hostname
+        if (split_again := urlsplit(new_hostname)).scheme:
+            new_hostname = split_again.hostname
+        scheme, _, path, query, fragment = url_parts
+        return urlunsplit((scheme, new_hostname, path, query, fragment))
+
+    @staticmethod
+    def _load_url_rewrites(path):
+        config = ConfigParser()
+        config.read(path)
+        patterns = []
+        for key in config.sections():
+            block = config[key]
+            setting = block["name"]
+            url_regex = re.compile(block.get("url_regex", raw=True))
+            url = getattr(settings, setting)
+            patterns.append((url, url_regex))
+        return patterns
+
+    @classmethod
+    def _rewrite_urls(cls, patterns):
+        models = apps.get_models()
+        for model in models:
+            url_fields = [
+                field for field in model._meta.get_fields() if isinstance(field, URLField)
+            ]
+            if not url_fields:
+                continue
+            objects = model.objects.all().only(*[field.name for field in url_fields])
+            for obj in objects:
+                for field in url_fields:
+                    url = getattr(obj, field.name)
+                    if not url:
+                        continue
+                    if new_url := cls._convert_url(url, patterns):
+                        setattr(obj, field.name, new_url)
+                if not obj.clean():
+                    obj.save()
 
     @staticmethod
     def _find_latest_backup_dir(directory):
@@ -100,3 +155,12 @@ class Command(BaseCommand):
         management.call_command("migrate", verbosity=0)
 
         cleanup()
+
+        if config := options["url_rewrites"]:
+            if not config.is_file():
+                raise RuntimeError(
+                    f"Path supplied for URL rewrites is not a file: {str(config)}. "
+                    "URL rewrites not applied."
+                )
+            patterns = self._load_url_rewrites(config)
+            self._rewrite_urls(patterns)
