@@ -48,7 +48,7 @@ class Command(BaseCommand):
         """Command "main method"."""
         data_file, migration_file = self._generate_filenames()
         if options["s3"]:
-            # results will be written to a temporary directory
+            # don't need to keep local copy if uploaded to bucket
             tempdir = TemporaryDirectory()
             tempdir_path = Path(tempdir.name)
             data_file_name = data_file
@@ -78,6 +78,3 @@ class Command(BaseCommand):
         finally:
             if tempdir:
                 tempdir.cleanup()
-            if options["s3"]:
-                # if we are uploading the backups, we don't want extra files
-                cleanup()
