@@ -42,7 +42,7 @@ class LandscapeNode(DjangoObjectType):
             "created_by",
             "associated_groups",
             "population",
-            "development_strategy",
+            "associated_development_strategy",
             "taxonomy_terms",
             "partnership_status",
         )
@@ -58,16 +58,15 @@ class LandscapeDevelopmentStrategyNode(DjangoObjectType):
         fields = (
             "objectives",
             "problem_situtation",
-            "problem_situtation",
+            "intervention_strategy",
             "other_information",
         )
         interfaces = (relay.Node,)
         connection_class = TerrasoConnection
 
 
-def set_landscape_taxonomy_terms(landscape, kwargs):
-    if "taxonomy_type_terms" in kwargs:
-        taxonomy_type_terms = kwargs.pop("taxonomy_type_terms")
+def set_landscape_taxonomy_terms(landscape, taxonomy_type_terms):
+    if taxonomy_type_terms is not None:
         taxonomy_terms = [
             TaxonomyTerm.objects.get_or_create(
                 value_original=input_term["valueOriginal"],
@@ -82,9 +81,8 @@ def set_landscape_taxonomy_terms(landscape, kwargs):
         landscape.taxonomy_terms.set(taxonomy_terms)
 
 
-def set_landscape_groups(landscape, kwargs):
-    if "group_associations" in kwargs:
-        group_associations = kwargs.pop("group_associations")
+def set_landscape_groups(landscape, group_associations):
+    if group_associations is not None:
         LandscapeGroup.objects.filter(
             landscape=landscape, is_default_landscape_group=False
         ).delete()
@@ -98,6 +96,19 @@ def set_landscape_groups(landscape, kwargs):
             if "partnershipYear" in group_association:
                 landscape_group.partnership_year = group_association["partnershipYear"]
             landscape_group.save()
+
+
+def set_landscape_development_strategy(landscape, development_strategy_input):
+    if development_strategy_input is not None:
+        LandscapeDevelopmentStrategy.objects.filter(landscape=landscape).delete()
+        development_strategy = LandscapeDevelopmentStrategy(
+            objectives=development_strategy_input["objectives"],
+            problem_situtation=development_strategy_input["problemSitutation"],
+            intervention_strategy=development_strategy_input["interventionStrategy"],
+            other_information=development_strategy_input["otherInformation"],
+            landscape=landscape,
+        )
+        development_strategy.save()
 
 
 class LandscapeAddMutation(BaseWriteMutation):
@@ -125,10 +136,12 @@ class LandscapeAddMutation(BaseWriteMutation):
             if not cls.is_update(kwargs):
                 kwargs["created_by"] = user
 
+            taxonomy_type_terms = kwargs.pop("taxonomy_type_terms")
+            group_associations = kwargs.pop("group_associations")
             result = super().mutate_and_get_payload(root, info, **kwargs)
 
-            set_landscape_taxonomy_terms(result.landscape, kwargs)
-            set_landscape_groups(result.landscape, kwargs)
+            set_landscape_taxonomy_terms(result.landscape, taxonomy_type_terms)
+            set_landscape_groups(result.landscape, group_associations)
 
             return cls(landscape=result.landscape)
 
@@ -150,6 +163,7 @@ class LandscapeUpdateMutation(BaseWriteMutation):
         taxonomy_type_terms = graphene.JSONString()
         partnership_status = graphene.String()
         group_associations = graphene.JSONString()
+        development_strategy = graphene.JSONString()
 
     @classmethod
     def mutate_and_get_payload(cls, root, info, **kwargs):
@@ -166,10 +180,14 @@ class LandscapeUpdateMutation(BaseWriteMutation):
                     model_name=Landscape.__name__, operation=MutationTypes.UPDATE
                 )
 
+            taxonomy_type_terms = kwargs.pop("taxonomy_type_terms")
+            group_associations = kwargs.pop("group_associations")
+            development_strategy_input = kwargs.pop("development_strategy")
             result = super().mutate_and_get_payload(root, info, **kwargs)
 
-            set_landscape_taxonomy_terms(result.landscape, kwargs)
-            set_landscape_groups(result.landscape, kwargs)
+            set_landscape_taxonomy_terms(result.landscape, taxonomy_type_terms)
+            set_landscape_groups(result.landscape, group_associations)
+            set_landscape_development_strategy(result.landscape, development_strategy_input)
 
             return result
 

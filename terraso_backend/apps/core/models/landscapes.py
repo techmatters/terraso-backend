@@ -12,13 +12,6 @@ from .users import User
 logger = structlog.get_logger(__name__)
 
 
-class LandscapeDevelopmentStrategy(BaseModel):
-    objectives = models.TextField(blank=True, default="")
-    problem_situtation = models.TextField(blank=True, default="")
-    intervention_strategy = models.TextField(blank=True, default="")
-    other_information = models.TextField(blank=True, default="")
-
-
 class Landscape(SlugModel):
     """
     This model represents a Landscape on Terraso platform.
@@ -49,13 +42,6 @@ class Landscape(SlugModel):
         related_name="created_landscapes",
     )
     groups = models.ManyToManyField(Group, through="LandscapeGroup")
-
-    development_strategy = models.OneToOneField(
-        LandscapeDevelopmentStrategy,
-        on_delete=models.CASCADE,
-        null=True,
-        blank=True,
-    )
 
     area_types = models.JSONField(blank=True, null=True)
     taxonomy_terms = models.ManyToManyField(TaxonomyTerm)
@@ -124,6 +110,16 @@ class Landscape(SlugModel):
 
     def __str__(self):
         return self.name
+
+
+class LandscapeDevelopmentStrategy(BaseModel):
+    objectives = models.TextField(blank=True, default="")
+    problem_situtation = models.TextField(blank=True, default="")
+    intervention_strategy = models.TextField(blank=True, default="")
+    other_information = models.TextField(blank=True, default="")
+    landscape = models.ForeignKey(
+        Landscape, on_delete=models.CASCADE, related_name="associated_development_strategy"
+    )
 
 
 class LandscapeGroup(BaseModel):
