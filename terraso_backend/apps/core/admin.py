@@ -23,6 +23,11 @@ class LandscapeAdmin(admin.ModelAdmin):
     list_display = ("name", "slug", "location", "website", "created_at")
 
 
+@admin.register(LandscapeGroup)
+class LandscapeGroupAdmin(admin.ModelAdmin):
+    list_display = ("landscape", "group")
+
+
 @admin.register(Membership)
 class MembershipAdmin(admin.ModelAdmin):
     list_display = ("user", "group", "user_role", "membership_status", "created_at")

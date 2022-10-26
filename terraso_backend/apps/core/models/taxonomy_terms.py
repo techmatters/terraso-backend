@@ -36,7 +36,7 @@ class TaxonomyTerm(SlugModel):
     field_to_slug = "value_original"
 
     def __str__(self):
-        return "{}.{}".format(self.type, self.value_original)
+        return "{}.{}".format(self.type, self.slug)
 
     class Meta(SlugModel.Meta):
         constraints = (
