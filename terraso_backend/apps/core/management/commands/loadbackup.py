@@ -35,7 +35,19 @@ class Command(BaseCommand):
         )
         group.add_argument("--s3", action="store_true", help="Retrieve backups from S3 bucket.")
         parser.add_argument(
-            "--url-rewrites", type=Path, help="Path to file containing URL rewriting urls"
+            "--url-rewrites",
+            type=Path,
+            help="Path to file containing URL rewriting urls. This file is structured as "
+            "a configuration file that can be read by the Python configparser module. "
+            "It should have the following structure: \n"
+            "[<block_name>]\n"
+            "name = <settings variable name>\n"
+            "url_regex = <regex to match netloc to be replaced>\n"
+            "The script will search all URLs in the database and replace the ones with netloc "
+            "values that match the given regex with the value of variable in the config settings "
+            "above. For example, it could be PROFILE_IMAGES_BASE_URL for the settings variable,"
+            " and the url regex could be ^images.terraso.org$; all URLs pointing to old hostname "
+            " will be switched to use the new one (maybe images.dev.terraso.org, for example)",
         )
 
     @staticmethod
