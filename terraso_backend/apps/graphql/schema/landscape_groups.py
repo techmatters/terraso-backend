@@ -28,6 +28,7 @@ class LandscapeGroupNode(DjangoObjectType):
             "group": ["exact"],
             "group__slug": ["icontains"],
             "is_default_landscape_group": ["exact"],
+            "is_partnership": ["exact"],
         }
         fields = (
             "landscape",
