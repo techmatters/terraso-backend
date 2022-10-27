@@ -138,8 +138,13 @@ class LandscapeAddMutation(BaseWriteMutation):
             if not cls.is_update(kwargs):
                 kwargs["created_by"] = user
 
-            taxonomy_type_terms = kwargs.pop("taxonomy_type_terms")
-            group_associations = kwargs.pop("group_associations")
+            taxonomy_type_terms = (
+                kwargs.pop("taxonomy_type_terms") if "taxonomy_type_terms" in kwargs else None
+            )
+            group_associations = (
+                kwargs.pop("group_associations") if "group_associations" in kwargs else None
+            )
+
             result = super().mutate_and_get_payload(root, info, **kwargs)
 
             set_landscape_taxonomy_terms(result.landscape, taxonomy_type_terms)
@@ -183,9 +188,16 @@ class LandscapeUpdateMutation(BaseWriteMutation):
                     model_name=Landscape.__name__, operation=MutationTypes.UPDATE
                 )
 
-            taxonomy_type_terms = kwargs.pop("taxonomy_type_terms")
-            group_associations = kwargs.pop("group_associations")
-            development_strategy_input = kwargs.pop("development_strategy")
+            taxonomy_type_terms = (
+                kwargs.pop("taxonomy_type_terms") if "taxonomy_type_terms" in kwargs else None
+            )
+            group_associations = (
+                kwargs.pop("group_associations") if "group_associations" in kwargs else None
+            )
+            development_strategy_input = (
+                kwargs.pop("development_strategy") if "development_strategy" in kwargs else None
+            )
+
             result = super().mutate_and_get_payload(root, info, **kwargs)
 
             set_landscape_taxonomy_terms(result.landscape, taxonomy_type_terms)
