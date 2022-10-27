@@ -39,6 +39,7 @@ class LandscapeNode(DjangoObjectType):
             "website",
             "location",
             "area_polygon",
+            "email",
             "created_by",
             "associated_groups",
             "population",
@@ -122,6 +123,7 @@ class LandscapeAddMutation(BaseWriteMutation):
         website = graphene.String()
         location = graphene.String()
         area_polygon = graphene.JSONString()
+        email = graphene.String()
         area_types = graphene.JSONString()
         population = graphene.Int()
         taxonomy_type_terms = graphene.JSONString()
@@ -158,6 +160,7 @@ class LandscapeUpdateMutation(BaseWriteMutation):
         website = graphene.String()
         location = graphene.String()
         area_polygon = graphene.JSONString()
+        email = graphene.String()
         area_types = graphene.JSONString()
         population = graphene.Int()
         taxonomy_type_terms = graphene.JSONString()
