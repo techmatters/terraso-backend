@@ -20,7 +20,7 @@ class TaxonomyTerm(SlugModel):
         (TYPE_ORGANIZATION, _("Organization")),
     )
 
-    value_original = models.CharField(max_length=128, default="", validators=[validate_name])
+    value_original = models.CharField(max_length=128, validators=[validate_name])
     value_es = models.CharField(max_length=128, blank=True, default="")
     value_en = models.CharField(max_length=128, blank=True, default="")
     type = models.CharField(max_length=128, choices=TYPES)

@@ -13,6 +13,7 @@ from apps.core.models import (
     Landscape,
     LandscapeGroup,
     Membership,
+    TaxonomyTerm,
     User,
 )
 from apps.shared_data.models import DataEntry, VisualizationConfig
@@ -219,3 +220,8 @@ def visualization_configs(users, groups):
         group=groups[0],
     )
     return visualizations
+
+
+@pytest.fixture
+def taxonomy_terms():
+    return mixer.cycle(10).blend(TaxonomyTerm)
