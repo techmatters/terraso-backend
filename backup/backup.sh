@@ -61,27 +61,28 @@ sync_buckets() {
 }
 
 require() {
-    local var_name=$1
-    if [ -z ${$var_name} ]; then
-        echo "Variable $var_name needs to be defined" 1>&2
-        exit 1
-    fi
+    local var_names=$1
+    for var_name in "${var_names[@]}"; do
+        if [ -z ${$var_name} ]; then
+            echo "Variable $var_name needs to be defined" 1>&2
+            exit 1
+        fi
+    done
 }
 
 
 main() {
-    local from_service=$1
-    local to_service=$2
-    local from_buckets=$3
-    local to_buckets=$4
 
     require "RENDER_TOKEN"
     require "URL_REWRITES_CONFIG_FILE"
+    require "SOURCE_S3_BUCKETS"
+    require "TARGET_S3_BUCKETS"
+    require "SOURCE_SERVICE"
+    require "TARGET_SERVICE"
 
-    sync_buckets $from_buckets $to_buckets
-    render_job $from_service $RENDER_TOKEN 'backup --s3'
-    render_job $to_service $RENDER_TOKEN "loadbackup --s3 --url-rewrites $URL_REWRITES_CONFIG_FILE"
-    aws s3 sync $bucket_one $bucket_two
+    sync_buckets $SOURCE_S3_BUCKETS $TARGET_S3_BUCKETS
+    render_job $SOURCE_SERVICE $RENDER_TOKEN 'backup --s3'
+    render_job $TARGET_SERVICE $RENDER_TOKEN "loadbackup --s3 --url-rewrites $URL_REWRITES_CONFIG_FILE"
 }
 
 main $@
