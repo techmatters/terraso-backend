@@ -1,8 +1,14 @@
 api_docs:
 	npx spectaql --one-file --target-file=docs.html --target-dir=terraso_backend/apps/graphql/templates/ terraso_backend/apps/graphql/spectaql.yml
 
+backup: build_backup_docker_image
+	@docker run --rm --env-file --mount type=bind,source=backup/url_rewrites.conf,destination=/etc/terraso/url_rewrites.conf,readonly backup/.env techmatters/terraso_backend
+
 build_base_image:
 	docker build --tag=techmatters/terraso_backend --file=Dockerfile .
+
+build_backup_docker_image:
+	docker build --tag=techmatters/terraso_backup --file backup/Dockerfile backup
 
 build: build_base_image
 	docker-compose build
