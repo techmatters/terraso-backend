@@ -41,7 +41,7 @@ class GroupFilterSet(django_filters.FilterSet):
         filters[name] = value
         # TODO Removed duplicated group results using order_by('slug').distinct('slug')
         # Is there a better way to do this?
-        return queryset.filter(**filters).order_by('slug').distinct('slug')
+        return queryset.filter(**filters).order_by("slug").distinct("slug")
 
 
 class GroupNode(DjangoObjectType):
