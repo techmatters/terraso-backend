@@ -10,7 +10,7 @@ TERMS = {
         "Deserts",
         "Forest, Temperate",
         "Forest, Tropical",
-        "Marine/coastal",
+        "Marine/Coastal",
         "Polar/Alpine",
         "Savannas",
         "Shrublands",
