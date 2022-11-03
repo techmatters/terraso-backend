@@ -34,7 +34,10 @@
             return resp.json();
           }).then((json) => {
             const { status } = json;
-            if (status === "done") {
+            if (status === "failed") {
+              setError();
+              reject();
+            } else if (status === "finished") {
               resolve();
             }
           });
