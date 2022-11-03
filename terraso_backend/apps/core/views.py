@@ -1,5 +1,9 @@
+import json
+import random
+
+from django.contrib.admin.views.decorators import staff_member_required
 from django.db import DatabaseError
-from django.http import HttpResponse
+from django.http import HttpResponse, HttpResponseNotAllowed
 from django.views import View
 
 from apps.core.models import Group, Landscape, User
@@ -23,3 +27,19 @@ def check_db_access():
     Landscape.objects.count()
     Group.objects.count()
     User.objects.count()
+
+
+@staff_member_required
+def create_restore_job(request):
+    if request.method != "POST":
+        return HttpResponseNotAllowed(["POST"])
+    return HttpResponse(json.dumps({"taskId": 1}), "application/json")
+
+
+@staff_member_required
+def check_restore_job_status(request, task_id):
+    if request.method != "GET":
+        return HttpResponseNotAllowed(["GET"])
+
+    status = "running" if random.random() > 0.4 else "done"
+    return HttpResponse(json.dumps({"status": status}), "application/json")

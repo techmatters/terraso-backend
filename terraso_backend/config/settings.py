@@ -64,14 +64,15 @@ ROOT_URLCONF = "config.urls"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [os.path.join(BASE_DIR, "templates")],
         "APP_DIRS": True,
+        "DIRS": [os.path.join(BASE_DIR, "custom_templates")],
         "OPTIONS": {
             "context_processors": [
                 "django.template.context_processors.debug",
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
+                "apps.core.context_processors.backup_allowed",
             ],
         },
     },
@@ -225,6 +226,7 @@ DATA_ENTRY_FILE_S3_BUCKET = config("DATA_ENTRY_FILE_S3_BUCKET", default="")
 DATA_ENTRY_FILE_BASE_URL = f"https://{DATA_ENTRY_FILE_S3_BUCKET}"
 
 DB_BACKUP_S3_BUCKET = config("BACKUP_S3_BUCKET", default="")
+ALLOW_RESTORE_FROM_BACKUP = config("ALLOW_RESTORE_FROM_BACKUP", default="false").lower() == "true"
 
 AWS_ACCESS_KEY_ID = config("AWS_ACCESS_KEY_ID", default="")
 AWS_SECRET_ACCESS_KEY = config("AWS_SECRET_ACCESS_KEY", default="")
