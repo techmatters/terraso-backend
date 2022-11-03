@@ -1,0 +1,68 @@
+{% extends "admin/index.html" %}
+{% block content %}
+<div id="content-main">
+  {% include "admin/app_list.html" with app_list=app_list show_changelinks=True %}
+  {% if allow_restore %}
+    <button id="restore-button" type="button">Reload data</button>
+    <p>Replace data in this instance with data from another instance.</p>
+    <p id="restore-status"></p>
+  {% endif %}
+</div>
+<script>
+  (function () {
+
+    const button = document.getElementById("restore-button");
+    const statusP = document.getElementById("restore-status");
+
+    const headers = {
+      "Cookie": document.cookie,
+      "X-CSRFToken": "{{ csrf_token }}"
+    };
+
+    const setError = () => {
+      statusP.textContent = "Error replacing data. Please check logs.";
+    };
+
+    function checkJobDone(taskId, resolve, reject) {
+      return () => {
+        fetch(`/admin/restore/jobs/${taskId}`, {headers})
+          .then(resp => {
+            if (!resp.ok) {
+              setError();
+              reject();
+            }
+            return resp.json();
+          }).then((json) => {
+            const { status } = json;
+            if (status === "done") {
+              resolve();
+            }
+          });
+      }
+    }
+
+    button.addEventListener("click", async () => {
+      const resp = await fetch("/admin/restore", {method: "POST", headers});
+      if (!resp.ok) {
+        setError();
+      }
+      const { taskId } = await resp.json();
+      statusP.textContent = "Job triggered";
+
+      let intervalId = null;
+
+      const task = new Promise((resolve, reject) => {
+        const f = checkJobDone(taskId, resolve, reject);
+        intervalId = setInterval(f, 5000);
+      }).then(() => {
+        statusP.textContent = "Job finished successfully.";
+      }).finally(() => {
+        if (intervalId) {
+          clearInterval(intervalId);
+        }
+      });
+
+    });
+  })();
+</script>
+{% endblock %}
