@@ -7,9 +7,6 @@ backup: build_backup_docker_image
 build_base_image:
 	docker build --tag=techmatters/terraso_backend --file=Dockerfile .
 
-build_backup_docker_image:
-	docker build --tag=techmatters/terraso_backup --file backup/Dockerfile backup
-
 build: build_base_image
 	docker-compose build
 
