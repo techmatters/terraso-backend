@@ -227,9 +227,12 @@ DATA_ENTRY_FILE_BASE_URL = f"https://{DATA_ENTRY_FILE_S3_BUCKET}"
 
 DB_BACKUP_S3_BUCKET = config("BACKUP_S3_BUCKET", default="")
 ALLOW_RESTORE_FROM_BACKUP = config("ALLOW_RESTORE_FROM_BACKUP", default="false").lower() == "true"
+DB_RESTORE_CONFIG_FILE = config("DB_RESTORE_CONFIG_FILE")
 
 AWS_ACCESS_KEY_ID = config("AWS_ACCESS_KEY_ID", default="")
 AWS_SECRET_ACCESS_KEY = config("AWS_SECRET_ACCESS_KEY", default="")
 AWS_S3_REGION_NAME = config("AWS_S3_REGION_NAME", default="us-east-2")
 
 PLAUSIBLE_URL = config("PLAUSIBLE_URL", default="https://plausible.io/api/event")
+RENDER_API_URL = config("RENDER_API_URL", default="https://api.render.com/v1/")
+RENDER_API_TOKEN = config("RENDER_API_TOKEN", default="")

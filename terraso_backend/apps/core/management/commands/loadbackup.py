@@ -34,21 +34,6 @@ class Command(BaseCommand):
             help="Directory where backups can be found",
         )
         group.add_argument("--s3", action="store_true", help="Retrieve backups from S3 bucket.")
-        parser.add_argument(
-            "--url-rewrites",
-            type=Path,
-            help="Path to file containing URL rewriting urls. This file is structured as "
-            "a configuration file that can be read by the Python configparser module. "
-            "It should have the following structure: \n"
-            "[<block_name>]\n"
-            "name = <settings variable name>\n"
-            "url_regex = <regex to match netloc to be replaced>\n"
-            "The script will search all URLs in the database and replace the ones with netloc "
-            "values that match the given regex with the value of variable in the config settings "
-            "above. For example, it could be PROFILE_IMAGES_BASE_URL for the settings variable,"
-            " and the url regex could be ^images.terraso.org$; all URLs pointing to old hostname "
-            " will be switched to use the new one (maybe images.dev.terraso.org, for example)",
-        )
 
     @staticmethod
     def _convert_url(url, patterns):
@@ -70,10 +55,9 @@ class Command(BaseCommand):
         patterns = []
         for key in config.sections():
             block = config[key]
-            setting = block["name"]
-            url_regex = re.compile(block.get("url_regex", raw=True))
-            url = getattr(settings, setting)
-            patterns.append((url, url_regex))
+            source_url = re.compile(block["source_url"])
+            target_url = block["target_url"]
+            patterns.append((target_url, source_url))
         return patterns
 
     @classmethod
@@ -168,11 +152,11 @@ class Command(BaseCommand):
 
         cleanup()
 
-        if config := options["url_rewrites"]:
-            if not config.is_file():
-                raise RuntimeError(
-                    f"Path supplied for URL rewrites is not a file: {str(config)}. "
-                    "URL rewrites not applied."
-                )
-            patterns = self._load_url_rewrites(config)
-            self._rewrite_urls(patterns)
+        config = Path(settings.DB_RESTORE_CONFIG_FILE)
+        if not config.is_file():
+            raise RuntimeError(
+                f"Path supplied for URL rewrites is not a file: {str(config)}. "
+                "URL rewrites not applied."
+            )
+        patterns = self._load_url_rewrites(config)
+        self._rewrite_urls(patterns)
