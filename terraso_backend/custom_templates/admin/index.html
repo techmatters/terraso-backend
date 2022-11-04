@@ -28,14 +28,12 @@
         fetch(`/admin/restore/jobs/${taskId}`, {headers})
           .then(resp => {
             if (!resp.ok) {
-              setError();
               reject();
             }
             return resp.json();
           }).then((json) => {
             const { status } = json;
             if (status === "failed") {
-              setError();
               reject();
             } else if (status === "finished") {
               resolve();
@@ -59,6 +57,8 @@
         intervalId = setInterval(f, 5000);
       }).then(() => {
         statusP.textContent = "Job finished successfully.";
+      }).catch(() => {
+        setError();
       }).finally(() => {
         if (intervalId) {
           clearInterval(intervalId);
