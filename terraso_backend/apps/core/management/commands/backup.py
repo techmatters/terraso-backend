@@ -62,7 +62,18 @@ class Command(BaseCommand):
                     os.unlink(filepath)
 
         try:
-            management.call_command("dumpdata", output=data_file, verbosity=0, natural_foreign=True)
+            management.call_command(
+                "dumpdata",
+                output=data_file,
+                verbosity=0,
+                exclude=[
+                    "core.BackgroundTask",
+                    "contenttypes",
+                    "auth.Permission",
+                    "core.TaxonomyTerm",
+                    "sessions",
+                ],
+            )
 
             migrations = self._query_migration_versions()
             self._save_migration_versions(migration_file, migrations)
@@ -75,6 +86,9 @@ class Command(BaseCommand):
 
         except Exception:
             traceback.print_exc()
+            return 1
+        else:
+            return 0
         finally:
             if tempdir:
                 tempdir.cleanup()

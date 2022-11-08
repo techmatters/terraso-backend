@@ -9,12 +9,17 @@ from urllib.parse import urlsplit, urlunsplit
 import structlog
 from django.apps import apps
 from django.conf import settings
+from django.contrib.sessions.models import Session
 from django.core import management
-from django.core.management.base import BaseCommand
+from django.core.management.base import BaseCommand, CommandError
 from django.db import connection
 from django.db.models.fields import URLField
+from psycopg2 import sql
 
 from ._backup_storage import S3BackupStorage
+
+# from apps.core.models import User
+
 
 logger = structlog.get_logger(__name__)
 
@@ -34,6 +39,14 @@ class Command(BaseCommand):
             help="Directory where backups can be found",
         )
         group.add_argument("--s3", action="store_true", help="Retrieve backups from S3 bucket.")
+        parser.add_argument(
+            "--save-user",
+            help="ID of a user who should be inserted into the new database."
+            " Any active sessions will be saved as well.",
+        )
+        parser.add_argument(
+            "--save-session", help="Primary key of session data that should be saved."
+        )
 
     @staticmethod
     def _convert_url(url, patterns):
@@ -53,10 +66,12 @@ class Command(BaseCommand):
         config = ConfigParser()
         config.read(path)
         patterns = []
-        for key in config.sections():
+        sections = set(config.sections())
+        sections.remove("service")
+        for key in sections:
             block = config[key]
-            source_url = re.compile(block["source_url"])
-            target_url = block["target_url"]
+            source_url = re.compile(block["source_bucket_url"])
+            target_url = block["target_bucket_url"]
             patterns.append((target_url, source_url))
         return patterns
 
@@ -114,6 +129,23 @@ class Command(BaseCommand):
         return data_file, migrations_file
 
     def handle(self, *args, **options):
+
+        try:
+            # if user_id := options.get("save_user"):
+            #    user = User.objects.get(id=user_id)
+            # else:
+            #    user = None
+            pass
+            if session_pk := options.get("save_session"):
+                session = Session.objects.get(session_key=session_pk)
+            else:
+                session = None
+
+        except Exception:
+            msg = "Error accessing user and session"
+            logger.exception(msg)
+            raise CommandError(msg)
+
         try:
             if options["s3"]:
                 data, migrations_file = self._find_last_backup_s3()
@@ -122,8 +154,9 @@ class Command(BaseCommand):
             with open(migrations_file, "rb") as fp:
                 migrations = json.load(fp)
         except Exception:
-            logger.exception("Failure loading backup files")
-            exit(1)
+            msg = "Failure loading backup files"
+            logger.exception(msg)
+            raise CommandError(msg)
 
         def cleanup():
             if options["s3"]:
@@ -132,31 +165,55 @@ class Command(BaseCommand):
 
         with connection.cursor() as cursor:
             try:
-                cursor.execute("DROP SCHEMA IF EXISTS public CASCADE")
-                cursor.execute("CREATE SCHEMA public")
+                # background task progress is saved in a DB table
+                # need to make sure this table is not deleted. otherwise things will break
+                cursor.execute(
+                    "SELECT tablename FROM pg_tables WHERE schemaname = 'public' "
+                    "AND tablename NOT IN ('core_backgroundtask');"
+                )
+                tables_to_drop = cursor.fetchall()
+                for (table,) in tables_to_drop:
+                    cursor.execute(
+                        sql.SQL("DROP TABLE IF EXISTS {} CASCADE").format(sql.Identifier(table))
+                    )
             except Exception:
-                logger.exception("Failed to reset schema")
+                msg = "Command failed resetting database"
+                logger.exception(msg)
                 connection.rollback()
                 cleanup()
-                exit(1)
+                raise CommandError(msg)
 
             connection.commit()
 
-        for app_label, version in migrations.items():
-            management.call_command("migrate", app_label, version, verbosity=0)
+        try:
+            for app_label, version in migrations.items():
+                if app_label == "core":
+                    # need to skip the migration that creates the background tasks
+                    management.call_command("migrate", "core", "0024", verbosity=0)
+                    management.call_command("migrate", "core", "0025", fake=True, verbosity=0)
+                management.call_command("migrate", app_label, verbosity=0)
 
-        management.call_command("loaddata", str(data.resolve()) if isinstance(data, Path) else data)
-
-        # migrate to latest version, if there is a difference
-        management.call_command("migrate", verbosity=0)
-
-        cleanup()
-
-        config = Path(settings.DB_RESTORE_CONFIG_FILE)
-        if not config.is_file():
-            raise RuntimeError(
-                f"Path supplied for URL rewrites is not a file: {str(config)}. "
-                "URL rewrites not applied."
+            management.call_command(
+                "loaddata",
+                str(data.resolve()) if isinstance(data, Path) else data,
+                exclude=["contenttypes"],
             )
-        patterns = self._load_url_rewrites(config)
-        self._rewrite_urls(patterns)
+
+            if session:
+                session.save()
+
+            cleanup()
+
+            config = Path(settings.DB_RESTORE_CONFIG_FILE)
+            if not config.is_file():
+                raise CommandError(
+                    f"Path supplied for URL rewrites is not a file: {str(config)}. "
+                    "URL rewrites not applied."
+                )
+            patterns = self._load_url_rewrites(config)
+            self._rewrite_urls(patterns)
+
+        except Exception:
+            msg = "Exception triggered in restore"
+            logger.exception(msg)
+            raise CommandError(msg)

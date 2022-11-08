@@ -1,5 +1,6 @@
 import configparser
 import json
+import os
 import subprocess
 import threading
 import time
@@ -62,7 +63,9 @@ def create_restore_job(request):
             task.delete()
         finally:
             cursor.close()
-        thread = threading.Thread(target=restore, args=[task], daemon=True)
+        thread = threading.Thread(
+            target=restore, args=[task, request.user.id, request.session.session_key], daemon=True
+        )
         thread.start()
 
     return HttpResponse(json.dumps({"taskId": task.id}), "application/json")
@@ -91,8 +94,9 @@ def _sync_s3_buckets(
             ["AWS_ACCESS_KEY", "AWS_SECRET_ACCESS_KEY", "AWS_DEFAULT_REGION"], aws_credentials
         )
     }
+    env.update(os.environ)
     for source, dest in zip(source_buckets, dest_buckets):
-        subprocess.run(["aws", "s3", source, dest], env=env)
+        subprocess.run(["aws", "s3", "sync", "s3://" + source, "s3://" + dest], env=env)
 
 
 JOB_WAIT_TIME_SEC = 5
@@ -100,8 +104,8 @@ JOB_WAIT_TIME_SEC = 5
 
 def _backup_service(service_name: str, render_token: str, start_command: str):
     """Send request to source service to trigger backup and wait for completion."""
-    jobs_resource = "{settings.RENDER_API_URL}/services/{service_name}/jobs"
-    headers = {"authorization": "Bearer {render_token}"}
+    jobs_resource = f"{settings.RENDER_API_URL}services/{service_name}/jobs"
+    headers = {"authorization": f"Bearer {render_token}"}
     resp = httpx.post(jobs_resource, headers=headers, json={"startCommand": start_command})
     resp.raise_for_status()
     resp_json = resp.json()
@@ -109,7 +113,7 @@ def _backup_service(service_name: str, render_token: str, start_command: str):
     status = None
     while not status:
         time.sleep(JOB_WAIT_TIME_SEC)
-        status_resp = httpx.get(f"{jobs_resource}/{job_id}", headers)
+        status_resp = httpx.get(f"{jobs_resource}/{job_id}", headers=headers)
         status_resp.raise_for_status()
         status_resp_json = status_resp.json()
         status = status_resp_json["status"]
@@ -117,8 +121,8 @@ def _backup_service(service_name: str, render_token: str, start_command: str):
             raise RuntimeError(f"Render job failed: {status['message']}")
 
 
-def _restore_from_backup():
-    management.command("loadbackup", "--s3")
+def _restore_from_backup(user_id, session_id):
+    management.call_command("loadbackup", s3=True, save_user=user_id, save_session=session_id)
 
 
 def _load_config_file(path: Path) -> tuple[list[str], list[str], str]:
@@ -126,14 +130,16 @@ def _load_config_file(path: Path) -> tuple[list[str], list[str], str]:
     config.read(path)
     source_buckets = []
     dest_buckets = []
-    for key in config.sections():
+    sections = set(config.sections())
+    sections.remove("service")
+    for key in sections:
         block = config[key]
         source_buckets.append(block["source_bucket"])
-        dest_buckets.append(block["dest_bucket"])
-    return source_buckets, dest_buckets, config["service_name"]
+        dest_buckets.append(block["target_bucket"])
+    return source_buckets, dest_buckets, config["service"]["id"]
 
 
-def restore(task):
+def restore(task, user_id, session_id):
     """Restore current instance from source instance."""
     try:
         source_buckets, dest_buckets, service_name = _load_config_file(
@@ -146,9 +152,9 @@ def restore(task):
         )
         _sync_s3_buckets(source_buckets, dest_buckets, aws_credentials)
         _backup_service(
-            service_name, settings.RENDER_API_URL, "python3 terraso_backend/manage.py backup --s3"
+            service_name, settings.RENDER_API_TOKEN, "python3 terraso_backend/manage.py backup --s3"
         )
-        _restore_from_backup()
+        _restore_from_backup(user_id, session_id)
     except Exception:
         logger.exception("Job failed!")
         task.status = "failed"
