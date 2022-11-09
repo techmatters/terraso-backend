@@ -185,9 +185,15 @@ class Command(BaseCommand):
                 # need to make sure this table is not deleted. otherwise things will break
                 cursor.execute(
                     "SELECT tablename FROM pg_tables WHERE schemaname = 'public' "
-                    "AND tablename NOT IN ('core_backgroundtask');"
+                    "AND tablename NOT IN ('core_backgroundtask', 'django_session');"
                 )
                 tables_to_drop = cursor.fetchall()
+                if session_pk:
+                    cursor.execute(
+                        "DELETE FROM django_session WHERE session_key != %s", (str(session_pk),)
+                    )
+                else:
+                    cursor.execute("DELETE FROM django_session")
                 for (table,) in tables_to_drop:
                     cursor.execute(
                         sql.SQL("DROP TABLE IF EXISTS {} CASCADE").format(sql.Identifier(table))
@@ -202,12 +208,22 @@ class Command(BaseCommand):
             connection.commit()
 
         try:
+            core_skip = [23, 25]
             for app_label, version in migrations.items():
                 if app_label == "core":
                     # need to skip the migration that creates the background tasks
-                    management.call_command("migrate", "core", "0024", verbosity=0)
-                    management.call_command("migrate", "core", "0025", fake=True, verbosity=0)
-                management.call_command("migrate", app_label, verbosity=0)
+                    for version in core_skip:
+                        management.call_command(
+                            "migrate", "core", "{0:0>4}".format(version - 1), verbosity=0
+                        )
+                        management.call_command(
+                            "migrate", "core", "{0:0>4}".format(version), fake=True, verbosity=0
+                        )
+                    management.call_command("migrate", "core")
+                kwargs = {}
+                if app_label == "sessions":
+                    kwargs["fake_initial"] = True
+                management.call_command("migrate", app_label, verbosity=0, **kwargs)
 
             management.call_command(
                 "loaddata",
@@ -216,7 +232,6 @@ class Command(BaseCommand):
                     "core.BackgroundTask",
                     "contenttypes.contenttype",
                     "auth.Permission",
-                    "core.TaxonomyTerm",
                     "sessions.Session",
                     "admin.LogEntry",
                 ],

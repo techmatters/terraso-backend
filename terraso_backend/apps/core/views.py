@@ -10,6 +10,7 @@ import httpx
 import structlog
 from django.conf import settings
 from django.contrib.admin.views.decorators import staff_member_required
+from django.contrib.sessions.models import Session
 from django.core import management
 from django.db import DatabaseError, transaction
 from django.db.transaction import get_connection
@@ -71,12 +72,17 @@ def create_restore_job(request):
     return HttpResponse(json.dumps({"taskId": task.id}), "application/json")
 
 
-@staff_member_required
 def check_restore_job_status(request, task_id):
     if request.method != "GET":
         return HttpResponseNotAllowed(permitted_methods=["GET"])
     try:
         task = BackgroundTask.objects.get(id=task_id)
+        session = Session.objects.get(session_key=request.session.session_key)
+        session_user_id = session.get_decoded().get("_auth_user_id")
+        if session_user_id != str(task.created_by_id):
+            return HttpResponseNotAllowed(
+                json.dumps({"message": "You did not create this task"}), "application/json"
+            )
     except BackgroundTask.DoesNotExist:
         return HttpResponseNotFound(
             json.dumps({"message": f"No task with id {task_id}"}), "application/json"

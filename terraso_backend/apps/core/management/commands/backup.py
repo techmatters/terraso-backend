@@ -70,7 +70,6 @@ class Command(BaseCommand):
                     "core.BackgroundTask",
                     "contenttypes.contenttype",
                     "auth.Permission",
-                    "core.TaxonomyTerm",
                     "sessions.Session",
                 ],
                 natural_foreign=True,
