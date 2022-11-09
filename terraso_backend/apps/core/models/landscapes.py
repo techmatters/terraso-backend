@@ -62,6 +62,8 @@ class Landscape(SlugModel):
         choices=MEMBERSHIP_TYPES,
         default=DEFAULT_PARTNERSHIP_STATUS,
     )
+    profile_image = models.URLField(blank=True, default="")
+    profile_image_description = models.TextField(blank=True, default="")
 
     field_to_slug = "name"
 

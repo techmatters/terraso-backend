@@ -46,6 +46,8 @@ class LandscapeNode(DjangoObjectType):
             "associated_development_strategy",
             "taxonomy_terms",
             "partnership_status",
+            "profile_image",
+            "profile_image_description",
         )
         interfaces = (relay.Node,)
         connection_class = TerrasoConnection
