@@ -14,12 +14,12 @@ from django.core import management
 from django.core.management.base import BaseCommand, CommandError
 from django.db import connection
 from django.db.models.fields import URLField
+from django.db.models.fields.related import ForeignKey
 from psycopg2 import sql
 
+from apps.core.models import User
+
 from ._backup_storage import S3BackupStorage
-
-# from apps.core.models import User
-
 
 logger = structlog.get_logger(__name__)
 
@@ -96,6 +96,22 @@ class Command(BaseCommand):
                     obj.save()
 
     @staticmethod
+    def _reset_user_id(old_user_id, new_user_id):
+        """Change links from new user id to old user id. This is so the logged in user will
+        stay logged in."""
+        models = apps.get_models()
+        for model in models:
+            foreign_keys = []
+            for field in model._meta.get_fields():
+                if isinstance(field, ForeignKey) and field.related_model == User:
+                    foreign_keys.append(field)
+            if not foreign_keys:
+                continue
+            old = {field.name: str(old_user_id) for field in foreign_keys}
+            new = {field.name: str(new_user_id) for field in foreign_keys}
+            model.objects.filter(**new).update(**old)
+
+    @staticmethod
     def _find_latest_backup_dir(directory):
         """Find the latest backup in a directory.
 
@@ -131,10 +147,10 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
 
         try:
-            # if user_id := options.get("save_user"):
-            #    user = User.objects.get(id=user_id)
-            # else:
-            #    user = None
+            if user_id := options.get("save_user"):
+                user = User.objects.get(id=user_id)
+            else:
+                user = None
             pass
             if session_pk := options.get("save_session"):
                 session = Session.objects.get(session_key=session_pk)
@@ -196,8 +212,28 @@ class Command(BaseCommand):
             management.call_command(
                 "loaddata",
                 str(data.resolve()) if isinstance(data, Path) else data,
-                exclude=["contenttypes"],
+                exclude=[
+                    "core.BackgroundTask",
+                    "contenttypes.contenttype",
+                    "auth.Permission",
+                    "core.TaxonomyTerm",
+                    "sessions.Session",
+                    "admin.LogEntry",
+                ],
             )
+
+            if user:
+                try:
+                    new_user = User.objects.get(email=user.email)
+                    # we want to keep the user's session valid
+                    # this means the user should have the same ID as before
+                    User.objects.filter(id=new_user.id).update(
+                        id=user.id, is_staff=True, password=user.password
+                    )
+                    self._reset_user_id(new_user.id, user.id)
+
+                except User.DoesNotExist:
+                    user.save()
 
             if session:
                 session.save()

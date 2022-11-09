@@ -68,11 +68,13 @@ class Command(BaseCommand):
                 verbosity=0,
                 exclude=[
                     "core.BackgroundTask",
-                    "contenttypes",
+                    "contenttypes.contenttype",
                     "auth.Permission",
                     "core.TaxonomyTerm",
-                    "sessions",
+                    "sessions.Session",
                 ],
+                natural_foreign=True,
+                natural_primary=True,
             )
 
             migrations = self._query_migration_versions()
