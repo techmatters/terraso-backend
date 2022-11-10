@@ -80,10 +80,8 @@ def check_restore_job_status(request, task_id):
         session = Session.objects.get(session_key=request.session.session_key)
         session_user_id = session.get_decoded().get("_auth_user_id")
         if session_user_id != str(task.created_by_id):
-            return HttpResponseNotAllowed(
-                json.dumps({"message": "You did not create this task"}), "application/json"
-            )
-    except BackgroundTask.DoesNotExist:
+            return HttpResponseNotFound(json.dumps({"message": "Restricted"}), "application/json")
+    except BackgroundTask.DoesNotExist | Session.DoesNotExist:
         return HttpResponseNotFound(
             json.dumps({"message": f"No task with id {task_id}"}), "application/json"
         )

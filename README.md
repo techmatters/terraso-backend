@@ -96,20 +96,7 @@ $ python terraso_backend/manage.py flush
 
 ## Backup the database
 
-The contents of the database can be dumped to a JSON file for backup. Optionally, they can also be uploaded to a S3 bucket.
-
-
-```sh
-python terraso_backend/manage.py backup --s3
-```
-
-This data can be reloaded into the database
-
-```sh
-python terraso_backend/manage.py loadbackup --s3 --url-rewrites /etc/terraso/backup_url_rewrites.conf
-```
-
-For more details, see the help dialog
+The contents of the database can be dumped to a JSON file for backup. Optionally, they can also be uploaded to a S3 bucket. This can be activated to be triggered from a button in the Django admin console. See the relevant [README.md](terraso_backend/apps/core/management/README.md) for more details.
 
 
 ## Contributing
