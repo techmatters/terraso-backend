@@ -219,7 +219,7 @@ class Command(BaseCommand):
                         management.call_command(
                             "migrate", "core", "{0:0>4}".format(version), fake=True, verbosity=0
                         )
-                    management.call_command("migrate", "core")
+                    management.call_command("migrate", "core", verbosity=0)
                 kwargs = {}
                 if app_label == "sessions":
                     kwargs["fake_initial"] = True
@@ -240,12 +240,17 @@ class Command(BaseCommand):
             if user:
                 try:
                     new_user = User.objects.get(email=user.email)
-                    # we want to keep the user's session valid
-                    # this means the user should have the same ID as before
-                    User.objects.filter(id=new_user.id).update(
-                        id=user.id, is_staff=True, password=user.password
-                    )
+                    # provide a fake "email" not in the database
+                    user.email = str(user.id)
+                    user.save()
                     self._reset_user_id(new_user.id, user.id)
+                    # copy fields from new user to old
+                    for field in User._meta.fields:
+                        if field.name in ("id", "password", "is_staff"):
+                            continue
+                        setattr(user, field.name, getattr(new_user, field.name))
+                    new_user.delete()
+                    user.save()
 
                 except User.DoesNotExist:
                     user.save()
