@@ -70,3 +70,27 @@ def test_create_data_entry_file_type_different_from_extension(
     response_data = response.json()
 
     assert "errors" in response_data
+
+
+def test_create_data_entry_file_type_csv(logged_client, upload_url, data_entry_payload):
+    data_entry_payload["data_file"] = (
+        SimpleUploadedFile(
+            name="data_file.csv",
+            content="col1,col2\nval1,val2".encode(),
+            content_type="text/csv",
+        ),
+    )
+    with patch(
+        "apps.shared_data.forms.data_entry_upload_service.upload_file"
+    ) as mocked_upload_service:
+        mocked_upload_service.return_value = "https://example.org/uploaded_file.json"
+
+        response = logged_client.post(upload_url, data_entry_payload)
+
+    assert response.status_code == 201
+
+    response_data = response.json()
+
+    assert "id" in response_data
+    assert "url" in response_data
+    assert response_data["size"]
