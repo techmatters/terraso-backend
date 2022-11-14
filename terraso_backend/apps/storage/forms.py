@@ -1,5 +1,3 @@
-import mimetypes
-
 import structlog
 from django import forms
 from django.core.exceptions import ValidationError
@@ -8,7 +6,6 @@ from apps.core.models.landscapes import Landscape
 
 from .services import profile_image_upload_service
 
-mimetypes.init()
 logger = structlog.get_logger(__name__)
 
 
@@ -20,7 +17,7 @@ class LandscapeProfileImageForm(forms.Form):
     )
 
     def clean(self):
-        data = self.cleaned_data
+        data = super().clean()
         data_file = data.get("data_file")
 
         if data_file:
