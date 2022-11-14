@@ -4,6 +4,7 @@ from django.utils.translation import gettext_lazy as _
 
 from apps.core import permission_rules as perm_rules
 from apps.core.models.taxonomy_terms import TaxonomyTerm
+from apps.core.geo import calculate_geojson_feature_area
 
 from .commons import BaseModel, SlugModel, validate_name
 from .groups import Group
@@ -33,6 +34,7 @@ class Landscape(SlugModel):
     location = models.CharField(max_length=128, blank=True, default="")
     area_polygon = models.JSONField(blank=True, null=True)
     email = models.EmailField(blank=True, default="")
+    area_scalar = models.FloatField(blank=True, null=True)
 
     created_by = models.ForeignKey(
         User,
@@ -74,6 +76,9 @@ class Landscape(SlugModel):
         }
 
     def save(self, *args, **kwargs):
+        if self.area_polygon:
+            self.area_scalar = calculate_geojson_feature_area(self.area_polygon)
+
         with transaction.atomic():
             creating = not Landscape.objects.filter(pk=self.pk).exists()
 

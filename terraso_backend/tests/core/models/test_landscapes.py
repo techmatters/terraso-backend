@@ -1,3 +1,5 @@
+import math
+
 import pytest
 from django.core.exceptions import ValidationError
 from mixer.backend.django import mixer
@@ -102,3 +104,14 @@ def test_landscape_creator_becomes_manager():
     manager_membership = Membership.objects.get(group=landscape.get_default_group(), user=user)
 
     assert manager_membership.user_role == Membership.ROLE_MANAGER
+
+
+def test_landscape_area_calculated(unit_polygon):
+    area_polygon = {
+        "crs": {"type": "name", "properties": {"name": "urn:ogc:def:crs:OGC:1.3:CRS84"}},
+        "type": "FeatureCollection",
+        "features": [{"type": "Feature", "geometry": unit_polygon}],
+    }
+    landscape = mixer.blend(Landscape, area_polygon=area_polygon)
+    landscape.save()
+    assert math.isclose(landscape.area_scalar, 1, rel_tol=0.05)
