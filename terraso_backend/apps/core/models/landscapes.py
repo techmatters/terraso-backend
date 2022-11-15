@@ -3,8 +3,8 @@ from django.db import models, transaction
 from django.utils.translation import gettext_lazy as _
 
 from apps.core import permission_rules as perm_rules
-from apps.core.models.taxonomy_terms import TaxonomyTerm
 from apps.core.geo import calculate_geojson_feature_area
+from apps.core.models.taxonomy_terms import TaxonomyTerm
 
 from .commons import BaseModel, SlugModel, validate_name
 from .groups import Group
@@ -78,7 +78,7 @@ class Landscape(SlugModel):
 
     def save(self, *args, **kwargs):
         if self.area_polygon:
-            self.area_scalar_m2 = calculate_geojson_feature_area(self.area_polygon)
+            self.area_scalar_m2 = round(calculate_geojson_feature_area(self.area_polygon), 3)
 
         with transaction.atomic():
             creating = not Landscape.objects.filter(pk=self.pk).exists()

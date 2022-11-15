@@ -4,6 +4,7 @@ from django.db import transaction
 from graphene import relay
 from graphene_django import DjangoObjectType
 
+from apps.core.geo import m2_to_hectares
 from apps.core.models import (
     Group,
     Landscape,
@@ -50,8 +51,15 @@ class LandscapeNode(DjangoObjectType):
             "profile_image",
             "profile_image_description",
         )
+
         interfaces = (relay.Node,)
         connection_class = TerrasoConnection
+
+    area_scalar_ha = graphene.Float()
+
+    def resolve_area_scalar_ha(self, info):
+        area = self.area_scalar_m2
+        return round(m2_to_hectares(area), 3) if area is not None else None
 
 
 class LandscapeDevelopmentStrategyNode(DjangoObjectType):

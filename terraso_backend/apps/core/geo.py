@@ -32,3 +32,7 @@ def calculate_geojson_polygon_area(polygon_json, crs=None):
     geod = crs.get_geod()
     area, _perimeter = geod.geometry_area_perimeter(untransformed)
     return abs(area)
+
+
+def m2_to_hectares(area):
+    return area / 1000
