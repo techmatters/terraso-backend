@@ -3,6 +3,8 @@ FROM python:3.10-slim-bullseye
 RUN adduser --disabled-password terraso
 
 ENV PATH /home/terraso/.local/bin:$PATH
+# see https://github.com/aws/aws-cli/tags for list of versions
+ENV AWS_CLI_VERSION 2.8.12
 
 RUN apt-get update && \
     apt-get install -q -y --no-install-recommends \

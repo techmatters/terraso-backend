@@ -29,6 +29,8 @@ class Command(BaseCommand):
 
     help = "Load backup JSON files."
 
+    MIGRATIONS_TO_SKIP = [23, 25]
+
     def add_arguments(self, parser):
         group = parser.add_mutually_exclusive_group()
         group.add_argument(
@@ -208,11 +210,10 @@ class Command(BaseCommand):
             connection.commit()
 
         try:
-            core_skip = [23, 25]
             for app_label, version in migrations.items():
                 if app_label == "core":
                     # need to skip the migration that creates the background tasks
-                    for version in core_skip:
+                    for version in self.CORE_MIGRATIONS_TO_SKIP:
                         management.call_command(
                             "migrate", "core", "{0:0>4}".format(version - 1), verbosity=0
                         )
