@@ -12,7 +12,7 @@ class Migration(migrations.Migration):
     operations = [
         migrations.AddField(
             model_name="landscape",
-            name="area_scalar",
+            name="area_scalar_m2",
             field=models.FloatField(blank=True, null=True),
         )
     ]

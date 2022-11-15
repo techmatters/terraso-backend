@@ -108,10 +108,9 @@ def test_landscape_creator_becomes_manager():
 
 def test_landscape_area_calculated(unit_polygon):
     area_polygon = {
-        "crs": {"type": "name", "properties": {"name": "urn:ogc:def:crs:OGC:1.3:CRS84"}},
         "type": "FeatureCollection",
         "features": [{"type": "Feature", "geometry": unit_polygon}],
     }
     landscape = mixer.blend(Landscape, area_polygon=area_polygon)
     landscape.save()
-    assert math.isclose(landscape.area_scalar, 1, rel_tol=0.05)
+    assert math.isclose(landscape.area_scalar_m2, 1, rel_tol=0.05)

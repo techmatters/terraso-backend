@@ -35,6 +35,7 @@ class Landscape(SlugModel):
     area_polygon = models.JSONField(blank=True, null=True)
     email = models.EmailField(blank=True, default="")
     area_scalar = models.FloatField(blank=True, null=True)
+    area_scalar_m2 = models.FloatField(blank=True, null=True)
 
     created_by = models.ForeignKey(
         User,
