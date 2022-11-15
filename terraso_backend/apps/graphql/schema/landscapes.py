@@ -40,6 +40,7 @@ class LandscapeNode(DjangoObjectType):
             "location",
             "area_polygon",
             "email",
+            "area_scalar_m2",
             "created_by",
             "associated_groups",
             "population",
