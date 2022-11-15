@@ -78,7 +78,9 @@ class Landscape(SlugModel):
 
     def save(self, *args, **kwargs):
         if self.area_polygon:
-            self.area_scalar_m2 = round(calculate_geojson_feature_area(self.area_polygon), 3)
+            area_scalar_m2 = calculate_geojson_feature_area(self.area_polygon)
+            if area_scalar_m2 is not None:
+                self.area_scalar_m2 = round(area_scalar_m2, 3)
 
         with transaction.atomic():
             creating = not Landscape.objects.filter(pk=self.pk).exists()

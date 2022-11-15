@@ -34,7 +34,7 @@ def unit_polygon():
     # UTM zone 32S, chosen at random
     source_crs = CRS.from_epsg(9156)
     # Web Mercator
-    target_crs = CRS.from_epsg(DEFAULT_CRS)
+    target_crs = DEFAULT_CRS
     proj = Transformer.from_crs(source_crs, target_crs, always_xy=True)
     x_degrees, y_degrees = proj.transform(xs, ys)
     geojson = {
