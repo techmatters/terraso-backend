@@ -2,17 +2,13 @@
 from pyproj import CRS
 from shapely.geometry import shape
 
-DEFAULT_CRS = 4326
+# CRS that should be used for all GeoJSON (see https://www.rfc-editor.org/rfc/rfc7946#section-4)
+DEFAULT_CRS = CRS.from_string("urn:ogc:def:crs:OGC:1.3:CRS84")
 
 
 def calculate_geojson_feature_area(feature_json):
     try:
-        if "crs" in feature_json:
-            # some of the polygons in the database contain their own CRS
-            # if that's the case, we should use their CRS
-            crs = CRS.from_string(feature_json["crs"]["properties"]["name"])
-        else:
-            crs = DEFAULT_CRS
+        crs = DEFAULT_CRS
         features = feature_json["features"]
         if len(features) != 1:
             raise ValueError(f"Expecting only 1 feature, but saw {len(features)}")
