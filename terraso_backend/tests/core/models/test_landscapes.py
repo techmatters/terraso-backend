@@ -1,4 +1,5 @@
 import math
+from unittest.mock import patch
 
 import pytest
 from django.core.exceptions import ValidationError
@@ -114,3 +115,21 @@ def test_landscape_area_calculated(unit_polygon):
     landscape = mixer.blend(Landscape, area_polygon=area_polygon)
     landscape.save()
     assert math.isclose(landscape.area_scalar_m2, 1, rel_tol=0.05)
+
+
+def test_landscape_area_calculated_once(unit_polygon):
+    area_polygon = {
+        "type": "FeatureCollection",
+        "features": [{"type": "Feature", "geometry": unit_polygon}],
+    }
+    with patch(
+        "apps.core.models.landscapes.calculate_geojson_feature_area", return_value=1
+    ) as mock1:
+        landscape = mixer.blend(Landscape, area_polygon=area_polygon)
+    mock1.assert_called_once()
+    landscape.name = "foo"
+    with patch(
+        "apps.core.models.landscapes.calculate_geojson_feature_area", return_value=1
+    ) as mock2:
+        landscape.save()
+    mock2.assert_not_called()

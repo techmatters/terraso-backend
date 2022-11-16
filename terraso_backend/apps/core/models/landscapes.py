@@ -1,4 +1,5 @@
 import structlog
+from dirtyfields import DirtyFieldsMixin
 from django.db import models, transaction
 from django.utils.translation import gettext_lazy as _
 
@@ -13,7 +14,7 @@ from .users import User
 logger = structlog.get_logger(__name__)
 
 
-class Landscape(SlugModel):
+class Landscape(SlugModel, DirtyFieldsMixin):
     """
     This model represents a Landscape on Terraso platform.
 
@@ -77,7 +78,8 @@ class Landscape(SlugModel):
         }
 
     def save(self, *args, **kwargs):
-        if self.area_polygon:
+        dirty_fields = self.get_dirty_fields()
+        if self.area_polygon and "area_polygon" in dirty_fields:
             area_scalar_m2 = calculate_geojson_feature_area(self.area_polygon)
             if area_scalar_m2 is not None:
                 self.area_scalar_m2 = round(area_scalar_m2, 3)
