@@ -135,7 +135,8 @@ def _load_config_file(path: Path) -> tuple[list[str], list[str], str]:
     source_buckets = []
     dest_buckets = []
     sections = set(config.sections())
-    sections.remove("service")
+    if "service" in sections:
+        sections.remove("service")
     for key in sections:
         block = config[key]
         source_buckets.append(block["source_bucket"])

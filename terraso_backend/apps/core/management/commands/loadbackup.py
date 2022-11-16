@@ -29,7 +29,10 @@ class Command(BaseCommand):
 
     help = "Load backup JSON files."
 
-    MIGRATIONS_TO_SKIP = [23, 25]
+    # This is for core migrations that should be skipped. Could be for several reasons:
+    # - The table is needed throughtout the migration so it is not dropped.
+    # - The migration is a data migration, so it introduces data that will already be in the backup
+    CORE_MIGRATIONS_TO_SKIP = [15]
 
     def add_arguments(self, parser):
         group = parser.add_mutually_exclusive_group()
