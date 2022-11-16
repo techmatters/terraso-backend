@@ -14,7 +14,7 @@ def calculate_area(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("core", "0015_landscape_area_scalar"),
+        ("core", "0025_landscape_area_scalar"),
     ]
 
     operations = [migrations.RunPython(calculate_area)]
