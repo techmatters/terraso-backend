@@ -29,6 +29,7 @@ class DataEntryNode(DjangoObjectType):
         fields = (
             "name",
             "description",
+            "entry_type",
             "resource_type",
             "url",
             "size",

@@ -1,5 +1,6 @@
 from django.db import models
 from django.utils import timezone
+from django.utils.translation import gettext_lazy as _
 
 from apps.core.models import BaseModel, Group, User
 from apps.shared_data import permission_rules as perm_rules
@@ -36,6 +37,18 @@ class DataEntry(BaseModel):
 
     name = models.CharField(max_length=128)
     description = models.TextField(blank=True, default="")
+
+    ENTRY_TYPE_FILE = "file"
+    ENTRY_TYPE_LINK = "link"
+    MEMBERSHIP_TYPES = (
+        (ENTRY_TYPE_FILE, _("File")),
+        (ENTRY_TYPE_LINK, _("Link")),
+    )
+    entry_type = models.CharField(
+        max_length=32,
+        choices=MEMBERSHIP_TYPES,
+    )
+
     resource_type = models.CharField(max_length=255)
     url = models.URLField()
     size = models.PositiveBigIntegerField(null=True)

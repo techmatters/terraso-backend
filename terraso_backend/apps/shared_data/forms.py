@@ -31,6 +31,7 @@ class DataEntryForm(forms.ModelForm):
         fields = (
             "name",
             "description",
+            "entry_type",
             "data_file",
             "resource_type",
             "size",

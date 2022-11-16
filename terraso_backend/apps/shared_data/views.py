@@ -9,6 +9,7 @@ from apps.auth.mixins import AuthenticationRequiredMixin
 from apps.core.exceptions import ErrorContext, ErrorMessage
 
 from .forms import DataEntryForm
+from .models import DataEntry
 
 logger = structlog.get_logger(__name__)
 
@@ -19,6 +20,7 @@ class DataEntryFileUploadView(AuthenticationRequiredMixin, FormView):
     def post(self, request, **kwargs):
         form_data = request.POST.copy()
         form_data["created_by"] = str(request.user.id)
+        form_data["entry_type"] = DataEntry.ENTRY_TYPE_FILE
 
         entry_form = DataEntryForm(data=form_data, files=request.FILES)
 
