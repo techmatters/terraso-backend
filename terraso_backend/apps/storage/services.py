@@ -71,3 +71,6 @@ class ProfileImageService(UploadService):
 
     def get_path_on_storage(self, user_id, file_name):
         return f"{user_id}/profile-image"
+
+
+profile_image_upload_service = ProfileImageService()
