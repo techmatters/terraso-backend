@@ -59,7 +59,7 @@ class LandscapeNode(DjangoObjectType):
 
     def resolve_area_scalar_ha(self, info):
         area = self.area_scalar_m2
-        return round(m2_to_hectares(area), 3) if area is not None else None
+        return None if area is None else round(m2_to_hectares(area), 3)
 
 
 class LandscapeDevelopmentStrategyNode(DjangoObjectType):

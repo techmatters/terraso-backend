@@ -10,6 +10,7 @@ def calculate_geojson_feature_area(feature_json):
     try:
         features = feature_json["features"]
         if len(features) != 1:
+            # we expect the boundary to only be a single polygon for the moment
             raise ValueError(f"Expecting only 1 feature, but saw {len(features)}")
         feature = features[0]
         geom = feature["geometry"]
