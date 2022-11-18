@@ -1,3 +1,6 @@
+import json
+from importlib import resources
+
 import pytest
 from django.test.client import Client
 from mixer.backend.django import mixer
@@ -44,3 +47,11 @@ def unit_polygon():
         ],
     }
     return geojson
+
+
+@pytest.fixture
+def usa_geojson():
+    """Loads a geojson file containing the boundary of the United States of America"""
+    file_path = resources.files("tests").joinpath("resources/usa.json")
+    with open(file_path) as fp:
+        return json.load(fp)

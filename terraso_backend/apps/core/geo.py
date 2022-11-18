@@ -9,15 +9,14 @@ DEFAULT_CRS = CRS.from_string("urn:ogc:def:crs:OGC:1.3:CRS84")
 def calculate_geojson_feature_area(feature_json):
     try:
         features = feature_json["features"]
-        if len(features) != 1:
-            # we expect the boundary to only be a single polygon for the moment
-            raise ValueError(f"Expecting only 1 feature, but saw {len(features)}")
-        feature = features[0]
-        geom = feature["geometry"]
-        if geom["type"] == "Polygon":
-            return calculate_geojson_polygon_area(geom)
-        # if the boundary is not a Polygon, we don't want to return a real area
-        return None
+        if not features:
+            raise ValueError("Boundary is empty!")
+        total_area = 0
+        for feature in features:
+            geom = feature["geometry"]
+            if geom["type"] in ("Polygon", "MultiPolygon"):
+                total_area += calculate_geojson_polygon_area(geom)
+        return total_area
     except KeyError as e:
         # if the JSON is not formed as expected, this will give an easier to understand exception
         raise ValueError(f"Expecting key '{e.args[0]}' in feature JSON, but it was missing")
