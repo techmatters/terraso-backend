@@ -53,7 +53,7 @@
       setError();
     }
     const { taskId } = await resp.json();
-    statusP.textContent = "Job triggered";
+    statusP.textContent = "Job started";
 
     let intervalId = null;
 

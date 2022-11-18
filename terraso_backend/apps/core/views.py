@@ -21,6 +21,8 @@ from apps.core.models import BackgroundTask, Group, Landscape, User
 
 logger = structlog.get_logger(__name__)
 
+RENDER_STATUS_JOB_CHECK_DELAY_SEC = 5
+
 
 class HealthView(View):
     def get(self, request, *args, **kwargs):
@@ -103,9 +105,6 @@ def _sync_s3_buckets(
         subprocess.run(["aws", "s3", "sync", "s3://" + source, "s3://" + dest], env=env)
 
 
-JOB_WAIT_TIME_SEC = 5
-
-
 def _backup_service(service_name: str, render_token: str, start_command: str):
     """Send request to source service to trigger backup and wait for completion."""
     jobs_resource = f"{settings.RENDER_API_URL}services/{service_name}/jobs"
@@ -116,7 +115,7 @@ def _backup_service(service_name: str, render_token: str, start_command: str):
     job_id = resp_json["id"]
     status = None
     while not status:
-        time.sleep(JOB_WAIT_TIME_SEC)
+        time.sleep(RENDER_STATUS_JOB_CHECK_DELAY_SEC)
         status_resp = httpx.get(f"{jobs_resource}/{job_id}", headers=headers)
         status_resp.raise_for_status()
         status_resp_json = status_resp.json()
@@ -161,7 +160,7 @@ def restore(task, user_id, session_id):
         )
         _restore_from_backup(user_id, session_id)
     except Exception:
-        logger.exception("Job failed!")
+        logger.exception("Background task {task.id} for {user_id} failed! Logging exception trace")
         task.status = "failed"
     else:
         task.status = "finished"
