@@ -244,7 +244,7 @@ class Command(BaseCommand):
             if user:
                 try:
                     # here we want to ensure that the currently logged in user (i.e. the user
-                    # triggering the reset) retains the same user ID in the restored data base.
+                    # triggering the reset) retains the same user ID in the restored database.
                     # This is to make sure the login status remains valid
                     new_user = User.objects.get(email=user.email)
                     # provide a fake "email" not in the database
@@ -268,11 +268,17 @@ class Command(BaseCommand):
             cleanup()
 
             config = Path(settings.DB_RESTORE_CONFIG_FILE)
-            if not config.is_file() or not os.access(config, os.R_OK):
+            if not config.is_file() :
                 raise CommandError(
                     f"Path supplied for URL rewrites is not a file: {str(config)}. "
                     "URL rewrites not applied."
                 )
+            if not os.access(config, os.R_OK) :
+                raise CommandError(
+                    f"Cannot read config file: {str(config)}. "
+                    "URL rewrites not applied."
+                )
+
             patterns = self._load_url_rewrites(config)
             self._rewrite_urls(patterns)
 
