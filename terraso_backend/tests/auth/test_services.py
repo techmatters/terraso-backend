@@ -29,9 +29,10 @@ def test_sign_up_with_google_creates_user(mock_upload, respx_mock, access_tokens
         return_value=Response(200, json=access_tokens_google)
     )
     service = AccountService()
-    user = service.sign_up_with_google("authorization_code")
+    user, created = service.sign_up_with_google("authorization_code")
 
     assert user
+    assert created
 
     assert user.email == "testingterraso@example.com"
     mock_upload.assert_called_once()
@@ -43,7 +44,7 @@ def test_sign_in_with_google_doesnt_update_user_names(respx_mock, access_tokens_
     )
     service = AccountService()
 
-    user_result = service.sign_up_with_google("authorization_code")
+    user_result, _ = service.sign_up_with_google("authorization_code")
 
     assert user_result.email == user.email
     assert user_result.last_name == user.last_name
@@ -59,7 +60,7 @@ def test_sign_up_with_apple_creates_user(respx_mock, access_tokens_apple):
 
     with mock.patch("apps.auth.providers.AppleProvider._build_client_secret") as mock_secret:
         mock_secret.return_value = "mocked-secret-value"
-        user = service.sign_up_with_apple(
+        user, _ = service.sign_up_with_apple(
             "authorization_code", first_name="Testing", last_name="Terraso"
         )
 
@@ -79,7 +80,7 @@ def test_sign_in_with_apple_doesnt_update_user_names(respx_mock, access_tokens_a
 
     with mock.patch("apps.auth.providers.AppleProvider._build_client_secret") as mock_secret:
         mock_secret.return_value = "mocked-secret-value"
-        user_result = service.sign_up_with_apple(
+        user_result, _ = service.sign_up_with_apple(
             "authorization_code", first_name="Testing", last_name="Terraso"
         )
 

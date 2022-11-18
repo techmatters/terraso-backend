@@ -49,20 +49,20 @@ black==22.8.0 \
     --hash=sha256:e8166b7bfe5dcb56d325385bd1d1e0f635f24aae14b3ae437102dedc0c186747 \
     --hash=sha256:e981e20ec152dfb3e77418fb616077937378b322d7b26aa1ff87717fb18b4875
     # via -r requirements/dev.in
-boto3==1.24.72 \
-    --hash=sha256:2e502227bfb67fe83b6d61ef9dacd49297bcb631d005cf27b5e54f65064c6e6d \
-    --hash=sha256:ef1f8afb832556fad5f90e7c46373edf9011a436df0d676e8450e05264c3ac0f
+boto3==1.24.82 \
+    --hash=sha256:2a9b283cd4208cfcea873baac29e5ceb011afbd5a5c5b7a35cb305f377c39f60 \
+    --hash=sha256:90d590eda672775ef5ad0cdd4f5c2a51a964e3de631f3deccbc96e29cf0cd5a9
     # via moto
-botocore==1.27.72 \
-    --hash=sha256:6184ab43a59118541b88e0ede24ccd671553323ace95bb7c8de3082a5cc581cb \
-    --hash=sha256:e29a777d261360dcb9283dfd460dc5feca3a46b7774e0c79be406d1a85673789
+botocore==1.27.82 \
+    --hash=sha256:034cdcfb74bcca9124fcaafed857ad78ec572ff95ed802b0608fa7505aaf4a1f \
+    --hash=sha256:b122c7048a79fef53f3d45f7ca2999c2559e15fc4531653824ebd3154d77ede5
     # via
     #   boto3
     #   moto
     #   s3transfer
-certifi==2022.6.15.1 \
-    --hash=sha256:43dadad18a7f168740e66944e4fa82c6611848ff9056ad910f8f7a3e46ab89e0 \
-    --hash=sha256:cffdcd380919da6137f76633531a5817e3a9f268575c128249fb637e4f9e73fb
+certifi==2022.9.24 \
+    --hash=sha256:0d9c601124e5a6ba9712dbc60d9c53c21e34f5f641fe83002317394311bdce14 \
+    --hash=sha256:90c1a32f1d68f940488354e36370f6cca89f0f106db09518524c88d6ed83f382
     # via
     #   httpcore
     #   httpx
@@ -140,7 +140,9 @@ charset-normalizer==2.1.1 \
 click==8.1.3 \
     --hash=sha256:7682dc8afb30297001674575ea00d1814d808d6a36af415a82bd481d37ba7b8e \
     --hash=sha256:bb4d8133cb15a609f44e8213d9b391b0809795062913b383c62be0ee95b1db48
-    # via black
+    # via
+    #   black
+    #   flask
 coverage[toml]==6.4.4 \
     --hash=sha256:01778769097dbd705a24e221f42be885c544bb91251747a8a3efdec6eb4788f2 \
     --hash=sha256:08002f9251f51afdcc5e3adf5d5d66bb490ae893d9e21359b085f0e03390a820 \
@@ -227,9 +229,9 @@ decorator==5.1.1 \
     # via
     #   ipdb
     #   ipython
-executing==1.0.0 \
-    --hash=sha256:550d581b497228b572235e633599133eeee67073c65914ca346100ad56775349 \
-    --hash=sha256:98daefa9d1916a4f0d944880d5aeaf079e05585689bebd9ff9b32e31dd5e1017
+executing==1.1.0 \
+    --hash=sha256:2c2c07d1ec4b2d8f9676b25170f1d8445c0ee2eb78901afb075a4b8d83608c6a \
+    --hash=sha256:4a6d96ba89eb3dcc11483471061b42b9006d8c9f81c584dd04246944cd022530
     # via stack-data
 faker==12.0.1 \
     --hash=sha256:1dc2811f20e163892fefe7006f2ce00778f8099a40aee265bfa60a13400de63d \
@@ -239,6 +241,16 @@ flake8==5.0.4 \
     --hash=sha256:6fbe320aad8d6b95cec8b8e47bc933004678dc63095be98528b7bdd2a9f510db \
     --hash=sha256:7a1cf6b73744f5806ab95e526f6f0d8c01c66d7bbe349562d22dfca20610b248
     # via -r requirements/dev.in
+flask==2.1.3 \
+    --hash=sha256:15972e5017df0575c3d6c090ba168b6db90259e620ac8d7ea813a396bad5b6cb \
+    --hash=sha256:9013281a7402ad527f8fd56375164f3aa021ecfaff89bfe3825346c24f87e04c
+    # via
+    #   flask-cors
+    #   moto
+flask-cors==3.0.10 \
+    --hash=sha256:74efc975af1194fc7891ff5cd85b0f7478be4f7f59fe158102e91abb72bb4438 \
+    --hash=sha256:b60839393f3b84a0f3746f6cdca56c1ad7426aa738b70d6c61375857823181de
+    # via moto
 freezegun==1.2.2 \
     --hash=sha256:cd22d1ba06941384410cd967d8a99d5ae2442f57dfafeff2fda5de8dc5c05446 \
     --hash=sha256:ea1b963b993cb9ea195adbd893a48d573fda951b0da64f60883d7e988b606c9f
@@ -255,9 +267,9 @@ httpx==0.23.0 \
     --hash=sha256:42974f577483e1e932c3cdc3cd2303e883cbfba17fe228b0f63589764d7b9c4b \
     --hash=sha256:f28eac771ec9eb4866d3fb4ab65abd42d38c424739e80c08d8d20570de60b0ef
     # via respx
-idna==3.3 \
-    --hash=sha256:84d9dd047ffa80596e0f246e2eab0b391788b0503584e8945f2368256d2735ff \
-    --hash=sha256:9d643ff0a55b762d5cdb124b8eaa99c66322e2157b69160bc32796e824360e6d
+idna==3.4 \
+    --hash=sha256:814f528e8dead7d329833b91c5faa87d60bf71824cd12a7530b5526063d02cb4 \
+    --hash=sha256:90b77e79eaa3eba6de819a0c442c0b4ceefc341a7a2ab77d7562bf49f425c5c2
     # via
     #   anyio
     #   requests
@@ -277,6 +289,10 @@ isort==5.10.1 \
     --hash=sha256:6f62d78e2f89b4500b080fe3a81690850cd254227f27f75c3a0c491a1f351ba7 \
     --hash=sha256:e8443a5e7a020e9d7f97f1d7d9cd17c88bcb3bc7e218bf9cf5095fe550be2951
     # via -r requirements/dev.in
+itsdangerous==2.1.2 \
+    --hash=sha256:2c2349112351b88699d8d4b6b075022c0808887cb7ad10069318a8b0bc88db44 \
+    --hash=sha256:5dbbc68b317e5e42f327f9021763545dc3fc3bfe22e6deb96aaf1fc38874156a
+    # via flask
 jedi==0.18.1 \
     --hash=sha256:637c9635fcf47945ceb91cd7f320234a7be540ded6f3e99a50cb6febdfd1ba8d \
     --hash=sha256:74137626a64a99c8eb6ae5832d99b3bdd7d29a3850fe2aa80a4126b2a7d949ab
@@ -284,7 +300,9 @@ jedi==0.18.1 \
 jinja2==3.1.2 \
     --hash=sha256:31351a702a408a9e7595a8fc6150fc3f43bb6bf7e319770cbc0db9df9437e852 \
     --hash=sha256:6088930bfe239f0e6710546ab9c19c9ef35e29792895fed6e6e31a023a182a61
-    # via moto
+    # via
+    #   flask
+    #   moto
 jmespath==1.0.1 \
     --hash=sha256:02e2e4cc71b5bcab88332eebf907519190dd9e6e82107fa7f83b1003a6252980 \
     --hash=sha256:90261b206d6defd58fdd5e85f478bf633a2901798906be2ad389150c5c60edbe
@@ -347,9 +365,9 @@ mixer==7.2.2 \
     --hash=sha256:8089b8e2d00288c77e622936198f5dd03c8ac1603a1530a4f870dc213363b2ae \
     --hash=sha256:9b3f1a261b56d8f2394f39955f83adbc7ff3ab4bb1065ebfec19a10d3e8501e0
     # via -r requirements/dev.in
-moto==4.0.3 \
-    --hash=sha256:749f98f52110faa124258113c7b1980edc1551d073c0a425fe46d2480f088bf6 \
-    --hash=sha256:8aeb56757e686af3e4a63f90afbc973cb231adaad87c5ce89e68936c109b0be9
+moto==4.0.5 \
+    --hash=sha256:1a8640fc53516a2dea5831be8c35b6017d315acb1f395a94b53ef43cd150d2bd \
+    --hash=sha256:81312005827902ef88003aec0f92c79761e94e1e478994d18b56100ff020a511
     # via -r requirements/dev.in
 mypy-extensions==0.4.3 \
     --hash=sha256:090fedd75945a69ae91ce1303b5824f428daf5a028d2f6ab8a299250a846f15d \
@@ -426,9 +444,9 @@ pytest==7.1.3 \
     #   -r requirements/dev.in
     #   pytest-cov
     #   pytest-django
-pytest-cov==3.0.0 \
-    --hash=sha256:578d5d15ac4a25e5f961c938b85a05b09fdaae9deef3bb6de9a6e766622ca7a6 \
-    --hash=sha256:e7f0f5b1617d2210a2cabc266dfe2f4c75a8d32fb89eafb7ad9d06f6d076d470
+pytest-cov==4.0.0 \
+    --hash=sha256:2feb1b751d66a8bd934e5edfa2e961d11309dc37b73b0eabe73b5945fee20f6b \
+    --hash=sha256:996b79efde6433cdbd0088872dbc5fb3ed7fe1578b68cdbba634f14bb8dd0470
     # via -r requirements/dev.in
 pytest-django==4.5.2 \
     --hash=sha256:c60834861933773109334fe5a53e83d1ef4828f2203a1d6a0fa9972f4f75ab3e \
@@ -456,9 +474,9 @@ responses==0.21.0 \
     --hash=sha256:2dcc863ba63963c0c3d9ee3fa9507cbe36b7d7b0fccb4f0bdfd9e96c539b1487 \
     --hash=sha256:b82502eb5f09a0289d8e209e7bad71ef3978334f56d09b444253d5ad67bf5253
     # via moto
-respx==0.19.2 \
-    --hash=sha256:417f986fec599b9cc6531e93e494b7a75d1cb7bccff9dde5b53edc51f7954494 \
-    --hash=sha256:f3d210bb4de0ccc4c5afabeb87c3c1b03b3765a9c1a73eb042a07bb18ac33705
+respx==0.20.0 \
+    --hash=sha256:27ef411ca9622ae1e032c3f355506f62de5efe08c4296f64ae2c0621888e710a \
+    --hash=sha256:61e26ddf66b2b0d1bcd78c4e18a06533e50493f8c0179e5542ebfffd3ed3d0c5
     # via -r requirements/dev.in
 rfc3986[idna2008]==1.5.0 \
     --hash=sha256:270aaf10d87d0d4e095063c65bf3ddbc6ee3d0b226328ce21e036f946e421835 \
@@ -473,6 +491,7 @@ six==1.16.0 \
     --hash=sha256:8abb2f1d86890a2dfb989f9a77cfcfd3e47c2a354b01111771326f8aa26e0254
     # via
     #   asttokens
+    #   flask-cors
     #   python-dateutil
 sniffio==1.3.0 \
     --hash=sha256:e60305c5e5d314f5389259b7f22aaa33d8f7dee49763119234af3755c55b9101 \
@@ -481,9 +500,9 @@ sniffio==1.3.0 \
     #   anyio
     #   httpcore
     #   httpx
-stack-data==0.5.0 \
-    --hash=sha256:66d2ebd3d7f29047612ead465b6cae5371006a71f45037c7e2507d01367bce3b \
-    --hash=sha256:715c8855fbf5c43587b141e46cc9d9339cc0d1f8d6e0f98ed0d01c6cb974e29f
+stack-data==0.5.1 \
+    --hash=sha256:5120731a18ba4c82cefcf84a945f6f3e62319ef413bfc210e32aca3a69310ba2 \
+    --hash=sha256:95eb784942e861a3d80efd549ff9af6cf847d88343a12eb681d7157cfcb6e32b
     # via ipython
 toml==0.10.2 \
     --hash=sha256:806143ae5bfb6a3c6e736a764057db0e6a0e05e338b5630894a5f779cabb4f9b \
@@ -516,7 +535,9 @@ wcwidth==0.2.5 \
 werkzeug==2.1.2 \
     --hash=sha256:1ce08e8093ed67d638d63879fd1ba3735817f7a80de3674d293f5984f25fb6e6 \
     --hash=sha256:72a4b735692dd3135217911cbeaa1be5fa3f62bffb8745c5215420a03dc55255
-    # via moto
+    # via
+    #   flask
+    #   moto
 xmltodict==0.13.0 \
     --hash=sha256:341595a488e3e01a85a9d8911d8912fd922ede5fecc4dce437eb4b6c8d037e56 \
     --hash=sha256:aa89e8fd76320154a40d19a0df04a4695fb9dc5ba977cbb68ab3e4eb225e7852

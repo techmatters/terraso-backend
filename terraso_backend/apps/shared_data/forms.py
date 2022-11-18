@@ -15,6 +15,8 @@ from .services import data_entry_upload_service
 mimetypes.init()
 logger = structlog.get_logger(__name__)
 
+VALID_CSV_TYPES = ["text/plain", "text/csv", "application/csv"]
+
 
 class DataEntryForm(forms.ModelForm):
     data_file = forms.FileField()
@@ -38,28 +40,32 @@ class DataEntryForm(forms.ModelForm):
             "created_by",
         )
 
+    def is_valid_mime_type(self, data_file):
+        file_extension = pathlib.Path(data_file.name).suffix
+        content_type = data_file.content_type
+        file_mime_type = magic.from_buffer(data_file.open("rb").read(2048), mime=True)
+        allowed_file_extensions = mimetypes.guess_all_extensions(file_mime_type)
+
+        is_valid = (
+            file_mime_type and allowed_file_extensions and file_extension in allowed_file_extensions
+        )
+
+        # Also check variations of allowed csv types
+        return (
+            is_valid
+            or (
+                file_extension == ".csv"
+                and content_type in VALID_CSV_TYPES
+                and file_mime_type in VALID_CSV_TYPES
+            ),
+            f"Invalid file extension ({file_extension}) for the file type {file_mime_type}",
+        )
+
     def clean_data_file(self):
         data_file = self.cleaned_data["data_file"]
 
-        file_extension = pathlib.Path(data_file.name).suffix
-
-        accepted_file_extensions = settings.DATA_ENTRY_ACCEPTED_EXTENSIONS
-        if accepted_file_extensions and file_extension not in accepted_file_extensions:
-            message = f"Disallowed file extension ({file_extension})"
-            logger.info(message)
-            raise ValidationError(message, code="disallowed_extension")
-
-        file_mime_type = magic.from_buffer(data_file.open("rb").read(2048), mime=True)
-        allowed_file_extensions_for_type = mimetypes.guess_all_extensions(file_mime_type)
-
-        if (
-            file_mime_type
-            and allowed_file_extensions_for_type
-            and file_extension not in allowed_file_extensions_for_type
-        ):
-            message = (
-                f"Invalid file extension ({file_extension}) for the file type {file_mime_type}"
-            )
+        is_valid, message = self.is_valid_mime_type(data_file)
+        if not is_valid:
             logger.info(message)
             raise ValidationError(message, code="invalid_extension")
 

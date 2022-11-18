@@ -218,10 +218,10 @@ JWT_REFRESH_EXP_DELTA_SECONDS = config(
 JWT_ISS = config("JWT_ISS", default="https://terraso.org")
 
 PROFILE_IMAGES_S3_BUCKET = config("PROFILE_IMAGES_S3_BUCKET", default="")
-PROFILE_IMAGES_BASE_URL = config("PROFILE_IMAGES_BASE_URL", default="")
+PROFILE_IMAGES_BASE_URL = f"https://{PROFILE_IMAGES_S3_BUCKET}"
 
 DATA_ENTRY_FILE_S3_BUCKET = config("DATA_ENTRY_FILE_S3_BUCKET", default="")
-DATA_ENTRY_FILE_BASE_URL = config("DATA_ENTRY_FILE_BASE_URL", default="")
+DATA_ENTRY_FILE_BASE_URL = f"https://{DATA_ENTRY_FILE_S3_BUCKET}"
 
 DATA_ENTRY_ACCEPTED_EXTENSIONS = [
     ".geojson",
@@ -241,3 +241,5 @@ DATA_ENTRY_ACCEPTED_EXTENSIONS = [
 AWS_ACCESS_KEY_ID = config("AWS_ACCESS_KEY_ID", default="")
 AWS_SECRET_ACCESS_KEY = config("AWS_SECRET_ACCESS_KEY", default="")
 AWS_S3_REGION_NAME = config("AWS_S3_REGION_NAME", default="us-east-2")
+
+PLAUSIBLE_URL = config("PLAUSIBLE_URL", default="https://plausible.io/api/event")

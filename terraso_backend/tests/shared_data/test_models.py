@@ -1,6 +1,6 @@
 import pytest
 
-from apps.shared_data.models import DataEntry
+from apps.shared_data.models import DataEntry, VisualizationConfig
 
 pytestmark = pytest.mark.django_db
 
@@ -56,3 +56,55 @@ def test_data_entry_cannot_be_viewed_by_non_group_members(user, user_b, group, d
     data_entry.groups.add(group)
 
     assert not user_b.has_perm(DataEntry.get_perm("view"), obj=data_entry)
+
+
+def test_visualization_config_can_be_updated_by_its_creator(user, visualization_config):
+    assert user.has_perm(VisualizationConfig.get_perm("change"), obj=visualization_config)
+
+
+def test_visualization_config_cannot_be_updated_by_non_creator(user, visualization_config_b):
+    assert not user.has_perm(VisualizationConfig.get_perm("change"), obj=visualization_config_b)
+
+
+def test_visualization_config_cannot_be_updated_by_group_manager(
+    user_b, group, visualization_config
+):
+    group.add_manager(user_b)
+    visualization_config.data_entry.groups.add(group)
+
+    assert not user_b.has_perm(VisualizationConfig.get_perm("change"), obj=visualization_config)
+
+
+def test_visualization_config_can_be_deleted_by_its_creator(user, visualization_config):
+    assert user.has_perm(VisualizationConfig.get_perm("delete"), obj=visualization_config)
+
+
+def test_visualization_config_cannot_be_deleted_by_non_creator(user, visualization_config_b):
+    assert not user.has_perm(VisualizationConfig.get_perm("delete"), obj=visualization_config_b)
+
+
+def test_visualization_config_can_be_deleted_by_group_manager(user_b, group, visualization_config):
+    group.add_manager(user_b)
+    visualization_config.data_entry.groups.add(group)
+
+    assert user_b.has_perm(VisualizationConfig.get_perm("delete"), obj=visualization_config)
+
+
+def test_visualization_config_can_be_viewed_by_group_members(
+    user, user_b, group, visualization_config
+):
+    group.members.add(user, user_b)
+    visualization_config.data_entry.groups.add(group)
+
+    assert user_b.has_perm(VisualizationConfig.get_perm("view"), obj=visualization_config)
+    assert user.has_perm(VisualizationConfig.get_perm("view"), obj=visualization_config)
+
+
+def test_visualization_config_cannot_be_viewed_by_non_group_members(
+    user, user_b, group, visualization_config
+):
+    group.members.add(user)
+    visualization_config.data_entry.groups.add(group)
+
+    assert not user_b.has_perm(VisualizationConfig.get_perm("view"), obj=visualization_config)
+    assert user.has_perm(VisualizationConfig.get_perm("view"), obj=visualization_config)

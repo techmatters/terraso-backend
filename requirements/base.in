@@ -1,4 +1,4 @@
-graphene-django
+graphene-django===2.15.0
 httpx
 django
 django-cors-headers
