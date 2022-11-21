@@ -32,4 +32,4 @@ def calculate_geojson_polygon_area(polygon_json):
 
 
 def m2_to_hectares(area):
-    return area / 1000
+    return area / 10000
