@@ -49,9 +49,9 @@ class DataEntry(BaseModel):
         choices=MEMBERSHIP_TYPES,
     )
 
-    resource_type = models.CharField(max_length=255)
+    resource_type = models.CharField(max_length=255, blank=True, default="")
     url = models.URLField()
-    size = models.PositiveBigIntegerField(null=True)
+    size = models.PositiveBigIntegerField(null=True, blank=True)
 
     groups = models.ManyToManyField(Group, related_name="data_entries")
     created_by = models.ForeignKey(User, on_delete=models.PROTECT)
@@ -96,6 +96,7 @@ class DataEntry(BaseModel):
         return dict(
             id=str(self.id),
             name=self.name,
+            entry_type=self.entry_type,
             description=self.description,
             url=self.signed_url,
             resource_type=self.resource_type,
@@ -106,3 +107,9 @@ class DataEntry(BaseModel):
 
     def __str__(self):
         return self.name
+
+    @classmethod
+    def get_entry_type_from_text(cls, entry_type):
+        if entry_type and entry_type.lower() == cls.ENTRY_TYPE_FILE:
+            return cls.ENTRY_TYPE_FILE
+        return cls.ENTRY_TYPE_LINK
