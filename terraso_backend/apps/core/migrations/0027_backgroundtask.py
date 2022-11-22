@@ -8,7 +8,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("core", "0014_group_membership_type_membership_membership_status_and_more"),
+        ("core", "0026_calculate_polygon_areas"),
     ]
 
     operations = [

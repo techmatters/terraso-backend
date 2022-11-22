@@ -32,7 +32,9 @@ class Command(BaseCommand):
     # This is for core migrations that should be skipped. Could be for several reasons:
     # - The table is needed throughtout the migration so it is not dropped.
     # - The migration is a data migration, so it introduces data that will already be in the backup
-    CORE_MIGRATIONS_TO_SKIP = [15]
+    # 23 = taxonomy terms (data migratiion)
+    # 27 = background tasks (table not dropped)
+    CORE_MIGRATIONS_TO_SKIP = [23, 27]
 
     def add_arguments(self, parser):
         group = parser.add_mutually_exclusive_group()
@@ -268,15 +270,14 @@ class Command(BaseCommand):
             cleanup()
 
             config = Path(settings.DB_RESTORE_CONFIG_FILE)
-            if not config.is_file() :
+            if not config.is_file():
                 raise CommandError(
                     f"Path supplied for URL rewrites is not a file: {str(config)}. "
                     "URL rewrites not applied."
                 )
-            if not os.access(config, os.R_OK) :
+            if not os.access(config, os.R_OK):
                 raise CommandError(
-                    f"Cannot read config file: {str(config)}. "
-                    "URL rewrites not applied."
+                    f"Cannot read config file: {str(config)}. " "URL rewrites not applied."
                 )
 
             patterns = self._load_url_rewrites(config)
