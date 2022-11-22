@@ -14,7 +14,7 @@ from django.core import management
 from django.core.management.base import BaseCommand, CommandError
 from django.db import connection
 from django.db.models.fields import URLField
-from django.db.models.fields.related import ForeignKey
+from django.db.models.fields.related import ForeignKey, ManyToManyField
 from psycopg2 import sql
 
 from apps.core.models import User
@@ -109,14 +109,30 @@ class Command(BaseCommand):
         models = apps.get_models()
         for model in models:
             foreign_keys = []
+            m2m_relations = []
             for field in model._meta.get_fields():
                 if isinstance(field, ForeignKey) and field.related_model == User:
                     foreign_keys.append(field)
-            if not foreign_keys:
+                if isinstance(field, ManyToManyField) and field.related_model == User:
+                    m2m_relations.append(field)
+            if not (foreign_keys or m2m_relations):
                 continue
-            old = {field.name: str(old_user_id) for field in foreign_keys}
-            new = {field.name: str(new_user_id) for field in foreign_keys}
-            model.objects.filter(**new).update(**old)
+            # reset foreign keys pointing to new ID to point to old ID
+            old_user_fk = {field.name: str(old_user_id) for field in foreign_keys}
+            new_user_fk = {field.name: str(new_user_id) for field in foreign_keys}
+            model.objects.filter(**new_user_fk).update(**old_user_fk)
+
+            # reset old m2m relations pointing to user
+            if not m2m_relations:
+                continue
+            with connection.cursor() as cursor:
+                for field in m2m_relations:
+                    statement = sql.SQL("UPDATE {table} SET {col} = %s WHERE {col} = %s").format(
+                        table=sql.Identifier(field.m2m_db_table()),
+                        col=sql.Identifier(field.m2m_reverse_name()),
+                    )
+                    cursor.execute(statement, (old_user_id, new_user_id))
+            connection.commit()
 
     @staticmethod
     def _find_latest_backup_dir(directory):

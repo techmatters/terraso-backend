@@ -160,7 +160,7 @@ def restore(task, user_id, session_id):
         )
         _restore_from_backup(user_id, session_id)
     except Exception:
-        logger.exception("Background task {task.id} for {user_id} failed! Logging exception trace")
+        logger.exception(f"Background task {task.id} for {user_id} failed! Logging exception trace")
         task.status = "failed"
     else:
         task.status = "finished"
