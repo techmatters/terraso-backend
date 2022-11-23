@@ -22,6 +22,7 @@ class DataEntryNode(DjangoObjectType):
             "name": ["icontains"],
             "description": ["icontains"],
             "url": ["icontains"],
+            "entry_type": ["in"],
             "resource_type": ["in"],
             "groups__slug": ["exact", "icontains"],
             "groups__id": ["exact"],
@@ -64,6 +65,7 @@ class DataEntryAddMutation(BaseWriteMutation):
         name = graphene.String(required=True)
         url = graphene.String(required=True)
         entry_type = graphene.String(required=True)
+        resource_type = graphene.String(required=True)
         description = graphene.String()
 
     @classmethod

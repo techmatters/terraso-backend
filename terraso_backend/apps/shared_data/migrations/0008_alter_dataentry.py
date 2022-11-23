@@ -13,11 +13,6 @@ class Migration(migrations.Migration):
     operations = [
         migrations.AlterField(
             model_name="dataentry",
-            name="resource_type",
-            field=models.CharField(blank=True, default="", max_length=255),
-        ),
-        migrations.AlterField(
-            model_name="dataentry",
             name="size",
             field=models.PositiveBigIntegerField(blank=True, null=True),
         ),
