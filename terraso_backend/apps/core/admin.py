@@ -1,6 +1,14 @@
 from django.contrib import admin
 
-from .models import Group, Landscape, LandscapeGroup, Membership, TaxonomyTerm, User
+from .models import (
+    Group,
+    Landscape,
+    LandscapeDevelopmentStrategy,
+    LandscapeGroup,
+    Membership,
+    TaxonomyTerm,
+    User,
+)
 
 
 @admin.register(Group)
@@ -41,3 +49,8 @@ class UserAdmin(admin.ModelAdmin):
 @admin.register(TaxonomyTerm)
 class TaxonomyTermAdmin(admin.ModelAdmin):
     list_display = ("value_original", "type", "value_en", "value_es")
+
+
+@admin.register(LandscapeDevelopmentStrategy)
+class LandscapeDevelopmentStrategyAdmin(admin.ModelAdmin):
+    list_display = ("id", "landscape")
