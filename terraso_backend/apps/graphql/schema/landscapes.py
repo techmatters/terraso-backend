@@ -183,6 +183,8 @@ class LandscapeUpdateMutation(BaseWriteMutation):
         partnership_status = graphene.String()
         group_associations = graphene.JSONString()
         development_strategy = graphene.JSONString()
+        profile_image = graphene.String()
+        profile_image_description = graphene.String()
 
     @classmethod
     def mutate_and_get_payload(cls, root, info, **kwargs):

@@ -397,3 +397,60 @@ def test_landscapes_update_development_strategy(client_query, managed_landscapes
             ]
         }
     }
+
+
+def test_landscape_add_remove_profile_image(client_query, managed_landscapes):
+    mutation_query = """
+    mutation addProfileImage($input: LandscapeUpdateMutationInput!) {
+      updateLandscape(input: $input) {
+         landscape {
+            id
+            profileImage
+            profileImageDescription
+         }
+      }
+    }
+    """
+    landscape_id = str(managed_landscapes[0].pk)
+    image_url = "https://example.org/example.jpg"
+    image_description = "An example image for you"
+
+    # add profile image
+    client_query(
+        mutation_query,
+        variables={
+            "input": {
+                "id": landscape_id,
+                "profileImage": image_url,
+                "profileImageDescription": image_description,
+            }
+        },
+    )
+    landscape = Landscape.objects.get(id=landscape_id)
+    assert landscape.profile_image == image_url
+    assert landscape.profile_image_description == image_description
+
+    # do an unrelated modification to make sure this does not reset image
+    client_query(
+        mutation_query, variables={"input": {"id": landscape_id, "name": "Profile Image Test"}}
+    )
+    landscape = Landscape.objects.get(id=landscape_id)
+    assert landscape.profile_image == image_url
+    assert landscape.profile_image_description == image_description
+
+    # reset profile image
+    client_query(
+        mutation_query,
+        variables={
+            "input": {
+                "id": landscape_id,
+                "profileImage": "",
+                "profileImageDescription": "",
+            }
+        },
+    )
+    landscape = Landscape.objects.get(id=landscape_id)
+    assert landscape.profile_image == ""
+    assert landscape.profile_image_description == ""
+    # make sure it doesn't change the name too
+    assert landscape.name == "Profile Image Test"
