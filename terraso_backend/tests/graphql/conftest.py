@@ -13,6 +13,7 @@ from apps.core.models import (
     Landscape,
     LandscapeGroup,
     Membership,
+    TaxonomyTerm,
     User,
 )
 from apps.shared_data.models import DataEntry, VisualizationConfig
@@ -60,8 +61,12 @@ def landscapes():
     return mixer.cycle(2).blend(
         Landscape,
         area_polygon={
-            "type": "Feature",
-            "geometry": {"type": "Point", "coordinates": [-104.9, 39.7]},
+            "features": [
+                {
+                    "type": "Feature",
+                    "geometry": {"type": "Point", "coordinates": [-104.9, 39.7]},
+                }
+            ],
         },
     )
 
@@ -219,3 +224,8 @@ def visualization_configs(users, groups):
         group=groups[0],
     )
     return visualizations
+
+
+@pytest.fixture
+def taxonomy_terms():
+    return mixer.cycle(10).blend(TaxonomyTerm)

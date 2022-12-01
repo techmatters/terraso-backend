@@ -35,6 +35,7 @@ from .memberships import (
     MembershipNode,
     MembershipUpdateMutation,
 )
+from .taxnomy_terms import TaxonomyTermNode
 from .users import (
     UserAddMutation,
     UserDeleteMutation,
@@ -70,6 +71,8 @@ class Query(graphene.ObjectType):
     data_entries = DjangoFilterConnectionField(DataEntryNode)
     visualization_config = TerrasoRelayNode.Field(VisualizationConfigNode)
     visualization_configs = DjangoFilterConnectionField(VisualizationConfigNode)
+    taxonomy_term = TerrasoRelayNode.Field(TaxonomyTermNode)
+    taxonomy_terms = DjangoFilterConnectionField(TaxonomyTermNode)
 
 
 class Mutations(graphene.ObjectType):

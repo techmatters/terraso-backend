@@ -204,3 +204,253 @@ def test_landscapes_delete_by_non_manager(client_query, landscapes):
 
     assert "errors" in response
     assert "delete_not_allowed" in response["errors"][0]["message"]
+
+
+def test_landscapes_update_taxonomy_terms(client_query, managed_landscapes):
+    old_landscape = managed_landscapes[0]
+    new_data = {
+        "id": str(old_landscape.id),
+        "taxonomyTypeTerms": json.dumps(
+            {
+                "language": [
+                    {
+                        "type": "language",
+                        "valueOriginal": "an",
+                        "valueEn": "Aragonese",
+                        "valueEs": "Aragonés",
+                    },
+                    {
+                        "type": "language",
+                        "valueOriginal": "eo",
+                        "valueEn": "Esperanto",
+                        "valueEs": "Esperanto",
+                    },
+                ]
+            }
+        ),
+    }
+
+    response = client_query(
+        """
+        mutation updateLandscape($input: LandscapeUpdateMutationInput!) {
+          updateLandscape(input: $input) {
+            landscape {
+              taxonomyTerms {
+                edges {
+                  node {
+                    type
+                    valueOriginal
+                    valueEs
+                    valueEn
+                  }
+                }
+              }
+            }
+          }
+        }
+        """,
+        variables={"input": new_data},
+    )
+    landscape_result = response.json()["data"]["updateLandscape"]["landscape"]
+
+    assert landscape_result == {
+        "taxonomyTerms": {
+            "edges": [
+                {
+                    "node": {
+                        "type": "LANGUAGE",
+                        "valueOriginal": "an",
+                        "valueEn": "Aragonese",
+                        "valueEs": "Aragonés",
+                    }
+                },
+                {
+                    "node": {
+                        "type": "LANGUAGE",
+                        "valueOriginal": "eo",
+                        "valueEn": "Esperanto",
+                        "valueEs": "Esperanto",
+                    }
+                },
+            ]
+        }
+    }
+
+
+def test_landscapes_update_group_associations(client_query, managed_landscapes, groups):
+    old_landscape = managed_landscapes[0]
+    new_data = {
+        "id": str(old_landscape.id),
+        "groupAssociations": json.dumps(
+            [
+                {"slug": groups[0].slug, "partnershipYear": 2012, "isPartnership": True},
+                {"slug": groups[1].slug},
+                {"slug": groups[2].slug},
+            ]
+        ),
+    }
+
+    response = client_query(
+        """
+        mutation updateLandscape($input: LandscapeUpdateMutationInput!) {
+          updateLandscape(input: $input) {
+            landscape {
+              associatedGroups(isDefaultLandscapeGroup: false) {
+                edges {
+                  node {
+                    isPartnership
+                    partnershipYear
+                    group {
+                      name
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+        """,
+        variables={"input": new_data},
+    )
+    landscape_result = response.json()["data"]["updateLandscape"]["landscape"]
+
+    def sortedBy(node):
+        return node["node"]["group"]["name"]
+
+    expected = [
+        {
+            "node": {
+                "isPartnership": True,
+                "partnershipYear": 2012,
+                "group": {"name": groups[0].name},
+            }
+        },
+        {
+            "node": {
+                "isPartnership": False,
+                "partnershipYear": None,
+                "group": {"name": groups[1].name},
+            }
+        },
+        {
+            "node": {
+                "isPartnership": False,
+                "partnershipYear": None,
+                "group": {"name": groups[2].name},
+            }
+        },
+    ].sort(key=sortedBy)
+
+    received = landscape_result["associatedGroups"]["edges"].sort(key=sortedBy)
+
+    assert received == expected
+
+
+def test_landscapes_update_development_strategy(client_query, managed_landscapes, groups):
+    old_landscape = managed_landscapes[0]
+    new_data = {
+        "id": str(old_landscape.id),
+        "developmentStrategy": json.dumps(
+            {
+                "objectives": "Val1",
+                "problemSitutation": "Val2",
+                "interventionStrategy": "Val3",
+                "otherInformation": "Val4",
+            }
+        ),
+    }
+
+    response = client_query(
+        """
+        mutation updateLandscape($input: LandscapeUpdateMutationInput!) {
+          updateLandscape(input: $input) {
+            landscape {
+              associatedDevelopmentStrategy {
+                edges {
+                  node {
+                    objectives
+                    problemSitutation
+                    interventionStrategy
+                    otherInformation
+                  }
+                }
+              }
+            }
+          }
+        }
+        """,
+        variables={"input": new_data},
+    )
+    landscape_result = response.json()["data"]["updateLandscape"]["landscape"]
+
+    assert landscape_result == {
+        "associatedDevelopmentStrategy": {
+            "edges": [
+                {
+                    "node": {
+                        "objectives": "Val1",
+                        "problemSitutation": "Val2",
+                        "interventionStrategy": "Val3",
+                        "otherInformation": "Val4",
+                    }
+                }
+            ]
+        }
+    }
+
+
+def test_landscape_add_remove_profile_image(client_query, managed_landscapes):
+    mutation_query = """
+    mutation addProfileImage($input: LandscapeUpdateMutationInput!) {
+      updateLandscape(input: $input) {
+         landscape {
+            id
+            profileImage
+            profileImageDescription
+         }
+      }
+    }
+    """
+    landscape_id = str(managed_landscapes[0].pk)
+    image_url = "https://example.org/example.jpg"
+    image_description = "An example image for you"
+
+    # add profile image
+    client_query(
+        mutation_query,
+        variables={
+            "input": {
+                "id": landscape_id,
+                "profileImage": image_url,
+                "profileImageDescription": image_description,
+            }
+        },
+    )
+    landscape = Landscape.objects.get(id=landscape_id)
+    assert landscape.profile_image == image_url
+    assert landscape.profile_image_description == image_description
+
+    # do an unrelated modification to make sure this does not reset image
+    client_query(
+        mutation_query, variables={"input": {"id": landscape_id, "name": "Profile Image Test"}}
+    )
+    landscape = Landscape.objects.get(id=landscape_id)
+    assert landscape.profile_image == image_url
+    assert landscape.profile_image_description == image_description
+
+    # reset profile image
+    client_query(
+        mutation_query,
+        variables={
+            "input": {
+                "id": landscape_id,
+                "profileImage": "",
+                "profileImageDescription": "",
+            }
+        },
+    )
+    landscape = Landscape.objects.get(id=landscape_id)
+    assert landscape.profile_image == ""
+    assert landscape.profile_image_description == ""
+    # make sure it doesn't change the name too
+    assert landscape.name == "Profile Image Test"

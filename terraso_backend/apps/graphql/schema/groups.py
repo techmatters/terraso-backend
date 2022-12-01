@@ -21,6 +21,9 @@ class GroupFilterSet(django_filters.FilterSet):
     associated_landscapes__isnull = django_filters.BooleanFilter(
         method="filter_associated_landscapes"
     )
+    associated_landscapes__is_partnership = django_filters.BooleanFilter(
+        method="filter_associated_landscapes"
+    )
 
     class Meta:
         model = Group
@@ -36,7 +39,9 @@ class GroupFilterSet(django_filters.FilterSet):
     def filter_associated_landscapes(self, queryset, name, value):
         filters = {"associated_landscapes__deleted_at__isnull": True}
         filters[name] = value
-        return queryset.filter(**filters)
+        # TODO Removed duplicated group results using order_by('slug').distinct('slug')
+        # Is there a better way to do this?
+        return queryset.filter(**filters).order_by("slug").distinct("slug")
 
 
 class GroupNode(DjangoObjectType):
