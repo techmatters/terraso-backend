@@ -30,11 +30,12 @@ class Command(BaseCommand):
     help = "Load backup JSON files."
 
     # This is for core migrations that should be skipped. Could be for several reasons:
-    # - The table is needed throughtout the migration so it is not dropped.
+    # - The table is needed tghroughtout the migration so it is not dropped.
     # - The migration is a data migration, so it introduces data that will already be in the backup
-    # 23 = taxonomy terms (data migratiion)
+    # 23 = taxonomy terms (data mgigratiion)
     # 27 = background tasks (table not dropped)
-    CORE_MIGRATIONS_TO_SKIP = [23, 27]
+    # 28 = Spanish taxonomy terms (data migration)
+    CORE_MIGRATIONS_TO_SKIP = [23, 27, 28]
 
     def add_arguments(self, parser):
         group = parser.add_mutually_exclusive_group()
@@ -233,7 +234,6 @@ class Command(BaseCommand):
         try:
             for app_label, version in migrations.items():
                 if app_label == "core":
-                    # need to skip the migration that creates the background tasks
                     for version in self.CORE_MIGRATIONS_TO_SKIP:
                         management.call_command(
                             "migrate", "core", "{0:0>4}".format(version - 1), verbosity=0
