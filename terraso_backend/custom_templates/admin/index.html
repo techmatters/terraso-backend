@@ -1,0 +1,13 @@
+{% extends "admin/index.html" %}
+{% load static %}
+{% block content %}
+<div id="content-main">
+  {% include "admin/app_list.html" with app_list=app_list show_changelinks=True %}
+  {% if allow_restore %}
+    <button id="restore-button" type="button">Load data</button>
+    <p>Replace with data from another Terraso instance.</p>
+    <p id="restore-status"></p>
+  {% endif %}
+</div>
+<script src="{% static 'instance_restore.js' %}"></script>
+{% endblock %}

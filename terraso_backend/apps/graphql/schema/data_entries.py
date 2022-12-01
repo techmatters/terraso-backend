@@ -3,8 +3,8 @@ import structlog
 from graphene import relay
 from graphene_django import DjangoObjectType
 
-from apps.core.models import Membership
-from apps.graphql.exceptions import GraphQLNotAllowedException
+from apps.core.models import Group, Membership
+from apps.graphql.exceptions import GraphQLNotAllowedException, GraphQLNotFoundException
 from apps.shared_data.models import DataEntry
 
 from .commons import BaseDeleteMutation, BaseWriteMutation, TerrasoConnection
@@ -22,6 +22,7 @@ class DataEntryNode(DjangoObjectType):
             "name": ["icontains"],
             "description": ["icontains"],
             "url": ["icontains"],
+            "entry_type": ["in"],
             "resource_type": ["in"],
             "groups__slug": ["exact", "icontains"],
             "groups__id": ["exact"],
@@ -29,6 +30,7 @@ class DataEntryNode(DjangoObjectType):
         fields = (
             "name",
             "description",
+            "entry_type",
             "resource_type",
             "url",
             "size",
@@ -48,7 +50,46 @@ class DataEntryNode(DjangoObjectType):
         return queryset.filter(groups__in=user_groups_ids)
 
     def resolve_url(self, info):
-        return self.signed_url
+        if (self.entry_type == DataEntry.ENTRY_TYPE_FILE):
+            return self.signed_url
+        return self.url
+
+
+class DataEntryAddMutation(BaseWriteMutation):
+    data_entry = graphene.Field(DataEntryNode)
+
+    model_class = DataEntry
+
+    class Input:
+        group_slug = graphene.String(required=True)
+        name = graphene.String(required=True)
+        url = graphene.String(required=True)
+        entry_type = graphene.String(required=True)
+        resource_type = graphene.String(required=True)
+        description = graphene.String()
+
+    @classmethod
+    def mutate_and_get_payload(cls, root, info, **kwargs):
+        user = info.context.user
+
+        if not cls.is_update(kwargs):
+            kwargs["created_by"] = user
+
+        if "entry_type" in kwargs:
+            kwargs["entry_type"] = DataEntry.get_entry_type_from_text(kwargs["entry_type"])
+
+        group_slug = kwargs.pop("group_slug")
+        try:
+            group = Group.objects.get(slug=group_slug)
+        except Group.DoesNotExist:
+            logger.error("Group not found when adding Data Entry", extra={"group_slug": group_slug})
+            raise GraphQLNotFoundException(field="group", model_name=DataEntry.__name__)
+
+        result = super().mutate_and_get_payload(root, info, **kwargs)
+
+        result.data_entry.groups.set([group])
+
+        return cls(data_entry=result.data_entry)
 
 
 class DataEntryUpdateMutation(BaseWriteMutation):

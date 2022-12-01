@@ -72,7 +72,7 @@ TERMS = {
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("core", "0026_calculate_polygon_areas"),
+        ("core", "0027_backgroundtask"),
     ]
 
     operations = [
