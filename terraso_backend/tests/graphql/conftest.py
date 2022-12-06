@@ -171,11 +171,32 @@ def make_core_db_records(
 
 
 @pytest.fixture
-def data_entry_current_user(users, groups):
+def data_entry_current_user_file(users, groups):
     creator = users[0]
     creator_group = groups[0]
     creator_group.members.add(creator)
-    return mixer.blend(DataEntry, slug=None, created_by=creator, size=100, groups=creator_group)
+    return mixer.blend(
+        DataEntry,
+        slug=None,
+        created_by=creator,
+        size=100,
+        groups=creator_group,
+        entry_type=DataEntry.ENTRY_TYPE_FILE,
+    )
+
+
+@pytest.fixture
+def data_entry_current_user_link(users, groups):
+    creator = users[0]
+    creator_group = groups[0]
+    creator_group.members.add(creator)
+    return mixer.blend(
+        DataEntry,
+        slug=None,
+        created_by=creator,
+        groups=creator_group,
+        entry_type=DataEntry.ENTRY_TYPE_LINK,
+    )
 
 
 @pytest.fixture
@@ -195,11 +216,13 @@ def data_entries(users, groups):
 
 
 @pytest.fixture
-def visualization_config_current_user(users, data_entry_current_user, groups):
+def visualization_config_current_user(users, data_entry_current_user_file, groups):
     creator = users[0]
     creator_group = groups[0]
     creator_group.members.add(creator)
-    return mixer.blend(VisualizationConfig, created_by=creator, data_entry=data_entry_current_user)
+    return mixer.blend(
+        VisualizationConfig, created_by=creator, data_entry=data_entry_current_user_file
+    )
 
 
 @pytest.fixture
