@@ -29,7 +29,7 @@ class Landscape(SlugModel, DirtyFieldsMixin):
 
     fields_to_trim = ["name", "description"]
 
-    name = models.CharField(max_length=128, unique=True, validators=[validate_name])
+    name = models.CharField(max_length=128, validators=[validate_name])
     description = models.TextField(blank=True, default="")
     website = models.URLField(blank=True, default="")
     location = models.CharField(max_length=128, blank=True, default="")
@@ -75,6 +75,13 @@ class Landscape(SlugModel, DirtyFieldsMixin):
             "change": perm_rules.allowed_to_change_landscape,
             "delete": perm_rules.allowed_to_delete_landscape,
         }
+        constraints = SlugModel.Meta.constraints + (
+            models.UniqueConstraint(
+                fields=["name"],
+                condition=models.Q(deleted_at__isnull=True),
+                name="core_landscape_name_key",
+            ),
+        )
 
     def save(self, *args, **kwargs):
         dirty_fields = self.get_dirty_fields()

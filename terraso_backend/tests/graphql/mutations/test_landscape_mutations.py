@@ -71,10 +71,6 @@ def test_landscapes_add_duplicated(client_query, landscapes):
 
     assert error_result
 
-    error_message = json.loads(error_result["message"])[0]
-    assert error_message["code"] == "unique"
-    assert error_message["context"]["field"] == "name"
-
 
 def test_landscapes_add_duplicated_by_slug(client_query, landscapes):
     landscape_name = landscapes[0].name
@@ -477,5 +473,5 @@ def test_landscapes_soft_deleted_can_be_created_again(client_query, managed_land
         },
     )
     payload = response.json()
-    assert not payload["errors"]
-    assert payload["addLandscape"]["landscape"]["name"] == landscape.name
+    assert "errors" not in payload
+    assert payload["data"]["addLandscape"]["landscape"]["name"] == landscape.name
