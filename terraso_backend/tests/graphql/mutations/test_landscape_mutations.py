@@ -454,3 +454,28 @@ def test_landscape_add_remove_profile_image(client_query, managed_landscapes):
     assert landscape.profile_image_description == ""
     # make sure it doesn't change the name too
     assert landscape.name == "Profile Image Test"
+
+
+def test_landscapes_soft_deleted_can_be_created_again(client_query, managed_landscapes):
+    landscape = managed_landscapes[0]
+    landscape.delete()
+    response = client_query(
+        """
+        mutation addLandscape($input: LandscapeAddMutationInput!){
+          addLandscape(input: $input) {
+             landscape {
+               name
+             }
+          }
+        }
+        """,
+        variables={
+            "input": {
+                "name": landscape.name,
+                "description": landscape.description,
+            }
+        },
+    )
+    payload = response.json()
+    assert not payload["errors"]
+    assert payload["addLandscape"]["landscape"]["name"] == landscape.name

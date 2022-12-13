@@ -133,3 +133,11 @@ def test_landscape_area_calculated_once(unit_polygon):
     ) as mock2:
         landscape.save()
     mock2.assert_not_called()
+
+
+def test_landscape_can_be_recreated_after_deletion():
+    landscape = mixer.blend(Landscape)
+    landscape.save()
+    landscape.delete()
+    new_landscape = mixer.blend(Landscape, name=landscape.name)
+    new_landscape.save()
