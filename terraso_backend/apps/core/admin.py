@@ -30,6 +30,12 @@ class GroupAdmin(admin.ModelAdmin):
 class LandscapeAdmin(admin.ModelAdmin):
     list_display = ("name", "slug", "location", "website", "created_at")
 
+    def delete_queryset(self, request, queryset):
+        for landscape in queryset:
+            group = landscape.get_default_group()
+            group.delete()
+            landscape.delete()
+
 
 @admin.register(LandscapeGroup)
 class LandscapeGroupAdmin(admin.ModelAdmin):
