@@ -133,3 +133,15 @@ def test_landscape_area_calculated_once(unit_polygon):
     ) as mock2:
         landscape.save()
     mock2.assert_not_called()
+
+
+def test_can_recreate_landscape_after_deletion():
+    user = mixer.blend(User)
+    landscape = mixer.blend(Landscape, created_by=user)
+    landscape.save()
+    landscape.delete()
+    landscape2 = mixer.blend(Landscape, name=landscape.name)
+    try:
+        landscape2.save()
+    except Exception as exc:
+        assert False, f"Could not create landscape with same name as deleted landscape: {exc}"
