@@ -107,6 +107,17 @@ class Landscape(SlugModel, DirtyFieldsMixin):
                 )
                 landscape_group.save()
 
+    def delete(self, *args, **kwargs):
+
+        default_group = self.get_default_group()
+
+        with transaction.atomic():
+            ret = super().delete(*args, **kwargs)
+            # default group should be deleted as well
+            default_group.delete()
+
+        return ret
+
     def get_default_group(self):
         """
         A default Group in a Landscape is that Group where any
