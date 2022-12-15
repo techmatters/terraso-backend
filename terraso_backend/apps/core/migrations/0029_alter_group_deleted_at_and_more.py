@@ -24,7 +24,7 @@ class Migration(migrations.Migration):
             constraint=models.UniqueConstraint(
                 condition=models.Q(("deleted_at__isnull", True)),
                 fields=("name",),
-                name="core_landscape_name_key",
+                name="core_landscape_unique_active_name",
             ),
         ),
         migrations.AlterField(
@@ -39,7 +39,7 @@ class Migration(migrations.Migration):
             constraint=models.UniqueConstraint(
                 condition=models.Q(("deleted_at__isnull", True)),
                 fields=("name",),
-                name="core_group_name_key",
+                name="core_group_unique_active_name",
             ),
         ),
     ]

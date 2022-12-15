@@ -49,6 +49,7 @@ class BaseWriteMutation(relay.ClientIDMutation):
         try:
             model_instance.full_clean()
         except ValidationError as exc:
+            print("Validation error")
             logger.info(
                 "Attempt to mutate an model, but it's invalid",
                 extra={"model": cls.model_class.__name__, "validation_error": exc},
@@ -60,6 +61,8 @@ class BaseWriteMutation(relay.ClientIDMutation):
         try:
             model_instance.save()
         except IntegrityError as exc:
+            print("Integrity error", exc)
+            print(dir(exc))
             logger.info(
                 "Attempt to mutate an model, but it's not unique",
                 extra={"model": cls.model_class.__name__, "integrity_error": exc},
