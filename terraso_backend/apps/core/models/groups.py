@@ -34,7 +34,7 @@ class Group(SlugModel):
 
     fields_to_trim = ["name", "description"]
 
-    name = models.CharField(max_length=128, unique=True, validators=[validate_name])
+    name = models.CharField(max_length=128, validators=[validate_name])
     description = models.TextField(max_length=512, blank=True, default="")
     website = models.URLField(blank=True, default="")
     email = models.EmailField(blank=True, default="")
@@ -70,6 +70,13 @@ class Group(SlugModel):
             "change": perm_rules.allowed_to_change_group,
             "delete": perm_rules.allowed_to_delete_group,
         }
+        constraints = SlugModel.Meta.constraints + (
+            models.UniqueConstraint(
+                fields=("name",),
+                condition=models.Q(deleted_at__isnull=True),
+                name="core_group_name_key",
+            ),
+        )
 
     def save(self, *args, **kwargs):
         with transaction.atomic():

@@ -74,10 +74,6 @@ def test_groups_add_duplicated(client_query, groups):
 
     assert error_result
 
-    error_message = json.loads(error_result["message"])[0]
-    assert error_message["code"] == "unique"
-    assert error_message["context"]["field"] == "name"
-
 
 def test_groups_add_duplicated_by_slug(client_query, groups):
     group_name = groups[0].name
