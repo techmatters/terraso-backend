@@ -120,7 +120,7 @@ def test_data_entries_filter_by_group_id_filters_successfuly(client_query, data_
 
 
 def test_data_entries_returns_only_for_users_groups(
-    client_query, data_entry_current_user, data_entry_other_user
+    client_query, data_entry_current_user_file, data_entry_other_user
 ):
     # It's being done a request for all data entries, but only the data entries
     # from logged user's group is expected to return.
@@ -140,4 +140,35 @@ def test_data_entries_returns_only_for_users_groups(
     entries_result = [edge["node"]["id"] for edge in edges]
 
     assert len(entries_result) == 1
-    assert entries_result[0] == str(data_entry_current_user.id)
+    assert entries_result[0] == str(data_entry_current_user_file.id)
+
+
+def test_data_entries_returns_url(
+    client_query, data_entry_current_user_file, data_entry_current_user_link, data_entry_other_user
+):
+    # It's being done a request for all data entries, but only the data entries
+    # from logged user's group is expected to return.
+    response = client_query(
+        """
+        {dataEntries {
+          edges {
+            node {
+              id
+              entryType
+              url
+            }
+          }
+        }}
+        """
+    )
+
+    edges = response.json()["data"]["dataEntries"]["edges"]
+    entries_result = [edge["node"] for edge in edges]
+
+    assert len(entries_result) == 2
+    assert entries_result[0]["id"] == str(data_entry_current_user_file.id)
+    assert entries_result[0]["entryType"] == "FILE"
+    assert "X-Amz-Expires" in entries_result[0]["url"]
+    assert entries_result[1]["id"] == str(data_entry_current_user_link.id)
+    assert entries_result[1]["entryType"] == "LINK"
+    assert "X-Amz-Expires" not in entries_result[1]["url"]

@@ -50,7 +50,7 @@ class DataEntryNode(DjangoObjectType):
         return queryset.filter(groups__in=user_groups_ids)
 
     def resolve_url(self, info):
-        if (self.entry_type == DataEntry.ENTRY_TYPE_FILE):
+        if self.entry_type == DataEntry.ENTRY_TYPE_FILE:
             return self.signed_url
         return self.url
 
