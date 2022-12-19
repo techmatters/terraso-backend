@@ -27,7 +27,7 @@ TERMS = [
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("core", "0028_spanish_taxonomy_terms"),
+        ("core", "0029_alter_group_deleted_at_and_more"),
     ]
 
     operations = [
