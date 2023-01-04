@@ -27,7 +27,7 @@ TERMS = [
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("core", "0029_alter_group_deleted_at_and_more"),
+        ("core", "0030_alter_landscape_partnership_status"),
     ]
 
     operations = [
