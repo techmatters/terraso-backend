@@ -50,20 +50,19 @@ class Landscape(SlugModel, DirtyFieldsMixin):
     taxonomy_terms = models.ManyToManyField(TaxonomyTerm)
     population = models.IntegerField(blank=True, null=True)
 
+    PARTNERSHIP_STATUS_NONE = ""
     PARTNERSHIP_STATUS_NO = "no"
     PARTNERSHIP_STATUS_IN_PROGRESS = "in-progress"
     PARTNERSHIP_STATUS_YES = "yes"
-    DEFAULT_PARTNERSHIP_STATUS = PARTNERSHIP_STATUS_NO
 
     MEMBERSHIP_TYPES = (
+        (PARTNERSHIP_STATUS_NONE, _("")),
         (PARTNERSHIP_STATUS_NO, _("No")),
         (PARTNERSHIP_STATUS_IN_PROGRESS, _("In Progress")),
         (PARTNERSHIP_STATUS_YES, _("Yes")),
     )
     partnership_status = models.CharField(
-        max_length=32,
-        choices=MEMBERSHIP_TYPES,
-        default=DEFAULT_PARTNERSHIP_STATUS,
+        max_length=32, choices=MEMBERSHIP_TYPES, blank=True, default=PARTNERSHIP_STATUS_NONE
     )
     profile_image = models.URLField(blank=True, default="")
     profile_image_description = models.TextField(blank=True, default="")
