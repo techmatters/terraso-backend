@@ -61,8 +61,6 @@ class BaseWriteMutation(relay.ClientIDMutation):
         try:
             model_instance.save()
         except IntegrityError as exc:
-            print("Integrity error", exc)
-            print(dir(exc))
             logger.info(
                 "Attempt to mutate an model, but it's not unique",
                 extra={"model": cls.model_class.__name__, "integrity_error": exc},

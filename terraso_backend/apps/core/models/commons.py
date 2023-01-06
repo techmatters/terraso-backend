@@ -30,20 +30,18 @@ class ModelMetaMeta(type):
     """Metaclass for inner Meta class to support generating unique constraints that agree
     with django-safedelete"""
 
-    @property
-    def constraints(cls):
-        constraints = list(getattr(cls, "_constraints", ())) + [
-            constraint
-            for parent in cls.__mro__[1:]
-            for constraint in getattr(parent, "constraints", [])
-        ]
+    def __new__(metacls, clsname, bases, attrs):
+        all_constraints = list(attrs.get("constraints", ()))
 
-        all_unique_fields = set(getattr(cls, "_unique_fields", []))
+        all_unique_fields = set(
+            attrs.get("_unique_fields", [])
+            + [field for base in bases for field in getattr(base, "_unique_fields", [])]
+        )
         for unique_field in all_unique_fields:
             constraint = _unique_constraint_from_field_name(unique_field)
-            constraints.append(constraint)
-        constraints = tuple(constraints)
-        return tuple(constraints)
+            all_constraints.append(constraint)
+        attrs["constraints"] = tuple(all_constraints)
+        return super().__new__(metacls, clsname, bases, attrs)
 
 
 class BaseModel(RulesModelMixin, SafeDeleteModel, metaclass=RulesModelBase):
