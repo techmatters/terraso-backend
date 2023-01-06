@@ -72,7 +72,6 @@ class LandscapeDevelopmentStrategyNode(DjangoObjectType):
             "opportunities",
             "problem_situtation",
             "intervention_strategy",
-            "other_information",
         )
         interfaces = (relay.Node,)
         connection_class = TerrasoConnection
@@ -119,7 +118,6 @@ def set_landscape_development_strategy(landscape, development_strategy_input):
             opportunities=development_strategy_input["opportunities"],
             problem_situtation=development_strategy_input["problemSitutation"],
             intervention_strategy=development_strategy_input["interventionStrategy"],
-            other_information=development_strategy_input["otherInformation"],
             landscape=landscape,
         )
         development_strategy.save()

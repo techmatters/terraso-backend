@@ -352,7 +352,6 @@ def test_landscapes_update_development_strategy(client_query, managed_landscapes
                 "opportunities": "Val2",
                 "problemSitutation": "Val3",
                 "interventionStrategy": "Val4",
-                "otherInformation": "Val5",
             }
         ),
     }
@@ -369,7 +368,6 @@ def test_landscapes_update_development_strategy(client_query, managed_landscapes
                     opportunities
                     problemSitutation
                     interventionStrategy
-                    otherInformation
                   }
                 }
               }
@@ -390,7 +388,6 @@ def test_landscapes_update_development_strategy(client_query, managed_landscapes
                         "opportunities": "Val2",
                         "problemSitutation": "Val3",
                         "interventionStrategy": "Val4",
-                        "otherInformation": "Val5",
                     }
                 }
             ]
