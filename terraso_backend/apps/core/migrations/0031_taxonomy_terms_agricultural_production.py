@@ -36,7 +36,11 @@ class Migration(migrations.Migration):
                 (
                     """
                     INSERT INTO core_taxonomyterm (id, deleted_by_cascade, created_at, updated_at, slug, type, value_original, value_en, value_es)
-                    VALUES (%s, false, NOW(), NOW(), %s, %s, %s, %s, %s);
+                    SELECT %s, false, NOW(), NOW(), %s, %s, %s, %s, %s
+                    WHERE NOT EXISTS (
+                        SELECT 1 FROM core_taxonomyterm
+                        WHERE type = %s AND value_original = %s
+                    )
                     """,
                     [
                         uuid.uuid4(),
@@ -45,6 +49,8 @@ class Migration(migrations.Migration):
                         value_en,
                         value_en,
                         value_es,
+                        "agricultural-production-method",
+                        value_en,
                     ],
                 )
             ],
