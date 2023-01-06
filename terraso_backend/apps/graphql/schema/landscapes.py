@@ -69,6 +69,7 @@ class LandscapeDevelopmentStrategyNode(DjangoObjectType):
         model = LandscapeDevelopmentStrategy
         fields = (
             "objectives",
+            "opportunities",
             "problem_situtation",
             "intervention_strategy",
             "other_information",
@@ -115,6 +116,7 @@ def set_landscape_development_strategy(landscape, development_strategy_input):
         LandscapeDevelopmentStrategy.objects.filter(landscape=landscape).delete()
         development_strategy = LandscapeDevelopmentStrategy(
             objectives=development_strategy_input["objectives"],
+            opportunities=development_strategy_input["opportunities"],
             problem_situtation=development_strategy_input["problemSitutation"],
             intervention_strategy=development_strategy_input["interventionStrategy"],
             other_information=development_strategy_input["otherInformation"],

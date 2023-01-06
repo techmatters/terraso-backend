@@ -142,6 +142,7 @@ class Landscape(SlugModel, DirtyFieldsMixin):
 
 class LandscapeDevelopmentStrategy(BaseModel):
     objectives = models.TextField(blank=True, default="")
+    opportunities = models.TextField(blank=True, default="")
     problem_situtation = models.TextField(blank=True, default="")
     intervention_strategy = models.TextField(blank=True, default="")
     landscape = models.ForeignKey(
