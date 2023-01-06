@@ -144,7 +144,6 @@ class LandscapeDevelopmentStrategy(BaseModel):
     objectives = models.TextField(blank=True, default="")
     problem_situtation = models.TextField(blank=True, default="")
     intervention_strategy = models.TextField(blank=True, default="")
-    other_information = models.TextField(blank=True, default="")
     landscape = models.ForeignKey(
         Landscape, on_delete=models.CASCADE, related_name="associated_development_strategy"
     )
