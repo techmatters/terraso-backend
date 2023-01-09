@@ -33,10 +33,14 @@ class ModelMetaMeta(type):
     def __new__(metacls, clsname, bases, attrs):
         all_constraints = list(attrs.get("constraints", ()))
 
+        override_fields = attrs.get("_override_fields", [])
         all_unique_fields = set(
             attrs.get("_unique_fields", [])
             + [field for base in bases for field in getattr(base, "_unique_fields", [])]
         )
+
+        all_unique_fields.difference_update(override_fields)
+
         for unique_field in all_unique_fields:
             constraint = _unique_constraint_from_field_name(unique_field)
             all_constraints.append(constraint)
