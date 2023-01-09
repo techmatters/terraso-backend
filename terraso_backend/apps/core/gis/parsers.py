@@ -17,7 +17,7 @@ def isKmlFile(file):
 
 
 def parseKmlFile(file):
-    gdf = gpd.read_file(file)
+    gdf = gpd.read_file(file, driver='LIBKML')
     return json.loads(gdf.to_json())
 
 
