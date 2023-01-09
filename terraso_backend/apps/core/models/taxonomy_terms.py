@@ -11,6 +11,7 @@ class TaxonomyTerm(SlugModel):
     TYPE_LIVELIHOOD = "livelihood"
     TYPE_COMMODITY = "commodity"
     TYPE_ORGANIZATION = "organization"
+    TYPE_AGRICULTURAL_PRODUCTION_METHOD = "agricultural-production-method"
 
     TYPES = (
         (TYPE_ECOSYSTEM_TYPE, _("Ecosystem Type")),
@@ -18,6 +19,7 @@ class TaxonomyTerm(SlugModel):
         (TYPE_LIVELIHOOD, _("Livelihood")),
         (TYPE_COMMODITY, _("Commodity")),
         (TYPE_ORGANIZATION, _("Organization")),
+        (TYPE_AGRICULTURAL_PRODUCTION_METHOD, _("Agricultural Production Method")),
     )
 
     value_original = models.CharField(max_length=128, validators=[validate_name])

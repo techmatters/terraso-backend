@@ -349,9 +349,9 @@ def test_landscapes_update_development_strategy(client_query, managed_landscapes
         "developmentStrategy": json.dumps(
             {
                 "objectives": "Val1",
-                "problemSitutation": "Val2",
-                "interventionStrategy": "Val3",
-                "otherInformation": "Val4",
+                "opportunities": "Val2",
+                "problemSitutation": "Val3",
+                "interventionStrategy": "Val4",
             }
         ),
     }
@@ -365,9 +365,9 @@ def test_landscapes_update_development_strategy(client_query, managed_landscapes
                 edges {
                   node {
                     objectives
+                    opportunities
                     problemSitutation
                     interventionStrategy
-                    otherInformation
                   }
                 }
               }
@@ -385,9 +385,9 @@ def test_landscapes_update_development_strategy(client_query, managed_landscapes
                 {
                     "node": {
                         "objectives": "Val1",
-                        "problemSitutation": "Val2",
-                        "interventionStrategy": "Val3",
-                        "otherInformation": "Val4",
+                        "opportunities": "Val2",
+                        "problemSitutation": "Val3",
+                        "interventionStrategy": "Val4",
                     }
                 }
             ]

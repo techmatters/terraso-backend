@@ -142,9 +142,9 @@ class Landscape(SlugModel, DirtyFieldsMixin):
 
 class LandscapeDevelopmentStrategy(BaseModel):
     objectives = models.TextField(blank=True, default="")
+    opportunities = models.TextField(blank=True, default="")
     problem_situtation = models.TextField(blank=True, default="")
     intervention_strategy = models.TextField(blank=True, default="")
-    other_information = models.TextField(blank=True, default="")
     landscape = models.ForeignKey(
         Landscape, on_delete=models.CASCADE, related_name="associated_development_strategy"
     )
@@ -172,7 +172,7 @@ class LandscapeGroup(BaseModel):
         }
         constraints = (
             models.UniqueConstraint(
-                fields=("group", "landscape"),
+                fields=("group", "landscape", "is_partnership"),
                 condition=models.Q(deleted_at__isnull=True),
                 name="unique_active_landscape_group",
             ),
