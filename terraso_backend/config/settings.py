@@ -44,7 +44,6 @@ INSTALLED_APPS = [
     "apps.graphql",
     "apps.auth",
     "apps.shared_data",
-    "geopandas",
 ]
 
 MIDDLEWARE = [
