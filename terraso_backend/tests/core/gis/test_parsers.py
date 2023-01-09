@@ -5,9 +5,12 @@ import zipfile
 
 import geopandas as gpd
 import pytest
+from fiona.drvsupport import supported_drivers
 
 from apps.core.gis.parsers import parseKmlFile, parseShapefile
 from apps.core.gis.utils import DEFAULT_CRS
+
+supported_drivers["LIBKML"] = "rw"
 
 
 @pytest.fixture
