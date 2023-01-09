@@ -1,4 +1,5 @@
 import pytest
+from django.db import models
 
 from apps.shared_data.models import DataEntry, VisualizationConfig
 
@@ -108,3 +109,10 @@ def test_visualization_config_cannot_be_viewed_by_non_group_members(
 
     assert not user_b.has_perm(VisualizationConfig.get_perm("view"), obj=visualization_config)
     assert user.has_perm(VisualizationConfig.get_perm("view"), obj=visualization_config)
+
+
+def test_delete_user_with_shared_data(user, data_entry):
+    try:
+        user.delete()
+    except models.deletion.ProtectedError as e:
+        assert False, f"Deleting a user should not raise an exception. {e}"

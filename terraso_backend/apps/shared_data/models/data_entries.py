@@ -54,7 +54,7 @@ class DataEntry(BaseModel):
     size = models.PositiveBigIntegerField(null=True, blank=True)
 
     groups = models.ManyToManyField(Group, related_name="data_entries")
-    created_by = models.ForeignKey(User, on_delete=models.PROTECT)
+    created_by = models.ForeignKey(User, null=True, on_delete=models.SET_NULL)
     file_removed_at = models.DateTimeField(blank=True, null=True)
 
     class Meta(BaseModel.Meta):
