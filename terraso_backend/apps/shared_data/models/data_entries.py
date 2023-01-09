@@ -1,6 +1,7 @@
 from django.db import models
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
+from safedelete.models import SOFT_DELETE
 
 from apps.core.models import BaseModel, Group, User
 from apps.shared_data import permission_rules as perm_rules
@@ -35,6 +36,9 @@ class DataEntry(BaseModel):
         User who created the resource
     """
 
+    # file will not be deleted in cascade
+    _safedelete_policy = SOFT_DELETE
+
     name = models.CharField(max_length=128)
     description = models.TextField(blank=True, default="")
 
@@ -54,7 +58,7 @@ class DataEntry(BaseModel):
     size = models.PositiveBigIntegerField(null=True, blank=True)
 
     groups = models.ManyToManyField(Group, related_name="data_entries")
-    created_by = models.ForeignKey(User, null=True, on_delete=models.SET_NULL)
+    created_by = models.ForeignKey(User, null=True, on_delete=models.DO_NOTHING)
     file_removed_at = models.DateTimeField(blank=True, null=True)
 
     class Meta(BaseModel.Meta):
