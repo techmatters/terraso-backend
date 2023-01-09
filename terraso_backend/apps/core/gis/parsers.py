@@ -4,8 +4,11 @@ import uuid
 import zipfile
 
 import geopandas as gpd
+from fiona.drvsupport import supported_drivers
 
 from apps.core.gis.utils import DEFAULT_CRS
+
+supported_drivers["KML"] = "rw"
 
 
 def isShapefile(file):
@@ -17,7 +20,7 @@ def isKmlFile(file):
 
 
 def parseKmlFile(file):
-    gdf = gpd.read_file(file, driver='LIBKML')
+    gdf = gpd.read_file(file, driver="KML")
     return json.loads(gdf.to_json())
 
 

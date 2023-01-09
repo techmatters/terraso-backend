@@ -22,14 +22,12 @@ from django.http import (
 )
 from django.views import View
 from django.views.generic.edit import FormView
-from fiona.drvsupport import supported_drivers
 
 from apps.auth.mixins import AuthenticationRequiredMixin
 from apps.core.gis.parsers import isKmlFile, isShapefile, parseKmlFile, parseShapefile
 from apps.core.models import BackgroundTask, Group, Landscape, User
 
 logger = structlog.get_logger(__name__)
-supported_drivers["LIBKML"] = "rw"
 
 RENDER_STATUS_JOB_CHECK_DELAY_SEC = 5
 
