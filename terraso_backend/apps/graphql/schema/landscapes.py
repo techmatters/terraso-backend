@@ -4,7 +4,7 @@ from django.db import transaction
 from graphene import relay
 from graphene_django import DjangoObjectType
 
-from apps.core.geo import m2_to_hectares
+from apps.core.gis.utils import m2_to_hectares
 from apps.core.models import (
     Group,
     Landscape,

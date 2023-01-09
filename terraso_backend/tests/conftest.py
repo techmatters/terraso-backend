@@ -7,7 +7,7 @@ from mixer.backend.django import mixer
 from pyproj import CRS, Transformer
 
 from apps.auth.services import JWTService
-from apps.core.geo import DEFAULT_CRS
+from apps.core.gis.utils import DEFAULT_CRS
 from apps.core.models import User
 
 pytestmark = pytest.mark.django_db

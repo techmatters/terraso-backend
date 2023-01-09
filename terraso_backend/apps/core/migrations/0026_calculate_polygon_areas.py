@@ -1,6 +1,6 @@
 from django.db import migrations, models
 
-from apps.core.geo import calculate_geojson_feature_area
+from apps.core.gis.utils import calculate_geojson_feature_area
 
 
 def calculate_area(apps, schema_editor):

@@ -14,14 +14,53 @@ from django.contrib.sessions.models import Session
 from django.core import management
 from django.db import DatabaseError, transaction
 from django.db.transaction import get_connection
-from django.http import HttpResponse, HttpResponseNotAllowed, HttpResponseNotFound
+from django.http import (
+    HttpResponse,
+    HttpResponseNotAllowed,
+    HttpResponseNotFound,
+    JsonResponse,
+)
 from django.views import View
+from django.views.generic.edit import FormView
+from fiona.drvsupport import supported_drivers
 
+from apps.auth.mixins import AuthenticationRequiredMixin
+from apps.core.gis.parsers import isKmlFile, isShapefile, parseKmlFile, parseShapefile
 from apps.core.models import BackgroundTask, Group, Landscape, User
 
 logger = structlog.get_logger(__name__)
+supported_drivers["LIBKML"] = "rw"
 
 RENDER_STATUS_JOB_CHECK_DELAY_SEC = 5
+
+
+class ParseGeoFileView(AuthenticationRequiredMixin, FormView):
+    def post(self, request, **kwargs):
+        file = request.FILES.get("file")
+
+        geojson = None
+        if isShapefile(file):
+            try:
+                geojson = parseShapefile(file)
+            except Exception as e:
+                logger.exception("Error when parsing shapefile", error=e)
+                return JsonResponse(
+                    {"errors": [{"message": json.dumps([{"code": "invalid_shapefile"}])}]},
+                    status=400,
+                )
+        elif isKmlFile(file):
+            try:
+                geojson = parseKmlFile(file)
+            except Exception as e:
+                logger.exception("Error when parsing KML file", error=e)
+                return JsonResponse(
+                    {"errors": [{"message": json.dumps([{"code": "invalid_kml_file"}])}]},
+                    status=400,
+                )
+        else:
+            return JsonResponse({"error": "File type not supported"}, status=400)
+
+        return JsonResponse({"geojson": geojson})
 
 
 class HealthView(View):
