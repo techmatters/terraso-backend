@@ -41,9 +41,7 @@ class TaxonomyTerm(SlugModel):
         return "{}.{}".format(self.type, self.slug)
 
     class Meta(SlugModel.Meta):
-        # we want to define a custom unique constraint here, so we override the default
-        # constraint in parent
-        _override_fields = ["slug"]
+        _ignore_unique_fields = ["slug"]
         constraints = (
             models.UniqueConstraint(
                 fields=(

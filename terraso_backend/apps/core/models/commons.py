@@ -17,12 +17,15 @@ def validate_name(value):
         )
 
 
-def _unique_constraint_from_field_name(fieldname):
+def _unique_constraint_from_field_name(field_name):
+    """Generates a unique constraint from the name of the field. Note that we use the fields as a
+    way of identifying the constraint. This assumes that all of our "unique fields" have only one
+    field. This might change in the future."""
     return models.UniqueConstraint(
-        fields=(fieldname,),
+        fields=(field_name,),
         condition=models.Q(deleted_at__isnull=True),
-        name=f"%(app_label)s_%(class)s_unique_active_{fieldname}",
-        violation_error_message=fieldname,
+        name=f"%(app_label)s_%(class)s_unique_active_{field_name}",
+        violation_error_message=field_name,
     )
 
 
@@ -33,13 +36,13 @@ class ModelMetaMeta(type):
     def __new__(metacls, clsname, bases, attrs):
         all_constraints = list(attrs.get("constraints", ()))
 
-        override_fields = attrs.get("_override_fields", [])
+        ignore_fields = attrs.get("_ignore_unique_fields", [])
         all_unique_fields = set(
             attrs.get("_unique_fields", [])
             + [field for base in bases for field in getattr(base, "_unique_fields", [])]
         )
 
-        all_unique_fields.difference_update(override_fields)
+        all_unique_fields.difference_update(ignore_fields)
 
         for unique_field in all_unique_fields:
             constraint = _unique_constraint_from_field_name(unique_field)
@@ -75,19 +78,26 @@ class BaseModel(RulesModelMixin, SafeDeleteModel, metaclass=RulesModelBase):
             raise ValidationError(errors)
 
     @staticmethod
-    def _is_unique_field_constraint(constraint):
+    def _unique_field_constraint(constraint):
+        """Returns False if not "unique field constraint", else returns the "identifier" of the
+        constraint"""
         # our "unique fields" will only generate a unique constraint with a length of 1
-        return isinstance(constraint, models.UniqueConstraint) and len(constraint.fields) == 1
+        return (
+            isinstance(constraint, models.UniqueConstraint)
+            and len(constraint.fields) == 1
+            and (constraint.fields[0])
+        )
 
     def _associate_errors_to_constraints(self, message_dict):
         unique_constraints_by_field = {
-            constraint.fields[0]: constraint
+            constraint_name: constraint
             for constraint in getattr(self._meta, "constraints", [])
-            if self._is_unique_field_constraint(constraint)
+            if (constraint_name := self._unique_field_constraint(constraint))
         }
 
         errors = defaultdict(list)
 
+        # validation errors not linked to field stored under key __all__
         for error_message in message_dict.get("__all__", []):
             constraint = unique_constraints_by_field.get(error_message, None)
             if not constraint:
