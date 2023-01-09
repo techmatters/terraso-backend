@@ -5,12 +5,9 @@ import zipfile
 
 import geopandas as gpd
 import pytest
-from fiona.drvsupport import supported_drivers
 
 from apps.core.gis.parsers import parseKmlFile, parseShapefile
 from apps.core.gis.utils import DEFAULT_CRS
-
-supported_drivers["LIBKML"] = "rw"
 
 
 @pytest.fixture
@@ -58,10 +55,16 @@ def test_parseShapefile(shapefile_zip):
 @pytest.fixture
 def kml_file(request):
     kml_contents, file_extension = request.param
-    kml_file = tempfile.NamedTemporaryFile(mode="w", suffix=f".{file_extension}")
-    kml_file.write(kml_contents)
-    kml_file.seek(0)
-    return kml_file
+    # Create a temporary file
+    with tempfile.NamedTemporaryFile(mode="w", suffix=f".{file_extension}", delete=False) as f:
+        # Write the KML content to the file
+        f.write(kml_contents)
+
+    # Return the file path
+    yield f.name
+
+    # Clean up: delete the temporary file
+    os.unlink(f.name)
 
 
 @pytest.mark.parametrize(
@@ -117,11 +120,8 @@ def kml_file(request):
     indirect=True,
 )
 def test_parseKmlFile(kml_file):
-    # Get the file path of the kml_file fixture
-    kml_file_path = kml_file.name
-
     # Call the parseKmlFile function with the file path
-    kml_json = parseKmlFile(kml_file_path)
+    kml_json = parseKmlFile(kml_file)
 
     # Assert that the output of the parseKmlFile function is as expected
     print(json.dumps(kml_json, indent=4))
