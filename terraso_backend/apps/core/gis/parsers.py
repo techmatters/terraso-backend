@@ -11,20 +11,20 @@ from apps.core.gis.utils import DEFAULT_CRS
 supported_drivers["KML"] = "rw"
 
 
-def isShapefile(file):
+def is_shape_file_extension(file):
     return file.name.endswith(".zip")
 
 
-def isKmlFile(file):
+def is_kml_file_extension(file):
     return file.name.endswith(".kml") or file.name.endswith(".kmz")
 
 
-def parseKmlFile(file):
+def parse_kml_file(file):
     gdf = gpd.read_file(file, driver="KML")
     return json.loads(gdf.to_json())
 
 
-def parseShapefile(file):
+def parse_shapefile(file):
     tmp_folder = os.path.join("/tmp", str(uuid.uuid4()))
     with zipfile.ZipFile(file, "r") as zip:
         shp_filenames = [f for f in zip.namelist() if f.endswith(".shp")]
@@ -34,11 +34,11 @@ def parseShapefile(file):
         if not shp_filenames or not shx_filenames or not prj_filenames:
             raise ValueError("Invalid shapefile")
 
-        shpFile = zip.extract(shp_filenames[0], tmp_folder)
+        shp_file = zip.extract(shp_filenames[0], tmp_folder)
         zip.extract(prj_filenames[0], tmp_folder)
         zip.extract(shx_filenames[0], tmp_folder)
 
-    gdf = gpd.read_file(shpFile)
+    gdf = gpd.read_file(shp_file)
     gdf_transformed = gdf.to_crs(crs=DEFAULT_CRS)
 
     # Delete extracted files

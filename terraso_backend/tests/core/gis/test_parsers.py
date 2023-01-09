@@ -6,7 +6,7 @@ import zipfile
 import geopandas as gpd
 import pytest
 
-from apps.core.gis.parsers import parseKmlFile, parseShapefile
+from apps.core.gis.parsers import parse_kml_file, parse_shapefile
 from apps.core.gis.utils import DEFAULT_CRS
 
 
@@ -31,7 +31,7 @@ def shapefile_zip(request):
     ],
     indirect=True,
 )
-def test_parseShapefile(shapefile_zip):
+def test_parse_shapefile(shapefile_zip):
     # Create a GeoDataFrame with a single point
     gdf = gpd.GeoDataFrame({"geometry": gpd.points_from_xy([0], [0])}, crs=DEFAULT_CRS)
 
@@ -46,7 +46,7 @@ def test_parseShapefile(shapefile_zip):
                 zf.write(os.path.join(tmpdir, f"test.{component}"), f"test.{component}")
 
         # Parse the Shapefile
-        shapefile_json = parseShapefile(shapefile_zip.name)
+        shapefile_json = parse_shapefile(shapefile_zip.name)
 
         # Verify that the parsed Shapefile is equivalent to the original GeoDataFrame
         assert shapefile_json == json.loads(gdf.to_json())
@@ -119,11 +119,11 @@ def kml_file(request):
     ],
     indirect=True,
 )
-def test_parseKmlFile(kml_file):
-    # Call the parseKmlFile function with the file path
-    kml_json = parseKmlFile(kml_file)
+def test_parse_kml_file(kml_file):
+    # Call the parse_kml_file function with the file path
+    kml_json = parse_kml_file(kml_file)
 
-    # Assert that the output of the parseKmlFile function is as expected
+    # Assert that the output of the parse_kml_file function is as expected
     assert kml_json == {
         "type": "FeatureCollection",
         "features": [

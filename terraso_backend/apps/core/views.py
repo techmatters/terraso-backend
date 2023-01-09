@@ -24,7 +24,12 @@ from django.views import View
 from django.views.generic.edit import FormView
 
 from apps.auth.mixins import AuthenticationRequiredMixin
-from apps.core.gis.parsers import isKmlFile, isShapefile, parseKmlFile, parseShapefile
+from apps.core.gis.parsers import (
+    is_kml_file_extension,
+    is_shape_file_extension,
+    parse_kml_file,
+    parse_shapefile,
+)
 from apps.core.models import BackgroundTask, Group, Landscape, User
 
 logger = structlog.get_logger(__name__)
@@ -37,18 +42,18 @@ class ParseGeoFileView(AuthenticationRequiredMixin, FormView):
         file = request.FILES.get("file")
 
         geojson = None
-        if isShapefile(file):
+        if is_shape_file_extension(file):
             try:
-                geojson = parseShapefile(file)
+                geojson = parse_shapefile(file)
             except Exception as e:
                 logger.exception("Error when parsing shapefile", error=e)
                 return JsonResponse(
                     {"errors": [{"message": json.dumps([{"code": "invalid_shapefile"}])}]},
                     status=400,
                 )
-        elif isKmlFile(file):
+        elif is_kml_file_extension(file):
             try:
-                geojson = parseKmlFile(file)
+                geojson = parse_kml_file(file)
             except Exception as e:
                 logger.exception("Error when parsing KML file", error=e)
                 return JsonResponse(
