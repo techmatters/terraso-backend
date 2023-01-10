@@ -117,10 +117,7 @@ def test_delete_user_with_shared_data(user, data_entry):
         user.delete()
     except models.deletion.ProtectedError as e:
         assert False, f"Deleting a user should not raise an exception. {e}"
-    # user should be soft-deleted
-    assert not User.objects.filter(id=user.id).exists()
-    # dataentry should not be soft deleted
-    assert DataEntry.objects.filter(id=data_entry.id).exists()
-    # data entry should still link to user
+    assert not User.objects.filter(id=user.id).exists(), "User should be soft-deleted"
+    assert DataEntry.objects.filter(id=data_entry.id).exists(), "Data entry should not be deleted"
     data_entry.refresh_from_db()
-    assert data_entry.created_by == user
+    assert data_entry.created_by == user, "Data entry should still link to user"
