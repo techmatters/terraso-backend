@@ -85,6 +85,17 @@ class User(SafeDeleteModel, AbstractUser):
             .exists()
         )
 
+    def soft_delete_policy_action(self, **kwargs):
+        """Relink files to deleted user. The default policy is to set the `created_by` field to
+        null if the user is deleted. However, for a soft deletion we want to keep this link. That
+        way if the user is restored, the created_by is still pointing to the same place."""
+        linked_dataentries = self.dataentry_set.all()
+        delete_response = super().soft_delete_policy_action()
+        for entry in linked_dataentries:
+            entry.created_by = self
+            entry.save()
+        return delete_response
+
     def is_group_manager(self, group_id):
         return self.memberships.managers_only().filter(group__pk=group_id).exists()
 

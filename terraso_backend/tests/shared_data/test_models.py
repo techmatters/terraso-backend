@@ -1,5 +1,7 @@
 import pytest
+from django.db import models
 
+from apps.core.models import User
 from apps.shared_data.models import DataEntry, VisualizationConfig
 
 pytestmark = pytest.mark.django_db
@@ -108,3 +110,14 @@ def test_visualization_config_cannot_be_viewed_by_non_group_members(
 
     assert not user_b.has_perm(VisualizationConfig.get_perm("view"), obj=visualization_config)
     assert user.has_perm(VisualizationConfig.get_perm("view"), obj=visualization_config)
+
+
+def test_delete_user_with_shared_data(user, data_entry):
+    try:
+        user.delete()
+    except models.deletion.ProtectedError as e:
+        assert False, f"Deleting a user should not raise an exception. {e}"
+    assert not User.objects.filter(id=user.id).exists(), "User should be soft-deleted"
+    assert DataEntry.objects.filter(id=data_entry.id).exists(), "Data entry should not be deleted"
+    data_entry.refresh_from_db()
+    assert data_entry.created_by == user, "Data entry should still link to user"
