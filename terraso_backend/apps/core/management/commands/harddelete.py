@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 import structlog
 from django.apps import apps
@@ -16,7 +16,9 @@ class Command(BaseCommand):
     help = "Hard delete rows in database soft-deleted longer than a certain time"
 
     def add_arguments(self, parser):
-        parser.add_argument("--exec_date", type=datetime.fromisoformat, default=datetime.now())
+        parser.add_argument(
+            "--exec_date", type=datetime.fromisoformat, default=datetime.now(timezone.utc)
+        )
         parser.add_argument(
             "--deletion_gap",
             type=lambda x: timedelta(days=int(x)),

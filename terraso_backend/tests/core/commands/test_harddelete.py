@@ -1,42 +1,32 @@
-from datetime import datetime, timedelta
-
 import pytest
 from django.core.management import call_command
 from mixer.backend.django import mixer
 
-from apps.core.management.commands.harddelete import Command
-from apps.core.models import User
+from apps.core.models import Group, User
+from apps.shared_data.models import DataEntry
 
 pytestmark = pytest.mark.django_db
 
 
-@pytest.fixture
-def deletion_gap():
-    return Command.DEFAULT_DELETION_GAP
-
-
-@pytest.fixture
-def exec_date():
-    return datetime.now()
-
-
-@pytest.fixture
-def delete_date(exec_date, deletion_gap):
-    return exec_date - (deletion_gap + timedelta(days=1))
-
-
-@pytest.fixture
-def no_delete_date(exec_date, deletion_gap):
-    return exec_date - (deletion_gap - timedelta(days=1))
-
-
-def test_delete_user_deleted(exec_date, delete_date):
-    user = mixer.blend(User)
-    user.delete()
-    user.deleted_at = delete_date
-    user.save(keep_deleted=True)
-    print(user.deleted_at)
+@pytest.mark.parametrize("model", [User, Group, DataEntry])
+def test_delete_model_deleted(model, exec_date, delete_date):
+    obj = mixer.blend(model)
+    obj.delete()
+    obj.deleted_at = delete_date
+    obj.save(keep_deleted=True)
     call_command("harddelete", exec_date=exec_date)
     assert (
-        not User.objects.all(force_visibility=True).filter(id=user.id).exists()
+        not model.objects.all(force_visibility=True).filter(id=obj.id).exists()
     ), "User should be deleted"
+
+
+@pytest.mark.parametrize("model", [User, Group, DataEntry])
+def test_delete_model_not_deleted(model, exec_date, no_delete_date):
+    obj = mixer.blend(model)
+    obj.delete()
+    obj.deleted_at = no_delete_date
+    obj.save(keep_deleted=True)
+    call_command("harddelete", exec_date=exec_date)
+    assert (
+        model.objects.all(force_visibility=True).filter(id=obj.id).exists()
+    ), "User should not be deleted"
