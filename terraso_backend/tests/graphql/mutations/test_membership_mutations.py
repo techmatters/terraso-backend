@@ -61,6 +61,7 @@ def test_membership_add_group_not_found(client_query, users):
                 slug
               }
             }
+            errors
           }
         }
         """,
@@ -72,9 +73,10 @@ def test_membership_add_group_not_found(client_query, users):
         },
     )
     response = response.json()
+    print(response)
 
-    assert "errors" in response
-    assert "not_found" in response["errors"][0]["message"]
+    assert "errors" in response["data"]["addMembership"]
+    assert "not_found" in response["data"]["addMembership"]["errors"][0]["message"]
 
 
 def test_membership_add_user_not_found(client_query, groups):
@@ -94,6 +96,7 @@ def test_membership_add_user_not_found(client_query, groups):
                 slug
               }
             }
+            errors
           }
         }
         """,
@@ -106,8 +109,8 @@ def test_membership_add_user_not_found(client_query, groups):
     )
     response = response.json()
 
-    assert "errors" in response
-    assert "not_found" in response["errors"][0]["message"]
+    assert "errors" in response["data"]["addMembership"]
+    assert "not_found" in response["data"]["addMembership"]["errors"][0]["message"]
 
 
 def test_membership_adding_duplicated_returns_previously_created(client_query, memberships):
@@ -293,6 +296,7 @@ def test_membership_update_role_by_last_manager_fails(client_query, users, membe
                 slug
               }
             }
+            errors
           }
         }
         """,
@@ -305,8 +309,8 @@ def test_membership_update_role_by_last_manager_fails(client_query, users, membe
     )
     response = response.json()
 
-    assert "errors" in response
-    assert "update_not_allowed" in response["errors"][0]["message"]
+    assert "errors" in response["data"]["updateMembership"]
+    assert "update_not_allowed" in response["data"]["updateMembership"]["errors"][0]["message"]
 
 
 def test_membership_update_by_non_manager_fail(client_query, memberships):
@@ -321,6 +325,7 @@ def test_membership_update_by_non_manager_fail(client_query, memberships):
             membership {
               userRole
             }
+            errors
           }
         }
         """,
@@ -333,8 +338,8 @@ def test_membership_update_by_non_manager_fail(client_query, memberships):
     )
     response = response.json()
 
-    assert "errors" in response
-    assert "update_not_allowed" in response["errors"][0]["message"]
+    assert "errors" in response["data"]["updateMembership"]
+    assert "update_not_allowed" in response["data"]["updateMembership"]["errors"][0]["message"]
 
 
 def test_membership_update_not_found(client_query, memberships):
@@ -345,6 +350,7 @@ def test_membership_update_not_found(client_query, memberships):
             membership {
               userRole
             }
+            errors
           }
         }
         """,
@@ -357,8 +363,8 @@ def test_membership_update_not_found(client_query, memberships):
     )
     response = response.json()
 
-    assert "errors" in response
-    assert "not_found" in response["errors"][0]["message"]
+    assert "errors" in response["data"]["updateMembership"]
+    assert "not_found" in response["data"]["updateMembership"]["errors"][0]["message"]
 
 
 def test_membership_delete(client_query, users, groups):
@@ -479,6 +485,7 @@ def test_membership_delete_by_any_other_user(client_query, memberships):
                 slug
               }
             }
+            errors
           }
         }
         """,
@@ -491,8 +498,8 @@ def test_membership_delete_by_any_other_user(client_query, memberships):
 
     response = response.json()
 
-    assert "errors" in response
-    assert "delete_not_allowed" in response["errors"][0]["message"]
+    assert "errors" in response["data"]["deleteMembership"]
+    assert "delete_not_allowed" in response["data"]["deleteMembership"]["errors"][0]["message"]
 
 
 def test_membership_delete_by_last_manager(client_query, memberships, users):
@@ -510,6 +517,7 @@ def test_membership_delete_by_last_manager(client_query, memberships, users):
                 slug
               }
             }
+            errors
           }
         }
         """,
@@ -522,5 +530,5 @@ def test_membership_delete_by_last_manager(client_query, memberships, users):
 
     response = response.json()
 
-    assert "errors" in response
-    assert "delete_not_allowed" in response["errors"][0]["message"]
+    assert "errors" in response["data"]["deleteMembership"]
+    assert "delete_not_allowed" in response["data"]["deleteMembership"]["errors"][0]["message"]

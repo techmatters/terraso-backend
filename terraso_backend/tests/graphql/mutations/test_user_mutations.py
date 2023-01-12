@@ -70,6 +70,7 @@ def test_users_update_by_other_user_fail(client_query, users):
             user {
               email
             }
+            errors
           }
         }
         """,
@@ -77,8 +78,8 @@ def test_users_update_by_other_user_fail(client_query, users):
     )
     response = response.json()
 
-    assert "errors" in response
-    assert "update_not_allowed" in response["errors"][0]["message"]
+    assert "errors" in response["data"]["updateUser"]
+    assert "update_not_allowed" in response["data"]["updateUser"]["errors"][0]["message"]
 
 
 def test_users_delete(client_query, users):
@@ -111,6 +112,7 @@ def test_users_delete_by_other_user_fail(client_query, users):
             user {
               email
             }
+            errors
           }
         }
         """,
@@ -118,8 +120,8 @@ def test_users_delete_by_other_user_fail(client_query, users):
     )
     response = response.json()
 
-    assert "errors" in response
-    assert "delete_not_allowed" in response["errors"][0]["message"]
+    assert "errors" in response["data"]["deleteUser"]
+    assert "delete_not_allowed" in response["data"]["deleteUser"]["errors"][0]["message"]
 
 
 def test_users_preference_update(client_query, users):
@@ -160,6 +162,7 @@ def test_users_preference_update_by_other_fail(client_query, users):
               key
               value
             }
+            errors
           }
         }
         """,
@@ -167,8 +170,8 @@ def test_users_preference_update_by_other_fail(client_query, users):
     )
     response = response.json()
 
-    assert "errors" in response
-    assert "update_not_allowed" in response["errors"][0]["message"]
+    assert "errors" in response["data"]["updateUserPreference"]
+    assert "update_not_allowed" in response["data"]["updateUserPreference"]["errors"][0]["message"]
 
 
 def test_users_preference_delete(client_query, users):
@@ -227,6 +230,7 @@ def test_users_preference_delete_by_other_fail(client_query, users):
               key
               value
             }
+            errors
           }
         }
         """,
@@ -234,5 +238,5 @@ def test_users_preference_delete_by_other_fail(client_query, users):
     )
     response = response.json()
 
-    assert "errors" in response
-    assert "delete_not_allowed" in response["errors"][0]["message"]
+    assert "errors" in response["data"]["deleteUserPreference"]
+    assert "delete_not_allowed" in response["data"]["deleteUserPreference"]["errors"][0]["message"]

@@ -7,7 +7,7 @@ from graphene_django import DjangoObjectType
 from apps.core.models import User, UserPreference
 from apps.graphql.exceptions import GraphQLNotAllowedException
 
-from .commons import BaseDeleteMutation, TerrasoConnection
+from .commons import BaseDeleteMutation, BaseMutation, TerrasoConnection
 from .constants import MutationTypes
 
 logger = structlog.get_logger(__name__)
@@ -38,7 +38,7 @@ class UserPreferenceNode(DjangoObjectType):
         connection_class = TerrasoConnection
 
 
-class UserAddMutation(relay.ClientIDMutation):
+class UserAddMutation(BaseMutation):
     user = graphene.Field(UserNode)
 
     class Input:
@@ -56,7 +56,7 @@ class UserAddMutation(relay.ClientIDMutation):
         return cls(user=user)
 
 
-class UserUpdateMutation(relay.ClientIDMutation):
+class UserUpdateMutation(BaseMutation):
     user = graphene.Field(UserNode)
 
     model_class = User
@@ -120,7 +120,7 @@ class UserDeleteMutation(BaseDeleteMutation):
         return super().mutate_and_get_payload(root, info, **kwargs)
 
 
-class UserPreferenceUpdate(relay.ClientIDMutation):
+class UserPreferenceUpdate(BaseMutation):
     preference = graphene.Field(UserPreferenceNode)
 
     model_class = UserPreference
@@ -154,7 +154,7 @@ class UserPreferenceUpdate(relay.ClientIDMutation):
         return cls(preference=preference)
 
 
-class UserPreferenceDelete(relay.ClientIDMutation):
+class UserPreferenceDelete(BaseMutation):
     preference = graphene.Field(UserPreferenceNode)
 
     model_class = UserPreference
