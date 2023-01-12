@@ -37,8 +37,8 @@ class BaseMutation(relay.ClientIDMutation):
         try:
             return super().mutate(root, info, input)
         except Exception as error:
-            logger.error(
-                "An error occurred while trying to mutate an object",
+            logger.exception(
+                "An error occurred while trying to execute mutation",
                 extra={"error": str(error)},
             )
             return cls(errors=[{"message": str(error)}])
