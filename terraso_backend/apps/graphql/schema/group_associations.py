@@ -11,7 +11,7 @@ from apps.graphql.exceptions import (
     GraphQLValidationException,
 )
 
-from .commons import BaseDeleteMutation, TerrasoConnection
+from .commons import BaseDeleteMutation, BaseMutation, TerrasoConnection
 from .constants import MutationTypes
 
 logger = structlog.get_logger(__name__)
@@ -33,7 +33,7 @@ class GroupAssociationNode(DjangoObjectType):
         connection_class = TerrasoConnection
 
 
-class GroupAssociationAddMutation(relay.ClientIDMutation):
+class GroupAssociationAddMutation(BaseMutation):
     group_association = graphene.Field(GroupAssociationNode)
 
     class Input:

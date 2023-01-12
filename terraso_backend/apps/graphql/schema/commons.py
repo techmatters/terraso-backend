@@ -2,6 +2,7 @@ import structlog
 from django.core.exceptions import NON_FIELD_ERRORS, ValidationError
 from django.db import IntegrityError
 from graphene import Connection, Int, relay
+from graphene.types.generic import GenericScalar
 
 from apps.core.formatters import from_camel_to_snake_case
 from apps.graphql.exceptions import GraphQLValidationException
@@ -25,7 +26,25 @@ class TerrasoConnection(Connection):
         return self.length
 
 
-class BaseWriteMutation(relay.ClientIDMutation):
+class BaseMutation(relay.ClientIDMutation):
+    class Meta:
+        abstract = True
+
+    errors = GenericScalar()
+
+    @classmethod
+    def mutate(cls, root, info, input):
+        try:
+            return super().mutate(root, info, input)
+        except Exception as error:
+            logger.error(
+                "An error occurred while trying to mutate an object",
+                extra={"error": str(error)},
+            )
+            return cls(errors=[{"message": str(error)}])
+
+
+class BaseWriteMutation(BaseMutation):
     model_class = None
 
     @classmethod
@@ -88,7 +107,7 @@ class BaseWriteMutation(relay.ClientIDMutation):
         return "id" in data
 
 
-class BaseDeleteMutation(relay.ClientIDMutation):
+class BaseDeleteMutation(BaseMutation):
     model_class = None
 
     @classmethod

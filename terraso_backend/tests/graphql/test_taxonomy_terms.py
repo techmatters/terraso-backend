@@ -24,7 +24,7 @@ def test_terms_query(client_query, taxonomy_terms):
 
 def test_landscape_get_one_by_type(client_query, taxonomy_terms):
     query = """
-        {taxonomyTerms(type_In: ["language"]) {
+        {taxonomyTerms(type_In: [LANGUAGE]) {
           edges {
             node {
               valueOriginal

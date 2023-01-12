@@ -51,6 +51,7 @@ def test_group_associations_add_by_non_parent_manager_fails(client_query, groups
               parentGroup { slug }
               childGroup { slug }
             }
+            errors
           }
         }
         """,
@@ -83,6 +84,7 @@ def test_group_associations_add_duplicated(client_query, users, group_associatio
               parentGroup { slug }
               childGroup { slug }
             }
+            errors
           }
         }
         """,
