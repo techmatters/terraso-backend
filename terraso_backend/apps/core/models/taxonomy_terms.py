@@ -41,6 +41,7 @@ class TaxonomyTerm(SlugModel):
         return "{}.{}".format(self.type, self.slug)
 
     class Meta(SlugModel.Meta):
+        _ignore_unique_fields = ["slug"]
         constraints = (
             models.UniqueConstraint(
                 fields=(

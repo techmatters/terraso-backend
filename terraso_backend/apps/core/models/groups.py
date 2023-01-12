@@ -70,13 +70,7 @@ class Group(SlugModel):
             "change": perm_rules.allowed_to_change_group,
             "delete": perm_rules.allowed_to_delete_group,
         }
-        constraints = SlugModel.Meta.constraints + (
-            models.UniqueConstraint(
-                fields=("name",),
-                condition=models.Q(deleted_at__isnull=True),
-                name="core_group_name_key",
-            ),
-        )
+        _unique_fields = ["name"]
 
     def save(self, *args, **kwargs):
         with transaction.atomic():
