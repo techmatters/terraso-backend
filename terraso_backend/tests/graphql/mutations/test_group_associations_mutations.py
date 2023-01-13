@@ -63,7 +63,6 @@ def test_group_associations_add_by_non_parent_manager_fails(client_query, groups
         },
     )
     response = response.json()
-    print(response)
 
     assert "errors" in response["data"]["addGroupAssociation"]
     assert "create_not_allowed" in response["data"]["addGroupAssociation"]["errors"][0]["message"]
