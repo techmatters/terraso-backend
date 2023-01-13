@@ -14,7 +14,7 @@ class Command(BaseCommand):
 
     DEFAULT_DELETION_GAP = timedelta(days=settings.HARDDELETE_DELETION_GAP)
 
-    help = "Hard delete rows in database soft-deleted longer than a certain time"
+    help = "Hard delete rows in database that were soft-deleted before a specified time"
 
     def add_arguments(self, parser):
         parser.add_argument(
