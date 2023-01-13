@@ -62,12 +62,13 @@ def test_landscapes_add_duplicated(client_query, landscapes):
               id
               name
             }
+            errors
           }
         }
         """,
         variables={"input": {"name": landscape_name}},
     )
-    error_result = response.json()["errors"][0]
+    error_result = response.json()["data"]["addLandscape"]["errors"][0]
 
     assert error_result
 
@@ -82,12 +83,13 @@ def test_landscapes_add_duplicated_by_slug(client_query, landscapes):
               id
               name
             }
+            errors
           }
         }
         """,
         variables={"input": {"name": landscape_name.upper()}},
     )
-    error_result = response.json()["errors"][0]
+    error_result = response.json()["data"]["addLandscape"]["errors"][0]
 
     assert error_result
 
@@ -144,6 +146,7 @@ def test_landscapes_update_by_member_fails_due_permission_check(client_query, la
               description
               website
             }
+            errors
           }
         }
         """,
@@ -152,8 +155,8 @@ def test_landscapes_update_by_member_fails_due_permission_check(client_query, la
 
     response = response.json()
 
-    assert "errors" in response
-    assert "update_not_allowed" in response["errors"][0]["message"]
+    assert "errors" in response["data"]["updateLandscape"]
+    assert "update_not_allowed" in response["data"]["updateLandscape"]["errors"][0]["message"]
 
 
 def test_landscapes_delete_by_manager(client_query, managed_landscapes):
@@ -189,6 +192,7 @@ def test_landscapes_delete_by_non_manager(client_query, landscapes):
             landscape {
               slug
             }
+            errors
           }
         }
 
@@ -198,8 +202,8 @@ def test_landscapes_delete_by_non_manager(client_query, landscapes):
 
     response = response.json()
 
-    assert "errors" in response
-    assert "delete_not_allowed" in response["errors"][0]["message"]
+    assert "errors" in response["data"]["deleteLandscape"]
+    assert "delete_not_allowed" in response["data"]["deleteLandscape"]["errors"][0]["message"]
 
 
 def test_landscapes_update_taxonomy_terms(client_query, managed_landscapes):
@@ -462,6 +466,7 @@ def test_landscapes_soft_deleted_can_be_created_again(client_query, managed_land
              landscape {
                name
              }
+             errors
           }
         }
         """,
@@ -473,5 +478,5 @@ def test_landscapes_soft_deleted_can_be_created_again(client_query, managed_land
         },
     )
     payload = response.json()
-    assert "errors" not in payload
+    assert payload["data"]["addLandscape"]["errors"] is None
     assert payload["data"]["addLandscape"]["landscape"]["name"] == landscape.name
