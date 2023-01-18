@@ -8,7 +8,7 @@ from graphene_django import DjangoObjectType
 from apps.core.models import Group, Membership, User
 from apps.graphql.exceptions import GraphQLNotAllowedException, GraphQLNotFoundException
 
-from .commons import BaseDeleteMutation, TerrasoConnection
+from .commons import BaseDeleteMutation, BaseMutation, TerrasoConnection
 from .constants import MutationTypes
 
 logger = structlog.get_logger(__name__)
@@ -44,7 +44,7 @@ class MembershipNode(DjangoObjectType):
         )
 
 
-class MembershipAddMutation(relay.ClientIDMutation):
+class MembershipAddMutation(BaseMutation):
     membership = graphene.Field(MembershipNode)
 
     class Input:
@@ -92,7 +92,7 @@ class MembershipAddMutation(relay.ClientIDMutation):
         return cls(membership=membership)
 
 
-class MembershipUpdateMutation(relay.ClientIDMutation):
+class MembershipUpdateMutation(BaseMutation):
     membership = graphene.Field(MembershipNode)
 
     class Input:

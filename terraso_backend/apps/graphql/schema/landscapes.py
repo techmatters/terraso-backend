@@ -1,9 +1,17 @@
 import graphene
 import structlog
+from django.db import transaction
 from graphene import relay
 from graphene_django import DjangoObjectType
 
-from apps.core.models import Landscape
+from apps.core.geo import m2_to_hectares
+from apps.core.models import (
+    Group,
+    Landscape,
+    LandscapeDevelopmentStrategy,
+    LandscapeGroup,
+    TaxonomyTerm,
+)
 from apps.graphql.exceptions import GraphQLNotAllowedException
 
 from .commons import BaseDeleteMutation, BaseWriteMutation, TerrasoConnection
@@ -14,6 +22,7 @@ logger = structlog.get_logger(__name__)
 
 class LandscapeNode(DjangoObjectType):
     id = graphene.ID(source="pk", required=True)
+    area_types = graphene.List(graphene.String)
 
     class Meta:
         model = Landscape
@@ -31,11 +40,87 @@ class LandscapeNode(DjangoObjectType):
             "website",
             "location",
             "area_polygon",
+            "email",
+            "area_scalar_m2",
             "created_by",
             "associated_groups",
+            "population",
+            "associated_development_strategy",
+            "taxonomy_terms",
+            "partnership_status",
+            "profile_image",
+            "profile_image_description",
+        )
+
+        interfaces = (relay.Node,)
+        connection_class = TerrasoConnection
+
+    area_scalar_ha = graphene.Float()
+
+    def resolve_area_scalar_ha(self, info):
+        area = self.area_scalar_m2
+        return None if area is None else round(m2_to_hectares(area), 3)
+
+
+class LandscapeDevelopmentStrategyNode(DjangoObjectType):
+    id = graphene.ID(source="pk", required=True)
+
+    class Meta:
+        model = LandscapeDevelopmentStrategy
+        fields = (
+            "objectives",
+            "opportunities",
+            "problem_situtation",
+            "intervention_strategy",
         )
         interfaces = (relay.Node,)
         connection_class = TerrasoConnection
+
+
+def set_landscape_taxonomy_terms(landscape, taxonomy_type_terms):
+    if taxonomy_type_terms is not None:
+        taxonomy_terms = [
+            TaxonomyTerm.objects.get_or_create(
+                value_original=input_term["valueOriginal"],
+                value_es=input_term.get("valueEs", ""),
+                value_en=input_term.get("valueEn", ""),
+                type=input_term["type"],
+            )[0]
+            for type in taxonomy_type_terms
+            for input_term in taxonomy_type_terms[type]
+        ]
+
+        landscape.taxonomy_terms.set(taxonomy_terms)
+
+
+def set_landscape_groups(landscape, group_associations):
+    if group_associations is not None:
+        LandscapeGroup.objects.filter(
+            landscape=landscape, is_default_landscape_group=False
+        ).delete()
+        for group_association in group_associations:
+            group = Group.objects.get(slug=group_association["slug"])
+            landscape_group = LandscapeGroup(
+                group=group, landscape=landscape, is_default_landscape_group=False
+            )
+            if "isPartnership" in group_association:
+                landscape_group.is_partnership = group_association["isPartnership"]
+            if "partnershipYear" in group_association:
+                landscape_group.partnership_year = group_association["partnershipYear"]
+            landscape_group.save()
+
+
+def set_landscape_development_strategy(landscape, development_strategy_input):
+    if development_strategy_input is not None:
+        LandscapeDevelopmentStrategy.objects.filter(landscape=landscape).delete()
+        development_strategy = LandscapeDevelopmentStrategy(
+            objectives=development_strategy_input["objectives"],
+            opportunities=development_strategy_input["opportunities"],
+            problem_situtation=development_strategy_input["problemSitutation"],
+            intervention_strategy=development_strategy_input["interventionStrategy"],
+            landscape=landscape,
+        )
+        development_strategy.save()
 
 
 class LandscapeAddMutation(BaseWriteMutation):
@@ -49,15 +134,34 @@ class LandscapeAddMutation(BaseWriteMutation):
         website = graphene.String()
         location = graphene.String()
         area_polygon = graphene.JSONString()
+        email = graphene.String()
+        area_types = graphene.JSONString()
+        population = graphene.Int()
+        taxonomy_type_terms = graphene.JSONString()
+        partnership_status = graphene.String()
+        group_associations = graphene.JSONString()
 
     @classmethod
     def mutate_and_get_payload(cls, root, info, **kwargs):
-        user = info.context.user
+        with transaction.atomic():
+            user = info.context.user
 
-        if not cls.is_update(kwargs):
-            kwargs["created_by"] = user
+            if not cls.is_update(kwargs):
+                kwargs["created_by"] = user
 
-        return super().mutate_and_get_payload(root, info, **kwargs)
+            taxonomy_type_terms = (
+                kwargs.pop("taxonomy_type_terms") if "taxonomy_type_terms" in kwargs else None
+            )
+            group_associations = (
+                kwargs.pop("group_associations") if "group_associations" in kwargs else None
+            )
+
+            result = super().mutate_and_get_payload(root, info, **kwargs)
+
+            set_landscape_taxonomy_terms(result.landscape, taxonomy_type_terms)
+            set_landscape_groups(result.landscape, group_associations)
+
+            return cls(landscape=result.landscape)
 
 
 class LandscapeUpdateMutation(BaseWriteMutation):
@@ -72,22 +176,48 @@ class LandscapeUpdateMutation(BaseWriteMutation):
         website = graphene.String()
         location = graphene.String()
         area_polygon = graphene.JSONString()
+        email = graphene.String()
+        area_types = graphene.JSONString()
+        population = graphene.Int()
+        taxonomy_type_terms = graphene.JSONString()
+        partnership_status = graphene.String()
+        group_associations = graphene.JSONString()
+        development_strategy = graphene.JSONString()
+        profile_image = graphene.String()
+        profile_image_description = graphene.String()
 
     @classmethod
     def mutate_and_get_payload(cls, root, info, **kwargs):
-        user = info.context.user
-        landscape_id = kwargs["id"]
+        with transaction.atomic():
+            user = info.context.user
+            landscape_id = kwargs["id"]
 
-        if not user.has_perm(Landscape.get_perm("change"), obj=landscape_id):
-            logger.info(
-                "Attempt to update a Landscape, but user has no permission",
-                extra={"user_id": user.pk, "landscape_id": landscape_id},
+            if not user.has_perm(Landscape.get_perm("change"), obj=landscape_id):
+                logger.info(
+                    "Attempt to update a Landscape, but user has no permission",
+                    extra={"user_id": user.pk, "landscape_id": landscape_id},
+                )
+                raise GraphQLNotAllowedException(
+                    model_name=Landscape.__name__, operation=MutationTypes.UPDATE
+                )
+
+            taxonomy_type_terms = (
+                kwargs.pop("taxonomy_type_terms") if "taxonomy_type_terms" in kwargs else None
             )
-            raise GraphQLNotAllowedException(
-                model_name=Landscape.__name__, operation=MutationTypes.UPDATE
+            group_associations = (
+                kwargs.pop("group_associations") if "group_associations" in kwargs else None
+            )
+            development_strategy_input = (
+                kwargs.pop("development_strategy") if "development_strategy" in kwargs else None
             )
 
-        return super().mutate_and_get_payload(root, info, **kwargs)
+            result = super().mutate_and_get_payload(root, info, **kwargs)
+
+            set_landscape_taxonomy_terms(result.landscape, taxonomy_type_terms)
+            set_landscape_groups(result.landscape, group_associations)
+            set_landscape_development_strategy(result.landscape, development_strategy_input)
+
+            return result
 
 
 class LandscapeDeleteMutation(BaseDeleteMutation):

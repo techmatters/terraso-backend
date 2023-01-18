@@ -11,7 +11,7 @@ from apps.graphql.exceptions import (
     GraphQLValidationException,
 )
 
-from .commons import BaseDeleteMutation, TerrasoConnection
+from .commons import BaseDeleteMutation, BaseMutation, TerrasoConnection
 from .constants import MutationTypes
 
 logger = structlog.get_logger(__name__)
@@ -28,13 +28,20 @@ class LandscapeGroupNode(DjangoObjectType):
             "group": ["exact"],
             "group__slug": ["icontains"],
             "is_default_landscape_group": ["exact"],
+            "is_partnership": ["exact"],
         }
-        fields = ("landscape", "group", "is_default_landscape_group")
+        fields = (
+            "landscape",
+            "group",
+            "is_default_landscape_group",
+            "is_partnership",
+            "partnership_year",
+        )
         interfaces = (relay.Node,)
         connection_class = TerrasoConnection
 
 
-class LandscapeGroupAddMutation(relay.ClientIDMutation):
+class LandscapeGroupAddMutation(BaseMutation):
     landscape_group = graphene.Field(LandscapeGroupNode)
 
     class Input:

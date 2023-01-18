@@ -1,5 +1,7 @@
 from django.db import models
 from django.utils import timezone
+from django.utils.translation import gettext_lazy as _
+from safedelete.models import SOFT_DELETE
 
 from apps.core.models import BaseModel, Group, User
 from apps.shared_data import permission_rules as perm_rules
@@ -34,14 +36,29 @@ class DataEntry(BaseModel):
         User who created the resource
     """
 
+    # file will not be deleted in cascade
+    _safedelete_policy = SOFT_DELETE
+
     name = models.CharField(max_length=128)
     description = models.TextField(blank=True, default="")
-    resource_type = models.CharField(max_length=255)
+
+    ENTRY_TYPE_FILE = "file"
+    ENTRY_TYPE_LINK = "link"
+    MEMBERSHIP_TYPES = (
+        (ENTRY_TYPE_FILE, _("File")),
+        (ENTRY_TYPE_LINK, _("Link")),
+    )
+    entry_type = models.CharField(
+        max_length=32,
+        choices=MEMBERSHIP_TYPES,
+    )
+
+    resource_type = models.CharField(max_length=255, blank=True, default="")
     url = models.URLField()
-    size = models.PositiveBigIntegerField(null=True)
+    size = models.PositiveBigIntegerField(null=True, blank=True)
 
     groups = models.ManyToManyField(Group, related_name="data_entries")
-    created_by = models.ForeignKey(User, on_delete=models.PROTECT)
+    created_by = models.ForeignKey(User, null=True, on_delete=models.DO_NOTHING)
     file_removed_at = models.DateTimeField(blank=True, null=True)
 
     class Meta(BaseModel.Meta):
@@ -83,6 +100,7 @@ class DataEntry(BaseModel):
         return dict(
             id=str(self.id),
             name=self.name,
+            entry_type=self.entry_type,
             description=self.description,
             url=self.signed_url,
             resource_type=self.resource_type,
@@ -93,3 +111,9 @@ class DataEntry(BaseModel):
 
     def __str__(self):
         return self.name
+
+    @classmethod
+    def get_entry_type_from_text(cls, entry_type):
+        if entry_type and entry_type.lower() == cls.ENTRY_TYPE_FILE:
+            return cls.ENTRY_TYPE_FILE
+        return cls.ENTRY_TYPE_LINK

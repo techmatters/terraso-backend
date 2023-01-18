@@ -54,6 +54,7 @@ def test_data_entry_update_by_non_creator_fails_due_permission_check(
             dataEntry {
               id
             }
+            errors
           }
         }
         """,
@@ -61,8 +62,8 @@ def test_data_entry_update_by_non_creator_fails_due_permission_check(
     )
     response = response.json()
 
-    assert "errors" in response
-    assert "update_not_allowed" in response["errors"][0]["message"]
+    assert "errors" in response["data"]["updateDataEntry"]
+    assert "update_not_allowed" in response["data"]["updateDataEntry"]["errors"][0]["message"]
 
 
 def test_data_entry_delete_by_creator_works(client_query, data_entries):
@@ -104,6 +105,7 @@ def test_data_entry_delete_by_non_creator_fails_due_permission_check(
             dataEntry {
               name
             }
+            errors
           }
         }
 
@@ -113,5 +115,5 @@ def test_data_entry_delete_by_non_creator_fails_due_permission_check(
 
     response = response.json()
 
-    assert "errors" in response
-    assert "delete_not_allowed" in response["errors"][0]["message"]
+    assert "errors" in response["data"]["deleteDataEntry"]
+    assert "delete_not_allowed" in response["data"]["deleteDataEntry"]["errors"][0]["message"]

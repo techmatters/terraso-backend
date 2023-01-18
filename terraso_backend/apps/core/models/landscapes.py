@@ -1,7 +1,11 @@
 import structlog
+from dirtyfields import DirtyFieldsMixin
 from django.db import models, transaction
+from django.utils.translation import gettext_lazy as _
 
 from apps.core import permission_rules as perm_rules
+from apps.core.geo import calculate_geojson_feature_area
+from apps.core.models.taxonomy_terms import TaxonomyTerm
 
 from .commons import BaseModel, SlugModel, validate_name
 from .groups import Group
@@ -10,7 +14,7 @@ from .users import User
 logger = structlog.get_logger(__name__)
 
 
-class Landscape(SlugModel):
+class Landscape(SlugModel, DirtyFieldsMixin):
     """
     This model represents a Landscape on Terraso platform.
 
@@ -25,11 +29,13 @@ class Landscape(SlugModel):
 
     fields_to_trim = ["name", "description"]
 
-    name = models.CharField(max_length=128, unique=True, validators=[validate_name])
+    name = models.CharField(max_length=128, validators=[validate_name])
     description = models.TextField(blank=True, default="")
     website = models.URLField(blank=True, default="")
     location = models.CharField(max_length=128, blank=True, default="")
     area_polygon = models.JSONField(blank=True, null=True)
+    email = models.EmailField(blank=True, default="")
+    area_scalar_m2 = models.FloatField(blank=True, null=True)
 
     created_by = models.ForeignKey(
         User,
@@ -40,6 +46,27 @@ class Landscape(SlugModel):
     )
     groups = models.ManyToManyField(Group, through="LandscapeGroup")
 
+    area_types = models.JSONField(blank=True, null=True)
+    taxonomy_terms = models.ManyToManyField(TaxonomyTerm)
+    population = models.IntegerField(blank=True, null=True)
+
+    PARTNERSHIP_STATUS_NONE = ""
+    PARTNERSHIP_STATUS_NO = "no"
+    PARTNERSHIP_STATUS_IN_PROGRESS = "in-progress"
+    PARTNERSHIP_STATUS_YES = "yes"
+
+    MEMBERSHIP_TYPES = (
+        (PARTNERSHIP_STATUS_NONE, _("")),
+        (PARTNERSHIP_STATUS_NO, _("No")),
+        (PARTNERSHIP_STATUS_IN_PROGRESS, _("In Progress")),
+        (PARTNERSHIP_STATUS_YES, _("Yes")),
+    )
+    partnership_status = models.CharField(
+        max_length=32, choices=MEMBERSHIP_TYPES, blank=True, default=PARTNERSHIP_STATUS_NONE
+    )
+    profile_image = models.URLField(blank=True, default="")
+    profile_image_description = models.TextField(blank=True, default="")
+
     field_to_slug = "name"
 
     class Meta(SlugModel.Meta):
@@ -47,8 +74,16 @@ class Landscape(SlugModel):
             "change": perm_rules.allowed_to_change_landscape,
             "delete": perm_rules.allowed_to_delete_landscape,
         }
+        _unique_fields = ["name"]
+        abstract = False
 
     def save(self, *args, **kwargs):
+        dirty_fields = self.get_dirty_fields()
+        if self.area_polygon and "area_polygon" in dirty_fields:
+            area_scalar_m2 = calculate_geojson_feature_area(self.area_polygon)
+            if area_scalar_m2 is not None:
+                self.area_scalar_m2 = round(area_scalar_m2, 3)
+
         with transaction.atomic():
             creating = not Landscape.objects.filter(pk=self.pk).exists()
 
@@ -65,6 +100,17 @@ class Landscape(SlugModel):
                     group=group, landscape=self, is_default_landscape_group=True
                 )
                 landscape_group.save()
+
+    def delete(self, *args, **kwargs):
+
+        default_group = self.get_default_group()
+
+        with transaction.atomic():
+            ret = super().delete(*args, **kwargs)
+            # default group should be deleted as well
+            default_group.delete()
+
+        return ret
 
     def get_default_group(self):
         """
@@ -89,6 +135,16 @@ class Landscape(SlugModel):
         return self.name
 
 
+class LandscapeDevelopmentStrategy(BaseModel):
+    objectives = models.TextField(blank=True, default="")
+    opportunities = models.TextField(blank=True, default="")
+    problem_situtation = models.TextField(blank=True, default="")
+    intervention_strategy = models.TextField(blank=True, default="")
+    landscape = models.ForeignKey(
+        Landscape, on_delete=models.CASCADE, related_name="associated_development_strategy"
+    )
+
+
 class LandscapeGroup(BaseModel):
     """
     This model represents the association between a Landscape and a Group on
@@ -101,6 +157,8 @@ class LandscapeGroup(BaseModel):
     group = models.ForeignKey(Group, on_delete=models.CASCADE, related_name="associated_landscapes")
 
     is_default_landscape_group = models.BooleanField(blank=True, default=False)
+    is_partnership = models.BooleanField(blank=True, default=False)
+    partnership_year = models.IntegerField(blank=True, null=True)
 
     class Meta:
         rules_permissions = {
@@ -109,7 +167,7 @@ class LandscapeGroup(BaseModel):
         }
         constraints = (
             models.UniqueConstraint(
-                fields=("group", "landscape"),
+                fields=("group", "landscape", "is_partnership"),
                 condition=models.Q(deleted_at__isnull=True),
                 name="unique_active_landscape_group",
             ),

@@ -51,6 +51,7 @@ def test_group_associations_add_by_non_parent_manager_fails(client_query, groups
               parentGroup { slug }
               childGroup { slug }
             }
+            errors
           }
         }
         """,
@@ -63,8 +64,8 @@ def test_group_associations_add_by_non_parent_manager_fails(client_query, groups
     )
     response = response.json()
 
-    assert "errors" in response
-    assert "create_not_allowed" in response["errors"][0]["message"]
+    assert "errors" in response["data"]["addGroupAssociation"]
+    assert "create_not_allowed" in response["data"]["addGroupAssociation"]["errors"][0]["message"]
 
 
 def test_group_associations_add_duplicated(client_query, users, group_associations):
@@ -83,6 +84,7 @@ def test_group_associations_add_duplicated(client_query, users, group_associatio
               parentGroup { slug }
               childGroup { slug }
             }
+            errors
           }
         }
         """,
@@ -94,7 +96,7 @@ def test_group_associations_add_duplicated(client_query, users, group_associatio
         },
     )
 
-    error_result = response.json()["errors"][0]
+    error_result = response.json()["data"]["addGroupAssociation"]["errors"][0]
 
     assert "duplicate key value" in error_result["message"]
 
@@ -111,6 +113,7 @@ def test_group_associations_add_parent_group_not_found(client_query, groups):
               parentGroup { slug }
               childGroup { slug }
             }
+            errors
           }
         }
         """,
@@ -123,8 +126,8 @@ def test_group_associations_add_parent_group_not_found(client_query, groups):
     )
     response = response.json()
 
-    assert "errors" in response
-    assert "not_found" in response["errors"][0]["message"]
+    assert "errors" in response["data"]["addGroupAssociation"]
+    assert "not_found" in response["data"]["addGroupAssociation"]["errors"][0]["message"]
 
 
 def test_group_associations_add_child_group_not_found(client_query, groups):
@@ -139,6 +142,7 @@ def test_group_associations_add_child_group_not_found(client_query, groups):
               parentGroup { slug }
               childGroup { slug }
             }
+            errors
           }
         }
         """,
@@ -151,8 +155,8 @@ def test_group_associations_add_child_group_not_found(client_query, groups):
     )
     response = response.json()
 
-    assert "errors" in response
-    assert "not_found" in response["errors"][0]["message"]
+    assert "errors" in response["data"]["addGroupAssociation"]
+    assert "not_found" in response["data"]["addGroupAssociation"]["errors"][0]["message"]
 
 
 def test_group_associations_delete_by_parent_manager(client_query, users, group_associations):
@@ -218,6 +222,7 @@ def test_group_associations_delete_by_non_manager_fail(client_query, group_assoc
               parentGroup { slug }
               childGroup { slug }
             }
+            errors
           }
         }
         """,
@@ -225,5 +230,7 @@ def test_group_associations_delete_by_non_manager_fail(client_query, group_assoc
     )
     response = response.json()
 
-    assert "errors" in response
-    assert "delete_not_allowed" in response["errors"][0]["message"]
+    assert "errors" in response["data"]["deleteGroupAssociation"]
+    assert (
+        "delete_not_allowed" in response["data"]["deleteGroupAssociation"]["errors"][0]["message"]
+    )

@@ -3,6 +3,7 @@ from graphene_django.filter import DjangoFilterConnectionField
 
 from .commons import TerrasoRelayNode
 from .data_entries import (
+    DataEntryAddMutation,
     DataEntryDeleteMutation,
     DataEntryNode,
     DataEntryUpdateMutation,
@@ -35,6 +36,7 @@ from .memberships import (
     MembershipNode,
     MembershipUpdateMutation,
 )
+from .taxnomy_terms import TaxonomyTermNode
 from .users import (
     UserAddMutation,
     UserDeleteMutation,
@@ -70,6 +72,8 @@ class Query(graphene.ObjectType):
     data_entries = DjangoFilterConnectionField(DataEntryNode)
     visualization_config = TerrasoRelayNode.Field(VisualizationConfigNode)
     visualization_configs = DjangoFilterConnectionField(VisualizationConfigNode)
+    taxonomy_term = TerrasoRelayNode.Field(TaxonomyTermNode)
+    taxonomy_terms = DjangoFilterConnectionField(TaxonomyTermNode)
 
 
 class Mutations(graphene.ObjectType):
@@ -91,6 +95,7 @@ class Mutations(graphene.ObjectType):
     delete_membership = MembershipDeleteMutation.Field()
     update_user_preference = UserPreferenceUpdate.Field()
     delete_user_preference = UserPreferenceDelete.Field()
+    add_data_entry = DataEntryAddMutation.Field()
     update_data_entry = DataEntryUpdateMutation.Field()
     delete_data_entry = DataEntryDeleteMutation.Field()
     add_visualization_config = VisualizationConfigAddMutation.Field()

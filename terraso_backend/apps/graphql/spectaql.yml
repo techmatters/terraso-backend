@@ -5,7 +5,7 @@ servers:
   - url: https://api.terraso.org/graphql/
     description: Production Server
     production: true
-  - url: https://api.staging.terraso.org/graphql/
+  - url: https://api.staging.terraso.net/graphql/
     description: Staging Server
     production: false
 

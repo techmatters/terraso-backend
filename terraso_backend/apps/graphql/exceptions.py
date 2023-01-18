@@ -14,7 +14,6 @@ class GraphQLValidationException(Exception):
     @classmethod
     def from_validation_error(cls, validation_error, model_name=""):
         error_messages = []
-
         for field, validation_errors in validation_error.error_dict.items():
             for error in validation_errors:
                 error_messages.append(

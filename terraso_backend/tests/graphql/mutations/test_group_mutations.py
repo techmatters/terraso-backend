@@ -65,15 +65,15 @@ def test_groups_add_duplicated(client_query, groups):
               id
               name
             }
+            errors
           }
         }
         """,
         variables={"input": {"name": group_name}},
     )
-    error_result = response.json()["errors"][0]
+    error_result = response.json()["data"]["addGroup"]["errors"][0]
 
     assert error_result
-
     error_message = json.loads(error_result["message"])[0]
     assert error_message["code"] == "unique"
     assert error_message["context"]["field"] == "name"
@@ -89,12 +89,13 @@ def test_groups_add_duplicated_by_slug(client_query, groups):
               id
               name
             }
+            errors
           }
         }
         """,
         variables={"input": {"name": group_name.upper()}},
     )
-    error_result = response.json()["errors"][0]
+    error_result = response.json()["data"]["addGroup"]["errors"][0]
     assert error_result
 
     error_message = json.loads(error_result["message"])[0]
@@ -127,6 +128,7 @@ def test_groups_update_by_manager_works(client_query, groups, users):
               email
               membershipType
             }
+            errors
           }
         }
         """,
@@ -151,6 +153,7 @@ def test_groups_update_by_member_fails_due_permission_check(client_query, groups
             group {
               id
             }
+            errors
           }
         }
         """,
@@ -158,8 +161,8 @@ def test_groups_update_by_member_fails_due_permission_check(client_query, groups
     )
     response = response.json()
 
-    assert "errors" in response
-    assert "update_not_allowed" in response["errors"][0]["message"]
+    assert "errors" in response["data"]["updateGroup"]
+    assert "update_not_allowed" in response["data"]["updateGroup"]["errors"][0]["message"]
 
 
 def test_groups_delete_by_manager(client_query, managed_groups):
@@ -195,6 +198,7 @@ def test_groups_delete_by_non_manager(client_query, groups):
             group {
               slug
             }
+            errors
           }
         }
 
@@ -204,5 +208,5 @@ def test_groups_delete_by_non_manager(client_query, groups):
 
     response = response.json()
 
-    assert "errors" in response
-    assert "delete_not_allowed" in response["errors"][0]["message"]
+    assert "errors" in response["data"]["deleteGroup"]
+    assert "delete_not_allowed" in response["data"]["deleteGroup"]["errors"][0]["message"]

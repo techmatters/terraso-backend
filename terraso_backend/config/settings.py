@@ -65,12 +65,14 @@ TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
         "APP_DIRS": True,
+        "DIRS": [os.path.join(BASE_DIR, "custom_templates")],
         "OPTIONS": {
             "context_processors": [
                 "django.template.context_processors.debug",
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
+                "apps.core.context_processors.restore_allowed",
             ],
         },
     },
@@ -180,7 +182,6 @@ structlog.configure(
         structlog.processors.UnicodeDecoder(),
         structlog.stdlib.ProcessorFormatter.wrap_for_formatter,
     ],
-    context_class=structlog.threadlocal.wrap_dict(dict),
     logger_factory=structlog.stdlib.LoggerFactory(),
     wrapper_class=structlog.stdlib.BoundLogger,
     cache_logger_on_first_use=True,
@@ -188,6 +189,7 @@ structlog.configure(
 
 GRAPHENE = {
     "SCHEMA": "apps.graphql.schema.schema",
+    "TESTING_ENDPOINT": "/graphql/",
 }
 
 WEB_CLIENT_URL = config("WEB_CLIENT_ENDPOINT", default="")
@@ -238,8 +240,14 @@ DATA_ENTRY_ACCEPTED_EXTENSIONS = [
     ".xls",
 ]
 
+DB_BACKUP_S3_BUCKET = config("DB_BACKUP_S3_BUCKET", default="")
+ALLOW_RESTORE_FROM_BACKUP = config("ALLOW_RESTORE_FROM_BACKUP", default="false").lower() == "true"
+DB_RESTORE_CONFIG_FILE = config("DB_RESTORE_CONFIG_FILE", default="")
+
 AWS_ACCESS_KEY_ID = config("AWS_ACCESS_KEY_ID", default="")
 AWS_SECRET_ACCESS_KEY = config("AWS_SECRET_ACCESS_KEY", default="")
 AWS_S3_REGION_NAME = config("AWS_S3_REGION_NAME", default="us-east-2")
 
 PLAUSIBLE_URL = config("PLAUSIBLE_URL", default="https://plausible.io/api/event")
+RENDER_API_URL = config("RENDER_API_URL", default="https://api.render.com/v1/")
+RENDER_API_TOKEN = config("RENDER_API_TOKEN", default="")

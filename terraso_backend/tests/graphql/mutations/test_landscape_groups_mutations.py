@@ -64,6 +64,7 @@ def test_landscape_groups_add_by_non_landscape_manager_not_allowed(
               }
               isDefaultLandscapeGroup
             }
+            errors
           }
         }
         """,
@@ -76,8 +77,8 @@ def test_landscape_groups_add_by_non_landscape_manager_not_allowed(
     )
     response = response.json()
 
-    assert "errors" in response
-    assert "create_not_allowed" in response["errors"][0]["message"]
+    assert "errors" in response["data"]["addLandscapeGroup"]
+    assert "create_not_allowed" in response["data"]["addLandscapeGroup"]["errors"][0]["message"]
 
 
 def test_landscape_groups_add_duplicated(client_query, users, landscape_groups):
@@ -100,6 +101,7 @@ def test_landscape_groups_add_duplicated(client_query, users, landscape_groups):
               }
               isDefaultLandscapeGroup
             }
+            errors
           }
         }
         """,
@@ -110,7 +112,7 @@ def test_landscape_groups_add_duplicated(client_query, users, landscape_groups):
             }
         },
     )
-    error_result = response.json()["errors"][0]
+    error_result = response.json()["data"]["addLandscapeGroup"]["errors"][0]
 
     assert "duplicate key" in error_result["message"]
 
@@ -132,6 +134,7 @@ def test_landscape_groups_add_landscape_not_found(client_query, groups):
               }
               isDefaultLandscapeGroup
             }
+            errors
           }
         }
         """,
@@ -144,8 +147,8 @@ def test_landscape_groups_add_landscape_not_found(client_query, groups):
     )
     response = response.json()
 
-    assert "errors" in response
-    assert "not_found" in response["errors"][0]["message"]
+    assert "errors" in response["data"]["addLandscapeGroup"]
+    assert "not_found" in response["data"]["addLandscapeGroup"]["errors"][0]["message"]
 
 
 def test_landscape_groups_add_group_not_found(client_query, managed_landscapes):
@@ -165,6 +168,7 @@ def test_landscape_groups_add_group_not_found(client_query, managed_landscapes):
               }
               isDefaultLandscapeGroup
             }
+            errors
           }
         }
         """,
@@ -177,8 +181,8 @@ def test_landscape_groups_add_group_not_found(client_query, managed_landscapes):
     )
     response = response.json()
 
-    assert "errors" in response
-    assert "not_found" in response["errors"][0]["message"]
+    assert "errors" in response["data"]["addLandscapeGroup"]
+    assert "not_found" in response["data"]["addLandscapeGroup"]["errors"][0]["message"]
 
 
 def test_landscape_groups_delete_by_group_manager(client_query, users, landscape_groups):
@@ -244,6 +248,7 @@ def test_landscape_groups_delete_by_non_managers_not_allowed(client_query, users
               landscape { slug }
               group { slug }
             }
+            errors
           }
         }
         """,
@@ -251,8 +256,8 @@ def test_landscape_groups_delete_by_non_managers_not_allowed(client_query, users
     )
     response = response.json()
 
-    assert "errors" in response
-    assert "delete_not_allowed" in response["errors"][0]["message"]
+    assert "errors" in response["data"]["deleteLandscapeGroup"]
+    assert "delete_not_allowed" in response["data"]["deleteLandscapeGroup"]["errors"][0]["message"]
 
 
 def test_landscape_groups_delete_not_found(client_query, users):
@@ -264,6 +269,7 @@ def test_landscape_groups_delete_not_found(client_query, users):
               landscape { slug }
               group { slug }
             }
+            errors
           }
         }
         """,
@@ -271,5 +277,5 @@ def test_landscape_groups_delete_not_found(client_query, users):
     )
     response = response.json()
 
-    assert "errors" in response
-    assert "not_found" in response["errors"][0]["message"]
+    assert "errors" in response["data"]["deleteLandscapeGroup"]
+    assert "not_found" in response["data"]["deleteLandscapeGroup"]["errors"][0]["message"]

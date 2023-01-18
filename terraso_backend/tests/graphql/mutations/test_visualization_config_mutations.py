@@ -62,6 +62,7 @@ def test_visualization_config_add_fails_due_uniqueness_check(
             visualizationConfig {
               id
             }
+            errors
           }
         }
         """,
@@ -69,8 +70,10 @@ def test_visualization_config_add_fails_due_uniqueness_check(
     )
     response = response.json()
 
-    assert "errors" in response
-    error_message = json.loads(response["errors"][0]["message"])[0]
+    assert "errors" in response["data"]["addVisualizationConfig"]
+    error_message = json.loads(response["data"]["addVisualizationConfig"]["errors"][0]["message"])[
+        0
+    ]
     assert error_message["code"] == "unique"
 
 
@@ -120,6 +123,7 @@ def test_visualization_config_update_by_non_creator_fails_due_permission_check(
             visualizationConfig {
               id
             }
+            errors
           }
         }
         """,
@@ -127,8 +131,11 @@ def test_visualization_config_update_by_non_creator_fails_due_permission_check(
     )
     response = response.json()
 
-    assert "errors" in response
-    assert "update_not_allowed" in response["errors"][0]["message"]
+    assert "errors" in response["data"]["updateVisualizationConfig"]
+    assert (
+        "update_not_allowed"
+        in response["data"]["updateVisualizationConfig"]["errors"][0]["message"]
+    )
 
 
 def test_visualization_config_delete_by_creator_works(client_query, visualization_configs):
@@ -172,6 +179,7 @@ def test_visualization_config_delete_by_non_creator_fails_due_permission_check(
             visualizationConfig {
               configuration
             }
+            errors
           }
         }
 
@@ -181,5 +189,8 @@ def test_visualization_config_delete_by_non_creator_fails_due_permission_check(
 
     response = response.json()
 
-    assert "errors" in response
-    assert "delete_not_allowed" in response["errors"][0]["message"]
+    assert "errors" in response["data"]["deleteVisualizationConfig"]
+    assert (
+        "delete_not_allowed"
+        in response["data"]["deleteVisualizationConfig"]["errors"][0]["message"]
+    )
