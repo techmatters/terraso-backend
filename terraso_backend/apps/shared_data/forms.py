@@ -4,7 +4,6 @@ import pathlib
 import magic
 import structlog
 from django import forms
-from django.conf import settings
 from django.core.exceptions import ValidationError
 
 from apps.core.models import Group
