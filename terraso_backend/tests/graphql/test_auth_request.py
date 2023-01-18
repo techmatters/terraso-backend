@@ -25,7 +25,7 @@ def test_graphql_query_with_expired_token_returns_401_error_when_debug_is_off(
     assert "error" in response.json()
 
 
-def test_graphql_query_with_expired_token_returns_ok_when_debug_is_on(
+def test_graphql_query_with_expired_token_returns_not_ok_when_debug_is_on(
     settings, expired_client_query
 ):
     settings.DEBUG = True
@@ -43,4 +43,4 @@ def test_graphql_query_with_expired_token_returns_ok_when_debug_is_on(
         }
         """
     )
-    assert response.status_code == 200
+    assert response.status_code == 401
