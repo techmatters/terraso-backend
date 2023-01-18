@@ -35,7 +35,7 @@ class Group(SlugModel):
     fields_to_trim = ["name", "description"]
 
     name = models.CharField(max_length=128, validators=[validate_name])
-    description = models.TextField(max_length=512, blank=True, default="")
+    description = models.TextField(max_length=2048, blank=True, default="")
     website = models.URLField(blank=True, default="")
     email = models.EmailField(blank=True, default="")
 
