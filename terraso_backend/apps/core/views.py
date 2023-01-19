@@ -61,7 +61,9 @@ class ParseGeoFileView(AuthenticationRequiredMixin, FormView):
                     status=400,
                 )
         else:
-            return JsonResponse({"error": "File type not supported. File type: {file.content_type}"}, status=400)
+            return JsonResponse(
+                {"error": f"File type not supported. File type: {file.content_type}"}, status=400
+            )
 
         return JsonResponse({"geojson": geojson})
 
