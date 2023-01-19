@@ -55,7 +55,7 @@ class ParseGeoFileView(AuthenticationRequiredMixin, FormView):
             try:
                 geojson = parse_kml_file(file)
             except Exception as e:
-                logger.exception("Error when parsing KML file. File name: {file.name}", error=e)
+                logger.exception(f"Error when parsing KML file. File name: {file.name}", error=e)
                 return JsonResponse(
                     {"errors": [{"message": json.dumps([{"code": "invalid_kml_file"}])}]},
                     status=400,
