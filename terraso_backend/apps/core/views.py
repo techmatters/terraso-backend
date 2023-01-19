@@ -26,8 +26,10 @@ from django.views.generic.edit import FormView
 from apps.auth.mixins import AuthenticationRequiredMixin
 from apps.core.gis.parsers import (
     is_kml_file_extension,
+    is_kmz_file_extension,
     is_shape_file_extension,
     parse_kml_file,
+    parse_kmz_file,
     parse_shapefile,
 )
 from apps.core.models import BackgroundTask, Group, Landscape, User
@@ -58,6 +60,15 @@ class ParseGeoFileView(AuthenticationRequiredMixin, FormView):
                 logger.exception(f"Error when parsing KML file. File name: {file.name}", error=e)
                 return JsonResponse(
                     {"errors": [{"message": json.dumps([{"code": "invalid_kml_file"}])}]},
+                    status=400,
+                )
+        elif is_kmz_file_extension(file):
+            try:
+                geojson = parse_kmz_file(file)
+            except Exception as e:
+                logger.exception(f"Error when parsing KMZ file. File name: {file.name}", error=e)
+                return JsonResponse(
+                    {"errors": [{"message": json.dumps([{"code": "invalid_kmz_file"}])}]},
                     status=400,
                 )
         else:

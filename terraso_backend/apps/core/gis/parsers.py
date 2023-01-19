@@ -16,11 +16,34 @@ def is_shape_file_extension(file):
 
 
 def is_kml_file_extension(file):
-    return file.name.endswith(".kml") or file.name.endswith(".kmz")
+    return file.name.endswith(".kml")
+
+
+def is_kmz_file_extension(file):
+    return file.name.endswith(".kmz")
 
 
 def parse_kml_file(file):
     gdf = gpd.read_file(file, driver="KML")
+    return json.loads(gdf.to_json())
+
+
+def parse_kmz_file(file):
+    tmp_folder = os.path.join("/tmp", str(uuid.uuid4()))
+    with zipfile.ZipFile(file, "r") as zip:
+        kml_filenames = [f for f in zip.namelist() if f.endswith(".kml")]
+
+        if not kml_filenames:
+            raise ValueError("Invalid kmz file")
+
+        kml_file = zip.extract(kml_filenames[0], tmp_folder)
+
+    gdf = gpd.read_file(kml_file, driver="KML")
+
+    # Delete extracted files
+    os.remove(os.path.join(tmp_folder, kml_filenames[0]))
+    os.rmdir(tmp_folder)
+
     return json.loads(gdf.to_json())
 
 
