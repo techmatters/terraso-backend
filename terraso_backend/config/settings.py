@@ -118,6 +118,10 @@ OAUTH2_PROVIDER = {
     },
     "OAUTH2_VALIDATOR_CLASS": "apps.auth.provider.oauth_validator.TerrasoOAuth2Validator",
     "OIDC_RSA_PRIVATE_KEY": config("OAUTH_OIDC_KEY", default="").replace("\\n", "\n"),
+    # for some reason I cannot figure out, the .well-known/openid-configuration
+    # endpoints always use http:// schema
+    # easiest way to force https:// is to provide this explicitly
+    "OIDC_ISS_ENDPOINT": config("OIDC_ISS_ENDPOINT", default="https://api.terraso.org/oauth/"),
     "PKCE_REQUIRED": False,
 }
 
