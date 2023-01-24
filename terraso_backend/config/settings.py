@@ -236,3 +236,5 @@ AWS_S3_REGION_NAME = config("AWS_S3_REGION_NAME", default="us-east-2")
 PLAUSIBLE_URL = config("PLAUSIBLE_URL", default="https://plausible.io/api/event")
 RENDER_API_URL = config("RENDER_API_URL", default="https://api.render.com/v1/")
 RENDER_API_TOKEN = config("RENDER_API_TOKEN", default="")
+
+DATA_UPLOAD_MAX_MEMORY_SIZE = 70000000  # 70MB

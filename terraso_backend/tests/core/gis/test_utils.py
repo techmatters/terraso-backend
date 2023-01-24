@@ -1,6 +1,9 @@
 import math
 
-from apps.core.geo import calculate_geojson_feature_area, calculate_geojson_polygon_area
+from apps.core.gis.utils import (
+    calculate_geojson_feature_area,
+    calculate_geojson_polygon_area,
+)
 
 
 def test_calculate_area(unit_polygon):

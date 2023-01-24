@@ -13,6 +13,7 @@ from .models import DataEntry
 
 logger = structlog.get_logger(__name__)
 
+
 mimetypes.init()
 
 

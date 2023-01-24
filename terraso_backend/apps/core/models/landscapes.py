@@ -4,7 +4,7 @@ from django.db import models, transaction
 from django.utils.translation import gettext_lazy as _
 
 from apps.core import permission_rules as perm_rules
-from apps.core.geo import calculate_geojson_feature_area
+from apps.core.gis.utils import calculate_geojson_feature_area
 from apps.core.models.taxonomy_terms import TaxonomyTerm
 
 from .commons import BaseModel, SlugModel, validate_name
