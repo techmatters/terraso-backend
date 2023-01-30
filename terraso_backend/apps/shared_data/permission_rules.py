@@ -52,3 +52,18 @@ def allowed_to_delete_visualization_config(user, visualization_config):
         .filter(group__in=visualization_config.data_entry.groups.all())
         .exists()
     )
+
+
+@rules.predicate
+def allowed_to_view_story_map(user, story_map):
+    return story_map.is_published
+
+
+@rules.predicate
+def allowed_to_change_story_map(user, visualization_config):
+    return visualization_config.created_by == user
+
+
+@rules.predicate
+def allowed_to_delete_story_map(user, visualization_config):
+    return visualization_config.created_by == user

@@ -51,6 +51,12 @@ from .memberships import (
     MembershipNode,
     MembershipUpdateMutation,
 )
+from .story_maps import (
+    StoryMapAddMutation,
+    StoryMapDeleteMutation,
+    StoryMapNode,
+    StoryMapUpdateMutation,
+)
 from .taxnomy_terms import TaxonomyTermNode
 from .users import (
     UserAddMutation,
@@ -89,6 +95,8 @@ class Query(graphene.ObjectType):
     visualization_configs = DjangoFilterConnectionField(VisualizationConfigNode)
     taxonomy_term = TerrasoRelayNode.Field(TaxonomyTermNode)
     taxonomy_terms = DjangoFilterConnectionField(TaxonomyTermNode)
+    story_map = TerrasoRelayNode.Field(StoryMapNode)
+    story_maps = DjangoFilterConnectionField(StoryMapNode)
 
 
 class Mutations(graphene.ObjectType):
@@ -116,6 +124,9 @@ class Mutations(graphene.ObjectType):
     add_visualization_config = VisualizationConfigAddMutation.Field()
     update_visualization_config = VisualizationConfigUpdateMutation.Field()
     delete_visualization_config = VisualizationConfigDeleteMutation.Field()
+    add_story_map = StoryMapAddMutation.Field()
+    update_story_map = StoryMapUpdateMutation.Field()
+    delete_story_map = StoryMapDeleteMutation.Field()
 
 
 schema = graphene.Schema(query=Query, mutation=Mutations)
