@@ -30,7 +30,7 @@ class StoryMap(SlugModel):
     is_published = models.BooleanField(blank=True, default=False)
 
     field_to_slug = "title"
-    fields_to_trim = ["name", "description"]
+    fields_to_trim = ["title"]
 
     class Meta(BaseModel.Meta):
         verbose_name_plural = "Story Maps"

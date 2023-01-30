@@ -44,6 +44,7 @@ class StoryMapNode(DjangoObjectType):
             "is_published",
             "created_by",
             "created_at",
+            "updated_at",
         )
         interfaces = (relay.Node,)
         connection_class = TerrasoConnection
@@ -60,6 +61,7 @@ class StoryMapAddMutation(BaseWriteMutation):
 
     class Input:
         title = graphene.String(required=True)
+        is_published = graphene.Boolean(required=True)
         configuration = graphene.JSONString(required=True)
 
     @classmethod
@@ -80,6 +82,7 @@ class StoryMapUpdateMutation(BaseWriteMutation):
     class Input:
         id = graphene.ID(required=True)
         title = graphene.String()
+        is_published = graphene.Boolean(required=True)
         configuration = graphene.JSONString()
 
     @classmethod
