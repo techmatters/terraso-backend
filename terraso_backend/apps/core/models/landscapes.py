@@ -1,10 +1,25 @@
+﻿# Copyright © 2021-2023 Technology Matters
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as published
+# by the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program. If not, see https://www.gnu.org/licenses/.
+
 import structlog
 from dirtyfields import DirtyFieldsMixin
 from django.db import models, transaction
 from django.utils.translation import gettext_lazy as _
 
 from apps.core import permission_rules as perm_rules
-from apps.core.geo import calculate_geojson_feature_area
+from apps.core.gis.utils import calculate_geojson_feature_area
 from apps.core.models.taxonomy_terms import TaxonomyTerm
 
 from .commons import BaseModel, SlugModel, validate_name

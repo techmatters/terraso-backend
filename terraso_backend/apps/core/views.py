@@ -1,3 +1,18 @@
+﻿# Copyright © 2021-2023 Technology Matters
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as published
+# by the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program. If not, see https://www.gnu.org/licenses/.
+
 import configparser
 import json
 import os
@@ -14,14 +29,69 @@ from django.contrib.sessions.models import Session
 from django.core import management
 from django.db import DatabaseError, transaction
 from django.db.transaction import get_connection
-from django.http import HttpResponse, HttpResponseNotAllowed, HttpResponseNotFound
+from django.http import (
+    HttpResponse,
+    HttpResponseNotAllowed,
+    HttpResponseNotFound,
+    JsonResponse,
+)
 from django.views import View
+from django.views.generic.edit import FormView
 
+from apps.auth.mixins import AuthenticationRequiredMixin
+from apps.core.gis.parsers import (
+    is_kml_file_extension,
+    is_kmz_file_extension,
+    is_shape_file_extension,
+    parse_kml_file,
+    parse_kmz_file,
+    parse_shapefile,
+)
 from apps.core.models import BackgroundTask, Group, Landscape, User
 
 logger = structlog.get_logger(__name__)
 
 RENDER_STATUS_JOB_CHECK_DELAY_SEC = 5
+
+
+class ParseGeoFileView(AuthenticationRequiredMixin, FormView):
+    def post(self, request, **kwargs):
+        file = request.FILES.get("file")
+
+        geojson = None
+        if is_shape_file_extension(file):
+            try:
+                geojson = parse_shapefile(file)
+            except Exception as e:
+                logger.exception(f"Error when parsing shapefile. File name: {file.name}", error=e)
+                return JsonResponse(
+                    {"errors": [{"message": json.dumps([{"code": "invalid_shapefile"}])}]},
+                    status=400,
+                )
+        elif is_kml_file_extension(file):
+            try:
+                geojson = parse_kml_file(file)
+            except Exception as e:
+                logger.exception(f"Error when parsing KML file. File name: {file.name}", error=e)
+                return JsonResponse(
+                    {"errors": [{"message": json.dumps([{"code": "invalid_kml_file"}])}]},
+                    status=400,
+                )
+        elif is_kmz_file_extension(file):
+            try:
+                geojson = parse_kmz_file(file)
+            except Exception as e:
+                logger.exception(f"Error when parsing KMZ file. File name: {file.name}", error=e)
+                return JsonResponse(
+                    {"errors": [{"message": json.dumps([{"code": "invalid_kmz_file"}])}]},
+                    status=400,
+                )
+        else:
+            return JsonResponse(
+                {"error": f"File type not supported. File type: {file.content_type}"}, status=400
+            )
+
+        return JsonResponse({"geojson": geojson})
 
 
 class HealthView(View):

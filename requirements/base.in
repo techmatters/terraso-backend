@@ -17,3 +17,4 @@ rules
 boto3
 pyproj
 shapely
+geopandas
