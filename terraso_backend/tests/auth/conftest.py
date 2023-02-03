@@ -58,7 +58,10 @@ def access_tokens_apple():
 
 @pytest.fixture
 def user():
-    return mixer.blend(User)
+    user = mixer.blend(User)
+    user.set_password("password")
+    user.save()
+    return user
 
 
 @pytest.fixture
