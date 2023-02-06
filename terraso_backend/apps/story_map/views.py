@@ -58,9 +58,9 @@ class StoryMapUpdateView(AuthenticationRequiredMixin, FormView):
         story_map.created_by = request.user
         story_map.title = form_data["title"]
 
-        config = json.loads(form_data["configuration"])
+        new_config = json.loads(form_data["configuration"])
 
-        story_map.configuration = handle_config_media(config, request)
+        story_map.configuration = handle_config_media(new_config, story_map.configuration, request)
         try:
             story_map.save()
         except IntegrityError as exc:
@@ -69,8 +69,8 @@ class StoryMapUpdateView(AuthenticationRequiredMixin, FormView):
         return JsonResponse(story_map.to_dict(), status=201)
 
 
-def handle_config_media(config, request):
-    for chapter in config["chapters"]:
+def handle_config_media(new_config, current_config, request):
+    for chapter in new_config["chapters"]:
         if "media" in chapter and "contentId" in chapter["media"]:
             file_id = chapter["media"]["contentId"]
             for file in request.FILES.getlist("files"):
@@ -82,7 +82,24 @@ def handle_config_media(config, request):
                     )
                     chapter["media"] = {"url": url, "type": chapter["media"]["type"]}
                     break
-    return config
+
+    # Delete changed media
+    current_media = [
+        chapter["media"]["url"]
+        for chapter in current_config["chapters"]
+        if chapter.get("media") and "url" in chapter["media"]
+    ]
+    new_media = [
+        chapter["media"]["url"]
+        for chapter in new_config["chapters"]
+        if chapter.get("media") and "url" in chapter["media"]
+    ]
+
+    for media_path in current_media:
+        if media_path not in new_media:
+            story_map_media_upload_service.delete_file(media_path)
+
+    return new_config
 
 
 def handle_integrity_error(exc):
