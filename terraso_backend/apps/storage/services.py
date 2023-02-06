@@ -60,6 +60,9 @@ class UploadService:
         self.storage.save(path, file)
         return path
 
+    def delete_file(self, path):
+        self.storage.delete(path)
+
     def get_path_on_storage(self, user_id, file_name):
         return f"{user_id}/{file_name}"
 
