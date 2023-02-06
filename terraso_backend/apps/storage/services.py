@@ -48,6 +48,18 @@ class UploadService:
         self.storage.save(path, file)
         return self.get_uploaded_file_url(path)
 
+    def upload_file_get_path(self, user_id, file, file_name=None):
+        if not file_name:
+            file_name = uuid.uuid4().hex
+
+        path = self.get_path_on_storage(user_id, file_name)
+
+        if self.storage.exists(path):
+            path = self._uniquify(path)
+
+        self.storage.save(path, file)
+        return path
+
     def get_path_on_storage(self, user_id, file_name):
         return f"{user_id}/{file_name}"
 
@@ -78,6 +90,10 @@ class UploadService:
             given_path = directory.joinpath(f"{file_name}_{counter}{file_extension}")
 
         return str(given_path)
+
+    def get_signed_url(self, path):
+        signed_url = self.storage.url(path)
+        return signed_url
 
 
 class ProfileImageService(UploadService):

@@ -41,5 +41,13 @@ class StoryMap(SlugModel):
         }
         _unique_fields = ["slug"]
 
+    def to_dict(self):
+        return dict(
+            id=str(self.id),
+            title=self.title,
+            is_published=self.is_published,
+            slug=self.slug,
+        )
+
     def __str__(self):
         return self.title
