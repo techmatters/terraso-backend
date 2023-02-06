@@ -19,6 +19,7 @@ import pytest
 from django.utils import timezone
 from freezegun import freeze_time
 from mixer.backend.django import mixer
+from oauth2_provider.models import AccessToken, Application
 
 from apps.auth.services import JWTService
 from apps.core.models import User
@@ -63,7 +64,23 @@ def user():
 
 @pytest.fixture
 def access_token(user):
-    return JWTService().create_access_token(user)
+
+    application = Application(
+        client_type="confidential",
+        authorization_grant_type="Authorization code",
+        name="Test Application",
+    )
+    application.save()
+    token_value = "2YotnFZFEjr1zCsicMWpAA"
+    token_model = AccessToken(
+        user=user,
+        expires=timezone.now() + timedelta(hours=1),
+        application=application,
+        token=token_value,
+        scope="openid email",
+    )
+    token_model.save()
+    return token_value
 
 
 @pytest.fixture

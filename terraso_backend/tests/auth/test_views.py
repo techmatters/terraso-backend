@@ -21,6 +21,7 @@ from django.urls import reverse
 from httpx import Response
 from mixer.backend.django import mixer
 from moto import mock_s3
+from oauth2_provider.views import UserInfoView
 
 from apps.auth.providers import AppleProvider, GoogleProvider
 from apps.core.models import User
@@ -244,3 +245,17 @@ def test_post_refresh_token_inactive_user(client, refresh_tokens_url, user, refr
 
     tokens_data = response.json()
     assert tokens_data["error"] == "User not found"
+
+
+@pytest.fixture
+def bearer_header(access_token):
+    return ("HTTP_AUTHORIZATION", "Bearer " + access_token)
+
+
+def test_userinfo_claims(rf, bearer_header, user):
+    req = rf.get(reverse("oauth2_provider:user-info"), **dict([bearer_header]))
+    req.user = user
+    resp = UserInfoView.as_view()(req)
+    assert resp.status_code == 200
+    resp_json = json.loads(resp.content)
+    assert resp_json["email"] == user.email
