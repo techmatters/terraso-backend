@@ -28,6 +28,7 @@ class StoryMap(SlugModel):
     configuration = models.JSONField(blank=True, null=True)
     created_by = models.ForeignKey(User, null=True, on_delete=models.DO_NOTHING)
     is_published = models.BooleanField(blank=True, default=False)
+    published_at = models.DateTimeField(blank=True, null=True)
 
     field_to_slug = "title"
     fields_to_trim = ["title"]
