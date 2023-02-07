@@ -17,6 +17,7 @@ import json
 import uuid
 from dataclasses import asdict
 
+import rules
 import structlog
 from django.core.exceptions import NON_FIELD_ERRORS, ValidationError
 from django.db import IntegrityError
@@ -52,10 +53,21 @@ class StoryMapAddView(AuthenticationRequiredMixin, FormView):
 
 class StoryMapUpdateView(AuthenticationRequiredMixin, FormView):
     def post(self, request, **kwargs):
+        user = request.user
         form_data = request.POST.copy()
 
         story_map = StoryMap.objects.get(id=form_data["id"])
-        story_map.created_by = request.user
+
+        if not rules.test_rule("allowed_to_change_story_map", user, story_map):
+            logger.info(
+                "Attempt to update a StoryMap, but user lacks permission",
+                extra={"user_id": user.pk, "story_map_id": str(story_map.id)},
+            )
+            error_message = ErrorMessage(
+                code="update", context=ErrorContext(model="StoryMap", field=NON_FIELD_ERRORS)
+            )
+            return JsonResponse({"errors": [{"message": [asdict(error_message)]}]}, status=400)
+
         story_map.title = form_data["title"]
 
         new_config = json.loads(form_data["configuration"])
@@ -99,7 +111,13 @@ def handle_config_media(new_config, current_config, request):
 
     for media_path in current_media:
         if media_path not in new_media:
-            story_map_media_upload_service.delete_file(media_path)
+            try:
+                story_map_media_upload_service.delete_file(media_path)
+            except Exception as e:
+                logger.exception(
+                    "Error deleting media file",
+                    extra={"media_path": media_path, "error": str(e)},
+                )
 
     return new_config
 
