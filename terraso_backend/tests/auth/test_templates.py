@@ -23,7 +23,7 @@ pytestmark = pytest.mark.django_db
 def test_authorization_template(client, user):
     application = Application(
         name="Test Application",
-        redirect_uris=("http://example.org"),
+        redirect_uris=("https://example.org"),
         user=user,
         client_type=Application.CLIENT_CONFIDENTIAL,
         authorization_grant_type=Application.GRANT_AUTHORIZATION_CODE,
@@ -35,11 +35,12 @@ def test_authorization_template(client, user):
         "client_id": application.client_id,
         "scope": "openid email",
         "state": "random_state_string",
-        "redirect_uri": "http://example.org",
+        "redirect_uri": "https://example.org",
         "response_type": "code",
         "nonce": "nonce",
     }
     url = reverse("oauth2_provider:authorize")
+    client.force_login(user)
     resp = client.get(url, query_data)
     assert resp.status_code == 200
     resp.render()
