@@ -17,7 +17,7 @@ from django.db import models
 from safedelete.models import SOFT_DELETE
 
 from apps.core.models import BaseModel, SlugModel, User
-from apps.shared_data import permission_rules as perm_rules
+from apps.story_map import permission_rules as perm_rules
 
 
 class StoryMap(SlugModel):
