@@ -52,8 +52,8 @@ class StoryMapNode(DjangoObjectType):
 
     def resolve_configuration(self, info):
         for chapter in self.configuration["chapters"]:
-            if "media" in chapter and "url" in chapter["media"]:
-                print(f"URL: {chapter['media']['url']}")
+            media = chapter.get("media")
+            if media and "url" in media:
                 signed_url = story_map_media_upload_service.get_signed_url(chapter["media"]["url"])
                 chapter["media"]["url"] = signed_url
 

@@ -71,17 +71,19 @@ class StoryMapUpdateView(AuthenticationRequiredMixin, FormView):
 
 def handle_config_media(new_config, current_config, request):
     for chapter in new_config["chapters"]:
-        if "media" in chapter and "contentId" in chapter["media"]:
-            file_id = chapter["media"]["contentId"]
-            for file in request.FILES.getlist("files"):
-                if file.name == file_id:
-                    url = story_map_media_upload_service.upload_file_get_path(
-                        str(request.user.id),
-                        file,
-                        file_name=uuid.uuid4(),
-                    )
-                    chapter["media"] = {"url": url, "type": chapter["media"]["type"]}
-                    break
+        media = chapter.get("media")
+        if media and "contentId" in media:
+            file_id = media["contentId"]
+            matching_file = next(
+                (file for file in request.FILES.getlist("files") if file.name == file_id), None
+            )
+            if matching_file:
+                url = story_map_media_upload_service.upload_file_get_path(
+                    str(request.user.id),
+                    matching_file,
+                    file_name=uuid.uuid4(),
+                )
+                chapter["media"] = {"url": url, "type": media["type"]}
 
     # Delete changed media
     current_media = [
