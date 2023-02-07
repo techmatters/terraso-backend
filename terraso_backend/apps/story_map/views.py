@@ -16,12 +16,14 @@
 import json
 import uuid
 from dataclasses import asdict
+from datetime import datetime
 
 import rules
 import structlog
 from django.core.exceptions import NON_FIELD_ERRORS, ValidationError
 from django.db import IntegrityError
 from django.http import JsonResponse
+from django.utils import timezone
 from django.views.generic.edit import FormView
 
 from apps.auth.mixins import AuthenticationRequiredMixin
@@ -45,6 +47,9 @@ class StoryMapAddView(AuthenticationRequiredMixin, FormView):
                 title=form_data["title"],
                 is_published=form_data["is_published"] == "true",
                 configuration=handle_config_media(config, request),
+                publisedAt=timezone.make_aware(datetime.now(), timezone.get_current_timezone())
+                if form_data["is_published"] == "true"
+                else None,
             )
         except IntegrityError as exc:
             return handle_integrity_error(exc)
@@ -70,6 +75,12 @@ class StoryMapUpdateView(AuthenticationRequiredMixin, FormView):
             return JsonResponse({"errors": [{"message": [asdict(error_message)]}]}, status=400)
 
         story_map.title = form_data["title"]
+
+        if form_data["is_published"] == "true" and not story_map.is_published:
+            story_map.published_at = timezone.make_aware(
+                datetime.now(), timezone.get_current_timezone()
+            )
+
         story_map.is_published = form_data["is_published"] == "true"
 
         new_config = json.loads(form_data["configuration"])

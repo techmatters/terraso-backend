@@ -13,6 +13,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see https://www.gnu.org/licenses/.
 
+import django_filters
 import graphene
 import structlog
 from django.db.models import Q
@@ -29,14 +30,25 @@ from .constants import MutationTypes
 logger = structlog.get_logger(__name__)
 
 
+class StoryMapFilterSet(django_filters.FilterSet):
+    created_by__email__not = django_filters.CharFilter(method="filter_created_by_email_not")
+
+    class Meta:
+        model = StoryMap
+        fields = {
+            "slug": ["exact", "icontains"],
+            "created_by__email": ["exact"],
+        }
+
+    def filter_created_by_email_not(self, queryset, name, value):
+        return queryset.exclude(created_by__email=value)
+
+
 class StoryMapNode(DjangoObjectType):
     id = graphene.ID(source="pk", required=True)
 
     class Meta:
         model = StoryMap
-        filter_fields = {
-            "slug": ["exact", "icontains"],
-        }
         fields = (
             "id",
             "slug",
@@ -46,7 +58,9 @@ class StoryMapNode(DjangoObjectType):
             "created_by",
             "created_at",
             "updated_at",
+            "published_at",
         )
+        filterset_class = StoryMapFilterSet
         interfaces = (relay.Node,)
         connection_class = TerrasoConnection
 
