@@ -43,6 +43,7 @@ class StoryMapAddView(AuthenticationRequiredMixin, FormView):
             story_map = StoryMap.objects.create(
                 created_by=request.user,
                 title=form_data["title"],
+                is_published=form_data["is_published"] == "true",
                 configuration=handle_config_media(config, request),
             )
         except IntegrityError as exc:
@@ -69,6 +70,7 @@ class StoryMapUpdateView(AuthenticationRequiredMixin, FormView):
             return JsonResponse({"errors": [{"message": [asdict(error_message)]}]}, status=400)
 
         story_map.title = form_data["title"]
+        story_map.is_published = form_data["is_published"] == "true"
 
         new_config = json.loads(form_data["configuration"])
 
