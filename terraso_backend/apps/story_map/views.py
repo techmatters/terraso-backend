@@ -46,8 +46,8 @@ class StoryMapAddView(AuthenticationRequiredMixin, FormView):
                 created_by=request.user,
                 title=form_data["title"],
                 is_published=form_data["is_published"] == "true",
-                configuration=handle_config_media(config, request),
-                publisedAt=timezone.make_aware(datetime.now(), timezone.get_current_timezone())
+                configuration=handle_config_media(config, None, request),
+                published_at=timezone.make_aware(datetime.now(), timezone.get_current_timezone())
                 if form_data["is_published"] == "true"
                 else None,
             )
@@ -109,6 +109,9 @@ def handle_config_media(new_config, current_config, request):
                     file_name=uuid.uuid4(),
                 )
                 chapter["media"] = {"url": url, "type": media["type"]}
+
+    if (current_config is None) or (not current_config.get("chapters")):
+        return new_config
 
     # Delete changed media
     current_media = [
