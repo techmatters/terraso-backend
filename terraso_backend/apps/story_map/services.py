@@ -24,7 +24,7 @@ class StoryMapMediaStorage(S3Boto3Storage):
 
 
 class StoryMapMediaUploadService(UploadService):
-    storage = StoryMapMediaStorage()
+    storage = StoryMapMediaStorage(custom_domain=None)
     base_url = settings.STORY_MAP_MEDIA_BASE_URL
 
     def get_path_on_storage(self, user_id, file_name):
