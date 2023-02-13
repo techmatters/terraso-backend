@@ -17,6 +17,7 @@ from django.db import models
 from safedelete.models import SOFT_DELETE
 
 from apps.core.models import BaseModel, SlugModel, User
+from apps.core.models.commons import validate_name
 from apps.story_map import permission_rules as perm_rules
 
 
@@ -24,7 +25,7 @@ class StoryMap(SlugModel):
     # file will not be deleted in cascade
     _safedelete_policy = SOFT_DELETE
 
-    title = models.CharField(max_length=128)
+    title = models.CharField(max_length=128, validators=[validate_name])
     configuration = models.JSONField(blank=True, null=True)
     created_by = models.ForeignKey(User, null=True, on_delete=models.DO_NOTHING)
     is_published = models.BooleanField(blank=True, default=False)
@@ -46,6 +47,8 @@ class StoryMap(SlugModel):
         return dict(
             id=str(self.id),
             title=self.title,
+            configuration=self.configuration,
+            created_by=str(self.created_by.id),
             is_published=self.is_published,
             slug=self.slug,
         )

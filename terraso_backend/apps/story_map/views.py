@@ -29,6 +29,7 @@ from django.views.generic.edit import FormView
 from apps.auth.mixins import AuthenticationRequiredMixin
 from apps.core.exceptions import ErrorContext, ErrorMessage
 
+from .forms import StoryMapForm
 from .models import StoryMap
 from .services import story_map_media_upload_service
 
@@ -41,15 +42,29 @@ class StoryMapAddView(AuthenticationRequiredMixin, FormView):
 
         config = json.loads(form_data["configuration"])
 
+        form_data["created_by"] = request.user
+        form_data["is_published"] = form_data["is_published"] == "true"
+        form_data["published_at"] = (
+            timezone.make_aware(datetime.now(), timezone.get_current_timezone())
+            if form_data["is_published"]
+            else None
+        )
+
+        entry_form = StoryMapForm(data=form_data)
+
+        if not entry_form.is_valid():
+            error_messages = get_error_messages(entry_form.errors.as_data())
+            return JsonResponse(
+                {"errors": [{"message": [asdict(e) for e in error_messages]}]}, status=400
+            )
+
         try:
             story_map = StoryMap.objects.create(
-                created_by=request.user,
+                created_by=form_data["created_by"],
                 title=form_data["title"],
-                is_published=form_data["is_published"] == "true",
+                is_published=form_data["is_published"],
                 configuration=handle_config_media(config, None, request),
-                published_at=timezone.make_aware(datetime.now(), timezone.get_current_timezone())
-                if form_data["is_published"] == "true"
-                else None,
+                published_at=form_data["published_at"],
             )
         except IntegrityError as exc:
             return handle_integrity_error(exc)
@@ -86,6 +101,15 @@ class StoryMapUpdateView(AuthenticationRequiredMixin, FormView):
         new_config = json.loads(form_data["configuration"])
 
         story_map.configuration = handle_config_media(new_config, story_map.configuration, request)
+
+        entry_form = StoryMapForm(data=story_map.to_dict())
+
+        if not entry_form.is_valid():
+            error_messages = get_error_messages(entry_form.errors.as_data())
+            return JsonResponse(
+                {"errors": [{"message": [asdict(e) for e in error_messages]}]}, status=400
+            )
+
         try:
             story_map.save()
         except IntegrityError as exc:
@@ -164,6 +188,25 @@ def from_validation_error(validation_error):
                 ErrorMessage(
                     code=error.code,
                     context=ErrorContext(model="StoryMap", field=field),
+                )
+            )
+
+    return error_messages
+
+
+def get_error_messages(validation_errors):
+    error_messages = []
+
+    for field, errors in validation_errors.items():
+        for error in errors:
+            error_messages.append(
+                ErrorMessage(
+                    code=error.code,
+                    context=ErrorContext(
+                        model="DataEntry",
+                        field=field,
+                        extra=error.message,
+                    ),
                 )
             )
 
