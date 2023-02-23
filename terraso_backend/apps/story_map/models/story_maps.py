@@ -22,7 +22,9 @@ from apps.story_map import permission_rules as perm_rules
 
 
 class StoryMap(SlugModel):
-    # file will not be deleted in cascade
+    # Story map will not be deleted in cascade, there are S3 resources linked to it.
+    # if eventuall we support user account hard deletion we will need to implement a
+    # custom delete method for S3 resources.
     _safedelete_policy = SOFT_DELETE
 
     title = models.CharField(max_length=128, validators=[validate_name])
