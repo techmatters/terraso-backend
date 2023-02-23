@@ -149,3 +149,52 @@ class AppleProvider:
             algorithm=self.JWT_ALGORITHM,
             headers=jwt_header,
         )
+
+
+class MicrosoftProvider:
+    OAUTH_BASE_URL = (
+        f"https://login.microsoft.com/{settings.MICROSOFT_TENANT}/oauth2/v2.0/authorize"
+    )
+    TOKEN_URI = f"https://login.microsoftonline.com/{settings.MICROSOFT_TENANT}/oauth2/v2.0/token"
+    CLIENT_ID = settings.MICROSOFT_CLIENT_ID
+    CLIENT_SECRET = settings.MICROSOFT_CLIENT_SECRET
+    REDIRECT_URI = settings.MICROSOFT_REDIRECT_URI
+    TENANT = settings.MICROSOFT_TENANT
+
+    @classmethod
+    def login_url(cls, state=None):
+        params = dict(
+            client_id=cls.CLIENT_ID,
+            response_type="code",
+            redirect_uri=cls.REDIRECT_URI,
+            scope="name email openid",
+            response_mode="form_post",
+        )
+        if state:
+            params["state"] = state
+        return cls.OAUTH_BASE_URL + urllib.parse.urlencode(params, quote_via=urllib.parse.quote)
+
+    @staticmethod
+    def _handle_exceptions(exc):
+        match exc:
+            case httpx.RequestError:
+                error_msg = f"Failed to get Microsoft token while requesting {exc.request.url!r}"
+                error = "request_error"
+            case httpx.HTTPStatusError:
+                error_msg = (
+                    f"Error response {exc.response.status_code} while "
+                    f"requesting {exc.request.url!r}."
+                )
+                error = "response_error"
+        return Tokens.from_microsoft(dict(error=error, error_description=error_msg))
+
+    def fetch_auth_tokens(self, authorization_code):
+        params = dict(
+            client_id=self.CLIENT_ID, code=authorization_code, grant_type="authorization_code"
+        )
+        try:
+            resp = httpx.post(self.TOKEN_URI, data=params)
+            resp.raise_for_error()
+        except httpx.RequestError | httpx.HTTPStatusError as exc:
+            return self._handle_exceptions(exc)
+        return Tokens.from_google(resp.json())
