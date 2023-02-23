@@ -155,7 +155,7 @@ def handle_config_media(new_config, current_config, request):
                 story_map_media_upload_service.delete_file(media_path)
             except Exception as e:
                 logger.exception(
-                    "Error deleting media file",
+                    "Unable to delete media file",
                     extra={"media_path": media_path, "error": str(e)},
                 )
 
