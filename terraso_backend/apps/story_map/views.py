@@ -164,14 +164,14 @@ def handle_config_media(new_config, current_config, request):
 
 def handle_integrity_error(exc):
     logger.info(
-        "Attempt to mutate an model, but it's not unique",
+        "Attempt to mutate an model, but it's not unique because of the title unique constraint",
         extra={"model": "StoryMap", "integrity_error": exc},
     )
 
     validation_error = ValidationError(
         message={
             NON_FIELD_ERRORS: ValidationError(
-                message="This StoryMap already exists",
+                message="This StoryMap title already exists",
                 code="unique",
             )
         },
