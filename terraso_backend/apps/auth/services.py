@@ -28,7 +28,7 @@ from django.utils import timezone
 
 from apps.storage.services import ProfileImageService
 
-from .providers import AppleProvider, GoogleProvider
+from .providers import AppleProvider, GoogleProvider, MicrosoftProvider
 
 logger = structlog.get_logger(__name__)
 User = get_user_model()
@@ -61,6 +61,21 @@ class AccountService:
             raise Exception(error_msg)
 
         return self._persist_user(tokens.open_id.email, first_name=first_name, last_name=last_name)
+
+    def sign_up_with_microsoft(self, authorization_code):
+        provider = MicrosoftProvider()
+        tokens = provider.fetch_auth_tokens(authorization_code)
+
+        if not tokens.is_valid:
+            error_msg = f"Error fetching auth tokens: {tokens.error_description}"
+            logger.error(error_msg)
+            raise Exception(error_msg)
+        return self._persist_user(
+            tokens.open_id.email,
+            first_name=tokens.open_id.given_name,
+            last_name=tokens.open_id.family_name,
+            profile_image_url=tokens.open_id.picture,
+        )
 
     def _persist_user(self, email, first_name="", last_name="", profile_image_url=None):
         user, created = User.objects.get_or_create(email=email)

@@ -25,7 +25,7 @@ from django.contrib.auth import logout as dj_logout
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.views import View
 
-from .providers import AppleProvider, GoogleProvider
+from .providers import AppleProvider, GoogleProvider, MicrosoftProvider
 from .services import AccountService, JWTService, PlausibleService
 
 logger = structlog.get_logger(__name__)
@@ -53,6 +53,12 @@ class AppleAuthorizeView(AbstractAuthorizeView):
     @property
     def provider(self):
         return AppleProvider
+
+
+class MicrosoftAuthorizeView(AbstractAuthorizeView):
+    @property
+    def provider(self):
+        return MicrosoftProvider
 
 
 class AbstractCallbackView(View):
@@ -149,6 +155,12 @@ class AppleCallbackView(AbstractCallbackView):
         return AccountService().sign_up_with_apple(
             self.authorization_code, first_name=first_name, last_name=last_name
         )
+
+
+class MicrosoftCallbackView(AbstractCallbackView):
+    @record_creation("microsoft")
+    def process_signup(self):
+        return AccountService().sign_up_with_microsoft(self.authorization_code)
 
 
 class RefreshAccessTokenView(View):
