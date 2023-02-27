@@ -50,7 +50,8 @@ class Command(BaseCommand):
     # 23 = taxonomy terms (data mgigratiion)
     # 27 = background tasks (table not dropped)
     # 28 = Spanish taxonomy terms (data migration)
-    CORE_MIGRATIONS_TO_SKIP = [23, 27, 28]
+    # 31 = agricultural data (data migration)
+    CORE_MIGRATIONS_TO_SKIP = [23, 27, 28, 31]
 
     def add_arguments(self, parser):
         group = parser.add_mutually_exclusive_group()
@@ -226,14 +227,14 @@ class Command(BaseCommand):
                     "SELECT tablename FROM pg_tables WHERE schemaname = 'public' "
                     "AND tablename NOT IN ('core_backgroundtask', 'django_session');"
                 )
-                tables_to_drop = cursor.fetchall()
+                tables_to_drop = set([row[0] for row in cursor.fetchall()])
                 if session_pk:
                     cursor.execute(
                         "DELETE FROM django_session WHERE session_key != %s", (str(session_pk),)
                     )
                 else:
                     cursor.execute("DELETE FROM django_session")
-                for (table,) in tables_to_drop:
+                for table in tables_to_drop:
                     cursor.execute(
                         sql.SQL("DROP TABLE IF EXISTS {} CASCADE").format(sql.Identifier(table))
                     )
@@ -261,6 +262,8 @@ class Command(BaseCommand):
                 if app_label == "sessions":
                     kwargs["fake_initial"] = True
                 management.call_command("migrate", app_label, verbosity=0, **kwargs)
+            # finish off any other projects
+            management.call_command("migrate", verbosity=0)
 
             management.call_command(
                 "loaddata",
