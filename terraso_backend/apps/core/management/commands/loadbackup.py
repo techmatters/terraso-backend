@@ -16,7 +16,6 @@
 import json
 import os
 import re
-from configparser import ConfigParser
 from pathlib import Path
 from tempfile import mkstemp
 from urllib.parse import urlsplit, urlunsplit
@@ -86,17 +85,12 @@ class Command(BaseCommand):
         return urlunsplit((scheme, new_hostname, path, query, fragment))
 
     @staticmethod
-    def _load_url_rewrites(path):
-        config = ConfigParser()
-        config.read(path)
+    def _load_config():
         patterns = []
-        sections = set(config.sections())
-        sections.remove("service")
-        for key in sections:
-            block = config[key]
-            source_url = re.compile(block["source_bucket_url"])
-            target_url = block["target_bucket_url"]
-            patterns.append((target_url, source_url))
+        for bucket in ("files", "images"):
+            source_host = re.compile(bucket + "." + settings.DB_RESTORE_SOURCE_HOST)
+            dest_host = settings.DB_RESTORE_DEST_HOST
+            patterns.append((dest_host, source_host))
         return patterns
 
     @classmethod
@@ -235,9 +229,7 @@ class Command(BaseCommand):
                 else:
                     cursor.execute("DELETE FROM django_session")
                 for table in tables_to_drop:
-                    cursor.execute(
-                        sql.SQL("DROP TABLE IF EXISTS {} CASCADE").format(sql.Identifier(table))
-                    )
+                    cursor.execute(f"DROP TABLE IF EXISTS {table} CASCADE")
             except Exception:
                 msg = "Command failed resetting database"
                 logger.exception(msg)
@@ -303,18 +295,7 @@ class Command(BaseCommand):
 
             cleanup()
 
-            config = Path(settings.DB_RESTORE_CONFIG_FILE)
-            if not config.is_file():
-                raise CommandError(
-                    f"Path supplied for URL rewrites is not a file: {str(config)}. "
-                    "URL rewrites not applied."
-                )
-            if not os.access(config, os.R_OK):
-                raise CommandError(
-                    f"Cannot read config file: {str(config)}. " "URL rewrites not applied."
-                )
-
-            patterns = self._load_url_rewrites(config)
+            patterns = self._load_config()
             self._rewrite_urls(patterns)
 
         except Exception:
