@@ -1,12 +1,10 @@
 import json
-from unittest import mock
+from unittest.mock import patch
 
 import pytest
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.urls import reverse
 from mixer.backend.django import mixer
-
-from apps.story_map.services import StoryMapMediaStorage
 
 pytestmark = pytest.mark.django_db
 
@@ -119,8 +117,12 @@ def test_update_upload_media(logged_client, users):
             }
         ),
     }
-    with mock.patch.object(StoryMapMediaStorage, "exists", return_value=False):
+    with patch(
+        "apps.story_map.views.story_map_media_upload_service.upload_file_get_path"
+    ) as mocked_upload_service:
+        mocked_upload_service.return_value = "https://example.org/uploaded_file.mp3"
         response = logged_client.post(url, data=data)
+        mocked_upload_service.assert_called_once()
 
     json_response = response.json()
 
@@ -128,5 +130,4 @@ def test_update_upload_media(logged_client, users):
 
     assert response.status_code == 201
     assert json_response["configuration"]["chapters"][0]["media"]["url"] is not None
-    assert "story-map-media" in json_response["configuration"]["chapters"][0]["media"]["url"]
     assert "contentId" not in json_response["configuration"]["chapters"][0]["media"]
