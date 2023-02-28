@@ -1,9 +1,12 @@
 import json
+from unittest import mock
 
 import pytest
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.urls import reverse
 from mixer.backend.django import mixer
+
+from apps.story_map.services import StoryMapMediaStorage
 
 pytestmark = pytest.mark.django_db
 
@@ -116,7 +119,8 @@ def test_update_upload_media(logged_client, users):
             }
         ),
     }
-    response = logged_client.post(url, data=data)
+    with mock.patch.object(StoryMapMediaStorage, "exists", return_value=False):
+        response = logged_client.post(url, data=data)
 
     json_response = response.json()
 
