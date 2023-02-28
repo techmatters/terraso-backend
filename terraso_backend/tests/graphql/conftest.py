@@ -32,6 +32,7 @@ from apps.core.models import (
     User,
 )
 from apps.shared_data.models import DataEntry, VisualizationConfig
+from apps.story_map.models import StoryMap
 
 pytestmark = pytest.mark.django_db
 
@@ -267,3 +268,21 @@ def visualization_configs(users, groups):
 @pytest.fixture
 def taxonomy_terms():
     return mixer.cycle(10).blend(TaxonomyTerm)
+
+
+@pytest.fixture
+def story_maps(users):
+    user_0_stories_published = mixer.cycle(2).blend(
+        StoryMap, created_by=users[0], is_published=True
+    )
+    user_0_stories_drafts = mixer.cycle(3).blend(StoryMap, created_by=users[0], is_published=False)
+    user_1_stories_published = mixer.cycle(4).blend(
+        StoryMap, created_by=users[1], is_published=True
+    )
+    user_1_stories_drafts = mixer.cycle(5).blend(StoryMap, created_by=users[1], is_published=False)
+    return (
+        user_0_stories_published
+        + user_0_stories_drafts
+        + user_1_stories_published
+        + user_1_stories_drafts
+    )
