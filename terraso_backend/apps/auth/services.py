@@ -65,7 +65,6 @@ class AccountService:
     def sign_up_with_microsoft(self, authorization_code):
         provider = MicrosoftProvider()
         tokens = provider.fetch_auth_tokens(authorization_code)
-
         if not tokens.is_valid:
             error_msg = f"Error fetching auth tokens: {tokens.error_description}"
             logger.error(error_msg)
@@ -78,6 +77,7 @@ class AccountService:
         )
 
     def _persist_user(self, email, first_name="", last_name="", profile_image_url=None):
+
         user, created = User.objects.get_or_create(email=email)
 
         self._update_profile_image(user, profile_image_url)
