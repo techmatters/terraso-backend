@@ -153,12 +153,12 @@ class AppleProvider:
 
 class MicrosoftProvider:
     OAUTH_BASE_URL = (
-        f"https://login.microsoft.com/{settings.MICROSOFT_TENANT}/oauth2/v2.0/authorize"
+        f"https://login.microsoft.com/{settings.MICROSOFT_TENANT}/oauth2/v2.0/authorize?"
     )
     TOKEN_URI = f"https://login.microsoftonline.com/{settings.MICROSOFT_TENANT}/oauth2/v2.0/token"
     CLIENT_ID = settings.MICROSOFT_CLIENT_ID
     CLIENT_SECRET = settings.MICROSOFT_CLIENT_SECRET
-    REDIRECT_URI = settings.MICROSOFT_REDIRECT_URI
+    REDIRECT_URI = settings.MICROSOFT_AUTH_REDIRECT_URI
     TENANT = settings.MICROSOFT_TENANT
 
     @classmethod
@@ -167,7 +167,7 @@ class MicrosoftProvider:
             client_id=cls.CLIENT_ID,
             response_type="code",
             redirect_uri=cls.REDIRECT_URI,
-            scope="name email openid",
+            scope="email profile openid",
             response_mode="form_post",
         )
         if state:
@@ -176,7 +176,7 @@ class MicrosoftProvider:
 
     @staticmethod
     def _handle_exceptions(exc):
-        match exc:
+        match type(exc):
             case httpx.RequestError:
                 error_msg = f"Failed to get Microsoft token while requesting {exc.request.url!r}"
                 error = "request_error"
@@ -190,11 +190,16 @@ class MicrosoftProvider:
 
     def fetch_auth_tokens(self, authorization_code):
         params = dict(
-            client_id=self.CLIENT_ID, code=authorization_code, grant_type="authorization_code"
+            client_id=self.CLIENT_ID,
+            code=authorization_code,
+            grant_type="authorization_code",
+            redirect_uri=self.REDIRECT_URI,
+            client_secret=self.CLIENT_SECRET,
+            # scope="openid email profile",
         )
         try:
             resp = httpx.post(self.TOKEN_URI, data=params)
-            resp.raise_for_error()
-        except httpx.RequestError | httpx.HTTPStatusError as exc:
+            resp.raise_for_status()
+        except (httpx.RequestError, httpx.HTTPStatusError) as exc:
             return self._handle_exceptions(exc)
-        return Tokens.from_google(resp.json())
+        return Tokens.from_microsoft(resp.json())
