@@ -214,7 +214,6 @@ GRAPHENE = {
 }
 
 
-
 WEB_CLIENT_DOMAIN = config("WEB_CLIENT_DOMAIN", default="")
 WEB_CLIENT_PORT = config("WEB_CLIENT_PORT", default=443)
 WEB_CLIENT_PROTOCOL = config("WEB_CLIENT_PROTOCOL", default="https")
