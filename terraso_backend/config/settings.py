@@ -213,7 +213,11 @@ GRAPHENE = {
     "TESTING_ENDPOINT": "/graphql/",
 }
 
-WEB_CLIENT_URL = config("WEB_CLIENT_ENDPOINT", default="")
+
+WEB_CLIENT_DOMAIN = config("WEB_CLIENT_DOMAIN", default="")
+WEB_CLIENT_URL = f"https://{WEB_CLIENT_DOMAIN}"
+
+
 LOGIN_URL = f"{WEB_CLIENT_URL}/account"
 AUTH_COOKIE_DOMAIN = config("AUTH_COOKIE_DOMAIN", default="")
 CORS_ORIGIN_WHITELIST = config("CORS_ORIGIN_WHITELIST", default=[], cast=config.list)
