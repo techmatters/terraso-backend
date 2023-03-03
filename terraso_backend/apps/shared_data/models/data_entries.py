@@ -95,7 +95,7 @@ class DataEntry(BaseModel):
 
     @property
     def signed_url(self):
-        storage = DataEntryFileStorage(custom_domain=settings.WEB_CLIENT_ENDPOINT)
+        storage = DataEntryFileStorage(custom_domain=settings.WEB_CLIENT_DOMAIN)
         return storage.url(self.s3_object_name)
 
     def delete_file_on_storage(self):
@@ -107,7 +107,7 @@ class DataEntry(BaseModel):
         if self.file_removed_at:
             return
 
-        storage = DataEntryFileStorage(custom_domain=settings.WEB_CLIENT_ENDPOINT)
+        storage = DataEntryFileStorage(custom_domain=settings.WEB_CLIENT_DOMAIN)
         storage.delete(self.s3_object_name)
         self.file_removed_at = timezone.now()
         self.save(keep_deleted=True)
