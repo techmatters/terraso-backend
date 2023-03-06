@@ -16,7 +16,6 @@
 import json
 import os
 import re
-from configparser import ConfigParser
 from pathlib import Path
 from tempfile import mkstemp
 from urllib.parse import urlsplit, urlunsplit
@@ -50,7 +49,8 @@ class Command(BaseCommand):
     # 23 = taxonomy terms (data mgigratiion)
     # 27 = background tasks (table not dropped)
     # 28 = Spanish taxonomy terms (data migration)
-    CORE_MIGRATIONS_TO_SKIP = [23, 27, 28]
+    # 31 = agricultural data (data migration)
+    CORE_MIGRATIONS_TO_SKIP = [23, 27, 28, 31]
 
     def add_arguments(self, parser):
         group = parser.add_mutually_exclusive_group()
@@ -85,17 +85,12 @@ class Command(BaseCommand):
         return urlunsplit((scheme, new_hostname, path, query, fragment))
 
     @staticmethod
-    def _load_url_rewrites(path):
-        config = ConfigParser()
-        config.read(path)
+    def _load_config():
         patterns = []
-        sections = set(config.sections())
-        sections.remove("service")
-        for key in sections:
-            block = config[key]
-            source_url = re.compile(block["source_bucket_url"])
-            target_url = block["target_bucket_url"]
-            patterns.append((target_url, source_url))
+        for bucket in ("files", "images"):
+            source_host = re.compile(bucket + "." + settings.DB_RESTORE_SOURCE_HOST)
+            dest_host = settings.DB_RESTORE_DEST_HOST
+            patterns.append((dest_host, source_host))
         return patterns
 
     @classmethod
@@ -226,17 +221,15 @@ class Command(BaseCommand):
                     "SELECT tablename FROM pg_tables WHERE schemaname = 'public' "
                     "AND tablename NOT IN ('core_backgroundtask', 'django_session');"
                 )
-                tables_to_drop = cursor.fetchall()
+                tables_to_drop = set([row[0] for row in cursor.fetchall()])
                 if session_pk:
                     cursor.execute(
                         "DELETE FROM django_session WHERE session_key != %s", (str(session_pk),)
                     )
                 else:
                     cursor.execute("DELETE FROM django_session")
-                for (table,) in tables_to_drop:
-                    cursor.execute(
-                        sql.SQL("DROP TABLE IF EXISTS {} CASCADE").format(sql.Identifier(table))
-                    )
+                for table in tables_to_drop:
+                    cursor.execute(f"DROP TABLE IF EXISTS {table} CASCADE")
             except Exception:
                 msg = "Command failed resetting database"
                 logger.exception(msg)
@@ -261,6 +254,8 @@ class Command(BaseCommand):
                 if app_label == "sessions":
                     kwargs["fake_initial"] = True
                 management.call_command("migrate", app_label, verbosity=0, **kwargs)
+            # finish off any other projects
+            management.call_command("migrate", verbosity=0)
 
             management.call_command(
                 "loaddata",
@@ -300,18 +295,7 @@ class Command(BaseCommand):
 
             cleanup()
 
-            config = Path(settings.DB_RESTORE_CONFIG_FILE)
-            if not config.is_file():
-                raise CommandError(
-                    f"Path supplied for URL rewrites is not a file: {str(config)}. "
-                    "URL rewrites not applied."
-                )
-            if not os.access(config, os.R_OK):
-                raise CommandError(
-                    f"Cannot read config file: {str(config)}. " "URL rewrites not applied."
-                )
-
-            patterns = self._load_url_rewrites(config)
+            patterns = self._load_config()
             self._rewrite_urls(patterns)
 
         except Exception:

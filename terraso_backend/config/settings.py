@@ -246,8 +246,14 @@ DATA_ENTRY_FILE_S3_BUCKET = config("DATA_ENTRY_FILE_S3_BUCKET", default="")
 DATA_ENTRY_FILE_BASE_URL = f"https://{DATA_ENTRY_FILE_S3_BUCKET}"
 
 DB_BACKUP_S3_BUCKET = config("DB_BACKUP_S3_BUCKET", default="")
+
+# DB Restore config
 ALLOW_RESTORE_FROM_BACKUP = config("ALLOW_RESTORE_FROM_BACKUP", default="false").lower() == "true"
 DB_RESTORE_CONFIG_FILE = config("DB_RESTORE_CONFIG_FILE", default="")
+# Render service ID
+DB_RESTORE_SOURCE_ID = config("DB_RESTORE_SOURCE_ID", default="")
+DB_RESTORE_SOURCE_HOST = config("DB_RESTORE_SOURCE_HOST", default="")
+DB_RESTORE_DEST_HOST = config("DB_RESTORE_DEST_HOST", default="")
 
 AWS_ACCESS_KEY_ID = config("AWS_ACCESS_KEY_ID", default="")
 AWS_SECRET_ACCESS_KEY = config("AWS_SECRET_ACCESS_KEY", default="")

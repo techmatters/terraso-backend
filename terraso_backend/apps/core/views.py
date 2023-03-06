@@ -13,13 +13,11 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see https://www.gnu.org/licenses/.
 
-import configparser
 import json
 import os
 import subprocess
 import threading
 import time
-from pathlib import Path
 
 import httpx
 import structlog
@@ -198,27 +196,22 @@ def _restore_from_backup(user_id, session_id):
     management.call_command("loadbackup", s3=True, save_user=user_id, save_session=session_id)
 
 
-def _load_config_file(path: Path) -> tuple[list[str], list[str], str]:
-    config = configparser.ConfigParser()
-    config.read(path)
+def _load_config() -> tuple[list[str], list[str], str]:
+    service = settings.DB_RESTORE_SOURCE_ID
     source_buckets = []
     dest_buckets = []
-    sections = set(config.sections())
-    if "service" in sections:
-        sections.remove("service")
-    for key in sections:
-        block = config[key]
-        source_buckets.append(block["source_bucket"])
-        dest_buckets.append(block["target_bucket"])
-    return source_buckets, dest_buckets, config["service"]["id"]
+    for bucket in ("files", "images"):
+        source_bucket = bucket + "." + settings.DB_RESTORE_SOURCE_HOST
+        dest_bucket = bucket + "." + settings.DB_RESTORE_DEST_HOST
+        source_buckets.append(source_bucket)
+        dest_buckets.append(dest_bucket)
+    return source_buckets, dest_buckets, service
 
 
 def restore(task, user_id, session_id):
     """Restore current instance from source instance."""
     try:
-        source_buckets, dest_buckets, service_name = _load_config_file(
-            Path(settings.DB_RESTORE_CONFIG_FILE)
-        )
+        source_buckets, dest_buckets, service_name = _load_config()
         aws_credentials = (
             settings.AWS_ACCESS_KEY_ID,
             settings.AWS_SECRET_ACCESS_KEY,
