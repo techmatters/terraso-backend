@@ -139,6 +139,7 @@ OAUTH2_PROVIDER = {
     # easiest way to force https:// is to provide this explicitly
     "OIDC_ISS_ENDPOINT": config("OIDC_ISS_ENDPOINT", default="https://api.terraso.org/oauth/"),
     "PKCE_REQUIRED": False,
+    "REQUEST_APPROVAL_PROMPT": "auto",
 }
 
 LANGUAGE_CODE = "en-us"
