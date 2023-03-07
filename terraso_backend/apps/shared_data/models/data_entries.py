@@ -13,6 +13,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see https://www.gnu.org/licenses/.
 
+from django.conf import settings
 from django.db import models
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
@@ -94,7 +95,7 @@ class DataEntry(BaseModel):
 
     @property
     def signed_url(self):
-        storage = DataEntryFileStorage(custom_domain=None)
+        storage = DataEntryFileStorage(custom_domain=settings.WEB_CLIENT_DOMAIN)
         return storage.url(self.s3_object_name)
 
     def delete_file_on_storage(self):
@@ -106,7 +107,7 @@ class DataEntry(BaseModel):
         if self.file_removed_at:
             return
 
-        storage = DataEntryFileStorage(custom_domain=None)
+        storage = DataEntryFileStorage(custom_domain=settings.WEB_CLIENT_DOMAIN)
         storage.delete(self.s3_object_name)
         self.file_removed_at = timezone.now()
         self.save(keep_deleted=True)
