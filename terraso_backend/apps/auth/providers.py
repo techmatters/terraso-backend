@@ -151,11 +151,12 @@ class AppleProvider:
         )
 
 
+MS_BASE_URI = f"https://login.microsoft.com/{settings.MICROSOFT_TENANT}/oauth2/v2.0/"
+
+
 class MicrosoftProvider:
-    OAUTH_BASE_URL = (
-        f"https://login.microsoft.com/{settings.MICROSOFT_TENANT}/oauth2/v2.0/authorize?"
-    )
-    TOKEN_URI = f"https://login.microsoftonline.com/{settings.MICROSOFT_TENANT}/oauth2/v2.0/token"
+    OAUTH_BASE_URI = MS_BASE_URI + "authorize?"
+    TOKEN_URI = MS_BASE_URI + "token"
     CLIENT_ID = settings.MICROSOFT_CLIENT_ID
     CLIENT_SECRET = settings.MICROSOFT_CLIENT_SECRET
     REDIRECT_URI = settings.MICROSOFT_AUTH_REDIRECT_URI
@@ -172,7 +173,7 @@ class MicrosoftProvider:
         )
         if state:
             params["state"] = state
-        return cls.OAUTH_BASE_URL + urllib.parse.urlencode(params, quote_via=urllib.parse.quote)
+        return cls.OAUTH_BASE_URI + urllib.parse.urlencode(params, quote_via=urllib.parse.quote)
 
     @staticmethod
     def _handle_exceptions(exc):
