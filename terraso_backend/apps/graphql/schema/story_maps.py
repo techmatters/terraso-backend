@@ -1,4 +1,4 @@
-﻿# Copyright © 2021-2023 Technology Matters
+﻿# Copyright © 2023 Technology Matters
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as published
@@ -36,7 +36,8 @@ class StoryMapFilterSet(django_filters.FilterSet):
     class Meta:
         model = StoryMap
         fields = {
-            "slug": ["exact", "icontains"],
+            "slug": ["exact"],
+            "story_map_id": ["exact"],
             "created_by__email": ["exact"],
         }
 
@@ -52,6 +53,7 @@ class StoryMapNode(DjangoObjectType):
         fields = (
             "id",
             "slug",
+            "story_map_id",
             "title",
             "configuration",
             "is_published",

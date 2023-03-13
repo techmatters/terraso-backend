@@ -1,4 +1,4 @@
-﻿# Copyright © 2021-2023 Technology Matters
+﻿# Copyright © 2023 Technology Matters
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as published
@@ -14,6 +14,8 @@
 # along with this program. If not, see https://www.gnu.org/licenses/.
 
 import json
+import random
+import string
 import uuid
 from dataclasses import asdict
 from datetime import datetime
@@ -60,6 +62,7 @@ class StoryMapAddView(AuthenticationRequiredMixin, FormView):
 
         try:
             story_map = StoryMap.objects.create(
+                story_map_id="".join(random.choices(string.ascii_lowercase + string.digits, k=7)),
                 created_by=form_data["created_by"],
                 title=form_data["title"],
                 is_published=form_data["is_published"],
@@ -119,20 +122,21 @@ class StoryMapUpdateView(AuthenticationRequiredMixin, FormView):
 
 
 def handle_config_media(new_config, current_config, request):
-    for chapter in new_config["chapters"]:
-        media = chapter.get("media")
-        if media and "contentId" in media:
-            file_id = media["contentId"]
-            matching_file = next(
-                (file for file in request.FILES.getlist("files") if file.name == file_id), None
-            )
-            if matching_file:
-                url = story_map_media_upload_service.upload_file_get_path(
-                    str(request.user.id),
-                    matching_file,
-                    file_name=uuid.uuid4(),
+    if "chapters" in new_config:
+        for chapter in new_config["chapters"]:
+            media = chapter.get("media")
+            if media and "contentId" in media:
+                file_id = media["contentId"]
+                matching_file = next(
+                    (file for file in request.FILES.getlist("files") if file.name == file_id), None
                 )
-                chapter["media"] = {"url": url, "type": media["type"]}
+                if matching_file:
+                    url = story_map_media_upload_service.upload_file_get_path(
+                        str(request.user.id),
+                        matching_file,
+                        file_name=uuid.uuid4(),
+                    )
+                    chapter["media"] = {"url": url, "type": media["type"]}
 
     if (current_config is None) or (not current_config.get("chapters")):
         return new_config
@@ -155,7 +159,7 @@ def handle_config_media(new_config, current_config, request):
                 story_map_media_upload_service.delete_file(media_path)
             except Exception as e:
                 logger.exception(
-                    "Error deleting media file",
+                    "Unable to delete media file",
                     extra={"media_path": media_path, "error": str(e)},
                 )
 
@@ -164,14 +168,14 @@ def handle_config_media(new_config, current_config, request):
 
 def handle_integrity_error(exc):
     logger.info(
-        "Attempt to mutate an model, but it's not unique",
+        "Attempt to mutate an model, but it's not unique because of the title unique constraint",
         extra={"model": "StoryMap", "integrity_error": exc},
     )
 
     validation_error = ValidationError(
         message={
             NON_FIELD_ERRORS: ValidationError(
-                message="This StoryMap already exists",
+                message="This StoryMap title already exists",
                 code="unique",
             )
         },
@@ -203,7 +207,7 @@ def get_error_messages(validation_errors):
                 ErrorMessage(
                     code=error.code,
                     context=ErrorContext(
-                        model="DataEntry",
+                        model="StoryMap",
                         field=field,
                         extra=error.message,
                     ),
