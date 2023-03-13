@@ -26,9 +26,9 @@ attrs==22.2.0 \
     #   ddtrace
     #   fiona
     #   jsonschema
-boto3==1.26.79 \
-    --hash=sha256:049de631cc03726a14b8eb24ac9ec2a48b0624197796f36166da809fdc9b9a7f \
-    --hash=sha256:73d7bd1f16118ef0dfe936e0420cd76b02d1aedb75330ebda51168458ab752ac
+boto3==1.26.89 \
+    --hash=sha256:09929b24aaec4951e435d53d31f800e2ca52244af049dc11e5385ce062e106e9 \
+    --hash=sha256:e819812f16fab46fadf9b2853a46aaa126e108e7f038502dde555ebbbfc80133
     # via -r requirements/base.in
 botocore==1.29.89 \
     --hash=sha256:ac8da651f73a9d5759cf5d80beba68deda407e56aaaeb10d249fd557459f3b56 \
