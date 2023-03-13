@@ -14,6 +14,8 @@
 # along with this program. If not, see https://www.gnu.org/licenses/.
 
 import json
+import random
+import string
 import uuid
 from dataclasses import asdict
 from datetime import datetime
@@ -60,6 +62,7 @@ class StoryMapAddView(AuthenticationRequiredMixin, FormView):
 
         try:
             story_map = StoryMap.objects.create(
+                url_identifier="".join(random.choices(string.ascii_lowercase + string.digits, k=7)),
                 created_by=form_data["created_by"],
                 title=form_data["title"],
                 is_published=form_data["is_published"],
