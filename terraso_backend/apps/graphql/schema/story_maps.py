@@ -36,7 +36,8 @@ class StoryMapFilterSet(django_filters.FilterSet):
     class Meta:
         model = StoryMap
         fields = {
-            "slug": ["exact", "icontains"],
+            "slug": ["exact"],
+            "story_map_id": ["exact"],
             "created_by__email": ["exact"],
         }
 
@@ -52,6 +53,7 @@ class StoryMapNode(DjangoObjectType):
         fields = (
             "id",
             "slug",
+            "story_map_id",
             "title",
             "configuration",
             "is_published",
