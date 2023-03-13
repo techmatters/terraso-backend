@@ -61,18 +61,34 @@ class DataEntryForm(forms.ModelForm):
         file_mime_type = magic.from_buffer(data_file.open("rb").read(2048), mime=True)
         allowed_file_extensions = mimetypes.guess_all_extensions(file_mime_type)
 
+        print(f"file_extension: {file_extension}")
+        print(f"content_type: {content_type}")
+        print(f"file_mime_type: {file_mime_type}")
+        print(f"allowed_file_extensions: {allowed_file_extensions}")
+
         is_valid = (
             file_mime_type and allowed_file_extensions and file_extension in allowed_file_extensions
         )
 
-        # Also check variations of allowed csv types
+        is_valid_csv = (
+            file_extension == ".csv"
+            and content_type in VALID_CSV_TYPES
+            and file_mime_type in VALID_CSV_TYPES
+        )
+
+        is_valid_kmz = (
+            file_extension == ".kmz"
+            and file_mime_type == "application/zip"
+        )
+
+        is_valid_kml = (
+            file_extension == ".kml"
+            and (file_mime_type == "text/xml" or file_mime_type == "application/xml")
+        )
+
         return (
             is_valid
-            or (
-                file_extension == ".csv"
-                and content_type in VALID_CSV_TYPES
-                and file_mime_type in VALID_CSV_TYPES
-            ),
+            or is_valid_csv or is_valid_kmz or is_valid_kml,
             f"Invalid file extension ({file_extension}) for the file type {file_mime_type}",
         )
 
