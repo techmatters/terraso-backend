@@ -22,7 +22,7 @@ from django.db import migrations, models
 def update_rows(apps, schema_editor):
     StoryMap = apps.get_model("story_map", "StoryMap")
     for obj in StoryMap.objects.all():
-        obj.url_identifier = "".join(random.choices(string.ascii_lowercase + string.digits, k=7))
+        obj.story_map_id = "".join(random.choices(string.ascii_lowercase + string.digits, k=7))
         obj.save()
 
 
@@ -38,7 +38,7 @@ class Migration(migrations.Migration):
         ),
         migrations.AddField(
             model_name="storymap",
-            name="url_identifier",
+            name="story_map_id",
             field=models.CharField(
                 default="",
                 max_length=10,
@@ -49,8 +49,8 @@ class Migration(migrations.Migration):
             model_name="storymap",
             constraint=models.UniqueConstraint(
                 condition=models.Q(("deleted_at__isnull", True)),
-                fields=("slug", "url_identifier"),
-                name="story_map_storymap_unique_active_slug_url_identifier",
+                fields=("slug", "story_map_id"),
+                name="story_map_storymap_unique_active_slug_story_map_id",
             ),
         ),
     ]

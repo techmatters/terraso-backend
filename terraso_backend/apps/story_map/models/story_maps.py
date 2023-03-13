@@ -27,7 +27,7 @@ class StoryMap(SlugModel):
     # custom delete method for S3 resources.
     _safedelete_policy = SOFT_DELETE
 
-    url_identifier = models.CharField(max_length=10, default="")
+    story_map_id = models.CharField(max_length=10, default="")
     title = models.CharField(max_length=128, validators=[validate_name])
     configuration = models.JSONField(blank=True, null=True)
     created_by = models.ForeignKey(User, null=True, on_delete=models.DO_NOTHING)
@@ -40,9 +40,9 @@ class StoryMap(SlugModel):
     class Meta(BaseModel.Meta):
         constraints = (
             models.UniqueConstraint(
-                fields=("slug", "url_identifier"),
+                fields=("slug", "story_map_id"),
                 condition=models.Q(deleted_at__isnull=True),
-                name="story_map_storymap_unique_active_slug_url_identifier",
+                name="story_map_storymap_unique_active_slug_story_map_id",
             ),
         )
         verbose_name_plural = "Story Maps"
@@ -60,7 +60,7 @@ class StoryMap(SlugModel):
             created_by=str(self.created_by.id),
             is_published=self.is_published,
             slug=self.slug,
-            url_identifier=self.url_identifier,
+            story_map_id=self.story_map_id,
         )
 
     def __str__(self):
