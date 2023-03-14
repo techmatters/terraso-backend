@@ -151,16 +151,13 @@ class AppleProvider:
         )
 
 
-MS_BASE_URI = f"https://login.microsoft.com/{settings.MICROSOFT_TENANT}/oauth2/v2.0/"
-
-
 class MicrosoftProvider:
-    OAUTH_BASE_URI = MS_BASE_URI + "authorize?"
-    TOKEN_URI = MS_BASE_URI + "token"
+    MS_BASE_URI = f"https://login.microsoft.com/common/oauth2/v2.0/"
+    OAUTH_BASE_URI = f"{MS_BASE_URI}authorize?"
+    TOKEN_URI = f"{MS_BASE_URI}token"
     CLIENT_ID = settings.MICROSOFT_CLIENT_ID
     CLIENT_SECRET = settings.MICROSOFT_CLIENT_SECRET
     REDIRECT_URI = settings.MICROSOFT_AUTH_REDIRECT_URI
-    TENANT = settings.MICROSOFT_TENANT
 
     @classmethod
     def login_url(cls, state=None):
