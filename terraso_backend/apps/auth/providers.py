@@ -152,7 +152,7 @@ class AppleProvider:
 
 
 class MicrosoftProvider:
-    MS_BASE_URI = f"https://login.microsoft.com/common/oauth2/v2.0/"
+    MS_BASE_URI = "https://login.microsoft.com/common/oauth2/v2.0/"
     OAUTH_BASE_URI = f"{MS_BASE_URI}authorize?"
     TOKEN_URI = f"{MS_BASE_URI}token"
     CLIENT_ID = settings.MICROSOFT_CLIENT_ID
