@@ -66,15 +66,15 @@ def test_create_data_entry_file_type_different_from_extension(
 ):
     data_entry_payload["data_file"] = (
         SimpleUploadedFile(
-            name="data_file.json",
+            name="data_file.pdf",
             content="this is a text file with json extension".encode(),
-            content_type="application/json",
+            content_type="application/pdf",
         ),
     )
     with patch(
         "apps.shared_data.forms.data_entry_upload_service.upload_file"
     ) as mocked_upload_service:
-        mocked_upload_service.return_value = "https://example.org/uploaded_file.json"
+        mocked_upload_service.return_value = "https://example.org/uploaded_file.pdf"
 
         response = logged_client.post(upload_url, data_entry_payload)
 
@@ -109,3 +109,27 @@ def test_create_data_entry_file_type_csv(logged_client, upload_url, data_entry_p
     assert "id" in response_data
     assert "url" in response_data
     assert response_data["size"]
+
+
+def test_create_data_entry_file_invalid_type(logged_client, upload_url, data_entry_payload):
+    data_entry_payload["data_file"] = (
+        SimpleUploadedFile(
+            name="data_file.txt",
+            content="this is a text file".encode(),
+            content_type="text/plain",
+        ),
+    )
+    with patch(
+        "apps.shared_data.forms.data_entry_upload_service.upload_file"
+    ) as mocked_upload_service:
+        mocked_upload_service.return_value = "https://example.org/uploaded_file.json"
+
+        response = logged_client.post(upload_url, data_entry_payload)
+
+        mocked_upload_service.assert_not_called()
+
+    assert response.status_code == 400
+
+    response_data = response.json()
+
+    assert "errors" in response_data
