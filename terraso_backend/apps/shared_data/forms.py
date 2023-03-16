@@ -85,10 +85,7 @@ class DataEntryForm(forms.ModelForm):
                 and file_mime_type in VALID_CSV_TYPES
             )
 
-            is_valid_spreadsheet = (
-                file_extension in settings.DATA_ENTRY_SPREADSHEET_EXTENSIONS
-                and (is_valid or is_valid_csv)
-            )
+            is_valid_spreadsheet = is_valid or is_valid_csv
             if is_valid_spreadsheet:
                 return True
             else:
@@ -105,9 +102,7 @@ class DataEntryForm(forms.ModelForm):
             )
             is_valid_shapefile = file_extension == ".zip" and is_shape_file_zip(data_file)
 
-            is_valid_gis = file_extension in settings.DATA_ENTRY_GIS_EXTENSIONS and (
-                is_valid_kmz or is_valid_kml or is_valid_gpx or is_valid_shapefile
-            )
+            is_valid_gis = is_valid_kmz or is_valid_kml or is_valid_gpx or is_valid_shapefile
             if is_valid_gis:
                 return True
             else:
