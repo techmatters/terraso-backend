@@ -32,6 +32,7 @@ mimetypes.init()
 logger = structlog.get_logger(__name__)
 
 VALID_CSV_TYPES = ["text/plain", "text/csv", "application/csv"]
+VALID_GEOJSON_TYPES = ["text/plain", "application/json", "application/geo+json"]
 
 
 class DataEntryForm(forms.ModelForm):
@@ -64,7 +65,7 @@ class DataEntryForm(forms.ModelForm):
         allowed_file_extensions = mimetypes.guess_all_extensions(file_mime_type)
 
         if file_extension not in settings.DATA_ENTRY_ACCEPTED_EXTENSIONS:
-            return False
+            raise ValidationError(file_extension[1:], code="invalid_extension")
 
         is_valid = (
             file_mime_type and allowed_file_extensions and file_extension in allowed_file_extensions
@@ -101,8 +102,18 @@ class DataEntryForm(forms.ModelForm):
                 file_mime_type == "text/xml" or file_mime_type == "application/xml"
             )
             is_valid_shapefile = file_extension == ".zip" and is_shape_file_zip(data_file)
+            is_valid_geojson = (
+                file_extension == ".geojson" or file_extension == ".json"
+            ) and file_mime_type in VALID_GEOJSON_TYPES
 
-            is_valid_gis = is_valid_kmz or is_valid_kml or is_valid_gpx or is_valid_shapefile
+            is_valid_gis = (
+                is_valid_kmz
+                or is_valid_kml
+                or is_valid_gpx
+                or is_valid_shapefile
+                or is_valid_geojson
+            )
+
             if is_valid_gis:
                 return True
             else:
