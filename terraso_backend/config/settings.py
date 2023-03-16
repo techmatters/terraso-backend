@@ -249,6 +249,29 @@ PROFILE_IMAGES_BASE_URL = f"https://{PROFILE_IMAGES_S3_BUCKET}"
 DATA_ENTRY_FILE_S3_BUCKET = config("DATA_ENTRY_FILE_S3_BUCKET", default="")
 DATA_ENTRY_FILE_BASE_URL = f"https://{DATA_ENTRY_FILE_S3_BUCKET}"
 
+DATA_ENTRY_DOCUMENT_EXTENSIONS = [
+    ".doc",
+    ".docx",
+    ".pdf",
+    ".ppt",
+    ".pptx",
+]
+
+DATA_ENTRY_SPREADSHEET_EXTENSIONS = [".csv", ".xls", ".xlsx"]
+
+DATA_ENTRY_GIS_EXTENSIONS = [
+    ".geojson",
+    ".gpx",
+    ".json",
+    ".kml",
+    ".kmz",
+    ".zip",
+]
+
+DATA_ENTRY_ACCEPTED_EXTENSIONS = (
+    DATA_ENTRY_DOCUMENT_EXTENSIONS + DATA_ENTRY_GIS_EXTENSIONS + DATA_ENTRY_SPREADSHEET_EXTENSIONS
+)
+
 DB_BACKUP_S3_BUCKET = config("DB_BACKUP_S3_BUCKET", default="")
 
 # DB Restore config

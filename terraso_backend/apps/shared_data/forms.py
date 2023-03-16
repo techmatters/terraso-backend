@@ -19,8 +19,10 @@ import pathlib
 import magic
 import structlog
 from django import forms
+from django.conf import settings
 from django.core.exceptions import ValidationError
 
+from apps.core.gis.parsers import is_shape_file_zip
 from apps.core.models import Group
 
 from .models import DataEntry
@@ -55,50 +57,66 @@ class DataEntryForm(forms.ModelForm):
             "created_by",
         )
 
-    def is_valid_mime_type(self, data_file):
+    def validate_file(self, data_file):
         file_extension = pathlib.Path(data_file.name).suffix
         content_type = data_file.content_type
-        file_mime_type = magic.from_buffer(data_file.open("rb").read(2048), mime=True)
+        file_mime_type = magic.from_buffer(data_file.read(2048), mime=True)
         allowed_file_extensions = mimetypes.guess_all_extensions(file_mime_type)
 
-        print(f"file_extension: {file_extension}")
-        print(f"content_type: {content_type}")
-        print(f"file_mime_type: {file_mime_type}")
-        print(f"allowed_file_extensions: {allowed_file_extensions}")
+        if file_extension not in settings.DATA_ENTRY_ACCEPTED_EXTENSIONS:
+            return False
 
         is_valid = (
             file_mime_type and allowed_file_extensions and file_extension in allowed_file_extensions
         )
 
-        is_valid_csv = (
-            file_extension == ".csv"
-            and content_type in VALID_CSV_TYPES
-            and file_mime_type in VALID_CSV_TYPES
-        )
+        # Document Files
+        if file_extension in settings.DATA_ENTRY_DOCUMENT_EXTENSIONS:
+            if is_valid:
+                return True
+            else:
+                raise ValidationError(file_extension[1:], code="invalid_extension")
 
-        is_valid_kmz = (
-            file_extension == ".kmz"
-            and file_mime_type == "application/zip"
-        )
+        # Spreadsheet Files
+        if file_extension in settings.DATA_ENTRY_SPREADSHEET_EXTENSIONS:
+            is_valid_csv = (
+                file_extension == ".csv"
+                and content_type in VALID_CSV_TYPES
+                and file_mime_type in VALID_CSV_TYPES
+            )
 
-        is_valid_kml = (
-            file_extension == ".kml"
-            and (file_mime_type == "text/xml" or file_mime_type == "application/xml")
-        )
+            is_valid_spreadsheet = (
+                file_extension in settings.DATA_ENTRY_SPREADSHEET_EXTENSIONS
+                and (is_valid or is_valid_csv)
+            )
+            if is_valid_spreadsheet:
+                return True
+            else:
+                raise ValidationError(file_extension[1:], code="invalid_extension")
 
-        return (
-            is_valid
-            or is_valid_csv or is_valid_kmz or is_valid_kml,
-            f"Invalid file extension ({file_extension}) for the file type {file_mime_type}",
-        )
+        # GIS Files
+        if file_extension in settings.DATA_ENTRY_GIS_EXTENSIONS:
+            is_valid_kmz = file_extension == ".kmz" and file_mime_type == "application/zip"
+            is_valid_kml = file_extension == ".kml" and (
+                file_mime_type == "text/xml" or file_mime_type == "application/xml"
+            )
+            is_valid_gpx = file_extension == ".gpx" and (
+                file_mime_type == "text/xml" or file_mime_type == "application/xml"
+            )
+            is_valid_shapefile = file_extension == ".zip" and is_shape_file_zip(data_file)
+
+            is_valid_gis = file_extension in settings.DATA_ENTRY_GIS_EXTENSIONS and (
+                is_valid_kmz or is_valid_kml or is_valid_gpx or is_valid_shapefile
+            )
+            if is_valid_gis:
+                return True
+            else:
+                raise ValidationError(file_extension[1:], code="invalid_extension")
 
     def clean_data_file(self):
         data_file = self.cleaned_data["data_file"]
 
-        is_valid, message = self.is_valid_mime_type(data_file)
-        if not is_valid:
-            logger.info(message)
-            raise ValidationError(message, code="invalid_extension")
+        self.validate_file(data_file)
 
         return data_file
 
