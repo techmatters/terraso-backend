@@ -249,6 +249,9 @@ PROFILE_IMAGES_BASE_URL = f"https://{PROFILE_IMAGES_S3_BUCKET}"
 DATA_ENTRY_FILE_S3_BUCKET = config("DATA_ENTRY_FILE_S3_BUCKET", default="")
 DATA_ENTRY_FILE_BASE_URL = f"https://{DATA_ENTRY_FILE_S3_BUCKET}"
 
+DATA_ENTRY_VALID_CSV_TYPES = ["text/plain", "text/csv", "application/csv"]
+DATA_ENTRY_VALID_GEOJSON_TYPES = ["text/plain", "application/json", "application/geo+json"]
+
 DATA_ENTRY_DOCUMENT_EXTENSIONS = [
     ".doc",
     ".docx",

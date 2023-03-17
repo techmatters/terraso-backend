@@ -31,9 +31,6 @@ from .services import data_entry_upload_service
 mimetypes.init()
 logger = structlog.get_logger(__name__)
 
-VALID_CSV_TYPES = ["text/plain", "text/csv", "application/csv"]
-VALID_GEOJSON_TYPES = ["text/plain", "application/json", "application/geo+json"]
-
 
 class DataEntryForm(forms.ModelForm):
     data_file = forms.FileField()
@@ -82,8 +79,8 @@ class DataEntryForm(forms.ModelForm):
         if file_extension in settings.DATA_ENTRY_SPREADSHEET_EXTENSIONS:
             is_valid_csv = (
                 file_extension == ".csv"
-                and content_type in VALID_CSV_TYPES
-                and file_mime_type in VALID_CSV_TYPES
+                and content_type in settings.DATA_ENTRY_VALID_CSV_TYPES
+                and file_mime_type in settings.DATA_ENTRY_VALID_CSV_TYPES
             )
 
             is_valid_spreadsheet = is_valid or is_valid_csv
@@ -104,7 +101,7 @@ class DataEntryForm(forms.ModelForm):
             is_valid_shapefile = file_extension == ".zip" and is_shape_file_zip(data_file)
             is_valid_geojson = (
                 file_extension == ".geojson" or file_extension == ".json"
-            ) and file_mime_type in VALID_GEOJSON_TYPES
+            ) and file_mime_type in settings.DATA_ENTRY_VALID_GEOJSON_TYPES
 
             is_valid_gis = (
                 is_valid_kmz
