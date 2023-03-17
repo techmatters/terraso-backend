@@ -74,7 +74,7 @@ class DataEntryForm(forms.ModelForm):
         # Document Files
         if file_extension in settings.DATA_ENTRY_DOCUMENT_EXTENSIONS:
             if is_valid:
-                return True
+                return
             else:
                 raise ValidationError(file_extension[1:], code="invalid_extension")
 
@@ -88,7 +88,7 @@ class DataEntryForm(forms.ModelForm):
 
             is_valid_spreadsheet = is_valid or is_valid_csv
             if is_valid_spreadsheet:
-                return True
+                return
             else:
                 raise ValidationError(file_extension[1:], code="invalid_extension")
 
@@ -115,7 +115,7 @@ class DataEntryForm(forms.ModelForm):
             )
 
             if is_valid_gis:
-                return True
+                return
             else:
                 raise ValidationError(file_extension[1:], code="invalid_extension")
 
