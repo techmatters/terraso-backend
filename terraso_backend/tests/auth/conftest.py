@@ -67,7 +67,6 @@ def user():
 
 @pytest.fixture
 def access_token(user):
-
     application = Application(
         client_type="confidential",
         authorization_grant_type="Authorization code",

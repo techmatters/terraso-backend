@@ -21,7 +21,6 @@ import apps.core.models.commons
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("core", "0028_spanish_taxonomy_terms"),
     ]

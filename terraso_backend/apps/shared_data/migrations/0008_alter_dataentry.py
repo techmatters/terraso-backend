@@ -20,7 +20,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("shared_data", "0007_dataentry_entry_type"),
     ]

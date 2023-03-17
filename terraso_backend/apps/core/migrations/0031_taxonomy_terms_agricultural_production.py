@@ -40,7 +40,6 @@ TERMS = [
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("core", "0030_alter_landscape_partnership_status"),
     ]

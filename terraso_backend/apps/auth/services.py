@@ -77,7 +77,6 @@ class AccountService:
         )
 
     def _persist_user(self, email, first_name="", last_name="", profile_image_url=None):
-
         user, created = User.objects.get_or_create(email=email)
 
         self._update_profile_image(user, profile_image_url)

@@ -179,7 +179,6 @@ class Command(BaseCommand):
         return data_file, migrations_file
 
     def handle(self, *args, **options):
-
         try:
             if user_id := options.get("save_user"):
                 user = User.objects.get(id=user_id)

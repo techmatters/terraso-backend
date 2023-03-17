@@ -19,7 +19,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("core", "0019_alter_landscape_population_development_strategy"),
     ]
