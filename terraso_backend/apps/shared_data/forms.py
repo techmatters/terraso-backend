@@ -61,7 +61,7 @@ class DataEntryForm(forms.ModelForm):
         guessed_allowed_file_extensions = mimetypes.guess_all_extensions(file_mime_type)
 
         if file_extension not in settings.DATA_ENTRY_ACCEPTED_TYPES.keys():
-            raise ValidationError(file_extension[1:], code="invalid_extension")
+            raise ValidationError(file_extension[1:], code="invalid_not_accepted_extension")
 
         guessed_is_valid = (
             file_mime_type
