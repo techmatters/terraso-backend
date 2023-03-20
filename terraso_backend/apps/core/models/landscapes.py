@@ -117,7 +117,6 @@ class Landscape(SlugModel, DirtyFieldsMixin):
                 landscape_group.save()
 
     def delete(self, *args, **kwargs):
-
         default_group = self.get_default_group()
 
         with transaction.atomic():

@@ -88,7 +88,6 @@ TERMS = {
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("core", "0022_landscape_development_strategy"),
     ]

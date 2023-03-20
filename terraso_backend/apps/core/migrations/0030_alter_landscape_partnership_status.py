@@ -21,7 +21,6 @@ import apps.core.models.commons
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("core", "0029_alter_group_deleted_at_and_more"),
     ]

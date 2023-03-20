@@ -21,7 +21,6 @@ import apps.core.models.commons
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("core", "0031_taxonomy_terms_agricultural_production"),
     ]

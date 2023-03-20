@@ -21,7 +21,6 @@ import apps.core.models.commons
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("core", "0033_taxonomy_terms_remove_other"),
     ]

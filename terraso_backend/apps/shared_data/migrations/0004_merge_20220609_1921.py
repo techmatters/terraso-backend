@@ -19,7 +19,6 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("shared_data", "0003_dataentry_file_removed_at"),
         ("shared_data", "0003_remove_dataentry_shared_data_dataentry_unique_active_slug_and_more"),

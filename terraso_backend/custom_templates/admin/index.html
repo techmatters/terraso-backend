@@ -26,5 +26,7 @@ along with this program. If not, see https://www.gnu.org/licenses/.
     <p id="restore-status"></p>
   {% endif %}
 </div>
-<script src="{% static 'instance_restore.js' %}"></script>
+  {% if allow_restore %}
+  <script src="{% static 'instance_restore.js' %}"></script>
+  {% endif %}
 {% endblock %}

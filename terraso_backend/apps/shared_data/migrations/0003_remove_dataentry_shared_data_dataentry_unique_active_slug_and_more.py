@@ -19,7 +19,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("shared_data", "0002_dataentry_size"),
     ]
