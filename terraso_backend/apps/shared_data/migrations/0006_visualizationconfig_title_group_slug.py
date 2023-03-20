@@ -24,7 +24,6 @@ import apps.core.models.commons
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("shared_data", "0005_visualizationconfig"),
     ]

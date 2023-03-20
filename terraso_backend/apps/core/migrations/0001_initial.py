@@ -26,7 +26,6 @@ import apps.core.models.users
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
     dependencies = [

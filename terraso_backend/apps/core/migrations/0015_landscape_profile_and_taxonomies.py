@@ -26,7 +26,6 @@ import apps.core.models.commons
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("core", "0014_group_membership_type_membership_membership_status_and_more"),
     ]

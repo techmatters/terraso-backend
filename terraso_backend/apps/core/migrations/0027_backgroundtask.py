@@ -32,7 +32,6 @@ def backwards_func(app, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("core", "0026_calculate_polygon_areas"),
     ]

@@ -85,7 +85,6 @@ TERMS = {
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("core", "0027_backgroundtask"),
     ]
