@@ -217,22 +217,21 @@ LOGIN_URL = f"{WEB_CLIENT_URL}/account"
 AUTH_COOKIE_DOMAIN = config("AUTH_COOKIE_DOMAIN", default="")
 CORS_ORIGIN_WHITELIST = config("CORS_ORIGIN_WHITELIST", default=[], cast=config.list)
 
+API_ENDPOINT = config("API_ENDPOINT", default="")
+
 AIRTABLE_API_KEY = config("AIRTABLE_API_KEY", default="")
 
 GOOGLE_CLIENT_ID = config("GOOGLE_CLIENT_ID", default="")
 GOOGLE_CLIENT_SECRET = config("GOOGLE_CLIENT_SECRET", default="")
-GOOGLE_AUTH_REDIRECT_URI = config("GOOGLE_AUTH_REDIRECT_URI", default="")
 
 APPLE_KEY_ID = config("APPLE_KEY_ID", default="")
 APPLE_TEAM_ID = config("APPLE_TEAM_ID", default="")
 APPLE_PRIVATE_KEY = config("APPLE_PRIVATE_KEY", default="").replace("\\n", "\n")
 APPLE_CLIENT_ID = config("APPLE_CLIENT_ID", default="")
-APPLE_AUTH_REDIRECT_URI = config("APPLE_AUTH_REDIRECT_URI", default="")
 
 MICROSOFT_CLIENT_ID = config("MICROSOFT_CLIENT_ID", default="")
 MICROSOFT_CLIENT_SECRET = config("MICROSOFT_CLIENT_SECRET", default="")
 MICROSOFT_TENANT = config("MICROSOFT_TENANT", default="")
-MICROSOFT_AUTH_REDIRECT_URI = config("MICROSOFT_AUTH_REDIRECT_URI", default="")
 
 JWT_SECRET = config("JWT_SECRET")
 JWT_ALGORITHM = config("JWT_ALGORITHM", default="HS512")

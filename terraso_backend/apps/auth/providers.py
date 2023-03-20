@@ -32,7 +32,7 @@ class GoogleProvider:
     GOOGLE_TOKEN_URI = "https://oauth2.googleapis.com/token"
     CLIENT_ID = settings.GOOGLE_CLIENT_ID
     CLIENT_SECRET = settings.GOOGLE_CLIENT_SECRET
-    REDIRECT_URI = settings.GOOGLE_AUTH_REDIRECT_URI
+    REDIRECT_URI = f"{settings.API_ENDPOINT}/auth/google/callback"
 
     @classmethod
     def login_url(cls, state=None):
@@ -84,7 +84,7 @@ class AppleProvider:
     OAUTH_BASE_URL = "https://appleid.apple.com/auth/authorize?"
     TOKEN_URI = "https://appleid.apple.com/auth/token"
     CLIENT_ID = settings.APPLE_CLIENT_ID
-    REDIRECT_URI = settings.APPLE_AUTH_REDIRECT_URI
+    REDIRECT_URI = f"{settings.API_ENDPOINT}/auth/apple/callback"
     JWT_ALGORITHM = "ES256"
     JWT_AUD = "https://appleid.apple.com"
 
@@ -157,7 +157,7 @@ class MicrosoftProvider:
     TOKEN_URI = f"{MS_BASE_URI}token"
     CLIENT_ID = settings.MICROSOFT_CLIENT_ID
     CLIENT_SECRET = settings.MICROSOFT_CLIENT_SECRET
-    REDIRECT_URI = settings.MICROSOFT_AUTH_REDIRECT_URI
+    REDIRECT_URI = f"{settings.API_ENDPOINT}/auth/microsoft/callback"
 
     @classmethod
     def login_url(cls, state=None):
