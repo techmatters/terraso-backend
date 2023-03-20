@@ -91,30 +91,29 @@ class DataEntryForm(forms.ModelForm):
 
         # GIS Files
         if file_extension in settings.DATA_ENTRY_GIS_EXTENSIONS:
-            is_valid_kmz = file_extension == ".kmz" and file_mime_type == "application/zip"
-            is_valid_kml = file_extension == ".kml" and (
-                file_mime_type == "text/xml" or file_mime_type == "application/xml"
-            )
-            is_valid_gpx = file_extension == ".gpx" and (
-                file_mime_type == "text/xml" or file_mime_type == "application/xml"
-            )
-            is_valid_shapefile = file_extension == ".zip" and is_shape_file_zip(data_file)
-            is_valid_geojson = (
-                file_extension == ".geojson" or file_extension == ".json"
-            ) and file_mime_type in settings.DATA_ENTRY_VALID_GEOJSON_TYPES
-
-            is_valid_gis = (
-                is_valid_kmz
-                or is_valid_kml
-                or is_valid_gpx
-                or is_valid_shapefile
-                or is_valid_geojson
-            )
-
-            if is_valid_gis:
-                return
-            else:
+            if file_extension == ".kmz" and not file_mime_type == "application/zip":
                 raise ValidationError(file_extension[1:], code="invalid_extension")
+
+            if file_extension == ".kml" and not (
+                file_mime_type == "text/xml" or file_mime_type == "application/xml"
+            ):
+                raise ValidationError(file_extension[1:], code="invalid_extension")
+
+            if file_extension == ".gpx" and not (
+                file_mime_type == "text/xml" or file_mime_type == "application/xml"
+            ):
+                raise ValidationError(file_extension[1:], code="invalid_extension")
+
+            if (
+                file_extension == ".geojson" or file_extension == ".json"
+            ) and file_mime_type not in settings.DATA_ENTRY_VALID_GEOJSON_TYPES:
+                raise ValidationError(file_extension[1:], code="invalid_extension")
+
+            if file_extension == ".zip":
+                if not is_valid:
+                    raise ValidationError(file_extension[1:], code="invalid_zip")
+                if not is_shape_file_zip(data_file):
+                    raise ValidationError(file_extension[1:], code="invalid_shapefile")
 
     def clean_data_file(self):
         data_file = self.cleaned_data["data_file"]
