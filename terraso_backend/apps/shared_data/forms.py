@@ -57,63 +57,28 @@ class DataEntryForm(forms.ModelForm):
 
     def validate_file(self, data_file):
         file_extension = pathlib.Path(data_file.name).suffix
-        content_type = data_file.content_type
         file_mime_type = magic.from_buffer(data_file.read(2048), mime=True)
-        allowed_file_extensions = mimetypes.guess_all_extensions(file_mime_type)
+        guessed_allowed_file_extensions = mimetypes.guess_all_extensions(file_mime_type)
 
-        if file_extension not in settings.DATA_ENTRY_ACCEPTED_EXTENSIONS:
+        if file_extension not in settings.DATA_ENTRY_ACCEPTED_TYPES.keys():
             raise ValidationError(file_extension[1:], code="invalid_extension")
 
-        is_valid = (
-            file_mime_type and allowed_file_extensions and file_extension in allowed_file_extensions
+        guessed_is_valid = (
+            file_mime_type
+            and guessed_allowed_file_extensions
+            and file_extension in guessed_allowed_file_extensions
         )
 
-        # Document Files
-        if file_extension in settings.DATA_ENTRY_DOCUMENT_EXTENSIONS:
-            if is_valid:
-                return
-            else:
-                raise ValidationError(file_extension[1:], code="invalid_extension")
+        allowed_types = settings.DATA_ENTRY_ACCEPTED_TYPES[file_extension]
+        if allowed_types and file_mime_type not in allowed_types:
+            raise ValidationError(file_extension[1:], code="invalid_extension")
 
-        # Spreadsheet Files
-        if file_extension in settings.DATA_ENTRY_SPREADSHEET_EXTENSIONS:
-            is_valid_csv = (
-                file_extension == ".csv"
-                and content_type in settings.DATA_ENTRY_VALID_CSV_TYPES
-                and file_mime_type in settings.DATA_ENTRY_VALID_CSV_TYPES
-            )
+        if not allowed_types and not guessed_is_valid:
+            raise ValidationError(file_extension[1:], code="invalid_extension")
 
-            is_valid_spreadsheet = is_valid or is_valid_csv
-            if is_valid_spreadsheet:
-                return
-            else:
-                raise ValidationError(file_extension[1:], code="invalid_extension")
-
-        # GIS Files
-        if file_extension in settings.DATA_ENTRY_GIS_EXTENSIONS:
-            if file_extension == ".kmz" and not file_mime_type == "application/zip":
-                raise ValidationError(file_extension[1:], code="invalid_extension")
-
-            if file_extension == ".kml" and not (
-                file_mime_type == "text/xml" or file_mime_type == "application/xml"
-            ):
-                raise ValidationError(file_extension[1:], code="invalid_extension")
-
-            if file_extension == ".gpx" and not (
-                file_mime_type == "text/xml" or file_mime_type == "application/xml"
-            ):
-                raise ValidationError(file_extension[1:], code="invalid_extension")
-
-            if (
-                file_extension == ".geojson" or file_extension == ".json"
-            ) and file_mime_type not in settings.DATA_ENTRY_VALID_GEOJSON_TYPES:
-                raise ValidationError(file_extension[1:], code="invalid_extension")
-
-            if file_extension == ".zip":
-                if not is_valid:
-                    raise ValidationError(file_extension[1:], code="invalid_zip")
-                if not is_shape_file_zip(data_file):
-                    raise ValidationError(file_extension[1:], code="invalid_shapefile")
+        # Shapefile validation
+        if file_extension == ".zip" and not is_shape_file_zip(data_file):
+            raise ValidationError(file_extension[1:], code="invalid_shapefile")
 
     def clean_data_file(self):
         data_file = self.cleaned_data["data_file"]
