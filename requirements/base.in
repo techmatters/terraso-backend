@@ -5,6 +5,7 @@ django-cors-headers
 django-filter
 django-oauth-toolkit
 django-safedelete
+django-ses
 django-storages
 django-structlog
 django-dirtyfields
