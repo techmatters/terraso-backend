@@ -58,22 +58,20 @@ class DataEntryForm(forms.ModelForm):
     def validate_file(self, data_file):
         file_extension = pathlib.Path(data_file.name).suffix
         file_mime_type = magic.from_buffer(data_file.read(2048), mime=True)
-        guessed_allowed_file_extensions = mimetypes.guess_all_extensions(file_mime_type)
+        extensions_for_mimetype = mimetypes.guess_all_extensions(file_mime_type)
 
         if file_extension not in settings.DATA_ENTRY_ACCEPTED_TYPES.keys():
             raise ValidationError(file_extension[1:], code="invalid_not_accepted_extension")
 
-        guessed_is_valid = (
-            file_mime_type
-            and guessed_allowed_file_extensions
-            and file_extension in guessed_allowed_file_extensions
+        is_valid_extension_for_mimetype = (
+            file_mime_type and extensions_for_mimetype and file_extension in extensions_for_mimetype
         )
 
         allowed_types = settings.DATA_ENTRY_ACCEPTED_TYPES[file_extension]
         if allowed_types and file_mime_type not in allowed_types:
             raise ValidationError(file_extension[1:], code="invalid_extension")
 
-        if not allowed_types and not guessed_is_valid:
+        if not allowed_types and not is_valid_extension_for_mimetype:
             raise ValidationError(file_extension[1:], code="invalid_extension")
 
         # Shapefile validation
