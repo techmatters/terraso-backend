@@ -184,11 +184,20 @@ class UserPreferenceDelete(BaseMutation):
         user_email = kwargs.pop("user_email")
         key = kwargs.pop("key")
         user = User.objects.get(email=user_email)
-        preference, _ = UserPreference.objects.get_or_create(user_id=user.id, key=key)
+        preference, _ = UserPreference.objects.get(user_id=user.id, key=key)
 
         if not rules.test_rule("allowed_to_update_preferences", request_user, preference):
             logger.error(
                 "Attempt to delete a User preferences, not allowed",
+                extra={"request_user_id": request_user.id, "target_user_id": user.id},
+            )
+            raise GraphQLNotAllowedException(
+                model_name=UserPreference.__name__, operation=MutationTypes.DELETE
+            )
+
+        if not preference:
+            logger.error(
+                "Attempt to delete a User preferences, does not exist",
                 extra={"request_user_id": request_user.id, "target_user_id": user.id},
             )
             raise GraphQLNotAllowedException(
