@@ -27,6 +27,8 @@ from .constants import MutationTypes
 
 logger = structlog.get_logger(__name__)
 
+ALLOWED_PREFERENCE_KEYS = ["language", "notifications"]
+
 
 class UserNode(DjangoObjectType):
     id = graphene.ID(source="pk", required=True)
@@ -163,6 +165,15 @@ class UserPreferenceUpdate(BaseMutation):
                 model_name=UserPreference.__name__, operation=MutationTypes.UPDATE
             )
 
+        if key not in ALLOWED_PREFERENCE_KEYS:
+            logger.error(
+                "Attempt to update a User preferences, key not allowed",
+                extra={"request_user_id": request_user.id, "target_user_id": user.id, "key": key},
+            )
+            raise GraphQLNotAllowedException(
+                model_name=UserPreference.__name__, operation=MutationTypes.UPDATE
+            )
+
         preference.value = value
         preference.save()
 
@@ -199,6 +210,15 @@ class UserPreferenceDelete(BaseMutation):
             logger.error(
                 "Attempt to delete a User preferences, does not exist",
                 extra={"request_user_id": request_user.id, "target_user_id": user.id},
+            )
+            raise GraphQLNotAllowedException(
+                model_name=UserPreference.__name__, operation=MutationTypes.DELETE
+            )
+
+        if key not in ALLOWED_PREFERENCE_KEYS:
+            logger.error(
+                "Attempt to delete a User preferences, key not allowed",
+                extra={"request_user_id": request_user.id, "target_user_id": user.id, "key": key},
             )
             raise GraphQLNotAllowedException(
                 model_name=UserPreference.__name__, operation=MutationTypes.DELETE
