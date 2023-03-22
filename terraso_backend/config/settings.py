@@ -268,8 +268,8 @@ DATA_ENTRY_SPREADSHEET_TYPES = {
 DATA_ENTRY_GIS_TYPES = {
     ".geojson": ["text/plain", "application/json", "application/geo+json"],
     ".json": ["text/plain", "application/json", "application/geo+json"],
-    ".gpx": ["text/xml", "application/xml", "application/gpx+xml"],
-    ".kml": ["text/xml", "application/xml", "application/vnd.google-earth.kml+xml"],
+    ".gpx": ["text/plain", "text/xml", "application/xml", "application/gpx+xml"],
+    ".kml": ["text/plain", "text/xml", "application/xml", "application/vnd.google-earth.kml+xml"],
     ".kmz": ["application/zip", "application/vnd.google-earth.kmz"],
     ".zip": ["application/zip"],
 }
