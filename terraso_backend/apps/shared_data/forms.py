@@ -19,8 +19,10 @@ import pathlib
 import magic
 import structlog
 from django import forms
+from django.conf import settings
 from django.core.exceptions import ValidationError
 
+from apps.core.gis.parsers import is_shape_file_zip
 from apps.core.models import Group
 
 from .models import DataEntry
@@ -28,8 +30,6 @@ from .services import data_entry_upload_service
 
 mimetypes.init()
 logger = structlog.get_logger(__name__)
-
-VALID_CSV_TYPES = ["text/plain", "text/csv", "application/csv"]
 
 
 class DataEntryForm(forms.ModelForm):
@@ -55,34 +55,33 @@ class DataEntryForm(forms.ModelForm):
             "created_by",
         )
 
-    def is_valid_mime_type(self, data_file):
+    def validate_file(self, data_file):
         file_extension = pathlib.Path(data_file.name).suffix
-        content_type = data_file.content_type
-        file_mime_type = magic.from_buffer(data_file.open("rb").read(2048), mime=True)
-        allowed_file_extensions = mimetypes.guess_all_extensions(file_mime_type)
+        file_mime_type = magic.from_buffer(data_file.read(2048), mime=True)
+        extensions_for_mimetype = mimetypes.guess_all_extensions(file_mime_type)
 
-        is_valid = (
-            file_mime_type and allowed_file_extensions and file_extension in allowed_file_extensions
+        if file_extension not in settings.DATA_ENTRY_ACCEPTED_TYPES.keys():
+            raise ValidationError(file_extension[1:], code="invalid_not_accepted_extension")
+
+        is_valid_extension_for_mimetype = (
+            file_mime_type and extensions_for_mimetype and file_extension in extensions_for_mimetype
         )
 
-        # Also check variations of allowed csv types
-        return (
-            is_valid
-            or (
-                file_extension == ".csv"
-                and content_type in VALID_CSV_TYPES
-                and file_mime_type in VALID_CSV_TYPES
-            ),
-            f"Invalid file extension ({file_extension}) for the file type {file_mime_type}",
-        )
+        allowed_types = settings.DATA_ENTRY_ACCEPTED_TYPES[file_extension]
+        if allowed_types and file_mime_type not in allowed_types:
+            raise ValidationError(file_extension[1:], code="invalid_extension")
+
+        if not allowed_types and not is_valid_extension_for_mimetype:
+            raise ValidationError(file_extension[1:], code="invalid_extension")
+
+        # Shapefile validation
+        if file_extension == ".zip" and not is_shape_file_zip(data_file):
+            raise ValidationError(file_extension[1:], code="invalid_shapefile")
 
     def clean_data_file(self):
         data_file = self.cleaned_data["data_file"]
 
-        is_valid, message = self.is_valid_mime_type(data_file)
-        if not is_valid:
-            logger.info(message)
-            raise ValidationError(message, code="invalid_extension")
+        self.validate_file(data_file)
 
         return data_file
 

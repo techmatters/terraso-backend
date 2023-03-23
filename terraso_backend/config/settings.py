@@ -249,6 +249,35 @@ PROFILE_IMAGES_BASE_URL = f"https://{PROFILE_IMAGES_S3_BUCKET}"
 DATA_ENTRY_FILE_S3_BUCKET = config("DATA_ENTRY_FILE_S3_BUCKET", default="")
 DATA_ENTRY_FILE_BASE_URL = f"https://{DATA_ENTRY_FILE_S3_BUCKET}"
 
+# If types defined as None, then types are guessed from the file extension
+
+DATA_ENTRY_DOCUMENT_TYPES = {
+    ".doc": None,
+    ".docx": None,
+    ".pdf": None,
+    ".ppt": None,
+    ".pptx": None,
+}
+
+DATA_ENTRY_SPREADSHEET_TYPES = {
+    ".csv": ["text/plain", "text/csv", "application/csv"],
+    ".xls": None,
+    ".xlsx": None,
+}
+
+DATA_ENTRY_GIS_TYPES = {
+    ".geojson": ["text/plain", "application/json", "application/geo+json"],
+    ".json": ["text/plain", "application/json", "application/geo+json"],
+    ".gpx": ["text/plain", "text/xml", "application/xml", "application/gpx+xml"],
+    ".kml": ["text/plain", "text/xml", "application/xml", "application/vnd.google-earth.kml+xml"],
+    ".kmz": ["application/zip", "application/vnd.google-earth.kmz"],
+    ".zip": ["application/zip"],
+}
+
+DATA_ENTRY_ACCEPTED_TYPES = (
+    DATA_ENTRY_DOCUMENT_TYPES | DATA_ENTRY_SPREADSHEET_TYPES | DATA_ENTRY_GIS_TYPES
+)
+
 DB_BACKUP_S3_BUCKET = config("DB_BACKUP_S3_BUCKET", default="")
 
 # DB Restore config
