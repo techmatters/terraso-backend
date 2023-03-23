@@ -59,6 +59,7 @@ INSTALLED_APPS = [
     "apps.graphql",
     "apps.auth",
     "apps.shared_data",
+    "apps.story_map",
 ]
 
 MIDDLEWARE = [
@@ -297,3 +298,6 @@ RENDER_API_URL = config("RENDER_API_URL", default="https://api.render.com/v1/")
 RENDER_API_TOKEN = config("RENDER_API_TOKEN", default="")
 
 DATA_UPLOAD_MAX_MEMORY_SIZE = 70000000  # 70MB
+
+STORY_MAP_MEDIA_S3_BUCKET = config("STORY_MAP_MEDIA_S3_BUCKET", default="")
+STORY_MAP_MEDIA_BASE_URL = f"https://{STORY_MAP_MEDIA_S3_BUCKET}"
