@@ -179,6 +179,7 @@ def test_data_entries_returns_url(
 
     edges = response.json()["data"]["dataEntries"]["edges"]
     entries_result = [edge["node"] for edge in edges]
+    print(entries_result)
 
     assert len(entries_result) == 2
     assert entries_result[0]["id"] == str(data_entry_current_user_file.id)

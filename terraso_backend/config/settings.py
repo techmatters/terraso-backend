@@ -261,6 +261,7 @@ PROFILE_IMAGES_BASE_URL = f"https://{PROFILE_IMAGES_S3_BUCKET}"
 
 DATA_ENTRY_FILE_S3_BUCKET = config("DATA_ENTRY_FILE_S3_BUCKET", default="")
 DATA_ENTRY_FILE_BASE_URL = f"https://{DATA_ENTRY_FILE_S3_BUCKET}"
+AWS_S3_ENDPOINT_URL = config("AWS_S3_ENDPOINT_URL", default="")
 
 # If types defined as None, then types are guessed from the file extension
 
