@@ -155,10 +155,17 @@ class MembershipUpdateMutation(BaseMutation):
         if user_role:
             membership.user_role = Membership.get_user_role_from_text(user_role)
         membership_status = kwargs.pop("membership_status", None)
+        previous_membership_status = membership.membership_status
         if membership_status:
             membership.membership_status = Membership.get_membership_status_from_text(
                 membership_status
             )
+            if (
+                previous_membership_status != Membership.APPROVED
+                and membership.membership_status == Membership.APPROVED
+            ):
+                EmailNotification.SendMembershipApproval(membership.user, membership.group)
+
         membership.save()
 
         return cls(membership=membership)
