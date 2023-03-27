@@ -19,7 +19,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("story_map", "0001_initial"),
     ]
