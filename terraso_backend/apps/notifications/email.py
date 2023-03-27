@@ -14,8 +14,10 @@
 # along with this program. If not, see https://www.gnu.org/licenses/.
 
 from django.conf import settings
-from django.core.mail import send_mass_mail
+from django.core.mail import send_mail, send_mass_mail
 from django.template.loader import render_to_string
+from django.utils import translation
+from django.utils.translation import gettext_lazy as _
 
 
 class EmailNotification:
@@ -50,3 +52,23 @@ class EmailNotification:
         # TODO: localize email per user's language preference
 
         send_mass_mail(messageList)
+
+    @classmethod
+    def SendMembershipApproval(cls, user, group):
+        if not user.notifications_enabled():
+            return
+
+        sender = f"'{settings.EMAIL_FROM_NAME}' <{settings.EMAIL_FROM_ADDRESS}>"
+        recipients = [f"'{user.full_name}' <{user.email}>"]
+        context = {
+            "memberName": user.first_name,
+            "groupName": group.name,
+            "requestUrl": f"{settings.WEB_CLIENT_URL}/groups/{group.slug}",
+            "unsubscribeUrl": f"{settings.WEB_CLIENT_URL}/notifications/unsubscribe/{user.id}",
+        }
+
+        with translation.override(user.language()):
+            subject = _("Membership in “%(group)s” has been approved", {group: group.name})
+            body = render_to_string("group-member.html", context)
+
+        send_mail(subject, body, sender, recipients)
