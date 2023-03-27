@@ -24,7 +24,6 @@ class EmailNotification:
     @classmethod
     def SendMembershipRequest(cls, user, group):
         sender = f"'{settings.EMAIL_FROM_NAME}' <{settings.EMAIL_FROM_ADDRESS}>"
-        subject = "Membership in {group.name} is pending approval"
         messageList = []
 
         context = {
@@ -34,22 +33,24 @@ class EmailNotification:
         }
 
         managerList = [membership.user for membership in group.memberships.managers_only()]
-
         for manager in managerList:
-            # TODO: check notifications permissions
-            # TODO: localize email per user's language preference
+            if not manager.notifications_enabled():
+                continue
 
+            recipients = [f"'{manager.full_name}' <{manager.email}>"]
             context["firstName"] = manager.first_name
             context[
                 "unsubscribeUrl"
             ] = f"{settings.WEB_CLIENT_URL}/notifications/unsubscribe/{manager.id}"
-            body = render_to_string("group-member.html", context)
-            recipients = [f"'{manager.first_name} {manager.last_name}' <{manager.email}>"]
-            messageList.append((subject, body, sender, recipients))
 
-        # TODO: send mail to member making request
-        # TODO: check notifications permissions
-        # TODO: localize email per user's language preference
+            with translation.override(manager.language()):
+                body = render_to_string("group-manager.html", context)
+                subject = _(
+                    "%(user)s has requested to join “%(group)s”",
+                    {user: user.full_name, group: group.name},
+                )
+
+            messageList.append((subject, body, sender, recipients))
 
         send_mass_mail(messageList)
 
