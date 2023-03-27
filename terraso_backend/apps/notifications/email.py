@@ -45,9 +45,10 @@ class EmailNotification:
         messageList = []
 
         context = {
-            "memberName": user.first_name,
+            "memberName": user.full_name,
             "groupName": group.name,
             "requestUrl": f"{settings.WEB_CLIENT_URL}/groups/{group.slug}",
+            "imageUrl": EmailNotification.encode_image(LOGO_PATH),
         }
 
         managerList = [membership.user for membership in group.memberships.managers_only()]
@@ -80,10 +81,11 @@ class EmailNotification:
         sender = f"'{settings.EMAIL_FROM_NAME}' <{settings.EMAIL_FROM_ADDRESS}>"
         recipients = [f"'{user.full_name}' <{user.email}>"]
         context = {
-            "memberName": user.first_name,
+            "firstName": user.first_name,
             "groupName": group.name,
-            "requestUrl": f"{settings.WEB_CLIENT_URL}/groups/{group.slug}",
+            "groupUrl": f"{settings.WEB_CLIENT_URL}/groups/{group.slug}",
             "unsubscribeUrl": f"{settings.WEB_CLIENT_URL}/notifications/unsubscribe/{user.id}",
+            "imageUrl": EmailNotification.encode_image(LOGO_PATH),
         }
 
         with translation.override(user.language()):
