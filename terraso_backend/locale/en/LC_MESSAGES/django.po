@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-03-27 19:12-0400\n"
+"POT-Creation-Date: 2023-03-27 23:21+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -89,7 +89,7 @@ msgstr ""
 msgid "%(user)s has requested to join “%(group)s”"
 msgstr ""
 
-#: terraso_backend/apps/notifications/email.py:93
+#: terraso_backend/apps/notifications/email.py:92
 #, python-format
 msgid "Membership in “%(group)s” has been approved"
 msgstr ""
@@ -98,19 +98,11 @@ msgstr ""
 msgid "Unsubscribe from notifications"
 msgstr ""
 
-#: terraso_backend/apps/notifications/templates/group-manager.html:6
-msgid "test123"
-msgstr ""
-
-#: terraso_backend/apps/notifications/templates/group-manager.html:7
-msgid "test 234"
-msgstr ""
-
-#: terraso_backend/apps/notifications/templates/group-manager.html:9
+#: terraso_backend/apps/notifications/templates/group-manager.html:5
 msgid "You have a pending request waiting."
 msgstr ""
 
-#: terraso_backend/apps/notifications/templates/group-manager.html:12
+#: terraso_backend/apps/notifications/templates/group-manager.html:8
 #, python-format
 msgid ""
 "\n"
@@ -119,14 +111,10 @@ msgid ""
 msgstr ""
 
 #: terraso_backend/apps/notifications/templates/group-member.html:5
-msgid "test abc"
+msgid "Congratulations! Your request has been approved."
 msgstr ""
 
-#: terraso_backend/apps/notifications/templates/group-member.html:6
-msgid "test def"
-msgstr ""
-
-#: terraso_backend/apps/notifications/templates/group-member.html:12
+#: terraso_backend/apps/notifications/templates/group-member.html:8
 #, python-format
 msgid ""
 "\n"
