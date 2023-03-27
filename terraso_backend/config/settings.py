@@ -19,6 +19,7 @@ import django
 import structlog
 from dj_database_url import parse as parse_db_url
 from django.utils.encoding import force_str
+from django.utils.translation import gettext_lazy as _
 from prettyconf import config
 
 # Monkey patching force_text function to make the application work with Django
@@ -73,6 +74,7 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "apps.auth.middleware.JWTAuthenticationMiddleware",
     "django_structlog.middlewares.RequestMiddleware",
+    "django.middleware.locale.LocaleMiddleware",
 ]
 
 ROOT_URLCONF = "config.urls"
@@ -93,6 +95,8 @@ TEMPLATES = [
         },
     },
 ]
+
+LOCALE_PATHS = (os.path.join(BASE_DIR, "locale"),)
 
 WSGI_APPLICATION = "config.wsgi.application"
 
@@ -143,6 +147,11 @@ OAUTH2_PROVIDER = {
 }
 
 LANGUAGE_CODE = "en-us"
+LANGUAGES = [
+    ("es", _("Spanish")),
+    ("en", _("English")),
+]
+
 TIME_ZONE = "UTC"
 USE_I18N = True
 USE_TZ = True
