@@ -15,6 +15,7 @@
 
 import uuid
 
+from django.conf import settings
 from django.contrib.auth.models import AbstractUser, BaseUserManager
 from django.db import models
 from safedelete.models import SOFT_DELETE_CASCADE, SafeDeleteManager, SafeDeleteModel
@@ -126,6 +127,20 @@ class User(SafeDeleteModel, AbstractUser):
             return bool(preferences[0].value)
         except AttributeError:
             return False
+
+    def language(self):
+        preferences = self.preferences.filter(key="language")
+        if len(preferences) != 1:
+            return settings.LANGUAGE_CODE
+
+        try:
+            language_code = preferences[0].value
+            if language_code[0:2] in [lang[0] for lang in settings.LANGUAGES]:
+                return language_code.lower()
+            else:
+                return settings.LANGUAGE_CODE
+        except AttributeError:
+            return settings.LANGUAGE_CODE
 
     def __str__(self):
         return self.email
