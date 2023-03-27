@@ -1,8 +1,8 @@
-{% extends "email/base.html" %}
+{% extends "base.html" %}
 {% load i18n %}
 
 {% block content %}
-<h2>[% trans "Congratulations! Your request has been approved." %}</h2>
+<h2>{% translate "Congratulations! Your request has been approved." %}</h2>
 <p>{{firstName}},</p>
 
 {% blocktranslate with groupName=groupName %}
