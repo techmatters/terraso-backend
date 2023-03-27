@@ -8,7 +8,8 @@ ENV AWS_CLI_VERSION 2.8.12
 
 RUN apt-get update && \
     apt-get install -q -y --no-install-recommends \
-                     build-essential libpq-dev dnsutils libmagic-dev mailcap software-properties-common \
+                     build-essential libpq-dev dnsutils libmagic-dev mailcap \
+                     gettext software-properties-common \
                      libgdal-dev gdal-bin unzip curl && \
     curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip" && \
     unzip awscliv2.zip && \
@@ -22,3 +23,6 @@ COPY --chown=terraso:terraso . /app
 USER terraso
 
 RUN pip install --upgrade pip && make install
+
+RUN python terraso_backend/manage.py compilemessages
+
