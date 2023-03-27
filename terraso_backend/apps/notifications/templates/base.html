@@ -1,0 +1,20 @@
+{% load i18n %}
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=yes">
+</head>
+<body>
+
+[Terraso]
+
+  {% block content %}
+  {% endblock %}
+
+  <footer>
+    <p>Technology Matters, 3790 El Camino Real #625, Palo Alto, CA 94306</p>
+    <p><a href="{{unsubscribeUrl}}">{% trans "Unsubscribe from notifications" %}</a>.</p>
+  </footer>
+</body>
+</html>
