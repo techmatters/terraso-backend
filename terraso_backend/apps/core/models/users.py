@@ -114,6 +114,9 @@ class User(SafeDeleteModel, AbstractUser):
     def is_group_manager(self, group_id):
         return self.memberships.managers_only().filter(group__pk=group_id).exists()
 
+    def full_name(self):
+        return f"{self.first_name} {self.last_name}".strip()
+
     def __str__(self):
         return self.email
 
