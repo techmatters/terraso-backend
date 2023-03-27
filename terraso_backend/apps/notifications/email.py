@@ -20,10 +20,6 @@ from django.template.loader import render_to_string
 
 class EmailNotification:
     @classmethod
-    def say_hello(cls, **kwargs):
-        print("hello world")
-
-    @classmethod
     def SendMembershipRequest(cls, user, group):
         sender = f"'{settings.EMAIL_FROM_NAME}' <{settings.EMAIL_FROM_ADDRESS}>"
         subject = "Membership in {group.name} is pending approval"
