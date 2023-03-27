@@ -83,7 +83,10 @@ TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
         "APP_DIRS": True,
-        "DIRS": [os.path.join(BASE_DIR, "custom_templates")],
+        "DIRS": [
+            os.path.join(BASE_DIR, "custom_templates"),
+            os.path.join(BASE_DIR, "apps", "notifications", "templates"),
+        ],
         "OPTIONS": {
             "context_processors": [
                 "django.template.context_processors.debug",
@@ -158,6 +161,9 @@ USE_TZ = True
 
 MEDIA_URL = "/media/"
 STATIC_URL = "/static/"
+
+EMAIL_FROM_NAME = config("EMAIL_FROM_NAME", default="Terraso")
+EMAIL_FROM_ADDRESS = config("EMAIL_FROM_ADDRESS", default="info@terraso.org")
 
 # don't allow "new" as a name, as the view route conflicts with the create route
 DISALLOWED_NAMES_LIST = ["new"]
