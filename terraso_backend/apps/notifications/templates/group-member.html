@@ -1,23 +1,14 @@
-<!doctype html>
-<html>
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=yes">
-</head>
-<body>
+{% extends "email/base.html" %}
+{% load i18n %}
 
-  [Terraso]
+{% block content %}
+<h2>[% trans "Congratulations! Your request has been approved." %}</h2>
+<p>{{firstName}},</p>
 
-  <h2>You have a pending request waiting.</h2>
-  <p>Hi {{managerNames}},</p>
+{% blocktranslate with groupName=groupName %}
+<p>Your request for membership in the group “{{groupName}}” has been approved</p>
+{% endblocktranslate %}
 
-  <p>{{firstName}} has made a request for membership in your group “{{groupName}}.”</p>
 
-  <p><a href="{{requestUrl}}">View Request</a></p>
-
-  <footer>
-    <p>Technology Matters, 3790 El Camino Real #625, Palo Alto, CA 94306</p>
-    <p><a href="{{unsubscribeUrl}}">Unsubscribe from notifications</a>.</p>
-  </footer>
-</body>
-</html>
+<p><a href="{{groupUrl}}">View Group</a></p>
+{% endblock %}
