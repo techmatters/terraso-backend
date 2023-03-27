@@ -45,6 +45,9 @@ migrate: check_rebuild
 makemigrations: check_rebuild
 	./scripts/run.sh python terraso_backend/manage.py makemigrations
 
+translate:
+	./scripts/run.sh python terraso_backend/manage.py makemessages --locale=es --locale=en
+
 pip-tools: ${VIRTUAL_ENV}/scripts/pip-sync
 
 setup-git-hooks:
