@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-03-27 11:39-0400\n"
+"POT-Creation-Date: 2023-03-27 19:12-0400\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -84,37 +84,53 @@ msgstr ""
 msgid "Agricultural Production Method"
 msgstr ""
 
-#: terraso_backend/apps/notifications/email.py:40
+#: terraso_backend/apps/notifications/email.py:68
 #, python-format
 msgid "%(user)s has requested to join “%(group)s”"
 msgstr ""
 
-#: terraso_backend/apps/notifications/email.py:72
+#: terraso_backend/apps/notifications/email.py:93
 #, python-format
 msgid "Membership in “%(group)s” has been approved"
 msgstr ""
 
-#: terraso_backend/apps/notifications/templates/base.html:17
+#: terraso_backend/apps/notifications/templates/base.html:18
 msgid "Unsubscribe from notifications"
 msgstr ""
 
-#: terraso_backend/apps/notifications/templates/group-manager.html:5
+#: terraso_backend/apps/notifications/templates/group-manager.html:6
+msgid "test123"
+msgstr ""
+
+#: terraso_backend/apps/notifications/templates/group-manager.html:7
+msgid "test 234"
+msgstr ""
+
+#: terraso_backend/apps/notifications/templates/group-manager.html:9
 msgid "You have a pending request waiting."
 msgstr ""
 
-#: terraso_backend/apps/notifications/templates/group-manager.html:8
+#: terraso_backend/apps/notifications/templates/group-manager.html:12
 #, python-format
 msgid ""
 "\n"
-"<p>%(firstName)s has made a request for membership in your group "
+"<p>%(memberName)s has made a request for membership in your group "
 "“%(groupName)s.”</p>\n"
 msgstr ""
 
-#: terraso_backend/apps/notifications/templates/group-member.html:8
+#: terraso_backend/apps/notifications/templates/group-member.html:5
+msgid "test abc"
+msgstr ""
+
+#: terraso_backend/apps/notifications/templates/group-member.html:6
+msgid "test def"
+msgstr ""
+
+#: terraso_backend/apps/notifications/templates/group-member.html:12
 #, python-format
 msgid ""
 "\n"
-"<p>Your request for membership in the group “%(groupName)s” has ben "
+"<p>Your request for membership in the group “%(groupName)s” has been "
 "approved</p>\n"
 msgstr ""
 
@@ -124,6 +140,14 @@ msgstr ""
 
 #: terraso_backend/apps/shared_data/models/data_entries.py:64
 msgid "Link"
+msgstr ""
+
+#: terraso_backend/config/settings.py:154
+msgid "Spanish"
+msgstr ""
+
+#: terraso_backend/config/settings.py:155
+msgid "English"
 msgstr ""
 
 #: terraso_backend/custom_templates/oauth2_provider/authorize.html:24
