@@ -343,9 +343,9 @@ django-dirtyfields==1.9.1 \
     --hash=sha256:27809261f14eae360ed944ee456ae67a95f0791a298a2f954f4241e3ff1a6709 \
     --hash=sha256:6d16d5447344ec252c02044e53c91daae7d2ffa836aebf7a6464883ad873d0ff
     # via -r requirements/base.in
-django-filter==22.1 \
-    --hash=sha256:ed429e34760127e3520a67f415bec4c905d4649fbe45d0d6da37e6ff5e0287eb \
-    --hash=sha256:ed473b76e84f7e83b2511bb2050c3efb36d135207d0128dfe3ae4b36e3594ba5
+django-filter==23.1 \
+    --hash=sha256:dee5dcf2cea4d7f767e271b6d01f767fce7500676d5e5dc58dac8154000b87df \
+    --hash=sha256:e3c52ad83c32fb5882125105efb5fea2a1d6a85e7dc64b04ef52edbf14451b6c
     # via -r requirements/base.in
 django-ipware==5.0.0 \
     --hash=sha256:4fa5607ee85e12ee5e158bc7569ff1e134fb1579681aa1ff3f0ed04be21be153 \
