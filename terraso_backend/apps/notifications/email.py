@@ -13,14 +13,32 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see https://www.gnu.org/licenses/.
 
+import os
+from base64 import b64encode
+
 from django.conf import settings
 from django.core.mail import send_mail, send_mass_mail
 from django.template.loader import render_to_string
 from django.utils import translation
 from django.utils.translation import gettext_lazy as _
 
+LOGO_PATH = os.path.join(settings.BASE_DIR, "apps/notifications/images/terraso.png")
+
 
 class EmailNotification:
+    @classmethod
+    def encode_image(cls, file_path):
+        encoded_string = ""
+        with open(file_path, "rb") as image_file:
+            encoded_string = b64encode(image_file.read()).decode("ascii")
+
+        if not encoded_string:
+            return None
+
+        extension = os.path.splitext(file_path)[1][1:]
+
+        return f"data:image/{extension};base64,{encoded_string}"
+
     @classmethod
     def SendMembershipRequest(cls, user, group):
         sender = f"'{settings.EMAIL_FROM_NAME}' <{settings.EMAIL_FROM_ADDRESS}>"
