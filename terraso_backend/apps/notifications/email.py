@@ -59,7 +59,7 @@ class EmailNotification:
             if not manager.notifications_enabled():
                 continue
 
-            recipients = [manager.name_and_email]
+            recipients = [manager.name_and_email()]
             context["firstName"] = manager.first_name
             context[
                 "unsubscribeUrl"
@@ -81,7 +81,7 @@ class EmailNotification:
         if not user.notifications_enabled():
             return
 
-        recipients = [user.name_and_email]
+        recipients = [user.name_and_email()]
         context = {
             "firstName": user.first_name,
             "groupName": group.name,
