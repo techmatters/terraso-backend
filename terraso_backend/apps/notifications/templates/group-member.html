@@ -3,12 +3,11 @@
 
 {% block content %}
 <h2>{% translate "Congratulations! Your request has been approved." %}</h2>
-<p>{{firstName}},</p>
 
-{% blocktranslate with groupName=groupName %}
-<p>Your request for membership in the group “{{groupName}}” has been approved</p>
+{% blocktranslate with firstName=firstName groupName=groupName %}
+<p>{{firstName}}, your request for membership in the group “{{groupName}}” has been approved</p>
 {% endblocktranslate %}
 
+<p style="margin: 3em;"><a style="padding: 0.5em 1em; border: 1px solid black; border-radius: 0.5em; text-decoration: none; color: black;" href="{{groupUrl}}">{% translate "View Group" %}</a></p>
 
-<p><a href="{{groupUrl}}">View Group</a></p>
 {% endblock %}
