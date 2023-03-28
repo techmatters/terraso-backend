@@ -195,7 +195,7 @@ class UserPreferenceDelete(BaseMutation):
         user_email = kwargs.pop("user_email")
         key = kwargs.pop("key")
         user = User.objects.get(email=user_email)
-        preference, _ = UserPreference.objects.get(user_id=user.id, key=key)
+        preference = UserPreference.objects.get(user_id=user.id, key=key)
 
         if not rules.test_rule("allowed_to_update_preferences", request_user, preference):
             logger.error(
