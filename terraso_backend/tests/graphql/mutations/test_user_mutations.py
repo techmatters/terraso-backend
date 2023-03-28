@@ -237,6 +237,25 @@ def test_users_preference_delete(client_query, users):
 
 def test_users_preference_delete_by_other_fail(client_query, users):
     old_user = users[1]
+    client_query(
+        """
+    mutation updateUserPreference($input: UserPreferenceUpdateInput!){
+      updateUserPreference(input: $input) {
+        preference {
+          key
+          value
+        }
+      }
+    }
+    """,
+        variables={
+            "input": {
+                "userEmail": str(old_user.email),
+                "key": "language",
+                "value": "es-EC",
+            }
+        },
+    )
     response = client_query(
         """
         mutation deleteUserPreference($input: UserPreferenceDeleteInput!){
@@ -249,7 +268,7 @@ def test_users_preference_delete_by_other_fail(client_query, users):
           }
         }
         """,
-        variables={"input": {"userEmail": str(old_user.email), "key": "key1"}},
+        variables={"input": {"userEmail": str(old_user.email), "key": "language"}},
     )
     response = response.json()
 
