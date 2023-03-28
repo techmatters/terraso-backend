@@ -17,7 +17,7 @@ import os
 from base64 import b64encode
 
 from django.conf import settings
-from django.core.mail import send_mail, send_mass_mail
+from django.core.mail import send_mail
 from django.template.loader import render_to_string
 from django.utils import translation
 from django.utils.translation import gettext_lazy as _
@@ -45,8 +45,6 @@ class EmailNotification:
 
     @classmethod
     def SendMembershipRequest(cls, user, group):
-        messageList = []
-
         context = {
             "memberName": user.full_name,
             "groupName": group.name,
@@ -72,9 +70,7 @@ class EmailNotification:
                     % {"user": user.full_name, "group": group.name},
                 )
 
-            messageList.append((subject, body, EmailNotification.sender(), recipients))
-
-        send_mass_mail(messageList)
+            send_mail(subject, None, EmailNotification.sender(), recipients, html_message=body)
 
     @classmethod
     def SendMembershipApproval(cls, user, group):
@@ -94,4 +90,4 @@ class EmailNotification:
             subject = _("Membership in “%(group)s” has been approved" % {"group": group.name})
             body = render_to_string("group-member.html", context)
 
-        send_mail(subject, body, EmailNotification.sender(), recipients)
+        send_mail(subject, None, EmailNotification.sender(), recipients, html_message=body)
