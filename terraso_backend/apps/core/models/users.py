@@ -124,7 +124,7 @@ class User(SafeDeleteModel, AbstractUser):
             return False
 
         try:
-            return bool(preferences[0].value)
+            return preferences[0].value == "true"
         except AttributeError:
             return False
 
