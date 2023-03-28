@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-03-27 23:21+0000\n"
+"POT-Creation-Date: 2023-03-28 16:30+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -84,12 +84,12 @@ msgstr ""
 msgid "Agricultural Production Method"
 msgstr ""
 
-#: terraso_backend/apps/notifications/email.py:68
+#: terraso_backend/apps/notifications/email.py:71
 #, python-format
 msgid "%(user)s has requested to join “%(group)s”"
 msgstr ""
 
-#: terraso_backend/apps/notifications/email.py:92
+#: terraso_backend/apps/notifications/email.py:94
 #, python-format
 msgid "Membership in “%(group)s” has been approved"
 msgstr ""
@@ -110,16 +110,24 @@ msgid ""
 "“%(groupName)s.”</p>\n"
 msgstr ""
 
+#: terraso_backend/apps/notifications/templates/group-manager.html:12
+msgid "View Request"
+msgstr ""
+
 #: terraso_backend/apps/notifications/templates/group-member.html:5
 msgid "Congratulations! Your request has been approved."
 msgstr ""
 
-#: terraso_backend/apps/notifications/templates/group-member.html:8
+#: terraso_backend/apps/notifications/templates/group-member.html:7
 #, python-format
 msgid ""
 "\n"
-"<p>Your request for membership in the group “%(groupName)s” has been "
-"approved</p>\n"
+"<p>%(firstName)s, your request for membership in the group “%(groupName)s” "
+"has been approved</p>\n"
+msgstr ""
+
+#: terraso_backend/apps/notifications/templates/group-member.html:11
+msgid "View Group"
 msgstr ""
 
 #: terraso_backend/apps/shared_data/models/data_entries.py:63
