@@ -2,10 +2,10 @@
 {% load i18n %}
 
 {% block content %}
-<h2>{% translate "Congratulations! Your request has been approved." %}</h2>
+<h2>{% translate "Congratulations! Your request was approved." %}</h2>
 
 {% blocktranslate with firstName=firstName groupName=groupName %}
-<p>{{firstName}}, your request for membership in the group “{{groupName}}” has been approved</p>
+<p>{{firstName}}, your request for membership in the group “{{groupName}}” has been approved.</p>
 {% endblocktranslate %}
 
 <p style="margin: 3em;"><a style="padding: 0.5em 1em; border: 1px solid black; border-radius: 0.5em; text-decoration: none; color: black;" href="{{groupUrl}}">{% translate "View Group" %}</a></p>
