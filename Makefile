@@ -47,6 +47,7 @@ makemigrations: check_rebuild
 
 translate:
 	./scripts/run.sh python terraso_backend/manage.py makemessages --locale=es --locale=en
+	./scripts/run.sh python terraso_backend/manage.py compilemessage --locale=es --locale=en
 
 pip-tools: ${VIRTUAL_ENV}/scripts/pip-sync
 
