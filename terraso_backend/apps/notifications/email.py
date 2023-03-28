@@ -27,6 +27,10 @@ LOGO_PATH = os.path.join(settings.BASE_DIR, "apps/notifications/images/terraso.p
 
 class EmailNotification:
     @classmethod
+    def sender(cls):
+        return f"'{settings.EMAIL_FROM_NAME}' <{settings.EMAIL_FROM_ADDRESS}>"
+
+    @classmethod
     def encode_image(cls, file_path):
         encoded_string = ""
         with open(file_path, "rb") as image_file:
@@ -41,7 +45,6 @@ class EmailNotification:
 
     @classmethod
     def SendMembershipRequest(cls, user, group):
-        sender = f"'{settings.EMAIL_FROM_NAME}' <{settings.EMAIL_FROM_ADDRESS}>"
         messageList = []
 
         context = {
@@ -56,7 +59,7 @@ class EmailNotification:
             if not manager.notifications_enabled():
                 continue
 
-            recipients = [f"'{manager.full_name}' <{manager.email}>"]
+            recipients = [manager.name_and_email]
             context["firstName"] = manager.first_name
             context[
                 "unsubscribeUrl"
@@ -69,7 +72,7 @@ class EmailNotification:
                     {user: user.full_name, group: group.name},
                 )
 
-            messageList.append((subject, body, sender, recipients))
+            messageList.append((subject, body, EmailNotification.sender(), recipients))
 
         send_mass_mail(messageList)
 
@@ -78,8 +81,7 @@ class EmailNotification:
         if not user.notifications_enabled():
             return
 
-        sender = f"'{settings.EMAIL_FROM_NAME}' <{settings.EMAIL_FROM_ADDRESS}>"
-        recipients = [f"'{user.full_name}' <{user.email}>"]
+        recipients = [user.name_and_email]
         context = {
             "firstName": user.first_name,
             "groupName": group.name,
@@ -92,4 +94,4 @@ class EmailNotification:
             subject = _("Membership in “%(group)s” has been approved", {group: group.name})
             body = render_to_string("group-member.html", context)
 
-        send_mail(subject, body, sender, recipients)
+        send_mail(subject, body, EmailNotification.sender(), recipients)
