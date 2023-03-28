@@ -118,6 +118,9 @@ class User(SafeDeleteModel, AbstractUser):
     def full_name(self):
         return f"{self.first_name} {self.last_name}".strip()
 
+    def name_and_email(self):
+        return f"'{self.full_name}' <{self.email}>"
+
     def notifications_enabled(self):
         preferences = self.preferences.filter(key="notifications")
         if len(preferences) != 1:
