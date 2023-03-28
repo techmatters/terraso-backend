@@ -68,8 +68,8 @@ class EmailNotification:
             with translation.override(manager.language()):
                 body = render_to_string("group-manager.html", context)
                 subject = _(
-                    "%(user)s has requested to join “%(group)s”",
-                    {user: user.full_name, group: group.name},
+                    "%(user)s has requested to join “%(group)s”"
+                    % {"user": user.full_name, "group": group.name},
                 )
 
             messageList.append((subject, body, EmailNotification.sender(), recipients))
@@ -91,7 +91,7 @@ class EmailNotification:
         }
 
         with translation.override(user.language()):
-            subject = _("Membership in “%(group)s” has been approved", {group: group.name})
+            subject = _("Membership in “%(group)s” has been approved" % {"group": group.name})
             body = render_to_string("group-member.html", context)
 
         send_mail(subject, body, EmailNotification.sender(), recipients)
