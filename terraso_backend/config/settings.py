@@ -312,6 +312,7 @@ AWS_SECRET_ACCESS_KEY = config("AWS_SECRET_ACCESS_KEY", default="")
 AWS_S3_REGION_NAME = config("AWS_S3_REGION_NAME", default="us-east-2")
 
 EMAIL_BACKEND = "django_ses.SESBackend"
+AWS_SES_REGION_NAME = config("AWS_SES_REGION_NAME", default="us-east-1")
 AWS_SES_ACCESS_KEY_ID = config("AWS_SES_ACCESS_KEY_ID", default="")
 AWS_SES_SECRET_ACCESS_KEY = config("AWS_SES_SECRET_ACCESS_KEY", default="")
 
