@@ -21,7 +21,7 @@ from apps.auth.mixins import AuthenticationRequiredMixin
 
 class TerrasoGraphQLView(AuthenticationRequiredMixin, GraphQLView):
     def get_auth_enabled(self):
-        return True
+        return False
 
 
 class TerrasoGraphQLDocs(TemplateView):

@@ -59,8 +59,9 @@ class DataEntryNode(DjangoObjectType):
 
     @classmethod
     def get_queryset(cls, queryset, info):
+        user_pk = getattr(info.context.user, 'pk', False)
         user_groups_ids = Membership.objects.filter(
-            user=info.context.user, membership_status=Membership.APPROVED
+            user=user_pk, membership_status=Membership.APPROVED
         ).values_list("group", flat=True)
         return queryset.filter(groups__in=user_groups_ids)
 
