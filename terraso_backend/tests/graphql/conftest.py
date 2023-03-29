@@ -178,6 +178,17 @@ def memberships_pending(groups, users):
 
 
 @pytest.fixture
+def memberships_pending_with_notifications(groups, users_with_notifications):
+    return mixer.cycle(5).blend(
+        Membership,
+        group=(g for g in groups),
+        user=(u for u in users_with_notifications),
+        user_role=Membership.ROLE_MEMBER,
+        membership_status=Membership.PENDING,
+    )
+
+
+@pytest.fixture
 def landscape_groups(landscapes, groups):
     first_group, second_group = groups[0], groups[1]
     landscape = landscapes[0]
