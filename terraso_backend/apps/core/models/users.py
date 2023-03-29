@@ -123,26 +123,20 @@ class User(SafeDeleteModel, AbstractUser):
 
     def notifications_enabled(self):
         preferences = self.preferences.filter(key="notifications")
-        if len(preferences) != 1:
+        if len(preferences) != 1 or not hasattr(preferences[0], "value"):
             return False
 
-        try:
-            return preferences[0].value.lower() == "true"
-        except AttributeError:
-            return False
+        return preferences[0].value.lower() == "true"
 
     def language(self):
         preferences = self.preferences.filter(key="language")
-        if len(preferences) != 1:
+        if len(preferences) != 1 or not hasattr(preferences[0], "value"):
             return settings.LANGUAGE_CODE
 
-        try:
-            language_code = preferences[0].value
-            if language_code[0:2] in [lang[0] for lang in settings.LANGUAGES]:
-                return language_code.lower()
-            else:
-                return settings.LANGUAGE_CODE
-        except AttributeError:
+        language_code = preferences[0].value
+        if language_code[0:2] in [lang[0] for lang in settings.LANGUAGES]:
+            return language_code.lower()
+        else:
             return settings.LANGUAGE_CODE
 
     def __str__(self):
