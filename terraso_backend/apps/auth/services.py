@@ -77,7 +77,10 @@ class AccountService:
         )
 
     def _persist_user(self, email, first_name="", last_name="", profile_image_url=None):
-
+        if not email:
+            # it is possible for the email not to be set, notably with Microsoft
+            # here throw a more descriptive error message
+            raise ValueError("Could not create account, user email is empty")
         user, created = User.objects.get_or_create(email=email)
 
         self._update_profile_image(user, profile_image_url)
