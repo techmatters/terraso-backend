@@ -22,6 +22,18 @@ from apps.storage.services import UploadService
 class DataEntryFileStorage(S3Boto3Storage):
     bucket_name = settings.DATA_ENTRY_FILE_S3_BUCKET
 
+    # Temporal fix for custom domain while issue is not fixed in django-storages
+    # ref: https://github.com/jschneier/django-storages/issues/165
+    # Possible PR fix: https://github.com/jschneier/django-storages/pull/839
+    # TODO: Remove this when issue is fixed
+    def url(self, name, parameters=None, expire=3600, http_method=None):
+        url = super().url(name, parameters, expire, http_method)
+        custom_url = url.replace(
+            settings.AWS_S3_ENDPOINT_URL,
+            "https/",
+        )
+        return custom_url
+
 
 class DataEntryUploadService(UploadService):
     storage = DataEntryFileStorage()
