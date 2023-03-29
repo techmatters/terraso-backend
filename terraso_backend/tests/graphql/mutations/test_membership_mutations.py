@@ -14,7 +14,7 @@
 # along with this program. If not, see https://www.gnu.org/licenses/.
 
 import uuid
-from unittest.mock import patch
+from unittest import mock
 
 import pytest
 from mixer.backend.django import mixer
@@ -243,8 +243,9 @@ def test_membership_add_manager_closed(client_query, groups_closed, users):
     assert membership["membershipStatus"] == Membership.PENDING.upper()
 
 
+@mock.patch("apps.notifications.email.send_mail")
 def test_membership_add_member_closed_with_notification(
-    client_query, groups_closed, users_with_notifications
+    mocked_send_mail, client_query, groups_closed, users_with_notifications
 ):
     group = groups_closed[0]
     user = users_with_notifications[0]
@@ -252,37 +253,36 @@ def test_membership_add_member_closed_with_notification(
 
     group.add_manager(other_user)
 
-    with patch("django.core.mail.send_mail") as mocked_send_mail:
-        response = client_query(
-            """
-          mutation addMembership($input: MembershipAddMutationInput!){
-            addMembership(input: $input) {
-              membership {
-                id
-                userRole
-                membershipStatus
-                user {
-                  email
-                }
-                group {
-                  slug
-                }
-              }
+    response = client_query(
+        """
+      mutation addMembership($input: MembershipAddMutationInput!){
+        addMembership(input: $input) {
+          membership {
+            id
+            userRole
+            membershipStatus
+            user {
+              email
+            }
+            group {
+              slug
             }
           }
-          """,
-            variables={
-                "input": {
-                    "userEmail": user.email,
-                    "groupSlug": group.slug,
-                    "userRole": Membership.ROLE_MEMBER,
-                }
-            },
-        )
-        membership = response.json()["data"]["addMembership"]["membership"]
+        }
+      }
+      """,
+        variables={
+            "input": {
+                "userEmail": user.email,
+                "groupSlug": group.slug,
+                "userRole": Membership.ROLE_MEMBER,
+            }
+        },
+    )
+    membership = response.json()["data"]["addMembership"]["membership"]
 
-        assert mocked_send_mail.called is True
-        assert mocked_send_mail.call_args.args[3] == [other_user.name_and_email()]
+    mocked_send_mail.assert_called_once()
+    assert mocked_send_mail.call_args.args[3] == [other_user.name_and_email()]
 
     assert membership["id"]
     assert membership["user"]["email"] == user.email
@@ -291,43 +291,45 @@ def test_membership_add_member_closed_with_notification(
     assert membership["membershipStatus"] == Membership.PENDING.upper()
 
 
-def test_membership_add_member_closed_without_notification(client_query, groups_closed, users):
+@mock.patch("apps.notifications.email.send_mail")
+def test_membership_add_member_closed_without_notification(
+    mocked_send_mail, client_query, groups_closed, users
+):
     group = groups_closed[0]
     user = users[0]
     other_user = users[1]
 
     group.add_manager(other_user)
 
-    with patch("django.core.mail.send_mail") as mocked_send_mail:
-        response = client_query(
-            """
-          mutation addMembership($input: MembershipAddMutationInput!){
-            addMembership(input: $input) {
-              membership {
-                id
-                userRole
-                membershipStatus
-                user {
-                  email
-                }
-                group {
-                  slug
-                }
-              }
+    response = client_query(
+        """
+      mutation addMembership($input: MembershipAddMutationInput!){
+        addMembership(input: $input) {
+          membership {
+            id
+            userRole
+            membershipStatus
+            user {
+              email
+            }
+            group {
+              slug
             }
           }
-          """,
-            variables={
-                "input": {
-                    "userEmail": user.email,
-                    "groupSlug": group.slug,
-                    "userRole": Membership.ROLE_MEMBER,
-                }
-            },
-        )
-        membership = response.json()["data"]["addMembership"]["membership"]
+        }
+      }
+      """,
+        variables={
+            "input": {
+                "userEmail": user.email,
+                "groupSlug": group.slug,
+                "userRole": Membership.ROLE_MEMBER,
+            }
+        },
+    )
+    membership = response.json()["data"]["addMembership"]["membership"]
 
-        assert mocked_send_mail.called is False
+    mocked_send_mail.assert_not_called()
 
     assert membership["id"]
     assert membership["user"]["email"] == user.email
@@ -336,10 +338,13 @@ def test_membership_add_member_closed_without_notification(client_query, groups_
     assert membership["membershipStatus"] == Membership.PENDING.upper()
 
 
-def test_membership_update(client_query, users, memberships_pending):
+@mock.patch("apps.notifications.email.send_mail")
+def test_membership_update(
+    mocked_send_mail, client_query, users, memberships_pending_with_notifications
+):
     user = users[0]
     other_manager = users[1]
-    old_membership = memberships_pending[0]
+    old_membership = memberships_pending_with_notifications[0]
 
     old_membership.group.add_manager(user)
     old_membership.group.add_manager(other_manager)
@@ -349,22 +354,22 @@ def test_membership_update(client_query, users, memberships_pending):
 
     response = client_query(
         """
-        mutation updateMembership($input: MembershipUpdateMutationInput!){
-          updateMembership(input: $input) {
-            membership {
-              id
-              userRole
-              membershipStatus
-              user {
-                email
-              }
-              group {
-                slug
-              }
+      mutation updateMembership($input: MembershipUpdateMutationInput!){
+        updateMembership(input: $input) {
+          membership {
+            id
+            userRole
+            membershipStatus
+            user {
+              email
+            }
+            group {
+              slug
             }
           }
         }
-        """,
+      }
+      """,
         variables={
             "input": {
                 "id": str(old_membership.id),
@@ -374,6 +379,8 @@ def test_membership_update(client_query, users, memberships_pending):
         },
     )
     membership = response.json()["data"]["updateMembership"]["membership"]
+    mocked_send_mail.assert_called_once()
+    assert mocked_send_mail.call_args.args[3] == [old_membership.user.name_and_email()]
 
     assert membership["id"]
     assert membership["user"]["email"] == old_membership.user.email
