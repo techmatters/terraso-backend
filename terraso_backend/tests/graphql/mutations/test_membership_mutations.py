@@ -14,6 +14,7 @@
 # along with this program. If not, see https://www.gnu.org/licenses/.
 
 import uuid
+from unittest.mock import patch
 
 import pytest
 from mixer.backend.django import mixer
@@ -240,6 +241,99 @@ def test_membership_add_manager_closed(client_query, groups_closed, users):
     assert membership["user"]["email"] == user.email
     assert membership["group"]["slug"] == group.slug
     assert membership["userRole"] == Membership.ROLE_MANAGER.upper()
+    assert membership["membershipStatus"] == Membership.PENDING.upper()
+
+
+def test_membership_add_member_closed_with_notification(
+    client_query, groups_closed, users_with_notifications
+):
+    group = groups_closed[0]
+    user = users_with_notifications[0]
+    other_user = users_with_notifications[1]
+
+    group.add_manager(other_user)
+
+    with patch("django.core.mail.send_mail") as mocked_send_mail:
+        response = client_query(
+            """
+          mutation addMembership($input: MembershipAddMutationInput!){
+            addMembership(input: $input) {
+              membership {
+                id
+                userRole
+                membershipStatus
+                user {
+                  email
+                }
+                group {
+                  slug
+                }
+              }
+            }
+          }
+          """,
+            variables={
+                "input": {
+                    "userEmail": user.email,
+                    "groupSlug": group.slug,
+                    "userRole": Membership.ROLE_MEMBER,
+                }
+            },
+        )
+        membership = response.json()["data"]["addMembership"]["membership"]
+
+        assert mocked_send_mail.called is True
+        assert mocked_send_mail.call_args.args[3] == [other_user.name_and_email()]
+
+    assert membership["id"]
+    assert membership["user"]["email"] == user.email
+    assert membership["group"]["slug"] == group.slug
+    assert membership["userRole"] == Membership.ROLE_MEMBER.upper()
+    assert membership["membershipStatus"] == Membership.PENDING.upper()
+
+
+def test_membership_add_member_closed_without_notification(client_query, groups_closed, users):
+    group = groups_closed[0]
+    user = users[0]
+    other_user = users[1]
+
+    group.add_manager(other_user)
+
+    with patch("django.core.mail.send_mail") as mocked_send_mail:
+        response = client_query(
+            """
+          mutation addMembership($input: MembershipAddMutationInput!){
+            addMembership(input: $input) {
+              membership {
+                id
+                userRole
+                membershipStatus
+                user {
+                  email
+                }
+                group {
+                  slug
+                }
+              }
+            }
+          }
+          """,
+            variables={
+                "input": {
+                    "userEmail": user.email,
+                    "groupSlug": group.slug,
+                    "userRole": Membership.ROLE_MEMBER,
+                }
+            },
+        )
+        membership = response.json()["data"]["addMembership"]["membership"]
+
+        assert mocked_send_mail.called is False
+
+    assert membership["id"]
+    assert membership["user"]["email"] == user.email
+    assert membership["group"]["slug"] == group.slug
+    assert membership["userRole"] == Membership.ROLE_MEMBER.upper()
     assert membership["membershipStatus"] == Membership.PENDING.upper()
 
 
