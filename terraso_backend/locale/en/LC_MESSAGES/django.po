@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-03-28 19:20+0000\n"
+"POT-Creation-Date: 2023-03-29 21:47+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -84,12 +84,17 @@ msgstr ""
 msgid "Agricultural Production Method"
 msgstr ""
 
-#: terraso_backend/apps/notifications/email.py:69
+#: terraso_backend/apps/core/models/users.py:121
+#, python-format
+msgid "%(first_name)s %(last_name)s"
+msgstr ""
+
+#: terraso_backend/apps/notifications/email.py:71
 #, python-format
 msgid "%(user)s has requested to join “%(group)s”"
 msgstr ""
 
-#: terraso_backend/apps/notifications/email.py:90
+#: terraso_backend/apps/notifications/email.py:92
 #, python-format
 msgid "Membership in “%(group)s” has been approved"
 msgstr ""
@@ -138,11 +143,11 @@ msgstr ""
 msgid "Link"
 msgstr ""
 
-#: terraso_backend/config/settings.py:154
+#: terraso_backend/config/settings.py:155
 msgid "Spanish"
 msgstr ""
 
-#: terraso_backend/config/settings.py:155
+#: terraso_backend/config/settings.py:156
 msgid "English"
 msgstr ""
 
