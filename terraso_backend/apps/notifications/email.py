@@ -52,11 +52,13 @@ class EmailNotification:
             "imageUrl": EmailNotification.encode_image(LOGO_PATH),
         }
 
-        managerList = [membership.user for membership in group.memberships.managers_only()]
-        for manager in managerList:
-            if not manager.notifications_enabled():
-                continue
+        managerList = [
+            membership.user
+            for membership in group.memberships.managers_only()
+            if membership.user.notifications_enabled()
+        ]
 
+        for manager in managerList:
             recipients = [manager.name_and_email()]
             context["firstName"] = manager.first_name
             context[
