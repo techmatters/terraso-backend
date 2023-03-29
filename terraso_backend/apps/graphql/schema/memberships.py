@@ -101,7 +101,7 @@ class MembershipAddMutation(BaseMutation):
 
         if group.membership_type == Group.MEMBERSHIP_TYPE_CLOSED:
             membership.membership_status = Membership.PENDING
-            EmailNotification.SendMembershipRequest(user, group)
+            EmailNotification.send_membership_request(user, group)
 
         membership.user_role = user_role
         membership.save()
@@ -164,7 +164,7 @@ class MembershipUpdateMutation(BaseMutation):
                 previous_membership_status != Membership.APPROVED
                 and membership.membership_status == Membership.APPROVED
             ):
-                EmailNotification.SendMembershipApproval(membership.user, membership.group)
+                EmailNotification.send_membership_approval(membership.user, membership.group)
 
         membership.save()
 
