@@ -131,13 +131,13 @@ class User(SafeDeleteModel, AbstractUser):
     def language(self):
         preferences = self.preferences.filter(key="language")
         if len(preferences) != 1 or not hasattr(preferences[0], "value"):
-            return settings.LANGUAGE_CODE
+            return settings.DEFAULT_LANGUAGE_CODE
 
         language_code = preferences[0].value
         if language_code[0:2] in [lang[0] for lang in settings.LANGUAGES]:
             return language_code.lower()
         else:
-            return settings.LANGUAGE_CODE
+            return settings.DEFAULT_LANGUAGE_CODE
 
     def __str__(self):
         return self.email
