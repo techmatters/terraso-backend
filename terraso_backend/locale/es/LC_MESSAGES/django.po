@@ -26,19 +26,19 @@ msgstr ""
 
 #: terraso_backend/apps/core/models/groups.py:46
 msgid "Open"
-msgstr ""
+msgstr "Abierto"
 
 #: terraso_backend/apps/core/models/groups.py:47
 msgid "Closed"
-msgstr ""
+msgstr "Cerrado"
 
 #: terraso_backend/apps/core/models/groups.py:167
 msgid "Manager"
-msgstr ""
+msgstr "Administrador"
 
 #: terraso_backend/apps/core/models/groups.py:168
 msgid "Member"
-msgstr ""
+msgstr "Miembro"
 
 #: terraso_backend/apps/core/models/groups.py:175
 msgid "Approved"
@@ -46,11 +46,11 @@ msgstr ""
 
 #: terraso_backend/apps/core/models/groups.py:176
 msgid "Pending"
-msgstr ""
+msgstr "Pendiente"
 
 #: terraso_backend/apps/core/models/landscapes.py:75
 msgid "No"
-msgstr ""
+msgstr "No"
 
 #: terraso_backend/apps/core/models/landscapes.py:76
 msgid "In Progress"
@@ -58,11 +58,11 @@ msgstr ""
 
 #: terraso_backend/apps/core/models/landscapes.py:77
 msgid "Yes"
-msgstr ""
+msgstr "Si"
 
 #: terraso_backend/apps/core/models/taxonomy_terms.py:32
 msgid "Ecosystem Type"
-msgstr ""
+msgstr "Tipo de ecosistema"
 
 #: terraso_backend/apps/core/models/taxonomy_terms.py:33
 msgid "Language"
@@ -82,12 +82,12 @@ msgstr ""
 
 #: terraso_backend/apps/core/models/taxonomy_terms.py:37
 msgid "Agricultural Production Method"
-msgstr ""
+msgstr "Método de producción agrícola"
 
 #: terraso_backend/apps/core/models/users.py:121
 #, python-format
 msgid "%(first_name)s %(last_name)s"
-msgstr ""
+msgstr "%(first_name)s %(last_name)s"
 
 #: terraso_backend/apps/notifications/email.py:71
 #, python-format
@@ -145,7 +145,7 @@ msgstr ""
 
 #: terraso_backend/config/settings.py:155
 msgid "Spanish"
-msgstr ""
+msgstr "Español"
 
 #: terraso_backend/config/settings.py:156
 msgid "English"
