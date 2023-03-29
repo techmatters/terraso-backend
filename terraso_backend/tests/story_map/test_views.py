@@ -126,8 +126,6 @@ def test_update_upload_media(logged_client, users):
 
     json_response = response.json()
 
-    print(json_response)
-
     assert response.status_code == 201
     assert json_response["configuration"]["chapters"][0]["media"]["url"] is not None
     assert "contentId" not in json_response["configuration"]["chapters"][0]["media"]

@@ -89,7 +89,6 @@ def test_membership_add_group_not_found(client_query, users):
         },
     )
     response = response.json()
-    print(response)
 
     assert "errors" in response["data"]["addMembership"]
     assert "not_found" in response["data"]["addMembership"]["errors"][0]["message"]
