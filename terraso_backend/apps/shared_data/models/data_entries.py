@@ -94,8 +94,12 @@ class DataEntry(BaseModel):
 
     @property
     def signed_url(self):
-        storage = DataEntryFileStorage()
-        return storage.url(self.s3_object_name,)
+        # TODO - This is a temporary fix to avoid the error, regarding signed url temporal
+        # solution for custom domain while django supports it
+        # ref: https://github.com/jschneier/django-storages/issues/165
+        # Possible PR fix: https://github.com/jschneier/django-storages/pull/839
+        storage = DataEntryFileStorage(custom_domain=None)
+        return storage.url(self.s3_object_name)
 
     def delete_file_on_storage(self):
         if not self.deleted_at:
