@@ -232,7 +232,6 @@ APPLE_CLIENT_ID = config("APPLE_CLIENT_ID", default="")
 
 MICROSOFT_CLIENT_ID = config("MICROSOFT_CLIENT_ID", default="")
 MICROSOFT_CLIENT_SECRET = config("MICROSOFT_CLIENT_SECRET", default="")
-MICROSOFT_TENANT = config("MICROSOFT_TENANT", default="")
 MICROSOFT_PRIVATE_KEY = config("MICROSOFT_PRIVATE_KEY", default="").strip()
 MICROSOFT_CERTIFICATE_THUMBPRINT = base64.b64encode(
     bytes.fromhex(config("MICROSOFT_CERTIFICATE_THUMBPRINT", default="").strip())
