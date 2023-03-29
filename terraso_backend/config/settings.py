@@ -60,6 +60,7 @@ INSTALLED_APPS = [
     "apps.auth",
     "apps.shared_data",
     "apps.story_map",
+    "apps.soilproj",
 ]
 
 MIDDLEWARE = [
