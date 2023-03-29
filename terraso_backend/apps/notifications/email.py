@@ -44,7 +44,7 @@ class EmailNotification:
         return f"data:image/{extension};base64,{encoded_string}"
 
     @classmethod
-    def SendMembershipRequest(cls, user, group):
+    def send_membership_request(cls, user, group):
         context = {
             "memberName": user.full_name,
             "groupName": group.name,
@@ -73,7 +73,7 @@ class EmailNotification:
             send_mail(subject, None, EmailNotification.sender(), recipients, html_message=body)
 
     @classmethod
-    def SendMembershipApproval(cls, user, group):
+    def send_membership_approval(cls, user, group):
         if not user.notifications_enabled():
             return
 
