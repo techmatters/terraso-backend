@@ -30,6 +30,7 @@ from apps.core.models import (
     Membership,
     TaxonomyTerm,
     User,
+    UserPreference,
 )
 from apps.shared_data.models import DataEntry, VisualizationConfig
 from apps.story_map.models import StoryMap
@@ -130,6 +131,16 @@ def subgroups():
 @pytest.fixture
 def users():
     return mixer.cycle(5).blend(User)
+
+
+@pytest.fixture
+def users_with_notifications():
+    users = mixer.cycle(5).blend(User)
+
+    for user in users:
+        mixer.blend(UserPreference, user=user, key="notifications", value="true")
+
+    return users
 
 
 @pytest.fixture
