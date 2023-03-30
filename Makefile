@@ -45,9 +45,13 @@ migrate: check_rebuild
 makemigrations: check_rebuild
 	./scripts/run.sh python terraso_backend/manage.py makemigrations
 
-translate:
-	./scripts/run.sh python terraso_backend/manage.py makemessages --locale=es --locale=en
+compile-translations:
 	./scripts/run.sh python terraso_backend/manage.py compilemessages --locale=es --locale=en
+
+generate-translations:
+	./scripts/run.sh python terraso_backend/manage.py makemessages --locale=es --locale=en
+
+translate: generate-translations compile-translations
 
 pip-tools: ${VIRTUAL_ENV}/scripts/pip-sync
 
@@ -69,7 +73,7 @@ start-%:
 stop:
 	@docker-compose stop
 
-test: clean check_rebuild
+test: clean check_rebuild compile-translations
 	./scripts/run.sh pytest terraso_backend
 
 test-ci: clean
