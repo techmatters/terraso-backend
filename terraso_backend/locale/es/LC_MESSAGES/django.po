@@ -17,7 +17,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-03-30 17:11+0000\n"
+"POT-Creation-Date: 2023-03-30 17:16+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -179,7 +179,7 @@ msgstr "Comparte tu nombre y correo electrónico con"
 
 #: terraso_backend/custom_templates/oauth2_provider/authorize.html:33
 msgid "authorize.uses_information_from"
-msgstr " Este sitio web solicita la siguiente información de %(application)s"
+msgstr "This website uses information from"
 
 #: terraso_backend/custom_templates/oauth2_provider/authorize.html:37
 msgid "authorize.your"

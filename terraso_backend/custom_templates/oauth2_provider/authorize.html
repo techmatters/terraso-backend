@@ -30,7 +30,7 @@ along with this program. If not, see https://www.gnu.org/licenses/.
                     {% endif %}
                 {% endfor %}
 
-              <p>{% blocktranslate with application=application.name %}authorize.uses_information_from{% endblocktranslate %}</p>
+              <p>{% translate "authorize.uses_information_from" %} {{ application.name }}</p>
                 <ul>
                   {% for scope in scopes %}
                       {% if scope != "openid" %}
