@@ -15,6 +15,9 @@
 
 import structlog
 from django.contrib.auth import get_user_model
+from django.core.exceptions import ImproperlyConfigured, ValidationError
+from django.http.response import JsonResponse
+from jwt.exceptions import InvalidTokenError
 
 from .services import JWTService
 
@@ -28,7 +31,15 @@ class JWTAuthenticationMiddleware:
 
     def __call__(self, request):
         if not request.user or not request.user.is_authenticated:
-            user = self._get_user_from_jwt(request)
+            try:
+                user = self._get_user_from_jwt(request)
+            except ValidationError as e:
+                logger.warning("Invalid JWT token", extra={"error": str(e)})
+                return JsonResponse({"error": "Unauthorized request"}, status=401)
+
+            if not user:
+                logger.warning("No user found for JWT token")
+                return JsonResponse({"error": "Unauthorized request"}, status=401)
 
             if user:
                 request.user = user
@@ -39,34 +50,29 @@ class JWTAuthenticationMiddleware:
 
     def _get_user_from_jwt(self, request):
         if not request:
-            return None
+            raise ImproperlyConfigured("No request provided")
 
         auth_header = request.META.get("HTTP_AUTHORIZATION")
 
         if not auth_header:
             logger.info("Authorization header missing")
-            return None
+            raise ValidationError("Authorization header missing")
 
         auth_header_parts = auth_header.split()
 
         if len(auth_header_parts) != 2:
-            logger.warning(
-                "Authorization header incorrectly formatted",
-                extra={"HTTP_AUTHORIZATION": auth_header},
-            )
-            return None
+            raise ValidationError(f"Authorization header incorrectly formatted: {auth_header}")
 
         token_type, token = auth_header_parts
 
         if token_type != "Bearer":
-            logger.warning("Unexpected token type", extra={"token_type": token_type})
-            return None
+            raise ValidationError(f"Unexpected token type: {token_type}")
 
         try:
             decoded_payload = JWTService().verify_token(token)
-        except Exception:
+        except InvalidTokenError as e:
             logger.exception("Failure to verify JWT token", extra={"token": token})
-            return None
+            raise ValidationError(f"Invalid JWT token: {e}")
 
         return self._get_user(decoded_payload["sub"])
 
