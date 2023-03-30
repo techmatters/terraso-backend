@@ -71,10 +71,10 @@ class Landscape(SlugModel, DirtyFieldsMixin):
     PARTNERSHIP_STATUS_YES = "yes"
 
     MEMBERSHIP_TYPES = (
-        (PARTNERSHIP_STATUS_NONE, _("")),
-        (PARTNERSHIP_STATUS_NO, _("No")),
-        (PARTNERSHIP_STATUS_IN_PROGRESS, _("In Progress")),
-        (PARTNERSHIP_STATUS_YES, _("Yes")),
+        (PARTNERSHIP_STATUS_NONE, _("partnership_status.none")),
+        (PARTNERSHIP_STATUS_NO, _("partnership_status.no")),
+        (PARTNERSHIP_STATUS_IN_PROGRESS, _("partnership_status.in_progress")),
+        (PARTNERSHIP_STATUS_YES, _("partnership_status.yes")),
     )
     partnership_status = models.CharField(
         max_length=32, choices=MEMBERSHIP_TYPES, blank=True, default=PARTNERSHIP_STATUS_NONE

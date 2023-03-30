@@ -12,14 +12,12 @@
 #
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see https://www.gnu.org/licenses/.
-
-#: terraso_backend/apps/core/models/landscapes.py:74
 #, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-03-29 21:47+0000\n"
+"POT-Creation-Date: 2023-03-30 14:30+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -58,17 +56,21 @@ msgstr ""
 msgid "Pending"
 msgstr "Pendiente"
 
-#: terraso_backend/apps/core/models/landscapes.py:75
-msgid "No"
-msgstr "No"
-
-#: terraso_backend/apps/core/models/landscapes.py:76
-msgid "In Progress"
+#: terraso_backend/apps/core/models/landscapes.py:74
+msgid "partnership_status.none"
 msgstr ""
 
+#: terraso_backend/apps/core/models/landscapes.py:75
+msgid "partnership_status.no"
+msgstr "Sin asociación"
+
+#: terraso_backend/apps/core/models/landscapes.py:76
+msgid "partnership_status.in_progress"
+msgstr "En progreso"
+
 #: terraso_backend/apps/core/models/landscapes.py:77
-msgid "Yes"
-msgstr "Si"
+msgid "partnership_status.yes"
+msgstr "Asociación formal establecida"
 
 #: terraso_backend/apps/core/models/taxonomy_terms.py:32
 msgid "Ecosystem Type"
@@ -76,7 +78,7 @@ msgstr "Tipo de ecosistema"
 
 #: terraso_backend/apps/core/models/taxonomy_terms.py:33
 msgid "Language"
-msgstr ""
+msgstr "Idioma"
 
 #: terraso_backend/apps/core/models/taxonomy_terms.py:34
 msgid "Livelihood"
@@ -84,7 +86,7 @@ msgstr ""
 
 #: terraso_backend/apps/core/models/taxonomy_terms.py:35
 msgid "Commodity"
-msgstr ""
+msgstr "Producto"
 
 #: terraso_backend/apps/core/models/taxonomy_terms.py:36
 msgid "Organization"
@@ -109,40 +111,40 @@ msgstr ""
 msgid "Membership in “%(group)s” has been approved"
 msgstr ""
 
+#: terraso_backend/apps/notifications/templates/base.html:10
+msgid "email.logo_alt_text"
+msgstr "Terraso"
+
+#: terraso_backend/apps/notifications/templates/base.html:17
+msgid "email.organization_mailing_address"
+msgstr "Technology Matters, 3790 El Camino Real #625, Palo Alto, CA 94306"
+
 #: terraso_backend/apps/notifications/templates/base.html:18
-msgid "Unsubscribe from notifications"
-msgstr ""
+msgid "email.unsubscribe_link_text"
+msgstr "Unsubscribe from notifications"
 
 #: terraso_backend/apps/notifications/templates/group-manager.html:5
-msgid "You have a pending request waiting."
+msgid "email.group.pending_request_headline"
 msgstr ""
 
 #: terraso_backend/apps/notifications/templates/group-manager.html:8
-#, python-format
-msgid ""
-"\n"
-"<p>%(memberName)s has made a request for membership in your group "
-"“%(groupName)s.”</p>\n"
+msgid "email.group.pending_request_body"
 msgstr ""
 
-#: terraso_backend/apps/notifications/templates/group-manager.html:12
-msgid "View Request"
+#: terraso_backend/apps/notifications/templates/group-manager.html:10
+msgid "email.group.view_request"
 msgstr ""
 
 #: terraso_backend/apps/notifications/templates/group-member.html:5
-msgid "Congratulations! Your request was approved."
+msgid "email.group.approved_request_headline"
 msgstr ""
 
 #: terraso_backend/apps/notifications/templates/group-member.html:7
-#, python-format
-msgid ""
-"\n"
-"<p>%(firstName)s, your request for membership in the group “%(groupName)s” "
-"has been approved.</p>\n"
+msgid "email.group.approved_request_body"
 msgstr ""
 
-#: terraso_backend/apps/notifications/templates/group-member.html:11
-msgid "View Group"
+#: terraso_backend/apps/notifications/templates/group-member.html:9
+msgid "email.group.view_group"
 msgstr ""
 
 #: terraso_backend/apps/shared_data/models/data_entries.py:63
@@ -154,24 +156,39 @@ msgid "Link"
 msgstr ""
 
 #: terraso_backend/config/settings.py:155
-msgid "Spanish"
+msgid "settings.language.es"
 msgstr "Español"
 
 #: terraso_backend/config/settings.py:156
-msgid "English"
-msgstr ""
+msgid "settings.language.en"
+msgstr "Inglés"
 
 #: terraso_backend/custom_templates/oauth2_provider/authorize.html:24
-msgid "Share your name and email with"
+msgid "authorize.share_name_email"
 msgstr ""
 
 #: terraso_backend/custom_templates/oauth2_provider/authorize.html:33
-msgid ""
-"\n"
-"                This website wants the following information from Terraso:\n"
-"                "
+msgid "authorize.uses_information_from"
 msgstr ""
 
-#: terraso_backend/custom_templates/oauth2_provider/authorize.html:40
-msgid "Your"
+#: terraso_backend/custom_templates/oauth2_provider/authorize.html:37
+msgid "authorize.your"
 msgstr ""
+
+#: terraso_backend/custom_templates/oauth2_provider/authorize.html:47
+msgid "authorize.cancel"
+msgstr ""
+
+#: terraso_backend/custom_templates/oauth2_provider/authorize.html:48
+msgid "authorize.share"
+msgstr ""
+
+#: terraso_backend/custom_templates/oauth2_provider/authorize.html:54
+msgid "authorize.error"
+msgstr ""
+
+#~ msgid "No"
+#~ msgstr "No"
+
+#~ msgid "Yes"
+#~ msgstr "Si"

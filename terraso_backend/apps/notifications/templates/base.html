@@ -7,15 +7,15 @@
 </head>
 <body style="text-align: center; font-family: sans-serif;">
   <header>
-  <p style="text-align: center;"><img src="{{imageUrl}}" alt="Terraso" width="130" height="36" /></p>
+  <p style="text-align: center;"><img src="{{imageUrl}}" alt="{% translate "email.logo_alt_text" %}" width="130" height="36" /></p>
   </header>
 
   {% block content %}
   {% endblock %}
 
   <footer style="background-color: #F5F9FA; text-align: center; padding: 1em;">
-    <p>Technology Matters, 3790 El Camino Real #625, Palo Alto, CA 94306</p>
-    <p><a href="{{unsubscribeUrl}}">{% trans "Unsubscribe from notifications" %}</a>.</p>
+    <p>{% translate "email.organization_mailing_address" %}</p>
+    <p><a href="{{unsubscribeUrl}}">{% translate "email.unsubscribe_link_text" %}</a>.</p>
   </footer>
 </body>
 </html>
