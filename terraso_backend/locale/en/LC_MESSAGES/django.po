@@ -17,7 +17,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-03-30 14:30+0000\n"
+"POT-Creation-Date: 2023-03-30 17:05+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -128,10 +128,13 @@ msgid "email.group.pending_request_headline"
 msgstr "You have a pending request waiting"
 
 #: terraso_backend/apps/notifications/templates/group-manager.html:8
-msgid "email.group.pending_request_body"
+#, python-format
+msgid ""
+"%(memberName)s has made a request for membership in your group "
+"\"%(groupName)s.”"
 msgstr ""
 "%(memberName)s has made a request for membership in your group "
-"“%(groupName)s.”"
+"\"%(groupName)s.”"
 
 #: terraso_backend/apps/notifications/templates/group-manager.html:10
 msgid "email.group.view_request"
@@ -142,9 +145,12 @@ msgid "email.group.approved_request_headline"
 msgstr "Congratulations! Your request was approved."
 
 #: terraso_backend/apps/notifications/templates/group-member.html:7
-msgid "email.group.approved_request_body"
+#, python-format
+msgid ""
+"%(firstName)s, your request for membership in the group %(groupName)s has "
+"been approved."
 msgstr ""
-"%(firstName)s, your request for membership in the group “%(groupName)s” has "
+"%(firstName)s, your request for membership in the group %(groupName)s has "
 "been approved."
 
 #: terraso_backend/apps/notifications/templates/group-member.html:9
@@ -159,11 +165,11 @@ msgstr ""
 msgid "Link"
 msgstr ""
 
-#: terraso_backend/config/settings.py:155
+#: terraso_backend/config/settings.py:160
 msgid "settings.language.es"
 msgstr "Spanish"
 
-#: terraso_backend/config/settings.py:156
+#: terraso_backend/config/settings.py:161
 msgid "settings.language.en"
 msgstr "English"
 
@@ -190,3 +196,13 @@ msgstr "Share"
 #: terraso_backend/custom_templates/oauth2_provider/authorize.html:54
 msgid "authorize.error"
 msgstr "Error"
+
+#~ msgid "email.group.pending_request_body"
+#~ msgstr ""
+#~ "%(memberName)s has made a request for membership in your group "
+#~ "“%(groupName)s.”"
+
+#~ msgid "email.group.approved_request_body"
+#~ msgstr ""
+#~ "%(firstName)s, your request for membership in the group “%(groupName)s” "
+#~ "has been approved."

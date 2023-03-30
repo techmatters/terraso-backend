@@ -128,7 +128,9 @@ msgid "email.group.pending_request_headline"
 msgstr "Tienes una solicitud pendiente esperando"
 
 #: terraso_backend/apps/notifications/templates/group-manager.html:8
-msgid "email.group.pending_request_body"
+msgid ""
+"%(memberName)s has made a request for membership in your group "
+"\"%(groupName)s.”"
 msgstr ""
 "%(memberName)s ha realizado una solicitud de membresía en su grupo "
 "“%(groupName)s.”"
@@ -142,7 +144,10 @@ msgid "email.group.approved_request_headline"
 msgstr "¡Felicidades! Su solicitud fue aprobada."
 
 #: terraso_backend/apps/notifications/templates/group-member.html:7
-msgid "email.group.approved_request_body"
+#, python-format
+msgid ""
+"%(firstName)s, your request for membership in the group %(groupName)s has "
+"been approved."
 msgstr ""
 "%(firstName)s, su solicitud de membresía en el grupo “%(groupName)s“ ha "
 "sido aprobada."
