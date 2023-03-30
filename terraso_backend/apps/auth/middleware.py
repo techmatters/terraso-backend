@@ -13,6 +13,8 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see https://www.gnu.org/licenses/.
 
+from functools import wraps
+
 import structlog
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ImproperlyConfigured, ValidationError
@@ -26,11 +28,15 @@ User = get_user_model()
 
 
 class JWTAuthenticationMiddleware:
-    def __init__(self, get_response):
-        self.get_response = get_response
+    def process_view(self, request, view_func, view_args, view_kwargs):
+        auth_required = not getattr(view_func, "auth_not_required", False)
+        jwt_validation_required = not getattr(view_func, "jwt_validation_not_required", False)
+        auth_header = request.META.get("HTTP_AUTHORIZATION")
 
-    def __call__(self, request):
-        if not request.user or not request.user.is_authenticated:
+        if not auth_required and not jwt_validation_required:
+            return None
+
+        if auth_required or auth_header:
             try:
                 user = self._get_user_from_jwt(request)
             except ValidationError as e:
@@ -43,10 +49,15 @@ class JWTAuthenticationMiddleware:
 
             if user:
                 request.user = user
+            return None
 
-        response = self.get_response(request)
+        return JsonResponse({"error": "Unauthorized request"}, status=401)
 
-        return response
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        return self.get_response(request)
 
     def _get_user_from_jwt(self, request):
         if not request:
@@ -82,3 +93,23 @@ class JWTAuthenticationMiddleware:
         except User.DoesNotExist:
             logger.error("User from JWT token not found", extra={"user_id": user_id})
             return None
+
+
+def auth_not_required(view_func):
+    """Decorator to mark a view as not requiring authentication."""
+
+    def wrapped_view(request, *args, **kwargs):
+        return view_func(request, *args, **kwargs)
+
+    view_func.auth_not_required = True
+    return wraps(view_func)(wrapped_view)
+
+
+def jwt_validation_not_required(view_func):
+    """Decorator to mark a view as not requiring JWT token validation."""
+
+    def wrapped_view(request, *args, **kwargs):
+        return view_func(request, *args, **kwargs)
+
+    view_func.jwt_validation_not_required = True
+    return wraps(view_func)(wrapped_view)
