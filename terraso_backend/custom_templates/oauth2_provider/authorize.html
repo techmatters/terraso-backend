@@ -21,7 +21,7 @@ along with this program. If not, see https://www.gnu.org/licenses/.
     <div class="block-center">
         {% if not error %}
             <form id="authorizationForm" method="post">
-                <h3 class="block-center-heading">{% blocktranslate with application=application.name %}authorize.share_name_email{% endblocktranslate %}</h3>
+                <h3 class="block-center-heading">{% translate "authorize.share_name_email" %} {{ application.name }}</h3>
                 {% csrf_token %}
 
                 {% for field in form %}
