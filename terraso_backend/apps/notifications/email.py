@@ -66,7 +66,7 @@ class EmailNotification:
             ] = f"{settings.WEB_CLIENT_URL}/notifications/unsubscribe/{manager.id}"
 
             with translation.override(manager.language()):
-                body = render_to_string("group-manager.html", context)
+                body = render_to_string("group-pending.html", context)
                 subject = _(
                     "%(user)s has requested to join “%(group)s”"
                     % {"user": user.full_name, "group": group.name},
@@ -90,6 +90,6 @@ class EmailNotification:
 
         with translation.override(user.language()):
             subject = _("Membership in “%(group)s” has been approved" % {"group": group.name})
-            body = render_to_string("group-member.html", context)
+            body = render_to_string("group-approved.html", context)
 
         send_mail(subject, None, EmailNotification.sender(), recipients, html_message=body)
