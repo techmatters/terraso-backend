@@ -10,6 +10,9 @@ __pycache__/
 # Build files
 .rebuild
 
+# email on dev environment (naomi)
+email_preview
+
 # Distribution / packaging
 .Python
 build/

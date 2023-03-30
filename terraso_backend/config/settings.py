@@ -63,6 +63,11 @@ INSTALLED_APPS = [
     "apps.story_map",
 ]
 
+if DEBUG:
+    INSTALLED_APPS += [
+        "naomi",
+    ]
+
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
@@ -312,7 +317,12 @@ AWS_ACCESS_KEY_ID = config("AWS_ACCESS_KEY_ID", default="")
 AWS_SECRET_ACCESS_KEY = config("AWS_SECRET_ACCESS_KEY", default="")
 AWS_S3_REGION_NAME = config("AWS_S3_REGION_NAME", default="us-east-2")
 
-EMAIL_BACKEND = "django_ses.SESBackend"
+if DEBUG:
+    EMAIL_BACKEND = "naomi.mail.backends.naomi.NaomiBackend"
+    EMAIL_FILE_PATH = "/app/email_preview"
+else:
+    EMAIL_BACKEND = "django_ses.SESBackend"
+
 AWS_SES_REGION_NAME = config("AWS_SES_REGION_NAME", default="us-east-1")
 AWS_SES_ACCESS_KEY_ID = config("AWS_SES_ACCESS_KEY_ID", default="")
 AWS_SES_SECRET_ACCESS_KEY = config("AWS_SES_SECRET_ACCESS_KEY", default="")
