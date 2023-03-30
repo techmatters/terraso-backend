@@ -81,7 +81,7 @@ class StoryMapNode(DjangoObjectType):
 
     @classmethod
     def get_queryset(cls, queryset, info):
-        user_pk = getattr(info.context.user, 'pk', False)
+        user_pk = getattr(info.context.user, "pk", False)
         return queryset.filter(Q(is_published=True) | Q(created_by=user_pk))
 
 
