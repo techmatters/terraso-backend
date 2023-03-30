@@ -30,7 +30,7 @@ msgstr ""
 #: terraso_backend/apps/core/models/commons.py:31
 #, python-format
 msgid "%(value)s is not allowed as a name"
-msgstr ""
+msgstr "%(value)s no está permitido como nombre"
 
 #: terraso_backend/apps/core/models/groups.py:46
 msgid "Open"
@@ -50,7 +50,7 @@ msgstr "Miembro"
 
 #: terraso_backend/apps/core/models/groups.py:175
 msgid "Approved"
-msgstr ""
+msgstr "Aprobado"
 
 #: terraso_backend/apps/core/models/groups.py:176
 msgid "Pending"
@@ -82,7 +82,7 @@ msgstr "Idioma"
 
 #: terraso_backend/apps/core/models/taxonomy_terms.py:34
 msgid "Livelihood"
-msgstr ""
+msgstr "Medios de subsistencia"
 
 #: terraso_backend/apps/core/models/taxonomy_terms.py:35
 msgid "Commodity"
@@ -90,7 +90,7 @@ msgstr "Producto"
 
 #: terraso_backend/apps/core/models/taxonomy_terms.py:36
 msgid "Organization"
-msgstr ""
+msgstr "Organización"
 
 #: terraso_backend/apps/core/models/taxonomy_terms.py:37
 msgid "Agricultural Production Method"
@@ -104,12 +104,12 @@ msgstr "%(first_name)s %(last_name)s"
 #: terraso_backend/apps/notifications/email.py:71
 #, python-format
 msgid "%(user)s has requested to join “%(group)s”"
-msgstr ""
+msgstr "%(user)s ha solicitado unirse a “%(group)s”"
 
 #: terraso_backend/apps/notifications/email.py:92
 #, python-format
 msgid "Membership in “%(group)s” has been approved"
-msgstr ""
+msgstr "Se ha aprobado la membresía en “%(group)s“"
 
 #: terraso_backend/apps/notifications/templates/base.html:10
 msgid "email.logo_alt_text"
@@ -121,39 +121,43 @@ msgstr "Technology Matters, 3790 El Camino Real #625, Palo Alto, CA 94306"
 
 #: terraso_backend/apps/notifications/templates/base.html:18
 msgid "email.unsubscribe_link_text"
-msgstr "Unsubscribe from notifications"
+msgstr "Darse de baja de las notificaciones"
 
 #: terraso_backend/apps/notifications/templates/group-manager.html:5
 msgid "email.group.pending_request_headline"
-msgstr ""
+msgstr "Tienes una solicitud pendiente esperando"
 
 #: terraso_backend/apps/notifications/templates/group-manager.html:8
 msgid "email.group.pending_request_body"
 msgstr ""
+"%(memberName)s ha realizado una solicitud de membresía en su grupo "
+"“%(groupName)s.”"
 
 #: terraso_backend/apps/notifications/templates/group-manager.html:10
 msgid "email.group.view_request"
-msgstr ""
+msgstr "Ver solicitud"
 
 #: terraso_backend/apps/notifications/templates/group-member.html:5
 msgid "email.group.approved_request_headline"
-msgstr ""
+msgstr "¡Felicidades! Su solicitud fue aprobada."
 
 #: terraso_backend/apps/notifications/templates/group-member.html:7
 msgid "email.group.approved_request_body"
 msgstr ""
+"%(firstName)s, su solicitud de membresía en el grupo “%(groupName)s“ ha "
+"sido aprobada."
 
 #: terraso_backend/apps/notifications/templates/group-member.html:9
 msgid "email.group.view_group"
-msgstr ""
+msgstr "Ver grupo"
 
 #: terraso_backend/apps/shared_data/models/data_entries.py:63
 msgid "File"
-msgstr ""
+msgstr "Archivo"
 
 #: terraso_backend/apps/shared_data/models/data_entries.py:64
 msgid "Link"
-msgstr ""
+msgstr "Enlace"
 
 #: terraso_backend/config/settings.py:155
 msgid "settings.language.es"
@@ -165,27 +169,27 @@ msgstr "Inglés"
 
 #: terraso_backend/custom_templates/oauth2_provider/authorize.html:24
 msgid "authorize.share_name_email"
-msgstr ""
+msgstr "Comparte tu nombre y correo electrónico con"
 
 #: terraso_backend/custom_templates/oauth2_provider/authorize.html:33
 msgid "authorize.uses_information_from"
-msgstr ""
+msgstr " Este sitio web solicita la siguiente información de %(application)s"
 
 #: terraso_backend/custom_templates/oauth2_provider/authorize.html:37
 msgid "authorize.your"
-msgstr ""
+msgstr "Tu"
 
 #: terraso_backend/custom_templates/oauth2_provider/authorize.html:47
 msgid "authorize.cancel"
-msgstr ""
+msgstr "Cancel"
 
 #: terraso_backend/custom_templates/oauth2_provider/authorize.html:48
 msgid "authorize.share"
-msgstr ""
+msgstr "Compartir"
 
 #: terraso_backend/custom_templates/oauth2_provider/authorize.html:54
 msgid "authorize.error"
-msgstr ""
+msgstr "Error"
 
 #~ msgid "No"
 #~ msgstr "No"
