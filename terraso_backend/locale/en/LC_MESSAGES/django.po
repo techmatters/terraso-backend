@@ -179,7 +179,7 @@ msgstr "Share your name and email with"
 
 #: terraso_backend/custom_templates/oauth2_provider/authorize.html:33
 msgid "authorize.uses_information_from"
-msgstr "Este sitio web solicita la siguiente información de"
+msgstr "This website uses information from"
 
 #: terraso_backend/custom_templates/oauth2_provider/authorize.html:37
 msgid "authorize.your"
