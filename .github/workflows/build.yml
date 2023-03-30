@@ -45,6 +45,4 @@ jobs:
 
       - name: Run tests using built Docker image
         run: |
-          whoami
-          ls -l /app/terraso_backend/locale
           make test-ci
