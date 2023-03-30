@@ -190,9 +190,3 @@ msgstr "Compartir"
 #: terraso_backend/custom_templates/oauth2_provider/authorize.html:54
 msgid "authorize.error"
 msgstr "Error"
-
-#~ msgid "No"
-#~ msgstr "No"
-
-#~ msgid "Yes"
-#~ msgstr "Si"
