@@ -215,7 +215,7 @@ class MicrosoftProvider:
 
         return jwt.encode(
             payload=claims,
-            key=self.CERTIFICATE,
+            key=self.PRIVATE_KEY,
             algorithm=self.JWT_ALG,
             headers=jwt_header,
         )
