@@ -17,7 +17,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-03-30 17:05+0000\n"
+"POT-Creation-Date: 2023-03-30 17:11+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -123,28 +123,11 @@ msgstr "Technology Matters, 3790 El Camino Real #625, Palo Alto, CA 94306"
 msgid "email.unsubscribe_link_text"
 msgstr "Unsubscribe from notifications"
 
-#: terraso_backend/apps/notifications/templates/group-manager.html:5
-msgid "email.group.pending_request_headline"
-msgstr "You have a pending request waiting"
-
-#: terraso_backend/apps/notifications/templates/group-manager.html:8
-#, python-format
-msgid ""
-"%(memberName)s has made a request for membership in your group "
-"\"%(groupName)s.”"
-msgstr ""
-"%(memberName)s has made a request for membership in your group "
-"\"%(groupName)s.”"
-
-#: terraso_backend/apps/notifications/templates/group-manager.html:10
-msgid "email.group.view_request"
-msgstr "View Request"
-
-#: terraso_backend/apps/notifications/templates/group-member.html:5
+#: terraso_backend/apps/notifications/templates/group-approved.html:5
 msgid "email.group.approved_request_headline"
 msgstr "Congratulations! Your request was approved."
 
-#: terraso_backend/apps/notifications/templates/group-member.html:7
+#: terraso_backend/apps/notifications/templates/group-approved.html:7
 #, python-format
 msgid ""
 "%(firstName)s, your request for membership in the group %(groupName)s has "
@@ -153,9 +136,26 @@ msgstr ""
 "%(firstName)s, your request for membership in the group %(groupName)s has "
 "been approved."
 
-#: terraso_backend/apps/notifications/templates/group-member.html:9
+#: terraso_backend/apps/notifications/templates/group-approved.html:9
 msgid "email.group.view_group"
 msgstr "View Group"
+
+#: terraso_backend/apps/notifications/templates/group-pending.html:5
+msgid "email.group.pending_request_headline"
+msgstr "You have a pending request waiting"
+
+#: terraso_backend/apps/notifications/templates/group-pending.html:8
+#, python-format
+msgid ""
+"%(memberName)s has made a request for membership in your group "
+"\"%(groupName)s.”"
+msgstr ""
+"%(memberName)s has made a request for membership in your group "
+"\"%(groupName)s.”"
+
+#: terraso_backend/apps/notifications/templates/group-pending.html:10
+msgid "email.group.view_request"
+msgstr "View Request"
 
 #: terraso_backend/apps/shared_data/models/data_entries.py:63
 msgid "File"

@@ -17,7 +17,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-03-30 14:30+0000\n"
+"POT-Creation-Date: 2023-03-30 17:11+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -123,11 +123,29 @@ msgstr "Technology Matters, 3790 El Camino Real #625, Palo Alto, CA 94306"
 msgid "email.unsubscribe_link_text"
 msgstr "Darse de baja de las notificaciones"
 
-#: terraso_backend/apps/notifications/templates/group-manager.html:5
+#: terraso_backend/apps/notifications/templates/group-approved.html:5
+msgid "email.group.approved_request_headline"
+msgstr "¡Felicidades! Su solicitud fue aprobada."
+
+#: terraso_backend/apps/notifications/templates/group-approved.html:7
+#, python-format
+msgid ""
+"%(firstName)s, your request for membership in the group %(groupName)s has "
+"been approved."
+msgstr ""
+"%(firstName)s, su solicitud de membresía en el grupo “%(groupName)s“ ha sido "
+"aprobada."
+
+#: terraso_backend/apps/notifications/templates/group-approved.html:9
+msgid "email.group.view_group"
+msgstr "Ver grupo"
+
+#: terraso_backend/apps/notifications/templates/group-pending.html:5
 msgid "email.group.pending_request_headline"
 msgstr "Tienes una solicitud pendiente esperando"
 
-#: terraso_backend/apps/notifications/templates/group-manager.html:8
+#: terraso_backend/apps/notifications/templates/group-pending.html:8
+#, python-format
 msgid ""
 "%(memberName)s has made a request for membership in your group "
 "\"%(groupName)s.”"
@@ -135,26 +153,9 @@ msgstr ""
 "%(memberName)s ha realizado una solicitud de membresía en su grupo "
 "“%(groupName)s.”"
 
-#: terraso_backend/apps/notifications/templates/group-manager.html:10
+#: terraso_backend/apps/notifications/templates/group-pending.html:10
 msgid "email.group.view_request"
 msgstr "Ver solicitud"
-
-#: terraso_backend/apps/notifications/templates/group-member.html:5
-msgid "email.group.approved_request_headline"
-msgstr "¡Felicidades! Su solicitud fue aprobada."
-
-#: terraso_backend/apps/notifications/templates/group-member.html:7
-#, python-format
-msgid ""
-"%(firstName)s, your request for membership in the group %(groupName)s has "
-"been approved."
-msgstr ""
-"%(firstName)s, su solicitud de membresía en el grupo “%(groupName)s“ ha "
-"sido aprobada."
-
-#: terraso_backend/apps/notifications/templates/group-member.html:9
-msgid "email.group.view_group"
-msgstr "Ver grupo"
 
 #: terraso_backend/apps/shared_data/models/data_entries.py:63
 msgid "File"
@@ -164,11 +165,11 @@ msgstr "Archivo"
 msgid "Link"
 msgstr "Enlace"
 
-#: terraso_backend/config/settings.py:155
+#: terraso_backend/config/settings.py:160
 msgid "settings.language.es"
 msgstr "Español"
 
-#: terraso_backend/config/settings.py:156
+#: terraso_backend/config/settings.py:161
 msgid "settings.language.en"
 msgstr "Inglés"
 
