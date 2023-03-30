@@ -19,6 +19,7 @@ import django
 import structlog
 from dj_database_url import parse as parse_db_url
 from django.utils.encoding import force_str
+from django.utils.translation import gettext_lazy as _
 from prettyconf import config
 
 # Monkey patching force_text function to make the application work with Django
@@ -62,6 +63,11 @@ INSTALLED_APPS = [
     "apps.story_map",
 ]
 
+if DEBUG:
+    INSTALLED_APPS += [
+        "naomi",
+    ]
+
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
@@ -73,6 +79,7 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "apps.auth.middleware.JWTAuthenticationMiddleware",
     "django_structlog.middlewares.RequestMiddleware",
+    "django.middleware.locale.LocaleMiddleware",
 ]
 
 ROOT_URLCONF = "config.urls"
@@ -81,7 +88,10 @@ TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
         "APP_DIRS": True,
-        "DIRS": [os.path.join(BASE_DIR, "custom_templates")],
+        "DIRS": [
+            os.path.join(BASE_DIR, "custom_templates"),
+            os.path.join(BASE_DIR, "apps", "notifications", "templates"),
+        ],
         "OPTIONS": {
             "context_processors": [
                 "django.template.context_processors.debug",
@@ -93,6 +103,8 @@ TEMPLATES = [
         },
     },
 ]
+
+LOCALE_PATHS = (os.path.join(BASE_DIR, "locale"),)
 
 WSGI_APPLICATION = "config.wsgi.application"
 
@@ -143,12 +155,21 @@ OAUTH2_PROVIDER = {
 }
 
 LANGUAGE_CODE = "en-us"
+DEFAULT_LANGUAGE_CODE = LANGUAGE_CODE
+LANGUAGES = [
+    ("es", _("settings.language.es")),
+    ("en", _("settings.language.en")),
+]
+
 TIME_ZONE = "UTC"
 USE_I18N = True
 USE_TZ = True
 
 MEDIA_URL = "/media/"
 STATIC_URL = "/static/"
+
+EMAIL_FROM_NAME = config("EMAIL_FROM_NAME", default="Terraso")
+EMAIL_FROM_ADDRESS = config("EMAIL_FROM_ADDRESS", default="info@terraso.org")
 
 # don't allow "new" as a name, as the view route conflicts with the create route
 DISALLOWED_NAMES_LIST = ["new"]
@@ -241,16 +262,10 @@ APPLE_CLIENT_ID = config("APPLE_CLIENT_ID", default="")
 
 MICROSOFT_CLIENT_ID = config("MICROSOFT_CLIENT_ID", default="")
 MICROSOFT_CLIENT_SECRET = config("MICROSOFT_CLIENT_SECRET", default="")
-MICROSOFT_TENANT = config("MICROSOFT_TENANT", default="")
 MICROSOFT_PRIVATE_KEY = config("MICROSOFT_PRIVATE_KEY", default="").strip()
 MICROSOFT_CERTIFICATE_THUMBPRINT = base64.b64encode(
     bytes.fromhex(config("MICROSOFT_CERTIFICATE_THUMBPRINT", default="").strip())
 ).decode("utf-8")
-
-MICROSOFT_CLIENT_ID = config("MICROSOFT_CLIENT_ID", default="")
-MICROSOFT_CLIENT_SECRET = config("MICROSOFT_CLIENT_SECRET", default="")
-MICROSOFT_TENANT = config("MICROSOFT_TENANT", default="")
-MICROSOFT_AUTH_REDIRECT_URI = config("MICROSOFT_AUTH_REDIRECT_URI", default="")
 
 JWT_SECRET = config("JWT_SECRET")
 JWT_ALGORITHM = config("JWT_ALGORITHM", default="HS512")
@@ -327,6 +342,35 @@ DATA_ENTRY_ACCEPTED_TYPES = (
     DATA_ENTRY_DOCUMENT_TYPES | DATA_ENTRY_SPREADSHEET_TYPES | DATA_ENTRY_GIS_TYPES
 )
 
+# If types defined as None, then types are guessed from the file extension
+
+DATA_ENTRY_DOCUMENT_TYPES = {
+    ".doc": None,
+    ".docx": None,
+    ".pdf": None,
+    ".ppt": None,
+    ".pptx": None,
+}
+
+DATA_ENTRY_SPREADSHEET_TYPES = {
+    ".csv": ["text/plain", "text/csv", "application/csv"],
+    ".xls": None,
+    ".xlsx": None,
+}
+
+DATA_ENTRY_GIS_TYPES = {
+    ".geojson": ["text/plain", "application/json", "application/geo+json"],
+    ".json": ["text/plain", "application/json", "application/geo+json"],
+    ".gpx": ["text/plain", "text/xml", "application/xml", "application/gpx+xml"],
+    ".kml": ["text/plain", "text/xml", "application/xml", "application/vnd.google-earth.kml+xml"],
+    ".kmz": ["application/zip", "application/vnd.google-earth.kmz"],
+    ".zip": ["application/zip"],
+}
+
+DATA_ENTRY_ACCEPTED_TYPES = (
+    DATA_ENTRY_DOCUMENT_TYPES | DATA_ENTRY_SPREADSHEET_TYPES | DATA_ENTRY_GIS_TYPES
+)
+
 DB_BACKUP_S3_BUCKET = config("DB_BACKUP_S3_BUCKET", default="")
 
 # DB Restore config
@@ -340,6 +384,16 @@ DB_RESTORE_DEST_HOST = config("DB_RESTORE_DEST_HOST", default="")
 AWS_ACCESS_KEY_ID = config("AWS_ACCESS_KEY_ID", default="")
 AWS_SECRET_ACCESS_KEY = config("AWS_SECRET_ACCESS_KEY", default="")
 AWS_S3_REGION_NAME = config("AWS_S3_REGION_NAME", default="us-east-2")
+
+if DEBUG:
+    EMAIL_BACKEND = "naomi.mail.backends.naomi.NaomiBackend"
+    EMAIL_FILE_PATH = "/app/email_preview"
+else:
+    EMAIL_BACKEND = "django_ses.SESBackend"
+
+AWS_SES_REGION_NAME = config("AWS_SES_REGION_NAME", default="us-east-1")
+AWS_SES_ACCESS_KEY_ID = config("AWS_SES_ACCESS_KEY_ID", default="")
+AWS_SES_SECRET_ACCESS_KEY = config("AWS_SES_SECRET_ACCESS_KEY", default="")
 
 PLAUSIBLE_URL = config("PLAUSIBLE_URL", default="https://plausible.io/api/event")
 RENDER_API_URL = config("RENDER_API_URL", default="https://api.render.com/v1/")
