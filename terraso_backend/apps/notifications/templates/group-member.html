@@ -4,7 +4,7 @@
 {% block content %}
 <h2>{% translate "email.group.approved_request_headline" %}</h2>
 
-<p>{% blocktranslate with firstName=firstName groupName=groupName %}email.group.approved_request_body{% endblocktranslate %}</p>
+<p>{% blocktranslate with firstName=firstName groupName=groupName %}{{firstName}}, your request for membership in the group {{groupName}} has been approved.{% endblocktranslate %}</p>
 
 <p style="margin: 3em;"><a style="padding: 0.5em 1em; border: 1px solid black; border-radius: 0.5em; text-decoration: none; color: black;" href="{{groupUrl}}">{% translate "email.group.view_group" %}</a></p>
 
