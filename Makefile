@@ -46,7 +46,7 @@ makemigrations: check_rebuild
 	./scripts/run.sh python terraso_backend/manage.py makemigrations
 
 compile-translations:
-	./scripts/run.sh python terraso_backend/manage.py compilemessages --locale=es --locale=en
+	django-admin compilemessages --locale=es --locale=en
 
 generate-translations:
 	./scripts/run.sh python terraso_backend/manage.py makemessages --locale=es --locale=en
