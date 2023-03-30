@@ -17,7 +17,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-03-30 17:11+0000\n"
+"POT-Creation-Date: 2023-03-30 17:16+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -30,7 +30,7 @@ msgstr ""
 #: terraso_backend/apps/core/models/commons.py:31
 #, python-format
 msgid "%(value)s is not allowed as a name"
-msgstr ""
+msgstr "%(value)s is not allowed as a name"
 
 #: terraso_backend/apps/core/models/groups.py:46
 msgid "Open"
@@ -99,17 +99,17 @@ msgstr ""
 #: terraso_backend/apps/core/models/users.py:121
 #, python-format
 msgid "%(first_name)s %(last_name)s"
-msgstr ""
+msgstr "%(first_name)s %(last_name)s"
 
 #: terraso_backend/apps/notifications/email.py:71
 #, python-format
 msgid "%(user)s has requested to join “%(group)s”"
-msgstr ""
+msgstr "%(user)s has requested to join “%(group)s”"
 
 #: terraso_backend/apps/notifications/email.py:92
 #, python-format
 msgid "Membership in “%(group)s” has been approved"
-msgstr ""
+msgstr "Membership in “%(group)s” has been approved"
 
 #: terraso_backend/apps/notifications/templates/base.html:10
 msgid "email.logo_alt_text"
@@ -179,7 +179,7 @@ msgstr "Share your name and email with"
 
 #: terraso_backend/custom_templates/oauth2_provider/authorize.html:33
 msgid "authorize.uses_information_from"
-msgstr " This website wants the following information from %(application)s"
+msgstr "Este sitio web solicita la siguiente información de"
 
 #: terraso_backend/custom_templates/oauth2_provider/authorize.html:37
 msgid "authorize.your"
@@ -196,13 +196,3 @@ msgstr "Share"
 #: terraso_backend/custom_templates/oauth2_provider/authorize.html:54
 msgid "authorize.error"
 msgstr "Error"
-
-#~ msgid "email.group.pending_request_body"
-#~ msgstr ""
-#~ "%(memberName)s has made a request for membership in your group "
-#~ "“%(groupName)s.”"
-
-#~ msgid "email.group.approved_request_body"
-#~ msgstr ""
-#~ "%(firstName)s, your request for membership in the group “%(groupName)s” "
-#~ "has been approved."
