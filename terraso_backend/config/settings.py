@@ -152,8 +152,8 @@ OAUTH2_PROVIDER = {
 LANGUAGE_CODE = "en-us"
 DEFAULT_LANGUAGE_CODE = LANGUAGE_CODE
 LANGUAGES = [
-    ("es", _("Spanish")),
-    ("en", _("English")),
+    ("es", _("settings.language.es")),
+    ("en", _("settings.language.en")),
 ]
 
 TIME_ZONE = "UTC"
