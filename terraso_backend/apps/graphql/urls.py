@@ -17,7 +17,7 @@ from django.conf import settings
 from django.urls import path
 from django.views.decorators.csrf import csrf_exempt
 
-from apps.auth.middleware import auth_not_required
+from apps.auth.middleware import auth_optional
 
 from .views import TerrasoGraphQLDocs, TerrasoGraphQLView
 
@@ -29,7 +29,7 @@ urlpatterns = [
 
 if settings.DEBUG:
     urlpatterns.append(
-        path("", csrf_exempt(auth_not_required(TerrasoGraphQLView.as_view(graphiql=True))))
+        path("", csrf_exempt(auth_optional(TerrasoGraphQLView.as_view(graphiql=True))))
     )
 else:
-    urlpatterns.append(path("", csrf_exempt(auth_not_required(TerrasoGraphQLView.as_view()))))
+    urlpatterns.append(path("", csrf_exempt(auth_optional(TerrasoGraphQLView.as_view()))))

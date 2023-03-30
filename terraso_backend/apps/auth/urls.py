@@ -16,7 +16,7 @@
 from django.urls import path
 from django.views.decorators.csrf import csrf_exempt
 
-from apps.auth.middleware import auth_not_required, jwt_validation_not_required
+from apps.auth.middleware import auth_not_required
 from apps.auth.views import (
     AppleAuthorizeView,
     AppleCallbackView,
@@ -33,43 +33,37 @@ app_name = "apps.auth"
 urlpatterns = [
     path(
         "apple/authorize",
-        csrf_exempt(auth_not_required(jwt_validation_not_required(AppleAuthorizeView.as_view()))),
+        csrf_exempt(auth_not_required(AppleAuthorizeView.as_view())),
         name="apple-authorize",
     ),
     path(
         "apple/callback",
-        csrf_exempt(auth_not_required(jwt_validation_not_required(AppleCallbackView.as_view()))),
+        csrf_exempt(auth_not_required(AppleCallbackView.as_view())),
         name="apple-callback",
     ),
     path(
         "google/authorize",
-        csrf_exempt(auth_not_required(jwt_validation_not_required(GoogleAuthorizeView.as_view()))),
+        csrf_exempt(auth_not_required(GoogleAuthorizeView.as_view())),
         name="google-authorize",
     ),
     path(
         "google/callback",
-        csrf_exempt(auth_not_required(jwt_validation_not_required(GoogleCallbackView.as_view()))),
+        csrf_exempt(auth_not_required(GoogleCallbackView.as_view())),
         name="google-callback",
     ),
     path(
         "microsoft/authorize",
-        csrf_exempt(
-            auth_not_required(jwt_validation_not_required(MicrosoftAuthorizeView.as_view()))
-        ),
+        csrf_exempt(auth_not_required(MicrosoftAuthorizeView.as_view())),
         name="microsoft-authorize",
     ),
     path(
         "microsoft/callback",
-        csrf_exempt(
-            auth_not_required(jwt_validation_not_required(MicrosoftCallbackView.as_view()))
-        ),
+        csrf_exempt(auth_not_required(MicrosoftCallbackView.as_view())),
         name="microsoft-callback",
     ),
     path(
         "tokens",
-        csrf_exempt(
-            auth_not_required(jwt_validation_not_required(RefreshAccessTokenView.as_view()))
-        ),
+        csrf_exempt(auth_not_required(RefreshAccessTokenView.as_view())),
         name="tokens",
     ),
     path("logout", csrf_exempt(LogoutView.as_view()), name="logout"),

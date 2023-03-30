@@ -29,29 +29,23 @@ User = get_user_model()
 
 class JWTAuthenticationMiddleware:
     def process_view(self, request, view_func, view_args, view_kwargs):
-        auth_required = not getattr(view_func, "auth_not_required", False)
-        jwt_validation_required = not getattr(view_func, "jwt_validation_not_required", False)
-        auth_header = request.META.get("HTTP_AUTHORIZATION")
+        auth_optional = getattr(view_func, "auth_optional", False)
+        auth_required = not getattr(view_func, "auth_not_required", False) and not auth_optional
 
-        if not auth_required and not jwt_validation_required:
+        if not auth_required and not auth_optional:
             return None
 
-        if auth_required or auth_header:
-            try:
-                user = self._get_user_from_jwt(request)
-            except ValidationError as e:
-                logger.warning("Invalid JWT token", extra={"error": str(e)})
-                return JsonResponse({"error": "Unauthorized request"}, status=401)
-
-            if not user:
-                logger.warning("No user found for JWT token")
-                return JsonResponse({"error": "Unauthorized request"}, status=401)
-
-            if user:
-                request.user = user
+        try:
+            request.user = self._get_user_from_jwt(request)
             return None
+        except ValidationError as e:
+            logger.warning("Invalid JWT token", extra={"error": str(e)})
+            if auth_required:
+                return JsonResponse({"error": "Unauthorized request"}, status=401)
+            request.user = None
 
-        return JsonResponse({"error": "Unauthorized request"}, status=401)
+        if auth_required:
+            return JsonResponse({"error": "Unauthorized request"}, status=401)
 
     def __init__(self, get_response):
         self.get_response = get_response
@@ -85,7 +79,12 @@ class JWTAuthenticationMiddleware:
             logger.exception("Failure to verify JWT token", extra={"token": token})
             raise ValidationError(f"Invalid JWT token: {e}")
 
-        return self._get_user(decoded_payload["sub"])
+        user = self._get_user(decoded_payload["sub"])
+
+        if not user:
+            raise ValidationError("User not found for JWT token")
+
+        return user
 
     def _get_user(self, user_id):
         try:
@@ -105,11 +104,11 @@ def auth_not_required(view_func):
     return wraps(view_func)(wrapped_view)
 
 
-def jwt_validation_not_required(view_func):
+def auth_optional(view_func):
     """Decorator to mark a view as not requiring JWT token validation."""
 
     def wrapped_view(request, *args, **kwargs):
         return view_func(request, *args, **kwargs)
 
-    view_func.jwt_validation_not_required = True
+    view_func.auth_optional = True
     return wraps(view_func)(wrapped_view)
