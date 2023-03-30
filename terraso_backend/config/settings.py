@@ -12,7 +12,7 @@
 #
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see https://www.gnu.org/licenses/.
-
+import base64
 import os
 
 import django
@@ -232,6 +232,10 @@ APPLE_CLIENT_ID = config("APPLE_CLIENT_ID", default="")
 
 MICROSOFT_CLIENT_ID = config("MICROSOFT_CLIENT_ID", default="")
 MICROSOFT_CLIENT_SECRET = config("MICROSOFT_CLIENT_SECRET", default="")
+MICROSOFT_PRIVATE_KEY = config("MICROSOFT_PRIVATE_KEY", default="").strip()
+MICROSOFT_CERTIFICATE_THUMBPRINT = base64.b64encode(
+    bytes.fromhex(config("MICROSOFT_CERTIFICATE_THUMBPRINT", default="").strip())
+).decode("utf-8")
 
 JWT_SECRET = config("JWT_SECRET")
 JWT_ALGORITHM = config("JWT_ALGORITHM", default="HS512")
