@@ -24,5 +24,4 @@ USER terraso
 
 RUN pip install --upgrade pip && make install
 
-RUN python terraso_backend/manage.py compilemessages --locale=es --locale=en
-
+RUN django-admin compilemessages --locale=es --locale=en
