@@ -65,6 +65,12 @@ urlpatterns = [
         ),
         name="microsoft-callback",
     ),
-    path("tokens", csrf_exempt(RefreshAccessTokenView.as_view()), name="tokens"),
+    path(
+        "tokens",
+        csrf_exempt(
+            auth_not_required(jwt_validation_not_required(RefreshAccessTokenView.as_view()))
+        ),
+        name="tokens",
+    ),
     path("logout", csrf_exempt(LogoutView.as_view()), name="logout"),
 ]
