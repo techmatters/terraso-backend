@@ -306,7 +306,7 @@ STORY_MAP_MEDIA_S3_BUCKET = config("STORY_MAP_MEDIA_S3_BUCKET", default="")
 STORY_MAP_MEDIA_BASE_URL = f"https://{STORY_MAP_MEDIA_S3_BUCKET}"
 
 PUBLIC_BASE_PATHS = [
-    "/admin/",
+    "/admin/",  # Authentication handled by Django
     "/oauth/",
     "/auth/",
 ]
