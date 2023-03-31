@@ -49,6 +49,11 @@ class BaseMutation(relay.ClientIDMutation):
 
     @classmethod
     def mutate(cls, root, info, input):
+        user = info.context.user
+
+        if not user or not user.is_authenticated:
+            return cls(errors=[{"message": "You must be authenticated to perform this operation"}])
+
         try:
             return super().mutate(root, info, input)
         except Exception as error:
