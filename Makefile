@@ -50,7 +50,7 @@ makemigrations: check_rebuild
 	$(DC_RUN_CMD) python terraso_backend/manage.py makemigrations
 
 compile-translations:
-	PATH="/home/terraso/.local/bin:${PATH}" django-admin compilemessages --locale=es --locale=en
+	$(DC_RUN_CMD) django-admin compilemessages --locale=es --locale=en
 
 generate-translations:
 	$(DC_RUN_CMD) python terraso_backend/manage.py makemessages --locale=es --locale=en
@@ -80,7 +80,7 @@ stop:
 test: clean check_rebuild compile-translations
 	$(DC_RUN_CMD) pytest terraso_backend
 
-test-ci: clean compile-translations
+test-ci: clean
 	# Same action as 'test' but avoiding to create test cache
 	$(DC_RUN_CMD) pytest -p no:cacheprovider terraso_backend
 
