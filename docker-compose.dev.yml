@@ -1,0 +1,17 @@
+version: "3"
+
+services:
+  web:
+    extends:
+      file: docker-compose.base.yml
+      service: web
+    volumes:
+      - .:/app:z
+
+  db:
+    extends:
+      file: docker-compose.base.yml
+      service: db
+
+volumes:
+  postgresql_data:

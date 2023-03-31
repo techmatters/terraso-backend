@@ -1,3 +1,7 @@
+DC_ENV ?= dev
+DC_FILE_ARG = -f docker-compose.$(DC_ENV).yml
+DC_RUN_CMD = docker-compose $(DC_FILE_ARG) run --rm web
+
 api_docs:
 	npx spectaql --one-file --target-file=docs.html --target-dir=terraso_backend/apps/graphql/templates/ terraso_backend/apps/graphql/spectaql.yml
 
@@ -18,7 +22,7 @@ clean:
 	@find . -name __pycache__ -delete
 
 createsuperuser: check_rebuild
-	./scripts/run.sh python terraso_backend/manage.py createsuperuser
+	$(DC_RUN_CMD) python terraso_backend/manage.py createsuperuser
 
 format: ${VIRTUAL_ENV}/scripts/black ${VIRTUAL_ENV}/scripts/isort
 	isort -rc --atomic terraso_backend
@@ -40,16 +44,16 @@ lock-dev: pip-tools
 	CUSTOM_COMPILE_COMMAND="make lock-dev" pip-compile --upgrade --generate-hashes --output-file requirements-dev.txt requirements/dev.in
 
 migrate: check_rebuild
-	./scripts/run.sh python terraso_backend/manage.py migrate --no-input
+	$(DC_RUN_CMD) python terraso_backend/manage.py migrate --no-input
 
 makemigrations: check_rebuild
-	./scripts/run.sh python terraso_backend/manage.py makemigrations
+	$(DC_RUN_CMD) python terraso_backend/manage.py makemigrations
 
 compile-translations:
 	PATH="/home/terraso/.local/bin:${PATH}" django-admin compilemessages --locale=es --locale=en
 
 generate-translations:
-	./scripts/run.sh python terraso_backend/manage.py makemessages --locale=es --locale=en
+	$(DC_RUN_CMD) python terraso_backend/manage.py makemessages --locale=es --locale=en
 
 translate: generate-translations compile-translations
 
@@ -74,12 +78,14 @@ stop:
 	@docker-compose stop
 
 test: clean check_rebuild compile-translations
-	./scripts/run.sh pytest terraso_backend
+	$(DC_RUN_CMD) pytest terraso_backend
 
 test-ci: clean compile-translations
 	# Same action as 'test' but avoiding to create test cache
-	./scripts/run.sh pytest -p no:cacheprovider terraso_backend
+	$(DC_RUN_CMD) pytest -p no:cacheprovider terraso_backend
 
+bash:
+	$(DC_RUN_CMD) bash
 
 ${VIRTUAL_ENV}/scripts/black:
 	pip install black

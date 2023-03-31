@@ -1,0 +1,12 @@
+version: "3"
+
+services:
+  web:
+    extends:
+      file: docker-compose.base.yml
+      service: web
+
+  db:
+    extends:
+      file: docker-compose.base.yml
+      service: db
