@@ -1,9 +1,11 @@
 name: build
 
 on:
+  workflow_dispatch:
   push:
     branches:
       - main
+      - staging
   pull_request:
     branches:
       - main
@@ -40,8 +42,8 @@ jobs:
       - name: Build base Docker image
         run: |
           cp .env.sample .env
-          make build
+          make build DC_ENV=ci
 
       - name: Run tests using built Docker image
         run: |
-          make test-ci
+          make test-ci DC_ENV=ci
