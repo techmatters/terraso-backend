@@ -1,6 +1,7 @@
 name: build
 
 on:
+  workflow_dispatch:
   push:
     branches:
       - main
@@ -45,4 +46,4 @@ jobs:
 
       - name: Run tests using built Docker image
         run: |
-          make test-ci
+          make test-ci DC_ENV=ci
