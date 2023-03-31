@@ -304,3 +304,9 @@ DATA_UPLOAD_MAX_MEMORY_SIZE = 70000000  # 70MB
 
 STORY_MAP_MEDIA_S3_BUCKET = config("STORY_MAP_MEDIA_S3_BUCKET", default="")
 STORY_MAP_MEDIA_BASE_URL = f"https://{STORY_MAP_MEDIA_S3_BUCKET}"
+
+PUBLIC_BASE_PATHS = [
+    "/admin/",
+    "/oauth/",
+    "/auth/",
+]

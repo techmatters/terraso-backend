@@ -16,6 +16,7 @@
 from functools import wraps
 
 import structlog
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ImproperlyConfigured, ValidationError
 from django.http.response import JsonResponse
@@ -30,9 +31,9 @@ User = get_user_model()
 class JWTAuthenticationMiddleware:
     def process_view(self, request, view_func, view_args, view_kwargs):
         auth_optional = getattr(view_func, "auth_optional", False)
-        auth_required = not getattr(view_func, "auth_not_required", False) and not auth_optional
+        auth_required = not self._is_path_public(request.path) and not auth_optional
 
-        if not auth_required and not auth_optional:
+        if request.user.is_authenticated or (not auth_required and not auth_optional):
             return None
 
         try:
@@ -46,6 +47,12 @@ class JWTAuthenticationMiddleware:
 
         if auth_required:
             return JsonResponse({"error": "Unauthorized request"}, status=401)
+
+    def _is_path_public(self, path):
+        for public_path in settings.PUBLIC_BASE_PATHS:
+            if path.startswith(public_path):
+                return True
+        return False
 
     def __init__(self, get_response):
         self.get_response = get_response
@@ -92,14 +99,6 @@ class JWTAuthenticationMiddleware:
         except User.DoesNotExist:
             logger.error("User from JWT token not found", extra={"user_id": user_id})
             return None
-
-
-def auth_not_required(view_func):
-    def wrapped_view(request, *args, **kwargs):
-        return view_func(request, *args, **kwargs)
-
-    view_func.auth_not_required = True
-    return wraps(view_func)(wrapped_view)
 
 
 def auth_optional(view_func):
