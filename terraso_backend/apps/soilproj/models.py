@@ -15,7 +15,7 @@
 from django.db import models
 
 from apps.core.models import User
-from apps.core.models.commons import SlugModel
+from apps.core.models.commons import BaseModel, SlugModel
 
 
 class Site(SlugModel):
@@ -31,3 +31,26 @@ class Site(SlugModel):
     creator = models.ForeignKey(User, on_delete=models.PROTECT, verbose_name="creator of site")
 
     field_to_slug = "name"
+
+
+class Project(BaseModel):
+    class Meta(BaseModel.Meta):
+        abstract = False
+
+    PRIVATE = "pri"
+    PUBLIC = "pub"
+    PRIVACY_OPTIONS = [(PRIVATE, "Private"), (PUBLIC, "Public")]
+
+    name = models.CharField(max_length=200)
+    privacy = models.CharField(max_length=3, choices=PRIVACY_OPTIONS, default=PRIVATE)
+    members = models.ManyToManyField(User, through="ProjectMembership")
+
+
+class ProjectMembership(models.Model):
+    MANAGER = "mang"
+    MEMBER = "memb"
+    MEMBERSHIP_TYPE = [(MANAGER, "Manager"), (MEMBER, "member")]
+
+    membership = models.CharField(max_length=4, choices=MEMBERSHIP_TYPE, default=MEMBER)
+    member = models.ForeignKey(User, on_delete=models.CASCADE, related_name="projects")
+    project = models.ForeignKey(Project, on_delete=models.CASCADE)
