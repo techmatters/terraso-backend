@@ -7,6 +7,9 @@ services:
       service: web
     volumes:
       - .:/app:z
+    depends_on:
+      db:
+        condition: service_healthy
 
   db:
     extends:
