@@ -95,8 +95,6 @@ class JWTAuthenticationMiddleware:
 
 
 def auth_not_required(view_func):
-    """Decorator to mark a view as not requiring authentication."""
-
     def wrapped_view(request, *args, **kwargs):
         return view_func(request, *args, **kwargs)
 
@@ -105,8 +103,6 @@ def auth_not_required(view_func):
 
 
 def auth_optional(view_func):
-    """Decorator to mark a view as not requiring JWT token validation."""
-
     def wrapped_view(request, *args, **kwargs):
         return view_func(request, *args, **kwargs)
 
