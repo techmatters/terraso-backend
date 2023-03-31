@@ -76,7 +76,7 @@ stop:
 test: clean check_rebuild compile-translations
 	./scripts/run.sh pytest terraso_backend
 
-test-ci: clean
+test-ci: clean compile-translations
 	# Same action as 'test' but avoiding to create test cache
 	./scripts/run.sh pytest -p no:cacheprovider terraso_backend
 
