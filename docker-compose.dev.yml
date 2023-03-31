@@ -8,6 +8,10 @@ services:
     volumes:
       - .:/app:z
 
+    depends_on:
+      db:
+        condition: service_healthy
+
   db:
     extends:
       file: docker-compose.base.yml
