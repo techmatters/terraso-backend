@@ -10,3 +10,6 @@ services:
     extends:
       file: docker-compose.base.yml
       service: db
+
+volumes:
+  postgresql_data:
