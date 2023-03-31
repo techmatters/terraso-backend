@@ -12,7 +12,7 @@ build_base_image:
 	docker build --tag=techmatters/terraso_backend --file=Dockerfile .
 
 build: build_base_image
-	docker-compose build
+	docker-compose $(DC_FILE_ARG) build
 
 check_rebuild:
 	./scripts/rebuild.sh
@@ -72,10 +72,10 @@ run:
 setup: build setup-pre-commit
 
 start-%:
-	@docker-compose up -d $(@:start-%=%)
+	@docker-compose $(DC_FILE_ARG) up -d $(@:start-%=%)
 
 stop:
-	@docker-compose stop
+	@docker-compose $(DC_FILE_ARG) stop
 
 test: clean check_rebuild compile-translations
 	$(DC_RUN_CMD) pytest terraso_backend
