@@ -42,7 +42,7 @@ jobs:
       - name: Build base Docker image
         run: |
           cp .env.sample .env
-          make build
+          make build DC_ENV=ci
 
       - name: Run tests using built Docker image
         run: |
