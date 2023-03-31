@@ -11,6 +11,10 @@ services:
       db:
         condition: service_healthy
 
+    depends_on:
+      db:
+        condition: service_healthy
+
   db:
     extends:
       file: docker-compose.base.yml
