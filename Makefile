@@ -67,7 +67,7 @@ setup-git-hooks:
 pre-commit: lint
 
 run:
-	@./scripts/docker.sh
+	@./scripts/docker.sh "$(DC_FILE_ARG)"
 
 setup: build setup-pre-commit
 
