@@ -36,16 +36,17 @@ class JWTAuthenticationMiddleware:
         if request.user.is_authenticated or (not auth_required and not auth_optional):
             return None
 
+        auth_header = request.META.get("HTTP_AUTHORIZATION")
+        if not auth_header and auth_optional:
+            request.user = None
+            return None
+
         try:
             request.user = self._get_user_from_jwt(request)
             return None
         except ValidationError as e:
-            logger.warning("Invalid JWT token", extra={"error": str(e)})
-            if auth_required:
-                return JsonResponse({"error": "Unauthorized request"}, status=401)
             request.user = None
-
-        if auth_required:
+            logger.warning("Invalid JWT token", extra={"error": str(e)})
             return JsonResponse({"error": "Unauthorized request"}, status=401)
 
     def _is_path_public(self, path):
