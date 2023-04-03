@@ -71,7 +71,9 @@ class ProjectAddSiteMutation(BaseMutation):
         site = Site.objects.get(id=siteID)
         project = Project.objects.get(id=projectID)
         user = info.context.user
-        if not user.has_perm(Site.get_perm("add_to_project"), site):
+        if not user.has_perm(Site.get_perm("add_to_project"), site) or not user.has_perm(
+            Project.get_perm("add_site"), project
+        ):
             raise GraphQLNotAllowedException("User not allowed to add site to project")
         site.project = project
         site.save()
