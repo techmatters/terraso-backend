@@ -18,21 +18,6 @@ from apps.core.models import User
 from apps.core.models.commons import BaseModel, SlugModel
 
 
-class Site(SlugModel):
-    class Meta(SlugModel.Meta):
-        abstract = False
-        _unique_fields = ["name"]
-
-    name = models.CharField(max_length=200)
-    lat_deg = models.FloatField()
-    lon_deg = models.FloatField()
-
-    # note: for now, do not let user account deletion if they have sites
-    creator = models.ForeignKey(User, on_delete=models.PROTECT, verbose_name="creator of site")
-
-    field_to_slug = "name"
-
-
 class Project(BaseModel):
     class Meta(BaseModel.Meta):
         abstract = False
@@ -44,6 +29,28 @@ class Project(BaseModel):
     name = models.CharField(max_length=200)
     privacy = models.CharField(max_length=3, choices=PRIVACY_OPTIONS, default=PRIVATE)
     members = models.ManyToManyField(User, through="ProjectMembership")
+
+
+class Site(SlugModel):
+    class Meta(SlugModel.Meta):
+        abstract = False
+        _unique_fields = ["name"]
+
+    name = models.CharField(max_length=200)
+    lat_deg = models.FloatField()
+    lon_deg = models.FloatField()
+
+    # note: for now, do not let user account deletion if they have sites
+    creator = models.ForeignKey(User, on_delete=models.PROTECT, verbose_name="creator of site")
+    project = models.ForeignKey(
+        Project,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        verbose_name="project to which the site belongs",
+    )
+
+    field_to_slug = "name"
 
 
 class ProjectMembership(models.Model):
