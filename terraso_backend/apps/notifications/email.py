@@ -52,7 +52,7 @@ class EmailNotification:
     @classmethod
     def send_membership_request(cls, user, group):
         context = {
-            "memberName": user.full_name,
+            "memberName": user.full_name(),
             "groupName": group.name,
             "requestUrl": f"{settings.WEB_CLIENT_URL}/groups/{TRACKING_PARAMETERS}",
             "imageUrl": EmailNotification.encode_image(LOGO_PATH),
@@ -73,7 +73,7 @@ class EmailNotification:
                 body = render_to_string("group-pending.html", context)
                 subject = _(
                     "%(user)s has requested to join “%(group)s”"
-                    % {"user": user.full_name, "group": group.name},
+                    % {"user": user.full_name(), "group": group.name},
                 )
 
             send_mail(subject, None, EmailNotification.sender(), recipients, html_message=body)
