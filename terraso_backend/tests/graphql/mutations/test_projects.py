@@ -1,7 +1,10 @@
 import json
 
 import pytest
+from graphene_django.utils.testing import graphql_query
+from mixer.backend.django import mixer
 
+from apps.core.models import User
 from apps.soilproj.models import Project, ProjectMembership
 
 pytestmark = pytest.mark.django_db
@@ -29,9 +32,7 @@ def test_create_project(client_query, user):
     assert membership.membership == ProjectMembership.MANAGER
 
 
-def test_adding_site_to_project(client_query, user, project, site):
-    response = client_query(
-        """
+ADD_CLIENT_QUERY = """
     mutation addSiteToProject($input: ProjectAddSiteMutationInput!) {
         projectAddSiteMutation(input: $input) {
             site {
@@ -42,7 +43,12 @@ def test_adding_site_to_project(client_query, user, project, site):
             }
         }
     }
-    """,
+    """
+
+
+def test_adding_site_to_project(client_query, user, project, site):
+    response = client_query(
+        ADD_CLIENT_QUERY,
         variables={"input": {"siteID": str(site.id), "projectID": str(project.id)}},
     )
     content = json.loads(response.content)
@@ -54,3 +60,18 @@ def test_adding_site_to_project(client_query, user, project, site):
     assert project_id == str(project.id)
     site.refresh_from_db()
     assert site.project.id == project.id
+
+
+def test_adding_site_to_project_user_not_site_creator(client, project, site):
+    user = mixer.blend(User)
+    ProjectMembership.objects.create(
+        project=project, member=user, membership=ProjectMembership.MANAGER
+    )
+    client.force_login(user)
+    response = graphql_query(
+        ADD_CLIENT_QUERY,
+        variables={"input": {"siteID": str(site.id), "projectID": str(project.id)}},
+        client=client,
+    )
+    content = json.loads(response.content)
+    assert "errors" in content

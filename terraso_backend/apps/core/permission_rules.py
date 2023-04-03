@@ -103,6 +103,11 @@ def allowed_to_update_preferences(user, user_preferences):
     return user_preferences.user.id == user.id
 
 
+@rules.predicate
+def is_site_creator(user, site):
+    return user.id == site.creator.id
+
+
 rules.add_rule("allowed_group_managers_count", allowed_group_managers_count)
 rules.add_rule("allowed_to_update_preferences", allowed_to_update_preferences)
 rules.add_rule("allowed_to_change_landscape", allowed_to_change_landscape)
