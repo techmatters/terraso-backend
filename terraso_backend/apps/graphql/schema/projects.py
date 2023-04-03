@@ -3,9 +3,10 @@ from django.db import transaction
 from graphene import relay
 from graphene_django import DjangoObjectType
 
-from apps.soilproj.models import Project, ProjectMembership
+from apps.soilproj.models import Project, ProjectMembership, Site
 
 from .commons import BaseWriteMutation, TerrasoConnection
+from .sites import SiteNode
 
 
 class ProjectNode(DjangoObjectType):
@@ -39,3 +40,20 @@ class ProjectAddMutation(BaseWriteMutation):
                 membership=ProjectMembership.MANAGER,
             )
         return result
+
+
+class ProjectAddSiteMutation(relay.ClientIDMutation):
+    site = graphene.Field(SiteNode, required=True)
+    project = graphene.Field(ProjectNode, required=True)
+
+    class Input:
+        siteID = graphene.ID(required=True)
+        projectID = graphene.ID(required=True)
+
+    @classmethod
+    def mutate_and_get_payload(cls, root, info, projectID, siteID):
+        site = Site.objects.get(id=siteID)
+        project = Project.objects.get(id=projectID)
+        site.project = project
+        site.save()
+        return ProjectAddSiteMutation(site=site, project=project)
