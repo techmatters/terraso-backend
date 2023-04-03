@@ -309,4 +309,5 @@ PUBLIC_BASE_PATHS = [
     "/admin/",  # Authentication handled by Django
     "/oauth/",
     "/auth/",
+    "/healthz/",
 ]
