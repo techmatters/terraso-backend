@@ -73,6 +73,17 @@ def expired_client_query(client, expired_access_token):
 
 
 @pytest.fixture
+def client_query_no_token(client):
+    def _client_query(*args, **kwargs):
+        headers = {
+            "CONTENT_TYPE": "application/json",
+        }
+        return graphql_query(*args, **kwargs, headers=headers, client=client)
+
+    return _client_query
+
+
+@pytest.fixture
 def landscapes():
     return mixer.cycle(2).blend(
         Landscape,
