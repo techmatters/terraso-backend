@@ -73,5 +73,24 @@ def test_adding_site_to_project_user_not_site_creator(client, project, site):
         variables={"input": {"siteID": str(site.id), "projectID": str(project.id)}},
         client=client,
     )
+
+    content = json.loads(response.content)
+    assert "errors" in content
+
+
+def test_adding_site_to_project_user_not_manager(client, project, site):
+    user = mixer.blend(User)
+    site.creator = user
+    site.save()
+    ProjectMembership.objects.create(
+        project=project, member=user, membership=ProjectMembership.MEMBER
+    )
+    client.force_login(user)
+    response = graphql_query(
+        ADD_CLIENT_QUERY,
+        variables={"input": {"siteID": str(site.id), "projectID": str(project.id)}},
+        client=client,
+    )
+
     content = json.loads(response.content)
     assert "errors" in content

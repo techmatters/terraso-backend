@@ -23,6 +23,8 @@ class Project(BaseModel):
     class Meta(BaseModel.Meta):
         abstract = False
 
+        rules_permissions = {"add_site": permission_rules.can_add_site}
+
     PRIVATE = "pri"
     PUBLIC = "pub"
     PRIVACY_OPTIONS = [(PRIVATE, "Private"), (PUBLIC, "Public")]
@@ -30,6 +32,11 @@ class Project(BaseModel):
     name = models.CharField(max_length=200)
     privacy = models.CharField(max_length=3, choices=PRIVACY_OPTIONS, default=PRIVATE)
     members = models.ManyToManyField(User, through="ProjectMembership")
+
+    def is_manager(self, user):
+        return ProjectMembership.objects.filter(
+            member=user, project=self, membership=ProjectMembership.MANAGER
+        ).exists()
 
 
 class Site(SlugModel):
