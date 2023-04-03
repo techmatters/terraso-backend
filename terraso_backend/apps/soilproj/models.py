@@ -14,6 +14,7 @@
 # along with this program. If not, see https://www.gnu.org/licenses/.
 from django.db import models
 
+from apps.core import permission_rules
 from apps.core.models import User
 from apps.core.models.commons import BaseModel, SlugModel
 
@@ -35,6 +36,8 @@ class Site(SlugModel):
     class Meta(SlugModel.Meta):
         abstract = False
         _unique_fields = ["name"]
+
+        rules_permissions = {"add_to_project": permission_rules.is_site_creator}
 
     name = models.CharField(max_length=200)
     lat_deg = models.FloatField()
