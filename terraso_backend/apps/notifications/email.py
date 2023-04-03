@@ -24,11 +24,17 @@ from django.utils.translation import gettext_lazy as _
 
 LOGO_PATH = os.path.join(settings.BASE_DIR, "apps/notifications/images/terraso.png")
 
+TRACKING_PARAMETERS = "?utm_source=notification&utm_medium=email"
+
 
 class EmailNotification:
     @classmethod
     def sender(cls):
         return f"'{settings.EMAIL_FROM_NAME}' <{settings.EMAIL_FROM_ADDRESS}>"
+
+    @classmethod
+    def unsubscribe_url(cls, user_id):
+        return f"{settings.WEB_CLIENT_URL}/notifications/unsubscribe/{user_id}{TRACKING_PARAMETERS}"
 
     @classmethod
     def encode_image(cls, file_path):
@@ -48,7 +54,7 @@ class EmailNotification:
         context = {
             "memberName": user.full_name,
             "groupName": group.name,
-            "requestUrl": f"{settings.WEB_CLIENT_URL}/groups/{group.slug}",
+            "requestUrl": f"{settings.WEB_CLIENT_URL}/groups/{TRACKING_PARAMETERS}",
             "imageUrl": EmailNotification.encode_image(LOGO_PATH),
         }
 
@@ -61,9 +67,7 @@ class EmailNotification:
         for manager in managerList:
             recipients = [manager.name_and_email()]
             context["firstName"] = manager.first_name
-            context[
-                "unsubscribeUrl"
-            ] = f"{settings.WEB_CLIENT_URL}/notifications/unsubscribe/{manager.id}"
+            context["unsubscribeUrl"] = EmailNotification.unsubscribe_url(manager.id)
 
             with translation.override(manager.language()):
                 body = render_to_string("group-pending.html", context)
@@ -83,8 +87,8 @@ class EmailNotification:
         context = {
             "firstName": user.first_name,
             "groupName": group.name,
-            "groupUrl": f"{settings.WEB_CLIENT_URL}/groups/{group.slug}",
-            "unsubscribeUrl": f"{settings.WEB_CLIENT_URL}/notifications/unsubscribe/{user.id}",
+            "groupUrl": f"{settings.WEB_CLIENT_URL}/groups/{group.slug}{TRACKING_PARAMETERS}",
+            "unsubscribeUrl": EmailNotification.unsubscribe_url(user.id),
             "imageUrl": EmailNotification.encode_image(LOGO_PATH),
         }
 
