@@ -22,8 +22,6 @@ from django.template.loader import render_to_string
 from django.utils import translation
 from django.utils.translation import gettext_lazy as _
 
-LOGO_PATH = os.path.join(settings.BASE_DIR, "apps/notifications/images/terraso.png")
-
 TRACKING_PARAMETERS = "?utm_source=notification&utm_medium=email"
 
 
@@ -55,7 +53,6 @@ class EmailNotification:
             "memberName": user.full_name(),
             "groupName": group.name,
             "requestUrl": f"{settings.WEB_CLIENT_URL}/groups/{TRACKING_PARAMETERS}",
-            "imageUrl": EmailNotification.encode_image(LOGO_PATH),
         }
 
         managerList = [
@@ -89,7 +86,6 @@ class EmailNotification:
             "groupName": group.name,
             "groupUrl": f"{settings.WEB_CLIENT_URL}/groups/{group.slug}{TRACKING_PARAMETERS}",
             "unsubscribeUrl": EmailNotification.unsubscribe_url(user.id),
-            "imageUrl": EmailNotification.encode_image(LOGO_PATH),
         }
 
         with translation.override(user.language()):
