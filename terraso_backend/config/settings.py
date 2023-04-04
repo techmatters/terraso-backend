@@ -61,6 +61,7 @@ INSTALLED_APPS = [
     "apps.auth",
     "apps.shared_data",
     "apps.story_map",
+    "apps.notifications",
 ]
 
 if DEBUG:
