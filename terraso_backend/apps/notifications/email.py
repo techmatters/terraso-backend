@@ -81,11 +81,12 @@ class EmailNotification:
         if not user.notifications_enabled():
             return
 
+        groupUrl = f"{settings.WEB_CLIENT_URL}/groups/{group.slug}{TRACKING_PARAMETERS}"
         recipients = [user.name_and_email()]
         context = {
             "firstName": user.first_name,
             "groupName": group.name,
-            "groupUrl": f"{settings.WEB_CLIENT_URL}/groups/{group.slug}{TRACKING_PARAMETERS}",
+            "groupUrl": groupUrl,
             "unsubscribeUrl": EmailNotification.unsubscribe_url(user.id),
         }
 
