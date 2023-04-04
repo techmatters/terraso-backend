@@ -182,7 +182,7 @@ else:
     AWS_S3_CUSTOM_DOMAIN = CDN_STATIC_DOMAIN
     AWS_STORAGE_BUCKET_NAME = CDN_STATIC_DOMAIN
     STATIC_URL = f"https://{CDN_STATIC_DOMAIN}/"
-    STORAGES = {"staticfiles": "storages.backends.s3boto3.S3StaticStorage"}
+    STORAGES = {"staticfiles": {"BACKEND": "storages.backends.s3boto3.S3StaticStorage"}}
 
 LOGGING = {
     "version": 1,
