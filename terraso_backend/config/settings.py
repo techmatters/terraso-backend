@@ -175,7 +175,9 @@ EMAIL_FROM_ADDRESS = config("EMAIL_FROM_ADDRESS", default="info@terraso.org")
 # don't allow "new" as a name, as the view route conflicts with the create route
 DISALLOWED_NAMES_LIST = ["new"]
 
-if not DEBUG:
+if DEBUG:
+    STATIC_ROOT = "staticfiles"
+else:
     CDN_STATIC_DOMAIN = config("CDN_STATIC_DOMAIN")
     AWS_S3_CUSTOM_DOMAIN = CDN_STATIC_DOMAIN
     AWS_STORAGE_BUCKET_NAME = CDN_STATIC_DOMAIN
