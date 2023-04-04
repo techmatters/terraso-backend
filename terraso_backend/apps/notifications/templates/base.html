@@ -1,4 +1,5 @@
 {% load i18n %}
+{% load static %}
 <!doctype html>
 <html>
 <head>
@@ -7,7 +8,7 @@
 </head>
 <body style="text-align: center; font-family: sans-serif;">
   <header>
-  <p style="text-align: center;"><img src="{{imageUrl}}" alt="{% translate "email.logo_alt_text" %}" width="130" height="36" /></p>
+  <p style="text-align: center;"><img src="{% static "images/terraso.png" %}" alt="{% translate "email.logo_alt_text" %}" width="130" height="36" /></p>
   </header>
 
   {% block content %}
