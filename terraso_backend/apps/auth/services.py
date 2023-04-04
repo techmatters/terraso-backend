@@ -24,8 +24,10 @@ import jwt
 import structlog
 from django.conf import settings
 from django.contrib.auth import get_user_model
+from django.db import transaction
 from django.utils import timezone
 
+from apps.core.models import UserPreference
 from apps.storage.services import ProfileImageService
 
 from .providers import AppleProvider, GoogleProvider, MicrosoftProvider
@@ -76,6 +78,10 @@ class AccountService:
             profile_image_url=tokens.open_id.picture,
         )
 
+    def _set_default_preferences(self, user):
+        UserPreference.objects.create(user=user, key="notifications", value="true")
+
+    @transaction.atomic
     def _persist_user(self, email, first_name="", last_name="", profile_image_url=None):
         if not email:
             # it is possible for the email not to be set, notably with Microsoft
@@ -87,6 +93,8 @@ class AccountService:
 
         if not created:
             return user, False
+
+        self._set_default_preferences(user)
 
         update_name = first_name or last_name
 
