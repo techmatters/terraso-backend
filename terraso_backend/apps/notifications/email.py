@@ -49,10 +49,11 @@ class EmailNotification:
 
     @classmethod
     def send_membership_request(cls, user, group):
+        requestUrl = f"{settings.WEB_CLIENT_URL}/groups/{group.slug}/members{TRACKING_PARAMETERS}"
         context = {
             "memberName": user.full_name(),
             "groupName": group.name,
-            "requestUrl": f"{settings.WEB_CLIENT_URL}/groups/{TRACKING_PARAMETERS}",
+            "requestUrl": requestUrl,
         }
 
         managerList = [
