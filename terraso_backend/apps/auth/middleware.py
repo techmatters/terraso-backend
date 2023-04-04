@@ -18,6 +18,7 @@ from functools import wraps
 import structlog
 from django.conf import settings
 from django.contrib.auth import get_user_model
+from django.contrib.auth.models import AnonymousUser
 from django.core.exceptions import ImproperlyConfigured, ValidationError
 from django.http.response import JsonResponse
 from jwt.exceptions import InvalidTokenError
@@ -38,14 +39,14 @@ class JWTAuthenticationMiddleware:
 
         auth_header = request.META.get("HTTP_AUTHORIZATION")
         if not auth_header and auth_optional:
-            request.user = None
+            request.user = AnonymousUser()
             return None
 
         try:
             request.user = self._get_user_from_jwt(request)
             return None
         except ValidationError as e:
-            request.user = None
+            request.user = AnonymousUser()
             logger.warning("Invalid JWT token", extra={"error": str(e)})
             return JsonResponse({"error": "Unauthorized request"}, status=401)
 
