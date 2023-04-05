@@ -19,7 +19,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("core", "0036_remove_group_core_group_unique_active_slug_and_more"),
     ]

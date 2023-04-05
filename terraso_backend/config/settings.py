@@ -12,7 +12,7 @@
 #
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see https://www.gnu.org/licenses/.
-
+import base64
 import os
 
 import django
@@ -59,6 +59,7 @@ INSTALLED_APPS = [
     "apps.graphql",
     "apps.auth",
     "apps.shared_data",
+    "apps.story_map",
 ]
 
 MIDDLEWARE = [
@@ -138,6 +139,7 @@ OAUTH2_PROVIDER = {
     # easiest way to force https:// is to provide this explicitly
     "OIDC_ISS_ENDPOINT": config("OIDC_ISS_ENDPOINT", default="https://api.terraso.org/oauth/"),
     "PKCE_REQUIRED": False,
+    "REQUEST_APPROVAL_PROMPT": "auto",
 }
 
 LANGUAGE_CODE = "en-us"
@@ -225,17 +227,24 @@ LOGIN_URL = f"{WEB_CLIENT_URL}/account"
 AUTH_COOKIE_DOMAIN = config("AUTH_COOKIE_DOMAIN", default="")
 CORS_ORIGIN_WHITELIST = config("CORS_ORIGIN_WHITELIST", default=[], cast=config.list)
 
+API_ENDPOINT = config("API_ENDPOINT", default="")
+
 AIRTABLE_API_KEY = config("AIRTABLE_API_KEY", default="")
 
 GOOGLE_CLIENT_ID = config("GOOGLE_CLIENT_ID", default="")
 GOOGLE_CLIENT_SECRET = config("GOOGLE_CLIENT_SECRET", default="")
-GOOGLE_AUTH_REDIRECT_URI = config("GOOGLE_AUTH_REDIRECT_URI", default="")
 
 APPLE_KEY_ID = config("APPLE_KEY_ID", default="")
 APPLE_TEAM_ID = config("APPLE_TEAM_ID", default="")
 APPLE_PRIVATE_KEY = config("APPLE_PRIVATE_KEY", default="").replace("\\n", "\n")
 APPLE_CLIENT_ID = config("APPLE_CLIENT_ID", default="")
-APPLE_AUTH_REDIRECT_URI = config("APPLE_AUTH_REDIRECT_URI", default="")
+
+MICROSOFT_CLIENT_ID = config("MICROSOFT_CLIENT_ID", default="")
+MICROSOFT_CLIENT_SECRET = config("MICROSOFT_CLIENT_SECRET", default="")
+MICROSOFT_PRIVATE_KEY = config("MICROSOFT_PRIVATE_KEY", default="").strip()
+MICROSOFT_CERTIFICATE_THUMBPRINT = base64.b64encode(
+    bytes.fromhex(config("MICROSOFT_CERTIFICATE_THUMBPRINT", default="").strip())
+).decode("utf-8")
 
 JWT_SECRET = config("JWT_SECRET")
 JWT_ALGORITHM = config("JWT_ALGORITHM", default="HS512")
@@ -254,9 +263,44 @@ DATA_ENTRY_FILE_S3_BUCKET = config("DATA_ENTRY_FILE_S3_BUCKET", default="")
 DATA_ENTRY_FILE_BASE_URL = f"https://{DATA_ENTRY_FILE_S3_BUCKET}"
 AWS_S3_ENDPOINT_URL = config("AWS_S3_ENDPOINT_URL", default="")
 
+# If types defined as None, then types are guessed from the file extension
+
+DATA_ENTRY_DOCUMENT_TYPES = {
+    ".doc": None,
+    ".docx": None,
+    ".pdf": None,
+    ".ppt": None,
+    ".pptx": None,
+}
+
+DATA_ENTRY_SPREADSHEET_TYPES = {
+    ".csv": ["text/plain", "text/csv", "application/csv"],
+    ".xls": None,
+    ".xlsx": None,
+}
+
+DATA_ENTRY_GIS_TYPES = {
+    ".geojson": ["text/plain", "application/json", "application/geo+json"],
+    ".json": ["text/plain", "application/json", "application/geo+json"],
+    ".gpx": ["text/plain", "text/xml", "application/xml", "application/gpx+xml"],
+    ".kml": ["text/plain", "text/xml", "application/xml", "application/vnd.google-earth.kml+xml"],
+    ".kmz": ["application/zip", "application/vnd.google-earth.kmz"],
+    ".zip": ["application/zip"],
+}
+
+DATA_ENTRY_ACCEPTED_TYPES = (
+    DATA_ENTRY_DOCUMENT_TYPES | DATA_ENTRY_SPREADSHEET_TYPES | DATA_ENTRY_GIS_TYPES
+)
+
 DB_BACKUP_S3_BUCKET = config("DB_BACKUP_S3_BUCKET", default="")
+
+# DB Restore config
 ALLOW_RESTORE_FROM_BACKUP = config("ALLOW_RESTORE_FROM_BACKUP", default="false").lower() == "true"
 DB_RESTORE_CONFIG_FILE = config("DB_RESTORE_CONFIG_FILE", default="")
+# Render service ID
+DB_RESTORE_SOURCE_ID = config("DB_RESTORE_SOURCE_ID", default="")
+DB_RESTORE_SOURCE_HOST = config("DB_RESTORE_SOURCE_HOST", default="")
+DB_RESTORE_DEST_HOST = config("DB_RESTORE_DEST_HOST", default="")
 
 AWS_ACCESS_KEY_ID = config("AWS_ACCESS_KEY_ID", default="")
 AWS_SECRET_ACCESS_KEY = config("AWS_SECRET_ACCESS_KEY", default="")
@@ -267,3 +311,6 @@ RENDER_API_URL = config("RENDER_API_URL", default="https://api.render.com/v1/")
 RENDER_API_TOKEN = config("RENDER_API_TOKEN", default="")
 
 DATA_UPLOAD_MAX_MEMORY_SIZE = 70000000  # 70MB
+
+STORY_MAP_MEDIA_S3_BUCKET = config("STORY_MAP_MEDIA_S3_BUCKET", default="")
+STORY_MAP_MEDIA_BASE_URL = f"https://{STORY_MAP_MEDIA_S3_BUCKET}"

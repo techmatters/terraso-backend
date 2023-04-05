@@ -14,6 +14,7 @@
 # along with this program. If not, see https://www.gnu.org/licenses/.
 
 import urllib
+import uuid
 from datetime import timedelta
 
 import httpx
@@ -32,7 +33,7 @@ class GoogleProvider:
     GOOGLE_TOKEN_URI = "https://oauth2.googleapis.com/token"
     CLIENT_ID = settings.GOOGLE_CLIENT_ID
     CLIENT_SECRET = settings.GOOGLE_CLIENT_SECRET
-    REDIRECT_URI = settings.GOOGLE_AUTH_REDIRECT_URI
+    REDIRECT_URI = f"{settings.API_ENDPOINT}/auth/google/callback"
 
     @classmethod
     def login_url(cls, state=None):
@@ -84,7 +85,7 @@ class AppleProvider:
     OAUTH_BASE_URL = "https://appleid.apple.com/auth/authorize?"
     TOKEN_URI = "https://appleid.apple.com/auth/token"
     CLIENT_ID = settings.APPLE_CLIENT_ID
-    REDIRECT_URI = settings.APPLE_AUTH_REDIRECT_URI
+    REDIRECT_URI = f"{settings.API_ENDPOINT}/auth/apple/callback"
     JWT_ALGORITHM = "ES256"
     JWT_AUD = "https://appleid.apple.com"
 
@@ -149,3 +150,89 @@ class AppleProvider:
             algorithm=self.JWT_ALGORITHM,
             headers=jwt_header,
         )
+
+
+class MicrosoftProvider:
+    MS_BASE_URI = "https://login.microsoftonline.com/common/oauth2/v2.0/"
+    OAUTH_BASE_URI = f"{MS_BASE_URI}authorize?"
+    TOKEN_URI = f"{MS_BASE_URI}token"
+    CLIENT_ID = settings.MICROSOFT_CLIENT_ID
+    CLIENT_SECRET = settings.MICROSOFT_CLIENT_SECRET
+    REDIRECT_URI = f"{settings.API_ENDPOINT}/auth/microsoft/callback"
+    PRIVATE_KEY = settings.MICROSOFT_PRIVATE_KEY
+    CERTIFICATE_THUMBPRINT = settings.MICROSOFT_CERTIFICATE_THUMBPRINT
+
+    JWT_AUD = TOKEN_URI
+    JWT_ALG = "RS256"
+
+    @classmethod
+    def login_url(cls, state=None):
+        params = dict(
+            client_id=cls.CLIENT_ID,
+            response_type="code",
+            redirect_uri=cls.REDIRECT_URI,
+            scope="email profile openid offline_access",
+            response_mode="form_post",
+        )
+        if state:
+            params["state"] = state
+        return cls.OAUTH_BASE_URI + urllib.parse.urlencode(params, quote_via=urllib.parse.quote)
+
+    @staticmethod
+    def _handle_exceptions(exc):
+        match type(exc):
+            case httpx.RequestError:
+                error_msg = f"Failed to get Microsoft token while requesting {exc.request.url!r}"
+                error = "request_error"
+            case httpx.HTTPStatusError:
+                error_msg = (
+                    f"Error response {exc.response.status_code} while "
+                    f"requesting {exc.request.url!r}."
+                )
+                error = "response_error"
+        return Tokens.from_microsoft(dict(error=error, error_description=error_msg))
+
+    def _build_client_secret(self):
+        """docs: https://learn.microsoft.com/en-us/azure/active-directory/"""
+        """develop/active-directory-certificate-credentials#claims-payload"""
+
+        current_time = timezone.now()
+        claims = {
+            "aud": self.JWT_AUD,
+            "exp": current_time + timedelta(minutes=15),
+            "iss": self.CLIENT_ID,
+            "jti": str(uuid.uuid4()),
+            "nbf": current_time,
+            "sub": self.CLIENT_ID,
+            "iat": current_time,
+        }
+
+        jwt_header = {
+            "alg": self.JWT_ALG,
+            "typ": "JWT",
+            "x5t": self.CERTIFICATE_THUMBPRINT,
+        }
+
+        return jwt.encode(
+            payload=claims,
+            key=self.PRIVATE_KEY,
+            algorithm=self.JWT_ALG,
+            headers=jwt_header,
+        )
+
+    def fetch_auth_tokens(self, authorization_code):
+        client_assertion = self._build_client_secret()
+        params = dict(
+            client_id=self.CLIENT_ID,
+            code=authorization_code,
+            grant_type="authorization_code",
+            redirect_uri=self.REDIRECT_URI,
+            client_assertion=client_assertion,
+            client_assertion_type="urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
+        )
+        try:
+            resp = httpx.post(self.TOKEN_URI, data=params)
+            resp.raise_for_status()
+        except (httpx.RequestError, httpx.HTTPStatusError) as exc:
+            return self._handle_exceptions(exc)
+        return Tokens.from_microsoft(resp.json())

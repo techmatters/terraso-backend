@@ -22,6 +22,8 @@ from apps.auth.views import (
     GoogleAuthorizeView,
     GoogleCallbackView,
     LogoutView,
+    MicrosoftAuthorizeView,
+    MicrosoftCallbackView,
     RefreshAccessTokenView,
 )
 
@@ -39,6 +41,16 @@ urlpatterns = [
         "google/callback",
         csrf_exempt(GoogleCallbackView.as_view()),
         name="google-callback",
+    ),
+    path(
+        "microsoft/authorize",
+        csrf_exempt(MicrosoftAuthorizeView.as_view()),
+        name="microsoft-authorize",
+    ),
+    path(
+        "microsoft/callback",
+        csrf_exempt(MicrosoftCallbackView.as_view()),
+        name="microsoft-callback",
     ),
     path("tokens", csrf_exempt(RefreshAccessTokenView.as_view()), name="tokens"),
     path("logout", csrf_exempt(LogoutView.as_view()), name="logout"),

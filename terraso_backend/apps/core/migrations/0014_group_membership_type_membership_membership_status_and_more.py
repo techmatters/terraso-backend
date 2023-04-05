@@ -21,7 +21,6 @@ import apps.core.models.commons
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("core", "0013_group_deleted_by_cascade_and_more"),
     ]

@@ -30,6 +30,16 @@ def is_shape_file_extension(file):
     return file.name.endswith(".zip")
 
 
+def is_shape_file_zip(file):
+    with zipfile.ZipFile(file, "r") as zip_file:
+        namelist = zip_file.namelist()
+        shp_filenames = [name for name in namelist if name.endswith(".shp")]
+        shx_filenames = [name for name in namelist if name.endswith(".shx")]
+        prj_filenames = [name for name in namelist if name.endswith(".prj")]
+
+        return all([shp_filenames, shx_filenames, prj_filenames])
+
+
 def is_kml_file_extension(file):
     return file.name.endswith(".kml")
 

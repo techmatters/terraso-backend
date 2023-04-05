@@ -62,6 +62,11 @@ class Tokens:
             error_description=apple_data.get("error_description"),
         )
 
+    @classmethod
+    def from_microsoft(cls, microsoft_data):
+        # same format as Google, just reuse the code
+        return cls.from_google(microsoft_data)
+
     @property
     def expires_at(self):
         return timezone.now() + timedelta(seconds=int(self.expires_in))
