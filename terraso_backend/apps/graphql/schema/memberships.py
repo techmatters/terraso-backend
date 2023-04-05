@@ -22,6 +22,7 @@ from graphene_django import DjangoObjectType
 
 from apps.core.models import Group, Membership, User
 from apps.graphql.exceptions import GraphQLNotAllowedException, GraphQLNotFoundException
+from apps.notifications.email import EmailNotification
 
 from .commons import BaseDeleteMutation, BaseMutation, TerrasoConnection
 from .constants import MutationTypes
@@ -100,6 +101,7 @@ class MembershipAddMutation(BaseMutation):
 
         if group.membership_type == Group.MEMBERSHIP_TYPE_CLOSED:
             membership.membership_status = Membership.PENDING
+            EmailNotification.send_membership_request(user, group)
 
         membership.user_role = user_role
         membership.save()
@@ -153,10 +155,17 @@ class MembershipUpdateMutation(BaseMutation):
         if user_role:
             membership.user_role = Membership.get_user_role_from_text(user_role)
         membership_status = kwargs.pop("membership_status", None)
+        previous_membership_status = membership.membership_status
         if membership_status:
             membership.membership_status = Membership.get_membership_status_from_text(
                 membership_status
             )
+            if (
+                previous_membership_status != Membership.APPROVED
+                and membership.membership_status == Membership.APPROVED
+            ):
+                EmailNotification.send_membership_approval(membership.user, membership.group)
+
         membership.save()
 
         return cls(membership=membership)

@@ -15,8 +15,10 @@
 
 import uuid
 
+from django.conf import settings
 from django.contrib.auth.models import AbstractUser, BaseUserManager
 from django.db import models
+from django.utils.translation import gettext_lazy as _
 from safedelete.models import SOFT_DELETE_CASCADE, SafeDeleteManager, SafeDeleteModel
 
 
@@ -113,6 +115,33 @@ class User(SafeDeleteModel, AbstractUser):
 
     def is_group_manager(self, group_id):
         return self.memberships.managers_only().filter(group__pk=group_id).exists()
+
+    def full_name(self):
+        return _(
+            "%(first_name)s %(last_name)s"
+            % {"first_name": self.first_name, "last_name": self.last_name}
+        )
+
+    def name_and_email(self):
+        return f"'{self.full_name()}' <{self.email}>"
+
+    def notifications_enabled(self):
+        preferences = self.preferences.filter(key="notifications")
+        if len(preferences) != 1 or not hasattr(preferences[0], "value"):
+            return False
+
+        return preferences[0].value.lower() == "true"
+
+    def language(self):
+        preferences = self.preferences.filter(key="language")
+        if len(preferences) != 1 or not hasattr(preferences[0], "value"):
+            return settings.DEFAULT_LANGUAGE_CODE
+
+        language_code = preferences[0].value
+        if language_code[0:2] in [lang[0] for lang in settings.LANGUAGES]:
+            return language_code.lower()
+        else:
+            return settings.DEFAULT_LANGUAGE_CODE
 
     def __str__(self):
         return self.email
