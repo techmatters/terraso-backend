@@ -13,8 +13,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see https://www.gnu.org/licenses/.
 
-import random
-import string
+import secrets
 
 from django.db import migrations, models
 
@@ -22,7 +21,7 @@ from django.db import migrations, models
 def update_rows(apps, schema_editor):
     StoryMap = apps.get_model("story_map", "StoryMap")
     for obj in StoryMap.objects.all():
-        obj.story_map_id = "".join(random.choices(string.ascii_lowercase + string.digits, k=7))
+        obj.story_map_id = secrets.token_hex(4)
         obj.save()
 
 
