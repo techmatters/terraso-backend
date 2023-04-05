@@ -30,7 +30,7 @@ class DataEntryFileStorage(S3Boto3Storage):
         url = super().url(name, parameters, expire, http_method)
         custom_url = url.replace(
             settings.AWS_S3_ENDPOINT_URL,
-            "https/",
+            "https:/",
         )
         return custom_url
 
