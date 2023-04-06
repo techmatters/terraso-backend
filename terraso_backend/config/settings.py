@@ -200,7 +200,7 @@ LOGGING = {
     "handlers": {
         "console": {
             "class": "logging.StreamHandler",
-            "formatter": "plain_console",
+            "formatter": config("LOGS_FORMATTER", default="json_formatter"),
         },
     },
     "loggers": {
@@ -212,10 +212,6 @@ LOGGING = {
             "handlers": ["console"],
             "level": "ERROR",
         },
-        # 'django.db.backends': {
-        #     'level': 'DEBUG',
-        #     'handlers': ['console'],
-        # }
     },
 }
 
