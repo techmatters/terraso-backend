@@ -276,7 +276,9 @@ def test_users_preference_delete_by_other_fail(client_query, users):
     assert "delete_not_allowed" in response["data"]["deleteUserPreference"]["errors"][0]["message"]
 
 
-def test_users_unsubscribe_update(client_query, users):
+def test_users_unsubscribe_update(client_query, users_with_notifications, unsubscribe_token):
+    assert "true" == users_with_notifications[0].preferences.filter(key="notifications")[0].value
+
     response = client_query(
         """
     mutation unsubscribeUser($input: UserUnsubscribeUpdateInput!) {
@@ -285,16 +287,13 @@ def test_users_unsubscribe_update(client_query, users):
       }
     }
     """,
-        variables={
-            "input": {
-                "token": "eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJodHRwczovL3RlcnJhc28ub3JnIiwiaWF0IjoxNjgwNzk1ODUyLCJzdWIiOiI0ODA3NmQ5Ni0wYTlhLTQ1NTEtODExMS0yYzliZWZmMzlkZTkiLCJqdGkiOiIyMGU2NTg2MjMyY2Y0MTA5YTM0Y2FlMmVhMjIwN2EwYSIsImVtYWlsIjoicGF1bEB0ZWNobWF0dGVycy5vcmcifQ.WTgpYypOlVZXITGPfa1YVq4-_k_efPx4_Q_zbAucIF-ffXI5GzYXWByPRxuxigegRD8Ti-giwrh2UyZJTyxPnA"  # noqa: E501
-            }
-        },
+        variables={"input": {"token": unsubscribe_token}},
     )
     response = response.json()
 
     assert "errors" in response["data"]["unsubscribeUser"]
     assert response["data"]["unsubscribeUser"]["errors"] is None
+    assert "false" == users_with_notifications[0].preferences.filter(key="notifications")[0].value
 
 
 def test_users_unsubscribe_update_fail(client_query, users):
