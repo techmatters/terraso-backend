@@ -274,3 +274,41 @@ def test_users_preference_delete_by_other_fail(client_query, users):
 
     assert "errors" in response["data"]["deleteUserPreference"]
     assert "delete_not_allowed" in response["data"]["deleteUserPreference"]["errors"][0]["message"]
+
+
+def test_users_unsubscribe_update(client_query, users):
+    response = client_query(
+        """
+    mutation unsubscribeUser($input: UserUnsubscribeUpdateInput!) {
+      unsubscribeUser(input: $input) {
+        errors
+      }
+    }
+    """,
+        variables={
+            "input": {
+                "token": "eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJodHRwczovL3RlcnJhc28ub3JnIiwiaWF0IjoxNjgwNzk1ODUyLCJzdWIiOiI0ODA3NmQ5Ni0wYTlhLTQ1NTEtODExMS0yYzliZWZmMzlkZTkiLCJqdGkiOiIyMGU2NTg2MjMyY2Y0MTA5YTM0Y2FlMmVhMjIwN2EwYSIsImVtYWlsIjoicGF1bEB0ZWNobWF0dGVycy5vcmcifQ.WTgpYypOlVZXITGPfa1YVq4-_k_efPx4_Q_zbAucIF-ffXI5GzYXWByPRxuxigegRD8Ti-giwrh2UyZJTyxPnA"  # noqa: E501
+            }
+        },
+    )
+    response = response.json()
+
+    assert "errors" in response["data"]["unsubscribeUser"]
+    assert response["data"]["unsubscribeUser"]["errors"] is None
+
+
+def test_users_unsubscribe_update_fail(client_query, users):
+    response = client_query(
+        """
+    mutation unsubscribeUser($input: UserUnsubscribeUpdateInput!) {
+      unsubscribeUser(input: $input) {
+        errors
+      }
+    }
+    """,
+        variables={"input": {"token": "123456"}},
+    )
+    response = response.json()
+
+    assert "errors" in response["data"]["unsubscribeUser"]
+    assert "update_not_allowed" in response["data"]["unsubscribeUser"]["errors"][0]["message"]
