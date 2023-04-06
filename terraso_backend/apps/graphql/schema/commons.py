@@ -40,7 +40,9 @@ class TerrasoConnection(Connection):
     total_count = Int()
 
     def resolve_total_count(self, info, **kwargs):
-        return self.length
+        print(f"self: {self}")
+        queryset = self.iterable
+        return queryset.count()
 
 
 class BaseMutation(relay.ClientIDMutation):

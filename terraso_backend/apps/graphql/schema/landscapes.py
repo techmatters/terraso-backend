@@ -16,6 +16,7 @@
 import graphene
 import structlog
 from django.db import transaction
+from django.db.models import Count, Prefetch
 from graphene import relay
 from graphene_django import DjangoObjectType
 
@@ -38,6 +39,7 @@ logger = structlog.get_logger(__name__)
 class LandscapeNode(DjangoObjectType):
     id = graphene.ID(source="pk", required=True)
     area_types = graphene.List(graphene.String)
+    default_group = graphene.Field("apps.graphql.schema.groups.GroupNode")
 
     class Meta:
         model = Landscape
@@ -72,9 +74,46 @@ class LandscapeNode(DjangoObjectType):
 
     area_scalar_ha = graphene.Float()
 
+    @classmethod
+    def get_queryset(cls, queryset, info):
+        # Prefetch default landscape group
+        # return queryset
+        return queryset.prefetch_related(
+            Prefetch(
+                "associated_groups",
+                to_attr="group_default",
+                queryset=LandscapeGroup.objects.prefetch_related(
+                    Prefetch(
+                        "group",
+                        queryset=Group.objects.annotate(memberships_count=Count("memberships")),
+                    )
+                ).filter(is_default_landscape_group=True),
+            )
+        ).all()
+        # try:
+        #     return queryset.prefetch_related(
+        #         Prefetch(
+        #             "associated_groups",
+        #             to_attr="group_default",
+        #             queryset=LandscapeGroup.objects.prefetch_related(
+        #                 Prefetch("group")
+        #             ).filter(is_default_landscape_group=True),
+        #         )
+        #     )
+        # except Exception as error:
+        #     logger.error("Error prefetching default landscape group", error=error)
+        #     return queryset.all()
+        # return queryset
+
     def resolve_area_scalar_ha(self, info):
         area = self.area_scalar_m2
         return None if area is None else round(m2_to_hectares(area), 3)
+
+    def resolve_default_group(self, info):
+        return None
+        # if len(self.group_default) == 0:
+        #     return None
+        # return self.group_default[0].group
 
 
 class LandscapeDevelopmentStrategyNode(DjangoObjectType):

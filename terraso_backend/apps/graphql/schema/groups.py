@@ -29,6 +29,7 @@ logger = structlog.get_logger(__name__)
 
 
 class GroupFilterSet(django_filters.FilterSet):
+    print("GroupFilterSet")
     memberships__email = django_filters.CharFilter(method="filter_memberships_email")
     associated_landscapes__is_default_landscape_group = django_filters.BooleanFilter(
         method="filter_associated_landscapes"
@@ -61,6 +62,7 @@ class GroupFilterSet(django_filters.FilterSet):
 
 class GroupNode(DjangoObjectType):
     id = graphene.ID(source="pk", required=True)
+    account_membership = graphene.Field("apps.graphql.schema.memberships.MembershipNode")
 
     class Meta:
         model = Group
@@ -81,6 +83,21 @@ class GroupNode(DjangoObjectType):
         filterset_class = GroupFilterSet
         interfaces = (relay.Node,)
         connection_class = TerrasoConnection
+
+    @classmethod
+    def get_queryset(cls, queryset, info):
+        # Prefetch members count value
+        return queryset
+
+    def resolve_account_membership(self, info):
+        user = info.context.user
+        if user.is_anonymous:
+            return None
+        return self.memberships.filter(user=user, deleted_at__isnull=True).first()
+
+    def resolve_memberships(self, info):
+        # print(f"self: {self.memberships_count}")
+        return []
 
 
 class GroupAddMutation(BaseWriteMutation):
