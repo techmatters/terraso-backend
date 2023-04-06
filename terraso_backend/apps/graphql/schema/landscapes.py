@@ -81,7 +81,7 @@ class LandscapeNode(DjangoObjectType):
         return queryset.prefetch_related(
             Prefetch(
                 "associated_groups",
-                to_attr="group_default",
+                to_attr="default_landscape_groups",
                 queryset=LandscapeGroup.objects.prefetch_related(
                     Prefetch(
                         "group",
@@ -112,10 +112,9 @@ class LandscapeNode(DjangoObjectType):
         return None if area is None else round(m2_to_hectares(area), 3)
 
     def resolve_default_group(self, info):
-        # return None
-        if len(self.group_default) == 0:
+        if len(self.default_landscape_groups) == 0:
             return None
-        return self.group_default[0].group
+        return self.default_landscape_groups[0].group
 
 
 class LandscapeDevelopmentStrategyNode(DjangoObjectType):
