@@ -19,6 +19,7 @@ import structlog
 from graphene import relay
 from graphene_django import DjangoObjectType
 
+from apps.auth.services import JWTService
 from apps.core.models import User, UserPreference
 from apps.graphql.exceptions import GraphQLNotAllowedException
 
@@ -227,3 +228,41 @@ class UserPreferenceDelete(BaseMutation):
         preference.delete()
 
         return cls(preference=preference)
+
+
+class UserUnsubscribeUpdate(BaseMutation):
+    success = graphene.Boolean()
+
+    model_class = UserPreference
+
+    class Input:
+        token = graphene.String(required=True)
+
+    @classmethod
+    def mutate_and_get_payload(cls, root, info, **kwargs):
+        token = kwargs.pop("token")
+
+        try:
+            decoded_payload = JWTService().verify_token(token)
+        except Exception:
+            logger.exception("Failure to verify JWT token", extra={"token": token})
+            raise GraphQLNotAllowedException(
+                model_name=UserPreference.__name__, operation=MutationTypes.UPDATE
+            )
+
+        user = User.objects.get(pk=decoded_payload["sub"])
+
+        if not user:
+            logger.error(
+                "Attempt to update a User preferences, user does not exist",
+                extra={"user_id": user.id},
+            )
+            raise GraphQLNotAllowedException(
+                model_name=UserPreference.__name__, operation=MutationTypes.UPDATE
+            )
+
+        preference, _ = UserPreference.objects.get_or_create(user_id=user.id, key="notifications")
+        preference.value = "false"
+        preference.save()
+
+        return cls(success=True)
