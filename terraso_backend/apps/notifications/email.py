@@ -15,6 +15,7 @@
 
 import os
 from base64 import b64encode
+from urllib.parse import urlencode
 
 from django.conf import settings
 from django.core.mail import send_mail
@@ -22,7 +23,9 @@ from django.template.loader import render_to_string
 from django.utils import translation
 from django.utils.translation import gettext_lazy as _
 
-TRACKING_PARAMETERS = "?utm_source=notification&utm_medium=email"
+from apps.auth.services import JWTService
+
+TRACKING_PARAMETERS = {"utm_source": "notification", "utm_medium": "email"}
 
 
 class EmailNotification:
@@ -31,8 +34,10 @@ class EmailNotification:
         return f"'{settings.EMAIL_FROM_NAME}' <{settings.EMAIL_FROM_ADDRESS}>"
 
     @classmethod
-    def unsubscribe_url(cls, user_id):
-        return f"{settings.WEB_CLIENT_URL}/notifications/unsubscribe/{user_id}{TRACKING_PARAMETERS}"
+    def unsubscribe_url(cls, user):
+        params = TRACKING_PARAMETERS
+        params["token"] = JWTService().create_unsubscribe_token(user)
+        return f"{settings.WEB_CLIENT_URL}/notifications/unsubscribe/?{urlencode(params)}"
 
     @classmethod
     def encode_image(cls, file_path):
@@ -49,7 +54,8 @@ class EmailNotification:
 
     @classmethod
     def send_membership_request(cls, user, group):
-        requestUrl = f"{settings.WEB_CLIENT_URL}/groups/{group.slug}/members{TRACKING_PARAMETERS}"
+        params = urlencode(TRACKING_PARAMETERS)
+        requestUrl = f"{settings.WEB_CLIENT_URL}/groups/{group.slug}/members?{params}"
         context = {
             "memberName": user.full_name(),
             "groupName": group.name,
@@ -65,7 +71,7 @@ class EmailNotification:
         for manager in managerList:
             recipients = [manager.name_and_email()]
             context["firstName"] = manager.first_name
-            context["unsubscribeUrl"] = EmailNotification.unsubscribe_url(manager.id)
+            context["unsubscribeUrl"] = EmailNotification.unsubscribe_url(manager)
 
             with translation.override(manager.language()):
                 body = render_to_string("group-pending.html", context)
@@ -81,13 +87,14 @@ class EmailNotification:
         if not user.notifications_enabled():
             return
 
-        groupUrl = f"{settings.WEB_CLIENT_URL}/groups/{group.slug}{TRACKING_PARAMETERS}"
+        params = urlencode(TRACKING_PARAMETERS)
+        groupUrl = f"{settings.WEB_CLIENT_URL}/groups/{group.slug}?{params}"
         recipients = [user.name_and_email()]
         context = {
             "firstName": user.first_name,
             "groupName": group.name,
             "groupUrl": groupUrl,
-            "unsubscribeUrl": EmailNotification.unsubscribe_url(user.id),
+            "unsubscribeUrl": EmailNotification.unsubscribe_url(user),
         }
 
         with translation.override(user.language()):
