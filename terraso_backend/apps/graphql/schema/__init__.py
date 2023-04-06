@@ -59,6 +59,7 @@ from .users import (
     UserNode,
     UserPreferenceDelete,
     UserPreferenceUpdate,
+    UserUnsubscribeUpdate,
     UserUpdateMutation,
 )
 from .visualization_config import (
@@ -115,6 +116,7 @@ class Mutations(graphene.ObjectType):
     delete_membership = MembershipDeleteMutation.Field()
     update_user_preference = UserPreferenceUpdate.Field()
     delete_user_preference = UserPreferenceDelete.Field()
+    unsubscribe_user = UserUnsubscribeUpdate.Field()
     add_data_entry = DataEntryAddMutation.Field()
     update_data_entry = DataEntryUpdateMutation.Field()
     delete_data_entry = DataEntryDeleteMutation.Field()
