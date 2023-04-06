@@ -145,6 +145,11 @@ def users():
 
 
 @pytest.fixture
+def unsubscribe_token(users_with_notifications):
+    return JWTService().create_unsubscribe_token(users_with_notifications[0])
+
+
+@pytest.fixture
 def users_with_notifications():
     users = mixer.cycle(5).blend(User)
 
