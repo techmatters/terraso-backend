@@ -63,6 +63,7 @@ class GroupFilterSet(django_filters.FilterSet):
 class GroupNode(DjangoObjectType):
     id = graphene.ID(source="pk", required=True)
     account_membership = graphene.Field("apps.graphql.schema.memberships.MembershipNode")
+    memberships_count = graphene.Int()
 
     class Meta:
         model = Group
@@ -93,11 +94,14 @@ class GroupNode(DjangoObjectType):
         user = info.context.user
         if user.is_anonymous:
             return None
+        if getattr(self, "account_memberships", None):
+            return self.account_memberships[0]
         return self.memberships.filter(user=user, deleted_at__isnull=True).first()
 
-    def resolve_memberships(self, info):
-        # print(f"self: {self.memberships_count}")
-        return []
+    def resolve_memberships_count(self, info):
+        if getattr(self, "memberships_count", None):
+            return self.memberships_count
+        return self.memberships.filter(deleted_at__isnull=True).count()
 
 
 class GroupAddMutation(BaseWriteMutation):

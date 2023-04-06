@@ -16,7 +16,7 @@
 import graphene
 import structlog
 from django.db import transaction
-from django.db.models import Count, Prefetch
+from django.db.models import Count, Prefetch, Q
 from graphene import relay
 from graphene_django import DjangoObjectType
 
@@ -26,6 +26,7 @@ from apps.core.models import (
     Landscape,
     LandscapeDevelopmentStrategy,
     LandscapeGroup,
+    Membership,
     TaxonomyTerm,
 )
 from apps.graphql.exceptions import GraphQLNotAllowedException
@@ -77,7 +78,6 @@ class LandscapeNode(DjangoObjectType):
     @classmethod
     def get_queryset(cls, queryset, info):
         # Prefetch default landscape group
-        # return queryset
         return queryset.prefetch_related(
             Prefetch(
                 "associated_groups",
@@ -85,35 +85,37 @@ class LandscapeNode(DjangoObjectType):
                 queryset=LandscapeGroup.objects.prefetch_related(
                     Prefetch(
                         "group",
-                        queryset=Group.objects.annotate(memberships_count=Count("memberships")),
-                    )
+                        queryset=Group.objects.prefetch_related(
+                            # Prefetch account membership
+                            Prefetch(
+                                "memberships",
+                                to_attr="account_memberships",
+                                queryset=Membership.objects.filter(
+                                    user=info.context.user,
+                                    membership_status=Membership.APPROVED,
+                                ),
+                            ),
+                        ).annotate(
+                            memberships_count=Count(
+                                "memberships__user",
+                                distinct=True,
+                                filter=Q(memberships__membership_status=Membership.APPROVED),
+                            )
+                        ),
+                    ),
                 ).filter(is_default_landscape_group=True),
             )
         ).all()
-        # try:
-        #     return queryset.prefetch_related(
-        #         Prefetch(
-        #             "associated_groups",
-        #             to_attr="group_default",
-        #             queryset=LandscapeGroup.objects.prefetch_related(
-        #                 Prefetch("group")
-        #             ).filter(is_default_landscape_group=True),
-        #         )
-        #     )
-        # except Exception as error:
-        #     logger.error("Error prefetching default landscape group", error=error)
-        #     return queryset.all()
-        # return queryset
 
     def resolve_area_scalar_ha(self, info):
         area = self.area_scalar_m2
         return None if area is None else round(m2_to_hectares(area), 3)
 
     def resolve_default_group(self, info):
-        return None
-        # if len(self.group_default) == 0:
-        #     return None
-        # return self.group_default[0].group
+        # return None
+        if len(self.group_default) == 0:
+            return None
+        return self.group_default[0].group
 
 
 class LandscapeDevelopmentStrategyNode(DjangoObjectType):

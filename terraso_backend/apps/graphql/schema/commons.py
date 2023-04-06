@@ -40,7 +40,6 @@ class TerrasoConnection(Connection):
     total_count = Int()
 
     def resolve_total_count(self, info, **kwargs):
-        print(f"self: {self}")
         queryset = self.iterable
         return queryset.count()
 
