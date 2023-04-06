@@ -130,17 +130,21 @@ class JWTService:
     JWT_REFRESH_EXP_DELTA_SECONDS = settings.JWT_REFRESH_EXP_DELTA_SECONDS
     JWT_ISS = settings.JWT_ISS
 
-    def create_access_token(self, user):
+    def create_token(self, user, expiration=None):
         payload = self._get_base_payload(user)
-        payload["exp"] = timezone.now() + timedelta(seconds=self.JWT_ACCESS_EXP_DELTA_SECONDS)
+        if expiration:
+            payload["exp"] = timezone.now() + timedelta(seconds=expiration)
 
         return jwt.encode(payload, self.JWT_SECRET, algorithm=self.JWT_ALGORITHM)
+
+    def create_access_token(self, user):
+        return self.create_token(user, self.JWT_ACCESS_EXP_DELTA_SECONDS)
 
     def create_refresh_token(self, user):
-        payload = self._get_base_payload(user)
-        payload["exp"] = timezone.now() + timedelta(seconds=self.JWT_REFRESH_EXP_DELTA_SECONDS)
+        return self.create_token(user, self.JWT_REFRESH_EXP_DELTA_SECONDS)
 
-        return jwt.encode(payload, self.JWT_SECRET, algorithm=self.JWT_ALGORITHM)
+    def create_unsubscribe_token(self, user):
+        return self.create_token(user)
 
     def verify_token(self, token):
         return jwt.decode(token, self.JWT_SECRET, algorithms=self.JWT_ALGORITHM)
