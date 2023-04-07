@@ -14,6 +14,8 @@ class Log(models.Model):
         return self.user + ' - ' + self.action + ' - ' + self.description
 
 
+# TODO - Discuss: if we should just store string for the the log resource or
+# foreing keys if we store foreing key they will have to be generic keys
 class KeyValue(models.Model):
     """
     Key Value model for audits logs
@@ -29,10 +31,11 @@ class KeyValue(models.Model):
 class AuditLog(models.Model):
     """
     Audit Log model for audits
+    #Note: This model is not used in the current implementation but is the alternative
     """
     user = models.CharField(max_length=100)
     action = models.CharField(max_length=100)
-    description = models.CharField(max_length=500)
+    resource = models.CharField(max_length=500)
     timestamp = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
