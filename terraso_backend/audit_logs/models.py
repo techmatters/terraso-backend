@@ -11,7 +11,7 @@ class Log(models.Model):
     client_timestamp = models.DateTimeField()
 
     def __str__(self):
-        return self.keyValueCache
+        return str(self.client_timestamp) + " - " + self.keyValueCache
 
     def get_string(self, template: str = None) -> str:
         if template is None:

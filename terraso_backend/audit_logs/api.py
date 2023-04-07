@@ -64,3 +64,9 @@ class AuditLogQuerier(Protocol):
 
     def get_log_by_resource(self, resource: str) -> List[models.Log]:
         ...
+
+    def log_to_str(self, logs: models.Log, template: str) -> str:
+        ...
+
+    def logs_to_str(self, logs: List[models.Log], template: str) -> List[str]:
+        ...

@@ -61,10 +61,6 @@ class AuditLogQuerierService(AuditLogQuerier):
     """
     AuditLogQuerierService implements the AuditLogQuerier protocol
     """
-    template: str
-
-    def __init__(self, template: str = TEMPLATE):
-        self.template = template
 
     def get_logs(
             self,
@@ -122,3 +118,15 @@ class AuditLogQuerierService(AuditLogQuerier):
         get_log_by_resource gets all logs between start and end
         """
         return self.get_log_by_key_value([('resource', resource)], start, end)
+
+    def log_to_str(self, log: models.Log, template: str = TEMPLATE) -> str:
+        """
+        log_to_str converts a log to a string
+        """
+        return log.get_string(self.template)
+
+    def logs_to_str(self, logs: List[models.Log], template: str = TEMPLATE) -> List[str]:
+        """
+        logs_to_str converts a list of logs to a list of strings
+        """
+        return [self.log_to_str(log) for log in logs]
