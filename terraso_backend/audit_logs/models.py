@@ -31,7 +31,9 @@ class KeyValue(models.Model):
 class AuditLog(models.Model):
     """
     Audit Log model for audits
-    #Note: This model is not used in the current implementation but is the alternative
+    Note: This model is not used in the current implementation but is the alternative
+    to the KeyValue model and has the same asumption as the KeyValue model that stores
+    the references as strings and not as foreing keys
     """
     user = models.CharField(max_length=100)
     action = models.CharField(max_length=100)
