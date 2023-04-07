@@ -6,6 +6,8 @@ from django.db import transaction
 
 from . import AuditLog, AuditLogQuerier, KeyValue, models
 
+TEMPLATE = "{client_time} - {user} {action} {resource}"
+
 
 class AuditLogService(AuditLog):
     """
@@ -15,6 +17,13 @@ class AuditLogService(AuditLog):
     def log(self, values: List[KeyValue]) -> None:
         """
         log logs using key-value pairs
+        example:
+            `AuditLogService.log(
+                [
+                    ("user", "user1"),
+                    ("action", "update"),
+                    ("resource", "site1")
+                ])`
         """
         with transaction.atomic():
             log = models.Log()
@@ -49,6 +58,14 @@ class AuditLogService(AuditLog):
 
 
 class AuditLogQuerierService(AuditLogQuerier):
+    """
+    AuditLogQuerierService implements the AuditLogQuerier protocol
+    """
+    template: str
+
+    def __init__(self, template: str = TEMPLATE):
+        self.template = template
+
     def get_logs(
             self,
             start: datetime.timestamp = datetime.min.timestamp(),

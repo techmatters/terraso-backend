@@ -11,7 +11,12 @@ class Log(models.Model):
     client_timestamp = models.DateTimeField()
 
     def __str__(self):
-        return self.user + ' - ' + self.action + ' - ' + self.description
+        return self.keyValueCache
+
+    def get_string(self, template: str = None) -> str:
+        if template is None:
+            return str(self)
+        return template.format(**self.keyValueCache)
 
 
 # TODO - Discuss: if we should just store string for the the log resource or
