@@ -20,9 +20,6 @@ class KeyValue(models.Model):
     """
     key = models.CharField(max_length=100)
     value = models.CharField(max_length=500)
-    value_type = models.CharField(max_length=100)
-    value_ref = models.CharField(max_length=100)
-    value_ref_type = models.CharField(max_length=100)
     log = models.ForeignKey(Log, on_delete=models.CASCADE)
 
     def __str__(self):

@@ -52,7 +52,7 @@ class AuditLogQuerierService(AuditLogQuerier):
     def get_logs(
             self,
             start: datetime.timestamp = datetime.min.timestamp(),
-            end: datetime.timestamp = datetime.max.timestamp()
+            end: datetime.timestamp = datetime.max.timestamp(),
     ) -> List[models.Log]:
         """
         get_logs gets all logs between start and end
