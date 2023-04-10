@@ -26,7 +26,7 @@ from apps.graphql.exceptions import (
     GraphQLValidationException,
 )
 
-from .commons import BaseDeleteMutation, BaseMutation, TerrasoConnection
+from .commons import BaseAuthenticatedMutation, BaseDeleteMutation, TerrasoConnection
 from .constants import MutationTypes
 
 logger = structlog.get_logger(__name__)
@@ -56,7 +56,7 @@ class LandscapeGroupNode(DjangoObjectType):
         connection_class = TerrasoConnection
 
 
-class LandscapeGroupAddMutation(BaseMutation):
+class LandscapeGroupAddMutation(BaseAuthenticatedMutation):
     landscape_group = graphene.Field(LandscapeGroupNode)
 
     class Input:

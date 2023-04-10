@@ -23,7 +23,12 @@ from apps.auth.services import JWTService
 from apps.core.models import User, UserPreference
 from apps.graphql.exceptions import GraphQLNotAllowedException
 
-from .commons import BaseDeleteMutation, BaseMutation, TerrasoConnection
+from .commons import (
+    BaseAuthenticatedMutation,
+    BaseDeleteMutation,
+    BaseUnauthenticatedMutation,
+    TerrasoConnection,
+)
 from .constants import MutationTypes
 
 logger = structlog.get_logger(__name__)
@@ -56,7 +61,7 @@ class UserPreferenceNode(DjangoObjectType):
         connection_class = TerrasoConnection
 
 
-class UserAddMutation(BaseMutation):
+class UserAddMutation(BaseAuthenticatedMutation):
     user = graphene.Field(UserNode)
 
     class Input:
@@ -74,7 +79,7 @@ class UserAddMutation(BaseMutation):
         return cls(user=user)
 
 
-class UserUpdateMutation(BaseMutation):
+class UserUpdateMutation(BaseAuthenticatedMutation):
     user = graphene.Field(UserNode)
 
     model_class = User
@@ -138,7 +143,7 @@ class UserDeleteMutation(BaseDeleteMutation):
         return super().mutate_and_get_payload(root, info, **kwargs)
 
 
-class UserPreferenceUpdate(BaseMutation):
+class UserPreferenceUpdate(BaseAuthenticatedMutation):
     preference = graphene.Field(UserPreferenceNode)
 
     model_class = UserPreference
@@ -181,7 +186,7 @@ class UserPreferenceUpdate(BaseMutation):
         return cls(preference=preference)
 
 
-class UserPreferenceDelete(BaseMutation):
+class UserPreferenceDelete(BaseAuthenticatedMutation):
     preference = graphene.Field(UserPreferenceNode)
 
     model_class = UserPreference
@@ -230,7 +235,7 @@ class UserPreferenceDelete(BaseMutation):
         return cls(preference=preference)
 
 
-class UserUnsubscribeUpdate(BaseMutation):
+class UserUnsubscribeUpdate(BaseUnauthenticatedMutation):
     success = graphene.Boolean()
 
     model_class = UserPreference
