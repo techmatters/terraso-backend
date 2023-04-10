@@ -78,7 +78,11 @@ stop:
 	@docker-compose $(DC_FILE_ARG) stop
 
 test: clean check_rebuild compile-translations
-	$(DC_RUN_CMD) pytest terraso_backend
+	if [ -z "$(PATTERN)" ]; then \
+		$(DC_RUN_CMD) pytest terraso_backend; \
+	else \
+		$(DC_RUN_CMD) pytest terraso_backend -k $(PATTERN); \
+	fi
 
 test-ci: clean
 	# Same action as 'test' but avoiding to create test cache
