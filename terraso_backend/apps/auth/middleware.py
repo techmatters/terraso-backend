@@ -32,7 +32,7 @@ User = get_user_model()
 class JWTAuthenticationMiddleware:
     def process_view(self, request, view_func, view_args, view_kwargs):
         auth_optional = getattr(view_func, "auth_optional", False)
-        auth_required = not self._is_path_public(request.path) and not auth_optional
+        auth_required = not auth_optional and not self._is_path_public(request.path)
 
         if request.user.is_authenticated or (not auth_required and not auth_optional):
             return None
