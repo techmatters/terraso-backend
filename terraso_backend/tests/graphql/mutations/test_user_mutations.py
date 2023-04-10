@@ -276,10 +276,12 @@ def test_users_preference_delete_by_other_fail(client_query, users):
     assert "delete_not_allowed" in response["data"]["deleteUserPreference"]["errors"][0]["message"]
 
 
-def test_users_unsubscribe_update(client_query, users_with_notifications, unsubscribe_token):
+def test_users_unsubscribe_update(
+    client_query_no_token, users_with_notifications, unsubscribe_token
+):
     assert "true" == users_with_notifications[0].preferences.filter(key="notifications")[0].value
 
-    response = client_query(
+    response = client_query_no_token(
         """
     mutation unsubscribeUser($input: UserUnsubscribeUpdateInput!) {
       unsubscribeUser(input: $input) {
@@ -296,8 +298,8 @@ def test_users_unsubscribe_update(client_query, users_with_notifications, unsubs
     assert "false" == users_with_notifications[0].preferences.filter(key="notifications")[0].value
 
 
-def test_users_unsubscribe_update_fail(client_query, users):
-    response = client_query(
+def test_users_unsubscribe_update_fail(client_query_no_token):
+    response = client_query_no_token(
         """
     mutation unsubscribeUser($input: UserUnsubscribeUpdateInput!) {
       unsubscribeUser(input: $input) {
