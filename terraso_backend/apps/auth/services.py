@@ -221,7 +221,7 @@ class PlausibleService:
 
     def track_signup(self, auth_provider: str, req) -> None:
         """Track a successful signup. Include information on which service was used for signup."""
-        event_name = "User signup"
+        event_name = "user.signup"
         if "user-agent" not in req.headers:
             logger.error("During signup tracking, request missing header 'user-agent'")
             return
