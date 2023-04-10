@@ -88,12 +88,14 @@ class GroupNode(DjangoObjectType):
         user = info.context.user
         if user.is_anonymous:
             return None
-        if getattr(self, "account_memberships", None):
-            return self.account_memberships[0]
+        if hasattr(self, "account_memberships"):
+            if len(self.account_memberships) > 0:
+                return self.account_memberships[0]
+            return None
         return self.memberships.filter(user=user, deleted_at__isnull=True).first()
 
     def resolve_memberships_count(self, info):
-        if getattr(self, "memberships_count", None):
+        if hasattr(self, "memberships_count"):
             return self.memberships_count
         return self.memberships.filter(deleted_at__isnull=True).count()
 
