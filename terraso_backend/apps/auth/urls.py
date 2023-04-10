@@ -30,21 +30,13 @@ from apps.auth.views import (
 app_name = "apps.auth"
 
 urlpatterns = [
-    path(
-        "apple/authorize",
-        csrf_exempt(AppleAuthorizeView.as_view()),
-        name="apple-authorize",
-    ),
+    path("apple/authorize", csrf_exempt(AppleAuthorizeView.as_view()), name="apple-authorize"),
     path(
         "apple/callback",
         csrf_exempt(AppleCallbackView.as_view()),
         name="apple-callback",
     ),
-    path(
-        "google/authorize",
-        csrf_exempt(GoogleAuthorizeView.as_view()),
-        name="google-authorize",
-    ),
+    path("google/authorize", csrf_exempt(GoogleAuthorizeView.as_view()), name="google-authorize"),
     path(
         "google/callback",
         csrf_exempt(GoogleCallbackView.as_view()),
@@ -60,10 +52,6 @@ urlpatterns = [
         csrf_exempt(MicrosoftCallbackView.as_view()),
         name="microsoft-callback",
     ),
-    path(
-        "tokens",
-        csrf_exempt(RefreshAccessTokenView.as_view()),
-        name="tokens",
-    ),
+    path("tokens", csrf_exempt(RefreshAccessTokenView.as_view()), name="tokens"),
     path("logout", csrf_exempt(LogoutView.as_view()), name="logout"),
 ]
