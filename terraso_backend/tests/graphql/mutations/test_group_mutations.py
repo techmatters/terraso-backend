@@ -45,6 +45,30 @@ def test_groups_add(client_query):
     assert group_result["name"] == group_name
 
 
+def test_groups_add_blocked_for_anonymous_user(client_query_no_token):
+    group_name = "Testing Group"
+    response = client_query_no_token(
+        """
+        mutation addGroup($input: GroupAddMutationInput!){
+          addGroup(input: $input) {
+            group {
+              id
+              name
+            }
+            errors
+          }
+        }
+        """,
+        variables={"input": {"name": group_name}},
+    )
+
+    error_result = response.json()["data"]["addGroup"]["errors"][0]
+
+    assert error_result
+    error_message = json.loads(error_result["message"])[0]
+    assert error_message["code"] == "unauthorized"
+
+
 def test_groups_add_has_created_by_filled_out(client_query, users):
     group_name = "Testing Group"
     group_creator = users[0]
@@ -225,3 +249,27 @@ def test_groups_delete_by_non_manager(client_query, groups):
 
     assert "errors" in response["data"]["deleteGroup"]
     assert "delete_not_allowed" in response["data"]["deleteGroup"]["errors"][0]["message"]
+
+
+def test_groups_delete_by_anonymous_user(client_query_no_token, groups):
+    old_group = groups[0]
+
+    response = client_query_no_token(
+        """
+        mutation deleteGroup($input: GroupDeleteMutationInput!){
+          deleteGroup(input: $input) {
+            group {
+              slug
+            }
+            errors
+          }
+        }
+
+        """,
+        variables={"input": {"id": str(old_group.id)}},
+    )
+
+    response = response.json()
+
+    assert "errors" in response["data"]["deleteGroup"]
+    assert "unauthorized" in response["data"]["deleteGroup"]["errors"][0]["message"]

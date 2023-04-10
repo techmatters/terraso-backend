@@ -94,6 +94,8 @@ class Query(graphene.ObjectType):
     story_maps = DjangoFilterConnectionField(StoryMapNode)
 
 
+# All mutations should inherit from BaseWriteMutation or BaseDeleteMutation
+# See terraso_backend/apps/graphql/schema/commons.py
 class Mutations(graphene.ObjectType):
     add_group = GroupAddMutation.Field()
     add_landscape = LandscapeAddMutation.Field()

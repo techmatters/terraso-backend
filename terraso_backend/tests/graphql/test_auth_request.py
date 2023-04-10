@@ -59,3 +59,21 @@ def test_graphql_query_with_expired_token_returns_not_ok_when_debug_is_on(
         """
     )
     assert response.status_code == 401
+
+
+def test_graphql_query_without_token_returns_ok(client_query_no_token, landscapes):
+    response = client_query_no_token(
+        """
+        query {
+            landscapes {
+                edges {
+                    node {
+                        slug
+                    }
+                }
+            }
+        }
+        """
+    )
+    assert response.status_code == 200
+    assert response.json()["data"]["landscapes"]["edges"][0]["node"]["slug"] == landscapes[0].slug

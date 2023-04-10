@@ -187,3 +187,22 @@ def test_data_entries_returns_url(
     assert entries_result[1]["id"] == str(data_entry_current_user_link.id)
     assert entries_result[1]["entryType"] == "LINK"
     assert "X-Amz-Expires" not in entries_result[1]["url"]
+
+
+def test_data_entries_anonymous_user(client_query_no_token, data_entries):
+    response = client_query_no_token(
+        """
+        {dataEntries {
+          edges {
+            node {
+              name
+            }
+          }
+        }}
+        """
+    )
+
+    edges = response.json()["data"]["dataEntries"]["edges"]
+    entries_result = [edge["node"]["name"] for edge in edges]
+
+    assert len(entries_result) == 0

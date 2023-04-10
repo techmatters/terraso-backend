@@ -13,6 +13,8 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see https://www.gnu.org/licenses/.
 
+import json
+
 import structlog
 from django.core.exceptions import NON_FIELD_ERRORS, ValidationError
 from django.db import IntegrityError
@@ -49,6 +51,15 @@ class BaseMutation(relay.ClientIDMutation):
 
     @classmethod
     def mutate(cls, root, info, input):
+        user = info.context.user
+
+        if not user or not user.is_authenticated:
+            message = {
+                "message": "You must be authenticated to perform this operation",
+                "code": "unauthorized",
+            }
+            return cls(errors=[{"message": json.dumps([message])}])
+
         try:
             return super().mutate(root, info, input)
         except Exception as error:
