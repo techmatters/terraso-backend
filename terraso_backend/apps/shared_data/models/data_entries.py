@@ -79,6 +79,7 @@ class DataEntry(BaseModel):
     class Meta(BaseModel.Meta):
         verbose_name_plural = "Data Entries"
         rules_permissions = {
+            "add": perm_rules.allowed_to_add_data_entry,
             "change": perm_rules.allowed_to_change_data_entry,
             "delete": perm_rules.allowed_to_delete_data_entry,
             "view": perm_rules.allowed_to_view_data_entry,
