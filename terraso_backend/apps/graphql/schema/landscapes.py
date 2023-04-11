@@ -100,24 +100,36 @@ class LandscapeNode(DjangoObjectType):
         )
 
         try:
-            result = queryset.prefetch_related(
-                Prefetch(
-                    "associated_groups",
-                    to_attr="default_landscape_groups",
-                    queryset=LandscapeGroup.objects.prefetch_related(
-                        Prefetch(
-                            "group",
-                            queryset=group_queryset.annotate(
-                                memberships_count=Count(
-                                    "memberships__user",
-                                    distinct=True,
-                                    filter=Q(memberships__membership_status=Membership.APPROVED),
-                                )
+            # Fetch all fields from Landscape, except for area_polygon
+            exclude_fields = ["area_polygon"]
+            include_fields = [
+                f.name for f in Landscape._meta.get_fields() if f.name not in exclude_fields
+            ]
+
+            result = (
+                queryset.only(*include_fields)
+                .prefetch_related(
+                    Prefetch(
+                        "associated_groups",
+                        to_attr="default_landscape_groups",
+                        queryset=LandscapeGroup.objects.prefetch_related(
+                            Prefetch(
+                                "group",
+                                queryset=group_queryset.annotate(
+                                    memberships_count=Count(
+                                        "memberships__user",
+                                        distinct=True,
+                                        filter=Q(
+                                            memberships__membership_status=Membership.APPROVED
+                                        ),
+                                    )
+                                ),
                             ),
-                        ),
-                    ).filter(is_default_landscape_group=True),
+                        ).filter(is_default_landscape_group=True),
+                    )
                 )
-            ).all()
+                .all()
+            )
         except Exception as e:
             logger.exception("Error prefetching default landscape group", error=e)
             raise e
