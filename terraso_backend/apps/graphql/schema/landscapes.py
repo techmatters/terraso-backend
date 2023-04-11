@@ -77,35 +77,48 @@ class LandscapeNode(DjangoObjectType):
 
     @classmethod
     def get_queryset(cls, queryset, info):
-        # Prefetch default landscape group
-        return queryset.prefetch_related(
-            Prefetch(
-                "associated_groups",
-                to_attr="default_landscape_groups",
-                queryset=LandscapeGroup.objects.prefetch_related(
-                    Prefetch(
-                        "group",
-                        queryset=Group.objects.prefetch_related(
-                            # Prefetch account membership
-                            Prefetch(
-                                "memberships",
-                                to_attr="account_memberships",
-                                queryset=Membership.objects.filter(
-                                    user=info.context.user,
-                                    membership_status=Membership.APPROVED,
-                                ),
-                            ),
-                        ).annotate(
-                            memberships_count=Count(
-                                "memberships__user",
-                                distinct=True,
-                                filter=Q(memberships__membership_status=Membership.APPROVED),
-                            )
-                        ),
+        # Prefetch default landscape group, account membership and count of members
+
+        is_anonymous = info.context.user.is_anonymous
+        group_queryset = (
+            Group.objects.prefetch_related(
+                # Prefetch account membership
+                Prefetch(
+                    "memberships",
+                    to_attr="account_memberships",
+                    queryset=Membership.objects.filter(
+                        user=info.context.user,
+                        membership_status=Membership.APPROVED,
                     ),
-                ).filter(is_default_landscape_group=True),
+                ),
             )
-        ).all()
+            if not is_anonymous
+            else Group.objects.all()
+        )
+
+        try:
+            result = queryset.prefetch_related(
+                Prefetch(
+                    "associated_groups",
+                    to_attr="default_landscape_groups",
+                    queryset=LandscapeGroup.objects.prefetch_related(
+                        Prefetch(
+                            "group",
+                            queryset=group_queryset.annotate(
+                                memberships_count=Count(
+                                    "memberships__user",
+                                    distinct=True,
+                                    filter=Q(memberships__membership_status=Membership.APPROVED),
+                                )
+                            ),
+                        ),
+                    ).filter(is_default_landscape_group=True),
+                )
+            ).all()
+        except Exception as e:
+            logger.exception("Error prefetching default landscape group", error=e)
+            raise e
+        return result
 
     def resolve_area_scalar_ha(self, info):
         area = self.area_scalar_m2
@@ -114,7 +127,7 @@ class LandscapeNode(DjangoObjectType):
     def resolve_default_group(self, info):
         if hasattr(self, "default_landscape_groups") and len(self.default_landscape_groups) > 0:
             return self.default_landscape_groups[0].group
-        return None
+        return self.get_default_group()
 
 
 class LandscapeDevelopmentStrategyNode(DjangoObjectType):
