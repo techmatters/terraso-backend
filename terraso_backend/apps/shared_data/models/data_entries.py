@@ -59,13 +59,13 @@ class DataEntry(BaseModel):
 
     ENTRY_TYPE_FILE = "file"
     ENTRY_TYPE_LINK = "link"
-    MEMBERSHIP_TYPES = (
+    ENTRY_TYPES = (
         (ENTRY_TYPE_FILE, _("File")),
         (ENTRY_TYPE_LINK, _("Link")),
     )
     entry_type = models.CharField(
         max_length=32,
-        choices=MEMBERSHIP_TYPES,
+        choices=ENTRY_TYPES,
     )
 
     resource_type = models.CharField(max_length=255, blank=True, default="")
