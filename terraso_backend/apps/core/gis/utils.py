@@ -15,10 +15,58 @@
 
 """Geospatial utility methods"""
 from pyproj import CRS
-from shapely.geometry import shape
+from shapely.geometry import MultiPolygon, shape
 
 # CRS that should be used for all GeoJSON (see https://www.rfc-editor.org/rfc/rfc7946#section-4)
 DEFAULT_CRS = CRS.from_string("urn:ogc:def:crs:OGC:1.3:CRS84")
+
+
+def calculate_geojson_centroid(feature_json):
+    if not feature_json:
+        return None
+    try:
+        features = feature_json["features"]
+
+        if not features:
+            raise ValueError("Boundary is empty!")
+
+        # If geojson has Point feautre, return the coordinates
+        point = next(
+            (
+                {"lat": geom.get("coordinates")[1], "lng": geom.get("coordinates")[0]}
+                for feature in features
+                for geom in [feature.get("geometry")]
+                if geom and geom.get("type") == "Point"
+            ),
+            None,
+        )
+        if point:
+            return point
+
+        polygons = [
+            shape(feature["geometry"])
+            for feature in features
+            if feature["geometry"]["type"] == "Polygon"
+        ] + [
+            shape({"type": "Polygon", "coordinates": polygon})
+            for feature in features
+            for polygon in feature["geometry"]["coordinates"]
+            if feature["geometry"]["type"] == "MultiPolygon"
+        ]
+
+        boundary_polygon = MultiPolygon(polygons)
+
+        # get the center of the boundary polygon
+        centroid = boundary_polygon.centroid
+        if centroid.is_empty:
+            return None
+        return {
+            "lat": centroid.y,
+            "lng": centroid.x,
+        }
+    except KeyError as e:
+        # if the JSON is not formed as expected, this will give an easier to understand exception
+        raise ValueError(f"Expecting key '{e.args[0]}' in feature JSON, but it was missing")
 
 
 def calculate_geojson_feature_area(feature_json):

@@ -18,6 +18,7 @@ import structlog
 from django.db import transaction
 from django.db.models import Count, Prefetch, Q
 from graphene import relay
+from graphene.types.generic import GenericScalar
 from graphene_django import DjangoObjectType
 
 from apps.core.gis.utils import m2_to_hectares
@@ -41,6 +42,7 @@ class LandscapeNode(DjangoObjectType):
     id = graphene.ID(source="pk", required=True)
     area_types = graphene.List(graphene.String)
     default_group = graphene.Field("apps.graphql.schema.groups.GroupNode")
+    center_coordinates = GenericScalar()
 
     class Meta:
         model = Landscape
@@ -68,6 +70,7 @@ class LandscapeNode(DjangoObjectType):
             "partnership_status",
             "profile_image",
             "profile_image_description",
+            "center_coordinates",
         )
 
         interfaces = (relay.Node,)
