@@ -125,8 +125,10 @@ class LandscapeNode(DjangoObjectType):
         return None if area is None else round(m2_to_hectares(area), 3)
 
     def resolve_default_group(self, info):
-        if hasattr(self, "default_landscape_groups") and len(self.default_landscape_groups) > 0:
-            return self.default_landscape_groups[0].group
+        if hasattr(self, "default_landscape_groups"):
+            if len(self.default_landscape_groups) > 0:
+                return self.default_landscape_groups[0].group
+            return None
         return self.get_default_group()
 
 
