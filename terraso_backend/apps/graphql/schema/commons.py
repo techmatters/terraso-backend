@@ -51,15 +51,6 @@ class BaseMutation(relay.ClientIDMutation):
 
     @classmethod
     def mutate(cls, root, info, input):
-        user = info.context.user
-
-        if not user or not user.is_authenticated:
-            message = {
-                "message": "You must be authenticated to perform this operation",
-                "code": "unauthorized",
-            }
-            return cls(errors=[{"message": json.dumps([message])}])
-
         try:
             return super().mutate(root, info, input)
         except Exception as error:
@@ -70,7 +61,30 @@ class BaseMutation(relay.ClientIDMutation):
             return cls(errors=[{"message": str(error)}])
 
 
-class BaseWriteMutation(BaseMutation):
+class BaseUnauthenticatedMutation(BaseMutation):
+    class Meta:
+        abstract = True
+
+
+class BaseAuthenticatedMutation(BaseMutation):
+    class Meta:
+        abstract = True
+
+    @classmethod
+    def mutate(cls, root, info, input):
+        user = info.context.user
+
+        if not user or not user.is_authenticated:
+            message = {
+                "message": "You must be authenticated to perform this operation",
+                "code": "unauthorized",
+            }
+            return cls(errors=[{"message": json.dumps([message])}])
+
+        return super().mutate(root, info, input)
+
+
+class BaseWriteMutation(BaseAuthenticatedMutation):
     model_class = None
 
     @classmethod
@@ -133,7 +147,7 @@ class BaseWriteMutation(BaseMutation):
         return "id" in data
 
 
-class BaseDeleteMutation(BaseMutation):
+class BaseDeleteMutation(BaseAuthenticatedMutation):
     model_class = None
 
     @classmethod

@@ -274,3 +274,42 @@ def test_users_preference_delete_by_other_fail(client_query, users):
 
     assert "errors" in response["data"]["deleteUserPreference"]
     assert "delete_not_allowed" in response["data"]["deleteUserPreference"]["errors"][0]["message"]
+
+
+def test_users_unsubscribe_update(
+    client_query_no_token, users_with_notifications, unsubscribe_token
+):
+    assert "true" == users_with_notifications[0].preferences.filter(key="notifications")[0].value
+
+    response = client_query_no_token(
+        """
+    mutation unsubscribeUser($input: UserUnsubscribeUpdateInput!) {
+      unsubscribeUser(input: $input) {
+        errors
+      }
+    }
+    """,
+        variables={"input": {"token": unsubscribe_token}},
+    )
+    response = response.json()
+
+    assert "errors" in response["data"]["unsubscribeUser"]
+    assert response["data"]["unsubscribeUser"]["errors"] is None
+    assert "false" == users_with_notifications[0].preferences.filter(key="notifications")[0].value
+
+
+def test_users_unsubscribe_update_fail(client_query_no_token):
+    response = client_query_no_token(
+        """
+    mutation unsubscribeUser($input: UserUnsubscribeUpdateInput!) {
+      unsubscribeUser(input: $input) {
+        errors
+      }
+    }
+    """,
+        variables={"input": {"token": "123456"}},
+    )
+    response = response.json()
+
+    assert "errors" in response["data"]["unsubscribeUser"]
+    assert "update_not_allowed" in response["data"]["unsubscribeUser"]["errors"][0]["message"]

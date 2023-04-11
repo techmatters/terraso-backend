@@ -19,10 +19,16 @@ import structlog
 from graphene import relay
 from graphene_django import DjangoObjectType
 
+from apps.auth.services import JWTService
 from apps.core.models import User, UserPreference
 from apps.graphql.exceptions import GraphQLNotAllowedException
 
-from .commons import BaseDeleteMutation, BaseMutation, TerrasoConnection
+from .commons import (
+    BaseAuthenticatedMutation,
+    BaseDeleteMutation,
+    BaseUnauthenticatedMutation,
+    TerrasoConnection,
+)
 from .constants import MutationTypes
 
 logger = structlog.get_logger(__name__)
@@ -55,7 +61,7 @@ class UserPreferenceNode(DjangoObjectType):
         connection_class = TerrasoConnection
 
 
-class UserAddMutation(BaseMutation):
+class UserAddMutation(BaseAuthenticatedMutation):
     user = graphene.Field(UserNode)
 
     class Input:
@@ -73,7 +79,7 @@ class UserAddMutation(BaseMutation):
         return cls(user=user)
 
 
-class UserUpdateMutation(BaseMutation):
+class UserUpdateMutation(BaseAuthenticatedMutation):
     user = graphene.Field(UserNode)
 
     model_class = User
@@ -137,7 +143,7 @@ class UserDeleteMutation(BaseDeleteMutation):
         return super().mutate_and_get_payload(root, info, **kwargs)
 
 
-class UserPreferenceUpdate(BaseMutation):
+class UserPreferenceUpdate(BaseAuthenticatedMutation):
     preference = graphene.Field(UserPreferenceNode)
 
     model_class = UserPreference
@@ -180,7 +186,7 @@ class UserPreferenceUpdate(BaseMutation):
         return cls(preference=preference)
 
 
-class UserPreferenceDelete(BaseMutation):
+class UserPreferenceDelete(BaseAuthenticatedMutation):
     preference = graphene.Field(UserPreferenceNode)
 
     model_class = UserPreference
@@ -227,3 +233,41 @@ class UserPreferenceDelete(BaseMutation):
         preference.delete()
 
         return cls(preference=preference)
+
+
+class UserUnsubscribeUpdate(BaseUnauthenticatedMutation):
+    success = graphene.Boolean()
+
+    model_class = UserPreference
+
+    class Input:
+        token = graphene.String(required=True)
+
+    @classmethod
+    def mutate_and_get_payload(cls, root, info, **kwargs):
+        token = kwargs.pop("token")
+
+        try:
+            decoded_payload = JWTService().verify_token(token)
+        except Exception:
+            logger.exception("Failure to verify JWT token", extra={"token": token})
+            raise GraphQLNotAllowedException(
+                model_name=UserPreference.__name__, operation=MutationTypes.UPDATE
+            )
+
+        user = User.objects.get(pk=decoded_payload["sub"])
+
+        if not user:
+            logger.error(
+                "Attempt to update a User preferences, user does not exist",
+                extra={"user_id": user.id},
+            )
+            raise GraphQLNotAllowedException(
+                model_name=UserPreference.__name__, operation=MutationTypes.UPDATE
+            )
+
+        preference, _ = UserPreference.objects.get_or_create(user_id=user.id, key="notifications")
+        preference.value = "false"
+        preference.save()
+
+        return cls(success=True)

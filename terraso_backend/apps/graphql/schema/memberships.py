@@ -24,7 +24,7 @@ from apps.core.models import Group, Membership, User
 from apps.graphql.exceptions import GraphQLNotAllowedException, GraphQLNotFoundException
 from apps.notifications.email import EmailNotification
 
-from .commons import BaseDeleteMutation, BaseMutation, TerrasoConnection
+from .commons import BaseAuthenticatedMutation, BaseDeleteMutation, TerrasoConnection
 from .constants import MutationTypes
 
 logger = structlog.get_logger(__name__)
@@ -60,7 +60,7 @@ class MembershipNode(DjangoObjectType):
         )
 
 
-class MembershipAddMutation(BaseMutation):
+class MembershipAddMutation(BaseAuthenticatedMutation):
     membership = graphene.Field(MembershipNode)
 
     class Input:
@@ -109,7 +109,7 @@ class MembershipAddMutation(BaseMutation):
         return cls(membership=membership)
 
 
-class MembershipUpdateMutation(BaseMutation):
+class MembershipUpdateMutation(BaseAuthenticatedMutation):
     membership = graphene.Field(MembershipNode)
 
     class Input:
