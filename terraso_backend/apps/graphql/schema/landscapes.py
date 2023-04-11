@@ -131,7 +131,7 @@ class LandscapeNode(DjangoObjectType):
                 .all()
             )
         except Exception as e:
-            logger.exception("Error prefetching default landscape group", error=e)
+            logger.exception("Error prefetching Landscape data", error=e)
             raise e
         return result
 
