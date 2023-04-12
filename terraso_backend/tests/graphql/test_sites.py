@@ -21,7 +21,7 @@ from apps.project_management.models import Site
 pytestmark = pytest.mark.django_db
 
 
-def test_site_creation(client_query):
+def test_site_creation(client_query, user):
     lat = 0
     lon = 0
     site_name = "Test Site"
@@ -44,3 +44,4 @@ def test_site_creation(client_query):
     assert str(site.id) == id
     assert site.latitude == pytest.approx(site.latitude)
     assert site.longitude == pytest.approx(site.longitude)
+    assert site.creator == user

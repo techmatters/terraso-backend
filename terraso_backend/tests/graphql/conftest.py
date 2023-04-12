@@ -39,14 +39,19 @@ pytestmark = pytest.mark.django_db
 
 
 @pytest.fixture
-def access_token(users):
-    return JWTService().create_access_token(users[0])
+def user(users):
+    return users[0]
+
+
+@pytest.fixture
+def access_token(user):
+    return JWTService().create_access_token(user)
 
 
 @pytest.fixture
 @freeze_time(timezone.now() - timedelta(days=10))
-def expired_access_token(users):
-    return JWTService().create_access_token(users[0])
+def expired_access_token(user):
+    return JWTService().create_access_token(user)
 
 
 @pytest.fixture
