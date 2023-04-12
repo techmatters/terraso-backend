@@ -18,7 +18,6 @@ import structlog
 from django.db import transaction
 from django.db.models import Count, Prefetch, Q
 from graphene import relay
-from graphene.types.generic import GenericScalar
 from graphene_django import DjangoObjectType
 
 from apps.core.gis.utils import m2_to_hectares
@@ -34,6 +33,7 @@ from apps.graphql.exceptions import GraphQLNotAllowedException
 
 from .commons import BaseDeleteMutation, BaseWriteMutation, TerrasoConnection
 from .constants import MutationTypes
+from .gis import Point
 
 logger = structlog.get_logger(__name__)
 
@@ -42,7 +42,7 @@ class LandscapeNode(DjangoObjectType):
     id = graphene.ID(source="pk", required=True)
     area_types = graphene.List(graphene.String)
     default_group = graphene.Field("apps.graphql.schema.groups.GroupNode")
-    center_coordinates = GenericScalar()
+    center_coordinates = graphene.Field(Point)
 
     class Meta:
         model = Landscape
@@ -80,51 +80,44 @@ class LandscapeNode(DjangoObjectType):
 
     @classmethod
     def get_queryset(cls, queryset, info):
-        # Prefetch default landscape group, account membership and count of members
-
         is_anonymous = info.context.user.is_anonymous
-        group_queryset = (
-            Group.objects.prefetch_related(
-                Prefetch(
-                    "memberships",
-                    to_attr="account_memberships",
-                    queryset=Membership.objects.filter(
-                        user=info.context.user,
-                        membership_status=Membership.APPROVED,
-                    ),
-                ),
-            )
-            if not is_anonymous
-            else Group.objects.all()
-        )
 
         try:
+            # Prefetch default landscape group, account membership and count of members
+            group_queryset = (
+                Group.objects.prefetch_related(
+                    Prefetch(
+                        "memberships",
+                        to_attr="account_memberships",
+                        queryset=Membership.objects.filter(
+                            user=info.context.user,
+                            membership_status=Membership.APPROVED,
+                        ),
+                    ),
+                )
+                if not is_anonymous
+                else Group.objects.all()
+            ).annotate(
+                memberships_count=Count(
+                    "memberships__user",
+                    distinct=True,
+                    filter=Q(memberships__membership_status=Membership.APPROVED),
+                )
+            )
+            landscape_group_queryset = LandscapeGroup.objects.prefetch_related(
+                Prefetch(
+                    "group",
+                    queryset=group_queryset,
+                ),
+            ).filter(is_default_landscape_group=True)
             # Fetch all fields from Landscape, except for area_polygon
-            exclude_fields = ["area_polygon"]
-            include_fields = [
-                f.name for f in Landscape._meta.get_fields() if f.name not in exclude_fields
-            ]
-
             result = (
-                queryset.only(*include_fields)
+                queryset.defer("area_polygon")
                 .prefetch_related(
                     Prefetch(
                         "associated_groups",
                         to_attr="default_landscape_groups",
-                        queryset=LandscapeGroup.objects.prefetch_related(
-                            Prefetch(
-                                "group",
-                                queryset=group_queryset.annotate(
-                                    memberships_count=Count(
-                                        "memberships__user",
-                                        distinct=True,
-                                        filter=Q(
-                                            memberships__membership_status=Membership.APPROVED
-                                        ),
-                                    )
-                                ),
-                            ),
-                        ).filter(is_default_landscape_group=True),
+                        queryset=landscape_group_queryset,
                     )
                 )
                 .all()
