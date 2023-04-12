@@ -97,7 +97,7 @@ class GroupNode(DjangoObjectType):
     def resolve_memberships_count(self, info):
         if hasattr(self, "memberships_count"):
             return self.memberships_count
-        return self.memberships.count()
+        return self.memberships.approved_only().count()
 
 
 class GroupAddMutation(BaseWriteMutation):

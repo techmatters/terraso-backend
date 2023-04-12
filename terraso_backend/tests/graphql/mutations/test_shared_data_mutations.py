@@ -15,6 +15,7 @@
 
 import pytest
 
+from apps.core.models import Membership
 from apps.shared_data.models import DataEntry
 
 pytestmark = pytest.mark.django_db
@@ -112,6 +113,63 @@ def test_data_entry_delete_by_non_creator_fails_due_permission_check(
     # Let's force old data creator be different from client query user
     old_data_entry.created_by = users[2]
     old_data_entry.save()
+
+    response = client_query(
+        """
+        mutation deleteDataEntry($input: DataEntryDeleteMutationInput!){
+          deleteDataEntry(input: $input) {
+            dataEntry {
+              name
+            }
+            errors
+          }
+        }
+
+        """,
+        variables={"input": {"id": str(old_data_entry.id)}},
+    )
+
+    response = response.json()
+
+    assert "errors" in response["data"]["deleteDataEntry"]
+    assert "delete_not_allowed" in response["data"]["deleteDataEntry"]["errors"][0]["message"]
+
+
+def test_data_entry_delete_by_manager_works(client_query, data_entries, users, groups):
+    old_data_entry = data_entries[0]
+    old_data_entry.created_by = users[2]
+    old_data_entry.save()
+    old_data_entry.groups.first().add_manager(users[0])
+
+    response = client_query(
+        """
+        mutation deleteDataEntry($input: DataEntryDeleteMutationInput!){
+          deleteDataEntry(input: $input) {
+            dataEntry {
+              name
+            }
+          }
+        }
+
+        """,
+        variables={"input": {"id": str(old_data_entry.id)}},
+    )
+
+    data_entry_result = response.json()["data"]["deleteDataEntry"]["dataEntry"]
+
+    assert data_entry_result["name"] == old_data_entry.name
+    assert not DataEntry.objects.filter(name=data_entry_result["name"])
+
+
+def test_data_entry_delete_by_manager_fails_due_to_membership_approval_status(
+    client_query, data_entries, users
+):
+    old_data_entry = data_entries[0]
+    old_data_entry.created_by = users[2]
+    old_data_entry.save()
+    group = old_data_entry.groups.first()
+    group.add_manager(users[0])
+    users[0].memberships.filter(group=group).update(membership_status=Membership.PENDING)
 
     response = client_query(
         """

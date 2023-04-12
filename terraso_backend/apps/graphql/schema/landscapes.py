@@ -101,7 +101,8 @@ class LandscapeNode(DjangoObjectType):
                 memberships_count=Count(
                     "memberships__user",
                     distinct=True,
-                    filter=Q(memberships__membership_status=Membership.APPROVED),
+                    filter=Q(memberships__deleted_at__isnull=True)
+                    & Q(memberships__membership_status=Membership.APPROVED),
                 )
             )
             landscape_group_queryset = LandscapeGroup.objects.prefetch_related(
