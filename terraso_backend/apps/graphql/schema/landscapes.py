@@ -91,7 +91,6 @@ class LandscapeNode(DjangoObjectType):
                         to_attr="account_memberships",
                         queryset=Membership.objects.filter(
                             user=info.context.user,
-                            membership_status=Membership.APPROVED,
                         ),
                     ),
                 )
