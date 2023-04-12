@@ -30,7 +30,7 @@ def calculate_geojson_centroid(feature_json):
         if not features:
             raise ValueError("Boundary is empty!")
 
-        # If geojson has Point feautre, return the coordinates
+        # If geojson has a Point feature, return the coordinates
         point = next(
             (
                 {"lat": geom.get("coordinates")[1], "lng": geom.get("coordinates")[0]}
@@ -56,7 +56,6 @@ def calculate_geojson_centroid(feature_json):
 
         boundary_polygon = MultiPolygon(polygons)
 
-        # get the center of the boundary polygon
         centroid = boundary_polygon.centroid
         if centroid.is_empty:
             return None
