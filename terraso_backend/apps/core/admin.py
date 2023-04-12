@@ -55,9 +55,9 @@ class LandscapeAdmin(admin.ModelAdmin):
     readonly_fields = ("default_group",)
 
     def default_group(self, obj):
-        related_obj = obj.get_default_group()  # assuming the foreign key field is named modelB
-        url = reverse("admin:core_landscapedefaultgroup_change", args=[related_obj.pk])
-        return mark_safe(f'<a href="{url}">{related_obj}</a>')
+        group = obj.get_default_group()
+        url = reverse("admin:core_landscapedefaultgroup_change", args=[group.pk])
+        return mark_safe(f'<a href="{url}">{group}</a>')
 
     default_group.short_description = "Default Group"
 
