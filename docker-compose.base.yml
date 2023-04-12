@@ -17,7 +17,6 @@ services:
 
   db:
     image: "postgis/postgis:14-master"
-    command: ["postgres", "-c", "log_statement=all", "-c", "log_destination=stderr"]
     labels:
       org.techmatters.project: terraso_backend
     env_file: .env
