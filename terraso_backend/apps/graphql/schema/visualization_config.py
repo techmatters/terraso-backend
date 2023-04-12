@@ -95,7 +95,7 @@ class VisualizationConfigAddMutation(BaseWriteMutation):
             )
             raise GraphQLNotFoundException(field="data_entry", model_name=DataEntry.__name__)
 
-        if not user.has_perm(VisualizationConfig.get_perm("add"), obj=data_entry.pk):
+        if not user.has_perm(VisualizationConfig.get_perm("add"), obj=data_entry):
             logger.info(
                 "Attempt to add a VisualizationConfig, but user lacks permission",
                 extra={"user_id": user.pk, "data_entry_id": str(data_entry.pk)},
