@@ -27,8 +27,8 @@ class Migration(migrations.Migration):
                 ("updated_at", models.DateTimeField(auto_now=True)),
                 ("slug", models.SlugField(blank=True, editable=False, max_length=250)),
                 ("name", models.CharField(max_length=200)),
-                ("lat_deg", models.FloatField()),
-                ("lon_deg", models.FloatField()),
+                ("latitude", models.FloatField()),
+                ("longitude", models.FloatField()),
             ],
             options={
                 "ordering": ["created_at"],

@@ -20,10 +20,9 @@ from apps.core.models.commons import SlugModel
 class Site(SlugModel):
     class Meta(SlugModel.Meta):
         abstract = False
-        _unique_fields = ["name"]
 
     name = models.CharField(max_length=200)
-    lat_deg = models.FloatField()
-    lon_deg = models.FloatField()
+    latitude = models.FloatField()
+    longitude = models.FloatField()
 
-    field_to_slug = "name"
+    field_to_slug = "id"
