@@ -14,8 +14,11 @@
 # along with this program. If not, see https://www.gnu.org/licenses/.
 
 """Geospatial utility methods"""
+import structlog
 from pyproj import CRS
 from shapely.geometry import MultiPolygon, shape
+
+logger = structlog.get_logger(__name__)
 
 # CRS that should be used for all GeoJSON (see https://www.rfc-editor.org/rfc/rfc7946#section-4)
 DEFAULT_CRS = CRS.from_string("urn:ogc:def:crs:OGC:1.3:CRS84")
@@ -28,7 +31,7 @@ def calculate_geojson_centroid(feature_json):
         features = feature_json["features"]
 
         if not features:
-            raise ValueError("Boundary is empty!")
+            return None
 
         # If geojson has a Point feature, return the coordinates
         point = next(
@@ -63,9 +66,11 @@ def calculate_geojson_centroid(feature_json):
             "lat": centroid.y,
             "lng": centroid.x,
         }
-    except KeyError as e:
-        # if the JSON is not formed as expected, this will give an easier to understand exception
-        raise ValueError(f"Expecting key '{e.args[0]}' in feature JSON, but it was missing")
+    except Exception as error:
+        logger.exception(
+            "Error calculating centroid", extra={"feature_json": feature_json, "error": error}
+        )
+        return None
 
 
 def calculate_geojson_feature_area(feature_json):
