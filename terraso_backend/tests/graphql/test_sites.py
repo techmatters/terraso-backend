@@ -22,8 +22,8 @@ pytestmark = pytest.mark.django_db
 
 
 def test_site_creation(client_query):
-    lat_deg = 0
-    lon_deg = 0
+    lat = 0
+    lon = 0
     site_name = "Test Site"
     response = client_query(
         """
@@ -35,12 +35,12 @@ def test_site_creation(client_query):
         }
     }
 """,
-        variables={"input": {"latDeg": lat_deg, "lonDeg": lon_deg, "name": site_name}},
+        variables={"input": {"latitude": lat, "longitude": lon, "name": site_name}},
     )
     content = json.loads(response.content)
     assert "errors" not in content
     id = content["data"]["siteAddMutation"]["site"]["id"]
     site = Site.objects.get(pk=id)
     assert str(site.id) == id
-    assert site.lat_deg == pytest.approx(site.lat_deg)
-    assert site.lon_deg == pytest.approx(site.lon_deg)
+    assert site.latitude == pytest.approx(site.latitude)
+    assert site.longitude == pytest.approx(site.longitude)

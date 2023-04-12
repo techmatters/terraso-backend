@@ -14,7 +14,7 @@ class SiteNode(DjangoObjectType):
         model = Site
 
         filter_fields = {"name": ["icontains"]}
-        fields = ("name", "lat_deg", "lon_deg")
+        fields = ("name", "latitude", "longitude")
 
         interfaces = (relay.Node,)
         connection_class = TerrasoConnection
@@ -27,5 +27,5 @@ class SiteAddMutation(BaseWriteMutation):
 
     class Input:
         name = graphene.String(required=True)
-        lat_deg = graphene.Float(required=True)
-        lon_deg = graphene.Float(required=True)
+        latitude = graphene.Float(required=True)
+        longitude = graphene.Float(required=True)
