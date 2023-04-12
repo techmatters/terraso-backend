@@ -92,12 +92,12 @@ class GroupNode(DjangoObjectType):
             if len(self.account_memberships) > 0:
                 return self.account_memberships[0]
             return None
-        return self.memberships.filter(user=user, deleted_at__isnull=True).first()
+        return self.memberships.filter(user=user).first()
 
     def resolve_memberships_count(self, info):
         if hasattr(self, "memberships_count"):
             return self.memberships_count
-        return self.memberships.filter(deleted_at__isnull=True).count()
+        return self.memberships.count()
 
 
 class GroupAddMutation(BaseWriteMutation):
