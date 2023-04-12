@@ -43,3 +43,9 @@ class SiteAddMutation(BaseWriteMutation):
         name = graphene.String(required=True)
         latitude = graphene.Float(required=True)
         longitude = graphene.Float(required=True)
+
+    @classmethod
+    def mutate_and_get_payload(cls, root, info, **kwargs):
+        kwargs["creator"] = info.context.user
+        result = super().mutate_and_get_payload(root, info, **kwargs)
+        return result

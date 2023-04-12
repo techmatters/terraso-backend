@@ -14,6 +14,7 @@
 # along with this program. If not, see https://www.gnu.org/licenses/.
 from django.db import models
 
+from apps.core.models import User
 from apps.core.models.commons import SlugModel
 
 
@@ -25,5 +26,8 @@ class Site(SlugModel):
     name = models.CharField(max_length=200)
     lat_deg = models.FloatField()
     lon_deg = models.FloatField()
+
+    # note: for now, do not let user account deletion if they have sites
+    creator = models.ForeignKey(User, on_delete=models.PROTECT, verbose_name="creator of site")
 
     field_to_slug = "name"
