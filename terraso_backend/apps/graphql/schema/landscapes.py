@@ -85,7 +85,6 @@ class LandscapeNode(DjangoObjectType):
         is_anonymous = info.context.user.is_anonymous
         group_queryset = (
             Group.objects.prefetch_related(
-                # Prefetch account membership
                 Prefetch(
                     "memberships",
                     to_attr="account_memberships",
