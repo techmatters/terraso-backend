@@ -16,7 +16,7 @@ import json
 
 import pytest
 
-from apps.soilproj.models import Site
+from apps.project_management.models import Site
 
 pytestmark = pytest.mark.django_db
 

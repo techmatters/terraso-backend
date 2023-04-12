@@ -42,7 +42,7 @@ class Migration(migrations.Migration):
             constraint=models.UniqueConstraint(
                 condition=models.Q(("deleted_at__isnull", True)),
                 fields=("slug",),
-                name="soilproj_site_unique_active_slug",
+                name="project_management_site_unique_active_slug",
                 violation_error_message="slug",
             ),
         ),
@@ -51,7 +51,7 @@ class Migration(migrations.Migration):
             constraint=models.UniqueConstraint(
                 condition=models.Q(("deleted_at__isnull", True)),
                 fields=("name",),
-                name="soilproj_site_unique_active_name",
+                name="project_management_site_unique_active_name",
                 violation_error_message="name",
             ),
         ),

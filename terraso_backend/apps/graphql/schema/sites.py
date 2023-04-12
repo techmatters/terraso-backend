@@ -16,7 +16,7 @@ import graphene
 from graphene import relay
 from graphene_django import DjangoObjectType
 
-from apps.soilproj.models import Site
+from apps.project_management.models import Site
 
 from .commons import BaseWriteMutation, TerrasoConnection
 
