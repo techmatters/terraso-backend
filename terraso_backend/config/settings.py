@@ -200,7 +200,7 @@ LOGGING = {
     "handlers": {
         "console": {
             "class": "logging.StreamHandler",
-            "formatter": "json_formatter",
+            "formatter": config("LOGS_FORMATTER", default="json_formatter"),
         },
     },
     "loggers": {

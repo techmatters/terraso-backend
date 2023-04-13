@@ -14,6 +14,8 @@
 # along with this program. If not, see https://www.gnu.org/licenses/.
 
 from django.contrib import admin
+from django.urls import reverse
+from django.utils.safestring import mark_safe
 
 from .models import (
     Group,
@@ -26,9 +28,14 @@ from .models import (
 )
 
 
+class MembershipInline(admin.TabularInline):
+    model = Membership
+
+
 @admin.register(Group)
 class GroupAdmin(admin.ModelAdmin):
     list_display = ("name", "slug", "website", "created_at")
+    inlines = [MembershipInline]
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
@@ -44,6 +51,36 @@ class GroupAdmin(admin.ModelAdmin):
 @admin.register(Landscape)
 class LandscapeAdmin(admin.ModelAdmin):
     list_display = ("name", "slug", "location", "website", "created_at")
+
+    readonly_fields = ("default_group",)
+
+    def default_group(self, obj):
+        group = obj.get_default_group()
+        url = reverse("admin:core_landscapedefaultgroup_change", args=[group.pk])
+        return mark_safe(f'<a href="{url}">{group}</a>')
+
+    default_group.short_description = "Default Group"
+
+
+class LandscapeDefaultGroup(Group):
+    class Meta:
+        proxy = True
+
+
+@admin.register(LandscapeDefaultGroup)
+class LandscapeDefaultGroupAdmin(admin.ModelAdmin):
+    list_display = ("name", "slug", "website", "created_at")
+    inlines = [MembershipInline]
+
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        landscape_group_ids = [
+            values[0]
+            for values in LandscapeGroup.objects.filter(
+                is_default_landscape_group=True
+            ).values_list("group__id")
+        ]
+        return qs.filter(id__in=landscape_group_ids)
 
 
 @admin.register(LandscapeGroup)

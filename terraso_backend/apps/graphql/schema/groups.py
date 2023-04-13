@@ -61,6 +61,8 @@ class GroupFilterSet(django_filters.FilterSet):
 
 class GroupNode(DjangoObjectType):
     id = graphene.ID(source="pk", required=True)
+    account_membership = graphene.Field("apps.graphql.schema.memberships.MembershipNode")
+    memberships_count = graphene.Int()
 
     class Meta:
         model = Group
@@ -81,6 +83,21 @@ class GroupNode(DjangoObjectType):
         filterset_class = GroupFilterSet
         interfaces = (relay.Node,)
         connection_class = TerrasoConnection
+
+    def resolve_account_membership(self, info):
+        user = info.context.user
+        if user.is_anonymous:
+            return None
+        if hasattr(self, "account_memberships"):
+            if len(self.account_memberships) > 0:
+                return self.account_memberships[0]
+            return None
+        return self.memberships.filter(user=user).first()
+
+    def resolve_memberships_count(self, info):
+        if hasattr(self, "memberships_count"):
+            return self.memberships_count
+        return self.memberships.approved_only().count()
 
 
 class GroupAddMutation(BaseWriteMutation):

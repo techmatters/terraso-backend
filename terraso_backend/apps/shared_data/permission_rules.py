@@ -31,12 +31,16 @@ def allowed_to_delete_data_entry(user, data_entry):
 
 @rules.predicate
 def allowed_to_view_data_entry(user, data_entry):
-    return user.memberships.filter(group__in=data_entry.groups.all()).exists()
+    return user.memberships.approved_only().filter(group__in=data_entry.groups.all()).exists()
 
 
 @rules.predicate
 def allowed_to_view_visualization_config(user, visualization_config):
-    return user.memberships.filter(group__in=visualization_config.data_entry.groups.all()).exists()
+    return (
+        user.memberships.approved_only()
+        .filter(group__in=visualization_config.data_entry.groups.all())
+        .exists()
+    )
 
 
 @rules.predicate

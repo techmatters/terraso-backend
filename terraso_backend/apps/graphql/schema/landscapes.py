@@ -16,6 +16,7 @@
 import graphene
 import structlog
 from django.db import transaction
+from django.db.models import Count, Prefetch, Q
 from graphene import relay
 from graphene_django import DjangoObjectType
 
@@ -25,12 +26,14 @@ from apps.core.models import (
     Landscape,
     LandscapeDevelopmentStrategy,
     LandscapeGroup,
+    Membership,
     TaxonomyTerm,
 )
 from apps.graphql.exceptions import GraphQLNotAllowedException
 
 from .commons import BaseDeleteMutation, BaseWriteMutation, TerrasoConnection
 from .constants import MutationTypes
+from .gis import Point
 
 logger = structlog.get_logger(__name__)
 
@@ -38,6 +41,8 @@ logger = structlog.get_logger(__name__)
 class LandscapeNode(DjangoObjectType):
     id = graphene.ID(source="pk", required=True)
     area_types = graphene.List(graphene.String)
+    default_group = graphene.Field("apps.graphql.schema.groups.GroupNode")
+    center_coordinates = graphene.Field(Point)
 
     class Meta:
         model = Landscape
@@ -65,6 +70,7 @@ class LandscapeNode(DjangoObjectType):
             "partnership_status",
             "profile_image",
             "profile_image_description",
+            "center_coordinates",
         )
 
         interfaces = (relay.Node,)
@@ -72,9 +78,65 @@ class LandscapeNode(DjangoObjectType):
 
     area_scalar_ha = graphene.Float()
 
+    @classmethod
+    def get_queryset(cls, queryset, info):
+        is_anonymous = info.context.user.is_anonymous
+
+        try:
+            # Prefetch default landscape group, account membership and count of members
+            group_queryset = (
+                Group.objects.prefetch_related(
+                    Prefetch(
+                        "memberships",
+                        to_attr="account_memberships",
+                        queryset=Membership.objects.filter(
+                            user=info.context.user,
+                        ),
+                    ),
+                )
+                if not is_anonymous
+                else Group.objects.all()
+            ).annotate(
+                memberships_count=Count(
+                    "memberships__user",
+                    distinct=True,
+                    filter=Q(memberships__deleted_at__isnull=True)
+                    & Q(memberships__membership_status=Membership.APPROVED),
+                )
+            )
+            landscape_group_queryset = LandscapeGroup.objects.prefetch_related(
+                Prefetch(
+                    "group",
+                    queryset=group_queryset,
+                ),
+            ).filter(is_default_landscape_group=True)
+            # Fetch all fields from Landscape, except for area_polygon
+            result = (
+                queryset.defer("area_polygon")
+                .prefetch_related(
+                    Prefetch(
+                        "associated_groups",
+                        to_attr="default_landscape_groups",
+                        queryset=landscape_group_queryset,
+                    )
+                )
+                .all()
+            )
+        except Exception as e:
+            logger.exception("Error prefetching Landscape data", error=e)
+            raise e
+        return result
+
     def resolve_area_scalar_ha(self, info):
         area = self.area_scalar_m2
         return None if area is None else round(m2_to_hectares(area), 3)
+
+    def resolve_default_group(self, info):
+        if hasattr(self, "default_landscape_groups"):
+            if len(self.default_landscape_groups) > 0:
+                return self.default_landscape_groups[0].group
+            return None
+        return self.get_default_group()
 
 
 class LandscapeDevelopmentStrategyNode(DjangoObjectType):

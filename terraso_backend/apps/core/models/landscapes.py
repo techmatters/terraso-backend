@@ -19,7 +19,10 @@ from django.db import models, transaction
 from django.utils.translation import gettext_lazy as _
 
 from apps.core import permission_rules as perm_rules
-from apps.core.gis.utils import calculate_geojson_feature_area
+from apps.core.gis.utils import (
+    calculate_geojson_centroid,
+    calculate_geojson_feature_area,
+)
 from apps.core.models.taxonomy_terms import TaxonomyTerm
 
 from .commons import BaseModel, SlugModel, validate_name
@@ -81,6 +84,7 @@ class Landscape(SlugModel, DirtyFieldsMixin):
     )
     profile_image = models.URLField(blank=True, default="")
     profile_image_description = models.TextField(blank=True, default="")
+    center_coordinates = models.JSONField(blank=True, null=True)
 
     field_to_slug = "name"
 
@@ -98,6 +102,7 @@ class Landscape(SlugModel, DirtyFieldsMixin):
             area_scalar_m2 = calculate_geojson_feature_area(self.area_polygon)
             if area_scalar_m2 is not None:
                 self.area_scalar_m2 = round(area_scalar_m2, 3)
+            self.center_coordinates = calculate_geojson_centroid(self.area_polygon)
 
         with transaction.atomic():
             creating = not Landscape.objects.filter(pk=self.pk).exists()
