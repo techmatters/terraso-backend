@@ -97,6 +97,26 @@ $ python terraso_backend/manage.py flush
 
 The contents of the database can be dumped to a JSON file for backup. Optionally, they can also be uploaded to a S3 bucket. This can be activated to be triggered from a button in the Django admin console. See the relevant [README.md](terraso_backend/apps/core/management/README.md) for more details.
 
+## Print migration SQL
+
+You can view the SQL commands that a migration will issue by running
+
+```sh
+$ python terraso_backend/manage.py sqlmigrate {app_name} {migration_name}
+```
+
+or in Docker using the `make` command
+
+```sh
+$ APP_MIGRATION_NAME="{app_name} {migration_name}" make print_migration_sql
+```
+
+For example:
+
+```sh
+$ APP_MIGRATION_NAME="story_map 0001_initial" make print_migration_sql
+```
+
 ## Contributing
 
 Before contributing to the project, it's recommended that you set up

@@ -49,6 +49,9 @@ migrate: check_rebuild
 makemigrations: check_rebuild
 	$(DC_RUN_CMD) python terraso_backend/manage.py makemigrations
 
+print_migration_sql: check_rebuild
+	$(DC_RUN_CMD) python terraso_backend/manage.py sqlmigrate $(APP_MIGRATION_NAME)
+
 compile-translations:
 	$(DC_RUN_CMD) django-admin compilemessages --locale=es --locale=en
 
