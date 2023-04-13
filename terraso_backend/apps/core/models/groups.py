@@ -153,9 +153,6 @@ class MembershipObjectsManager(SafeDeleteManager):
     def approved_only(self):
         return self.filter(membership_status=Membership.APPROVED)
 
-    def approved_only(self):
-        return self.filter(membership_status=Membership.APPROVED)
-
 
 class Membership(BaseModel):
     """
