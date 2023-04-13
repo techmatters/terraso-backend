@@ -51,6 +51,7 @@ from .memberships import (
     MembershipNode,
     MembershipUpdateMutation,
 )
+from .sites import SiteAddMutation
 from .story_maps import StoryMapDeleteMutation, StoryMapNode
 from .taxnomy_terms import TaxonomyTermNode
 from .users import (
@@ -124,6 +125,7 @@ class Mutations(graphene.ObjectType):
     update_visualization_config = VisualizationConfigUpdateMutation.Field()
     delete_visualization_config = VisualizationConfigDeleteMutation.Field()
     delete_story_map = StoryMapDeleteMutation.Field()
+    site_add_mutation = SiteAddMutation.Field()
 
 
 schema = graphene.Schema(query=Query, mutation=Mutations)

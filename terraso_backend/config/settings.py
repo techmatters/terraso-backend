@@ -62,6 +62,7 @@ INSTALLED_APPS = [
     "apps.shared_data",
     "apps.story_map",
     "apps.notifications",
+    "apps.project_management",
 ]
 
 if DEBUG:
