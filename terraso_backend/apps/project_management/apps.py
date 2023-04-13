@@ -15,6 +15,6 @@
 from django.apps import AppConfig
 
 
-class SoilprojConfig(AppConfig):
+class ProjectManagementConfig(AppConfig):
     default_auto_field = "django.db.models.BigAutoField"
     name = "apps.project_management"
