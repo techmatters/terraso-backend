@@ -31,7 +31,7 @@ def allowed_to_delete_data_entry(user, data_entry):
 
 @rules.predicate
 def allowed_to_add_data_entry(user, group):
-    return user.memberships.approved_only().filter(group__in=[group]).exists()
+    return user.memberships.approved_only().filter(group=group).exists()
 
 
 @rules.predicate
