@@ -49,7 +49,7 @@ class Landscape(SlugModel, DirtyFieldsMixin):
 
     name = models.CharField(max_length=128, validators=[validate_name])
     description = models.TextField(blank=True, default="")
-    website = models.URLField(blank=True, default="")
+    website = models.URLField(max_length=500, blank=True, default="")
     location = models.CharField(max_length=128, blank=True, default="")
     area_polygon = models.JSONField(blank=True, null=True)
     email = models.EmailField(blank=True, default="")
