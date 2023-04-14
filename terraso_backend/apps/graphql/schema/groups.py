@@ -97,6 +97,15 @@ class GroupNode(DjangoObjectType):
     def resolve_memberships_count(self, info):
         if hasattr(self, "memberships_count"):
             return self.memberships_count
+
+        # Nonmembers cannot see the number of members of a closed group
+        if self.membership_type == Group.MEMBERSHIP_TYPE_CLOSED:
+            is_member = (
+                self.memberships.approved_only().filter(user__id=info.context.user.pk).exists()
+            )
+            if not is_member:
+                return 0
+
         return self.memberships.approved_only().count()
 
 
