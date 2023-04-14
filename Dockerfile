@@ -25,3 +25,5 @@ USER terraso
 RUN pip install --upgrade pip && make install
 
 RUN django-admin compilemessages --locale=es --locale=en
+RUN django-admin migrate
+RUN django-admin collectstatic
