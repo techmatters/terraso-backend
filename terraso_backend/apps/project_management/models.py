@@ -14,7 +14,29 @@
 # along with this program. If not, see https://www.gnu.org/licenses/.
 from django.db import models
 
-from apps.core.models.commons import SlugModel
+from apps.core import permission_rules
+from apps.core.models import User
+from apps.core.models.commons import BaseModel, SlugModel
+
+
+class Project(BaseModel):
+    class Meta(BaseModel.Meta):
+        abstract = False
+
+        rules_permissions = {"add_site": permission_rules.can_add_site}
+
+    PRIVATE = "pri"
+    PUBLIC = "pub"
+    PRIVACY_OPTIONS = [(PRIVATE, "Private"), (PUBLIC, "Public")]
+
+    name = models.CharField(max_length=200)
+    privacy = models.CharField(max_length=3, choices=PRIVACY_OPTIONS, default=PRIVATE)
+    members = models.ManyToManyField(User, through="ProjectMembership")
+
+    def is_manager(self, user):
+        return ProjectMembership.objects.filter(
+            member=user, project=self, membership=ProjectMembership.MANAGER
+        ).exists()
 
 
 class Site(SlugModel):
@@ -26,3 +48,23 @@ class Site(SlugModel):
     longitude = models.FloatField()
 
     field_to_slug = "id"
+
+    # note: for now, do not let user account deletion if they have sites
+    creator = models.ForeignKey(User, on_delete=models.PROTECT, verbose_name="creator of site")
+    project = models.ForeignKey(
+        Project,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        verbose_name="project to which the site belongs",
+    )
+
+
+class ProjectMembership(models.Model):
+    MANAGER = "mang"
+    MEMBER = "memb"
+    MEMBERSHIP_TYPE = [(MANAGER, "Manager"), (MEMBER, "member")]
+
+    membership = models.CharField(max_length=4, choices=MEMBERSHIP_TYPE, default=MEMBER)
+    member = models.ForeignKey(User, on_delete=models.CASCADE, related_name="projects")
+    project = models.ForeignKey(Project, on_delete=models.CASCADE)
