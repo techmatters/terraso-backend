@@ -5,7 +5,7 @@ from graphene_django.utils.testing import graphql_query
 from mixer.backend.django import mixer
 
 from apps.core.models import User
-from apps.soilproj.models import Project, ProjectMembership
+from apps.project_management.models import Project, ProjectMembership
 
 pytestmark = pytest.mark.django_db
 
