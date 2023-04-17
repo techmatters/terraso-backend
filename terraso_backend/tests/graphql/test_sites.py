@@ -21,20 +21,23 @@ from apps.project_management.models import Site
 pytestmark = pytest.mark.django_db
 
 
+CREATE_SITE_GRAPHQL = """
+mutation createSite($input: SiteAddMutationInput!) {
+    siteAddMutation(input: $input) {
+       site {
+          id
+       }
+    }
+}
+"""
+
+
 def test_site_creation(client_query):
     lat = 0
     lon = 0
     site_name = "Test Site"
     response = client_query(
-        """
-    mutation createSite($input: SiteAddMutationInput!) {
-        siteAddMutation(input: $input) {
-           site {
-              id
-           }
-        }
-    }
-""",
+        CREATE_SITE_GRAPHQL,
         variables={"input": {"latitude": lat, "longitude": lon, "name": site_name}},
     )
     content = json.loads(response.content)
@@ -44,3 +47,19 @@ def test_site_creation(client_query):
     assert str(site.id) == id
     assert site.latitude == pytest.approx(site.latitude)
     assert site.longitude == pytest.approx(site.longitude)
+
+
+def test_can_create_two_sites_with_same_name(client_query, users):
+    site_name = "TestSite"
+    response = client_query(
+        CREATE_SITE_GRAPHQL, variables={"input": {"latitude": 0, "longitude": 0, "name": site_name}}
+    )
+    content = json.loads(response.content)
+    assert "errors" not in content
+    response_2 = client_query(
+        CREATE_SITE_GRAPHQL,
+        variables={"input": {"latitude": 45, "longitude": 45, "name": site_name}},
+    )
+    content_2 = json.loads(response_2.content)
+    assert "errors" not in content_2
+    assert Site.objects.filter(name=site_name).count() == 2
