@@ -49,6 +49,10 @@ class MembershipNode(DjangoObjectType):
 
     @classmethod
     def get_queryset(cls, queryset, info):
+        user = info.context.user
+        if user.is_anonymous:
+            return queryset.none()
+
         user_groups_ids = Membership.objects.filter(
             user=info.context.user, membership_status=Membership.APPROVED
         ).values_list("group", flat=True)
