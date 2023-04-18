@@ -16,10 +16,7 @@
 import oauth2_provider.views as oauth2_views
 from django.conf import settings
 from django.contrib import admin
-from django.contrib.sitemaps.views import sitemap
 from django.urls import include, path
-
-from apps.web_client.sitemap import WebClientSitemap
 
 # OAuth2 provider endpoints
 oauth2_endpoint_views = [
@@ -79,12 +76,5 @@ urlpatterns = [
     path("storage/", include("apps.storage.urls", namespace="terraso_storage")),
     path("shared-data/", include("apps.shared_data.urls", namespace="shared_data")),
     path("story-map/", include("apps.story_map.urls", namespace="story_map")),
-
-    # Used for the web client sitemap, not an API call.
-    path(
-        "sitemap.xml",
-        sitemap,
-        WebClientSitemap.pathargs(),
-        name="django.contrib.sitemaps.views.sitemap",
-    ),
+    path("web-client/", include("apps.web_client.urls", namespace="web_client")),
 ]
