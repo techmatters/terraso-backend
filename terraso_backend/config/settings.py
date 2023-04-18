@@ -358,4 +358,5 @@ PUBLIC_BASE_PATHS = [
     "/oauth/",
     "/auth/",
     "/healthz/",
+    "/web-client/sitemap.xml",
 ]
