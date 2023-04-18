@@ -13,8 +13,15 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see https://www.gnu.org/licenses/.
 
+from functools import wraps
+
 import structlog
+from django.conf import settings
 from django.contrib.auth import get_user_model
+from django.contrib.auth.models import AnonymousUser
+from django.core.exceptions import ImproperlyConfigured, ValidationError
+from django.http.response import JsonResponse
+from jwt.exceptions import InvalidTokenError
 
 from .services import JWTService
 
@@ -23,52 +30,70 @@ User = get_user_model()
 
 
 class JWTAuthenticationMiddleware:
+    def process_view(self, request, view_func, view_args, view_kwargs):
+        auth_optional = getattr(view_func, "auth_optional", False)
+        auth_required = not auth_optional and not self._is_path_public(request.path)
+
+        if request.user.is_authenticated or (not auth_required and not auth_optional):
+            return None
+
+        auth_header = request.META.get("HTTP_AUTHORIZATION")
+        if not auth_header and auth_optional:
+            request.user = AnonymousUser()
+            return None
+
+        try:
+            request.user = self._get_user_from_jwt(request)
+            return None
+        except ValidationError as e:
+            request.user = AnonymousUser()
+            logger.warning("Invalid JWT token", extra={"error": str(e)})
+            return JsonResponse({"error": "Unauthorized request"}, status=401)
+
+    def _is_path_public(self, path):
+        for public_path in settings.PUBLIC_BASE_PATHS:
+            if path.startswith(public_path):
+                return True
+        return False
+
     def __init__(self, get_response):
         self.get_response = get_response
 
     def __call__(self, request):
-        if not request.user or not request.user.is_authenticated:
-            user = self._get_user_from_jwt(request)
-
-            if user:
-                request.user = user
-
-        response = self.get_response(request)
-
-        return response
+        return self.get_response(request)
 
     def _get_user_from_jwt(self, request):
         if not request:
-            return None
+            raise ImproperlyConfigured("No request provided")
 
         auth_header = request.META.get("HTTP_AUTHORIZATION")
 
         if not auth_header:
             logger.info("Authorization header missing")
-            return None
+            raise ValidationError("Authorization header missing")
 
         auth_header_parts = auth_header.split()
 
         if len(auth_header_parts) != 2:
-            logger.warning(
-                "Authorization header incorrectly formatted",
-                extra={"HTTP_AUTHORIZATION": auth_header},
-            )
-            return None
+            raise ValidationError(f"Authorization header incorrectly formatted: {auth_header}")
 
         token_type, token = auth_header_parts
 
         if token_type != "Bearer":
-            logger.warning("Unexpected token type", extra={"token_type": token_type})
-            return None
+            raise ValidationError(f"Unexpected token type: {token_type}")
 
         try:
             decoded_payload = JWTService().verify_token(token)
-        except Exception:
+        except InvalidTokenError as e:
             logger.exception("Failure to verify JWT token", extra={"token": token})
-            return None
+            raise ValidationError(f"Invalid JWT token: {e}")
 
-        return self._get_user(decoded_payload["sub"])
+        user = self._get_user(decoded_payload["sub"])
+
+        if not user:
+            raise ValidationError("User not found for JWT token")
+
+        return user
 
     def _get_user(self, user_id):
         try:
@@ -76,3 +101,11 @@ class JWTAuthenticationMiddleware:
         except User.DoesNotExist:
             logger.error("User from JWT token not found", extra={"user_id": user_id})
             return None
+
+
+def auth_optional(view_func):
+    def wrapped_view(request, *args, **kwargs):
+        return view_func(request, *args, **kwargs)
+
+    view_func.auth_optional = True
+    return wraps(view_func)(wrapped_view)

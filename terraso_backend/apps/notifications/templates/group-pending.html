@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block content %}
+<h2>{% translate "email.group.pending_request_headline" %}</h2>
+<p>{{firstName}},</p>
+
+<p>{% blocktranslate with firstName=firstName groupName=groupName %}{{memberName}} has made a request for membership in your group "{{groupName}}.”{% endblocktranslate %}</p>
+
+<p style="margin: 3em;"><a style="padding: 0.5em 1em; border: 1px solid black; border-radius: 0.5em; text-decoration: none; color: black;" href="{{requestUrl}}">{% translate "email.group.view_request" %}</a></p>
+
+{% endblock %}

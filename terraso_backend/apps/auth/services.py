@@ -24,8 +24,10 @@ import jwt
 import structlog
 from django.conf import settings
 from django.contrib.auth import get_user_model
+from django.db import transaction
 from django.utils import timezone
 
+from apps.core.models import UserPreference
 from apps.storage.services import ProfileImageService
 
 from .providers import AppleProvider, GoogleProvider, MicrosoftProvider
@@ -76,6 +78,10 @@ class AccountService:
             profile_image_url=tokens.open_id.picture,
         )
 
+    def _set_default_preferences(self, user):
+        UserPreference.objects.create(user=user, key="notifications", value="true")
+
+    @transaction.atomic
     def _persist_user(self, email, first_name="", last_name="", profile_image_url=None):
         if not email:
             # it is possible for the email not to be set, notably with Microsoft
@@ -87,6 +93,8 @@ class AccountService:
 
         if not created:
             return user, False
+
+        self._set_default_preferences(user)
 
         update_name = first_name or last_name
 
@@ -122,17 +130,21 @@ class JWTService:
     JWT_REFRESH_EXP_DELTA_SECONDS = settings.JWT_REFRESH_EXP_DELTA_SECONDS
     JWT_ISS = settings.JWT_ISS
 
-    def create_access_token(self, user):
+    def create_token(self, user, expiration=None):
         payload = self._get_base_payload(user)
-        payload["exp"] = timezone.now() + timedelta(seconds=self.JWT_ACCESS_EXP_DELTA_SECONDS)
+        if expiration:
+            payload["exp"] = timezone.now() + timedelta(seconds=expiration)
 
         return jwt.encode(payload, self.JWT_SECRET, algorithm=self.JWT_ALGORITHM)
+
+    def create_access_token(self, user):
+        return self.create_token(user, self.JWT_ACCESS_EXP_DELTA_SECONDS)
 
     def create_refresh_token(self, user):
-        payload = self._get_base_payload(user)
-        payload["exp"] = timezone.now() + timedelta(seconds=self.JWT_REFRESH_EXP_DELTA_SECONDS)
+        return self.create_token(user, self.JWT_REFRESH_EXP_DELTA_SECONDS)
 
-        return jwt.encode(payload, self.JWT_SECRET, algorithm=self.JWT_ALGORITHM)
+    def create_unsubscribe_token(self, user):
+        return self.create_token(user)
 
     def verify_token(self, token):
         return jwt.decode(token, self.JWT_SECRET, algorithms=self.JWT_ALGORITHM)
@@ -213,7 +225,7 @@ class PlausibleService:
 
     def track_signup(self, auth_provider: str, req) -> None:
         """Track a successful signup. Include information on which service was used for signup."""
-        event_name = "User signup"
+        event_name = "user.signup"
         if "user-agent" not in req.headers:
             logger.error("During signup tracking, request missing header 'user-agent'")
             return

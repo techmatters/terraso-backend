@@ -59,13 +59,13 @@ class DataEntry(BaseModel):
 
     ENTRY_TYPE_FILE = "file"
     ENTRY_TYPE_LINK = "link"
-    MEMBERSHIP_TYPES = (
+    ENTRY_TYPES = (
         (ENTRY_TYPE_FILE, _("File")),
         (ENTRY_TYPE_LINK, _("Link")),
     )
     entry_type = models.CharField(
         max_length=32,
-        choices=MEMBERSHIP_TYPES,
+        choices=ENTRY_TYPES,
     )
 
     resource_type = models.CharField(max_length=255, blank=True, default="")
@@ -79,6 +79,7 @@ class DataEntry(BaseModel):
     class Meta(BaseModel.Meta):
         verbose_name_plural = "Data Entries"
         rules_permissions = {
+            "add": perm_rules.allowed_to_add_data_entry,
             "change": perm_rules.allowed_to_change_data_entry,
             "delete": perm_rules.allowed_to_delete_data_entry,
             "view": perm_rules.allowed_to_view_data_entry,

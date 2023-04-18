@@ -1,0 +1,22 @@
+{% load i18n %}
+{% load static %}
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=yes">
+</head>
+<body style="text-align: center; font-family: sans-serif;">
+  <header>
+  <p style="text-align: center;"><img src="{% static "images/terraso.png" %}" alt="{% translate "email.logo_alt_text" %}" width="130" height="36" /></p>
+  </header>
+
+  {% block content %}
+  {% endblock %}
+
+  <footer style="background-color: #F5F9FA; text-align: center; padding: 1em;">
+    <p>{% translate "email.organization_mailing_address" %}</p>
+    <p><a href="{{unsubscribeUrl}}">{% translate "email.unsubscribe_link_text" %}</a>.</p>
+  </footer>
+</body>
+</html>

@@ -51,7 +51,7 @@ class Group(SlugModel):
 
     name = models.CharField(max_length=128, validators=[validate_name])
     description = models.TextField(max_length=2048, blank=True, default="")
-    website = models.URLField(blank=True, default="")
+    website = models.URLField(max_length=500, blank=True, default="")
     email = models.EmailField(blank=True, default="")
 
     created_by = models.ForeignKey(
@@ -148,7 +148,10 @@ class GroupAssociation(BaseModel):
 
 class MembershipObjectsManager(SafeDeleteManager):
     def managers_only(self):
-        return self.filter(user_role=Membership.ROLE_MANAGER)
+        return self.filter(user_role=Membership.ROLE_MANAGER, membership_status=Membership.APPROVED)
+
+    def approved_only(self):
+        return self.filter(membership_status=Membership.APPROVED)
 
 
 class Membership(BaseModel):

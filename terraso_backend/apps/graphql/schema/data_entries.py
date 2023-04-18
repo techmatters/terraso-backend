@@ -59,8 +59,9 @@ class DataEntryNode(DjangoObjectType):
 
     @classmethod
     def get_queryset(cls, queryset, info):
+        user_pk = getattr(info.context.user, "pk", False)
         user_groups_ids = Membership.objects.filter(
-            user=info.context.user, membership_status=Membership.APPROVED
+            user__id=user_pk, membership_status=Membership.APPROVED
         ).values_list("group", flat=True)
         return queryset.filter(groups__in=user_groups_ids)
 
@@ -86,6 +87,26 @@ class DataEntryAddMutation(BaseWriteMutation):
     @classmethod
     def mutate_and_get_payload(cls, root, info, **kwargs):
         user = info.context.user
+
+        group_slug = kwargs.pop("group_slug")
+
+        try:
+            group = Group.objects.get(slug=group_slug)
+        except Group.DoesNotExist:
+            logger.error(
+                "Group not found when adding dataEntry",
+                extra={"group_slug": group_slug},
+            )
+            raise GraphQLNotFoundException(field="group", model_name=Group.__name__)
+
+        if not user.has_perm(DataEntry.get_perm("add"), obj=group.pk):
+            logger.info(
+                "Attempt to add a DataEntry, but user lacks permission",
+                extra={"user_id": user.pk, "group_id": str(group.pk)},
+            )
+            raise GraphQLNotAllowedException(
+                model_name=DataEntry.__name__, operation=MutationTypes.CREATE
+            )
 
         if not cls.is_update(kwargs):
             kwargs["created_by"] = user

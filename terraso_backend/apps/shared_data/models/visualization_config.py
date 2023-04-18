@@ -49,6 +49,7 @@ class VisualizationConfig(SlugModel):
         )
         verbose_name_plural = "Visualization Configs"
         rules_permissions = {
+            "add": perm_rules.allowed_to_add_visualization_config,
             "change": perm_rules.allowed_to_change_visualization_config,
             "delete": perm_rules.allowed_to_delete_visualization_config,
             "view": perm_rules.allowed_to_view_visualization_config,

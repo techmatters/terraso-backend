@@ -30,6 +30,7 @@ from apps.core.models import (
     Membership,
     TaxonomyTerm,
     User,
+    UserPreference,
 )
 from apps.shared_data.models import DataEntry, VisualizationConfig
 from apps.story_map.models import StoryMap
@@ -66,6 +67,17 @@ def expired_client_query(client, expired_access_token):
         headers = {
             "CONTENT_TYPE": "application/json",
             "HTTP_AUTHORIZATION": f"Bearer {expired_access_token}",
+        }
+        return graphql_query(*args, **kwargs, headers=headers, client=client)
+
+    return _client_query
+
+
+@pytest.fixture
+def client_query_no_token(client):
+    def _client_query(*args, **kwargs):
+        headers = {
+            "CONTENT_TYPE": "application/json",
         }
         return graphql_query(*args, **kwargs, headers=headers, client=client)
 
@@ -133,6 +145,21 @@ def users():
 
 
 @pytest.fixture
+def unsubscribe_token(users_with_notifications):
+    return JWTService().create_unsubscribe_token(users_with_notifications[0])
+
+
+@pytest.fixture
+def users_with_notifications():
+    users = mixer.cycle(5).blend(User)
+
+    for user in users:
+        mixer.blend(UserPreference, user=user, key="notifications", value="true")
+
+    return users
+
+
+@pytest.fixture
 def group_associations(groups, subgroups):
     group_associations = []
 
@@ -161,6 +188,17 @@ def memberships_pending(groups, users):
         Membership,
         group=(g for g in groups),
         user=(u for u in users),
+        user_role=Membership.ROLE_MEMBER,
+        membership_status=Membership.PENDING,
+    )
+
+
+@pytest.fixture
+def memberships_pending_with_notifications(groups, users_with_notifications):
+    return mixer.cycle(5).blend(
+        Membership,
+        group=(g for g in groups),
+        user=(u for u in users_with_notifications),
         user_role=Membership.ROLE_MEMBER,
         membership_status=Membership.PENDING,
     )

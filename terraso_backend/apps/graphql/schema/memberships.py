@@ -22,8 +22,9 @@ from graphene_django import DjangoObjectType
 
 from apps.core.models import Group, Membership, User
 from apps.graphql.exceptions import GraphQLNotAllowedException, GraphQLNotFoundException
+from apps.notifications.email import EmailNotification
 
-from .commons import BaseDeleteMutation, BaseMutation, TerrasoConnection
+from .commons import BaseAuthenticatedMutation, BaseDeleteMutation, TerrasoConnection
 from .constants import MutationTypes
 
 logger = structlog.get_logger(__name__)
@@ -48,6 +49,10 @@ class MembershipNode(DjangoObjectType):
 
     @classmethod
     def get_queryset(cls, queryset, info):
+        user = info.context.user
+        if user.is_anonymous:
+            return queryset.none()
+
         user_groups_ids = Membership.objects.filter(
             user=info.context.user, membership_status=Membership.APPROVED
         ).values_list("group", flat=True)
@@ -59,7 +64,7 @@ class MembershipNode(DjangoObjectType):
         )
 
 
-class MembershipAddMutation(BaseMutation):
+class MembershipAddMutation(BaseAuthenticatedMutation):
     membership = graphene.Field(MembershipNode)
 
     class Input:
@@ -100,6 +105,7 @@ class MembershipAddMutation(BaseMutation):
 
         if group.membership_type == Group.MEMBERSHIP_TYPE_CLOSED:
             membership.membership_status = Membership.PENDING
+            EmailNotification.send_membership_request(user, group)
 
         membership.user_role = user_role
         membership.save()
@@ -107,7 +113,7 @@ class MembershipAddMutation(BaseMutation):
         return cls(membership=membership)
 
 
-class MembershipUpdateMutation(BaseMutation):
+class MembershipUpdateMutation(BaseAuthenticatedMutation):
     membership = graphene.Field(MembershipNode)
 
     class Input:
@@ -153,10 +159,17 @@ class MembershipUpdateMutation(BaseMutation):
         if user_role:
             membership.user_role = Membership.get_user_role_from_text(user_role)
         membership_status = kwargs.pop("membership_status", None)
+        previous_membership_status = membership.membership_status
         if membership_status:
             membership.membership_status = Membership.get_membership_status_from_text(
                 membership_status
             )
+            if (
+                previous_membership_status != Membership.APPROVED
+                and membership.membership_status == Membership.APPROVED
+            ):
+                EmailNotification.send_membership_approval(membership.user, membership.group)
+
         membership.save()
 
         return cls(membership=membership)

@@ -1,0 +1,198 @@
+# Copyright © 2023 Technology Matters
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as published
+# by the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program. If not, see https://www.gnu.org/licenses/.
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2023-03-30 17:16+0000\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: terraso_backend/apps/core/models/commons.py:31
+#, python-format
+msgid "%(value)s is not allowed as a name"
+msgstr "%(value)s is not allowed as a name"
+
+#: terraso_backend/apps/core/models/groups.py:46
+msgid "Open"
+msgstr ""
+
+#: terraso_backend/apps/core/models/groups.py:47
+msgid "Closed"
+msgstr ""
+
+#: terraso_backend/apps/core/models/groups.py:167
+msgid "Manager"
+msgstr ""
+
+#: terraso_backend/apps/core/models/groups.py:168
+msgid "Member"
+msgstr ""
+
+#: terraso_backend/apps/core/models/groups.py:175
+msgid "Approved"
+msgstr ""
+
+#: terraso_backend/apps/core/models/groups.py:176
+msgid "Pending"
+msgstr ""
+
+#: terraso_backend/apps/core/models/landscapes.py:74
+msgid "partnership_status.none"
+msgstr ""
+
+#: terraso_backend/apps/core/models/landscapes.py:75
+msgid "partnership_status.no"
+msgstr "No"
+
+#: terraso_backend/apps/core/models/landscapes.py:76
+msgid "partnership_status.in_progress"
+msgstr "In Progress"
+
+#: terraso_backend/apps/core/models/landscapes.py:77
+msgid "partnership_status.yes"
+msgstr "Yes"
+
+#: terraso_backend/apps/core/models/taxonomy_terms.py:32
+msgid "Ecosystem Type"
+msgstr ""
+
+#: terraso_backend/apps/core/models/taxonomy_terms.py:33
+msgid "Language"
+msgstr ""
+
+#: terraso_backend/apps/core/models/taxonomy_terms.py:34
+msgid "Livelihood"
+msgstr ""
+
+#: terraso_backend/apps/core/models/taxonomy_terms.py:35
+msgid "Commodity"
+msgstr ""
+
+#: terraso_backend/apps/core/models/taxonomy_terms.py:36
+msgid "Organization"
+msgstr ""
+
+#: terraso_backend/apps/core/models/taxonomy_terms.py:37
+msgid "Agricultural Production Method"
+msgstr ""
+
+#: terraso_backend/apps/core/models/users.py:121
+#, python-format
+msgid "%(first_name)s %(last_name)s"
+msgstr "%(first_name)s %(last_name)s"
+
+#: terraso_backend/apps/notifications/email.py:71
+#, python-format
+msgid "%(user)s has requested to join “%(group)s”"
+msgstr "%(user)s has requested to join “%(group)s”"
+
+#: terraso_backend/apps/notifications/email.py:92
+#, python-format
+msgid "Membership in “%(group)s” has been approved"
+msgstr "Membership in “%(group)s” has been approved"
+
+#: terraso_backend/apps/notifications/templates/base.html:10
+msgid "email.logo_alt_text"
+msgstr "Terraso"
+
+#: terraso_backend/apps/notifications/templates/base.html:17
+msgid "email.organization_mailing_address"
+msgstr "Technology Matters, 3790 El Camino Real #625, Palo Alto, CA 94306"
+
+#: terraso_backend/apps/notifications/templates/base.html:18
+msgid "email.unsubscribe_link_text"
+msgstr "Unsubscribe from notifications"
+
+#: terraso_backend/apps/notifications/templates/group-approved.html:5
+msgid "email.group.approved_request_headline"
+msgstr "Congratulations! Your request was approved."
+
+#: terraso_backend/apps/notifications/templates/group-approved.html:7
+#, python-format
+msgid ""
+"%(firstName)s, your request for membership in the group %(groupName)s has "
+"been approved."
+msgstr ""
+"%(firstName)s, your request for membership in the group %(groupName)s has "
+"been approved."
+
+#: terraso_backend/apps/notifications/templates/group-approved.html:9
+msgid "email.group.view_group"
+msgstr "View Group"
+
+#: terraso_backend/apps/notifications/templates/group-pending.html:5
+msgid "email.group.pending_request_headline"
+msgstr "You have a pending request waiting"
+
+#: terraso_backend/apps/notifications/templates/group-pending.html:8
+#, python-format
+msgid ""
+"%(memberName)s has made a request for membership in your group "
+"\"%(groupName)s.”"
+msgstr ""
+"%(memberName)s has made a request for membership in your group "
+"\"%(groupName)s.”"
+
+#: terraso_backend/apps/notifications/templates/group-pending.html:10
+msgid "email.group.view_request"
+msgstr "View Request"
+
+#: terraso_backend/apps/shared_data/models/data_entries.py:63
+msgid "File"
+msgstr ""
+
+#: terraso_backend/apps/shared_data/models/data_entries.py:64
+msgid "Link"
+msgstr ""
+
+#: terraso_backend/config/settings.py:160
+msgid "settings.language.es"
+msgstr "Spanish"
+
+#: terraso_backend/config/settings.py:161
+msgid "settings.language.en"
+msgstr "English"
+
+#: terraso_backend/custom_templates/oauth2_provider/authorize.html:24
+msgid "authorize.share_name_email"
+msgstr "Share your name and email with"
+
+#: terraso_backend/custom_templates/oauth2_provider/authorize.html:33
+msgid "authorize.uses_information_from"
+msgstr "This website uses information from"
+
+#: terraso_backend/custom_templates/oauth2_provider/authorize.html:37
+msgid "authorize.your"
+msgstr "Your"
+
+#: terraso_backend/custom_templates/oauth2_provider/authorize.html:47
+msgid "authorize.cancel"
+msgstr "Cancel"
+
+#: terraso_backend/custom_templates/oauth2_provider/authorize.html:48
+msgid "authorize.share"
+msgstr "Share"
+
+#: terraso_backend/custom_templates/oauth2_provider/authorize.html:54
+msgid "authorize.error"
+msgstr "Error"

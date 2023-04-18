@@ -13,9 +13,9 @@ $ cp .env.sample .env
 
 In the `.env` file
 
-* set values for `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET`based on what you have set up in console.cloud.google.com > APIs & Services > Credentials.
+-   set values for `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET`based on what you have set up in console.cloud.google.com > APIs & Services > Credentials.
 
-* set values for `APPLE_CLIENT_ID`, `APPLE_KEY_ID`, `APPLE_TEAM_ID`, `APPLE_PRIVATE_KEY` and based on what you have set up on developer.apple.com > Certificates, Identifiers & Profiles > Keys.
+-   set values for `APPLE_CLIENT_ID`, `APPLE_KEY_ID`, `APPLE_TEAM_ID`, `APPLE_PRIVATE_KEY` and based on what you have set up on developer.apple.com > Certificates, Identifiers & Profiles > Keys.
 
 Start building the Docker images (make sure there's `requirements.txt`
 file created before building the images):
@@ -40,7 +40,7 @@ If you want to have a user to access the admin panel, you need to create
 it:
 
 ```sh
-$ ./scripts/run.sh bash
+$ make bash
 # (inside the web container)
 $ python terraso_backend/manage.py createsuperuser
 $ exit
@@ -93,11 +93,29 @@ You can reset the database back to its default state:
 $ python terraso_backend/manage.py flush
 ```
 
-
 ## Backup the database
 
 The contents of the database can be dumped to a JSON file for backup. Optionally, they can also be uploaded to a S3 bucket. This can be activated to be triggered from a button in the Django admin console. See the relevant [README.md](terraso_backend/apps/core/management/README.md) for more details.
 
+## Print migration SQL
+
+You can view the SQL commands that a migration will issue by running
+
+```sh
+$ python terraso_backend/manage.py sqlmigrate {app_name} {migration_name}
+```
+
+or in Docker using the `make` command
+
+```sh
+$ APP_MIGRATION_NAME="{app_name} {migration_name}" make print_migration_sql
+```
+
+For example:
+
+```sh
+$ APP_MIGRATION_NAME="story_map 0001_initial" make print_migration_sql
+```
 
 ## Contributing
 
@@ -158,6 +176,5 @@ following command to generate the documentation:
 ```sh
 $ make api_doc
 ```
-
 
 Enjoy! `;-)`

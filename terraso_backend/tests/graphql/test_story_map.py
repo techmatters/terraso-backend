@@ -65,3 +65,28 @@ def test_story_maps_filter_by_reated_by_email(client_query, story_maps, users):
 
     assert len(story_maps_result) == 4
     assert str(users[0].email) not in story_maps_result
+
+
+def test_story_maps_anonymous_user(client_query_no_token, story_maps):
+    response = client_query_no_token(
+        """
+        {storyMaps {
+          edges {
+            node {
+              title
+              isPublished
+              createdBy {
+                id
+              }
+            }
+          }
+        }}
+        """
+    )
+
+    edges = response.json()["data"]["storyMaps"]["edges"]
+    entries_result = [edge["node"] for edge in edges]
+
+    assert len(entries_result) == 6
+    for story_map in entries_result:
+        assert story_map["isPublished"] is True

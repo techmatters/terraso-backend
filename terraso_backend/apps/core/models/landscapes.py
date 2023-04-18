@@ -19,7 +19,10 @@ from django.db import models, transaction
 from django.utils.translation import gettext_lazy as _
 
 from apps.core import permission_rules as perm_rules
-from apps.core.gis.utils import calculate_geojson_feature_area
+from apps.core.gis.utils import (
+    calculate_geojson_centroid,
+    calculate_geojson_feature_area,
+)
 from apps.core.models.taxonomy_terms import TaxonomyTerm
 
 from .commons import BaseModel, SlugModel, validate_name
@@ -46,7 +49,7 @@ class Landscape(SlugModel, DirtyFieldsMixin):
 
     name = models.CharField(max_length=128, validators=[validate_name])
     description = models.TextField(blank=True, default="")
-    website = models.URLField(blank=True, default="")
+    website = models.URLField(max_length=500, blank=True, default="")
     location = models.CharField(max_length=128, blank=True, default="")
     area_polygon = models.JSONField(blank=True, null=True)
     email = models.EmailField(blank=True, default="")
@@ -71,16 +74,17 @@ class Landscape(SlugModel, DirtyFieldsMixin):
     PARTNERSHIP_STATUS_YES = "yes"
 
     MEMBERSHIP_TYPES = (
-        (PARTNERSHIP_STATUS_NONE, _("")),
-        (PARTNERSHIP_STATUS_NO, _("No")),
-        (PARTNERSHIP_STATUS_IN_PROGRESS, _("In Progress")),
-        (PARTNERSHIP_STATUS_YES, _("Yes")),
+        (PARTNERSHIP_STATUS_NONE, _("partnership_status.none")),
+        (PARTNERSHIP_STATUS_NO, _("partnership_status.no")),
+        (PARTNERSHIP_STATUS_IN_PROGRESS, _("partnership_status.in_progress")),
+        (PARTNERSHIP_STATUS_YES, _("partnership_status.yes")),
     )
     partnership_status = models.CharField(
         max_length=32, choices=MEMBERSHIP_TYPES, blank=True, default=PARTNERSHIP_STATUS_NONE
     )
     profile_image = models.URLField(blank=True, default="")
     profile_image_description = models.TextField(blank=True, default="")
+    center_coordinates = models.JSONField(blank=True, null=True)
 
     field_to_slug = "name"
 
@@ -98,6 +102,7 @@ class Landscape(SlugModel, DirtyFieldsMixin):
             area_scalar_m2 = calculate_geojson_feature_area(self.area_polygon)
             if area_scalar_m2 is not None:
                 self.area_scalar_m2 = round(area_scalar_m2, 3)
+            self.center_coordinates = calculate_geojson_centroid(self.area_polygon)
 
         with transaction.atomic():
             creating = not Landscape.objects.filter(pk=self.pk).exists()

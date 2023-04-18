@@ -1,0 +1,19 @@
+version: "3"
+
+services:
+  web:
+    extends:
+      file: docker-compose.base.yml
+      service: web
+    volumes:
+      - .:/app:z
+    depends_on:
+      db:
+        condition: service_healthy
+  db:
+    extends:
+      file: docker-compose.base.yml
+      service: db
+
+volumes:
+  postgresql_data:

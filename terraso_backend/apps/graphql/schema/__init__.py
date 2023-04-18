@@ -51,6 +51,7 @@ from .memberships import (
     MembershipNode,
     MembershipUpdateMutation,
 )
+from .sites import SiteAddMutation
 from .story_maps import StoryMapDeleteMutation, StoryMapNode
 from .taxnomy_terms import TaxonomyTermNode
 from .users import (
@@ -59,6 +60,7 @@ from .users import (
     UserNode,
     UserPreferenceDelete,
     UserPreferenceUpdate,
+    UserUnsubscribeUpdate,
     UserUpdateMutation,
 )
 from .visualization_config import (
@@ -94,6 +96,8 @@ class Query(graphene.ObjectType):
     story_maps = DjangoFilterConnectionField(StoryMapNode)
 
 
+# All mutations should inherit from BaseWriteMutation or BaseDeleteMutation
+# See terraso_backend/apps/graphql/schema/commons.py
 class Mutations(graphene.ObjectType):
     add_group = GroupAddMutation.Field()
     add_landscape = LandscapeAddMutation.Field()
@@ -113,6 +117,7 @@ class Mutations(graphene.ObjectType):
     delete_membership = MembershipDeleteMutation.Field()
     update_user_preference = UserPreferenceUpdate.Field()
     delete_user_preference = UserPreferenceDelete.Field()
+    unsubscribe_user = UserUnsubscribeUpdate.Field()
     add_data_entry = DataEntryAddMutation.Field()
     update_data_entry = DataEntryUpdateMutation.Field()
     delete_data_entry = DataEntryDeleteMutation.Field()
@@ -120,6 +125,7 @@ class Mutations(graphene.ObjectType):
     update_visualization_config = VisualizationConfigUpdateMutation.Field()
     delete_visualization_config = VisualizationConfigDeleteMutation.Field()
     delete_story_map = StoryMapDeleteMutation.Field()
+    site_add_mutation = SiteAddMutation.Field()
 
 
 schema = graphene.Schema(query=Query, mutation=Mutations)
