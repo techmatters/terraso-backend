@@ -150,10 +150,6 @@ class Landscape(SlugModel, DirtyFieldsMixin):
 
         return landscape_group.group
 
-    # used for sitemap generation
-    def get_absolute_url(self):
-        return f"/{self.slug}/profile"
-
     def __str__(self):
         return self.name
 

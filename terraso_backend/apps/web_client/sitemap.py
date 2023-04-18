@@ -34,6 +34,11 @@ class WebClientSitemap(GenericSitemap):
         return super().get_urls(site=site, **kwargs)
 
     @classmethod
+    def location(cls, item):
+        if type(item) == Landscape:
+            return f"/{item.slug}/profile"
+
+    @classmethod
     def pathargs(cls):
         return {"sitemaps": {"blog": WebClientSitemap(WebClientSitemap.landscapes())}}
 
