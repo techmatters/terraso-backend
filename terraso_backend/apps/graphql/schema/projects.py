@@ -21,7 +21,7 @@ from graphene_django import DjangoObjectType
 from apps.graphql.exceptions import GraphQLNotAllowedException
 from apps.project_management.models import Project, ProjectMembership, Site
 
-from .commons import BaseMutation, BaseWriteMutation, TerrasoConnection
+from .commons import BaseWriteMutation, TerrasoConnection
 from .sites import SiteNode
 
 

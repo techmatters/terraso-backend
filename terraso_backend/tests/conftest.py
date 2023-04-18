@@ -87,3 +87,8 @@ def project(user):
 def site(user):
     """Sample site created by user fixture"""
     return mixer.blend(Site, creator=user)
+
+
+@pytest.fixture
+def site_creator(site):
+    return site.creator

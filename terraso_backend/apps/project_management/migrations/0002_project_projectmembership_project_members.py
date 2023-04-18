@@ -11,7 +11,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
     dependencies = [
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
-        ("soilproj", "0001_initial"),
+        ("project_management", "0001_initial"),
     ]
 
     operations = [
@@ -71,7 +71,7 @@ class Migration(migrations.Migration):
                 (
                     "project",
                     models.ForeignKey(
-                        on_delete=django.db.models.deletion.CASCADE, to="soilproj.project"
+                        on_delete=django.db.models.deletion.CASCADE, to="project_management.project"
                     ),
                 ),
             ],
@@ -80,7 +80,7 @@ class Migration(migrations.Migration):
             model_name="project",
             name="members",
             field=models.ManyToManyField(
-                through="soilproj.ProjectMembership", to=settings.AUTH_USER_MODEL
+                through="project_management.ProjectMembership", to=settings.AUTH_USER_MODEL
             ),
         ),
     ]
