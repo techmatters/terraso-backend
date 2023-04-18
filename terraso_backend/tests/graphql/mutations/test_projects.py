@@ -10,7 +10,7 @@ from apps.project_management.models import Project, ProjectMembership
 pytestmark = pytest.mark.django_db
 
 
-def test_create_project(client_query, user):
+def test_create_project(client_query, site_creator):
     response = client_query(
         """
     mutation createProject($input: ProjectAddMutationInput!) {
@@ -27,8 +27,8 @@ def test_create_project(client_query, user):
     assert "errors" not in content
     id = content["data"]["projectAddMutation"]["project"]["id"]
     project = Project.objects.get(pk=id)
-    assert list(project.members.all()) == [user]
-    membership = ProjectMembership.objects.filter(member=user).first()
+    assert list(project.members.all()) == [site_creator]
+    membership = ProjectMembership.objects.filter(member=site_creator).first()
     assert membership.membership == ProjectMembership.MANAGER
 
 
@@ -46,13 +46,18 @@ ADD_CLIENT_QUERY = """
     """
 
 
-def test_adding_site_to_project(client_query, user, project, site):
-    response = client_query(
+def test_adding_site_to_project(client, site_creator, project, site):
+    ProjectMembership.objects.create(
+        project=project, member=site_creator, membership=ProjectMembership.MANAGER
+    )
+    client.force_login(site_creator)
+    response = graphql_query(
         ADD_CLIENT_QUERY,
         variables={"input": {"siteID": str(site.id), "projectID": str(project.id)}},
+        client=client,
     )
     content = json.loads(response.content)
-    assert "errors" not in content
+    assert "errors" not in content and "errors" not in content["data"]
     payload = content["data"]["projectAddSiteMutation"]
     site_id = payload["site"]["id"]
     project_id = payload["project"]["id"]
@@ -63,11 +68,11 @@ def test_adding_site_to_project(client_query, user, project, site):
 
 
 def test_adding_site_to_project_user_not_site_creator(client, project, site):
-    user = mixer.blend(User)
+    site_creator = mixer.blend(User)
     ProjectMembership.objects.create(
-        project=project, member=user, membership=ProjectMembership.MANAGER
+        project=project, member=site_creator, membership=ProjectMembership.MANAGER
     )
-    client.force_login(user)
+    client.force_login(site_creator)
     response = graphql_query(
         ADD_CLIENT_QUERY,
         variables={"input": {"siteID": str(site.id), "projectID": str(project.id)}},
@@ -75,17 +80,17 @@ def test_adding_site_to_project_user_not_site_creator(client, project, site):
     )
 
     content = json.loads(response.content)
-    assert "errors" in content
+    assert "errors" in content["data"]
 
 
 def test_adding_site_to_project_user_not_manager(client, project, site):
-    user = mixer.blend(User)
-    site.creator = user
+    site_creator = mixer.blend(User)
+    site.creator = site_creator
     site.save()
     ProjectMembership.objects.create(
-        project=project, member=user, membership=ProjectMembership.MEMBER
+        project=project, member=site_creator, membership=ProjectMembership.MEMBER
     )
-    client.force_login(user)
+    client.force_login(site_creator)
     response = graphql_query(
         ADD_CLIENT_QUERY,
         variables={"input": {"siteID": str(site.id), "projectID": str(project.id)}},

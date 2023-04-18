@@ -43,13 +43,15 @@ class Site(SlugModel):
     class Meta(SlugModel.Meta):
         abstract = False
 
+        rules_permissions = {"add_to_project": permission_rules.is_site_creator}
+
     name = models.CharField(max_length=200)
     latitude = models.FloatField()
     longitude = models.FloatField()
 
     field_to_slug = "id"
 
-    # note: for now, do not let user account deletion if they have sites
+    # note: for now, do not allow user account deletion if they have sites
     creator = models.ForeignKey(User, on_delete=models.PROTECT, verbose_name="creator of site")
     project = models.ForeignKey(
         Project,
@@ -63,7 +65,7 @@ class Site(SlugModel):
 class ProjectMembership(models.Model):
     MANAGER = "mang"
     MEMBER = "memb"
-    MEMBERSHIP_TYPE = [(MANAGER, "Manager"), (MEMBER, "member")]
+    MEMBERSHIP_TYPE = [(MANAGER, "Manager"), (MEMBER, "Member")]
 
     membership = models.CharField(max_length=4, choices=MEMBERSHIP_TYPE, default=MEMBER)
     member = models.ForeignKey(User, on_delete=models.CASCADE, related_name="projects")

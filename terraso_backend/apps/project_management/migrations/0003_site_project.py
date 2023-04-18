@@ -6,7 +6,7 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
     dependencies = [
-        ("soilproj", "0002_project_projectmembership_project_members"),
+        ("project_management", "0002_project_projectmembership_project_members"),
     ]
 
     operations = [
@@ -16,7 +16,7 @@ class Migration(migrations.Migration):
             field=models.ForeignKey(
                 null=True,
                 on_delete=django.db.models.deletion.SET_NULL,
-                to="soilproj.project",
+                to="project_management.project",
                 verbose_name="project to which the site belongs",
             ),
         ),
