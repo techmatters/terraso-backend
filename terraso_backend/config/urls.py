@@ -16,7 +16,10 @@
 import oauth2_provider.views as oauth2_views
 from django.conf import settings
 from django.contrib import admin
+from django.contrib.sitemaps.views import sitemap
 from django.urls import include, path
+
+from apps.core.sites import TerrasoSitemap
 
 # OAuth2 provider endpoints
 oauth2_endpoint_views = [
@@ -65,7 +68,6 @@ if settings.DEBUG:
         ),
     ]
 
-
 urlpatterns = [
     path("", include("apps.core.urls", namespace="terraso_core")),
     path("admin/", admin.site.urls),
@@ -77,4 +79,10 @@ urlpatterns = [
     path("storage/", include("apps.storage.urls", namespace="terraso_storage")),
     path("shared-data/", include("apps.shared_data.urls", namespace="shared_data")),
     path("story-map/", include("apps.story_map.urls", namespace="story_map")),
+    path(
+        "sitemap.xml",
+        sitemap,
+        TerrasoSitemap.pathargs(),
+        name="django.contrib.sitemaps.views.sitemap",
+    ),
 ]
