@@ -80,7 +80,7 @@ def test_adding_site_to_project_user_not_site_creator(client, project, site):
     )
 
     content = json.loads(response.content)
-    assert "errors" in content["data"]
+    assert "errors" in content
 
 
 def test_adding_site_to_project_user_not_manager(client, project, site):

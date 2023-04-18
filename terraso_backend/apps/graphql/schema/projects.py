@@ -39,7 +39,7 @@ class ProjectNode(DjangoObjectType):
 
 
 class ProjectAddMutation(BaseWriteMutation):
-    project = graphene.Field(ProjectNode)
+    project = graphene.Field(ProjectNode, required=True)
 
     model_class = Project
 
@@ -58,7 +58,7 @@ class ProjectAddMutation(BaseWriteMutation):
         return result
 
 
-class ProjectAddSiteMutation(BaseMutation):
+class ProjectAddSiteMutation(BaseWriteMutation):
     site = graphene.Field(SiteNode, required=True)
     project = graphene.Field(ProjectNode, required=True)
 
