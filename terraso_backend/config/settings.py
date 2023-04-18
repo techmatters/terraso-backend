@@ -67,6 +67,8 @@ INSTALLED_APPS = [
     "apps.project_management",
 ]
 
+# Used for sitemap generation.
+# See https://docs.djangoproject.com/en/4.2/ref/contrib/sites/
 SITE_ID = 1
 
 if DEBUG:
