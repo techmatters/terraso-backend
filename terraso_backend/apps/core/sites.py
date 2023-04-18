@@ -21,8 +21,10 @@ from apps.core.models import Landscape
 
 
 class TerrasoSitemap(GenericSitemap):
+    protocol = settings.WEB_CLIENT_PROTOCOL
+
     def get_urls(self, site=None, **kwargs):
-        site = Site(domain=settings.WEB_CLIENT_URL)
+        site = Site(domain=settings.WEB_CLIENT_DOMAIN)
         return super().get_urls(site=site, **kwargs)
 
     @classmethod
