@@ -50,6 +50,8 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "django.contrib.sites",
+    "django.contrib.sitemaps",
     "oauth2_provider",
     "corsheaders",
     "graphene_django",
@@ -64,6 +66,8 @@ INSTALLED_APPS = [
     "apps.notifications",
     "apps.project_management",
 ]
+
+SITE_ID = 1
 
 if DEBUG:
     INSTALLED_APPS += [
