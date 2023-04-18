@@ -26,7 +26,7 @@ from apps.core.models import Landscape
 # https://api.terraso.org/sitemap.xml, which is handled by the following path:
 
 
-class TerrasoSitemap(GenericSitemap):
+class WebClientSitemap(GenericSitemap):
     protocol = settings.WEB_CLIENT_PROTOCOL
 
     def get_urls(self, site=None, **kwargs):
@@ -35,7 +35,7 @@ class TerrasoSitemap(GenericSitemap):
 
     @classmethod
     def pathargs(cls):
-        return {"sitemaps": {"blog": TerrasoSitemap(TerrasoSitemap.landscapes())}}
+        return {"sitemaps": {"blog": WebClientSitemap(WebClientSitemap.landscapes())}}
 
     @classmethod
     def landscapes(cls):

@@ -19,7 +19,7 @@ from django.contrib import admin
 from django.contrib.sitemaps.views import sitemap
 from django.urls import include, path
 
-from apps.sitemap.sitemap import TerrasoSitemap
+from apps.sitemap.sitemap import WebClientSitemap
 
 # OAuth2 provider endpoints
 oauth2_endpoint_views = [
@@ -82,7 +82,7 @@ urlpatterns = [
     path(
         "sitemap.xml",
         sitemap,
-        TerrasoSitemap.pathargs(),
+        WebClientSitemap.pathargs(),
         name="django.contrib.sitemaps.views.sitemap",
     ),
 ]
