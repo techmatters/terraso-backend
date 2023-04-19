@@ -22,7 +22,10 @@ from graphene import Connection, Int, relay
 from graphene.types.generic import GenericScalar
 
 from apps.core.formatters import from_camel_to_snake_case
-from apps.graphql.exceptions import GraphQLValidationException
+from apps.graphql.exceptions import (
+    GraphQLNotAllowedException,
+    GraphQLValidationException,
+)
 
 logger = structlog.get_logger(__name__)
 
@@ -146,6 +149,10 @@ class BaseWriteMutation(BaseAuthenticatedMutation):
     @classmethod
     def is_update(cls, data):
         return "id" in data
+
+    @classmethod
+    def not_allowed(cls, mutation_type=None):
+        return GraphQLNotAllowedException(model_name=cls.__name__, operation=mutation_type)
 
 
 class BaseDeleteMutation(BaseAuthenticatedMutation):

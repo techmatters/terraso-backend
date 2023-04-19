@@ -23,8 +23,6 @@ class Project(BaseModel):
     class Meta(BaseModel.Meta):
         abstract = False
 
-        rules_permissions = {"add_site": permission_rules.can_add_site}
-
     PRIVATE = "pri"
     PUBLIC = "pub"
     PRIVACY_OPTIONS = [(PRIVATE, "Private"), (PUBLIC, "Public")]
@@ -43,7 +41,7 @@ class Site(SlugModel):
     class Meta(SlugModel.Meta):
         abstract = False
 
-        rules_permissions = {"add_to_project": permission_rules.is_site_creator}
+        rules_permissions = {"write": permission_rules.allowed_to_edit_site}
 
     name = models.CharField(max_length=200)
     latitude = models.FloatField()
@@ -52,7 +50,6 @@ class Site(SlugModel):
     field_to_slug = "id"
 
     # note: for now, do not allow user account deletion if they have sites
-    creator = models.ForeignKey(User, on_delete=models.PROTECT, verbose_name="creator of site")
     project = models.ForeignKey(
         Project,
         null=True,
@@ -62,7 +59,10 @@ class Site(SlugModel):
     )
 
 
-class ProjectMembership(models.Model):
+class ProjectMembership(BaseModel):
+    class Meta(BaseModel.Meta):
+        rules_permissions = {"add": permission_rules.allowed_to_add_site_to_project}
+
     MANAGER = "mang"
     MEMBER = "memb"
     MEMBERSHIP_TYPE = [(MANAGER, "Manager"), (MEMBER, "Member")]
