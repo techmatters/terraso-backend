@@ -6,7 +6,9 @@ ENV PATH /home/terraso/.local/bin:$PATH
 # see https://github.com/aws/aws-cli/tags for list of versions
 ENV AWS_CLI_VERSION 2.8.12
 
-RUN apt-get update && \
+RUN --mount=target=/var/lib/apt/lists,type=cache,sharing=locked \
+    --mount=target=/var/cache/apt,type=cache,sharing=locked \
+    apt-get update && \
     apt-get install -q -y --no-install-recommends \
                      build-essential libpq-dev dnsutils libmagic-dev mailcap \
                      gettext software-properties-common \
@@ -22,7 +24,8 @@ COPY --chown=terraso:terraso . /app
 
 USER terraso
 
-RUN pip install --upgrade pip && make install
+RUN --mount=target=/root/.cache,type=cache,sharing=locked \
+    pip install --upgrade pip && make install
 
 RUN django-admin compilemessages --locale=es --locale=en
 RUN django-admin migrate

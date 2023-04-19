@@ -1,3 +1,4 @@
 FROM techmatters/terraso_backend
 
-RUN make install-dev
+RUN --mount=target=/root/.cache,type=cache,sharing=locked \
+    make install-dev
