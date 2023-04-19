@@ -16,9 +16,10 @@ import graphene
 from graphene import relay
 from graphene_django import DjangoObjectType
 
-from apps.project_management.models import Site
+from apps.project_management.models import Project, Site
 
 from .commons import BaseWriteMutation, TerrasoConnection
+from .constants import MutationTypes
 
 
 class SiteNode(DjangoObjectType):
@@ -28,7 +29,7 @@ class SiteNode(DjangoObjectType):
         model = Site
 
         filter_fields = {"name": ["icontains"]}
-        fields = ("name", "latitude", "longitude")
+        fields = ("name", "latitude", "longitude", "project")
 
         interfaces = (relay.Node,)
         connection_class = TerrasoConnection
@@ -48,4 +49,31 @@ class SiteAddMutation(BaseWriteMutation):
     def mutate_and_get_payload(cls, root, info, **kwargs):
         kwargs["creator"] = info.context.user
         result = super().mutate_and_get_payload(root, info, **kwargs)
+        return result
+
+
+class SiteEditMutation(BaseWriteMutation):
+    site = graphene.Field(SiteNode, required=True)
+
+    model_class = Site
+
+    class Input:
+        id = graphene.ID(required=True)
+        name = graphene.String()
+        latitude = graphene.Float()
+        longitude = graphene.Float()
+
+        project_id = graphene.ID()
+
+    @classmethod
+    def mutate_and_get_payload(cls, root, info, **kwargs):
+        if "project_id" in kwargs:
+            project = Project.objects.get(id=kwargs.pop("project_id"))
+            # TODO: Eventually we should check project permissions
+            # Members should be able to add sites as well
+            if not project.is_manager(info.context.user):
+                raise cls.not_allowed(MutationTypes.UPDATE)
+            kwargs["project"] = project
+        result = super().mutate_and_get_payload(root, info, **kwargs)
+
         return result

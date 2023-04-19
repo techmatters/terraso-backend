@@ -18,11 +18,9 @@ from django.db import transaction
 from graphene import relay
 from graphene_django import DjangoObjectType
 
-from apps.graphql.exceptions import GraphQLNotAllowedException
-from apps.project_management.models import Project, ProjectMembership, Site
+from apps.project_management.models import Project, ProjectMembership
 
 from .commons import BaseWriteMutation, TerrasoConnection
-from .sites import SiteNode
 
 
 class ProjectNode(DjangoObjectType):
@@ -56,25 +54,3 @@ class ProjectAddMutation(BaseWriteMutation):
                 membership=ProjectMembership.MANAGER,
             )
         return result
-
-
-class ProjectAddSiteMutation(BaseWriteMutation):
-    site = graphene.Field(SiteNode, required=True)
-    project = graphene.Field(ProjectNode, required=True)
-
-    class Input:
-        siteID = graphene.ID(required=True)
-        projectID = graphene.ID(required=True)
-
-    @classmethod
-    def mutate_and_get_payload(cls, root, info, projectID, siteID):
-        site = Site.objects.get(id=siteID)
-        project = Project.objects.get(id=projectID)
-        user = info.context.user
-        if not user.has_perm(Site.get_perm("add_to_project"), site) or not user.has_perm(
-            Project.get_perm("add_site"), project
-        ):
-            raise GraphQLNotAllowedException("User not allowed to add site to project")
-        site.project = project
-        site.save()
-        return ProjectAddSiteMutation(site=site, project=project)
