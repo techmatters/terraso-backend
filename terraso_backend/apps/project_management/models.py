@@ -15,7 +15,7 @@
 from django.db import models
 
 from apps.core import permission_rules
-from apps.core.models import User
+from apps.core.models import Group, Membership, User
 from apps.core.models.commons import BaseModel, SlugModel
 
 
@@ -23,25 +23,45 @@ class Project(BaseModel):
     class Meta(BaseModel.Meta):
         abstract = False
 
-    PRIVATE = "pri"
-    PUBLIC = "pub"
-    PRIVACY_OPTIONS = [(PRIVATE, "Private"), (PUBLIC, "Public")]
+        rules_permissions = {"change": permission_rules.allowed_to_change_project}
 
     name = models.CharField(max_length=200)
-    privacy = models.CharField(max_length=3, choices=PRIVACY_OPTIONS, default=PRIVATE)
-    members = models.ManyToManyField(User, through="ProjectMembership")
+    group = models.OneToOneField(Group, on_delete=models.CASCADE)
 
-    def is_manager(self, user):
-        return ProjectMembership.objects.filter(
-            member=user, project=self, membership=ProjectMembership.MANAGER
-        ).exists()
+    def is_manager(self, user: User) -> bool:
+        return self.managers.filter(id=user.id).exists()
+
+    def is_member(self, user: User) -> bool:
+        return self.members.filter(id=user.id).exists()
+
+    @property
+    def managers(self):
+        manager_memberships = models.Subquery(
+            self.group.memberships.managers_only().values("user_id")
+        )
+        return User.objects.filter(id__in=manager_memberships)
+
+    @property
+    def members(self):
+        member_memberships = models.Subquery(
+            self.group.memberships.approved_only()
+            .filter(user_role=Membership.ROLE_MEMBER)
+            .values("user_id")
+        )
+        return User.objects.filter(id__in=member_memberships)
+
+    def add_manager(self, user: User):
+        return self.group.add_manager(user)
+
+    def add_member(self, user: User):
+        return self.group.add_member(user)
 
 
 class Site(SlugModel):
     class Meta(SlugModel.Meta):
         abstract = False
 
-        rules_permissions = {"write": permission_rules.allowed_to_edit_site}
+        rules_permissions = {"change": permission_rules.allowed_to_edit_site}
 
     name = models.CharField(max_length=200)
     latitude = models.FloatField()
@@ -49,24 +69,10 @@ class Site(SlugModel):
 
     field_to_slug = "id"
 
-    # note: for now, do not allow user account deletion if they have sites
     project = models.ForeignKey(
         Project,
         null=True,
         blank=True,
-        on_delete=models.SET_NULL,
+        on_delete=models.RESTRICT,
         verbose_name="project to which the site belongs",
     )
-
-
-class ProjectMembership(BaseModel):
-    class Meta(BaseModel.Meta):
-        rules_permissions = {"add": permission_rules.allowed_to_add_site_to_project}
-
-    MANAGER = "mang"
-    MEMBER = "memb"
-    MEMBERSHIP_TYPE = [(MANAGER, "Manager"), (MEMBER, "Member")]
-
-    membership = models.CharField(max_length=4, choices=MEMBERSHIP_TYPE, default=MEMBER)
-    member = models.ForeignKey(User, on_delete=models.CASCADE, related_name="projects")
-    project = models.ForeignKey(Project, on_delete=models.CASCADE)

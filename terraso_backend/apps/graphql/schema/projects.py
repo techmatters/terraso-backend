@@ -18,7 +18,8 @@ from django.db import transaction
 from graphene import relay
 from graphene_django import DjangoObjectType
 
-from apps.project_management.models import Project, ProjectMembership
+from apps.core.models import Group
+from apps.project_management.models import Project
 
 from .commons import BaseWriteMutation, TerrasoConnection
 
@@ -36,6 +37,11 @@ class ProjectNode(DjangoObjectType):
         connection_class = TerrasoConnection
 
 
+class ProjectPrivacy(graphene.Enum):
+    PRIVATE = Group.PRIVATE
+    PUBLIC = Group.PUBLIC
+
+
 class ProjectAddMutation(BaseWriteMutation):
     project = graphene.Field(ProjectNode, required=True)
 
@@ -43,14 +49,15 @@ class ProjectAddMutation(BaseWriteMutation):
 
     class Input:
         name = graphene.String(required=True)
+        privacy = graphene.Field(ProjectPrivacy, required=True)
 
     @classmethod
     def mutate_and_get_payload(cls, root, info, **kwargs):
         with transaction.atomic():
-            result = super().mutate_and_get_payload(root, info, **kwargs)
-            ProjectMembership.objects.create(
-                member=info.context.user,
-                project=result.project,
-                membership=ProjectMembership.MANAGER,
+            group = Group.create_default_group_project(
+                name=kwargs["name"], privacy=kwargs.pop("privacy")
             )
+            kwargs["group"] = group
+            result = super().mutate_and_get_payload(root, info, **kwargs)
+            result.project.add_manager(info.context.user)
         return result

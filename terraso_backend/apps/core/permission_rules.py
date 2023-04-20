@@ -104,15 +104,13 @@ def allowed_to_update_preferences(user, user_preferences):
 
 
 @rules.predicate
-def allowed_to_add_site_to_project(user, project_membership):
-    return user.id == project_membership.site.creator.id and project_membership.project.is_manager(
-        user
-    )
+def allowed_to_change_project(user, project):
+    return project.is_manager(user)
 
 
 @rules.predicate
 def allowed_to_edit_site(user, site):
-    return site.project.is_manager(user=user)
+    return site.project.is_manager(user)
 
 
 rules.add_rule("allowed_group_managers_count", allowed_group_managers_count)

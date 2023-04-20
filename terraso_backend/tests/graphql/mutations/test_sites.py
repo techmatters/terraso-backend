@@ -19,7 +19,7 @@ from graphene_django.utils.testing import graphql_query
 from mixer.backend.django import mixer
 
 from apps.core.models import User
-from apps.project_management.models import ProjectMembership, Site
+from apps.project_management.models import Project, Site
 
 pytestmark = pytest.mark.django_db
 
@@ -63,17 +63,20 @@ ADD_CLIENT_QUERY = """
 """
 
 
-def test_adding_site_to_project(client, site_creator, project, site):
-    ProjectMembership.objects.create(
-        project=project, member=site_creator, membership=ProjectMembership.MANAGER
-    )
-    client.force_login(site_creator)
+def test_adding_site_to_project(client, project, project_manager, site):
+    original_project = mixer.blend(Project)
+    original_project.add_manager(project_manager)
+    site.project = original_project
+    site.save()
+
+    client.force_login(project_manager)
     response = graphql_query(
         ADD_CLIENT_QUERY,
         variables={"input": {"id": str(site.id), "projectId": str(project.id)}},
         client=client,
     )
     content = json.loads(response.content)
+
     assert "errors" not in content and "errors" not in content["data"]
     payload = content["data"]["editSite"]["site"]
     site_id = payload["id"]
@@ -84,17 +87,13 @@ def test_adding_site_to_project(client, site_creator, project, site):
     assert site.project.id == project.id
 
 
-def test_adding_site_to_project_user_not_manager(client, project, site):
+def test_adding_site_to_project_user_not_manager(client, project, site, user):
     site_creator = mixer.blend(User)
-    site.creator = site_creator
-    site.save()
-    ProjectMembership.objects.create(
-        project=project, member=site_creator, membership=ProjectMembership.MEMBER
-    )
+    project.add_member(user)
     client.force_login(site_creator)
     response = graphql_query(
         ADD_CLIENT_QUERY,
-        variables={"input": {"siteID": str(site.id), "projectID": str(project.id)}},
+        variables={"input": {"id": str(site.id), "projectId": str(project.id)}},
         client=client,
     )
 

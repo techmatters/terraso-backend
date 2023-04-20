@@ -12,6 +12,7 @@
 #
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see https://www.gnu.org/licenses/.
+from typing import Literal, Union
 
 from django.db import models, transaction
 from django.utils.translation import gettext_lazy as _
@@ -47,6 +48,11 @@ class Group(SlugModel):
         (MEMBERSHIP_TYPE_CLOSED, _("Closed")),
     )
 
+    PRIVATE = "private"
+    PUBLIC = "public"
+
+    PRIVACY_STATUS = ((PRIVATE, _("Private")), (PUBLIC, _("Public")))
+
     fields_to_trim = ["name", "description"]
 
     name = models.CharField(max_length=128, validators=[validate_name])
@@ -78,6 +84,8 @@ class Group(SlugModel):
         default=DEFAULT_MEMERBSHIP_TYPE,
     )
 
+    privacy_type = models.CharField(max_length=64, choices=PRIVACY_STATUS, default=PUBLIC)
+
     field_to_slug = "name"
 
     class Meta(SlugModel.Meta):
@@ -102,8 +110,26 @@ class Group(SlugModel):
                 membership.save()
 
     def add_manager(self, user):
-        self.memberships.update_or_create(
-            group=self, user=user, defaults={"user_role": Membership.ROLE_MANAGER}
+        self._add_user(user, role=Membership.ROLE_MANAGER)
+
+    def add_member(self, user):
+        self._add_user(user, role=Membership.ROLE_MEMBER)
+
+    def _add_user(
+        self,
+        user: User,
+        role: Union[Literal["manager"], Literal["member"]],
+    ):
+        self.memberships.update_or_create(group=self, user=user, defaults={"user_role": role})
+
+    @classmethod
+    def create_default_group_project(
+        cls, name: str, privacy: Union[Literal[PRIVATE], Literal[PUBLIC]]
+    ):
+        """Creates a default group for a project. The closed/open group concept is currently not
+        used with projects, so the default is an open group."""
+        return cls.objects.create(
+            name=name, privacy_type=privacy, membership_type=cls.MEMBERSHIP_TYPE_OPEN
         )
 
     def __str__(self):
