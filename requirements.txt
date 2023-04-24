@@ -451,9 +451,9 @@ idna==3.4 \
     #   anyio
     #   httpx
     #   requests
-importlib-metadata==6.0.1 \
-    --hash=sha256:1543daade821c89b1c4a55986c326f36e54f2e6ca3bad96be4563d0acb74dcd4 \
-    --hash=sha256:950127d57e35a806d520817d3e92eec3f19fdae9f0cd99da77a407c5aabefba3
+importlib-metadata==6.6.0 \
+    --hash=sha256:43dd286a2cd8995d5eaef7fee2066340423b818ed3fd70adf0bad5f1fac53fed \
+    --hash=sha256:92501cdf9cc66ebd3e612f1b4f0c0765dfa42f0fa38ffb319b6bd84dd675d705
     # via opentelemetry-api
 jmespath==1.0.1 \
     --hash=sha256:02e2e4cc71b5bcab88332eebf907519190dd9e6e82107fa7f83b1003a6252980 \
