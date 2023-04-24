@@ -123,7 +123,7 @@ def managed_landscapes(users):
 
 @pytest.fixture
 def groups():
-    return mixer.cycle(5).blend(Group)
+    return mixer.cycle(5).blend(Group, membership_status=Group.MEMBERSHIP_TYPE_OPEN)
 
 
 @pytest.fixture
