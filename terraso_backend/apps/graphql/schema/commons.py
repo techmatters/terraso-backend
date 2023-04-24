@@ -27,6 +27,8 @@ from apps.graphql.exceptions import (
     GraphQLValidationException,
 )
 
+from .constants import MutationTypes
+
 logger = structlog.get_logger(__name__)
 
 
@@ -86,6 +88,21 @@ class BaseAuthenticatedMutation(BaseMutation):
             return cls(errors=[{"message": json.dumps([message])}])
 
         return super().mutate(root, info, input)
+
+    @classmethod
+    def not_allowed(cls, model, mutation_type=None, msg=None, extra=None):
+        if not extra:
+            extra = {}
+        model_name = model.__name__
+        if not msg:
+            mutation_type = mutation_type.value if mutation_type else "change"
+            msg = "Tried to {mutation_type} {model_name}, but user is not allowed"
+        logger.error(msg, extra=extra)
+        return GraphQLNotAllowedException(model_name, operation=mutation_type)
+
+    @classmethod
+    def not_allowed_create(cls, model, msg=None, extra=None):
+        return cls.not_allowed(model, MutationTypes.CREATE, msg, extra)
 
 
 class BaseWriteMutation(BaseAuthenticatedMutation):

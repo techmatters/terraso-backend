@@ -91,13 +91,11 @@ class MembershipAddMutation(BaseAuthenticatedMutation):
             )
             raise GraphQLNotFoundException(field="group", model_name=Membership.__name__)
 
-        if group.is_restricted and not group.is_manager(info.context.user):
-            logger.error(
-                "User attempted to add member to private group, but user is not manager",
-                extra={"group_slug": group_slug},
-            )
-            raise GraphQLNotAllowedException(
-                model_name=Membership.__name__, operation=MutationTypes.CREATE
+        if not info.context.user.has_perm(Membership.get_perm("add"), group):
+            raise cls.not_allowed_create(
+                Membership,
+                msg="User is not allowed to join this group",
+                extra={"user_id": info.context.user.pk, "group_slug": group.slug},
             )
 
         membership, was_created = Membership.objects.get_or_create(user=user, group=group)
