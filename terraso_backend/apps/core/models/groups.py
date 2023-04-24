@@ -41,17 +41,14 @@ class Group(SlugModel):
 
     MEMBERSHIP_TYPE_OPEN = "open"
     MEMBERSHIP_TYPE_CLOSED = "closed"
+    MEMBERSHIP_TYPE_RESTRICTED = "restricted"
     DEFAULT_MEMERBSHIP_TYPE = MEMBERSHIP_TYPE_OPEN
 
     MEMBERSHIP_TYPES = (
         (MEMBERSHIP_TYPE_OPEN, _("Open")),
         (MEMBERSHIP_TYPE_CLOSED, _("Closed")),
+        (MEMBERSHIP_TYPE_RESTRICTED, _("Restricted")),
     )
-
-    PRIVATE = "private"
-    PUBLIC = "public"
-
-    PRIVACY_STATUS = ((PRIVATE, _("Private")), (PUBLIC, _("Public")))
 
     fields_to_trim = ["name", "description"]
 
@@ -83,8 +80,6 @@ class Group(SlugModel):
         choices=MEMBERSHIP_TYPES,
         default=DEFAULT_MEMERBSHIP_TYPE,
     )
-
-    privacy_type = models.CharField(max_length=64, choices=PRIVACY_STATUS, default=PUBLIC)
 
     field_to_slug = "name"
 
@@ -122,15 +117,35 @@ class Group(SlugModel):
     ):
         self.memberships.update_or_create(group=self, user=user, defaults={"user_role": role})
 
-    @classmethod
-    def create_default_group_project(
-        cls, name: str, privacy: Union[Literal[PRIVATE], Literal[PUBLIC]]
-    ):
-        """Creates a default group for a project. The closed/open group concept is currently not
-        used with projects, so the default is an open group."""
-        return cls.objects.create(
-            name=name, privacy_type=privacy, membership_type=cls.MEMBERSHIP_TYPE_OPEN
+    @property
+    def group_managers(self):
+        manager_memberships = models.Subquery(self.memberships.managers_only().values("user_id"))
+        return User.objects.filter(id__in=manager_memberships)
+
+    @property
+    def group_members(self):
+        member_memberships = models.Subquery(
+            self.memberships.approved_only()
+            .filter(user_role=Membership.ROLE_MEMBER)
+            .values("user_id")
         )
+        return User.objects.filter(id__in=member_memberships)
+
+    def is_manager(self, user: User) -> bool:
+        return self.group_managers.filter(id=user.id).exists()
+
+    def is_member(self, user: User) -> bool:
+        return self.group_members.filter(id=user.id).exists()
+
+    @property
+    def is_restricted(self):
+        return self.membership_type == self.MEMBERSHIP_TYPE_RESTRICTED
+
+    @classmethod
+    def create_default_group_project(cls, name: str):
+        """Creates a default group for a project. Membership type is set to restricted: users cannot
+        join the group, and must be added by managers."""
+        return cls.objects.create(name=name, membership_type=cls.MEMBERSHIP_TYPE_RESTRICTED)
 
     def __str__(self):
         return self.name
