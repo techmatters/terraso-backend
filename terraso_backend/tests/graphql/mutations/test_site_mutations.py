@@ -49,7 +49,7 @@ def test_site_creation(client_query, user):
     assert site.longitude == pytest.approx(site.longitude)
 
 
-ADD_CLIENT_QUERY = """
+EDIT_CLIENT_QUERY = """
     mutation siteEditMutation($input: SiteEditMutationInput!) {
         editSite(input: $input) {
             site {
@@ -71,8 +71,8 @@ def test_adding_site_to_project(client, project, project_manager, site):
 
     client.force_login(project_manager)
     response = graphql_query(
-        ADD_CLIENT_QUERY,
-        variables={"input": {"id": str(site.id), "projectId": str(project.id)}},
+        EDIT_CLIENT_QUERY,
+        variables={"input": {"id": str(site.id), "projectId": str(project.id), "name": "NEW_NAME"}},
         client=client,
     )
     content = json.loads(response.content)
@@ -85,6 +85,7 @@ def test_adding_site_to_project(client, project, project_manager, site):
     assert project_id == str(project.id)
     site.refresh_from_db()
     assert site.project.id == project.id
+    assert site.name == "NEW_NAME"
 
 
 def test_adding_site_to_project_user_not_manager(client, project, site, user):
@@ -92,8 +93,8 @@ def test_adding_site_to_project_user_not_manager(client, project, site, user):
     project.add_member(user)
     client.force_login(site_creator)
     response = graphql_query(
-        ADD_CLIENT_QUERY,
-        variables={"input": {"id": str(site.id), "projectId": str(project.id)}},
+        EDIT_CLIENT_QUERY,
+        variables={"input": {"id": str(site.id), "name": "NEW_NAME", "projectId": str(project.id)}},
         client=client,
     )
 
