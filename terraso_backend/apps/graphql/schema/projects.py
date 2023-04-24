@@ -38,8 +38,8 @@ class ProjectNode(DjangoObjectType):
 
 
 class ProjectPrivacy(graphene.Enum):
-    PRIVATE = Group.PRIVATE
-    PUBLIC = Group.PUBLIC
+    PRIVATE = Project.PRIVATE
+    PUBLIC = Project.PUBLIC
 
 
 class ProjectAddMutation(BaseWriteMutation):
@@ -54,10 +54,9 @@ class ProjectAddMutation(BaseWriteMutation):
     @classmethod
     def mutate_and_get_payload(cls, root, info, **kwargs):
         with transaction.atomic():
-            group = Group.create_default_group_project(
-                name=kwargs["name"], privacy=kwargs.pop("privacy")
-            )
+            group = Group.create_default_group_project(name=kwargs["name"])
             kwargs["group"] = group
+            kwargs["privacy"] = kwargs["privacy"].value
             result = super().mutate_and_get_payload(root, info, **kwargs)
             result.project.add_manager(info.context.user)
         return result

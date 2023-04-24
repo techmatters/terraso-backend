@@ -13,9 +13,10 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see https://www.gnu.org/licenses/.
 from django.db import models
+from django.utils.translation import gettext_lazy as _
 
 from apps.core import permission_rules
-from apps.core.models import Group, Membership, User
+from apps.core.models import Group, User
 from apps.core.models.commons import BaseModel, SlugModel
 
 
@@ -25,8 +26,17 @@ class Project(BaseModel):
 
         rules_permissions = {"change": permission_rules.allowed_to_change_project}
 
+    PRIVATE = "private"
+    PUBLIC = "public"
+    DEFAULT_PRIVACY_STATUS = PRIVATE
+
+    PRIVACY_STATUS = ((PRIVATE, _("Private")), (PUBLIC, _("Public")))
+
     name = models.CharField(max_length=200)
     group = models.OneToOneField(Group, on_delete=models.CASCADE)
+    privacy = models.CharField(
+        max_length=32, choices=PRIVACY_STATUS, default=DEFAULT_PRIVACY_STATUS
+    )
 
     def is_manager(self, user: User) -> bool:
         return self.managers.filter(id=user.id).exists()
@@ -36,19 +46,11 @@ class Project(BaseModel):
 
     @property
     def managers(self):
-        manager_memberships = models.Subquery(
-            self.group.memberships.managers_only().values("user_id")
-        )
-        return User.objects.filter(id__in=manager_memberships)
+        return self.group.group_managers
 
     @property
     def members(self):
-        member_memberships = models.Subquery(
-            self.group.memberships.approved_only()
-            .filter(user_role=Membership.ROLE_MEMBER)
-            .values("user_id")
-        )
-        return User.objects.filter(id__in=member_memberships)
+        return self.group.group_members
 
     def add_manager(self, user: User):
         return self.group.add_manager(user)

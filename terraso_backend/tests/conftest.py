@@ -24,7 +24,7 @@ from pyproj import CRS, Transformer
 from apps.auth.services import JWTService
 from apps.core.gis.utils import DEFAULT_CRS
 from apps.core.models import User
-from apps.project_management.models import Project, Site
+from apps.project_management.models import Group, Project, Site
 
 pytestmark = pytest.mark.django_db
 
@@ -86,7 +86,8 @@ def site_creator(site: Site) -> User:
 
 @pytest.fixture
 def project() -> Project:
-    project = mixer.blend(Project)
+    group = Group.create_default_group_project("test_group")
+    project = mixer.blend(Project, group=group)
     user = mixer.blend(User)
     project.add_manager(user)
     return project
