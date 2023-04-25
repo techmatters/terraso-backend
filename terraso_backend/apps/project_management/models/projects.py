@@ -1,4 +1,4 @@
-# Copyright © 2021-2023 Technology Matters
+# Copyright © 2023 Technology Matters
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as published
@@ -17,7 +17,7 @@ from django.utils.translation import gettext_lazy as _
 
 from apps.core import permission_rules
 from apps.core.models import Group, User
-from apps.core.models.commons import BaseModel, SlugModel
+from apps.core.models.commons import BaseModel
 
 
 class Project(BaseModel):
@@ -57,24 +57,3 @@ class Project(BaseModel):
 
     def add_member(self, user: User):
         return self.group.add_member(user)
-
-
-class Site(SlugModel):
-    class Meta(SlugModel.Meta):
-        abstract = False
-
-        rules_permissions = {"change": permission_rules.allowed_to_edit_site}
-
-    name = models.CharField(max_length=200)
-    latitude = models.FloatField()
-    longitude = models.FloatField()
-
-    field_to_slug = "id"
-
-    project = models.ForeignKey(
-        Project,
-        null=True,
-        blank=True,
-        on_delete=models.RESTRICT,
-        verbose_name="project to which the site belongs",
-    )

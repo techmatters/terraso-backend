@@ -23,8 +23,8 @@ from pyproj import CRS, Transformer
 
 from apps.auth.services import JWTService
 from apps.core.gis.utils import DEFAULT_CRS
-from apps.core.models import User
-from apps.project_management.models import Group, Project, Site
+from apps.core.models import Group, User
+from apps.project_management.models import Project, Site
 
 pytestmark = pytest.mark.django_db
 
