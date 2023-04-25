@@ -1,7 +1,20 @@
 from django.db import models
-
+from django.utils.translation import gettext_lazy as _
 
 # Create your models here.
+CREATE = 1
+READ = 2
+CHANGE = 3
+DELETION = 4
+
+EVENT_CHOICES = (
+    (CREATE, _("Addition")),
+    (READ, _("Read")),
+    (CHANGE, _("Change")),
+    (DELETION, _("Deletion")),
+)
+
+
 class Log(models.Model):
     """
     Log model for audits logs
@@ -9,6 +22,20 @@ class Log(models.Model):
     timestamp = models.DateTimeField(auto_now_add=True)
     keyValueCache = models.JSONField()
     client_timestamp = models.DateTimeField()
+    # TODO - Discuss: if we should delete on cascade or not
+    user = models.ForeignKey('users.User', on_delete=models.CASCADE, verbose_name='user')
+    resource_id = models.TextField(blank=True, null=True)
+    event = models.PositiveSmallIntegerField(_('event'), choices=EVENT_CHOICES)
+    content_type = models.ForeignKey(
+        'contenttypes.ContentType',
+        on_delete=models.CASCADE,
+        verbose_name='content type',
+        blank=True,
+        null=True
+    )
+    resource_repr = models.CharField(max_length=250)
+
+    metadataCache = models.JSONField(blank=True, null=True)
 
     def __str__(self):
         return str(self.client_timestamp) + " - " + self.keyValueCache
