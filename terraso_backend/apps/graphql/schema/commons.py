@@ -24,6 +24,7 @@ from graphene.types.generic import GenericScalar
 from apps.core.formatters import from_camel_to_snake_case
 from apps.graphql.exceptions import (
     GraphQLNotAllowedException,
+    GraphQLNotFoundException,
     GraphQLValidationException,
 )
 
@@ -172,6 +173,13 @@ class BaseWriteMutation(BaseAuthenticatedMutation):
         return GraphQLNotAllowedException(
             model_name=cls.model_class.__name__, operation=mutation_type
         )
+
+    @classmethod
+    def get_or_throw(cls, model, field_name, id_):
+        try:
+            return model.objects.get(id=id_)
+        except model.DoesNotExist:
+            return GraphQLNotFoundException(field_name=field_name, model_name=model.__name__)
 
 
 class BaseDeleteMutation(BaseAuthenticatedMutation):

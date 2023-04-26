@@ -76,12 +76,12 @@ def usa_geojson():
 @pytest.fixture
 def site(user: User) -> Site:
     """Sample site created by user fixture"""
-    return mixer.blend(Site, creator=user)
+    return mixer.blend(Site, owner=user)
 
 
 @pytest.fixture
 def site_creator(site: Site) -> User:
-    return site.creator
+    return site.owner
 
 
 @pytest.fixture

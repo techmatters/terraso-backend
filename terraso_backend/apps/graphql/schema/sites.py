@@ -44,6 +44,17 @@ class SiteAddMutation(BaseWriteMutation):
         name = graphene.String(required=True)
         latitude = graphene.Float(required=True)
         longitude = graphene.Float(required=True)
+        project_id = graphene.ID()
+
+    @classmethod
+    def mutate_and_get_payload(cls, root, info, **kwargs):
+        adding_to_project = "project_id" in kwargs
+        if adding_to_project:
+            project = cls.get_or_throw(Project, "project_id", kwargs["project_id"])
+            kwargs["project"] = project
+        else:
+            kwargs["owner"] = info.context.user
+        return super().mutate_and_get_payload(root, info, **kwargs)
 
 
 class SiteEditMutation(BaseWriteMutation):

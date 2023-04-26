@@ -15,26 +15,34 @@
 from django.db import models
 
 from apps.core import permission_rules
-from apps.core.models.commons import SlugModel
+from apps.core.models import User
+from apps.core.models.commons import BaseModel
 
 from .projects import Project
 
 
-class Site(SlugModel):
-    class Meta(SlugModel.Meta):
+class Site(BaseModel):
+    class Meta(BaseModel.Meta):
         abstract = False
-
+        constraints = [
+            models.CheckConstraint(
+                check=(models.Q(project__isnull=False) | models.Q(owner__isnull=False))
+                & (models.Q(project__isnull=True) | models.Q(owner__isnull=True)),
+                name="site_must_be_owned_once",
+            )
+        ]
         rules_permissions = {"change": permission_rules.allowed_to_edit_site}
 
     name = models.CharField(max_length=200)
-    name = models.CharField(max_length=200)
-    latitude = models.FloatField()
     latitude = models.FloatField()
     longitude = models.FloatField()
-    longitude = models.FloatField()
-
-    field_to_slug = "id"
-    field_to_slug = "id"
+    owner = models.ForeignKey(
+        User,
+        null=True,
+        blank=True,
+        on_delete=models.RESTRICT,
+        verbose_name="owner to which the site belongs",
+    )
 
     project = models.ForeignKey(
         Project,
