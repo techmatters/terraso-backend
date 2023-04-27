@@ -12,6 +12,8 @@
 #
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see https://www.gnu.org/licenses/.
+from typing import Union
+
 from django.db import models
 
 from apps.core import permission_rules
@@ -51,3 +53,22 @@ class Site(BaseModel):
         on_delete=models.RESTRICT,
         verbose_name="project to which the site belongs",
     )
+
+    @property
+    def owned_by_user(self):
+        return self.owner is not None
+
+    def add_to_project(self, project):
+        if self.owned_by_user:
+            self.owner = None
+        self.project = project
+        self.save()
+
+    def add_owner(self, user):
+        if not self.owned_by_user:
+            self.project = None
+        self.owner = user
+        self.save()
+
+    def owned_by(self, obj: Union[Project, User]):
+        return obj == self.owner or obj == self.project

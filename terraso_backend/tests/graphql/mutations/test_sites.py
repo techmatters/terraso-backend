@@ -83,9 +83,7 @@ EDIT_SITE_QUERY = """
 def test_adding_site_to_project(client, project, project_manager, site):
     original_project = mixer.blend(Project)
     original_project.add_manager(project_manager)
-    site.owner = None
-    site.project = original_project
-    site.save()
+    site.add_to_project(project)
 
     client.force_login(project_manager)
     response = graphql_query(
@@ -117,3 +115,22 @@ def test_adding_site_to_project_user_not_manager(client, project, site, user):
 
     content = json.loads(response.content)
     assert "errors" in content
+
+
+def test_adding_site_owned_by_user_to_project(client, project, site, project_manager):
+    site.add_owner(project_manager)
+    client.force_login(project_manager)
+    response = graphql_query(
+        EDIT_SITE_QUERY,
+        variables={"input": {"id": str(site.id), "projectId": str(project.id)}},
+        client=client,
+    )
+    content = json.loads(response.content)
+    assert "errors" not in content and "errors" not in content["data"]
+    payload = content["data"]["editSite"]["site"]
+    site_id = payload["id"]
+    project_id = payload["project"]["id"]
+    assert site_id == str(site.id)
+    assert project_id == str(project.id)
+    site.refresh_from_db()
+    assert site.owned_by(project)

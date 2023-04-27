@@ -110,6 +110,8 @@ def allowed_to_change_project(user, project):
 
 @rules.predicate
 def allowed_to_edit_site(user, site):
+    if site.owned_by_user:
+        return site.owner == user
     return site.project.is_manager(user)
 
 
