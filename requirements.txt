@@ -26,15 +26,15 @@ attrs==23.1.0 \
     #   ddtrace
     #   fiona
     #   jsonschema
-boto3==1.26.114 \
-    --hash=sha256:b10324d452fe677d6e1005b650ae11158cf21310e0c0062b00d184b352f4196b \
-    --hash=sha256:e32977256470b4de3a25a43acdf6c8e6375e762656ace292ad2ceba446203615
+boto3==1.26.123 \
+    --hash=sha256:2ccb1827dc9d654970375b9bbe1bd77eb6a50ec6fa76cf227a34b4bff144814f \
+    --hash=sha256:51722a3a791108236c8ce05e0ced030b13c08276001132d4153d29353038f8cc
     # via
     #   -r requirements/base.in
     #   django-ses
-botocore==1.29.118 \
-    --hash=sha256:44cb088a73b02dd716c5c5715143a64d5f10388957285246e11f3cc893eebf9d \
-    --hash=sha256:b51fc5d50cbc43edaf58b3ec4fa933b82755801c453bf8908c8d3e70ae1142c1
+botocore==1.29.123 \
+    --hash=sha256:88f743e1db5bb65e3770af674400642f1d09fca159a1508bdbb8f8cc691589ca \
+    --hash=sha256:b69cdf1c6f451ab1314a363bf97753dfbfe1da93d33853ed241edbdcb806867d
     # via
     #   boto3
     #   s3transfer
@@ -317,9 +317,9 @@ deprecated==1.2.13 \
     # via
     #   jwcrypto
     #   opentelemetry-api
-dj-database-url==1.3.0 \
-    --hash=sha256:80a115bd7675c9fe14a900b2f8b5c8b1822b5a279b333bf9b2804de681656c7c \
-    --hash=sha256:87be5f7c4c83d9b3d8ce94b834f96cea14b3986f3629aac097afdd9318d7b098
+dj-database-url==2.0.0 \
+    --hash=sha256:9c9e5f7224f62635a787e9cc3c6762c9be2b19541a21e3c08fa573bd01609b4b \
+    --hash=sha256:a35a9f0f43775ca6f90d819dc456233ef7bcc76b47377d5d908b75c7eb320624
     # via -r requirements/base.in
 django==4.2 \
     --hash=sha256:ad33ed68db9398f5dfb33282704925bce044bef4261cd4fb59e4e7f9ae505a78 \
