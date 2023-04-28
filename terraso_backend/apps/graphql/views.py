@@ -24,5 +24,10 @@ class TerrasoGraphQLView(AuthenticationRequiredMixin, GraphQLView):
         return False
 
 
+class TerrasoGraphQLAdminView(AuthenticationRequiredMixin, GraphQLView):
+    def get_auth_enabled(self):
+        return True
+
+
 class TerrasoGraphQLDocs(TemplateView):
     template_name = "docs.html"
