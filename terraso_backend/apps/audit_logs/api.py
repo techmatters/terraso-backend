@@ -1,10 +1,10 @@
 from datetime import datetime
-from typing import List, NewType, Protocol, Tuple
+from typing import List, NewType, Protocol, Tuple, Any
 
 from . import models
 
 # KeyValue represents a key-value pair
-KeyValue = NewType('KeyValue', Tuple[str, any])
+KeyValue = NewType('KeyValue', Tuple[str, object | str])
 
 
 class AuditLog(Protocol):
@@ -12,16 +12,7 @@ class AuditLog(Protocol):
     AuditLogProtocol is a protocol that defines the interface for the audit log
     """
 
-    def log(self, values: List[KeyValue]) -> None:
-        ...
-
-    def log_user_action(
-            self,
-            user: str,
-            action: str,
-            resource: str,
-            client_time: datetime.timestamp
-    ) -> None:
+    def log(self, user: object, action: str, resource: object, metadata: List[KeyValue]) -> None:
         ...
 
 
@@ -33,32 +24,32 @@ class AuditLogQuerier(Protocol):
 
     def get_logs(
             self,
-            start: datetime.timestamp,
-            end: datetime.timestamp
+            start: datetime,
+            end: datetime
     ) -> List[models.Log]:
         ...
 
     def get_log_by_key_value(
         self,
         values: List[KeyValue],
-        start: datetime.timestamp,
-        end: datetime.timestamp
+        start: datetime,
+        end: datetime
     ) -> List[models.Log]:
         ...
 
     def get_log_by_user(
             self,
             user: str,
-            start: datetime.timestamp,
-            end: datetime.timestamp
+            start: datetime,
+            end: datetime
     ) -> List[models.Log]:
         ...
 
     def get_log_by_action(
             self,
             action: str,
-            start: datetime.timestamp,
-            end: datetime.timestamp
+            start: datetime,
+            end: datetime
     ) -> List[models.Log]:
         ...
 

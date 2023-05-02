@@ -35,6 +35,7 @@ class Query(ObjectType):
         user_id: t.Optional[str] = None,
         action: t.Optional[str] = None,
         resource_id: t.Optional[str] = None,
+        resource_content_type: t.Optional[str] = None,
         start_date: D.DateTime = D.DateTime.MinValue,
         end_date: D.DateTime = D.DateTime.MaxValue
     ) -> t.List[Log]:
@@ -46,5 +47,7 @@ class Query(ObjectType):
             args.append(('action', action))
         if resource_id is not None:
             args.append(('resource', resource_id))
+        if resource_content_type is not None:
+            args.append(('resource_type', resource_content_type))
 
-        return services.get_logs(args, start_date, end_date)
+        return services.get_logs(args, start_date)

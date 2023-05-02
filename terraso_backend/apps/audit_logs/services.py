@@ -1,63 +1,105 @@
-
 from datetime import datetime
-from typing import List
+from typing import List, Optional
 
+from django.core.paginator import Paginator
 from django.db import transaction
+from django.db.models.query import QuerySet
 
-from . import AuditLog, AuditLogQuerier, KeyValue, models
+from . import api, models
 
 TEMPLATE = "{client_time} - {user} {action} {resource}"
 
 
-class AuditLogService(AuditLog):
+class AuditLogService():
     """
     AuditLogService implements the AuditLog protocol
     """
 
-    def log(self, values: List[KeyValue]) -> None:
-        """
-        log logs using key-value pairs
-        example:
-            `AuditLogService.log(
-                [
-                    ("user", "user1"),
-                    ("action", "update"),
-                    ("resource", "site1")
-                ])`
-        """
-        with transaction.atomic():
-            log = models.Log()
-            log.save()
-            for key, value in values:
-                if key == "client_time":
-                    log.client_timestamp = datetime.fromtimestamp(value)
-                    log.save()
-                    continue
-                key_value = models.KeyValue()
-                key_value.key = key
-                key_value.value = str(value)
-                key_value.log = log
-                key_value.save()
-
-    def log_user_action(
+    def log(
             self,
-            user: str,
+            user: object,
             action: str,
-            resource: str,
-            client_time: datetime.timestamp
+            resource: object,
+            metadata: List[api.KeyValue]
     ) -> None:
         """
-        log_user_action logs a user action
+        log logs an action performed by a user on a resource
+        example:
+            log(user, "create", resource, [("client_time", 1234567890)])
+            :param metadata:
+            :param action:
+            :param user:
+            :type resource: object
         """
-        self.log([
-            ('user', user),
-            ('action', action),
-            ('resource', resource),
-            ('client_time', client_time)
-        ])
+        if not hasattr(user, "ID"):
+            raise ValueError("Invalid user")
+
+        get_user_readable = getattr(user, "human_readable", None)
+        user_readable = get_user_readable() if callable(get_user_readable) else user.ID
+
+        if action not in models.EVENT_CHOICES:
+            raise ValueError("Invalid action")
+
+        resource_id = resource.ID if hasattr(resource, "ID") else None
+        if resource_id is None:
+            raise ValueError("Invalid resource")
+
+        get_resource_human_readable = getattr(resource, "human_readable", None)
+        if callable(get_resource_human_readable):
+            resource_human_readable = get_resource_human_readable()
+        else:
+            resource_human_readable = resource_id
+
+        content_type = resource.__class__.__name__
+
+        resource_repr = resource.__repr__()
+
+        with transaction.atomic():
+            log = models.Log(
+                user=user,
+                action=action,
+                resource_id=resource_id,
+                content_type=content_type,
+                resource_repr=resource_repr
+            )
+            metadata_dict = {
+                "user": user_readable,
+                "resource": resource_human_readable,
+                "action": action
+            }
+
+            for key, value in metadata:
+                if key == "client_time":
+                    log.client_timestamp = datetime.fromtimestamp(value)
+                    continue
+                metadata_dict[key] = value
+
+            if log.client_timestamp is None:
+                log.client_timestamp = datetime.now()
+
+            metadata_dict["client_time"] = log.client_timestamp
+            log.save()
 
 
-class AuditLogQuerierService(AuditLogQuerier):
+class LogData:
+    """
+    LazyPaginator implements the Paginator protocol
+    """
+
+    def __init__(self, data: QuerySet):
+        self.data = data
+
+    def get_paginator(self, page_size: int = 10):
+        return Paginator(self.data, page_size)
+
+    def __len__(self):
+        return len(self.data)
+
+    def __iter__(self):
+        return iter(self.data)
+
+
+class AuditLogQuerierService():
     """
     AuditLogQuerierService implements the AuditLogQuerier protocol
     """
@@ -69,71 +111,79 @@ class AuditLogQuerierService(AuditLogQuerier):
 
     def get_logs(
             self,
-            start: datetime.timestamp = datetime.min.timestamp(),
-            end: datetime.timestamp = datetime.max.timestamp(),
-    ) -> List[models.Log]:
-        """
-        get_logs gets all logs between start and end
-        """
-        return models.Log.objects.filter(client_timestamp__range=(start, end))
+            start: datetime = datetime.min,
+            end: datetime = datetime.max,
+    ) -> LogData:
+        logs = models.Log.objects.filter(client_timestamp__range=(start, end))
+        return LogData(logs)
 
     def get_log_by_key_value(
-        self,
-        values: List[KeyValue],
-        start: datetime.timestamp = datetime.min.timestamp(),
-        end: datetime.timestamp = datetime.max.timestamp()
-    ) -> List[models.Log]:
+            self,
+            values: List[api.KeyValue],
+            start: datetime = datetime.min,
+            end: datetime = datetime.max,
+    ) -> LogData:
         """
         get_log_by_key_value gets all logs between start and end
         """
         logs = models.Log.objects.filter(client_timestamp__range=(start, end))
         for key, value in values:
-            logs = logs.filter(keyvalue__key=key, keyvalue__value=value)
-        return logs
+            if key == "user_id":
+                logs = logs.filter(user__id=value)
+            elif key == "action":
+                logs = logs.filter(action=value)
+            elif key == "resource_id":
+                logs = logs.filter(resource_id=value)
+            elif key == "resource_type":
+                logs = logs.filter(content_type=value)
+
+            logs = logs.filter(metadata__contains={key: value})
+
+            return LogData(logs)
 
     def get_log_by_user(
             self,
-            user: str,
-            start: datetime.timestamp = datetime.min.timestamp(),
-            end: datetime.timestamp = datetime.max.timestamp()
-    ) -> List[models.Log]:
+            user_id: str,
+            start: datetime = datetime.min,
+            end: datetime = datetime.max,
+    ) -> LogData:
         """
         get_log_by_user gets all logs between start and end
         """
-        return self.get_log_by_key_value([('user', user)], start, end)
+        return self.get_log_by_key_value([api.KeyValue(('user_id', user_id))], start, end)
 
     def get_log_by_action(
             self,
             action: str,
-            start: datetime.timestamp = datetime.min.timestamp(),
-            end: datetime.timestamp = datetime.max.timestamp()
-    ) -> List[models.Log]:
+            start: datetime = datetime.min,
+            end: datetime = datetime.max,
+    ) -> LogData:
         """
         get_log_by_action gets all logs between start and end
         """
-        return self.get_log_by_key_value([('action', action)], start, end)
+        return self.get_log_by_key_value([api.KeyValue(('action', action))], start, end)
 
     def get_log_by_resource(
             self,
-            resource: str,
-            start: datetime.timestamp = datetime.min.timestamp(),
-            end: datetime.timestamp = datetime.max.timestamp()
-    ) -> List[models.Log]:
+            resource_id: str,
+            start: datetime = datetime.min,
+            end: datetime = datetime.max
+    ) -> LogData:
         """
         get_log_by_resource gets all logs between start and end
         """
-        return self.get_log_by_key_value([('resource', resource)], start, end)
+        return self.get_log_by_key_value([api.KeyValue(('resource', resource_id))], start, end)
 
-    def log_to_str(self, log: models.Log, template: str = None) -> str:
+    def log_to_str(self, log: models.Log, template: Optional[str] = None) -> str:
         """
         log_to_str converts a log to a string
         """
         if template is None:
             template = self.template
-        return log.get_string(self.template)
+        return log.get_string(template)
 
-    def logs_to_str(self, logs: List[models.Log], template: str = None) -> List[str]:
+    def logs_to_str(self, logs: List[models.Log], template: Optional[str] = None) -> List[str]:
         """
         logs_to_str converts a list of logs to a list of strings
         """
-        return [self.log_to_str(log) for log in logs]
+        return [self.log_to_str(log, template) for log in logs]
