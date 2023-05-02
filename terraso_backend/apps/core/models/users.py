@@ -71,11 +71,6 @@ class User(SafeDeleteModel, AbstractUser):
     email = models.EmailField()
     profile_image = models.URLField(blank=True, default="")
 
-    # Alternatives to is_test_user?:
-    # 1. Add a fixed prefix to the email address
-    # 2. Create a separate table to store what users are test users
-    is_test_user = models.BooleanField(blank=True, default=False)
-
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = []
 

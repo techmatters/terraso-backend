@@ -138,7 +138,7 @@ class JWTService:
         return jwt.encode(payload, self.JWT_SECRET, algorithm=self.JWT_ALGORITHM)
 
     def create_test_access_token(self, user):
-        if not user.is_test_user:
+        if not user.test_user:
             raise ValueError("User is not a test user")
         return self.create_token(user)
 

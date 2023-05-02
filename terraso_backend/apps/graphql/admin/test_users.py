@@ -5,6 +5,7 @@ from graphene_django import DjangoObjectType
 
 from apps.auth.services import JWTService
 from apps.core.models import User
+from apps.e2e_tests.models import TestUser
 from apps.graphql.exceptions import GraphQLNotFoundException
 from apps.graphql.schema.commons import BaseAdminMutation, TerrasoConnection
 
@@ -15,19 +16,15 @@ class TestUserNode(DjangoObjectType):
     id = graphene.ID(source="pk", required=True)
 
     class Meta:
-        model = User
+        model = TestUser
         filter_fields = {
-            "email": ["exact", "icontains"],
-            "first_name": ["icontains"],
-            "last_name": ["icontains"],
+            "user__email": ["exact", "icontains"],
+            "user__first_name": ["icontains"],
+            "user__last_name": ["icontains"],
         }
-        fields = ("email", "first_name", "last_name", "profile_image", "memberships", "preferences")
+        fields = ("user", "enabled", "id")
         interfaces = (relay.Node,)
         connection_class = TerrasoConnection
-
-    @classmethod
-    def get_queryset(cls, queryset, info):
-        return queryset.filter(is_test_user=True)
 
 
 class GenerateTestUserTokenMutation(BaseAdminMutation):
@@ -41,7 +38,7 @@ class GenerateTestUserTokenMutation(BaseAdminMutation):
         user_email = kwargs["user_email"]
 
         try:
-            user = User.objects.get(email=user_email, is_test_user=True)
+            user = User.objects.get(email=user_email, test_user__isnull=False)
         except User.DoesNotExist:
             logger.error(
                 "User not found when generating test token",
@@ -49,6 +46,6 @@ class GenerateTestUserTokenMutation(BaseAdminMutation):
             )
             raise GraphQLNotFoundException(field="user", model_name=User.__name__)
 
-        token = JWTService().create_access_token(user)
+        token = JWTService().create_test_access_token(user)
 
         return cls(token=token)
