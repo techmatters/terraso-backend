@@ -2,7 +2,10 @@ DC_ENV ?= dev
 DC_FILE_ARG = -f docker-compose.$(DC_ENV).yml
 DC_RUN_CMD = docker compose $(DC_FILE_ARG) run --rm web
 
-api_docs:
+api_schema: check_rebuild
+	$(DC_RUN_CMD) python terraso_backend/manage.py graphql_schema --schema apps.graphql.schema.schema --out terraso_backend/apps/graphql/schema/schema.graphql
+
+api_docs: api_schema
 	npx spectaql --one-file --target-file=docs.html --target-dir=terraso_backend/apps/graphql/templates/ terraso_backend/apps/graphql/spectaql.yml
 
 backup: build_backup_docker_image
