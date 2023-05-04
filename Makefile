@@ -1,6 +1,6 @@
 DC_ENV ?= dev
 DC_FILE_ARG = -f docker-compose.$(DC_ENV).yml
-DC_RUN_CMD = docker-compose $(DC_FILE_ARG) run --rm web
+DC_RUN_CMD = docker compose $(DC_FILE_ARG) run --rm web
 
 api_docs:
 	npx spectaql --one-file --target-file=docs.html --target-dir=terraso_backend/apps/graphql/templates/ terraso_backend/apps/graphql/spectaql.yml
@@ -12,7 +12,7 @@ build_base_image:
 	docker build --tag=techmatters/terraso_backend --file=Dockerfile .
 
 build: build_base_image
-	docker-compose $(DC_FILE_ARG) build
+	docker compose $(DC_FILE_ARG) build
 
 check_rebuild:
 	./scripts/rebuild.sh
@@ -75,10 +75,10 @@ run:
 setup: build setup-pre-commit
 
 start-%:
-	@docker-compose $(DC_FILE_ARG) up -d $(@:start-%=%)
+	@docker compose $(DC_FILE_ARG) up -d $(@:start-%=%)
 
 stop:
-	@docker-compose $(DC_FILE_ARG) stop
+	@docker compose $(DC_FILE_ARG) stop
 
 test: clean check_rebuild compile-translations
 	if [ -z "$(PATTERN)" ]; then \
