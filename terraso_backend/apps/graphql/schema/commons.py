@@ -51,13 +51,13 @@ class TerrasoConnection(Connection):
 
     # This will coax graphene to output more precise types for connections.
     # Context: https://github.com/graphql-python/graphene/pull/1504
-    # Will be unnecessary if this lands: https://github.com/graphql-python/graphene-django/issues/901
+    # Will be unnecessary after https://github.com/graphql-python/graphene-django/issues/901
     @classmethod
     def __init_subclass_with_meta__(cls, node=None, **options):
         type_name = re.sub("Connection$", "", cls.__name__)
 
         node_for_edge = node
-        if node != None and not isinstance(node, NonNull):
+        if node is not None and not isinstance(node, NonNull):
             node_for_edge = NonNull(node)
 
         class Edge(ObjectType):
@@ -72,7 +72,7 @@ class TerrasoConnection(Connection):
         cls.Edge = edge_type
 
         cls.edges = Field(
-            NonNull(List(NonNull(edge_type))), 
+            NonNull(List(NonNull(edge_type))),
             description="Contains the nodes in this connection.",
         )
 
