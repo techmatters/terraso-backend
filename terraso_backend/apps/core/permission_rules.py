@@ -115,7 +115,7 @@ def allowed_to_edit_site(user, site):
 
 @rules.predicate
 def allowed_to_add_membership(user, group):
-    return not group.is_restricted or group.is_manager(user)
+    return group.can_join or group.is_manager(user)
 
 
 rules.add_rule("allowed_group_managers_count", allowed_group_managers_count)

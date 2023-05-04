@@ -169,9 +169,7 @@ class BaseWriteMutation(BaseAuthenticatedMutation):
 
     @classmethod
     def not_allowed(cls, mutation_type=None):
-        return GraphQLNotAllowedException(
-            model_name=cls.model_class.__name__, operation=mutation_type
-        )
+        return super().not_allowed(cls.model_class, mutation_type)
 
 
 class BaseDeleteMutation(BaseAuthenticatedMutation):

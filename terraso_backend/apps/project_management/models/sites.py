@@ -27,13 +27,9 @@ class Site(SlugModel):
         rules_permissions = {"change": permission_rules.allowed_to_edit_site}
 
     name = models.CharField(max_length=200)
-    name = models.CharField(max_length=200)
     latitude = models.FloatField()
-    latitude = models.FloatField()
-    longitude = models.FloatField()
     longitude = models.FloatField()
 
-    field_to_slug = "id"
     field_to_slug = "id"
 
     project = models.ForeignKey(

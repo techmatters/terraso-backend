@@ -18,7 +18,6 @@ from django.db import transaction
 from graphene import relay
 from graphene_django import DjangoObjectType
 
-from apps.core.models import Group
 from apps.project_management.models import Project
 
 from .commons import BaseWriteMutation, TerrasoConnection
@@ -54,7 +53,7 @@ class ProjectAddMutation(BaseWriteMutation):
     @classmethod
     def mutate_and_get_payload(cls, root, info, **kwargs):
         with transaction.atomic():
-            group = Group.create_default_group_project(name=kwargs["name"])
+            group = Project.create_default_group(name=kwargs["name"])
             kwargs["group"] = group
             kwargs["privacy"] = kwargs["privacy"].value
             result = super().mutate_and_get_payload(root, info, **kwargs)
