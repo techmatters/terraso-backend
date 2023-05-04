@@ -5,6 +5,9 @@ DC_RUN_CMD = docker compose $(DC_FILE_ARG) run --rm web
 api_schema: check_rebuild
 	$(DC_RUN_CMD) python terraso_backend/manage.py graphql_schema --schema apps.graphql.schema.schema --out terraso_backend/apps/graphql/schema/schema.graphql
 
+check_api_schema: api_schema
+	git diff --exit-code
+
 api_docs: api_schema
 	npx spectaql --one-file --target-file=docs.html --target-dir=terraso_backend/apps/graphql/templates/ terraso_backend/apps/graphql/spectaql.yml
 
@@ -37,7 +40,7 @@ install:
 install-dev:
 	pip install -r requirements-dev.txt
 
-lint:
+lint: check_api_schema
 	flake8 terraso_backend && isort -c terraso_backend
 
 lock: pip-tools
