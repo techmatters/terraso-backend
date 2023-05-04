@@ -7,11 +7,8 @@ SCHEMA_BUILD_FILE = terraso_backend/apps/graphql/schema/schema.graphql
 api_schema: check_rebuild
 	$(SCHEMA_BUILD_CMD) > $(SCHEMA_BUILD_FILE)
 
-# the dreaded temporary file is a workaround for CI, not sure how to do it more cleanly
 check_api_schema:
-	$(SCHEMA_BUILD_CMD) > tmp.graphql
-	diff $(SCHEMA_BUILD_FILE) tmp.graphql
-	rm tmp.graphql
+	$(SCHEMA_BUILD_CMD) | diff $(SCHEMA_BUILD_FILE) -
 
 api_docs: api_schema
 	npx spectaql --one-file --target-file=docs.html --target-dir=terraso_backend/apps/graphql/templates/ terraso_backend/apps/graphql/spectaql.yml
