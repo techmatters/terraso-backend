@@ -19,7 +19,7 @@ import re
 import structlog
 from django.core.exceptions import NON_FIELD_ERRORS, ValidationError
 from django.db import IntegrityError
-from graphene import Connection, Int, relay, NonNull, Field, String, List, ObjectType
+from graphene import Connection, Field, Int, List, NonNull, ObjectType, String, relay
 from graphene.types.generic import GenericScalar
 
 from apps.core.formatters import from_camel_to_snake_case
