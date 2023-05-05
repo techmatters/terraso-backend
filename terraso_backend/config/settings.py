@@ -86,6 +86,7 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "apps.auth.middleware.JWTAuthenticationMiddleware",
+    "apps.auth.middleware.OAuthAuthorizeState",
     "django_structlog.middlewares.RequestMiddleware",
     "django.middleware.locale.LocaleMiddleware",
 ]

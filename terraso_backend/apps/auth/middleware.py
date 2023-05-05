@@ -21,8 +21,10 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.models import AnonymousUser
 from django.core.exceptions import ImproperlyConfigured, ValidationError
 from django.http.response import JsonResponse
+from django.urls import reverse
 from jwt.exceptions import InvalidTokenError
 
+from .constants import OAUTH_COOKIE_MAX_AGE_SECONDS
 from .services import JWTService
 
 logger = structlog.get_logger(__name__)
@@ -109,3 +111,32 @@ def auth_optional(view_func):
 
     view_func.auth_optional = True
     return wraps(view_func)(wrapped_view)
+
+
+class OAuthAuthorizeState:
+    def __init__(self, get_response):
+        self.get_response = get_response
+        self.uri_path = reverse("oauth2_provider:authorize")
+
+    def __call__(self, request):
+        response = self.get_response(request)
+
+        if request.path == self.uri_path and request.user.is_anonymous:
+            # user accessing OAuth authorize URI and not logged in
+            # they will directed to log in by the frontend
+            # in the mean time, we store the URL so OAuth can start after
+            # user logged in
+            cookie = request.get_full_path_info()
+
+            response.set_signed_cookie(
+                "oauth",
+                cookie,
+                domain=settings.AUTH_COOKIE_DOMAIN,
+                max_age=OAUTH_COOKIE_MAX_AGE_SECONDS,
+                httponly=True,
+                secure=True,
+                # need lax for our usage here
+                samesite="Lax",
+            )
+
+        return response
