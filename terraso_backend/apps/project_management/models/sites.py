@@ -16,9 +16,9 @@ from typing import Union
 
 from django.db import models
 
-from apps.core import permission_rules
 from apps.core.models import User
 from apps.core.models.commons import BaseModel
+from apps.project_management import permission_rules
 
 from .projects import Project
 
