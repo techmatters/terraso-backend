@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import List, NewType, Protocol, Tuple, Any
+from typing import List, NewType, Protocol, Tuple
 
 from . import models
 

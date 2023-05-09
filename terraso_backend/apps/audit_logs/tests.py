@@ -1,9 +1,11 @@
 from django.test import TestCase
 
+from core.models import User
 from . import services, models, api
 
-
 # Create your tests here.
+
+
 class MockUser:
     def __init__(self, id):
         self.id = id
@@ -24,7 +26,7 @@ class MockResource:
 class AuditLogServiceTest(TestCase):
     def test_create_log(self):
         log = services.AuditLogService()
-        user = MockUser(1)
+        user = User()
         resource = MockResource(1)
         action = "CREATE"
         metadata = [api.KeyValue(("client_time", 1234567890))]
