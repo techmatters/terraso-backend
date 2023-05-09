@@ -1,6 +1,8 @@
 from datetime import datetime
 from typing import List, Optional
 
+from django.contrib.contenttypes.models import ContentType
+
 from django.core.paginator import Paginator
 from django.db import transaction
 from django.db.models.query import QuerySet
@@ -31,16 +33,21 @@ class AuditLogService():
             :param user:
             :type resource: object
         """
-        if not hasattr(user, "ID"):
+        if not hasattr(user, "id"):
             raise ValueError("Invalid user")
 
         get_user_readable = getattr(user, "human_readable", None)
-        user_readable = get_user_readable() if callable(get_user_readable) else user.ID
+        user_readable = get_user_readable() if callable(get_user_readable) else user.id
 
-        if action not in models.EVENT_CHOICES:
+        valid_action = False
+        for e in models.EVENT_CHOICES:
+            if e[0] == action:
+                valid_action = True
+                break
+        if valid_action is False:
             raise ValueError("Invalid action")
 
-        resource_id = resource.ID if hasattr(resource, "ID") else None
+        resource_id = resource.id if hasattr(resource, "id") else None
         if resource_id is None:
             raise ValueError("Invalid resource")
 
@@ -50,21 +57,21 @@ class AuditLogService():
         else:
             resource_human_readable = resource_id
 
-        content_type = resource.__class__.__name__
+        content_type = ContentType.objects.get_for_model(resource)
 
         resource_repr = resource.__repr__()
 
         with transaction.atomic():
             log = models.Log(
                 user=user,
-                action=action,
+                event=action,
                 resource_id=resource_id,
                 content_type=content_type,
-                resource_repr=resource_repr
+                resource_json_repr=resource_repr
             )
             metadata_dict = {
-                "user": user_readable,
-                "resource": resource_human_readable,
+                "user": str(user_readable),
+                "resource": str(resource_human_readable),
                 "action": action
             }
 
@@ -77,7 +84,8 @@ class AuditLogService():
             if log.client_timestamp is None:
                 log.client_timestamp = datetime.now()
 
-            metadata_dict["client_time"] = log.client_timestamp
+            metadata_dict["client_time"] = str(log.client_timestamp)
+            log.metadata = metadata_dict
             log.save()
 
 
