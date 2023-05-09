@@ -95,6 +95,13 @@ class MembershipAddMutation(BaseAuthenticatedMutation):
             )
             raise GraphQLNotFoundException(field="group", model_name=Membership.__name__)
 
+        if not info.context.user.has_perm(Membership.get_perm("add"), group):
+            raise cls.not_allowed_create(
+                Membership,
+                msg="User is not allowed to join this group",
+                extra={"user_id": info.context.user.pk, "group_slug": group.slug},
+            )
+
         membership, was_created = Membership.objects.get_or_create(user=user, group=group)
         if was_created:
             user_role = Membership.get_user_role_from_text(kwargs.pop("user_role", None))
@@ -130,7 +137,7 @@ class MembershipUpdateMutation(BaseAuthenticatedMutation):
             membership = Membership.objects.get(pk=membership_id)
         except Membership.DoesNotExist:
             logger.error(
-                "Attempt to update a Membership, but it as not found",
+                "Attempt to update a Membership, but it was not found",
                 extra={"membership_id": membership_id},
             )
             raise GraphQLNotFoundException(model_name=Membership.__name__)

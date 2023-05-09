@@ -12,17 +12,19 @@
 #
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see https://www.gnu.org/licenses/.
-from django.db import models
 
-from apps.core.models.commons import SlugModel
+from django.contrib.sitemaps.views import sitemap
+from django.urls import path
 
+from .sitemap import WebClientSitemap
 
-class Site(SlugModel):
-    class Meta(SlugModel.Meta):
-        abstract = False
+app_name = "apps.web_client"
 
-    name = models.CharField(max_length=200)
-    latitude = models.FloatField()
-    longitude = models.FloatField()
-
-    field_to_slug = "id"
+urlpatterns = [
+    path(
+        "sitemap.xml",
+        sitemap,
+        WebClientSitemap.pathargs(),
+        name="django.contrib.sitemaps.views.sitemap",
+    ),
+]

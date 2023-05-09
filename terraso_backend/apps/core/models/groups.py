@@ -12,6 +12,7 @@
 #
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see https://www.gnu.org/licenses/.
+from typing import Literal, Union
 
 from django.db import models, transaction
 from django.utils.translation import gettext_lazy as _
@@ -47,12 +48,27 @@ class Group(SlugModel):
         (MEMBERSHIP_TYPE_CLOSED, _("Closed")),
     )
 
+    ENROLL_METHOD_JOIN = "join"
+    ENROLL_METHOD_INVITE = "invite"
+    ENROLL_METHOD_BOTH = "both"
+    DEFAULT_ENROLL_METHOD_TYPE = ENROLL_METHOD_JOIN
+
+    ENROLL_METHODS = (
+        (ENROLL_METHOD_JOIN, _("Join")),
+        (ENROLL_METHOD_INVITE, _("Invite")),
+        (ENROLL_METHOD_BOTH, _("Both")),
+    )
+
     fields_to_trim = ["name", "description"]
 
     name = models.CharField(max_length=128, validators=[validate_name])
     description = models.TextField(max_length=2048, blank=True, default="")
     website = models.URLField(max_length=500, blank=True, default="")
     email = models.EmailField(blank=True, default="")
+
+    enroll_method = models.CharField(
+        max_length=10, choices=ENROLL_METHODS, default=DEFAULT_ENROLL_METHOD_TYPE
+    )
 
     created_by = models.ForeignKey(
         User,
@@ -102,9 +118,41 @@ class Group(SlugModel):
                 membership.save()
 
     def add_manager(self, user):
-        self.memberships.update_or_create(
-            group=self, user=user, defaults={"user_role": Membership.ROLE_MANAGER}
+        self._add_user(user, role=Membership.ROLE_MANAGER)
+
+    def add_member(self, user):
+        self._add_user(user, role=Membership.ROLE_MEMBER)
+
+    def _add_user(
+        self,
+        user: User,
+        role: Union[Literal["manager"], Literal["member"]],
+    ):
+        self.memberships.update_or_create(group=self, user=user, defaults={"user_role": role})
+
+    @property
+    def group_managers(self):
+        manager_memberships = models.Subquery(self.memberships.managers_only().values("user_id"))
+        return User.objects.filter(id__in=manager_memberships)
+
+    @property
+    def group_members(self):
+        member_memberships = models.Subquery(
+            self.memberships.approved_only()
+            .filter(user_role=Membership.ROLE_MEMBER)
+            .values("user_id")
         )
+        return User.objects.filter(id__in=member_memberships)
+
+    def is_manager(self, user: User) -> bool:
+        return self.group_managers.filter(id=user.id).exists()
+
+    def is_member(self, user: User) -> bool:
+        return self.group_members.filter(id=user.id).exists()
+
+    @property
+    def can_join(self):
+        return self.enroll_method in (self.ENROLL_METHOD_JOIN, self.ENROLL_METHOD_BOTH)
 
     def __str__(self):
         return self.name
@@ -197,6 +245,7 @@ class Membership(BaseModel):
             ),
         )
         rules_permissions = {
+            "add": perm_rules.allowed_to_add_membership,
             "delete": perm_rules.allowed_to_delete_membership,
             "change": perm_rules.allowed_to_change_membership,
         }
