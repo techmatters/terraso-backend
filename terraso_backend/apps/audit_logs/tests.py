@@ -1,6 +1,7 @@
 from django.test import TestCase
 
-from core.models import User
+from apps.core.models import User
+
 from . import services, models, api
 
 # Create your tests here.
