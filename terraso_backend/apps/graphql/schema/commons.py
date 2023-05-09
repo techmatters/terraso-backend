@@ -76,7 +76,7 @@ class TerrasoConnection(Connection):
             description="Contains the nodes in this connection.",
         )
 
-        super(TerrasoConnection, cls).__init_subclass_with_meta__(node=node, **options)
+        super().__init_subclass_with_meta__(node=node, **options)
 
 
 class BaseMutation(relay.ClientIDMutation):
@@ -84,6 +84,12 @@ class BaseMutation(relay.ClientIDMutation):
         abstract = True
 
     errors = GenericScalar()
+
+    @classmethod
+    def Field(cls, *args, **kwargs):
+        if "required" not in kwargs:
+            kwargs["required"] = True
+        return super().Field(*args, **kwargs)
 
     @classmethod
     def mutate(cls, root, info, input):
