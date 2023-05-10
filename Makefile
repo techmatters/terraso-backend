@@ -7,7 +7,7 @@ SCHEMA_BUILD_FILE = terraso_backend/apps/graphql/schema/schema.graphql
 api_schema: check_rebuild
 	$(SCHEMA_BUILD_CMD) > $(SCHEMA_BUILD_FILE)
 
-check_api_schema:
+check_api_schema: check_rebuild
 	$(SCHEMA_BUILD_CMD) | diff $(SCHEMA_BUILD_FILE) -
 
 api_docs: api_schema

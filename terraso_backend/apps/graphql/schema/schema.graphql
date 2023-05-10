@@ -316,13 +316,13 @@ enum CoreLandscapePartnershipStatusChoices {
   """partnership_status.none"""
   A_
 
-  """partnership_status.no"""
+  """No"""
   NO
 
-  """partnership_status.in_progress"""
+  """In Progress"""
   IN_PROGRESS
 
-  """partnership_status.yes"""
+  """Yes"""
   YES
 }
 
@@ -556,7 +556,9 @@ type Mutations {
   updateVisualizationConfig(input: VisualizationConfigUpdateMutationInput!): VisualizationConfigUpdateMutationPayload
   deleteVisualizationConfig(input: VisualizationConfigDeleteMutationInput!): VisualizationConfigDeleteMutationPayload
   deleteStoryMap(input: StoryMapDeleteMutationInput!): StoryMapDeleteMutationPayload
-  siteAddMutation(input: SiteAddMutationInput!): SiteAddMutationPayload
+  addSite(input: SiteAddMutationInput!): SiteAddMutationPayload
+  editSite(input: SiteEditMutationInput!): SiteEditMutationPayload
+  addProject(input: ProjectAddMutationInput!): ProjectAddMutationPayload
 }
 
 type GroupAddMutationPayload {
@@ -922,6 +924,12 @@ type SiteNode implements Node {
   name: String!
   latitude: Float!
   longitude: Float!
+  project: ProjectNode
+  id: ID!
+}
+
+type ProjectNode implements Node {
+  name: String!
   id: ID!
 }
 
@@ -930,4 +938,36 @@ input SiteAddMutationInput {
   latitude: Float!
   longitude: Float!
   clientMutationId: String
+}
+
+type SiteEditMutationPayload {
+  errors: GenericScalar
+  site: SiteNode!
+  clientMutationId: String
+}
+
+input SiteEditMutationInput {
+  id: ID!
+  name: String
+  latitude: Float
+  longitude: Float
+  projectId: ID
+  clientMutationId: String
+}
+
+type ProjectAddMutationPayload {
+  errors: GenericScalar
+  project: ProjectNode!
+  clientMutationId: String
+}
+
+input ProjectAddMutationInput {
+  name: String!
+  privacy: ProjectPrivacy!
+  clientMutationId: String
+}
+
+enum ProjectPrivacy {
+  PRIVATE
+  PUBLIC
 }
