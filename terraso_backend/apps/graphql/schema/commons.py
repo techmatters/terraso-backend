@@ -43,7 +43,7 @@ class TerrasoConnection(Connection):
     class Meta:
         abstract = True
 
-    total_count = Int()
+    total_count = Int(required=True)
 
     def resolve_total_count(self, info, **kwargs):
         queryset = self.iterable
