@@ -1,4 +1,4 @@
-# Copyright © 2021-2023 Technology Matters
+# Copyright © 2023 Technology Matters
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as published
@@ -13,21 +13,20 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see https://www.gnu.org/licenses/.
 
-from django.views.generic import TemplateView
-from graphene_django.views import GraphQLView
+import uuid
 
-from apps.auth.mixins import AuthenticationRequiredMixin
+from django.db import models
 
-
-class TerrasoGraphQLView(AuthenticationRequiredMixin, GraphQLView):
-    def get_auth_enabled(self):
-        return False
+from apps.core.models import User
+from apps.core.models.commons import BaseModel
 
 
-class TerrasoGraphQLAdminView(AuthenticationRequiredMixin, GraphQLView):
-    def get_auth_enabled(self):
-        return True
+class TestUser(BaseModel):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    enabled = models.BooleanField(default=True)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, null=False, related_name="test_user")
 
-
-class TerrasoGraphQLDocs(TemplateView):
-    template_name = "docs.html"
+    def __str__(self):
+        return self.user.email

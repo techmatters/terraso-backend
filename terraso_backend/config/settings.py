@@ -65,6 +65,7 @@ INSTALLED_APPS = [
     "apps.story_map",
     "apps.notifications",
     "apps.project_management",
+    "apps.e2e_tests",
 ]
 
 # Used for sitemap generation.
