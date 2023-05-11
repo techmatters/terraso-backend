@@ -1,0 +1,973 @@
+schema {
+  query: Query
+  mutation: Mutations
+}
+
+type Query {
+  group(
+    """The ID of the object"""
+    id: ID!
+  ): GroupNode
+  landscape(
+    """The ID of the object"""
+    id: ID!
+  ): LandscapeNode
+  user(
+    """The ID of the object"""
+    id: ID!
+  ): UserNode
+  landscapeGroup(
+    """The ID of the object"""
+    id: ID!
+  ): LandscapeGroupNode
+  membership(
+    """The ID of the object"""
+    id: ID!
+  ): MembershipNode
+  groupAssociation(
+    """The ID of the object"""
+    id: ID!
+  ): GroupAssociationNode
+  groups(offset: Int, before: String, after: String, first: Int, last: Int, name: String, name_Icontains: String, name_Istartswith: String, slug: String, slug_Icontains: String, description_Icontains: String, memberships_Email: String, associatedLandscapes_IsDefaultLandscapeGroup: Boolean, associatedLandscapes_Isnull: Boolean, associatedLandscapes_IsPartnership: Boolean): GroupNodeConnection
+  landscapes(offset: Int, before: String, after: String, first: Int, last: Int, name_Icontains: String, description_Icontains: String, slug: String, slug_Icontains: String, website_Icontains: String, location_Icontains: String): LandscapeNodeConnection
+  users(offset: Int, before: String, after: String, first: Int, last: Int, email: String, email_Icontains: String, firstName_Icontains: String, lastName_Icontains: String): UserNodeConnection
+  landscapeGroups(offset: Int, before: String, after: String, first: Int, last: Int, landscape: ID, landscape_Slug_Icontains: String, group: ID, group_Slug_Icontains: String, isDefaultLandscapeGroup: Boolean, isPartnership: Boolean): LandscapeGroupNodeConnection
+  memberships(offset: Int, before: String, after: String, first: Int, last: Int, group: ID, group_In: [ID], group_Slug_Icontains: String, group_Slug_In: [String], user: ID, user_In: [ID], userRole: CoreMembershipUserRoleChoices, user_Email_Icontains: String, user_Email_In: [String], membershipStatus: CoreMembershipMembershipStatusChoices): MembershipNodeConnection
+  groupAssociations(offset: Int, before: String, after: String, first: Int, last: Int, parentGroup: ID, childGroup: ID, parentGroup_Slug_Icontains: String, childGroup_Slug_Icontains: String): GroupAssociationNodeConnection
+  dataEntry(
+    """The ID of the object"""
+    id: ID!
+  ): DataEntryNode
+  dataEntries(offset: Int, before: String, after: String, first: Int, last: Int, name_Icontains: String, description_Icontains: String, url_Icontains: String, entryType_In: [SharedDataDataEntryEntryTypeChoices], resourceType_In: [String], groups_Slug: String, groups_Slug_Icontains: String, groups_Id: ID): DataEntryNodeConnection
+  visualizationConfig(
+    """The ID of the object"""
+    id: ID!
+  ): VisualizationConfigNode
+  visualizationConfigs(offset: Int, before: String, after: String, first: Int, last: Int, slug: String, slug_Icontains: String, dataEntry_Groups_Slug: String, dataEntry_Groups_Slug_Icontains: String, dataEntry_Groups_Id: ID): VisualizationConfigNodeConnection
+  taxonomyTerm(
+    """The ID of the object"""
+    id: ID!
+  ): TaxonomyTermNode
+  taxonomyTerms(offset: Int, before: String, after: String, first: Int, last: Int, type: CoreTaxonomyTermTypeChoices, type_In: [CoreTaxonomyTermTypeChoices]): TaxonomyTermNodeConnection
+  storyMap(
+    """The ID of the object"""
+    id: ID!
+  ): StoryMapNode
+  storyMaps(offset: Int, before: String, after: String, first: Int, last: Int, slug: String, storyMapId: String, createdBy_Email: String, createdBy_Email_Not: String): StoryMapNodeConnection
+}
+
+type GroupNode implements Node {
+  slug: String!
+  name: String!
+  description: String!
+  website: String!
+  email: String!
+  createdBy: UserNode
+  membershipType: CoreGroupMembershipTypeChoices!
+  associationsAsParent(offset: Int, before: String, after: String, first: Int, last: Int, parentGroup: ID, childGroup: ID, parentGroup_Slug_Icontains: String, childGroup_Slug_Icontains: String): GroupAssociationNodeConnection!
+  associationsAsChild(offset: Int, before: String, after: String, first: Int, last: Int, parentGroup: ID, childGroup: ID, parentGroup_Slug_Icontains: String, childGroup_Slug_Icontains: String): GroupAssociationNodeConnection!
+  memberships(offset: Int, before: String, after: String, first: Int, last: Int, group: ID, group_In: [ID], group_Slug_Icontains: String, group_Slug_In: [String], user: ID, user_In: [ID], userRole: CoreMembershipUserRoleChoices, user_Email_Icontains: String, user_Email_In: [String], membershipStatus: CoreMembershipMembershipStatusChoices): MembershipNodeConnection!
+  associatedLandscapes(offset: Int, before: String, after: String, first: Int, last: Int, landscape: ID, landscape_Slug_Icontains: String, group: ID, group_Slug_Icontains: String, isDefaultLandscapeGroup: Boolean, isPartnership: Boolean): LandscapeGroupNodeConnection!
+  dataEntries(offset: Int, before: String, after: String, first: Int, last: Int, name_Icontains: String, description_Icontains: String, url_Icontains: String, entryType_In: [SharedDataDataEntryEntryTypeChoices], resourceType_In: [String], groups_Slug: String, groups_Slug_Icontains: String, groups_Id: ID): DataEntryNodeConnection!
+  id: ID!
+  accountMembership: MembershipNode
+  membershipsCount: Int
+}
+
+"""An object with an ID"""
+interface Node {
+  """The ID of the object"""
+  id: ID!
+}
+
+type UserNode implements Node {
+  firstName: String!
+  lastName: String!
+  email: String!
+  profileImage: String!
+  preferences(offset: Int, before: String, after: String, first: Int, last: Int): UserPreferenceNodeConnection!
+  memberships(offset: Int, before: String, after: String, first: Int, last: Int, group: ID, group_In: [ID], group_Slug_Icontains: String, group_Slug_In: [String], user: ID, user_In: [ID], userRole: CoreMembershipUserRoleChoices, user_Email_Icontains: String, user_Email_In: [String], membershipStatus: CoreMembershipMembershipStatusChoices): MembershipNodeConnection!
+  id: ID!
+}
+
+type UserPreferenceNodeConnection {
+  """Pagination data for this connection."""
+  pageInfo: PageInfo!
+
+  """Contains the nodes in this connection."""
+  edges: [UserPreferenceNodeEdge]!
+  totalCount: Int
+}
+
+"""
+The Relay compliant `PageInfo` type, containing data necessary to paginate this connection.
+"""
+type PageInfo {
+  """When paginating forwards, are there more items?"""
+  hasNextPage: Boolean!
+
+  """When paginating backwards, are there more items?"""
+  hasPreviousPage: Boolean!
+
+  """When paginating backwards, the cursor to continue."""
+  startCursor: String
+
+  """When paginating forwards, the cursor to continue."""
+  endCursor: String
+}
+
+"""A Relay edge containing a `UserPreferenceNode` and its cursor."""
+type UserPreferenceNodeEdge {
+  """The item at the end of the edge"""
+  node: UserPreferenceNode
+
+  """A cursor for use in pagination"""
+  cursor: String!
+}
+
+type UserPreferenceNode implements Node {
+  key: String!
+  value: String!
+  user: UserNode!
+  id: ID!
+}
+
+type MembershipNodeConnection {
+  """Pagination data for this connection."""
+  pageInfo: PageInfo!
+
+  """Contains the nodes in this connection."""
+  edges: [MembershipNodeEdge]!
+  totalCount: Int
+}
+
+"""A Relay edge containing a `MembershipNode` and its cursor."""
+type MembershipNodeEdge {
+  """The item at the end of the edge"""
+  node: MembershipNode
+
+  """A cursor for use in pagination"""
+  cursor: String!
+}
+
+type MembershipNode implements Node {
+  group: GroupNode!
+  user: UserNode!
+  userRole: CoreMembershipUserRoleChoices
+  membershipStatus: CoreMembershipMembershipStatusChoices!
+  id: ID!
+}
+
+enum CoreMembershipUserRoleChoices {
+  """Manager"""
+  MANAGER
+
+  """Member"""
+  MEMBER
+}
+
+enum CoreMembershipMembershipStatusChoices {
+  """Approved"""
+  APPROVED
+
+  """Pending"""
+  PENDING
+}
+
+enum CoreGroupMembershipTypeChoices {
+  """Open"""
+  OPEN
+
+  """Closed"""
+  CLOSED
+}
+
+type GroupAssociationNodeConnection {
+  """Pagination data for this connection."""
+  pageInfo: PageInfo!
+
+  """Contains the nodes in this connection."""
+  edges: [GroupAssociationNodeEdge]!
+  totalCount: Int
+}
+
+"""A Relay edge containing a `GroupAssociationNode` and its cursor."""
+type GroupAssociationNodeEdge {
+  """The item at the end of the edge"""
+  node: GroupAssociationNode
+
+  """A cursor for use in pagination"""
+  cursor: String!
+}
+
+type GroupAssociationNode implements Node {
+  parentGroup: GroupNode!
+  childGroup: GroupNode!
+  id: ID!
+}
+
+type LandscapeGroupNodeConnection {
+  """Pagination data for this connection."""
+  pageInfo: PageInfo!
+
+  """Contains the nodes in this connection."""
+  edges: [LandscapeGroupNodeEdge]!
+  totalCount: Int
+}
+
+"""A Relay edge containing a `LandscapeGroupNode` and its cursor."""
+type LandscapeGroupNodeEdge {
+  """The item at the end of the edge"""
+  node: LandscapeGroupNode
+
+  """A cursor for use in pagination"""
+  cursor: String!
+}
+
+type LandscapeGroupNode implements Node {
+  landscape: LandscapeNode!
+  group: GroupNode!
+  isDefaultLandscapeGroup: Boolean!
+  isPartnership: Boolean!
+  partnershipYear: Int
+  id: ID!
+}
+
+type LandscapeNode implements Node {
+  slug: String!
+  name: String!
+  description: String!
+  website: String!
+  location: String!
+  areaPolygon: JSONString
+  email: String!
+  areaScalarM2: Float
+  createdBy: UserNode
+  taxonomyTerms(offset: Int, before: String, after: String, first: Int, last: Int, type: CoreTaxonomyTermTypeChoices, type_In: [CoreTaxonomyTermTypeChoices]): TaxonomyTermNodeConnection!
+  population: Int
+  partnershipStatus: CoreLandscapePartnershipStatusChoices
+  profileImage: String!
+  profileImageDescription: String!
+  centerCoordinates: Point
+  associatedDevelopmentStrategy(offset: Int, before: String, after: String, first: Int, last: Int): LandscapeDevelopmentStrategyNodeConnection!
+  associatedGroups(offset: Int, before: String, after: String, first: Int, last: Int, landscape: ID, landscape_Slug_Icontains: String, group: ID, group_Slug_Icontains: String, isDefaultLandscapeGroup: Boolean, isPartnership: Boolean): LandscapeGroupNodeConnection!
+  id: ID!
+  areaTypes: [String]
+  defaultGroup: GroupNode
+  areaScalarHa: Float
+}
+
+"""
+Allows use of a JSON String for input / output from the GraphQL schema.
+
+Use of this type is *not recommended* as you lose the benefits of having a defined, static
+schema (one of the key benefits of GraphQL).
+"""
+scalar JSONString
+
+type TaxonomyTermNodeConnection {
+  """Pagination data for this connection."""
+  pageInfo: PageInfo!
+
+  """Contains the nodes in this connection."""
+  edges: [TaxonomyTermNodeEdge]!
+  totalCount: Int
+}
+
+"""A Relay edge containing a `TaxonomyTermNode` and its cursor."""
+type TaxonomyTermNodeEdge {
+  """The item at the end of the edge"""
+  node: TaxonomyTermNode
+
+  """A cursor for use in pagination"""
+  cursor: String!
+}
+
+type TaxonomyTermNode implements Node {
+  slug: String!
+  valueOriginal: String!
+  valueEs: String!
+  valueEn: String!
+  type: CoreTaxonomyTermTypeChoices!
+  id: ID!
+}
+
+enum CoreTaxonomyTermTypeChoices {
+  """Ecosystem Type"""
+  ECOSYSTEM_TYPE
+
+  """Language"""
+  LANGUAGE
+
+  """Livelihood"""
+  LIVELIHOOD
+
+  """Commodity"""
+  COMMODITY
+
+  """Organization"""
+  ORGANIZATION
+
+  """Agricultural Production Method"""
+  AGRICULTURAL_PRODUCTION_METHOD
+}
+
+enum CoreLandscapePartnershipStatusChoices {
+  """partnership_status.none"""
+  A_
+
+  """partnership_status.no"""
+  NO
+
+  """partnership_status.in_progress"""
+  IN_PROGRESS
+
+  """partnership_status.yes"""
+  YES
+}
+
+type Point {
+  lat: Float
+  lng: Float
+}
+
+type LandscapeDevelopmentStrategyNodeConnection {
+  """Pagination data for this connection."""
+  pageInfo: PageInfo!
+
+  """Contains the nodes in this connection."""
+  edges: [LandscapeDevelopmentStrategyNodeEdge]!
+  totalCount: Int
+}
+
+"""
+A Relay edge containing a `LandscapeDevelopmentStrategyNode` and its cursor.
+"""
+type LandscapeDevelopmentStrategyNodeEdge {
+  """The item at the end of the edge"""
+  node: LandscapeDevelopmentStrategyNode
+
+  """A cursor for use in pagination"""
+  cursor: String!
+}
+
+type LandscapeDevelopmentStrategyNode implements Node {
+  objectives: String!
+  opportunities: String!
+  problemSitutation: String!
+  interventionStrategy: String!
+  id: ID!
+}
+
+type DataEntryNodeConnection {
+  """Pagination data for this connection."""
+  pageInfo: PageInfo!
+
+  """Contains the nodes in this connection."""
+  edges: [DataEntryNodeEdge]!
+  totalCount: Int
+}
+
+"""A Relay edge containing a `DataEntryNode` and its cursor."""
+type DataEntryNodeEdge {
+  """The item at the end of the edge"""
+  node: DataEntryNode
+
+  """A cursor for use in pagination"""
+  cursor: String!
+}
+
+type DataEntryNode implements Node {
+  createdAt: DateTime!
+  name: String!
+  description: String!
+  entryType: SharedDataDataEntryEntryTypeChoices!
+  resourceType: String!
+  url: String!
+
+  """"""
+  size: BigInt
+  groups(offset: Int, before: String, after: String, first: Int, last: Int, name: String, name_Icontains: String, name_Istartswith: String, slug: String, slug_Icontains: String, description_Icontains: String, memberships_Email: String, associatedLandscapes_IsDefaultLandscapeGroup: Boolean, associatedLandscapes_Isnull: Boolean, associatedLandscapes_IsPartnership: Boolean): GroupNodeConnection!
+  createdBy: UserNode
+  visualizations(offset: Int, before: String, after: String, first: Int, last: Int, slug: String, slug_Icontains: String, dataEntry_Groups_Slug: String, dataEntry_Groups_Slug_Icontains: String, dataEntry_Groups_Id: ID): VisualizationConfigNodeConnection!
+  id: ID!
+}
+
+"""
+The `DateTime` scalar type represents a DateTime
+value as specified by
+[iso8601](https://en.wikipedia.org/wiki/ISO_8601).
+"""
+scalar DateTime
+
+enum SharedDataDataEntryEntryTypeChoices {
+  """File"""
+  FILE
+
+  """Link"""
+  LINK
+}
+
+"""
+The `BigInt` scalar type represents non-fractional whole numeric values.
+`BigInt` is not constrained to 32-bit like the `Int` type and thus is a less
+compatible type.
+"""
+scalar BigInt
+
+type GroupNodeConnection {
+  """Pagination data for this connection."""
+  pageInfo: PageInfo!
+
+  """Contains the nodes in this connection."""
+  edges: [GroupNodeEdge]!
+  totalCount: Int
+}
+
+"""A Relay edge containing a `GroupNode` and its cursor."""
+type GroupNodeEdge {
+  """The item at the end of the edge"""
+  node: GroupNode
+
+  """A cursor for use in pagination"""
+  cursor: String!
+}
+
+type VisualizationConfigNodeConnection {
+  """Pagination data for this connection."""
+  pageInfo: PageInfo!
+
+  """Contains the nodes in this connection."""
+  edges: [VisualizationConfigNodeEdge]!
+  totalCount: Int
+}
+
+"""A Relay edge containing a `VisualizationConfigNode` and its cursor."""
+type VisualizationConfigNodeEdge {
+  """The item at the end of the edge"""
+  node: VisualizationConfigNode
+
+  """A cursor for use in pagination"""
+  cursor: String!
+}
+
+type VisualizationConfigNode implements Node {
+  id: ID!
+  createdAt: DateTime!
+  slug: String!
+  title: String!
+  configuration: JSONString
+  createdBy: UserNode
+  dataEntry: DataEntryNode!
+  group: GroupNode!
+}
+
+type LandscapeNodeConnection {
+  """Pagination data for this connection."""
+  pageInfo: PageInfo!
+
+  """Contains the nodes in this connection."""
+  edges: [LandscapeNodeEdge]!
+  totalCount: Int
+}
+
+"""A Relay edge containing a `LandscapeNode` and its cursor."""
+type LandscapeNodeEdge {
+  """The item at the end of the edge"""
+  node: LandscapeNode
+
+  """A cursor for use in pagination"""
+  cursor: String!
+}
+
+type UserNodeConnection {
+  """Pagination data for this connection."""
+  pageInfo: PageInfo!
+
+  """Contains the nodes in this connection."""
+  edges: [UserNodeEdge]!
+  totalCount: Int
+}
+
+"""A Relay edge containing a `UserNode` and its cursor."""
+type UserNodeEdge {
+  """The item at the end of the edge"""
+  node: UserNode
+
+  """A cursor for use in pagination"""
+  cursor: String!
+}
+
+type StoryMapNode implements Node {
+  id: ID!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  slug: String!
+  storyMapId: String!
+  title: String!
+  configuration: JSONString
+  createdBy: UserNode
+  isPublished: Boolean!
+  publishedAt: DateTime
+}
+
+type StoryMapNodeConnection {
+  """Pagination data for this connection."""
+  pageInfo: PageInfo!
+
+  """Contains the nodes in this connection."""
+  edges: [StoryMapNodeEdge]!
+  totalCount: Int
+}
+
+"""A Relay edge containing a `StoryMapNode` and its cursor."""
+type StoryMapNodeEdge {
+  """The item at the end of the edge"""
+  node: StoryMapNode
+
+  """A cursor for use in pagination"""
+  cursor: String!
+}
+
+type Mutations {
+  addGroup(input: GroupAddMutationInput!): GroupAddMutationPayload
+  addLandscape(input: LandscapeAddMutationInput!): LandscapeAddMutationPayload
+  addUser(input: UserAddMutationInput!): UserAddMutationPayload
+  addLandscapeGroup(input: LandscapeGroupAddMutationInput!): LandscapeGroupAddMutationPayload
+  addGroupAssociation(input: GroupAssociationAddMutationInput!): GroupAssociationAddMutationPayload
+  addMembership(input: MembershipAddMutationInput!): MembershipAddMutationPayload
+  updateGroup(input: GroupUpdateMutationInput!): GroupUpdateMutationPayload
+  updateLandscape(input: LandscapeUpdateMutationInput!): LandscapeUpdateMutationPayload
+  updateMembership(input: MembershipUpdateMutationInput!): MembershipUpdateMutationPayload
+  updateUser(input: UserUpdateMutationInput!): UserUpdateMutationPayload
+  deleteGroup(input: GroupDeleteMutationInput!): GroupDeleteMutationPayload
+  deleteLandscape(input: LandscapeDeleteMutationInput!): LandscapeDeleteMutationPayload
+  deleteUser(input: UserDeleteMutationInput!): UserDeleteMutationPayload
+  deleteLandscapeGroup(input: LandscapeGroupDeleteMutationInput!): LandscapeGroupDeleteMutationPayload
+  deleteGroupAssociation(input: GroupAssociationDeleteMutationInput!): GroupAssociationDeleteMutationPayload
+  deleteMembership(input: MembershipDeleteMutationInput!): MembershipDeleteMutationPayload
+  updateUserPreference(input: UserPreferenceUpdateInput!): UserPreferenceUpdatePayload
+  deleteUserPreference(input: UserPreferenceDeleteInput!): UserPreferenceDeletePayload
+  unsubscribeUser(input: UserUnsubscribeUpdateInput!): UserUnsubscribeUpdatePayload
+  addDataEntry(input: DataEntryAddMutationInput!): DataEntryAddMutationPayload
+  updateDataEntry(input: DataEntryUpdateMutationInput!): DataEntryUpdateMutationPayload
+  deleteDataEntry(input: DataEntryDeleteMutationInput!): DataEntryDeleteMutationPayload
+  addVisualizationConfig(input: VisualizationConfigAddMutationInput!): VisualizationConfigAddMutationPayload
+  updateVisualizationConfig(input: VisualizationConfigUpdateMutationInput!): VisualizationConfigUpdateMutationPayload
+  deleteVisualizationConfig(input: VisualizationConfigDeleteMutationInput!): VisualizationConfigDeleteMutationPayload
+  deleteStoryMap(input: StoryMapDeleteMutationInput!): StoryMapDeleteMutationPayload
+  addSite(input: SiteAddMutationInput!): SiteAddMutationPayload
+  editSite(input: SiteEditMutationInput!): SiteEditMutationPayload
+  addProject(input: ProjectAddMutationInput!): ProjectAddMutationPayload
+}
+
+type GroupAddMutationPayload {
+  errors: GenericScalar
+  group: GroupNode
+  clientMutationId: String
+}
+
+"""
+The `GenericScalar` scalar type represents a generic
+GraphQL scalar value that could be:
+String, Boolean, Int, Float, List or Object.
+"""
+scalar GenericScalar
+
+input GroupAddMutationInput {
+  name: String!
+  description: String
+  website: String
+  email: String
+  membershipType: String
+  clientMutationId: String
+}
+
+type LandscapeAddMutationPayload {
+  errors: GenericScalar
+  landscape: LandscapeNode
+  clientMutationId: String
+}
+
+input LandscapeAddMutationInput {
+  name: String!
+  description: String
+  website: String
+  location: String
+  areaPolygon: JSONString
+  email: String
+  areaTypes: JSONString
+  population: Int
+  taxonomyTypeTerms: JSONString
+  partnershipStatus: String
+  groupAssociations: JSONString
+  clientMutationId: String
+}
+
+type UserAddMutationPayload {
+  errors: GenericScalar
+  user: UserNode
+  clientMutationId: String
+}
+
+input UserAddMutationInput {
+  firstName: String
+  lastName: String
+  email: String!
+  password: String!
+  clientMutationId: String
+}
+
+type LandscapeGroupAddMutationPayload {
+  errors: GenericScalar
+  landscapeGroup: LandscapeGroupNode
+  clientMutationId: String
+}
+
+input LandscapeGroupAddMutationInput {
+  landscapeSlug: String!
+  groupSlug: String!
+  clientMutationId: String
+}
+
+type GroupAssociationAddMutationPayload {
+  errors: GenericScalar
+  groupAssociation: GroupAssociationNode
+  clientMutationId: String
+}
+
+input GroupAssociationAddMutationInput {
+  parentGroupSlug: String!
+  childGroupSlug: String!
+  clientMutationId: String
+}
+
+type MembershipAddMutationPayload {
+  errors: GenericScalar
+  membership: MembershipNode
+  clientMutationId: String
+}
+
+input MembershipAddMutationInput {
+  userEmail: String!
+  groupSlug: String!
+  userRole: String
+  clientMutationId: String
+}
+
+type GroupUpdateMutationPayload {
+  errors: GenericScalar
+  group: GroupNode
+  clientMutationId: String
+}
+
+input GroupUpdateMutationInput {
+  id: ID!
+  name: String
+  description: String
+  website: String
+  email: String
+  membershipType: String
+  clientMutationId: String
+}
+
+type LandscapeUpdateMutationPayload {
+  errors: GenericScalar
+  landscape: LandscapeNode
+  clientMutationId: String
+}
+
+input LandscapeUpdateMutationInput {
+  id: ID!
+  name: String
+  description: String
+  website: String
+  location: String
+  areaPolygon: JSONString
+  email: String
+  areaTypes: JSONString
+  population: Int
+  taxonomyTypeTerms: JSONString
+  partnershipStatus: String
+  groupAssociations: JSONString
+  developmentStrategy: JSONString
+  profileImage: String
+  profileImageDescription: String
+  clientMutationId: String
+}
+
+type MembershipUpdateMutationPayload {
+  errors: GenericScalar
+  membership: MembershipNode
+  clientMutationId: String
+}
+
+input MembershipUpdateMutationInput {
+  id: ID!
+  userRole: String
+  membershipStatus: String
+  clientMutationId: String
+}
+
+type UserUpdateMutationPayload {
+  errors: GenericScalar
+  user: UserNode
+  clientMutationId: String
+}
+
+input UserUpdateMutationInput {
+  id: ID!
+  firstName: String
+  lastName: String
+  email: String
+  password: String
+  clientMutationId: String
+}
+
+type GroupDeleteMutationPayload {
+  errors: GenericScalar
+  group: GroupNode
+  clientMutationId: String
+}
+
+input GroupDeleteMutationInput {
+  id: ID
+  clientMutationId: String
+}
+
+type LandscapeDeleteMutationPayload {
+  errors: GenericScalar
+  landscape: LandscapeNode
+  clientMutationId: String
+}
+
+input LandscapeDeleteMutationInput {
+  id: ID
+  clientMutationId: String
+}
+
+type UserDeleteMutationPayload {
+  errors: GenericScalar
+  user: UserNode
+  clientMutationId: String
+}
+
+input UserDeleteMutationInput {
+  id: ID
+  clientMutationId: String
+}
+
+type LandscapeGroupDeleteMutationPayload {
+  errors: GenericScalar
+  landscapeGroup: LandscapeGroupNode
+  clientMutationId: String
+}
+
+input LandscapeGroupDeleteMutationInput {
+  id: ID
+  clientMutationId: String
+}
+
+type GroupAssociationDeleteMutationPayload {
+  errors: GenericScalar
+  groupAssociation: GroupAssociationNode
+  clientMutationId: String
+}
+
+input GroupAssociationDeleteMutationInput {
+  id: ID
+  clientMutationId: String
+}
+
+type MembershipDeleteMutationPayload {
+  errors: GenericScalar
+  membership: MembershipNode
+  clientMutationId: String
+}
+
+input MembershipDeleteMutationInput {
+  id: ID
+  clientMutationId: String
+}
+
+type UserPreferenceUpdatePayload {
+  errors: GenericScalar
+  preference: UserPreferenceNode
+  clientMutationId: String
+}
+
+input UserPreferenceUpdateInput {
+  userEmail: String!
+  key: String!
+  value: String!
+  clientMutationId: String
+}
+
+type UserPreferenceDeletePayload {
+  errors: GenericScalar
+  preference: UserPreferenceNode
+  clientMutationId: String
+}
+
+input UserPreferenceDeleteInput {
+  userEmail: String!
+  key: String!
+  clientMutationId: String
+}
+
+type UserUnsubscribeUpdatePayload {
+  errors: GenericScalar
+  success: Boolean
+  clientMutationId: String
+}
+
+input UserUnsubscribeUpdateInput {
+  token: String!
+  clientMutationId: String
+}
+
+type DataEntryAddMutationPayload {
+  errors: GenericScalar
+  dataEntry: DataEntryNode
+  clientMutationId: String
+}
+
+input DataEntryAddMutationInput {
+  groupSlug: String!
+  name: String!
+  url: String!
+  entryType: String!
+  resourceType: String!
+  description: String
+  clientMutationId: String
+}
+
+type DataEntryUpdateMutationPayload {
+  errors: GenericScalar
+  dataEntry: DataEntryNode
+  clientMutationId: String
+}
+
+input DataEntryUpdateMutationInput {
+  id: ID!
+  name: String
+  description: String
+  clientMutationId: String
+}
+
+type DataEntryDeleteMutationPayload {
+  errors: GenericScalar
+  dataEntry: DataEntryNode
+  clientMutationId: String
+}
+
+input DataEntryDeleteMutationInput {
+  id: ID
+  clientMutationId: String
+}
+
+type VisualizationConfigAddMutationPayload {
+  errors: GenericScalar
+  visualizationConfig: VisualizationConfigNode
+  clientMutationId: String
+}
+
+input VisualizationConfigAddMutationInput {
+  title: String!
+  configuration: JSONString
+  dataEntryId: ID!
+  groupId: ID!
+  clientMutationId: String
+}
+
+type VisualizationConfigUpdateMutationPayload {
+  errors: GenericScalar
+  visualizationConfig: VisualizationConfigNode
+  clientMutationId: String
+}
+
+input VisualizationConfigUpdateMutationInput {
+  id: ID!
+  configuration: JSONString
+  clientMutationId: String
+}
+
+type VisualizationConfigDeleteMutationPayload {
+  errors: GenericScalar
+  visualizationConfig: VisualizationConfigNode
+  clientMutationId: String
+}
+
+input VisualizationConfigDeleteMutationInput {
+  id: ID
+  clientMutationId: String
+}
+
+type StoryMapDeleteMutationPayload {
+  errors: GenericScalar
+  storyMap: StoryMapNode
+  clientMutationId: String
+}
+
+input StoryMapDeleteMutationInput {
+  id: ID
+  clientMutationId: String
+}
+
+type SiteAddMutationPayload {
+  errors: GenericScalar
+  site: SiteNode!
+  clientMutationId: String
+}
+
+type SiteNode implements Node {
+  name: String!
+  latitude: Float!
+  longitude: Float!
+  project: ProjectNode
+  id: ID!
+}
+
+type ProjectNode implements Node {
+  name: String!
+  id: ID!
+}
+
+input SiteAddMutationInput {
+  name: String!
+  latitude: Float!
+  longitude: Float!
+  clientMutationId: String
+}
+
+type SiteEditMutationPayload {
+  errors: GenericScalar
+  site: SiteNode!
+  clientMutationId: String
+}
+
+input SiteEditMutationInput {
+  id: ID!
+  name: String
+  latitude: Float
+  longitude: Float
+  projectId: ID
+  clientMutationId: String
+}
+
+type ProjectAddMutationPayload {
+  errors: GenericScalar
+  project: ProjectNode!
+  clientMutationId: String
+}
+
+input ProjectAddMutationInput {
+  name: String!
+  privacy: ProjectPrivacy!
+  clientMutationId: String
+}
+
+enum ProjectPrivacy {
+  PRIVATE
+  PUBLIC
+}
