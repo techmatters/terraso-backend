@@ -1,4 +1,4 @@
-# Copyright © 2021-2023 Technology Matters
+# Copyright © 2023 Technology Matters
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as published
@@ -13,21 +13,9 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see https://www.gnu.org/licenses/.
 
-from django.views.generic import TemplateView
-from graphene_django.views import GraphQLView
-
-from apps.auth.mixins import AuthenticationRequiredMixin
+from django.apps import AppConfig
 
 
-class TerrasoGraphQLView(AuthenticationRequiredMixin, GraphQLView):
-    def get_auth_enabled(self):
-        return False
-
-
-class TerrasoGraphQLAdminView(AuthenticationRequiredMixin, GraphQLView):
-    def get_auth_enabled(self):
-        return True
-
-
-class TerrasoGraphQLDocs(TemplateView):
-    template_name = "docs.html"
+class CoreConfig(AppConfig):
+    default_auto_field = "django.db.models.BigAutoField"
+    name = "apps.e2e_tests"

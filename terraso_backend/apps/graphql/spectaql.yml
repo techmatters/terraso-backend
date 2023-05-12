@@ -1,5 +1,5 @@
 introspection:
-  url: http://127.0.0.1:8000/graphql/
+  schemaFile: terraso_backend/apps/graphql/schema/schema.graphql
 
 servers:
   - url: https://api.terraso.org/graphql/

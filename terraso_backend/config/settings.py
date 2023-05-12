@@ -67,6 +67,7 @@ INSTALLED_APPS = [
     "apps.notifications",
     "apps.project_management",
     "apps.audit_logs",
+    "apps.e2e_tests",
 ]
 
 # Used for sitemap generation.
