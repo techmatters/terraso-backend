@@ -2,7 +2,6 @@ from datetime import datetime
 from typing import List, Optional
 
 from django.contrib.contenttypes.models import ContentType
-
 from django.core.paginator import Paginator
 from django.db import transaction
 from django.db.models.query import QuerySet

@@ -1,10 +1,12 @@
 import datetime
 
-from django.test import TestCase
 from django.contrib.contenttypes.models import ContentType
+from django.test import TestCase
 
+from apps.audit_logs import api, models, services
 from apps.core.models import User
-from apps.audit_logs import services, models, api
+
+
 # Create your tests here.
 
 
