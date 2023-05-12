@@ -1,3 +1,5 @@
+import datetime
+
 from django.test import TestCase
 from django.contrib.contenttypes.models import ContentType
 
@@ -15,7 +17,9 @@ class AuditLogServiceTest(TestCase):
         resource.save()
 
         action = 1
-        metadata = [api.KeyValue(("client_time", 1234567890))]
+        metadata = []
+        time = datetime.datetime.now()
+        metadata = [api.KeyValue(("client_time", time))]
         log.log(user, action, resource, metadata)
 
         result = models.Log.objects.all()
@@ -27,7 +31,8 @@ class AuditLogServiceTest(TestCase):
         resource = User(email="b@b.com")
         resource.save()
         action = 1
-        metadata = [("client_time", 1234567890)]
+        time = datetime.datetime.now()
+        metadata = [api.KeyValue(("client_time", time))]
         with self.assertRaises(ValueError):
             log.log(user, action, resource, metadata)
 
@@ -37,8 +42,9 @@ class AuditLogServiceTest(TestCase):
         user.save()
         resource = User(email="b@b.com")
         resource.save()
-        action = "INVALID"
-        metadata = [("client_time", 1234567890)]
+        action = -1
+        time = datetime.datetime.now()
+        metadata = [api.KeyValue(("client_time", time))]
         with self.assertRaises(ValueError):
             log.log(user, action, resource, metadata)
 
@@ -61,9 +67,9 @@ class AuditLogModelTest(TestCase):
         resource.save()
 
         action = 1
-        l = models.Log(user=user, event=action, resource_id=resource.id)
-        result = l.get_string()
-        assert result == str(l)
+        log = models.Log(user=user, event=action, resource_id=resource.id)
+        result = log.get_string()
+        assert result == str(log)
 
     def test_get_string_with_template(self):
         user = User(email="a@a.com")

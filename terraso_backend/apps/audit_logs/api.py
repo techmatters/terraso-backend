@@ -12,7 +12,7 @@ class AuditLog(Protocol):
     AuditLogProtocol is a protocol that defines the interface for the audit log
     """
 
-    def log(self, user: object, action: str, resource: object, metadata: List[KeyValue]) -> None:
+    def log(self, user: object, action: int, resource: object, metadata: List[KeyValue]) -> None:
         ...
 
 
@@ -27,6 +27,9 @@ class AuditLogQuerier(Protocol):
             start: datetime,
             end: datetime
     ) -> List[models.Log]:
+        ...
+
+    def get_log_by_id(self, log_id: str) -> models.Log:
         ...
 
     def get_log_by_key_value(

@@ -20,7 +20,7 @@ class AuditLogService():
     def log(
             self,
             user: object,
-            action: str,
+            action: int,
             resource: object,
             metadata: List[api.KeyValue]
     ) -> None:
@@ -77,7 +77,7 @@ class AuditLogService():
 
             for key, value in metadata:
                 if key == "client_time":
-                    log.client_timestamp = datetime.fromtimestamp(value)
+                    log.client_timestamp = value
                     continue
                 metadata_dict[key] = value
 
@@ -125,6 +125,13 @@ class AuditLogQuerierService():
         logs = models.Log.objects.filter(client_timestamp__range=(start, end))
         return LogData(logs)
 
+    def get_log_by_id(
+            self,
+            log_id: str,
+    ) -> LogData:
+        result = models.Log.objects.filter(id=log_id)
+        return LogData(result)
+
     def get_log_by_key_value(
             self,
             values: List[api.KeyValue],
@@ -147,7 +154,7 @@ class AuditLogQuerierService():
 
             logs = logs.filter(metadata__contains={key: value})
 
-            return LogData(logs)
+        return LogData(logs)
 
     def get_log_by_user(
             self,
