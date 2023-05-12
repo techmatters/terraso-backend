@@ -24,7 +24,11 @@ class Log(models.Model):
     timestamp = models.DateTimeField(auto_now_add=True)
     client_timestamp = models.DateTimeField()
     # TODO - Discuss: if we should delete on cascade or not
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, verbose_name='user')
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        verbose_name='user'
+    )
     resource_id = models.TextField()
     event = models.PositiveSmallIntegerField(_('event'), choices=EVENT_CHOICES)
     content_type = models.ForeignKey(
