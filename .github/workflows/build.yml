@@ -27,6 +27,11 @@ jobs:
         run: |
           pip install -r requirements-dev.txt
 
+      - name: Build base Docker image
+        run: |
+          cp .env.sample .env
+          make build DC_ENV=ci
+
       - name: Run lint checks
         run: |
           make lint
