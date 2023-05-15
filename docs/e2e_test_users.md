@@ -4,6 +4,12 @@
 
 Go to the admin interface to `/admin/e2e_tests/testuser/` to define a test user.
 
+# Get session ID
+
+1. Go to `/admin`
+2. Login to admin panel
+3. Gather `sessionid` cookie value
+
 # Generate a token
 
 Using the admin graphql endpoint execute the follwing query:
