@@ -19,19 +19,12 @@ from django.views.decorators.csrf import csrf_exempt
 
 from apps.auth.middleware import auth_optional
 
-from .admin.schema import admin_schema
-from .views import TerrasoGraphQLAdminView, TerrasoGraphQLDocs, TerrasoGraphQLView
+from .views import TerrasoGraphQLDocs, TerrasoGraphQLView
 
 app_name = "apps.graphql"
 
 urlpatterns = [
     path("docs", TerrasoGraphQLDocs.as_view()),
-    path(
-        "admin",
-        csrf_exempt(
-            auth_optional(TerrasoGraphQLAdminView.as_view(graphiql=True, schema=admin_schema))
-        ),
-    ),
 ]
 
 if settings.DEBUG:
