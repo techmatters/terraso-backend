@@ -12,7 +12,7 @@ Go to the admin interface to `/admin/e2e_tests/testuser/` to define a test user.
 
 # Generate a token
 
-Using the admin graphql endpoint execute the follwing query:
+Using the admin GraphQL endpoint execute the follwing query:
 
 GraphQL mutation:
 ```graphql
