@@ -4,31 +4,8 @@
 
 Go to the admin interface to `/admin/e2e_tests/testuser/` to define a test user.
 
-# Get session ID
-
-1. Go to `/admin`
-2. Login to admin panel
-3. Gather `sessionid` cookie value
-
 # Generate a token
 
-Using the admin GraphQL endpoint execute the follwing query:
-
-GraphQL mutation:
-```graphql
-mutation {
-  generateTestUserToken(input: { userEmail: "[test user email]"}) {
-    errors
-    token
-  }
-}
-```
-
-curl command:
 ```bash
-curl '[host]/graphql/admin' \
-  -H 'cookie: sessionid=[admin session ID]' \
-  -H 'accept: application/json, multipart/mixed' \
-  -H 'content-type: application/json' \
-  --data-raw '{"query":"mutation { generateTestUserToken(input: { userEmail: \"[test user email]\"}) { errors token } }"}'
+make generate-test-token email="[test user email]"
 ```
