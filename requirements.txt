@@ -468,9 +468,9 @@ jsonschema==4.17.3 \
 jwcrypto==1.4.2 \
     --hash=sha256:80a35e9ed1b3b2c43ce03d92c5d48e6d0b6647e2aa2618e4963448923d78a37b
     # via django-oauth-toolkit
-munch==2.5.0 \
-    --hash=sha256:2d735f6f24d4dba3417fa448cae40c6e896ec1fdab6cdb5e6510999758a4dbd2 \
-    --hash=sha256:6f44af89a2ce4ed04ff8de41f70b226b984db10a91dcc7b9ac2efc1c77022fdd
+munch==3.0.0 \
+    --hash=sha256:0e4108418cfea898dcad01ff9569c30ff58f01d6f699331d04364f51623627c0 \
+    --hash=sha256:5284603030c00906d9d64d8108728c004fbeb91fc1c1e4caca342bc48f2a6dfd
     # via fiona
 numpy==1.24.3 \
     --hash=sha256:0ec87a7084caa559c36e0a2309e4ecb1baa03b687201d0a847c8b0ed476a7187 \
