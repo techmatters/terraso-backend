@@ -24,7 +24,7 @@ mutation {
 }
 ```
 
-Curl command:
+curl command:
 ```bash
 curl '[host]/graphql/admin' \
   -H 'cookie: sessionid=[admin session ID]' \
