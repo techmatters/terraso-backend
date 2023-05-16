@@ -153,7 +153,7 @@ type MembershipNodeEdge {
 type MembershipNode implements Node {
   group: GroupNode!
   user: UserNode!
-  userRole: CoreMembershipUserRoleChoices
+  userRole: CoreMembershipUserRoleChoices!
   membershipStatus: CoreMembershipMembershipStatusChoices!
   id: ID!
 }
