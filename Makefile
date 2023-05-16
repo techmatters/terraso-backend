@@ -68,6 +68,9 @@ generate-translations:
 
 translate: generate-translations compile-translations
 
+generate-test-token:
+	$(DC_RUN_CMD) python terraso_backend/manage.py generate_test_token --email $(email)
+
 pip-tools: ${VIRTUAL_ENV}/scripts/pip-sync
 
 setup-git-hooks:
