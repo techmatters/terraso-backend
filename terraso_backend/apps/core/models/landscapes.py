@@ -65,7 +65,7 @@ class Landscape(SlugModel, DirtyFieldsMixin):
     groups = models.ManyToManyField(Group, through="LandscapeGroup")
 
     area_types = models.JSONField(blank=True, null=True)
-    taxonomy_terms = models.ManyToManyField(TaxonomyTerm)
+    taxonomy_terms = models.ManyToManyField(TaxonomyTerm, blank=True)
     population = models.IntegerField(blank=True, null=True)
 
     PARTNERSHIP_STATUS_NONE = ""
