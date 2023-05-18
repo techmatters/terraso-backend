@@ -1,0 +1,8 @@
+{
+  "name": "terraso-backend",
+  "version": "0.1.0",
+  "private": true,
+  "files": [
+    "terraso_backend/apps/graphql/schema/schema.graphql"
+  ]
+}
