@@ -71,3 +71,21 @@ def test_groups_query_has_total_count(client_query, groups):
     total_count = response.json()["data"]["groups"]["totalCount"]
 
     assert total_count == len(groups)
+
+
+def test_project_groups_not_included_in_query(client_query, project):
+    reponse = client_query(
+        """
+        {groups {
+          totalCount
+          edges {
+            node {
+              slug
+              }
+            }
+          }
+        }
+        """
+    )
+    total_count = reponse.json()["data"]["groups"]["totalCount"]
+    assert total_count == 0

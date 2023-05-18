@@ -50,6 +50,8 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "django.contrib.sites",
+    "django.contrib.sitemaps",
     "oauth2_provider",
     "corsheaders",
     "graphene_django",
@@ -63,7 +65,12 @@ INSTALLED_APPS = [
     "apps.story_map",
     "apps.notifications",
     "apps.project_management",
+    "apps.e2e_tests",
 ]
+
+# Used for sitemap generation.
+# See https://docs.djangoproject.com/en/4.2/ref/contrib/sites/
+SITE_ID = 1
 
 if DEBUG:
     INSTALLED_APPS += [
@@ -238,7 +245,14 @@ GRAPHENE = {
     "TESTING_ENDPOINT": "/graphql/",
 }
 
-WEB_CLIENT_URL = config("WEB_CLIENT_ENDPOINT", default="")
+WEB_CLIENT_DOMAIN = config("WEB_CLIENT_DOMAIN", default="")
+WEB_CLIENT_PORT = config("WEB_CLIENT_PORT", default=443)
+WEB_CLIENT_PROTOCOL = config("WEB_CLIENT_PROTOCOL", default="https")
+
+WEB_CLIENT_URL = f"{WEB_CLIENT_PROTOCOL}://{WEB_CLIENT_DOMAIN}"
+if WEB_CLIENT_PORT != 443:
+    WEB_CLIENT_URL = f"{WEB_CLIENT_URL}:{WEB_CLIENT_PORT}"
+
 LOGIN_URL = f"{WEB_CLIENT_URL}/account"
 AUTH_COOKIE_DOMAIN = config("AUTH_COOKIE_DOMAIN", default="")
 CORS_ORIGIN_WHITELIST = config("CORS_ORIGIN_WHITELIST", default=[], cast=config.list)
@@ -345,4 +359,5 @@ PUBLIC_BASE_PATHS = [
     "/oauth/",
     "/auth/",
     "/healthz/",
+    "/web-client/sitemap.xml",
 ]

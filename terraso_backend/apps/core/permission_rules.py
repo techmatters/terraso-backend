@@ -110,14 +110,14 @@ def allowed_to_change_project(user, project):
 
 @rules.predicate
 def allowed_to_edit_site(user, site):
-    if site.owned_by_user:
-        return site.owner == user
-    return site.project.is_manager(user)
+    if not site.owned_by_user:
+        return site.project.is_manager(user)
+    return site.owner == user
 
 
 @rules.predicate
 def allowed_to_add_membership(user, group):
-    return not group.is_restricted or group.is_manager(user)
+    return group.can_join or group.is_manager(user)
 
 
 rules.add_rule("allowed_group_managers_count", allowed_group_managers_count)

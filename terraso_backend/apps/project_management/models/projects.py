@@ -38,6 +38,15 @@ class Project(BaseModel):
         max_length=32, choices=PRIVACY_STATUS, default=DEFAULT_PRIVACY_STATUS
     )
 
+    @staticmethod
+    def create_default_group(name: str):
+        """Creates a default group for a project"""
+        return Group.objects.create(
+            name=name,
+            membership_type=Group.MEMBERSHIP_TYPE_OPEN,
+            enroll_method=Group.ENROLL_METHOD_INVITE,
+        )
+
     def is_manager(self, user: User) -> bool:
         return self.managers.filter(id=user.id).exists()
 

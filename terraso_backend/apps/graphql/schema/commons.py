@@ -14,11 +14,12 @@
 # along with this program. If not, see https://www.gnu.org/licenses/.
 
 import json
+import re
 
 import structlog
 from django.core.exceptions import NON_FIELD_ERRORS, ValidationError
 from django.db import IntegrityError
-from graphene import Connection, Int, relay
+from graphene import Connection, Field, Int, List, NonNull, ObjectType, String, relay
 from graphene.types.generic import GenericScalar
 
 from apps.core.formatters import from_camel_to_snake_case
@@ -43,11 +44,40 @@ class TerrasoConnection(Connection):
     class Meta:
         abstract = True
 
-    total_count = Int()
+    total_count = Int(required=True)
 
     def resolve_total_count(self, info, **kwargs):
         queryset = self.iterable
         return queryset.count()
+
+    # This will coax graphene to output more precise types for connections.
+    # Context: https://github.com/graphql-python/graphene/pull/1504
+    # Will be unnecessary after https://github.com/graphql-python/graphene-django/issues/901
+    @classmethod
+    def __init_subclass_with_meta__(cls, node=None, **options):
+        type_name = re.sub("Connection$", "", cls.__name__)
+
+        node_for_edge = node
+        if node is not None and not isinstance(node, NonNull):
+            node_for_edge = NonNull(node)
+
+        class Edge(ObjectType):
+            node = Field(node_for_edge, description="The item at the end of the edge")
+            cursor = String(required=True, description="A cursor for use in pagination")
+
+        class Meta:
+            description = f"A Relay edge containing a `{type_name}` and its cursor."
+
+        edge_type = type(f"{type_name}Edge", (Edge,), {"Meta": Meta})
+
+        cls.Edge = edge_type
+
+        cls.edges = Field(
+            NonNull(List(NonNull(edge_type))),
+            description="Contains the nodes in this connection.",
+        )
+
+        super().__init_subclass_with_meta__(node=node, **options)
 
 
 class BaseMutation(relay.ClientIDMutation):
@@ -55,6 +85,12 @@ class BaseMutation(relay.ClientIDMutation):
         abstract = True
 
     errors = GenericScalar()
+
+    @classmethod
+    def Field(cls, *args, **kwargs):
+        if "required" not in kwargs:
+            kwargs["required"] = True
+        return super().Field(*args, **kwargs)
 
     @classmethod
     def mutate(cls, root, info, input):
@@ -66,6 +102,24 @@ class BaseMutation(relay.ClientIDMutation):
                 extra={"error": str(error)},
             )
             return cls(errors=[{"message": str(error)}])
+
+
+class BaseAdminMutation(BaseMutation):
+    class Meta:
+        abstract = True
+
+    @classmethod
+    def mutate(cls, root, info, input):
+        user = info.context.user
+
+        if not user or not user.is_authenticated or not user.is_superuser:
+            message = {
+                "message": "You must be authenticated to perform this operation",
+                "code": "unauthorized",
+            }
+            return cls(errors=[{"message": json.dumps([message])}])
+
+        return super().mutate(root, info, input)
 
 
 class BaseUnauthenticatedMutation(BaseMutation):
@@ -170,9 +224,7 @@ class BaseWriteMutation(BaseAuthenticatedMutation):
 
     @classmethod
     def not_allowed(cls, mutation_type=None):
-        return GraphQLNotAllowedException(
-            model_name=cls.model_class.__name__, operation=mutation_type
-        )
+        return super().not_allowed(cls.model_class, mutation_type)
 
     @classmethod
     def get_or_throw(cls, model, field_name, id_):

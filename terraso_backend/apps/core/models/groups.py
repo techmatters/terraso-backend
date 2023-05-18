@@ -41,13 +41,22 @@ class Group(SlugModel):
 
     MEMBERSHIP_TYPE_OPEN = "open"
     MEMBERSHIP_TYPE_CLOSED = "closed"
-    MEMBERSHIP_TYPE_RESTRICTED = "restricted"
     DEFAULT_MEMERBSHIP_TYPE = MEMBERSHIP_TYPE_OPEN
 
     MEMBERSHIP_TYPES = (
         (MEMBERSHIP_TYPE_OPEN, _("Open")),
         (MEMBERSHIP_TYPE_CLOSED, _("Closed")),
-        (MEMBERSHIP_TYPE_RESTRICTED, _("Restricted")),
+    )
+
+    ENROLL_METHOD_JOIN = "join"
+    ENROLL_METHOD_INVITE = "invite"
+    ENROLL_METHOD_BOTH = "both"
+    DEFAULT_ENROLL_METHOD_TYPE = ENROLL_METHOD_JOIN
+
+    ENROLL_METHODS = (
+        (ENROLL_METHOD_JOIN, _("Join")),
+        (ENROLL_METHOD_INVITE, _("Invite")),
+        (ENROLL_METHOD_BOTH, _("Both")),
     )
 
     fields_to_trim = ["name", "description"]
@@ -56,6 +65,10 @@ class Group(SlugModel):
     description = models.TextField(max_length=2048, blank=True, default="")
     website = models.URLField(max_length=500, blank=True, default="")
     email = models.EmailField(blank=True, default="")
+
+    enroll_method = models.CharField(
+        max_length=10, choices=ENROLL_METHODS, default=DEFAULT_ENROLL_METHOD_TYPE
+    )
 
     created_by = models.ForeignKey(
         User,
@@ -138,14 +151,8 @@ class Group(SlugModel):
         return self.group_members.filter(id=user.id).exists()
 
     @property
-    def is_restricted(self):
-        return self.membership_type == self.MEMBERSHIP_TYPE_RESTRICTED
-
-    @classmethod
-    def create_default_group_project(cls, name: str):
-        """Creates a default group for a project. Membership type is set to restricted: users cannot
-        join the group, and must be added by managers."""
-        return cls.objects.create(name=name, membership_type=cls.MEMBERSHIP_TYPE_RESTRICTED)
+    def can_join(self):
+        return self.enroll_method in (self.ENROLL_METHOD_JOIN, self.ENROLL_METHOD_BOTH)
 
     def __str__(self):
         return self.name
@@ -223,7 +230,7 @@ class Membership(BaseModel):
     group = models.ForeignKey(Group, on_delete=models.CASCADE, related_name="memberships")
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="memberships")
 
-    user_role = models.CharField(max_length=64, choices=ROLES, blank=True, default=ROLE_MEMBER)
+    user_role = models.CharField(max_length=64, choices=ROLES, default=ROLE_MEMBER)
 
     membership_status = models.CharField(max_length=64, choices=APPROVAL_STATUS, default=APPROVED)
 
