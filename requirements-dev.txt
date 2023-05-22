@@ -296,9 +296,9 @@ executing==1.2.0 \
     --hash=sha256:0314a69e37426e3608aada02473b4161d4caf5a4b244d1d0c48072b8fee7bacc \
     --hash=sha256:19da64c18d2d851112f09c287f8d3dbbdf725ab0e569077efb6cdcbd3497c107
     # via stack-data
-faker==12.0.1 \
-    --hash=sha256:1dc2811f20e163892fefe7006f2ce00778f8099a40aee265bfa60a13400de63d \
-    --hash=sha256:aa7103805ae793277abbb85da9f6f05e76a1a295a9384a8e17c2fba2b3a690cb
+faker==18.9.0 \
+    --hash=sha256:80a5ea1464556c06b98bf47ea3adc7f33811a1182518d847860b1874080bd3c9 \
+    --hash=sha256:defe9ed618a67ebf0f3eb1895e198c2355a7128a09087a6dce342ef2253263ea
     # via mixer
 flake8==6.0.0 \
     --hash=sha256:3833794e27ff64ea4e9cf5d410082a8b97ff1a06c16aa3d2027339cd0f1195c7 \
