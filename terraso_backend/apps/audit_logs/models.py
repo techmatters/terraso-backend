@@ -15,7 +15,6 @@ EVENT_CHOICES = (
     (DELETE, _("DELETE")),
 )
 
-
 class Log(models.Model):
     """
     Log model for audits logs
