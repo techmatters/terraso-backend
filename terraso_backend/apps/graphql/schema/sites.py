@@ -36,14 +36,15 @@ class SiteNode(DjangoObjectType):
         connection_class = TerrasoConnection
 
 
-class SitesFilter(django_filters.FilterSet):
+class SiteFilter(django_filters.FilterSet):
     class Meta:
         model = Site
         fields = ["name", "created_by", "project"]
 
     order_by = django_filters.OrderingFilter(
         fields=(
-            ("created_at", "updated_at"),
+            ("updated_at", "updated_at"),
+            ("created_at", "created_at"),
         )
     )
 
