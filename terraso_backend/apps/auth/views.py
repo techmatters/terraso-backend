@@ -27,7 +27,7 @@ from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.urls import reverse
 from django.views import View
 
-from .constants import OAUTH_COOKIE_MAX_AGE_SECONDS
+from .constants import OAUTH_COOKIE_MAX_AGE_SECONDS, OAUTH_COOKIE_NAME
 from .providers import AppleProvider, GoogleProvider, MicrosoftProvider
 from .services import AccountService, JWTService, PlausibleService
 
@@ -107,7 +107,9 @@ class AbstractCallbackView(View):
             return HttpResponse(f"Error: {exc}", status=400)
 
         redirect_uri = f"{settings.WEB_CLIENT_URL}/{self.state}"
-        if cookie := req.get_signed_cookie("oauth", None, max_age=OAUTH_COOKIE_MAX_AGE_SECONDS):
+        if cookie := req.get_signed_cookie(
+            OAUTH_COOKIE_NAME, None, max_age=OAUTH_COOKIE_MAX_AGE_SECONDS
+        ):
             # we stored the original URI as a cookie
             # redirecting the user to this URI will start our OAuth process
             if self._check_cookie(cookie):

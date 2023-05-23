@@ -24,7 +24,7 @@ from django.http.response import JsonResponse
 from django.urls import reverse
 from jwt.exceptions import InvalidTokenError
 
-from .constants import OAUTH_COOKIE_MAX_AGE_SECONDS
+from .constants import OAUTH_COOKIE_MAX_AGE_SECONDS, OAUTH_COOKIE_NAME
 from .services import JWTService
 
 logger = structlog.get_logger(__name__)
@@ -123,19 +123,19 @@ class OAuthAuthorizeState:
 
         if request.path == self.uri_path and request.user.is_anonymous:
             # user accessing OAuth authorize URI and not logged in
-            # they will directed to log in by the frontend
-            # in the mean time, we store the URL so OAuth can start after
+            # we store the URL so OAuth can start after
             # user logged in
             cookie = request.get_full_path_info()
 
             response.set_signed_cookie(
-                "oauth",
+                OAUTH_COOKIE_NAME,
                 cookie,
                 domain=settings.AUTH_COOKIE_DOMAIN,
                 max_age=OAUTH_COOKIE_MAX_AGE_SECONDS,
                 httponly=True,
                 secure=True,
-                # need lax for our usage here
+                # lax - cookie sent from requests not originating from our domain
+                # need this for the oauth flow b/c request coming from third party
                 samesite="Lax",
             )
 
