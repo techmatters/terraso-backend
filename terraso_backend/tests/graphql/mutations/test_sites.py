@@ -92,7 +92,7 @@ def test_adding_site_to_project_user_not_manager(client, project, site, user):
     project.add_member(user)
     client.force_login(site_creator)
     response = graphql_query(
-        ADD_CLIENT_QUERY,
+        EDIT_CLIENT_QUERY,
         variables={"input": {"id": str(site.id), "projectId": str(project.id)}},
         client=client,
     )
