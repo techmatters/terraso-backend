@@ -45,11 +45,12 @@ def test_site_creation(client_query, user):
     id = content["data"]["addSite"]["site"]["id"]
     site = Site.objects.get(pk=id)
     assert str(site.id) == id
+    assert str(site.created_by.id) == str(user.id)
     assert site.latitude == pytest.approx(site.latitude)
     assert site.longitude == pytest.approx(site.longitude)
 
 
-ADD_CLIENT_QUERY = """
+EDIT_CLIENT_QUERY = """
     mutation siteEditMutation($input: SiteEditMutationInput!) {
         editSite(input: $input) {
             site {
@@ -62,8 +63,7 @@ ADD_CLIENT_QUERY = """
     }
 """
 
-
-def test_adding_site_to_project(client, project, project_manager, site):
+def test_edit_site_to_project(client, project, project_manager, site):
     original_project = mixer.blend(Project)
     original_project.add_manager(project_manager)
     site.project = original_project
@@ -71,7 +71,7 @@ def test_adding_site_to_project(client, project, project_manager, site):
 
     client.force_login(project_manager)
     response = graphql_query(
-        ADD_CLIENT_QUERY,
+        EDIT_CLIENT_QUERY,
         variables={"input": {"id": str(site.id), "projectId": str(project.id)}},
         client=client,
     )
