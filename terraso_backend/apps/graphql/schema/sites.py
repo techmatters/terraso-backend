@@ -35,6 +35,18 @@ class SiteNode(DjangoObjectType):
         connection_class = TerrasoConnection
 
 
+class SitesFilter(django_filters.FilterSet):
+    class Meta:
+        model = Site
+        fields = ["name", "created_by", "project"]
+
+    order_by = django_filters.OrderingFilter(
+        fields=(
+            ("created_at", "updated_at"),
+        )
+    )
+
+
 class SiteAddMutation(BaseWriteMutation):
     site = graphene.Field(SiteNode, required=True)
 

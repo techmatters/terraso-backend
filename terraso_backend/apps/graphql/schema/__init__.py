@@ -52,7 +52,7 @@ from .memberships import (
     MembershipUpdateMutation,
 )
 from .projects import ProjectAddMutation
-from .sites import SiteAddMutation, SiteEditMutation
+from .sites import SiteAddMutation, SiteEditMutation, SiteNode, SiteFilter
 from .story_maps import StoryMapDeleteMutation, StoryMapNode
 from .taxnomy_terms import TaxonomyTermNode
 from .users import (
@@ -95,6 +95,7 @@ class Query(graphene.ObjectType):
     taxonomy_terms = DjangoFilterConnectionField(TaxonomyTermNode)
     story_map = TerrasoRelayNode.Field(StoryMapNode)
     story_maps = DjangoFilterConnectionField(StoryMapNode)
+    sites = DjangoFilterConnectionField(SiteNode, filterset_class=SiteFilter)
 
 
 # All mutations should inherit from BaseWriteMutation or BaseDeleteMutation
