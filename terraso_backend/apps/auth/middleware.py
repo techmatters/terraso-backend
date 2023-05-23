@@ -123,8 +123,7 @@ class OAuthAuthorizeState:
 
         if request.path == self.uri_path and request.user.is_anonymous:
             # user accessing OAuth authorize URI and not logged in
-            # we store the URL so OAuth can start after
-            # user logged in
+            # we store the URL so OAuth can start after login
             cookie = request.get_full_path_info()
 
             response.set_signed_cookie(
