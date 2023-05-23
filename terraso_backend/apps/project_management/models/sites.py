@@ -13,6 +13,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see https://www.gnu.org/licenses/.
 from django.db import models
+from django.conf import settings
 
 from apps.core import permission_rules
 from apps.core.models.commons import SlugModel
@@ -29,6 +30,8 @@ class Site(SlugModel):
     name = models.CharField(max_length=200)
     latitude = models.FloatField()
     longitude = models.FloatField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     field_to_slug = "id"
 
@@ -38,4 +41,11 @@ class Site(SlugModel):
         blank=True,
         on_delete=models.RESTRICT,
         verbose_name="project to which the site belongs",
+    )
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        null=True,
+        blank=True,
+        on_delete=models.RESTRICT,
+        verbose_name="user who created the site",
     )
