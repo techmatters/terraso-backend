@@ -313,16 +313,16 @@ enum CoreTaxonomyTermTypeChoices {
 }
 
 enum CoreLandscapePartnershipStatusChoices {
-  """partnership_status.none"""
+  """None"""
   A_
 
-  """partnership_status.no"""
+  """No"""
   NO
 
-  """partnership_status.in_progress"""
+  """In Progress"""
   IN_PROGRESS
 
-  """partnership_status.yes"""
+  """Yes"""
   YES
 }
 
