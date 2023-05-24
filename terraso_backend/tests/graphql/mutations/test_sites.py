@@ -63,6 +63,7 @@ EDIT_CLIENT_QUERY = """
     }
 """
 
+
 def test_edit_site_to_project(client, project, project_manager, site):
     original_project = mixer.blend(Project)
     original_project.add_manager(project_manager)
@@ -99,3 +100,5 @@ def test_adding_site_to_project_user_not_manager(client, project, site, user):
 
     content = json.loads(response.content)
     assert "errors" in content
+
+
