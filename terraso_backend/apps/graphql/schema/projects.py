@@ -20,7 +20,7 @@ from graphene_django import DjangoObjectType
 
 from apps.project_management.models import Project
 
-from .commons import BaseWriteMutation, TerrasoConnection
+from .commons import BaseDeleteMutation, BaseWriteMutation, TerrasoConnection
 
 
 class ProjectNode(DjangoObjectType):
@@ -59,3 +59,11 @@ class ProjectAddMutation(BaseWriteMutation):
             result = super().mutate_and_get_payload(root, info, **kwargs)
             result.project.add_manager(info.context.user)
         return result
+
+class ProjectDeleteMutation(BaseDeleteMutation):
+    project = graphene.Field(ProjectNode, required=True)
+
+    model_class = Project
+
+    class Input:
+        id = graphene.ID(required=True)
