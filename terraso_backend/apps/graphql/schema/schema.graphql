@@ -650,7 +650,7 @@ type MembershipAddMutationPayload {
 
 input MembershipAddMutationInput {
   userEmail: String!
-  groupSlug: String!
+  groupId: ID!
   userRole: String
   clientMutationId: String
 }

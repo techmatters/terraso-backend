@@ -69,13 +69,13 @@ class MembershipAddMutation(BaseAuthenticatedMutation):
 
     class Input:
         user_email = graphene.String(required=True)
-        group_slug = graphene.String(required=True)
+        group_id = graphene.ID(required=True)
         user_role = graphene.String()
 
     @classmethod
     def mutate_and_get_payload(cls, root, info, **kwargs):
         user_email = kwargs.pop("user_email")
-        group_slug = kwargs.pop("group_slug")
+        group_id = kwargs.pop("group_id")
 
         try:
             user = User.objects.get(email=user_email)
@@ -87,11 +87,11 @@ class MembershipAddMutation(BaseAuthenticatedMutation):
             raise GraphQLNotFoundException(field="user", model_name=Membership.__name__)
 
         try:
-            group = Group.objects.get(slug=group_slug)
+            group = Group.objects.get(pk=group_id)
         except Group.DoesNotExist:
             logger.error(
                 "Group not found when adding a Membership",
-                extra={"group_slug": group_slug},
+                extra={"group_id": group_id},
             )
             raise GraphQLNotFoundException(field="group", model_name=Membership.__name__)
 
