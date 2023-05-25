@@ -7,10 +7,7 @@ from apps.project_management.models import Site
 pytestmark = pytest.mark.django_db
 
 
-
-
 def test_query_by_project(client_query, project, project_manager, site):
-
     site.project = project
     site.save()
     site2 = Site(name=2, project=project, latitude=site.latitude, longitude=site.longitude)

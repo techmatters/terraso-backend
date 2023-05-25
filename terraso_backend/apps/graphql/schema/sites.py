@@ -39,7 +39,7 @@ class SiteNode(DjangoObjectType):
 class SiteFilter(django_filters.FilterSet):
     class Meta:
         model = Site
-        fields = ["name", "created_by", "project"]
+        fields = ["name", "created_by", "project__id"]
 
     order_by = django_filters.OrderingFilter(
         fields=(
