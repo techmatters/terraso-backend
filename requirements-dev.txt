@@ -4,9 +4,9 @@
 #
 #    make lock-dev
 #
-anyio==3.6.2 \
-    --hash=sha256:25ea0d673ae30af41a0c442f81cf3b38c7e79fdc7b60335a4c14e05eb0947421 \
-    --hash=sha256:fbbe32bd270d2a2ef3ed1c5d45041250284e31fc0a4df4a5a6071842051a51e3
+anyio==3.7.0 \
+    --hash=sha256:275d9973793619a5374e1c89a4f4ad3f4b0a5510a2b5b939444bee8f4c4d37ce \
+    --hash=sha256:eddca883c4175f14df8aedce21054bfca3adb70ffe76a9f607aef9d7fa2ea7f0
     # via httpcore
 asttokens==2.2.1 \
     --hash=sha256:4622110b2a6f30b77e1473affaa97e711bc2f07d3f10848420ff1898edbe94f3 \
