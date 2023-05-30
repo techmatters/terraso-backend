@@ -39,3 +39,6 @@ class Site(SlugModel):
         on_delete=models.RESTRICT,
         verbose_name="project to which the site belongs",
     )
+
+    def human_readable(self) -> str:
+        return self.name
