@@ -3,7 +3,6 @@ from django.db import models
 from django.utils.translation import gettext_lazy as _
 from django.contrib.contenttypes.fields import GenericForeignKey
 
-# Create your models here.
 CREATE = 1
 READ = 2
 CHANGE = 3
