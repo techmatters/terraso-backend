@@ -1,6 +1,7 @@
 from django.conf import settings
 from django.db import models
 from django.utils.translation import gettext_lazy as _
+from django.contrib.contenttypes.fields import GenericForeignKey
 
 # Create your models here.
 CREATE = 1
@@ -15,27 +16,29 @@ EVENT_CHOICES = (
     (DELETE, _("DELETE")),
 )
 
+
 class Log(models.Model):
     """
     Log model for audits logs
     """
     timestamp = models.DateTimeField(auto_now_add=True)
     client_timestamp = models.DateTimeField()
-    # TODO - Discuss: if we should delete on cascade or not
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
-        on_delete=models.CASCADE,
+        on_delete=models.PROTECT,
         verbose_name='user'
     )
-    resource_id = models.TextField()
     event = models.PositiveSmallIntegerField(_('event'), choices=EVENT_CHOICES)
-    content_type = models.ForeignKey(
+
+    resource_id = models.UUIDField()
+    resource_content_type = models.ForeignKey(
         'contenttypes.ContentType',
         on_delete=models.CASCADE,
         verbose_name='content type',
         blank=True,
         null=True
     )
+    resource_object = GenericForeignKey('resource_content_type', 'resource_id')
     resource_json_repr = models.JSONField()
 
     metadata = models.JSONField(blank=True, null=True)

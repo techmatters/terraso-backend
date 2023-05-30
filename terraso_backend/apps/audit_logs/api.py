@@ -6,6 +6,11 @@ from . import models
 # KeyValue represents a key-value pair
 KeyValue = NewType('KeyValue', Tuple[str, object | str])
 
+CREATE = models.CREATE
+READ = models.READ
+CHANGE = models.CHANGE
+DELETE = models.DELETE
+
 
 class AuditLog(Protocol):
     """
@@ -14,6 +19,7 @@ class AuditLog(Protocol):
 
     def log(self, user: object, action: int, resource: object, metadata: List[KeyValue]) -> None:
         ...
+
 
 
 class AuditLogQuerier(Protocol):
@@ -64,3 +70,5 @@ class AuditLogQuerier(Protocol):
 
     def logs_to_str(self, logs: List[models.Log], template: str) -> List[str]:
         ...
+
+

@@ -35,6 +35,9 @@ from apps.core.models import (
 from apps.shared_data.models import DataEntry, VisualizationConfig
 from apps.story_map.models import StoryMap
 
+from apps.audit_logs.models import Log
+from apps.project_management.models import Site
+
 pytestmark = pytest.mark.django_db
 
 
@@ -329,3 +332,11 @@ def story_maps(users):
         + user_1_stories_published
         + user_1_stories_drafts
     )
+
+@pytest.fixture
+def audit_log_user():
+    return mixer.blend(User)
+
+@pytest.fixture
+def audit_log_site_resource():
+    return mixer.blend(Site)

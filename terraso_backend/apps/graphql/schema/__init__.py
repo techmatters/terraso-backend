@@ -71,6 +71,8 @@ from .visualization_config import (
     VisualizationConfigUpdateMutation,
 )
 
+from .audit_logs import AuditLogNode, AuditLogFilter
+
 
 class Query(graphene.ObjectType):
     group = TerrasoRelayNode.Field(GroupNode)
@@ -95,6 +97,11 @@ class Query(graphene.ObjectType):
     taxonomy_terms = DjangoFilterConnectionField(TaxonomyTermNode)
     story_map = TerrasoRelayNode.Field(StoryMapNode)
     story_maps = DjangoFilterConnectionField(StoryMapNode)
+    audit_logs = DjangoFilterConnectionField(
+        AuditLogNode,
+        filterset_class=AuditLogFilter
+    )
+
 
 
 # All mutations should inherit from BaseWriteMutation or BaseDeleteMutation

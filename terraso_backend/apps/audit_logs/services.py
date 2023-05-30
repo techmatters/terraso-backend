@@ -1,3 +1,4 @@
+import typing
 from datetime import datetime
 from typing import List, Optional
 
@@ -11,7 +12,7 @@ from . import api, models
 TEMPLATE = "{client_time} - {user} {action} {resource}"
 
 
-class AuditLogService():
+class _AuditLogService():
     """
     AuditLogService implements the AuditLog protocol
     """
@@ -21,7 +22,7 @@ class AuditLogService():
             user: object,
             action: int,
             resource: object,
-            metadata: List[api.KeyValue]
+            metadata: typing.Optional[List[api.KeyValue]] = None
     ) -> None:
         """
         log logs an action performed by a user on a resource
@@ -57,16 +58,22 @@ class AuditLogService():
             resource_human_readable = resource_id
 
         content_type = ContentType.objects.get_for_model(resource)
+        resource_obj = resource
 
-        resource_repr = resource.__repr__()
+        resource_repr = resource.__dict__.__str__()
+
+        if metadata is None:
+            metadata = []
 
         with transaction.atomic():
             log = models.Log(
                 user=user,
                 event=action,
                 resource_id=resource_id,
-                content_type=content_type,
+                resource_content_type=content_type,
+                resource_object=resource_obj,
                 resource_json_repr=resource_repr
+
             )
             metadata_dict = {
                 "user": str(user_readable),
@@ -201,3 +208,10 @@ class AuditLogQuerierService():
         logs_to_str converts a list of logs to a list of strings
         """
         return [self.log_to_str(log, template) for log in logs]
+
+
+def new_audit_logger() -> api.AuditLog:
+    """
+    NewLog creates a new audit log
+    """
+    return _AuditLogService()
