@@ -7,7 +7,6 @@ from apps.audit_logs import api, models, services
 from apps.core.models import User
 
 
-# Create your tests here.
 
 
 class AuditLogServiceTest(TestCase):
