@@ -26,7 +26,7 @@ from apps.graphql.exceptions import (
     GraphQLNotAllowedException,
     GraphQLValidationException,
 )
-from terraso_backend.apps.graphql.exceptions import GraphQLNotFoundException
+from apps.graphql.exceptions import GraphQLNotFoundException
 
 from .constants import MutationTypes
 
