@@ -158,6 +158,7 @@ type MembershipNode implements Node {
   id: ID!
 }
 
+"""An enumeration."""
 enum CoreMembershipUserRoleChoices {
   """Manager"""
   MANAGER
@@ -166,6 +167,7 @@ enum CoreMembershipUserRoleChoices {
   MEMBER
 }
 
+"""An enumeration."""
 enum CoreMembershipMembershipStatusChoices {
   """Approved"""
   APPROVED
@@ -174,6 +176,7 @@ enum CoreMembershipMembershipStatusChoices {
   PENDING
 }
 
+"""An enumeration."""
 enum CoreGroupMembershipTypeChoices {
   """Open"""
   OPEN
@@ -292,6 +295,7 @@ type TaxonomyTermNode implements Node {
   id: ID!
 }
 
+"""An enumeration."""
 enum CoreTaxonomyTermTypeChoices {
   """Ecosystem Type"""
   ECOSYSTEM_TYPE
@@ -312,6 +316,7 @@ enum CoreTaxonomyTermTypeChoices {
   AGRICULTURAL_PRODUCTION_METHOD
 }
 
+"""An enumeration."""
 enum CoreLandscapePartnershipStatusChoices {
   """None"""
   A_
@@ -400,6 +405,7 @@ value as specified by
 """
 scalar DateTime
 
+"""An enumeration."""
 enum SharedDataDataEntryEntryTypeChoices {
   """File"""
   FILE
