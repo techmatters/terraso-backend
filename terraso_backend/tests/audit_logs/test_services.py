@@ -21,13 +21,6 @@ class AuditLogServiceTest(TestCase):
         action = 1
         time = datetime.datetime.now()
         metadata = [api.KeyValue(("client_time", time))]
-        a = models.Log(
-            user=user,
-            event=action,
-            resource_id=resource.id,
-            resource_content_type=ContentType.objects.get_for_model(resource),
-        )
-        a.save()
         log.log(user, action, resource, metadata)
 
         result = models.Log.objects.all()
