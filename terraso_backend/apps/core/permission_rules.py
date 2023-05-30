@@ -117,6 +117,9 @@ def allowed_to_edit_site(user, site):
 def allowed_to_add_membership(user, group):
     return group.can_join or group.is_manager(user)
 
+@rules.predicate
+def allowed_to_delete_project(user, project):
+    return project.is_manager(user)
 
 rules.add_rule("allowed_group_managers_count", allowed_group_managers_count)
 rules.add_rule("allowed_to_update_preferences", allowed_to_update_preferences)

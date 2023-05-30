@@ -22,7 +22,6 @@ from apps.project_management.models import Project
 
 from .commons import BaseDeleteMutation, BaseWriteMutation, TerrasoConnection
 
-
 class ProjectNode(DjangoObjectType):
     id = graphene.ID(source="pk", required=True)
 
@@ -67,3 +66,12 @@ class ProjectDeleteMutation(BaseDeleteMutation):
 
     class Input:
         id = graphene.ID(required=True)
+
+    @classmethod
+    def mutate_and_get_payload(cls, root, info, **kwargs):
+        project_id = kwargs['id']
+        project = self.get_or_throw('id', project_id)
+        if not user.has_perm(Project.get_perm("delete"), project):
+            self.not_allowed()
+        result = super().mutate_and_get_payload(root, info, **kwargs)
+        return result

@@ -26,6 +26,7 @@ from apps.graphql.exceptions import (
     GraphQLNotAllowedException,
     GraphQLValidationException,
 )
+from terraso_backend.apps.graphql.exceptions import GraphQLNotFoundException
 
 from .constants import MutationTypes
 
@@ -205,3 +206,21 @@ class BaseDeleteMutation(BaseAuthenticatedMutation):
 
         result_kwargs = {from_camel_to_snake_case(cls.model_class.__name__): model_instance}
         return cls(**result_kwargs)
+
+    @classmethod
+    def not_allowed(cls):
+        return super().not_allowed(cls.model_class, MutationTypes.DELETE)
+
+    @classmethod
+    def get_or_throw(cls, field_name, id_):
+        try:
+            return cls.model_class.objects.get(id=id_)
+        except cls.model_class.DoesNotExist:
+            return GraphQLNotFoundException(
+                field_name=field_name, model_name=cls.model_class.__name__
+            )
+
+
+
+
+
