@@ -12,17 +12,17 @@ from . import api, models
 TEMPLATE = "{client_time} - {user} {action} {resource}"
 
 
-class _AuditLogService():
+class _AuditLogService:
     """
     AuditLogService implements the AuditLog protocol
     """
 
     def log(
-            self,
-            user: object,
-            action: int,
-            resource: object,
-            metadata: typing.Optional[List[api.KeyValue]] = None
+        self,
+        user: object,
+        action: int,
+        resource: object,
+        metadata: typing.Optional[List[api.KeyValue]] = None,
     ) -> None:
         """
         log logs an action performed by a user on a resource
@@ -72,13 +72,12 @@ class _AuditLogService():
                 resource_id=resource_id,
                 resource_content_type=content_type,
                 resource_object=resource_obj,
-                resource_json_repr=resource_repr
-
+                resource_json_repr=resource_repr,
             )
             metadata_dict = {
                 "user": str(user_readable),
                 "resource": str(resource_human_readable),
-                "action": action
+                "action": action,
             }
 
             for key, value in metadata:
@@ -113,7 +112,7 @@ class LogData:
         return iter(self.data)
 
 
-class AuditLogQuerierService():
+class AuditLogQuerierService:
     """
     AuditLogQuerierService implements the AuditLogQuerier protocol
     """
@@ -124,25 +123,25 @@ class AuditLogQuerierService():
         self.template = template
 
     def get_logs(
-            self,
-            start: datetime = datetime.min,
-            end: datetime = datetime.max,
+        self,
+        start: datetime = datetime.min,
+        end: datetime = datetime.max,
     ) -> LogData:
         logs = models.Log.objects.filter(client_timestamp__range=(start, end))
         return LogData(logs)
 
     def get_log_by_id(
-            self,
-            log_id: str,
+        self,
+        log_id: str,
     ) -> LogData:
         result = models.Log.objects.filter(id=log_id)
         return LogData(result)
 
     def get_log_by_key_value(
-            self,
-            values: List[api.KeyValue],
-            start: datetime = datetime.min,
-            end: datetime = datetime.max,
+        self,
+        values: List[api.KeyValue],
+        start: datetime = datetime.min,
+        end: datetime = datetime.max,
     ) -> LogData:
         """
         get_log_by_key_value gets all logs between start and end
@@ -163,37 +162,34 @@ class AuditLogQuerierService():
         return LogData(logs)
 
     def get_log_by_user(
-            self,
-            user_id: str,
-            start: datetime = datetime.min,
-            end: datetime = datetime.max,
+        self,
+        user_id: str,
+        start: datetime = datetime.min,
+        end: datetime = datetime.max,
     ) -> LogData:
         """
         get_log_by_user gets all logs between start and end
         """
-        return self.get_log_by_key_value([api.KeyValue(('user_id', user_id))], start, end)
+        return self.get_log_by_key_value([api.KeyValue(("user_id", user_id))], start, end)
 
     def get_log_by_action(
-            self,
-            action: str,
-            start: datetime = datetime.min,
-            end: datetime = datetime.max,
+        self,
+        action: str,
+        start: datetime = datetime.min,
+        end: datetime = datetime.max,
     ) -> LogData:
         """
         get_log_by_action gets all logs between start and end
         """
-        return self.get_log_by_key_value([api.KeyValue(('action', action))], start, end)
+        return self.get_log_by_key_value([api.KeyValue(("action", action))], start, end)
 
     def get_log_by_resource(
-            self,
-            resource_id: str,
-            start: datetime = datetime.min,
-            end: datetime = datetime.max
+        self, resource_id: str, start: datetime = datetime.min, end: datetime = datetime.max
     ) -> LogData:
         """
         get_log_by_resource gets all logs between start and end
         """
-        return self.get_log_by_key_value([api.KeyValue(('resource', resource_id))], start, end)
+        return self.get_log_by_key_value([api.KeyValue(("resource", resource_id))], start, end)
 
     def log_to_str(self, log: models.Log, template: Optional[str] = None) -> str:
         """

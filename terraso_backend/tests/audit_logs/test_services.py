@@ -6,7 +6,6 @@ from django.test import TestCase
 from apps.audit_logs import api, models, services
 from apps.core.models import User
 
-
 # Create your tests here.
 
 
@@ -79,17 +78,13 @@ class AuditLogModelTest(TestCase):
         resource.save()
         action = 1
         content_type = ContentType.objects.get_for_model(resource)
-        metadata_dict = {
-            "user": user.email,
-            "resource": resource.email,
-            "action": action
-        }
+        metadata_dict = {"user": user.email, "resource": resource.email, "action": action}
         log = models.Log(
             user=user,
             event=action,
             resource_id=str(resource.id),
             resource_content_type=content_type,
-            metadata=metadata_dict
+            metadata=metadata_dict,
         )
         result = log.get_string("User {user} {action} {resource}")
         assert result == "User a@a.com 1 b@b.com"

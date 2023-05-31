@@ -1,18 +1,19 @@
 import graphene
-from graphene_django import DjangoObjectType
-from graphene import relay
 from django_filters import FilterSet, OrderingFilter
-from graphene.types.generic import GenericScalar # Solution
-
-from .commons import TerrasoConnection
+from graphene import relay
+from graphene.types.generic import GenericScalar  # Solution
+from graphene_django import DjangoObjectType
 
 from apps.audit_logs import models
+
+from .commons import TerrasoConnection
 
 
 class AuditLogNode(DjangoObjectType):
     """
     AuditLogNode is a node that represents an audit log
     """
+
     id = graphene.ID(source="pk", required=True)
     metadata = GenericScalar()
     resource_json_repr = GenericScalar()
@@ -27,7 +28,7 @@ class AuditLogNode(DjangoObjectType):
             "event",
             "resource_id",
             "resource_content_type",
-            "metadata"
+            "metadata",
         )
 
         interfaces = (relay.Node,)
@@ -42,6 +43,7 @@ class AuditLogFilter(FilterSet):
     """
     LogFilter is a filter that filters logs and orders them by client_timestamp
     """
+
     class Meta:
         model = models.Log
         fields = [
@@ -50,11 +52,7 @@ class AuditLogFilter(FilterSet):
             "event",
             "resource_id",
             "resource_content_type__model",
-            "resource_content_type"
+            "resource_content_type",
         ]
 
-    order_by = OrderingFilter(
-        fields=(
-            ("client_timestamp", "client_timestamp"),
-        )
-    )
+    order_by = OrderingFilter(fields=(("client_timestamp", "client_timestamp"),))

@@ -1,14 +1,11 @@
-
 import pytest
 
-from apps.audit_logs import services, api
+from apps.audit_logs import api, services
 
 pytestmark = pytest.mark.django_db
 
 
-
 def test_audit_log_query(client_query, audit_log_user, audit_log_site_resource):
-
     logger = services.new_audit_logger()
     logger.log(user=audit_log_user, action=api.CREATE, resource=audit_log_site_resource)
     response = client_query(
@@ -89,5 +86,3 @@ def test_audit_log_query(client_query, audit_log_user, audit_log_site_resource):
     edges = response.json()["data"]["auditLogs"]["edges"]
     assert len(edges) == 2
     assert edges[0]["node"]["event"] == "A_3"
-
-
