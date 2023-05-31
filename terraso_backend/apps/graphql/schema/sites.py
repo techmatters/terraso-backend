@@ -12,8 +12,8 @@
 #
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see https://www.gnu.org/licenses/.
-import graphene
 import django_filters
+import graphene
 from graphene import relay
 from graphene_django import DjangoObjectType
 

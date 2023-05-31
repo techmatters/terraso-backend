@@ -12,8 +12,8 @@
 #
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see https://www.gnu.org/licenses/.
-from django.db import models
 from django.conf import settings
+from django.db import models
 
 from apps.core import permission_rules
 from apps.core.models.commons import SlugModel
