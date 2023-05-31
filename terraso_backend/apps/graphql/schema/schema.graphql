@@ -54,6 +54,22 @@ type Query {
     id: ID!
   ): StoryMapNode
   storyMaps(offset: Int, before: String, after: String, first: Int, last: Int, slug: String, storyMapId: String, createdBy_Email: String, createdBy_Email_Not: String): StoryMapNodeConnection
+  auditLogs(
+    offset: Int
+    before: String
+    after: String
+    first: Int
+    last: Int
+    clientTimestamp: DateTime
+    user_Id: ID
+    event: AuditLogsLogEventChoices
+    resourceId: UUID
+    resourceContentType_Model: String
+    resourceContentType: ID
+
+    """Ordering"""
+    orderBy: String
+  ): AuditLogNodeConnection
 }
 
 type GroupNode implements Node {
@@ -535,6 +551,64 @@ type StoryMapNodeEdge {
   cursor: String!
 }
 
+type AuditLogNodeConnection {
+  """Pagination data for this connection."""
+  pageInfo: PageInfo!
+
+  """Contains the nodes in this connection."""
+  edges: [AuditLogNodeEdge!]!
+  totalCount: Int!
+}
+
+"""A Relay edge containing a `AuditLogNode` and its cursor."""
+type AuditLogNodeEdge {
+  """The item at the end of the edge"""
+  node: AuditLogNode!
+
+  """A cursor for use in pagination"""
+  cursor: String!
+}
+
+"""AuditLogNode is a node that represents an audit log"""
+type AuditLogNode implements Node {
+  clientTimestamp: DateTime!
+  user: UserNode!
+  event: AuditLogsLogEventChoices!
+  resourceId: UUID!
+  resourceContentType: String
+  metadata: GenericScalar
+  id: ID!
+  resourceJsonRepr: GenericScalar
+}
+
+"""An enumeration."""
+enum AuditLogsLogEventChoices {
+  """CREATE"""
+  A_1
+
+  """READ"""
+  A_2
+
+  """CHANGE"""
+  A_3
+
+  """DELETE"""
+  A_4
+}
+
+"""
+Leverages the internal Python implementation of UUID (uuid.UUID) to provide native UUID objects
+in fields, resolvers and input.
+"""
+scalar UUID
+
+"""
+The `GenericScalar` scalar type represents a generic
+GraphQL scalar value that could be:
+String, Boolean, Int, Float, List or Object.
+"""
+scalar GenericScalar
+
 type Mutations {
   addGroup(input: GroupAddMutationInput!): GroupAddMutationPayload!
   addLandscape(input: LandscapeAddMutationInput!): LandscapeAddMutationPayload!
@@ -572,13 +646,6 @@ type GroupAddMutationPayload {
   group: GroupNode
   clientMutationId: String
 }
-
-"""
-The `GenericScalar` scalar type represents a generic
-GraphQL scalar value that could be:
-String, Boolean, Int, Float, List or Object.
-"""
-scalar GenericScalar
 
 input GroupAddMutationInput {
   name: String!
