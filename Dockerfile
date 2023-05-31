@@ -6,6 +6,8 @@ ENV PATH /home/terraso/.local/bin:$PATH
 # see https://github.com/aws/aws-cli/tags for list of versions
 ENV AWS_CLI_VERSION 2.8.12
 
+ENV DOCKER_BUILDKIT 1
+
 RUN --mount=target=/var/lib/apt/lists,type=cache,sharing=locked \
     --mount=target=/var/cache/apt,type=cache,sharing=locked \
     apt-get update && \
