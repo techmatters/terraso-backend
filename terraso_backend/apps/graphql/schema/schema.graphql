@@ -62,7 +62,7 @@ type Query {
     last: Int
     name: String
     createdBy: ID
-    project: ID
+    project_Id: ID
 
     """Ordering"""
     orderBy: String
