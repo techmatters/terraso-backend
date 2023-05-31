@@ -14,7 +14,6 @@
 # along with this program. If not, see https://www.gnu.org/licenses/.
 from django.conf import settings
 from django.db import models
-from django.conf import settings
 
 from apps.core import permission_rules
 from apps.core.models.commons import SlugModel

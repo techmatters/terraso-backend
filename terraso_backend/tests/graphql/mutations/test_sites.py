@@ -100,5 +100,3 @@ def test_adding_site_to_project_user_not_manager(client, project, site, user):
 
     content = json.loads(response.content)
     assert "errors" in content
-
-
