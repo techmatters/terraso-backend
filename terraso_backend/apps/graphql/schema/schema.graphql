@@ -54,6 +54,19 @@ type Query {
     id: ID!
   ): StoryMapNode
   storyMaps(offset: Int, before: String, after: String, first: Int, last: Int, slug: String, storyMapId: String, createdBy_Email: String, createdBy_Email_Not: String): StoryMapNodeConnection
+  sites(
+    offset: Int
+    before: String
+    after: String
+    first: Int
+    last: Int
+    name: String
+    createdBy: ID
+    project: ID
+
+    """Ordering"""
+    orderBy: String
+  ): SiteNodeConnection
 }
 
 type GroupNode implements Node {
@@ -535,6 +548,37 @@ type StoryMapNodeEdge {
   cursor: String!
 }
 
+type SiteNodeConnection {
+  """Pagination data for this connection."""
+  pageInfo: PageInfo!
+
+  """Contains the nodes in this connection."""
+  edges: [SiteNodeEdge!]!
+  totalCount: Int!
+}
+
+"""A Relay edge containing a `SiteNode` and its cursor."""
+type SiteNodeEdge {
+  """The item at the end of the edge"""
+  node: SiteNode!
+
+  """A cursor for use in pagination"""
+  cursor: String!
+}
+
+type SiteNode implements Node {
+  name: String!
+  latitude: Float!
+  longitude: Float!
+  project: ProjectNode
+  id: ID!
+}
+
+type ProjectNode implements Node {
+  name: String!
+  id: ID!
+}
+
 type Mutations {
   addGroup(input: GroupAddMutationInput!): GroupAddMutationPayload!
   addLandscape(input: LandscapeAddMutationInput!): LandscapeAddMutationPayload!
@@ -926,23 +970,11 @@ type SiteAddMutationPayload {
   clientMutationId: String
 }
 
-type SiteNode implements Node {
-  name: String!
-  latitude: Float!
-  longitude: Float!
-  project: ProjectNode
-  id: ID!
-}
-
-type ProjectNode implements Node {
-  name: String!
-  id: ID!
-}
-
 input SiteAddMutationInput {
   name: String!
   latitude: Float!
   longitude: Float!
+  projectId: ID
   clientMutationId: String
 }
 
