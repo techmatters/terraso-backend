@@ -332,13 +332,13 @@ enum CoreLandscapePartnershipStatusChoices {
   """partnership_status.none"""
   A_
 
-  """No"""
+  """partnership_status.no"""
   NO
 
-  """In Progress"""
+  """partnership_status.in_progress"""
   IN_PROGRESS
 
-  """Yes"""
+  """partnership_status.yes"""
   YES
 }
 
