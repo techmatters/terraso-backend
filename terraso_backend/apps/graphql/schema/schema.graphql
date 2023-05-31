@@ -943,6 +943,7 @@ input SiteAddMutationInput {
   name: String!
   latitude: Float!
   longitude: Float!
+  projectId: ID
   clientMutationId: String
 }
 

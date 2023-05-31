@@ -24,12 +24,7 @@ from apps.project_management.models import Project, Site
 pytestmark = pytest.mark.django_db
 
 
-def test_site_creation(client_query, user):
-    lat = 0
-    lon = 0
-    site_name = "Test Site"
-    response = client_query(
-        """
+CREATE_SITE_QUERY = """
     mutation createSite($input: SiteAddMutationInput!) {
         addSite(input: $input) {
            site {
@@ -37,8 +32,18 @@ def test_site_creation(client_query, user):
            }
         }
     }
-""",
-        variables={"input": {"latitude": lat, "longitude": lon, "name": site_name}},
+"""
+
+
+def site_creation_keywords():
+    return {"latitude": 0, "longitude": 0, "name": "Test Site"}
+
+
+def test_site_creation(client_query, user):
+    kwargs = site_creation_keywords()
+    response = client_query(
+        CREATE_SITE_QUERY,
+        variables={"input": kwargs},
     )
     content = json.loads(response.content)
     assert "errors" not in content
@@ -47,9 +52,21 @@ def test_site_creation(client_query, user):
     assert str(site.id) == id
     assert site.latitude == pytest.approx(site.latitude)
     assert site.longitude == pytest.approx(site.longitude)
+    assert site.owner == user
 
 
-ADD_CLIENT_QUERY = """
+def test_site_creation_in_project(client_query, user, project):
+    kwargs = site_creation_keywords()
+    kwargs["projectId"] = str(project.id)
+    response = client_query(CREATE_SITE_QUERY, variables={"input": kwargs})
+    content = json.loads(response.content)
+    assert "errors" not in content and "errors" not in content["data"]
+    id = content["data"]["addSite"]["site"]["id"]
+    site = Site.objects.get(pk=id)
+    assert site.project == project
+
+
+EDIT_SITE_QUERY = """
     mutation siteEditMutation($input: SiteEditMutationInput!) {
         editSite(input: $input) {
             site {
@@ -66,12 +83,11 @@ ADD_CLIENT_QUERY = """
 def test_adding_site_to_project(client, project, project_manager, site):
     original_project = mixer.blend(Project)
     original_project.add_manager(project_manager)
-    site.project = original_project
-    site.save()
+    site.add_to_project(project)
 
     client.force_login(project_manager)
     response = graphql_query(
-        ADD_CLIENT_QUERY,
+        EDIT_SITE_QUERY,
         variables={"input": {"id": str(site.id), "projectId": str(project.id)}},
         client=client,
     )
@@ -92,10 +108,29 @@ def test_adding_site_to_project_user_not_manager(client, project, site, user):
     project.add_member(user)
     client.force_login(site_creator)
     response = graphql_query(
-        ADD_CLIENT_QUERY,
+        EDIT_SITE_QUERY,
         variables={"input": {"id": str(site.id), "projectId": str(project.id)}},
         client=client,
     )
 
     content = json.loads(response.content)
     assert "errors" in content
+
+
+def test_adding_site_owned_by_user_to_project(client, project, site, project_manager):
+    site.add_owner(project_manager)
+    client.force_login(project_manager)
+    response = graphql_query(
+        EDIT_SITE_QUERY,
+        variables={"input": {"id": str(site.id), "projectId": str(project.id)}},
+        client=client,
+    )
+    content = json.loads(response.content)
+    assert "errors" not in content and "errors" not in content["data"]
+    payload = content["data"]["editSite"]["site"]
+    site_id = payload["id"]
+    project_id = payload["project"]["id"]
+    assert site_id == str(site.id)
+    assert project_id == str(project.id)
+    site.refresh_from_db()
+    assert site.owned_by(project)

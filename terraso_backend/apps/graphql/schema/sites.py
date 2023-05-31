@@ -44,6 +44,17 @@ class SiteAddMutation(BaseWriteMutation):
         name = graphene.String(required=True)
         latitude = graphene.Float(required=True)
         longitude = graphene.Float(required=True)
+        project_id = graphene.ID()
+
+    @classmethod
+    def mutate_and_get_payload(cls, root, info, **kwargs):
+        adding_to_project = "project_id" in kwargs
+        if adding_to_project:
+            project = cls.get_or_throw(Project, "project_id", kwargs["project_id"])
+            kwargs["project"] = project
+        else:
+            kwargs["owner"] = info.context.user
+        return super().mutate_and_get_payload(root, info, **kwargs)
 
 
 class SiteEditMutation(BaseWriteMutation):
@@ -61,13 +72,17 @@ class SiteEditMutation(BaseWriteMutation):
 
     @classmethod
     def mutate_and_get_payload(cls, root, info, **kwargs):
-        if "project_id" in kwargs:
-            user = info.context.user
-            site = Site.objects.get(id=kwargs["id"])
-            project = Project.objects.get(id=kwargs.pop("project_id"))
-            if not user.has_perm(Site.get_perm("change"), site) or not user.has_perm(
-                Project.get_perm("change"), project
-            ):
-                cls.not_allowed(MutationTypes.UPDATE)
-            kwargs["project"] = project
-        return super().mutate_and_get_payload(root, info, **kwargs)
+        user = info.context.user
+        site = cls.get_or_throw(Site, "id", kwargs["id"])
+        if not user.has_perm(Site.get_perm("change"), site):
+            raise cls.not_allowed(MutationTypes.UPDATE)
+        project_id = kwargs.pop("project_id", False)
+        result = super().mutate_and_get_payload(root, info, **kwargs)
+        if not project_id:
+            return result
+        site = result.site
+        project = Project.objects.get(id=project_id)
+        if not user.has_perm(Project.get_perm("change"), project):
+            raise cls.not_allowed(MutationTypes.UPDATE)
+        site.add_to_project(project)
+        return result
