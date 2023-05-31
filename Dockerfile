@@ -18,10 +18,13 @@ RUN apt-get update && \
 
 WORKDIR /app
 
-COPY --chown=terraso:terraso . /app
+COPY --chown=terraso:terraso requirements.txt /app
+COPY --chown=terraso:terraso Makefile /app
 
 USER terraso
 
 RUN pip install --upgrade pip && make install
+
+COPY --chown=terraso:terraso . /app
 
 RUN django-admin compilemessages --locale=es --locale=en

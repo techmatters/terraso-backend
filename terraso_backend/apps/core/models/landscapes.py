@@ -16,7 +16,6 @@
 import structlog
 from dirtyfields import DirtyFieldsMixin
 from django.db import models, transaction
-from django.utils.translation import gettext_lazy as _
 
 from apps.core import permission_rules as perm_rules
 from apps.core.gis.utils import (
@@ -65,7 +64,7 @@ class Landscape(SlugModel, DirtyFieldsMixin):
     groups = models.ManyToManyField(Group, through="LandscapeGroup")
 
     area_types = models.JSONField(blank=True, null=True)
-    taxonomy_terms = models.ManyToManyField(TaxonomyTerm)
+    taxonomy_terms = models.ManyToManyField(TaxonomyTerm, blank=True)
     population = models.IntegerField(blank=True, null=True)
 
     PARTNERSHIP_STATUS_NONE = ""
@@ -74,10 +73,10 @@ class Landscape(SlugModel, DirtyFieldsMixin):
     PARTNERSHIP_STATUS_YES = "yes"
 
     MEMBERSHIP_TYPES = (
-        (PARTNERSHIP_STATUS_NONE, _("partnership_status.none")),
-        (PARTNERSHIP_STATUS_NO, _("partnership_status.no")),
-        (PARTNERSHIP_STATUS_IN_PROGRESS, _("partnership_status.in_progress")),
-        (PARTNERSHIP_STATUS_YES, _("partnership_status.yes")),
+        (PARTNERSHIP_STATUS_NONE, "None"),
+        (PARTNERSHIP_STATUS_NO, "No"),
+        (PARTNERSHIP_STATUS_IN_PROGRESS, "In Progress"),
+        (PARTNERSHIP_STATUS_YES, "Yes"),
     )
     partnership_status = models.CharField(
         max_length=32, choices=MEMBERSHIP_TYPES, blank=True, default=PARTNERSHIP_STATUS_NONE
