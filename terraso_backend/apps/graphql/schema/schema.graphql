@@ -54,6 +54,19 @@ type Query {
     id: ID!
   ): StoryMapNode
   storyMaps(offset: Int, before: String, after: String, first: Int, last: Int, slug: String, storyMapId: String, createdBy_Email: String, createdBy_Email_Not: String): StoryMapNodeConnection
+  sites(
+    offset: Int
+    before: String
+    after: String
+    first: Int
+    last: Int
+    name: String
+    createdBy: ID
+    project: ID
+
+    """Ordering"""
+    orderBy: String
+  ): SiteNodeConnection
 }
 
 type GroupNode implements Node {
@@ -158,6 +171,7 @@ type MembershipNode implements Node {
   id: ID!
 }
 
+"""An enumeration."""
 enum CoreMembershipUserRoleChoices {
   """Manager"""
   MANAGER
@@ -166,6 +180,7 @@ enum CoreMembershipUserRoleChoices {
   MEMBER
 }
 
+"""An enumeration."""
 enum CoreMembershipMembershipStatusChoices {
   """Approved"""
   APPROVED
@@ -174,6 +189,7 @@ enum CoreMembershipMembershipStatusChoices {
   PENDING
 }
 
+"""An enumeration."""
 enum CoreGroupMembershipTypeChoices {
   """Open"""
   OPEN
@@ -292,6 +308,7 @@ type TaxonomyTermNode implements Node {
   id: ID!
 }
 
+"""An enumeration."""
 enum CoreTaxonomyTermTypeChoices {
   """Ecosystem Type"""
   ECOSYSTEM_TYPE
@@ -312,17 +329,18 @@ enum CoreTaxonomyTermTypeChoices {
   AGRICULTURAL_PRODUCTION_METHOD
 }
 
+"""An enumeration."""
 enum CoreLandscapePartnershipStatusChoices {
-  """partnership_status.none"""
+  """None"""
   A_
 
-  """partnership_status.no"""
+  """No"""
   NO
 
-  """partnership_status.in_progress"""
+  """In Progress"""
   IN_PROGRESS
 
-  """partnership_status.yes"""
+  """Yes"""
   YES
 }
 
@@ -400,6 +418,7 @@ value as specified by
 """
 scalar DateTime
 
+"""An enumeration."""
 enum SharedDataDataEntryEntryTypeChoices {
   """File"""
   FILE
@@ -527,6 +546,37 @@ type StoryMapNodeEdge {
 
   """A cursor for use in pagination"""
   cursor: String!
+}
+
+type SiteNodeConnection {
+  """Pagination data for this connection."""
+  pageInfo: PageInfo!
+
+  """Contains the nodes in this connection."""
+  edges: [SiteNodeEdge!]!
+  totalCount: Int!
+}
+
+"""A Relay edge containing a `SiteNode` and its cursor."""
+type SiteNodeEdge {
+  """The item at the end of the edge"""
+  node: SiteNode!
+
+  """A cursor for use in pagination"""
+  cursor: String!
+}
+
+type SiteNode implements Node {
+  name: String!
+  latitude: Float!
+  longitude: Float!
+  project: ProjectNode
+  id: ID!
+}
+
+type ProjectNode implements Node {
+  name: String!
+  id: ID!
 }
 
 type Mutations {
@@ -920,23 +970,11 @@ type SiteAddMutationPayload {
   clientMutationId: String
 }
 
-type SiteNode implements Node {
-  name: String!
-  latitude: Float!
-  longitude: Float!
-  project: ProjectNode
-  id: ID!
-}
-
-type ProjectNode implements Node {
-  name: String!
-  id: ID!
-}
-
 input SiteAddMutationInput {
   name: String!
   latitude: Float!
   longitude: Float!
+  projectId: ID
   clientMutationId: String
 }
 

@@ -1,0 +1,2 @@
+OAUTH_COOKIE_NAME = "oauth"
+OAUTH_COOKIE_MAX_AGE_SECONDS = 300  # 5 minutes
