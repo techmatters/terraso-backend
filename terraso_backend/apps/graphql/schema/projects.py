@@ -19,6 +19,7 @@ from graphene import relay
 from graphene_django import DjangoObjectType
 
 from apps.project_management.models import Project
+from apps.audit_logs import api as log_api, services as log_services
 
 from .commons import BaseWriteMutation, TerrasoConnection
 
@@ -52,10 +53,19 @@ class ProjectAddMutation(BaseWriteMutation):
 
     @classmethod
     def mutate_and_get_payload(cls, root, info, **kwargs):
+        logger = log_services.new_audit_logger()
+        user = info.context.user
         with transaction.atomic():
             group = Project.create_default_group(name=kwargs["name"])
             kwargs["group"] = group
             kwargs["privacy"] = kwargs["privacy"].value
             result = super().mutate_and_get_payload(root, info, **kwargs)
-            result.project.add_manager(info.context.user)
+            result.project.add_manager(user)
+        metadata = []
+        if kwargs.get("client_timestamp"):
+            metadata.append(log_api.KeyValue(("client_timestamp", kwargs["client_timestamp"])))
+        action = log_api.CREATE
+        if cls.is_update(kwargs):
+            action = log_api.CHANGE
+        logger.log(user=user, action=action, resource=result.project, metadata=metadata)
         return result
