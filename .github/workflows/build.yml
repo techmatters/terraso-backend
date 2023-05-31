@@ -28,6 +28,8 @@ jobs:
           pip install -r requirements-dev.txt
 
       - name: Build base Docker image
+        env:
+          DOCKER_BUILDKIT: 1
         run: |
           cp .env.sample .env
           make build DC_ENV=ci
