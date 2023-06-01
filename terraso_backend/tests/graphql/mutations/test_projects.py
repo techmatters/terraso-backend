@@ -54,3 +54,22 @@ def test_add_user_to_project(client, project, project_manager, user):
     content = json.loads(response.content)
     assert "errors" not in content and "errors" not in content["data"]["addMembership"]
     assert project.is_member(user)
+
+DELETE_PROJECT_GRAPHQL = """
+    mutation($input: ProjectDeleteMutationInput!) {
+    deleteProject(input: $input) {
+        project{
+        id,
+        name
+        }
+    }
+    }
+"""
+
+def test_delete_project(project, client, project_manager):
+    input = {'id' : str(project.id)}
+    client.force_login(project_manager)
+    response = graphql_query(DELETE_PROJECT_GRAPHQL, input_data = input, client = client)
+    content = json.loads(response.content)
+    assert "errors" not in content and "errors" not in content["data"]["deleteProject"]
+    assert not Project.objects.filter(id = project.id).exists()

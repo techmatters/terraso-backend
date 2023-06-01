@@ -69,9 +69,10 @@ class ProjectDeleteMutation(BaseDeleteMutation):
 
     @classmethod
     def mutate_and_get_payload(cls, root, info, **kwargs):
+        user = info.context.user
         project_id = kwargs['id']
-        project = self.get_or_throw('id', project_id)
+        project = cls.get_or_throw('id', project_id)
         if not user.has_perm(Project.get_perm("delete"), project):
-            self.not_allowed()
+            cls.not_allowed()
         result = super().mutate_and_get_payload(root, info, **kwargs)
         return result
