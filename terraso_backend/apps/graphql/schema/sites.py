@@ -48,9 +48,12 @@ class SiteAddMutation(BaseWriteMutation):
 
     @classmethod
     def mutate_and_get_payload(cls, root, info, **kwargs):
+        user = info.context.user
         adding_to_project = "project_id" in kwargs
         if adding_to_project:
             project = cls.get_or_throw(Project, "project_id", kwargs["project_id"])
+            if not user.has_perm(Project.get_perm("add_site"), project):
+                raise cls.not_allowed(MutationTypes.ADD)
             kwargs["project"] = project
         else:
             kwargs["owner"] = info.context.user
@@ -82,7 +85,7 @@ class SiteEditMutation(BaseWriteMutation):
             return result
         site = result.site
         project = Project.objects.get(id=project_id)
-        if not user.has_perm(Project.get_perm("change"), project):
+        if not user.has_perm(Project.get_perm("add_site"), project):
             raise cls.not_allowed(MutationTypes.UPDATE)
         site.add_to_project(project)
         return result
