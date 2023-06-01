@@ -26,7 +26,7 @@ def test_add_data_entry(client_query, managed_groups):
     data = {
         "name": "Name",
         "description": "Description",
-        "url": "https://url.url",
+        "url": "https://example.com",
         "entryType": "link",
         "resourceType": "link",
         "groupSlug": group.slug,
