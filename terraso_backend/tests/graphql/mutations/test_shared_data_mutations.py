@@ -21,6 +21,37 @@ from apps.shared_data.models import DataEntry
 pytestmark = pytest.mark.django_db
 
 
+def test_add_data_entry(client_query, managed_groups):
+    group = managed_groups[0]
+    data = {
+        "name": "Name",
+        "description": "Description",
+        "url": "https://url.url",
+        "entryType": "link",
+        "resourceType": "link",
+        "groupSlug": group.slug,
+    }
+    response = client_query(
+        """
+        mutation addDataEntry($input: DataEntryAddMutationInput!) {
+          addDataEntry(input: $input) {
+            dataEntry {
+              id
+              name
+              url
+            }
+            errors
+          }
+        }
+        """,
+        variables={"input": data},
+    )
+    result = response.json()["data"]["addDataEntry"]
+    assert result["errors"] is None
+    assert result["dataEntry"]["name"] == data["name"]
+    assert result["dataEntry"]["url"] == data["url"]
+
+
 def test_data_entry_update_by_creator_works(client_query, data_entries):
     # The data entries' owner is the same user on client query
     old_data_entry = data_entries[0]
