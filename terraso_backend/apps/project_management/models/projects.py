@@ -48,8 +48,15 @@ class Project(BaseModel):
     privacy = models.CharField(
         max_length=32, choices=PRIVACY_STATUS, default=DEFAULT_PRIVACY_STATUS
     )
+
+    @staticmethod
+    def default_settings():
+        settings = ProjectSettings()
+        settings.save()
+        return settings
+
     settings = models.OneToOneField(
-        ProjectSettings, on_delete=models.PROTECT, default=ProjectSettings
+        ProjectSettings, on_delete=models.PROTECT, default=default_settings
     )
 
     @staticmethod

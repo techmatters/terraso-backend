@@ -72,22 +72,6 @@ msgstr ""
 msgid "Pending"
 msgstr ""
 
-#: terraso_backend/apps/core/models/landscapes.py:77
-msgid "partnership_status.none"
-msgstr ""
-
-#: terraso_backend/apps/core/models/landscapes.py:78
-msgid "partnership_status.no"
-msgstr "No"
-
-#: terraso_backend/apps/core/models/landscapes.py:79
-msgid "partnership_status.in_progress"
-msgstr "In Progress"
-
-#: terraso_backend/apps/core/models/landscapes.py:80
-msgid "partnership_status.yes"
-msgstr "Yes"
-
 #: terraso_backend/apps/core/models/taxonomy_terms.py:32
 msgid "Ecosystem Type"
 msgstr ""

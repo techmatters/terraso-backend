@@ -55,10 +55,15 @@ def test_site_creation(client_query, user):
     assert site.owner == user
 
 
-def test_site_creation_in_project(client_query, user, project):
+def test_site_creation_in_project(client, project_manager, project):
     kwargs = site_creation_keywords()
     kwargs["projectId"] = str(project.id)
-    response = client_query(CREATE_SITE_QUERY, variables={"input": kwargs})
+    client.force_login(project_manager)
+    response = graphql_query(
+        CREATE_SITE_QUERY,
+        variables={"input": kwargs},
+        client=client,
+    )
     content = json.loads(response.content)
     assert "errors" not in content and "errors" not in content["data"]
     id = content["data"]["addSite"]["site"]["id"]
@@ -142,6 +147,7 @@ def test_user_can_add_site_to_project_if_project_setting_set(
 ):
     project.settings.member_can_add_site_to_project = allow_adding_site
     project.settings.save()
+    project.save()
     site.add_owner(project_user)
     client.force_login(project_user)
     response = graphql_query(
@@ -166,6 +172,7 @@ def test_user_can_add_new_site_to_project_if_project_setting_set(
 ):
     project.settings.member_can_add_site_to_project = allow_adding_site
     project.settings.save()
+    project.save()
     client.force_login(project_user)
     kwargs = site_creation_keywords()
     kwargs["projectId"] = str(project.id)
