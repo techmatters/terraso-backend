@@ -14,7 +14,6 @@
 # along with this program. If not, see https://www.gnu.org/licenses/.
 from typing import Union
 
-from django.conf import settings
 from django.db import models
 
 from apps.core.models import User
@@ -39,8 +38,6 @@ class Site(BaseModel):
     name = models.CharField(max_length=200)
     latitude = models.FloatField()
     longitude = models.FloatField()
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
 
     owner = models.ForeignKey(
         User,
