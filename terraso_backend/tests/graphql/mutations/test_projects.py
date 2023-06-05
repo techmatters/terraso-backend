@@ -2,8 +2,10 @@ import json
 
 import pytest
 from graphene_django.utils.testing import graphql_query
+from mixer.backend.django import mixer
 
 from apps.project_management.models import Project
+from apps.core.models.users import User
 
 pytestmark = pytest.mark.django_db
 
@@ -73,3 +75,13 @@ def test_delete_project(project, client, project_manager):
     content = json.loads(response.content)
     assert "errors" not in content and "errors" not in content["data"]["deleteProject"]
     assert not Project.objects.filter(id = project.id).exists()
+
+def test_delete_project_user_not_manager(project, client):
+    user = mixer.blend(User)
+    project.add_member(user)
+    input = {'id' : str(project.id)}
+    client.force_login(user)
+    response = graphql_query(DELETE_PROJECT_GRAPHQL, input_data = input, client = client)
+    content = json.loads(response.content)
+    assert ("errors" in content or "errors" in content["data"]["deleteProject"])
+    assert Project.objects.filter(id = project.id).exists()

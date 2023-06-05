@@ -117,11 +117,11 @@ class BaseAuthenticatedMutation(BaseMutation):
             mutation_type = mutation_type.value if mutation_type else "change"
             msg = "Tried to {mutation_type} {model_name}, but user is not allowed"
         logger.error(msg, extra=extra)
-        return GraphQLNotAllowedException(model_name, operation=mutation_type)
+        raise GraphQLNotAllowedException(model_name, operation=mutation_type)
 
     @classmethod
     def not_allowed_create(cls, model, msg=None, extra=None):
-        return cls.not_allowed(model, MutationTypes.CREATE, msg, extra)
+        raise cls.not_allowed(model, MutationTypes.CREATE, msg, extra)
 
 
 class BaseWriteMutation(BaseAuthenticatedMutation):
@@ -188,7 +188,7 @@ class BaseWriteMutation(BaseAuthenticatedMutation):
 
     @classmethod
     def not_allowed(cls, mutation_type=None):
-        return super().not_allowed(cls.model_class, mutation_type)
+        raise super().not_allowed(cls.model_class, mutation_type)
 
 
 class BaseDeleteMutation(BaseAuthenticatedMutation):
@@ -209,14 +209,14 @@ class BaseDeleteMutation(BaseAuthenticatedMutation):
 
     @classmethod
     def not_allowed(cls):
-        return super().not_allowed(cls.model_class, MutationTypes.DELETE)
+        raise super().not_allowed(cls.model_class, MutationTypes.DELETE)
 
     @classmethod
     def get_or_throw(cls, field_name, id_):
         try:
             return cls.model_class.objects.get(id=id_)
         except cls.model_class.DoesNotExist:
-            return GraphQLNotFoundException(
+            raise GraphQLNotFoundException(
                 field_name=field_name, model_name=cls.model_class.__name__
             )
 
