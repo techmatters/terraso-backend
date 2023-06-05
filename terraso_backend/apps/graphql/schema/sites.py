@@ -23,19 +23,6 @@ from .commons import BaseWriteMutation, TerrasoConnection
 from .constants import MutationTypes
 
 
-class SiteNode(DjangoObjectType):
-    id = graphene.ID(source="pk", required=True)
-
-    class Meta:
-        model = Site
-
-        filter_fields = {"name": ["icontains"]}
-        fields = ("name", "latitude", "longitude", "project")
-
-        interfaces = (relay.Node,)
-        connection_class = TerrasoConnection
-
-
 class SiteFilter(django_filters.FilterSet):
     class Meta:
         model = Site
@@ -47,6 +34,20 @@ class SiteFilter(django_filters.FilterSet):
             ("created_at", "created_at"),
         )
     )
+
+
+class SiteNode(DjangoObjectType):
+    id = graphene.ID(source="pk", required=True)
+
+    class Meta:
+        model = Site
+
+        filter_fields = {"name": ["icontains"]}
+        fields = ("name", "latitude", "longitude", "project")
+        filter_class = SiteFilter
+
+        interfaces = (relay.Node,)
+        connection_class = TerrasoConnection
 
 
 class SiteAddMutation(BaseWriteMutation):
@@ -67,7 +68,7 @@ class SiteAddMutation(BaseWriteMutation):
 
         if not cls.is_update(kwargs):
             kwargs["created_by"] = user
-            
+
         if adding_to_project:
             project = cls.get_or_throw(Project, "project_id", kwargs["project_id"])
             if not user.has_perm(Project.get_perm("add_site"), project):

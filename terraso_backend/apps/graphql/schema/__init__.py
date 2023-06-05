@@ -95,7 +95,7 @@ class Query(graphene.ObjectType):
     taxonomy_terms = DjangoFilterConnectionField(TaxonomyTermNode)
     story_map = TerrasoRelayNode.Field(StoryMapNode)
     story_maps = DjangoFilterConnectionField(StoryMapNode)
-    sites = DjangoFilterConnectionField(SiteNode, filterset_class=SiteFilter)
+    sites = DjangoFilterConnectionField(SiteNode)
 
 
 # All mutations should inherit from BaseWriteMutation or BaseDeleteMutation
