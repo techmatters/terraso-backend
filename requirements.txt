@@ -403,9 +403,9 @@ fiona==1.9.4.post1 \
     --hash=sha256:ea7c44c15b3a653452b9b3173181490b7afc5f153b0473c145c43c0fbf90448b \
     --hash=sha256:f5da66b723a876142937e683431bbaa5c3d81bb2ed3ec98941271bc99b7f8cd0
     # via geopandas
-geopandas==0.13.0 \
-    --hash=sha256:2a5d7f2dfa46c6679ca2d2358b49420be08bab31a7882b500bdb2ae8be40603a \
-    --hash=sha256:330b5a3faf8062efc6f424bf339f6e88f835b846027b48241d37da9b7c7b2485
+geopandas==0.13.1 \
+    --hash=sha256:227f0224a87d5c39a144f4beac6f6b711d47692e5a652bb9f1527b6c4c8ec2a2 \
+    --hash=sha256:5432142b2e91c4155f053b502f45b4e570db865609af271c299a0b28025438bf
     # via -r requirements/base.in
 graphene==3.2.2 \
     --hash=sha256:5b03e72770dc901f40be55784058d6bb1d952a49eb819a4a085962d5e1cf5fcf \
