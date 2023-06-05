@@ -12,19 +12,28 @@
 #
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see https://www.gnu.org/licenses/.
+from typing import Union
+
 from django.conf import settings
 from django.db import models
 
-from apps.core import permission_rules
-from apps.core.models.commons import SlugModel
+from apps.core.models import User
+from apps.core.models.commons import BaseModel
+from apps.project_management import permission_rules
 
 from .projects import Project
 
 
-class Site(SlugModel):
-    class Meta(SlugModel.Meta):
+class Site(BaseModel):
+    class Meta(BaseModel.Meta):
         abstract = False
-
+        constraints = [
+            models.CheckConstraint(
+                check=(models.Q(project__isnull=False) | models.Q(owner__isnull=False))
+                & (models.Q(project__isnull=True) | models.Q(owner__isnull=True)),
+                name="site_must_be_owned_once",
+            )
+        ]
         rules_permissions = {"change": permission_rules.allowed_to_edit_site}
 
     name = models.CharField(max_length=200)
@@ -32,8 +41,21 @@ class Site(SlugModel):
     longitude = models.FloatField()
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    owner = models.ForeignKey(
+        User,
+        null=True,
+        blank=True,
+        on_delete=models.RESTRICT,
+        verbose_name="owner to which the site belongs",
+    )
 
-    field_to_slug = "id"
+      created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        null=True,
+        blank=True,
+        on_delete=models.RESTRICT,
+        verbose_name="user who created the site",
+    )
 
     project = models.ForeignKey(
         Project,
@@ -42,10 +64,22 @@ class Site(SlugModel):
         on_delete=models.RESTRICT,
         verbose_name="project to which the site belongs",
     )
-    created_by = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        null=True,
-        blank=True,
-        on_delete=models.RESTRICT,
-        verbose_name="user who created the site",
-    )
+
+    @property
+    def owned_by_user(self):
+        return self.owner is not None
+
+    def add_to_project(self, project):
+        if self.owned_by_user:
+            self.owner = None
+        self.project = project
+        self.save()
+
+    def add_owner(self, user):
+        if not self.owned_by_user:
+            self.project = None
+        self.owner = user
+        self.save()
+
+    def owned_by(self, obj: Union[Project, User]):
+        return obj == self.owner or obj == self.project
