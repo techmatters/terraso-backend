@@ -5,6 +5,7 @@ services:
     extends:
       file: docker-compose.base.yml
       service: web
+    image: techmatters/terraso-backend:dev
     volumes:
       - .:/app:z
     depends_on:

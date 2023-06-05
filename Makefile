@@ -2,6 +2,10 @@ DC_ENV ?= dev
 DC_FILE_ARG = -f docker-compose.$(DC_ENV).yml
 DC_RUN_CMD = docker compose $(DC_FILE_ARG) run --quiet-pull --rm web
 
+IMAGE_ORG = techmatters
+IMAGE_NAME = terraso-backend
+IMAGE = $(IMAGE_ORG)/$(IMAGE_NAME)
+
 SCHEMA_BUILD_CMD = $(DC_RUN_CMD) python terraso_backend/manage.py graphql_schema --schema apps.graphql.schema.schema --out=-.graphql
 SCHEMA_BUILD_FILE = terraso_backend/apps/graphql/schema/schema.graphql
 api_schema: check_rebuild
@@ -14,13 +18,15 @@ api_docs: api_schema
 	npx spectaql --one-file --target-file=docs.html --target-dir=terraso_backend/apps/graphql/templates/ terraso_backend/apps/graphql/spectaql.yml
 
 backup: build_backup_docker_image
-	@docker run --rm --env-file --mount type=bind,source=backup/url_rewrites.conf,destination=/etc/terraso/url_rewrites.conf,readonly backup/.env techmatters/terraso_backend
+	@docker run --rm --env-file --mount type=bind,source=backup/url_rewrites.conf,destination=/etc/terraso/url_rewrites.conf,readonly backup/.env techmatters/terraso-backend
 
+# Build commands for docker images are also duplicted in ./.github/workflows/build.yml
+# any updates here will need to be duplicated there.
 build_base_image:
-	docker build --tag=techmatters/terraso_backend --file=Dockerfile .
+	docker buildx build --load -t $(IMAGE) ./
 
 build: build_base_image
-	docker compose $(DC_FILE_ARG) build
+	docker buildx build --load -t $(IMAGE):dev -f ./Dockerfile.dev ./
 
 check_rebuild:
 	./scripts/rebuild.sh
