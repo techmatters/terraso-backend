@@ -52,7 +52,7 @@ from .memberships import (
     MembershipUpdateMutation,
 )
 from .projects import ProjectAddMutation
-from .sites import SiteAddMutation, SiteEditMutation, SiteFilter, SiteNode
+from .sites import SiteAddMutation, SiteEditMutation, SiteNode
 from .story_maps import StoryMapDeleteMutation, StoryMapNode
 from .taxnomy_terms import TaxonomyTermNode
 from .users import (
