@@ -6,10 +6,6 @@ from . import models
 # KeyValue represents a key-value pair
 KeyValue = NewType("KeyValue", Tuple[str, object | str])
 
-CREATE = models.CREATE
-READ = models.READ
-CHANGE = models.CHANGE
-DELETE = models.DELETE
 
 
 class AuditLog(Protocol):
@@ -17,7 +13,7 @@ class AuditLog(Protocol):
     AuditLogProtocol is a protocol that defines the interface for the audit log
     """
 
-    def log(self, user: object, action: int, resource: object, metadata: List[KeyValue]) -> None:
+    def log(self, user: object, action: models.Events, resource: object, metadata: List[KeyValue]) -> None:
         ...
 
 

@@ -338,6 +338,6 @@ def audit_log_user():
     return mixer.blend(User)
 
 
-@pytest.fixture
-def audit_log_site_resource():
-    return mixer.blend(Site)
+# @pytest.fixture
+# def audit_log_site_resource():
+#     return mixer.blend(Site)

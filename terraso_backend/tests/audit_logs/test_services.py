@@ -7,7 +7,6 @@ from apps.audit_logs import api, models, services
 from apps.core.models import User
 
 
-
 class AuditLogServiceTest(TestCase):
     def test_create_log(self):
         log = services.new_audit_logger()
@@ -16,7 +15,7 @@ class AuditLogServiceTest(TestCase):
         resource = User(email="b@b.com")
         resource.save()
 
-        action = 1
+        action = "CREATE"
         time = datetime.datetime.now()
         metadata = [api.KeyValue(("client_time", time))]
         log.log(user, action, resource, metadata)
@@ -29,7 +28,7 @@ class AuditLogServiceTest(TestCase):
         user = object()
         resource = User(email="b@b.com")
         resource.save()
-        action = 1
+        action = "CREATE"
         time = datetime.datetime.now()
         metadata = [api.KeyValue(("client_time", time))]
         with self.assertRaises(ValueError):
@@ -41,7 +40,7 @@ class AuditLogServiceTest(TestCase):
         user.save()
         resource = User(email="b@b.com")
         resource.save()
-        action = -1
+        action = "INVALID"
         time = datetime.datetime.now()
         metadata = [api.KeyValue(("client_time", time))]
         with self.assertRaises(ValueError):
@@ -52,7 +51,7 @@ class AuditLogServiceTest(TestCase):
         user = User(email="a@a.com")
         user.save()
         resource = object()
-        action = 1
+        action = "CREATE"
         metadata = [("client_time", 1234567890)]
         with self.assertRaises(ValueError):
             log.log(user, action, resource, metadata)
@@ -65,7 +64,7 @@ class AuditLogModelTest(TestCase):
         resource = User(email="b@b.com")
         resource.save()
 
-        action = 1
+        action = "CREATE"
         log = models.Log(user=user, event=action, resource_id=resource.id)
         result = log.get_string()
         assert result == str(log)
@@ -75,7 +74,7 @@ class AuditLogModelTest(TestCase):
         user.save()
         resource = User(email="b@b.com")
         resource.save()
-        action = 1
+        action = "CREATE"
         content_type = ContentType.objects.get_for_model(resource)
         metadata_dict = {"user": user.email, "resource": resource.email, "action": action}
         log = models.Log(

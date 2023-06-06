@@ -39,12 +39,7 @@ class _AuditLogService:
         get_user_readable = getattr(user, "human_readable", None)
         user_readable = get_user_readable() if callable(get_user_readable) else user.id
 
-        valid_action = False
-        for e in models.EVENT_CHOICES:
-            if e[0] == action:
-                valid_action = True
-                break
-        if valid_action is False:
+        if not hasattr(models.Events, action):
             raise ValueError("Invalid action")
 
         resource_id = resource.id if hasattr(resource, "id") else None

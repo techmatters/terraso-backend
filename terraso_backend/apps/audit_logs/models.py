@@ -1,19 +1,19 @@
+from enum import Enum
+
 from django.conf import settings
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.db import models
-from django.utils.translation import gettext_lazy as _
 
-CREATE = 1
-READ = 2
-CHANGE = 3
-DELETE = 4
 
-EVENT_CHOICES = (
-    (CREATE, _("CREATE")),
-    (READ, _("READ")),
-    (CHANGE, _("CHANGE")),
-    (DELETE, _("DELETE")),
-)
+class Events(Enum):
+    CREATE = "CREATE"
+    READ = "READ"
+    CHANGE = "CHANGE"
+    DELETE = "DELETE"
+
+    @classmethod
+    def choices(cls):
+        return [(key.value, key.name) for key in cls]
 
 
 class Log(models.Model):
@@ -26,7 +26,7 @@ class Log(models.Model):
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL, on_delete=models.PROTECT, verbose_name="user"
     )
-    event = models.PositiveSmallIntegerField(_("event"), choices=EVENT_CHOICES)
+    event = models.CharField(max_length=10, choices=Events.choices(), default=Events.CREATE)
 
     resource_id = models.UUIDField()
     resource_content_type = models.ForeignKey(
