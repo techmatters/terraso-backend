@@ -8,6 +8,7 @@ pytestmark = pytest.mark.django_db
 
 def test_query_by_project(client_query, project, project_manager, site):
     site.project = project
+    site.owner = None
     site.save()
     site2 = Site(name=2, project=project, latitude=site.latitude, longitude=site.longitude)
     site2.save()

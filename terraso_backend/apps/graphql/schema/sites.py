@@ -42,9 +42,8 @@ class SiteNode(DjangoObjectType):
     class Meta:
         model = Site
 
-        filter_fields = {"name": ["icontains"]}
         fields = ("name", "latitude", "longitude", "project")
-        filter_class = SiteFilter
+        filterset_class = SiteFilter
 
         interfaces = (relay.Node,)
         connection_class = TerrasoConnection
