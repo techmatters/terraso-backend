@@ -1,7 +1,7 @@
 import graphene
 from django_filters import FilterSet, OrderingFilter
 from graphene import relay
-from graphene.types.generic import GenericScalar  # Solution
+from graphene.types.generic import GenericScalar
 from graphene_django import DjangoObjectType
 
 from apps.audit_logs import models
