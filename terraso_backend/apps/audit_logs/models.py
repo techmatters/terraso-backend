@@ -39,7 +39,7 @@ class Log(models.Model):
     resource_object = GenericForeignKey("resource_content_type", "resource_id")
     resource_json_repr = models.JSONField()
 
-    metadata = models.JSONField(blank=True, null=True)
+    metadata = models.JSONField(default=dict)
 
     def __str__(self):
         return str(self.client_timestamp) + " - " + str(self.metadata)
