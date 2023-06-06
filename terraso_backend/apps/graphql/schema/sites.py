@@ -26,7 +26,7 @@ from .constants import MutationTypes
 class SiteFilter(django_filters.FilterSet):
     class Meta:
         model = Site
-        fields = ["name", "created_by", "project__id"]
+        fields = ["name", "owner", "project", "project__id"]
 
     order_by = django_filters.OrderingFilter(
         fields=(
@@ -64,11 +64,10 @@ class SiteAddMutation(BaseWriteMutation):
     @classmethod
     def mutate_and_get_payload(cls, root, info, **kwargs):
         user = info.context.user
-        adding_to_project = "project_id" in kwargs
-
         if not cls.is_update(kwargs):
             kwargs["created_by"] = user
 
+        adding_to_project = "project_id" in kwargs
         if adding_to_project:
             project = cls.get_or_throw(Project, "project_id", kwargs["project_id"])
             if not user.has_perm(Project.get_perm("add_site"), project):

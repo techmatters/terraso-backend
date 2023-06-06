@@ -85,7 +85,7 @@ EDIT_SITE_QUERY = """
 """
 
 
-def test_adding_site_to_project(client, project, project_manager, site):
+def test_edit_site_in_project(client, project, project_manager, site):
     original_project = mixer.blend(Project)
     original_project.add_manager(project_manager)
     site.add_to_project(project)
