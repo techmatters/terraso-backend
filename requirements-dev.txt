@@ -8,6 +8,10 @@ anyio==3.7.0 \
     --hash=sha256:275d9973793619a5374e1c89a4f4ad3f4b0a5510a2b5b939444bee8f4c4d37ce \
     --hash=sha256:eddca883c4175f14df8aedce21054bfca3adb70ffe76a9f607aef9d7fa2ea7f0
     # via httpcore
+appnope==0.1.3 \
+    --hash=sha256:02bd91c4de869fbb1e1c50aafc4098827a7a54ab2f39d9dcba6c9547ed920e24 \
+    --hash=sha256:265a455292d0bd8a72453494fa24df5a11eb18373a60c7c0430889f22548605e
+    # via ipython
 asttokens==2.2.1 \
     --hash=sha256:4622110b2a6f30b77e1473affaa97e711bc2f07d3f10848420ff1898edbe94f3 \
     --hash=sha256:6b0ac9e93fb0335014d382b8fa9b3afa7df546984258005da0b9e7095b3deb1c
@@ -43,13 +47,13 @@ black==23.3.0 \
     --hash=sha256:ec751418022185b0c1bb7d7736e6933d40bbb14c14a0abcf9123d1b159f98dd4 \
     --hash=sha256:f0bd2f4a58d6666500542b26354978218a9babcdc972722f4bf90779524515f3
     # via -r requirements/dev.in
-boto3==1.26.142 \
-    --hash=sha256:8b8ccbb42e5c4008086a187afee98f4a10d5d985892699b9e2f1e6c5b18a7754 \
-    --hash=sha256:8f4b5c93a7f0c8e40ae1983cfbefd017bd625e554426544c78dceb4045648911
+boto3==1.26.147 \
+    --hash=sha256:45ed158defbf554d051c4f3eae9a1ca3c1039dd29a528e884f47a06ad0ac17a1 \
+    --hash=sha256:ccfbdb6e9ebdf943e222c88c9a8f161a8a607f3dbdbf3b1b0eed25c1d8cb215e
     # via moto
-botocore==1.29.146 \
-    --hash=sha256:77f7793cb36074eb84d606a23ad6e1d57c20f7a2eeab7d9136d3e63c584e0504 \
-    --hash=sha256:ac57003292f18206ee942eafc381ecd9a3420a3844d6b7e1c1b0f4b88b28263b
+botocore==1.29.147 \
+    --hash=sha256:67a7ce69fc6d44a881b01964a76edb00b4e87723a8cc596339d306d8eb321fec \
+    --hash=sha256:f7433bcce5ef7baad2fdd29f97c9fdcf8de4ec1cf577ae308901caf778ed48c2
     # via
     #   boto3
     #   moto
@@ -297,10 +301,6 @@ decorator==5.1.1 \
     # via
     #   ipdb
     #   ipython
-exceptiongroup==1.1.1 \
-    --hash=sha256:232c37c63e4f682982c8b6459f33a8981039e5fb8756b2074364e5055c498c9e \
-    --hash=sha256:d484c3090ba2889ae2928419117447a14daf3c1231d5e30d0aae34f354f01785
-    # via pytest
 executing==1.2.0 \
     --hash=sha256:0314a69e37426e3608aada02473b4161d4caf5a4b244d1d0c48072b8fee7bacc \
     --hash=sha256:19da64c18d2d851112f09c287f8d3dbbdf725ab0e569077efb6cdcbd3497c107
@@ -598,14 +598,6 @@ stack-data==0.6.2 \
     --hash=sha256:32d2dd0376772d01b6cb9fc996f3c8b57a357089dec328ed4b6553d037eaf815 \
     --hash=sha256:cbb2a53eb64e5785878201a97ed7c7b94883f48b87bfb0bbe8b623c74679e4a8
     # via ipython
-tomli==2.0.1 \
-    --hash=sha256:939de3e7a6161af0c887ef91b7d41a53e7c5a1ca976325f429cb46ea9bc30ecc \
-    --hash=sha256:de526c12914f0c550d15924c62d72abc48d6fe7364aa87328337a31007fe8a4f
-    # via
-    #   black
-    #   coverage
-    #   ipdb
-    #   pytest
 traitlets==5.9.0 \
     --hash=sha256:9e6ec080259b9a5940c797d58b613b5e31441c2257b87c2e795c5228ae80d2d8 \
     --hash=sha256:f6cde21a9c68cf756af02035f72d5a723bf607e862e7be33ece505abf4a3bad9
@@ -616,9 +608,9 @@ types-pyyaml==6.0.12.10 \
     --hash=sha256:662fa444963eff9b68120d70cda1af5a5f2aa57900003c2006d7626450eaae5f \
     --hash=sha256:ebab3d0700b946553724ae6ca636ea932c1b0868701d4af121630e78d695fc97
     # via responses
-urllib3==1.26.15 \
-    --hash=sha256:8a388717b9476f934a21484e8c8e61875ab60644d29b9b39e11e4b9dc1c6b305 \
-    --hash=sha256:aa751d169e23c7479ce47a0cb0da579e3ede798f994f5816a74e4f4500dcea42
+urllib3==1.26.16 \
+    --hash=sha256:8d36afa7616d8ab714608411b4a3b13e58f463aee519024578e062e141dce20f \
+    --hash=sha256:8f135f6502756bde6b2a9b28989df5fbe87c9970cecaa69041edcce7f0589b14
     # via
     #   botocore
     #   requests
