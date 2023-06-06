@@ -16,6 +16,9 @@ email_preview
 # VS Code
 .vscode
 
+# PyCharm
+.idea
+
 # Distribution / packaging
 .Python
 build/
