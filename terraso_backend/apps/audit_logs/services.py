@@ -73,17 +73,13 @@ class _AuditLogService:
                 resource_content_type=content_type,
                 resource_object=resource_obj,
                 resource_json_repr=resource_repr,
+                resource_human_readable=str(resource_human_readable),
+                user_human_readable=str(user_readable),
             )
-
-            metadata["user"] = str(user_readable)
-            metadata["resource"] = str(resource_human_readable)
-            metadata["action"] = action.value
 
             if client_time is None:
                 client_time = datetime.now()
-
             log.client_timestamp = client_time
-            metadata["client_time"] = str(log.client_timestamp)
 
             log.metadata = metadata
             log.save()

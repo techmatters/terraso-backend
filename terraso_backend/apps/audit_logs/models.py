@@ -27,6 +27,7 @@ class Log(models.Model):
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL, on_delete=models.PROTECT, verbose_name="user"
     )
+    user_human_readable = models.CharField(max_length=255)
     event = models.CharField(max_length=50, choices=Events.choices(), default=Events.CREATE)
 
     resource_id = models.UUIDField()
@@ -39,6 +40,7 @@ class Log(models.Model):
     )
     resource_object = GenericForeignKey("resource_content_type", "resource_id")
     resource_json_repr = models.JSONField()
+    resource_human_readable = models.CharField(max_length=255)
 
     metadata = models.JSONField(default=dict)
 
