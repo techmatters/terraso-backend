@@ -24,7 +24,7 @@ class _AuditLogService:
         user: User,
         action: api.ACTIONS,
         resource: object,
-        metadata: typing.Optional[api.KeyValue] = None,
+        metadata: typing.Optional[dict[str, any]] = None,
         client_time: typing.Optional[datetime] = None,
     ) -> None:
         """
