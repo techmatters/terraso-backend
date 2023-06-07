@@ -1,5 +1,7 @@
 from datetime import datetime
-from typing import Dict, List, Literal, Protocol
+from typing import Dict, Literal, Protocol
+
+from apps.core.models import User
 
 from . import models
 from .models import Events
@@ -22,11 +24,10 @@ class AuditLog(Protocol):
 
     def log(
         self,
-        user: model.User,
+        user: User,
         action: ACTIONS,
         resource: object,
         metadata: KeyValue,
         client_time: datetime,
     ) -> None:
         ...
-
