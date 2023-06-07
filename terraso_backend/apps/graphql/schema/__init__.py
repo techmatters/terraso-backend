@@ -97,7 +97,7 @@ class Query(graphene.ObjectType):
     story_map = TerrasoRelayNode.Field(StoryMapNode)
     story_maps = DjangoFilterConnectionField(StoryMapNode)
     sites = DjangoFilterConnectionField(SiteNode)
-    audit_logs = DjangoFilterConnectionField(AuditLogNode, filterset_class=AuditLogFilter)
+    audit_logs = DjangoFilterConnectionField(AuditLogNode)
 
 
 # All mutations should inherit from BaseWriteMutation or BaseDeleteMutation

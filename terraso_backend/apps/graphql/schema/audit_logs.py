@@ -9,6 +9,25 @@ from apps.audit_logs import models
 from .commons import TerrasoConnection
 
 
+class AuditLogFilter(FilterSet):
+    """
+    LogFilter is a filter that filters logs and orders them by client_timestamp
+    """
+
+    class Meta:
+        model = models.Log
+        fields = [
+            "client_timestamp",
+            "user__id",
+            "event",
+            "resource_id",
+            "resource_content_type__model",
+            "resource_content_type",
+        ]
+
+    order_by = OrderingFilter(fields=(("client_timestamp", "client_timestamp"),))
+
+
 class AuditLogNode(DjangoObjectType):
     """
     AuditLogNode is a node that represents an audit log
@@ -31,25 +50,7 @@ class AuditLogNode(DjangoObjectType):
 
         interfaces = (relay.Node,)
         connection_class = TerrasoConnection
+        filterset_class = AuditLogFilter
 
         def resolve_content_type(self, info):
             return self.resource_content_type.model
-
-
-class AuditLogFilter(FilterSet):
-    """
-    LogFilter is a filter that filters logs and orders them by client_timestamp
-    """
-
-    class Meta:
-        model = models.Log
-        fields = [
-            "client_timestamp",
-            "user__id",
-            "event",
-            "resource_id",
-            "resource_content_type__model",
-            "resource_content_type",
-        ]
-
-    order_by = OrderingFilter(fields=(("client_timestamp", "client_timestamp"),))
