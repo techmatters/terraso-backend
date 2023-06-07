@@ -1,3 +1,4 @@
+from typing import Optional
 from enum import Enum
 
 from django.conf import settings
@@ -6,10 +7,10 @@ from django.db import models
 
 
 class Events(Enum):
-    CREATE = "CREATE"
-    READ = "READ"
-    CHANGE = "CHANGE"
-    DELETE = "DELETE"
+    CREATE: str = "CREATE"
+    READ: str = "READ"
+    CHANGE: str = "CHANGE"
+    DELETE: str = "DELETE"
 
     @classmethod
     def choices(cls):
@@ -26,7 +27,7 @@ class Log(models.Model):
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL, on_delete=models.PROTECT, verbose_name="user"
     )
-    event = models.CharField(max_length=10, choices=Events.choices(), default=Events.CREATE)
+    event = models.CharField(max_length=50, choices=Events.choices(), default=Events.CREATE)
 
     resource_id = models.UUIDField()
     resource_content_type = models.ForeignKey(
@@ -44,7 +45,13 @@ class Log(models.Model):
     def __str__(self):
         return str(self.client_timestamp) + " - " + str(self.metadata)
 
-    def get_string(self, template: str = None) -> str:
+    def get_string(self, template: Optional[str] = None) -> str:
         if template is None:
             return str(self)
         return template.format(**self.metadata)
+
+    class Meta:
+        indexes = [
+            models.Index(fields=["resource_content_type", "resource_id"]),
+        ]
+

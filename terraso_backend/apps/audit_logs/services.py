@@ -1,6 +1,7 @@
 import typing
+from enum import Enum
 from datetime import datetime
-from typing import List, Optional
+from typing import List, Optional, Dict
 
 from django.contrib.contenttypes.models import ContentType
 from django.core.paginator import Paginator
@@ -20,9 +21,9 @@ class _AuditLogService:
     def log(
         self,
         user: object,
-        action: int,
+        action: api.ACTIONS,
         resource: object,
-        metadata: typing.Optional[List[api.KeyValue]] = None,
+        metadata: typing.Optional[api.KeyValue] = None,
     ) -> None:
         """
         log logs an action performed by a user on a resource
@@ -39,7 +40,7 @@ class _AuditLogService:
         get_user_readable = getattr(user, "human_readable", None)
         user_readable = get_user_readable() if callable(get_user_readable) else user.id
 
-        if not hasattr(models.Events, action):
+        if not isinstance(action, Enum) or not hasattr(models.Events, action.value):
             raise ValueError("Invalid action")
 
         resource_id = resource.id if hasattr(resource, "id") else None
@@ -58,34 +59,30 @@ class _AuditLogService:
         resource_repr = resource.__dict__.__str__()
 
         if metadata is None:
-            metadata = []
+            metadata = {}
 
         with transaction.atomic():
             log = models.Log(
                 user=user,
-                event=action,
+                event=action.value,
                 resource_id=resource_id,
                 resource_content_type=content_type,
                 resource_object=resource_obj,
                 resource_json_repr=resource_repr,
             )
-            metadata_dict = {
-                "user": str(user_readable),
-                "resource": str(resource_human_readable),
-                "action": action,
-            }
 
-            for key, value in metadata:
-                if key == "client_time":
-                    log.client_timestamp = value
-                    continue
-                metadata_dict[key] = value
+            metadata["user"] = str(user_readable)
+            metadata["resource"] = str(resource_human_readable)
+            metadata["action"] = action.value
 
-            if log.client_timestamp is None:
+            if metadata.get("client_time", None):
+                log.client_timestamp = metadata["client_time"]
+                metadata["client_time"] = str(log.client_timestamp)
+            else:
                 log.client_timestamp = datetime.now()
+                metadata["client_time"] = str(log.client_timestamp)
 
-            metadata_dict["client_time"] = str(log.client_timestamp)
-            log.metadata = metadata_dict
+            log.metadata = metadata
             log.save()
 
 

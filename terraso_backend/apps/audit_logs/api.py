@@ -1,11 +1,18 @@
 from datetime import datetime
-from typing import List, NewType, Protocol, Tuple
+from typing import List, NewType, Protocol, Tuple, Dict, Literal
 
+from .models import Events, Log
 from . import models
 
 # KeyValue represents a key-value pair
-KeyValue = NewType("KeyValue", Tuple[str, object | str])
+KeyValue = Dict[str, object | str | int | datetime]
 
+ACTIONS = Literal[Events.CREATE, Events.READ, Events.CHANGE, Events.DELETE]
+
+CREATE = models.Events.CREATE
+READ = models.Events.READ
+CHANGE = models.Events.CHANGE
+DELETE = models.Events.DELETE
 
 
 class AuditLog(Protocol):
@@ -13,7 +20,7 @@ class AuditLog(Protocol):
     AuditLogProtocol is a protocol that defines the interface for the audit log
     """
 
-    def log(self, user: object, action: models.Events, resource: object, metadata: List[KeyValue]) -> None:
+    def log(self, user: object, action: ACTIONS, resource: object, metadata: KeyValue) -> None:
         ...
 
 
