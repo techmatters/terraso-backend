@@ -8,6 +8,7 @@ from django.core.paginator import Paginator
 from django.db import transaction
 from django.db.models.query import QuerySet
 
+from apps.core.models import User
 from . import api, models
 
 TEMPLATE = "{client_time} - {user} {action} {resource}"
@@ -20,7 +21,7 @@ class _AuditLogService:
 
     def log(
         self,
-        user: object,
+        user: User,
         action: api.ACTIONS,
         resource: object,
         metadata: typing.Optional[api.KeyValue] = None,
@@ -38,7 +39,7 @@ class _AuditLogService:
             raise ValueError("Invalid user")
 
         get_user_readable = getattr(user, "human_readable", None)
-        user_readable = get_user_readable() if callable(get_user_readable) else user.id
+        user_readable = get_user_readable() if callable(get_user_readable) else user.full_name()
 
         if not isinstance(action, Enum) or not hasattr(models.Events, action.value):
             raise ValueError("Invalid action")
@@ -75,8 +76,10 @@ class _AuditLogService:
             metadata["resource"] = str(resource_human_readable)
             metadata["action"] = action.value
 
+            # if client_time is provided, use it, otherwise use the current time
             if metadata.get("client_time", None):
                 log.client_timestamp = metadata["client_time"]
+                # make datetime into a string, so it can be saved as JSON
                 metadata["client_time"] = str(log.client_timestamp)
             else:
                 log.client_timestamp = datetime.now()
