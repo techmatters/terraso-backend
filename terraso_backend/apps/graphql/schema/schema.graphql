@@ -621,9 +621,9 @@ type AuditLogNode implements Node {
   event: AuditLogsLogEventChoices!
   resourceId: UUID!
   id: ID!
-  metadata: GenericScalar
-  resourceJsonRepr: GenericScalar
-  resourceContentType: String
+  metadata: GenericScalar!
+  resourceJsonRepr: GenericScalar!
+  resourceContentType: String!
 }
 
 """An enumeration."""
