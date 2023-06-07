@@ -36,7 +36,7 @@ class AuditLogNode(DjangoObjectType):
     id = graphene.ID(source="pk", required=True)
     metadata = GenericScalar()
     resource_json_repr = GenericScalar()
-    resource_content_type = graphene.String()
+    resource_content_type = graphene.String(require=True)
 
     class Meta:
         model = models.Log
