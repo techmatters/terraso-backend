@@ -20,7 +20,7 @@ class AuditLog(Protocol):
     AuditLogProtocol is a protocol that defines the interface for the audit log
     """
 
-    def log(self, user: object, action: ACTIONS, resource: object, metadata: KeyValue) -> None:
+    def log(self, user: object, action: ACTIONS, resource: object, metadata: KeyValue, client_time: datetime) -> None:
         ...
 
 
