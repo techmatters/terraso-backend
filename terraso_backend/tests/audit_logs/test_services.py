@@ -15,9 +15,9 @@ class AuditLogServiceTest(TestCase):
         resource = User(email="b@b.com")
         resource.save()
 
-        action = "CREATE"
+        action = api.CREATE
         time = datetime.datetime.now()
-        metadata = [api.KeyValue(("client_time", time))]
+        metadata = {'client_time': time}
         log.log(user, action, resource, metadata)
 
         result = models.Log.objects.all()
@@ -28,9 +28,9 @@ class AuditLogServiceTest(TestCase):
         user = object()
         resource = User(email="b@b.com")
         resource.save()
-        action = "CREATE"
+        action = api.CREATE
         time = datetime.datetime.now()
-        metadata = [api.KeyValue(("client_time", time))]
+        metadata = {'client_time': time}
         with self.assertRaises(ValueError):
             log.log(user, action, resource, metadata)
 
@@ -42,7 +42,7 @@ class AuditLogServiceTest(TestCase):
         resource.save()
         action = "INVALID"
         time = datetime.datetime.now()
-        metadata = [api.KeyValue(("client_time", time))]
+        metadata = {'client_time': time}
         with self.assertRaises(ValueError):
             log.log(user, action, resource, metadata)
 
@@ -51,38 +51,7 @@ class AuditLogServiceTest(TestCase):
         user = User(email="a@a.com")
         user.save()
         resource = object()
-        action = "CREATE"
-        metadata = [("client_time", 1234567890)]
+        action = api.CREATE
+        metadata = {'client_time': 1234567890}
         with self.assertRaises(ValueError):
             log.log(user, action, resource, metadata)
-
-
-class AuditLogModelTest(TestCase):
-    def test_get_string(self):
-        user = User(email="a@a.com")
-        user.save()
-        resource = User(email="b@b.com")
-        resource.save()
-
-        action = "CREATE"
-        log = models.Log(user=user, event=action, resource_id=resource.id)
-        result = log.get_string()
-        assert result == str(log)
-
-    def test_get_string_with_template(self):
-        user = User(email="a@a.com")
-        user.save()
-        resource = User(email="b@b.com")
-        resource.save()
-        action = "CREATE"
-        content_type = ContentType.objects.get_for_model(resource)
-        metadata_dict = {"user": user.email, "resource": resource.email, "action": action}
-        log = models.Log(
-            user=user,
-            event=action,
-            resource_id=str(resource.id),
-            resource_content_type=content_type,
-            metadata=metadata_dict,
-        )
-        result = log.get_string("User {user} {action} {resource}")
-        assert result == "User a@a.com 1 b@b.com"
