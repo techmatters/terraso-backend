@@ -27,15 +27,13 @@ class AuditLogNode(DjangoObjectType):
             "user",
             "event",
             "resource_id",
-            "metadata",
         )
 
         interfaces = (relay.Node,)
         connection_class = TerrasoConnection
 
         def resolve_content_type(self, info):
-            d = self.resource_content_type.model
-            return d
+            return self.resource_content_type.model
 
 
 class AuditLogFilter(FilterSet):
