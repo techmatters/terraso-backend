@@ -27,7 +27,6 @@ class AuditLogNode(DjangoObjectType):
             "user",
             "event",
             "resource_id",
-            "resource_content_type",
             "metadata",
         )
 

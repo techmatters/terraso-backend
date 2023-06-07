@@ -33,7 +33,6 @@ from apps.core.models import (
     User,
     UserPreference,
 )
-from apps.project_management.models import Site
 from apps.shared_data.models import DataEntry, VisualizationConfig
 from apps.story_map.models import StoryMap
 
@@ -337,7 +336,3 @@ def story_maps(users):
 def audit_log_user():
     return mixer.blend(User)
 
-
-# @pytest.fixture
-# def audit_log_site_resource():
-#     return mixer.blend(Site)
