@@ -335,4 +335,3 @@ def story_maps(users):
 @pytest.fixture
 def audit_log_user():
     return mixer.blend(User)
-

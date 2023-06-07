@@ -1,5 +1,5 @@
-from typing import Optional
 from enum import Enum
+from typing import Optional
 
 from django.conf import settings
 from django.contrib.contenttypes.fields import GenericForeignKey
@@ -54,4 +54,3 @@ class Log(models.Model):
         indexes = [
             models.Index(fields=["resource_content_type", "resource_id"]),
         ]
-

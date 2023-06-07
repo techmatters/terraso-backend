@@ -1,7 +1,7 @@
 import typing
-from enum import Enum
 from datetime import datetime
-from typing import List, Optional, Dict
+from enum import Enum
+from typing import Dict, List, Optional
 
 from django.contrib.contenttypes.models import ContentType
 from django.core.paginator import Paginator
@@ -9,6 +9,7 @@ from django.db import transaction
 from django.db.models.query import QuerySet
 
 from apps.core.models import User
+
 from . import api, models
 
 TEMPLATE = "{client_time} - {user} {action} {resource}"

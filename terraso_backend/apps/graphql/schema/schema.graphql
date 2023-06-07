@@ -575,25 +575,25 @@ type AuditLogNode implements Node {
   user: UserNode!
   event: AuditLogsLogEventChoices!
   resourceId: UUID!
-  resourceContentType: String
-  metadata: GenericScalar
   id: ID!
+  metadata: GenericScalar
   resourceJsonRepr: GenericScalar
+  resourceContentType: String
 }
 
 """An enumeration."""
 enum AuditLogsLogEventChoices {
   """CREATE"""
-  A_1
+  CREATE
 
   """READ"""
-  A_2
+  READ
 
   """CHANGE"""
-  A_3
+  CHANGE
 
   """DELETE"""
-  A_4
+  DELETE
 }
 
 """

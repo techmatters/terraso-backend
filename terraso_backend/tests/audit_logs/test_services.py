@@ -17,7 +17,7 @@ class AuditLogServiceTest(TestCase):
 
         action = api.CREATE
         time = datetime.datetime.now()
-        metadata = {'some_key': "some_value"}
+        metadata = {"some_key": "some_value"}
         log.log(user, action, resource, metadata, time)
 
         result = models.Log.objects.all()
@@ -30,7 +30,6 @@ class AuditLogServiceTest(TestCase):
         assert result[0].metadata["resource"] == str(resource.id)
         assert result[0].metadata["some_key"] == "some_value"
 
-
     def test_create_log_invalid_user(self):
         log = services.new_audit_logger()
         user = object()
@@ -38,7 +37,7 @@ class AuditLogServiceTest(TestCase):
         resource.save()
         action = api.CREATE
         time = datetime.datetime.now()
-        metadata = {'some_key': "some_value"}
+        metadata = {"some_key": "some_value"}
         with self.assertRaises(ValueError):
             log.log(user, action, resource, metadata, time)
 
@@ -50,7 +49,7 @@ class AuditLogServiceTest(TestCase):
         resource.save()
         action = "INVALID"
         time = datetime.datetime.now()
-        metadata = {'some_key': "some_value"}
+        metadata = {"some_key": "some_value"}
         with self.assertRaises(ValueError):
             log.log(user, action, resource, metadata, time)
 
@@ -61,6 +60,6 @@ class AuditLogServiceTest(TestCase):
         resource = object()
         action = api.CREATE
         time = datetime.datetime.now()
-        metadata = {'some_key': "some_value"}
+        metadata = {"some_key": "some_value"}
         with self.assertRaises(ValueError):
             log.log(user, action, resource, metadata, time)
