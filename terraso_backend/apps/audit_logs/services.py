@@ -25,6 +25,7 @@ class _AuditLogService:
         action: api.ACTIONS,
         resource: object,
         metadata: typing.Optional[api.KeyValue] = None,
+        client_time: typing.Optional[datetime] = None,
     ) -> None:
         """
         log logs an action performed by a user on a resource
@@ -76,14 +77,11 @@ class _AuditLogService:
             metadata["resource"] = str(resource_human_readable)
             metadata["action"] = action.value
 
-            # if client_time is provided, use it, otherwise use the current time
-            if metadata.get("client_time", None):
-                log.client_timestamp = metadata["client_time"]
-                # make datetime into a string, so it can be saved as JSON
-                metadata["client_time"] = str(log.client_timestamp)
-            else:
-                log.client_timestamp = datetime.now()
-                metadata["client_time"] = str(log.client_timestamp)
+            if client_time is None:
+                client_time = datetime.now()
+
+            log.client_timestamp = client_time
+            metadata["client_time"] = str(log.client_timestamp)
 
             log.metadata = metadata
             log.save()
