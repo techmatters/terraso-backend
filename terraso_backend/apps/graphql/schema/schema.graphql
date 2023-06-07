@@ -54,22 +54,20 @@ type Query {
     id: ID!
   ): StoryMapNode
   storyMaps(offset: Int, before: String, after: String, first: Int, last: Int, slug: String, storyMapId: String, createdBy_Email: String, createdBy_Email_Not: String): StoryMapNodeConnection
-  auditLogs(
+  sites(
     offset: Int
     before: String
     after: String
     first: Int
     last: Int
-    clientTimestamp: DateTime
-    user_Id: ID
-    event: AuditLogsLogEventChoices
-    resourceId: UUID
-    resourceContentType_Model: String
-    resourceContentType: ID
+    name: String
+    owner: ID
+    project: ID
+    project_Id: ID
 
     """Ordering"""
     orderBy: String
-  ): AuditLogNodeConnection
+  ): SiteNodeConnection
 }
 
 type GroupNode implements Node {
@@ -551,63 +549,36 @@ type StoryMapNodeEdge {
   cursor: String!
 }
 
-type AuditLogNodeConnection {
+type SiteNodeConnection {
   """Pagination data for this connection."""
   pageInfo: PageInfo!
 
   """Contains the nodes in this connection."""
-  edges: [AuditLogNodeEdge!]!
+  edges: [SiteNodeEdge!]!
   totalCount: Int!
 }
 
-"""A Relay edge containing a `AuditLogNode` and its cursor."""
-type AuditLogNodeEdge {
+"""A Relay edge containing a `SiteNode` and its cursor."""
+type SiteNodeEdge {
   """The item at the end of the edge"""
-  node: AuditLogNode!
+  node: SiteNode!
 
   """A cursor for use in pagination"""
   cursor: String!
 }
 
-"""AuditLogNode is a node that represents an audit log"""
-type AuditLogNode implements Node {
-  clientTimestamp: DateTime!
-  user: UserNode!
-  event: AuditLogsLogEventChoices!
-  resourceId: UUID!
+type SiteNode implements Node {
+  name: String!
+  latitude: Float!
+  longitude: Float!
+  project: ProjectNode
   id: ID!
-  metadata: GenericScalar
-  resourceJsonRepr: GenericScalar
-  resourceContentType: String
 }
 
-"""An enumeration."""
-enum AuditLogsLogEventChoices {
-  """CREATE"""
-  CREATE
-
-  """READ"""
-  READ
-
-  """CHANGE"""
-  CHANGE
-
-  """DELETE"""
-  DELETE
+type ProjectNode implements Node {
+  name: String!
+  id: ID!
 }
-
-"""
-Leverages the internal Python implementation of UUID (uuid.UUID) to provide native UUID objects
-in fields, resolvers and input.
-"""
-scalar UUID
-
-"""
-The `GenericScalar` scalar type represents a generic
-GraphQL scalar value that could be:
-String, Boolean, Int, Float, List or Object.
-"""
-scalar GenericScalar
 
 type Mutations {
   addGroup(input: GroupAddMutationInput!): GroupAddMutationPayload!
@@ -646,6 +617,13 @@ type GroupAddMutationPayload {
   group: GroupNode
   clientMutationId: String
 }
+
+"""
+The `GenericScalar` scalar type represents a generic
+GraphQL scalar value that could be:
+String, Boolean, Int, Float, List or Object.
+"""
+scalar GenericScalar
 
 input GroupAddMutationInput {
   name: String!
@@ -991,19 +969,6 @@ type SiteAddMutationPayload {
   errors: GenericScalar
   site: SiteNode!
   clientMutationId: String
-}
-
-type SiteNode implements Node {
-  name: String!
-  latitude: Float!
-  longitude: Float!
-  project: ProjectNode
-  id: ID!
-}
-
-type ProjectNode implements Node {
-  name: String!
-  id: ID!
 }
 
 input SiteAddMutationInput {

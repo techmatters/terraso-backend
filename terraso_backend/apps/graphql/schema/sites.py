@@ -12,6 +12,7 @@
 #
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see https://www.gnu.org/licenses/.
+import django_filters
 import graphene
 from graphene import relay
 from graphene_django import DjangoObjectType
@@ -22,14 +23,27 @@ from .commons import BaseWriteMutation, TerrasoConnection
 from .constants import MutationTypes
 
 
+class SiteFilter(django_filters.FilterSet):
+    class Meta:
+        model = Site
+        fields = ["name", "owner", "project", "project__id"]
+
+    order_by = django_filters.OrderingFilter(
+        fields=(
+            ("updated_at", "updated_at"),
+            ("created_at", "created_at"),
+        )
+    )
+
+
 class SiteNode(DjangoObjectType):
     id = graphene.ID(source="pk", required=True)
 
     class Meta:
         model = Site
 
-        filter_fields = {"name": ["icontains"]}
         fields = ("name", "latitude", "longitude", "project")
+        filterset_class = SiteFilter
 
         interfaces = (relay.Node,)
         connection_class = TerrasoConnection
@@ -49,6 +63,9 @@ class SiteAddMutation(BaseWriteMutation):
     @classmethod
     def mutate_and_get_payload(cls, root, info, **kwargs):
         user = info.context.user
+        if not cls.is_update(kwargs):
+            kwargs["created_by"] = user
+
         adding_to_project = "project_id" in kwargs
         if adding_to_project:
             project = cls.get_or_throw(Project, "project_id", kwargs["project_id"])
