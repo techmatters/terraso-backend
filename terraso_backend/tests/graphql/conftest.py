@@ -21,7 +21,6 @@ from freezegun import freeze_time
 from graphene_django.utils.testing import graphql_query
 from mixer.backend.django import mixer
 
-from apps.audit_logs.models import Log
 from apps.auth.services import JWTService
 from apps.core.models import (
     Group,

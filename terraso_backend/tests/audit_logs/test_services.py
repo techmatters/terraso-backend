@@ -1,6 +1,5 @@
 import datetime
 
-from django.contrib.contenttypes.models import ContentType
 from django.test import TestCase
 
 from apps.audit_logs import api, models, services

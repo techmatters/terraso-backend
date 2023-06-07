@@ -1,8 +1,8 @@
 from datetime import datetime
-from typing import Dict, List, Literal, NewType, Protocol, Tuple
+from typing import Dict, List, Literal, Protocol
 
 from . import models
-from .models import Events, Log
+from .models import Events
 
 # KeyValue represents a key-value pair
 KeyValue = Dict[str, object | str | int | datetime]
