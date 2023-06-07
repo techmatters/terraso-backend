@@ -24,13 +24,13 @@ class _AuditLogService:
         user: User,
         action: api.ACTIONS,
         resource: object,
-        metadata: typing.Optional[api.KeyValue] = None,
+        metadata: typing.Optional[dict[str, any]] = None,
         client_time: typing.Optional[datetime] = None,
     ) -> None:
         """
         log logs an action performed by a user on a resource
         example:
-            log(user, "create", resource, [("client_time", 1234567890)])
+            log(user, "create", resource, client_time=1234567890)
             :param client_time:
             :param metadata:
             :param action:

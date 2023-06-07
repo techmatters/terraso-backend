@@ -22,7 +22,7 @@ class AuditLog(Protocol):
 
     def log(
         self,
-        user: object,
+        user: model.User,
         action: ACTIONS,
         resource: object,
         metadata: KeyValue,
