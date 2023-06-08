@@ -16,7 +16,7 @@
 import graphene
 from graphene_django.filter import DjangoFilterConnectionField
 
-from .audit_logs import AuditLogFilter, AuditLogNode
+from .audit_logs import AuditLogNode
 from .commons import TerrasoRelayNode
 from .data_entries import (
     DataEntryAddMutation,
