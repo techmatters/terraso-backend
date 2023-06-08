@@ -84,3 +84,6 @@ class Site(BaseModel):
 
     def owned_by(self, obj: Union[Project, User]):
         return obj == self.owner or obj == self.project
+
+    def human_readable(self) -> str:
+        return self.name

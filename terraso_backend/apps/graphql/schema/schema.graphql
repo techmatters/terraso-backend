@@ -68,6 +68,22 @@ type Query {
     """Ordering"""
     orderBy: String
   ): SiteNodeConnection
+  auditLogs(
+    offset: Int
+    before: String
+    after: String
+    first: Int
+    last: Int
+    clientTimestamp: DateTime
+    user_Id: ID
+    event: AuditLogsLogEventChoices
+    resourceId: UUID
+    resourceContentType_Model: String
+    resourceContentType: ID
+
+    """Ordering"""
+    orderBy: String
+  ): AuditLogNodeConnection
 }
 
 type GroupNode implements Node {
@@ -580,6 +596,64 @@ type ProjectNode implements Node {
   id: ID!
 }
 
+type AuditLogNodeConnection {
+  """Pagination data for this connection."""
+  pageInfo: PageInfo!
+
+  """Contains the nodes in this connection."""
+  edges: [AuditLogNodeEdge!]!
+  totalCount: Int!
+}
+
+"""A Relay edge containing a `AuditLogNode` and its cursor."""
+type AuditLogNodeEdge {
+  """The item at the end of the edge"""
+  node: AuditLogNode!
+
+  """A cursor for use in pagination"""
+  cursor: String!
+}
+
+"""AuditLogNode is a node that represents an audit log"""
+type AuditLogNode implements Node {
+  clientTimestamp: DateTime!
+  user: UserNode!
+  event: AuditLogsLogEventChoices!
+  resourceId: UUID!
+  id: ID!
+  metadata: GenericScalar!
+  resourceJsonRepr: GenericScalar!
+  resourceContentType: String!
+}
+
+"""An enumeration."""
+enum AuditLogsLogEventChoices {
+  """CREATE"""
+  CREATE
+
+  """READ"""
+  READ
+
+  """CHANGE"""
+  CHANGE
+
+  """DELETE"""
+  DELETE
+}
+
+"""
+Leverages the internal Python implementation of UUID (uuid.UUID) to provide native UUID objects
+in fields, resolvers and input.
+"""
+scalar UUID
+
+"""
+The `GenericScalar` scalar type represents a generic
+GraphQL scalar value that could be:
+String, Boolean, Int, Float, List or Object.
+"""
+scalar GenericScalar
+
 type Mutations {
   addGroup(input: GroupAddMutationInput!): GroupAddMutationPayload!
   addLandscape(input: LandscapeAddMutationInput!): LandscapeAddMutationPayload!
@@ -617,13 +691,6 @@ type GroupAddMutationPayload {
   group: GroupNode
   clientMutationId: String
 }
-
-"""
-The `GenericScalar` scalar type represents a generic
-GraphQL scalar value that could be:
-String, Boolean, Int, Float, List or Object.
-"""
-scalar GenericScalar
 
 input GroupAddMutationInput {
   name: String!

@@ -43,6 +43,7 @@ SECRET_KEY = config("SECRET_KEY")
 
 SILENCED_SYSTEM_CHECKS = ["auth.W004"]
 
+
 INSTALLED_APPS = [
     "django.contrib.admin",
     "django.contrib.auth",
@@ -65,6 +66,7 @@ INSTALLED_APPS = [
     "apps.story_map",
     "apps.notifications",
     "apps.project_management",
+    "apps.audit_logs",
     "apps.e2e_tests",
 ]
 
