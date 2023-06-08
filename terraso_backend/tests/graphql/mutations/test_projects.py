@@ -6,6 +6,7 @@ from mixer.backend.django import mixer
 
 from apps.project_management.models import Project
 from apps.core.models.users import User
+from apps.project_management.models.sites import Site
 
 pytestmark = pytest.mark.django_db
 
@@ -68,13 +69,15 @@ DELETE_PROJECT_GRAPHQL = """
     }
 """
 
-def test_delete_project(project, client, project_manager):
-    input = {'id' : str(project.id)}
+def test_delete_project(project_with_sites, client, project_manager):
+    site_ids = [site.id for site in project_with_sites.site_set.all()]
+    input = {'id' : str(project_with_sites.id)}
     client.force_login(project_manager)
     response = graphql_query(DELETE_PROJECT_GRAPHQL, input_data = input, client = client)
     content = json.loads(response.content)
     assert "errors" not in content and "errors" not in content["data"]["deleteProject"]
-    assert not Project.objects.filter(id = project.id).exists()
+    assert not Project.objects.filter(id = project_with_sites.id).exists()
+    assert not Site.objects.filter(id__in = site_ids).exists()
 
 def test_delete_project_user_not_manager(project, client):
     user = mixer.blend(User)
@@ -84,4 +87,4 @@ def test_delete_project_user_not_manager(project, client):
     response = graphql_query(DELETE_PROJECT_GRAPHQL, input_data = input, client = client)
     content = json.loads(response.content)
     assert ("errors" in content or "errors" in content["data"]["deleteProject"])
-    assert Project.objects.filter(id = project.id).exists()
+    assert Project.objects.filter(id = project.id).exists()    

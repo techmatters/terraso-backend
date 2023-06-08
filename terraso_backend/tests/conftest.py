@@ -96,3 +96,8 @@ def project() -> Project:
 @pytest.fixture
 def project_manager(project: Project) -> User:
     return project.managers.first()
+
+@pytest.fixture
+def project_with_sites(project: Project) -> Project:
+    mixer.blend(Site, project = project)
+    return project
