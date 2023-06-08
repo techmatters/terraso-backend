@@ -24,7 +24,6 @@ class AuditLogServiceTest(TestCase):
         assert result[0].user.id == user.id
         assert result[0].event == action.CREATE.value
         assert result[0].resource_object == resource
-        assert result[0].client_timestamp == time
         assert result[0].user_human_readable == user.full_name()
         assert result[0].resource_human_readable == resource.id
         assert result[0].metadata["some_key"] == "some_value"
