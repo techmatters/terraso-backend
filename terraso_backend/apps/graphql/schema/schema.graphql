@@ -54,6 +54,20 @@ type Query {
     id: ID!
   ): StoryMapNode
   storyMaps(offset: Int, before: String, after: String, first: Int, last: Int, slug: String, storyMapId: String, createdBy_Email: String, createdBy_Email_Not: String): StoryMapNodeConnection
+  sites(
+    offset: Int
+    before: String
+    after: String
+    first: Int
+    last: Int
+    name: String
+    owner: ID
+    project: ID
+    project_Id: ID
+
+    """Ordering"""
+    orderBy: String
+  ): SiteNodeConnection
   auditLogs(
     offset: Int
     before: String
@@ -551,6 +565,37 @@ type StoryMapNodeEdge {
   cursor: String!
 }
 
+type SiteNodeConnection {
+  """Pagination data for this connection."""
+  pageInfo: PageInfo!
+
+  """Contains the nodes in this connection."""
+  edges: [SiteNodeEdge!]!
+  totalCount: Int!
+}
+
+"""A Relay edge containing a `SiteNode` and its cursor."""
+type SiteNodeEdge {
+  """The item at the end of the edge"""
+  node: SiteNode!
+
+  """A cursor for use in pagination"""
+  cursor: String!
+}
+
+type SiteNode implements Node {
+  name: String!
+  latitude: Float!
+  longitude: Float!
+  project: ProjectNode
+  id: ID!
+}
+
+type ProjectNode implements Node {
+  name: String!
+  id: ID!
+}
+
 type AuditLogNodeConnection {
   """Pagination data for this connection."""
   pageInfo: PageInfo!
@@ -575,25 +620,25 @@ type AuditLogNode implements Node {
   user: UserNode!
   event: AuditLogsLogEventChoices!
   resourceId: UUID!
-  resourceContentType: String
-  metadata: GenericScalar
   id: ID!
-  resourceJsonRepr: GenericScalar
+  metadata: GenericScalar!
+  resourceJsonRepr: GenericScalar!
+  resourceContentType: String!
 }
 
 """An enumeration."""
 enum AuditLogsLogEventChoices {
   """CREATE"""
-  A_1
+  CREATE
 
   """READ"""
-  A_2
+  READ
 
   """CHANGE"""
-  A_3
+  CHANGE
 
   """DELETE"""
-  A_4
+  DELETE
 }
 
 """
@@ -993,23 +1038,11 @@ type SiteAddMutationPayload {
   clientMutationId: String
 }
 
-type SiteNode implements Node {
-  name: String!
-  latitude: Float!
-  longitude: Float!
-  project: ProjectNode
-  id: ID!
-}
-
-type ProjectNode implements Node {
-  name: String!
-  id: ID!
-}
-
 input SiteAddMutationInput {
   name: String!
   latitude: Float!
   longitude: Float!
+  projectId: ID
   clientMutationId: String
 }
 

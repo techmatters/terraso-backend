@@ -17,7 +17,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-03-30 17:16+0000\n"
+"POT-Creation-Date: 2023-05-19 14:51+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -32,27 +32,43 @@ msgstr ""
 msgid "%(value)s is not allowed as a name"
 msgstr "%(value)s no está permitido como nombre"
 
-#: terraso_backend/apps/core/models/groups.py:46
+#: terraso_backend/apps/core/models/groups.py:48
 msgid "Open"
 msgstr "Abierto"
 
-#: terraso_backend/apps/core/models/groups.py:47
+#: terraso_backend/apps/core/models/groups.py:49
 msgid "Closed"
 msgstr "Cerrado"
 
-#: terraso_backend/apps/core/models/groups.py:167
+#: terraso_backend/apps/core/models/groups.py:50
+msgid "Restricted"
+msgstr ""
+
+#: terraso_backend/apps/core/models/groups.py:59
+msgid "Join"
+msgstr ""
+
+#: terraso_backend/apps/core/models/groups.py:60
+msgid "Invite"
+msgstr ""
+
+#: terraso_backend/apps/core/models/groups.py:61
+msgid "Both"
+msgstr ""
+
+#: terraso_backend/apps/core/models/groups.py:220
 msgid "Manager"
 msgstr "Administrador"
 
-#: terraso_backend/apps/core/models/groups.py:168
+#: terraso_backend/apps/core/models/groups.py:221
 msgid "Member"
 msgstr "Miembro"
 
-#: terraso_backend/apps/core/models/groups.py:175
+#: terraso_backend/apps/core/models/groups.py:228
 msgid "Approved"
 msgstr "Aprobado"
 
-#: terraso_backend/apps/core/models/groups.py:176
+#: terraso_backend/apps/core/models/groups.py:229
 msgid "Pending"
 msgstr "Pendiente"
 
@@ -85,25 +101,25 @@ msgstr "Método de producción agrícola"
 msgid "%(first_name)s %(last_name)s"
 msgstr "%(first_name)s %(last_name)s"
 
-#: terraso_backend/apps/notifications/email.py:71
+#: terraso_backend/apps/notifications/email.py:79
 #, python-format
 msgid "%(user)s has requested to join “%(group)s”"
 msgstr "%(user)s ha solicitado unirse a “%(group)s”"
 
-#: terraso_backend/apps/notifications/email.py:92
+#: terraso_backend/apps/notifications/email.py:101
 #, python-format
 msgid "Membership in “%(group)s” has been approved"
 msgstr "Se ha aprobado la membresía en “%(group)s“"
 
-#: terraso_backend/apps/notifications/templates/base.html:10
+#: terraso_backend/apps/notifications/templates/base.html:11
 msgid "email.logo_alt_text"
 msgstr "Terraso"
 
-#: terraso_backend/apps/notifications/templates/base.html:17
+#: terraso_backend/apps/notifications/templates/base.html:18
 msgid "email.organization_mailing_address"
 msgstr "Technology Matters, 3790 El Camino Real #625, Palo Alto, CA 94306"
 
-#: terraso_backend/apps/notifications/templates/base.html:18
+#: terraso_backend/apps/notifications/templates/base.html:19
 msgid "email.unsubscribe_link_text"
 msgstr "Darse de baja de las notificaciones"
 
@@ -141,6 +157,14 @@ msgstr ""
 msgid "email.group.view_request"
 msgstr "Ver solicitud"
 
+#: terraso_backend/apps/project_management/models/projects.py:33
+msgid "Private"
+msgstr ""
+
+#: terraso_backend/apps/project_management/models/projects.py:33
+msgid "Public"
+msgstr ""
+
 #: terraso_backend/apps/shared_data/models/data_entries.py:63
 msgid "File"
 msgstr "Archivo"
@@ -149,11 +173,11 @@ msgstr "Archivo"
 msgid "Link"
 msgstr "Enlace"
 
-#: terraso_backend/config/settings.py:160
+#: terraso_backend/config/settings.py:169
 msgid "settings.language.es"
 msgstr "Español"
 
-#: terraso_backend/config/settings.py:161
+#: terraso_backend/config/settings.py:170
 msgid "settings.language.en"
 msgstr "Inglés"
 

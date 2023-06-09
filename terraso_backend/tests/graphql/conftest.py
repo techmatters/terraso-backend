@@ -21,7 +21,6 @@ from freezegun import freeze_time
 from graphene_django.utils.testing import graphql_query
 from mixer.backend.django import mixer
 
-from apps.audit_logs.models import Log
 from apps.auth.services import JWTService
 from apps.core.models import (
     Group,
@@ -33,7 +32,6 @@ from apps.core.models import (
     User,
     UserPreference,
 )
-from apps.project_management.models import Site
 from apps.shared_data.models import DataEntry, VisualizationConfig
 from apps.story_map.models import StoryMap
 
@@ -336,8 +334,3 @@ def story_maps(users):
 @pytest.fixture
 def audit_log_user():
     return mixer.blend(User)
-
-
-@pytest.fixture
-def audit_log_site_resource():
-    return mixer.blend(Site)

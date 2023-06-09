@@ -16,7 +16,7 @@
 import graphene
 from graphene_django.filter import DjangoFilterConnectionField
 
-from .audit_logs import AuditLogFilter, AuditLogNode
+from .audit_logs import AuditLogNode
 from .commons import TerrasoRelayNode
 from .data_entries import (
     DataEntryAddMutation,
@@ -53,7 +53,7 @@ from .memberships import (
     MembershipUpdateMutation,
 )
 from .projects import ProjectAddMutation
-from .sites import SiteAddMutation, SiteEditMutation
+from .sites import SiteAddMutation, SiteEditMutation, SiteNode
 from .story_maps import StoryMapDeleteMutation, StoryMapNode
 from .taxnomy_terms import TaxonomyTermNode
 from .users import (
@@ -96,7 +96,8 @@ class Query(graphene.ObjectType):
     taxonomy_terms = DjangoFilterConnectionField(TaxonomyTermNode)
     story_map = TerrasoRelayNode.Field(StoryMapNode)
     story_maps = DjangoFilterConnectionField(StoryMapNode)
-    audit_logs = DjangoFilterConnectionField(AuditLogNode, filterset_class=AuditLogFilter)
+    sites = DjangoFilterConnectionField(SiteNode)
+    audit_logs = DjangoFilterConnectionField(AuditLogNode)
 
 
 # All mutations should inherit from BaseWriteMutation or BaseDeleteMutation
