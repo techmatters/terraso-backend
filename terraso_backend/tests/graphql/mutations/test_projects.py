@@ -87,4 +87,15 @@ def test_delete_project_user_not_manager(project, client):
     response = graphql_query(DELETE_PROJECT_GRAPHQL, input_data = input, client = client)
     content = json.loads(response.content)
     assert ("errors" in content or "errors" in content["data"]["deleteProject"])
-    assert Project.objects.filter(id = project.id).exists()    
+    assert Project.objects.filter(id = project.id).exists()
+
+def test_delete_project_transfer_sites(project_with_sites, client, project_manager):
+    other_project = mixer.blend(Project)
+    other_project.add_manager(project_manager)
+    input = {'id' : str(project_with_sites.id), 'transferProjectId': str(other_project.id)}
+    site_ids = [site.id for site in project_with_sites.site_set.all()]
+    client.force_login(project_manager)
+    response = graphql_query(DELETE_PROJECT_GRAPHQL, input_data = input, client = client)
+    content = json.loads(response.content)
+    assert "errors" not in content and "errors" not in content["data"]["deleteProject"]
+    assert Site.objects.filter(project = other_project, id__in = site_ids).exists()

@@ -24,7 +24,7 @@ class Project(BaseModel):
     class Meta(BaseModel.Meta):
         abstract = False
 
-        rules_permissions = {"change": permission_rules.allowed_to_change_project, "delete": permission_rules.allowed_to_delete_project}
+        rules_permissions = {"change": permission_rules.allowed_to_change_project, "delete": permission_rules.allowed_to_delete_project, "add": permission_rules.allowed_to_add_to_project}
 
     PRIVATE = "private"
     PUBLIC = "public"
