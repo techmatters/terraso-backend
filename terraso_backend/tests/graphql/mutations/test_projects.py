@@ -3,9 +3,9 @@ import json
 import pytest
 from graphene_django.utils.testing import graphql_query
 
-from apps.project_management.models import Project
 from apps.audit_logs.api import CREATE
 from apps.audit_logs.models import Log
+from apps.project_management.models import Project
 
 pytestmark = pytest.mark.django_db
 
