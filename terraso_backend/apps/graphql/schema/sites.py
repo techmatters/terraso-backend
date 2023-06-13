@@ -12,14 +12,16 @@
 #
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see https://www.gnu.org/licenses/.
+from datetime import datetime
+
 import django_filters
 import graphene
-from datetime import datetime
 from graphene import relay
 from graphene_django import DjangoObjectType
 
+from apps.audit_logs import api as audit_log_api
+from apps.audit_logs import services as audit_log_services
 from apps.project_management.models import Project, Site
-from apps.audit_logs import services as audit_log_services, api as audit_log_api
 
 from .commons import BaseWriteMutation, TerrasoConnection
 from .constants import MutationTypes
