@@ -134,7 +134,7 @@ class SiteEditMutation(BaseWriteMutation):
             raise cls.not_allowed(MutationTypes.UPDATE)
         site.add_to_project(project)
 
-        client_time = kwargs.pop("client_time", None)
+        client_time = kwargs.get("client_time", None)
         if not client_time:
             client_time = datetime.now()
 

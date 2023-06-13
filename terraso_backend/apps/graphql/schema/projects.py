@@ -14,6 +14,7 @@
 # along with this program. If not, see https://www.gnu.org/licenses/.
 
 import graphene
+from datetime import datetime
 from django.db import transaction
 from graphene import relay
 from graphene_django import DjangoObjectType
@@ -61,11 +62,11 @@ class ProjectAddMutation(BaseWriteMutation):
             kwargs["privacy"] = kwargs["privacy"].value
             result = super().mutate_and_get_payload(root, info, **kwargs)
             result.project.add_manager(user)
-        metadata = []
-        if kwargs.get("client_timestamp"):
-            metadata.append(log_api.KeyValue(("client_timestamp", kwargs["client_timestamp"])))
+
+        client_time = kwargs.get("client_time", None)
+        if not client_time:
+            client_time = datetime.now()
         action = log_api.CREATE
-        if cls.is_update(kwargs):
-            action = log_api.CHANGE
-        logger.log(user=user, action=action, resource=result.project, metadata=metadata)
+        metadata = {"name": kwargs["name"], "privacy": kwargs["privacy"]}
+        logger.log(user=user, action=action, resource=result.project, client_time=client_time, metadata=metadata)
         return result
