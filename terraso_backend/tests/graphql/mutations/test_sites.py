@@ -18,6 +18,8 @@ import pytest
 from graphene_django.utils.testing import graphql_query
 from mixer.backend.django import mixer
 
+from apps.audit_logs.api import CHANGE, CREATE
+from apps.audit_logs.models import Log
 from apps.core.models import User
 from apps.project_management.models import Project, Site
 
@@ -54,6 +56,14 @@ def test_site_creation(client_query, user):
     assert site.longitude == pytest.approx(site.longitude)
     assert site.owner == user
     assert site.created_by == user
+    logs = Log.objects.all()
+    assert len(logs) == 1
+    log_result = logs[0]
+    assert log_result.event == CREATE.value
+    assert log_result.user == user
+    assert log_result.resource_object == site
+    expected_metadata = {'name': 'Test Site', 'latitude': 0.0, 'longitude': 0.0}
+    assert log_result.metadata == expected_metadata
 
 
 def test_site_creation_in_project(client, project_manager, project):
@@ -71,6 +81,15 @@ def test_site_creation_in_project(client, project_manager, project):
     site = Site.objects.get(pk=id)
     assert site.project == project
     assert site.created_by == project_manager
+    logs = Log.objects.all()
+    assert len(logs) == 1
+    log_result = logs[0]
+    assert log_result.event == CREATE.value
+    assert log_result.resource_object == site
+    expected_metadata = {'name': 'Test Site', 'latitude': 0.0, 'longitude': 0.0}
+    assert log_result.metadata["name"] == expected_metadata["name"]
+    assert log_result.metadata["latitude"] == expected_metadata["latitude"]
+    assert log_result.metadata["longitude"] == expected_metadata["longitude"]
 
 
 EDIT_SITE_QUERY = """
@@ -108,6 +127,13 @@ def test_edit_site_in_project(client, project, project_manager, site):
     assert project_id == str(project.id)
     site.refresh_from_db()
     assert site.project.id == project.id
+
+    logs = Log.objects.all()
+    assert len(logs) == 1
+    log_result = logs[0]
+    assert log_result.event == CHANGE.value
+    assert log_result.resource_object == site
+    assert log_result.metadata["project_name"] == project.name
 
 
 def test_adding_site_to_project_user_not_manager(client, project, site, user):

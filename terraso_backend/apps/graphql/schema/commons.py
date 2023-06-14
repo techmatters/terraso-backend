@@ -15,6 +15,7 @@
 
 import json
 import re
+from typing import Optional
 
 import structlog
 from django.core.exceptions import NON_FIELD_ERRORS, ValidationError
@@ -22,6 +23,8 @@ from django.db import IntegrityError
 from graphene import Connection, Field, Int, List, NonNull, ObjectType, String, relay
 from graphene.types.generic import GenericScalar
 
+from apps.audit_logs import api as audit_log_api
+from apps.audit_logs import services as audit_log_services
 from apps.core.formatters import from_camel_to_snake_case
 from apps.graphql.exceptions import (
     GraphQLNotAllowedException,
@@ -161,6 +164,7 @@ class BaseAuthenticatedMutation(BaseMutation):
 
 
 class BaseWriteMutation(BaseAuthenticatedMutation):
+    logger: Optional[audit_log_api.AuditLog] = None
     model_class = None
 
     @classmethod
@@ -232,6 +236,13 @@ class BaseWriteMutation(BaseAuthenticatedMutation):
             return model.objects.get(id=id_)
         except model.DoesNotExist:
             return GraphQLNotFoundException(field_name=field_name, model_name=model.__name__)
+
+    @classmethod
+    def get_logger(cls):
+        """Returns the logger instance."""
+        if not cls.logger:
+            cls.logger = audit_log_services.new_audit_logger()
+        return cls.logger
 
 
 class BaseDeleteMutation(BaseAuthenticatedMutation):

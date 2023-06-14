@@ -13,11 +13,14 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see https://www.gnu.org/licenses/.
 
+from datetime import datetime
+
 import graphene
 from django.db import transaction
 from graphene import relay
 from graphene_django import DjangoObjectType
 
+from apps.audit_logs import api as log_api
 from apps.project_management.models import Project
 
 from .commons import BaseWriteMutation, TerrasoConnection
@@ -52,10 +55,25 @@ class ProjectAddMutation(BaseWriteMutation):
 
     @classmethod
     def mutate_and_get_payload(cls, root, info, **kwargs):
+        logger = cls.get_logger()
+        user = info.context.user
         with transaction.atomic():
             group = Project.create_default_group(name=kwargs["name"])
             kwargs["group"] = group
             kwargs["privacy"] = kwargs["privacy"].value
             result = super().mutate_and_get_payload(root, info, **kwargs)
-            result.project.add_manager(info.context.user)
+            result.project.add_manager(user)
+
+        client_time = kwargs.get("client_time", None)
+        if not client_time:
+            client_time = datetime.now()
+        action = log_api.CREATE
+        metadata = {"name": kwargs["name"], "privacy": kwargs["privacy"]}
+        logger.log(
+            user=user,
+            action=action,
+            resource=result.project,
+            client_time=client_time,
+            metadata=metadata
+        )
         return result
