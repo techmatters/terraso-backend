@@ -15,6 +15,7 @@
 
 import json
 import re
+from typing import Optional
 
 import structlog
 from django.core.exceptions import NON_FIELD_ERRORS, ValidationError
@@ -28,6 +29,7 @@ from apps.graphql.exceptions import (
     GraphQLNotFoundException,
     GraphQLValidationException,
 )
+from apps.audit_logs import api as audit_log_api, services as audit_log_services
 
 from .constants import MutationTypes
 
@@ -161,6 +163,7 @@ class BaseAuthenticatedMutation(BaseMutation):
 
 
 class BaseWriteMutation(BaseAuthenticatedMutation):
+    logger: Optional[audit_log_api.AuditLog] = None
     model_class = None
 
     @classmethod
@@ -232,6 +235,13 @@ class BaseWriteMutation(BaseAuthenticatedMutation):
             return model.objects.get(id=id_)
         except model.DoesNotExist:
             return GraphQLNotFoundException(field_name=field_name, model_name=model.__name__)
+
+    @classmethod
+    def get_logger(cls):
+        """Returns the logger instance."""
+        if not cls.logger:
+            cls.logger = audit_log_services.new_audit_logger()
+        return cls.logger
 
 
 class BaseDeleteMutation(BaseAuthenticatedMutation):
