@@ -20,7 +20,6 @@ from graphene import relay
 from graphene_django import DjangoObjectType
 
 from apps.audit_logs import api as audit_log_api
-from apps.audit_logs import services as audit_log_services
 from apps.project_management.models import Project, Site
 
 from .commons import BaseWriteMutation, TerrasoConnection
@@ -66,7 +65,7 @@ class SiteAddMutation(BaseWriteMutation):
 
     @classmethod
     def mutate_and_get_payload(cls, root, info, **kwargs):
-        log = audit_log_services.new_audit_logger()
+        log = cls.get_logger()
         user = info.context.user
         if not cls.is_update(kwargs):
             kwargs["created_by"] = user
@@ -121,12 +120,12 @@ class SiteEditMutation(BaseWriteMutation):
 
     @classmethod
     def mutate_and_get_payload(cls, root, info, **kwargs):
-        log = audit_log_services.new_audit_logger()
+        log = cls.get_logger()
         user = info.context.user
         site = cls.get_or_throw(Site, "id", kwargs["id"])
         if not user.has_perm(Site.get_perm("change"), site):
             raise cls.not_allowed(MutationTypes.UPDATE)
-        project_id = kwargs.get("project_id", False)
+        project_id = kwargs.pop("project_id", False)
         result = super().mutate_and_get_payload(root, info, **kwargs)
         if not project_id:
             return result
@@ -145,7 +144,7 @@ class SiteEditMutation(BaseWriteMutation):
             if key == "id":
                 continue
             metadata[key] = value
-        if metadata.get("project_id", None):
+        if project_id:
             metadata["project_name"] = project.name
 
         log.log(
