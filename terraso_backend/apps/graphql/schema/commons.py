@@ -23,13 +23,14 @@ from django.db import IntegrityError
 from graphene import Connection, Field, Int, List, NonNull, ObjectType, String, relay
 from graphene.types.generic import GenericScalar
 
+from apps.audit_logs import api as audit_log_api
+from apps.audit_logs import services as audit_log_services
 from apps.core.formatters import from_camel_to_snake_case
 from apps.graphql.exceptions import (
     GraphQLNotAllowedException,
     GraphQLNotFoundException,
     GraphQLValidationException,
 )
-from apps.audit_logs import api as audit_log_api, services as audit_log_services
 
 from .constants import MutationTypes
 
