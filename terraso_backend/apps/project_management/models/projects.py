@@ -15,16 +15,29 @@
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
-from apps.core import permission_rules
 from apps.core.models import Group, User
 from apps.core.models.commons import BaseModel
+from apps.project_management import permission_rules
+
+
+class ProjectSettings(BaseModel):
+    class Meta(BaseModel.Meta):
+        abstract = False
+
+    member_can_edit_site = models.BooleanField(default=False)
+    member_can_add_site_to_project = models.BooleanField(default=False)
 
 
 class Project(BaseModel):
     class Meta(BaseModel.Meta):
         abstract = False
 
-        rules_permissions = {"change": permission_rules.allowed_to_change_project, "delete": permission_rules.allowed_to_delete_project, "add": permission_rules.allowed_to_add_to_project}
+        rules_permissions = {
+            "change": permission_rules.allowed_to_change_project,
+            "add_site": permission_rules.allowed_to_add_site_to_project,
+            "delete": permission_rules.allowed_to_delete_project, 
+            "add": permission_rules.allowed_to_add_to_project
+        }
 
     PRIVATE = "private"
     PUBLIC = "public"
@@ -36,6 +49,16 @@ class Project(BaseModel):
     group = models.OneToOneField(Group, on_delete=models.CASCADE)
     privacy = models.CharField(
         max_length=32, choices=PRIVACY_STATUS, default=DEFAULT_PRIVACY_STATUS
+    )
+
+    @staticmethod
+    def default_settings():
+        settings = ProjectSettings()
+        settings.save()
+        return settings
+
+    settings = models.OneToOneField(
+        ProjectSettings, on_delete=models.PROTECT, default=default_settings
     )
 
     @staticmethod

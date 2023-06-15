@@ -54,6 +54,36 @@ type Query {
     id: ID!
   ): StoryMapNode
   storyMaps(offset: Int, before: String, after: String, first: Int, last: Int, slug: String, storyMapId: String, createdBy_Email: String, createdBy_Email_Not: String): StoryMapNodeConnection
+  sites(
+    offset: Int
+    before: String
+    after: String
+    first: Int
+    last: Int
+    name: String
+    owner: ID
+    project: ID
+    project_Id: ID
+
+    """Ordering"""
+    orderBy: String
+  ): SiteNodeConnection
+  auditLogs(
+    offset: Int
+    before: String
+    after: String
+    first: Int
+    last: Int
+    clientTimestamp: DateTime
+    user_Id: ID
+    event: AuditLogsLogEventChoices
+    resourceId: UUID
+    resourceContentType_Model: String
+    resourceContentType: ID
+
+    """Ordering"""
+    orderBy: String
+  ): AuditLogNodeConnection
 }
 
 type GroupNode implements Node {
@@ -95,8 +125,8 @@ type UserPreferenceNodeConnection {
   pageInfo: PageInfo!
 
   """Contains the nodes in this connection."""
-  edges: [UserPreferenceNodeEdge]!
-  totalCount: Int
+  edges: [UserPreferenceNodeEdge!]!
+  totalCount: Int!
 }
 
 """
@@ -119,7 +149,7 @@ type PageInfo {
 """A Relay edge containing a `UserPreferenceNode` and its cursor."""
 type UserPreferenceNodeEdge {
   """The item at the end of the edge"""
-  node: UserPreferenceNode
+  node: UserPreferenceNode!
 
   """A cursor for use in pagination"""
   cursor: String!
@@ -137,14 +167,14 @@ type MembershipNodeConnection {
   pageInfo: PageInfo!
 
   """Contains the nodes in this connection."""
-  edges: [MembershipNodeEdge]!
-  totalCount: Int
+  edges: [MembershipNodeEdge!]!
+  totalCount: Int!
 }
 
 """A Relay edge containing a `MembershipNode` and its cursor."""
 type MembershipNodeEdge {
   """The item at the end of the edge"""
-  node: MembershipNode
+  node: MembershipNode!
 
   """A cursor for use in pagination"""
   cursor: String!
@@ -153,11 +183,12 @@ type MembershipNodeEdge {
 type MembershipNode implements Node {
   group: GroupNode!
   user: UserNode!
-  userRole: CoreMembershipUserRoleChoices
+  userRole: CoreMembershipUserRoleChoices!
   membershipStatus: CoreMembershipMembershipStatusChoices!
   id: ID!
 }
 
+"""An enumeration."""
 enum CoreMembershipUserRoleChoices {
   """Manager"""
   MANAGER
@@ -166,6 +197,7 @@ enum CoreMembershipUserRoleChoices {
   MEMBER
 }
 
+"""An enumeration."""
 enum CoreMembershipMembershipStatusChoices {
   """Approved"""
   APPROVED
@@ -174,6 +206,7 @@ enum CoreMembershipMembershipStatusChoices {
   PENDING
 }
 
+"""An enumeration."""
 enum CoreGroupMembershipTypeChoices {
   """Open"""
   OPEN
@@ -187,14 +220,14 @@ type GroupAssociationNodeConnection {
   pageInfo: PageInfo!
 
   """Contains the nodes in this connection."""
-  edges: [GroupAssociationNodeEdge]!
-  totalCount: Int
+  edges: [GroupAssociationNodeEdge!]!
+  totalCount: Int!
 }
 
 """A Relay edge containing a `GroupAssociationNode` and its cursor."""
 type GroupAssociationNodeEdge {
   """The item at the end of the edge"""
-  node: GroupAssociationNode
+  node: GroupAssociationNode!
 
   """A cursor for use in pagination"""
   cursor: String!
@@ -211,14 +244,14 @@ type LandscapeGroupNodeConnection {
   pageInfo: PageInfo!
 
   """Contains the nodes in this connection."""
-  edges: [LandscapeGroupNodeEdge]!
-  totalCount: Int
+  edges: [LandscapeGroupNodeEdge!]!
+  totalCount: Int!
 }
 
 """A Relay edge containing a `LandscapeGroupNode` and its cursor."""
 type LandscapeGroupNodeEdge {
   """The item at the end of the edge"""
-  node: LandscapeGroupNode
+  node: LandscapeGroupNode!
 
   """A cursor for use in pagination"""
   cursor: String!
@@ -270,14 +303,14 @@ type TaxonomyTermNodeConnection {
   pageInfo: PageInfo!
 
   """Contains the nodes in this connection."""
-  edges: [TaxonomyTermNodeEdge]!
-  totalCount: Int
+  edges: [TaxonomyTermNodeEdge!]!
+  totalCount: Int!
 }
 
 """A Relay edge containing a `TaxonomyTermNode` and its cursor."""
 type TaxonomyTermNodeEdge {
   """The item at the end of the edge"""
-  node: TaxonomyTermNode
+  node: TaxonomyTermNode!
 
   """A cursor for use in pagination"""
   cursor: String!
@@ -292,6 +325,7 @@ type TaxonomyTermNode implements Node {
   id: ID!
 }
 
+"""An enumeration."""
 enum CoreTaxonomyTermTypeChoices {
   """Ecosystem Type"""
   ECOSYSTEM_TYPE
@@ -312,17 +346,18 @@ enum CoreTaxonomyTermTypeChoices {
   AGRICULTURAL_PRODUCTION_METHOD
 }
 
+"""An enumeration."""
 enum CoreLandscapePartnershipStatusChoices {
-  """partnership_status.none"""
+  """None"""
   A_
 
-  """partnership_status.no"""
+  """No"""
   NO
 
-  """partnership_status.in_progress"""
+  """In Progress"""
   IN_PROGRESS
 
-  """partnership_status.yes"""
+  """Yes"""
   YES
 }
 
@@ -336,8 +371,8 @@ type LandscapeDevelopmentStrategyNodeConnection {
   pageInfo: PageInfo!
 
   """Contains the nodes in this connection."""
-  edges: [LandscapeDevelopmentStrategyNodeEdge]!
-  totalCount: Int
+  edges: [LandscapeDevelopmentStrategyNodeEdge!]!
+  totalCount: Int!
 }
 
 """
@@ -345,7 +380,7 @@ A Relay edge containing a `LandscapeDevelopmentStrategyNode` and its cursor.
 """
 type LandscapeDevelopmentStrategyNodeEdge {
   """The item at the end of the edge"""
-  node: LandscapeDevelopmentStrategyNode
+  node: LandscapeDevelopmentStrategyNode!
 
   """A cursor for use in pagination"""
   cursor: String!
@@ -364,14 +399,14 @@ type DataEntryNodeConnection {
   pageInfo: PageInfo!
 
   """Contains the nodes in this connection."""
-  edges: [DataEntryNodeEdge]!
-  totalCount: Int
+  edges: [DataEntryNodeEdge!]!
+  totalCount: Int!
 }
 
 """A Relay edge containing a `DataEntryNode` and its cursor."""
 type DataEntryNodeEdge {
   """The item at the end of the edge"""
-  node: DataEntryNode
+  node: DataEntryNode!
 
   """A cursor for use in pagination"""
   cursor: String!
@@ -400,6 +435,7 @@ value as specified by
 """
 scalar DateTime
 
+"""An enumeration."""
 enum SharedDataDataEntryEntryTypeChoices {
   """File"""
   FILE
@@ -420,14 +456,14 @@ type GroupNodeConnection {
   pageInfo: PageInfo!
 
   """Contains the nodes in this connection."""
-  edges: [GroupNodeEdge]!
-  totalCount: Int
+  edges: [GroupNodeEdge!]!
+  totalCount: Int!
 }
 
 """A Relay edge containing a `GroupNode` and its cursor."""
 type GroupNodeEdge {
   """The item at the end of the edge"""
-  node: GroupNode
+  node: GroupNode!
 
   """A cursor for use in pagination"""
   cursor: String!
@@ -438,14 +474,14 @@ type VisualizationConfigNodeConnection {
   pageInfo: PageInfo!
 
   """Contains the nodes in this connection."""
-  edges: [VisualizationConfigNodeEdge]!
-  totalCount: Int
+  edges: [VisualizationConfigNodeEdge!]!
+  totalCount: Int!
 }
 
 """A Relay edge containing a `VisualizationConfigNode` and its cursor."""
 type VisualizationConfigNodeEdge {
   """The item at the end of the edge"""
-  node: VisualizationConfigNode
+  node: VisualizationConfigNode!
 
   """A cursor for use in pagination"""
   cursor: String!
@@ -467,14 +503,14 @@ type LandscapeNodeConnection {
   pageInfo: PageInfo!
 
   """Contains the nodes in this connection."""
-  edges: [LandscapeNodeEdge]!
-  totalCount: Int
+  edges: [LandscapeNodeEdge!]!
+  totalCount: Int!
 }
 
 """A Relay edge containing a `LandscapeNode` and its cursor."""
 type LandscapeNodeEdge {
   """The item at the end of the edge"""
-  node: LandscapeNode
+  node: LandscapeNode!
 
   """A cursor for use in pagination"""
   cursor: String!
@@ -485,14 +521,14 @@ type UserNodeConnection {
   pageInfo: PageInfo!
 
   """Contains the nodes in this connection."""
-  edges: [UserNodeEdge]!
-  totalCount: Int
+  edges: [UserNodeEdge!]!
+  totalCount: Int!
 }
 
 """A Relay edge containing a `UserNode` and its cursor."""
 type UserNodeEdge {
   """The item at the end of the edge"""
-  node: UserNode
+  node: UserNode!
 
   """A cursor for use in pagination"""
   cursor: String!
@@ -516,56 +552,100 @@ type StoryMapNodeConnection {
   pageInfo: PageInfo!
 
   """Contains the nodes in this connection."""
-  edges: [StoryMapNodeEdge]!
-  totalCount: Int
+  edges: [StoryMapNodeEdge!]!
+  totalCount: Int!
 }
 
 """A Relay edge containing a `StoryMapNode` and its cursor."""
 type StoryMapNodeEdge {
   """The item at the end of the edge"""
-  node: StoryMapNode
+  node: StoryMapNode!
 
   """A cursor for use in pagination"""
   cursor: String!
 }
 
-type Mutations {
-  addGroup(input: GroupAddMutationInput!): GroupAddMutationPayload
-  addLandscape(input: LandscapeAddMutationInput!): LandscapeAddMutationPayload
-  addUser(input: UserAddMutationInput!): UserAddMutationPayload
-  addLandscapeGroup(input: LandscapeGroupAddMutationInput!): LandscapeGroupAddMutationPayload
-  addGroupAssociation(input: GroupAssociationAddMutationInput!): GroupAssociationAddMutationPayload
-  addMembership(input: MembershipAddMutationInput!): MembershipAddMutationPayload
-  updateGroup(input: GroupUpdateMutationInput!): GroupUpdateMutationPayload
-  updateLandscape(input: LandscapeUpdateMutationInput!): LandscapeUpdateMutationPayload
-  updateMembership(input: MembershipUpdateMutationInput!): MembershipUpdateMutationPayload
-  updateUser(input: UserUpdateMutationInput!): UserUpdateMutationPayload
-  deleteGroup(input: GroupDeleteMutationInput!): GroupDeleteMutationPayload
-  deleteLandscape(input: LandscapeDeleteMutationInput!): LandscapeDeleteMutationPayload
-  deleteUser(input: UserDeleteMutationInput!): UserDeleteMutationPayload
-  deleteLandscapeGroup(input: LandscapeGroupDeleteMutationInput!): LandscapeGroupDeleteMutationPayload
-  deleteGroupAssociation(input: GroupAssociationDeleteMutationInput!): GroupAssociationDeleteMutationPayload
-  deleteMembership(input: MembershipDeleteMutationInput!): MembershipDeleteMutationPayload
-  updateUserPreference(input: UserPreferenceUpdateInput!): UserPreferenceUpdatePayload
-  deleteUserPreference(input: UserPreferenceDeleteInput!): UserPreferenceDeletePayload
-  unsubscribeUser(input: UserUnsubscribeUpdateInput!): UserUnsubscribeUpdatePayload
-  addDataEntry(input: DataEntryAddMutationInput!): DataEntryAddMutationPayload
-  updateDataEntry(input: DataEntryUpdateMutationInput!): DataEntryUpdateMutationPayload
-  deleteDataEntry(input: DataEntryDeleteMutationInput!): DataEntryDeleteMutationPayload
-  addVisualizationConfig(input: VisualizationConfigAddMutationInput!): VisualizationConfigAddMutationPayload
-  updateVisualizationConfig(input: VisualizationConfigUpdateMutationInput!): VisualizationConfigUpdateMutationPayload
-  deleteVisualizationConfig(input: VisualizationConfigDeleteMutationInput!): VisualizationConfigDeleteMutationPayload
-  deleteStoryMap(input: StoryMapDeleteMutationInput!): StoryMapDeleteMutationPayload
-  addSite(input: SiteAddMutationInput!): SiteAddMutationPayload
-  editSite(input: SiteEditMutationInput!): SiteEditMutationPayload
-  addProject(input: ProjectAddMutationInput!): ProjectAddMutationPayload
+type SiteNodeConnection {
+  """Pagination data for this connection."""
+  pageInfo: PageInfo!
+
+  """Contains the nodes in this connection."""
+  edges: [SiteNodeEdge!]!
+  totalCount: Int!
 }
 
-type GroupAddMutationPayload {
-  errors: GenericScalar
-  group: GroupNode
-  clientMutationId: String
+"""A Relay edge containing a `SiteNode` and its cursor."""
+type SiteNodeEdge {
+  """The item at the end of the edge"""
+  node: SiteNode!
+
+  """A cursor for use in pagination"""
+  cursor: String!
 }
+
+type SiteNode implements Node {
+  name: String!
+  latitude: Float!
+  longitude: Float!
+  project: ProjectNode
+  id: ID!
+}
+
+type ProjectNode implements Node {
+  name: String!
+  id: ID!
+}
+
+type AuditLogNodeConnection {
+  """Pagination data for this connection."""
+  pageInfo: PageInfo!
+
+  """Contains the nodes in this connection."""
+  edges: [AuditLogNodeEdge!]!
+  totalCount: Int!
+}
+
+"""A Relay edge containing a `AuditLogNode` and its cursor."""
+type AuditLogNodeEdge {
+  """The item at the end of the edge"""
+  node: AuditLogNode!
+
+  """A cursor for use in pagination"""
+  cursor: String!
+}
+
+"""AuditLogNode is a node that represents an audit log"""
+type AuditLogNode implements Node {
+  clientTimestamp: DateTime!
+  user: UserNode!
+  event: AuditLogsLogEventChoices!
+  resourceId: UUID!
+  id: ID!
+  metadata: GenericScalar!
+  resourceJsonRepr: GenericScalar!
+  resourceContentType: String!
+}
+
+"""An enumeration."""
+enum AuditLogsLogEventChoices {
+  """CREATE"""
+  CREATE
+
+  """READ"""
+  READ
+
+  """CHANGE"""
+  CHANGE
+
+  """DELETE"""
+  DELETE
+}
+
+"""
+Leverages the internal Python implementation of UUID (uuid.UUID) to provide native UUID objects
+in fields, resolvers and input.
+"""
+scalar UUID
 
 """
 The `GenericScalar` scalar type represents a generic
@@ -573,6 +653,44 @@ GraphQL scalar value that could be:
 String, Boolean, Int, Float, List or Object.
 """
 scalar GenericScalar
+
+type Mutations {
+  addGroup(input: GroupAddMutationInput!): GroupAddMutationPayload!
+  addLandscape(input: LandscapeAddMutationInput!): LandscapeAddMutationPayload!
+  addUser(input: UserAddMutationInput!): UserAddMutationPayload!
+  addLandscapeGroup(input: LandscapeGroupAddMutationInput!): LandscapeGroupAddMutationPayload!
+  addGroupAssociation(input: GroupAssociationAddMutationInput!): GroupAssociationAddMutationPayload!
+  addMembership(input: MembershipAddMutationInput!): MembershipAddMutationPayload!
+  updateGroup(input: GroupUpdateMutationInput!): GroupUpdateMutationPayload!
+  updateLandscape(input: LandscapeUpdateMutationInput!): LandscapeUpdateMutationPayload!
+  updateMembership(input: MembershipUpdateMutationInput!): MembershipUpdateMutationPayload!
+  updateUser(input: UserUpdateMutationInput!): UserUpdateMutationPayload!
+  deleteGroup(input: GroupDeleteMutationInput!): GroupDeleteMutationPayload!
+  deleteLandscape(input: LandscapeDeleteMutationInput!): LandscapeDeleteMutationPayload!
+  deleteUser(input: UserDeleteMutationInput!): UserDeleteMutationPayload!
+  deleteLandscapeGroup(input: LandscapeGroupDeleteMutationInput!): LandscapeGroupDeleteMutationPayload!
+  deleteGroupAssociation(input: GroupAssociationDeleteMutationInput!): GroupAssociationDeleteMutationPayload!
+  deleteMembership(input: MembershipDeleteMutationInput!): MembershipDeleteMutationPayload!
+  updateUserPreference(input: UserPreferenceUpdateInput!): UserPreferenceUpdatePayload!
+  deleteUserPreference(input: UserPreferenceDeleteInput!): UserPreferenceDeletePayload!
+  unsubscribeUser(input: UserUnsubscribeUpdateInput!): UserUnsubscribeUpdatePayload!
+  addDataEntry(input: DataEntryAddMutationInput!): DataEntryAddMutationPayload!
+  updateDataEntry(input: DataEntryUpdateMutationInput!): DataEntryUpdateMutationPayload!
+  deleteDataEntry(input: DataEntryDeleteMutationInput!): DataEntryDeleteMutationPayload!
+  addVisualizationConfig(input: VisualizationConfigAddMutationInput!): VisualizationConfigAddMutationPayload!
+  updateVisualizationConfig(input: VisualizationConfigUpdateMutationInput!): VisualizationConfigUpdateMutationPayload!
+  deleteVisualizationConfig(input: VisualizationConfigDeleteMutationInput!): VisualizationConfigDeleteMutationPayload!
+  deleteStoryMap(input: StoryMapDeleteMutationInput!): StoryMapDeleteMutationPayload!
+  addSite(input: SiteAddMutationInput!): SiteAddMutationPayload!
+  editSite(input: SiteEditMutationInput!): SiteEditMutationPayload!
+  addProject(input: ProjectAddMutationInput!): ProjectAddMutationPayload!
+}
+
+type GroupAddMutationPayload {
+  errors: GenericScalar
+  group: GroupNode
+  clientMutationId: String
+}
 
 input GroupAddMutationInput {
   name: String!
@@ -920,23 +1038,11 @@ type SiteAddMutationPayload {
   clientMutationId: String
 }
 
-type SiteNode implements Node {
-  name: String!
-  latitude: Float!
-  longitude: Float!
-  project: ProjectNode
-  id: ID!
-}
-
-type ProjectNode implements Node {
-  name: String!
-  id: ID!
-}
-
 input SiteAddMutationInput {
   name: String!
   latitude: Float!
   longitude: Float!
+  projectId: ID
   clientMutationId: String
 }
 

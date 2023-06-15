@@ -15,6 +15,7 @@
 
 import functools
 import json
+from urllib.parse import urlparse
 
 import httpx
 import structlog
@@ -23,8 +24,10 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth import login as dj_login
 from django.contrib.auth import logout as dj_logout
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
+from django.urls import reverse
 from django.views import View
 
+from .constants import OAUTH_COOKIE_MAX_AGE_SECONDS, OAUTH_COOKIE_NAME
 from .providers import AppleProvider, GoogleProvider, MicrosoftProvider
 from .services import AccountService, JWTService, PlausibleService
 
@@ -67,16 +70,27 @@ class AbstractCallbackView(View):
         self.error = self.request.GET.get("error")
         self.state = self.request.GET.get("state", "")
 
-        return self.process_callback()
+        return self.process_callback(request)
 
     def post(self, request, *args, **kwargs):
         self.authorization_code = self.request.POST.get("code")
         self.error = self.request.POST.get("error")
         self.state = self.request.POST.get("state", "")
 
-        return self.process_callback()
+        return self.process_callback(request)
 
-    def process_callback(self):
+    @classmethod
+    def _check_cookie(cls, cookie):
+        """Double check to make sure the redirect URI makes sense"""
+        try:
+            url = urlparse(cookie)
+            if url.hostname:
+                return False
+            return url.path.startswith(reverse("oauth2_provider:authorize"))
+        except ValueError:
+            return False
+
+    def process_callback(self, req):
         if self.error:
             logger.error("Auth provider returned error on callback", extra={"error": self.error})
             return HttpResponse(f"Error: {self.error}", status=400)
@@ -92,7 +106,16 @@ class AbstractCallbackView(View):
             logger.exception("Error attempting create access and refresh tokens")
             return HttpResponse(f"Error: {exc}", status=400)
 
-        response = HttpResponseRedirect(f"{settings.WEB_CLIENT_URL}/{self.state}")
+        redirect_uri = f"{settings.WEB_CLIENT_URL}/{self.state}"
+        if cookie := req.get_signed_cookie(
+            OAUTH_COOKIE_NAME, None, max_age=OAUTH_COOKIE_MAX_AGE_SECONDS
+        ):
+            # we stored the original URI as a cookie
+            # redirecting the user to this URI will start our OAuth process
+            if self._check_cookie(cookie):
+                redirect_uri = cookie
+        response = HttpResponseRedirect(redirect_uri)
+        response.delete_cookie("oauth")
         response.set_cookie("atoken", access_token, domain=settings.AUTH_COOKIE_DOMAIN)
         response.set_cookie("rtoken", refresh_token, domain=settings.AUTH_COOKIE_DOMAIN)
         if created_with_service:
