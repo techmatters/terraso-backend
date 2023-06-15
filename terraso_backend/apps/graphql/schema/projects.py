@@ -70,6 +70,7 @@ class ProjectDeleteMutation(BaseDeleteMutation):
         transfer_project_id = graphene.ID()
 
     @classmethod
+    @transaction.atomic
     def mutate_and_get_payload(cls, root, info, **kwargs):
         user = info.context.user
         project_id = kwargs['id']
