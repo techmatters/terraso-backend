@@ -2,6 +2,7 @@ from datetime import datetime, timedelta, timezone
 
 import structlog
 from django.apps import apps
+from django.conf import settings
 from django.core.management.base import BaseCommand
 from django.db import models
 from safedelete.models import HARD_DELETE
@@ -11,18 +12,23 @@ logger = structlog.get_logger(__name__)
 
 class Command(BaseCommand):
 
-    DEFAULT_DELETION_GAP = timedelta(weeks=4)
+    DEFAULT_DELETION_GAP = timedelta(days=settings.HARDDELETE_DELETION_GAP)
 
     help = "Hard delete rows in database soft-deleted longer than a certain time"
 
     def add_arguments(self, parser):
         parser.add_argument(
-            "--exec_date", type=datetime.fromisoformat, default=datetime.now(timezone.utc)
+            "--exec_time",
+            type=datetime.fromisoformat,
+            default=datetime.now(timezone.utc),
+            help="Manually set the execution time. Default is to use the current time.",
         )
         parser.add_argument(
             "--deletion_gap",
             type=lambda x: timedelta(days=int(x)),
             default=self.DEFAULT_DELETION_GAP,
+            help="Set the deletion gap. Any row soft-deleted more than deletion_gap days "
+            "ago will be hard deleted / removed from the database.",
         )
 
     @staticmethod
@@ -41,9 +47,9 @@ class Command(BaseCommand):
         return objects
 
     def handle(self, *args, **options):
-        exec_date = options["exec_date"]
+        exec_time = options["exec_time"]
         deletion_gap = options["deletion_gap"]
-        cutoff_date = exec_date - deletion_gap
+        cutoff_date = exec_time - deletion_gap
         to_delete = self.all_objects(cutoff_date)
         for obj in to_delete:
             obj.delete(force_policy=HARD_DELETE)

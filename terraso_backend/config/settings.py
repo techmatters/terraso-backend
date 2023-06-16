@@ -364,3 +364,4 @@ PUBLIC_BASE_PATHS = [
     "/healthz/",
     "/web-client/sitemap.xml",
 ]
+HARDDELETE_DELETION_GAP = config("HARDDELETE_DELETION_GAP_DAYS", default="30", cast=config.eval)
