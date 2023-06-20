@@ -16,6 +16,9 @@ email_preview
 # VS Code
 .vscode
 
+# PyCharm
+.idea
+
 # Distribution / packaging
 .Python
 build/
@@ -82,3 +85,6 @@ pids
 
 # macOS
 .DS_Store
+
+# node
+node_modules/

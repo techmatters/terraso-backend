@@ -12,14 +12,31 @@
 #
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see https://www.gnu.org/licenses/.
+from datetime import datetime
+
+import django_filters
 import graphene
 from graphene import relay
 from graphene_django import DjangoObjectType
 
+from apps.audit_logs import api as audit_log_api
 from apps.project_management.models import Project, Site
 
 from .commons import BaseWriteMutation, TerrasoConnection
 from .constants import MutationTypes
+
+
+class SiteFilter(django_filters.FilterSet):
+    class Meta:
+        model = Site
+        fields = ["name", "owner", "project", "project__id"]
+
+    order_by = django_filters.OrderingFilter(
+        fields=(
+            ("updated_at", "updated_at"),
+            ("created_at", "created_at"),
+        )
+    )
 
 
 class SiteNode(DjangoObjectType):
@@ -28,8 +45,8 @@ class SiteNode(DjangoObjectType):
     class Meta:
         model = Site
 
-        filter_fields = {"name": ["icontains"]}
         fields = ("name", "latitude", "longitude", "project")
+        filterset_class = SiteFilter
 
         interfaces = (relay.Node,)
         connection_class = TerrasoConnection
@@ -44,6 +61,48 @@ class SiteAddMutation(BaseWriteMutation):
         name = graphene.String(required=True)
         latitude = graphene.Float(required=True)
         longitude = graphene.Float(required=True)
+        project_id = graphene.ID()
+
+    @classmethod
+    def mutate_and_get_payload(cls, root, info, **kwargs):
+        log = cls.get_logger()
+        user = info.context.user
+        if not cls.is_update(kwargs):
+            kwargs["created_by"] = user
+
+        client_time = kwargs.pop("client_time", None)
+        if not client_time:
+            client_time = datetime.now()
+
+        adding_to_project = "project_id" in kwargs
+        if adding_to_project:
+            project = cls.get_or_throw(Project, "project_id", kwargs["project_id"])
+            if not user.has_perm(Project.get_perm("add_site"), project):
+                raise cls.not_allowed(MutationTypes.ADD)
+            kwargs["project"] = project
+        else:
+            kwargs["owner"] = info.context.user
+
+        result = super().mutate_and_get_payload(root, info, **kwargs)
+        if result.errors:
+            return result
+
+        site = result.site
+        metadata = {
+            "latitude": kwargs["latitude"],
+            "longitude": kwargs["longitude"],
+            "name": kwargs["name"],
+        }
+        if kwargs.get("project_id", None):
+            metadata["project_id"] = kwargs["project_id"]
+        log.log(
+            user=user,
+            action=audit_log_api.CREATE,
+            resource=site,
+            metadata=metadata,
+            client_time=client_time
+        )
+        return result
 
 
 class SiteEditMutation(BaseWriteMutation):
@@ -61,13 +120,39 @@ class SiteEditMutation(BaseWriteMutation):
 
     @classmethod
     def mutate_and_get_payload(cls, root, info, **kwargs):
-        if "project_id" in kwargs:
-            user = info.context.user
-            site = Site.objects.get(id=kwargs["id"])
-            project = Project.objects.get(id=kwargs.pop("project_id"))
-            if not user.has_perm(Site.get_perm("change"), site) or not user.has_perm(
-                Project.get_perm("change"), project
-            ):
-                cls.not_allowed(MutationTypes.UPDATE)
-            kwargs["project"] = project
-        return super().mutate_and_get_payload(root, info, **kwargs)
+        log = cls.get_logger()
+        user = info.context.user
+        site = cls.get_or_throw(Site, "id", kwargs["id"])
+        if not user.has_perm(Site.get_perm("change"), site):
+            raise cls.not_allowed(MutationTypes.UPDATE)
+        project_id = kwargs.pop("project_id", False)
+        result = super().mutate_and_get_payload(root, info, **kwargs)
+        if not project_id:
+            return result
+        site = result.site
+        project = Project.objects.get(id=project_id)
+        if not user.has_perm(Project.get_perm("add_site"), project):
+            raise cls.not_allowed(MutationTypes.UPDATE)
+        site.add_to_project(project)
+
+        client_time = kwargs.get("client_time", None)
+        if not client_time:
+            client_time = datetime.now()
+
+        metadata = {}
+        for key, value in kwargs.items():
+            if key == "id":
+                continue
+            metadata[key] = value
+        if project_id:
+            metadata["project_name"] = project.name
+
+        log.log(
+            user=user,
+            action=audit_log_api.CHANGE,
+            resource=site,
+            metadata=metadata,
+            client_time=client_time
+        )
+
+        return result

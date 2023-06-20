@@ -24,7 +24,7 @@ from pyproj import CRS, Transformer
 from apps.auth.services import JWTService
 from apps.core.gis.utils import DEFAULT_CRS
 from apps.core.models import User
-from apps.project_management.models import Project, Site
+from apps.project_management.models import Project, ProjectSettings, Site
 
 pytestmark = pytest.mark.django_db
 
@@ -76,12 +76,12 @@ def usa_geojson():
 @pytest.fixture
 def site(user: User) -> Site:
     """Sample site created by user fixture"""
-    return mixer.blend(Site, creator=user)
+    return mixer.blend(Site, owner=user)
 
 
 @pytest.fixture
 def site_creator(site: Site) -> User:
-    return site.creator
+    return site.owner
 
 
 @pytest.fixture
@@ -90,6 +90,7 @@ def project() -> Project:
     project = mixer.blend(Project, group=group)
     user = mixer.blend(User)
     project.add_manager(user)
+    ProjectSettings.objects.create(project=project)
     return project
 
 
@@ -97,7 +98,15 @@ def project() -> Project:
 def project_manager(project: Project) -> User:
     return project.managers.first()
 
+
 @pytest.fixture
 def project_with_sites(project: Project) -> Project:
-    mixer.blend(Site, project = project)
+    mixer.blend(Site, project=project)
     return project
+
+
+@pytest.fixture
+def project_user(project: Project) -> User:
+    user = mixer.blend(User)
+    project.add_member(user)
+    return user

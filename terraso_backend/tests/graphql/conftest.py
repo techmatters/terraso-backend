@@ -329,3 +329,8 @@ def story_maps(users):
         + user_1_stories_published
         + user_1_stories_drafts
     )
+
+
+@pytest.fixture
+def audit_log_user():
+    return mixer.blend(User)

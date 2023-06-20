@@ -114,13 +114,6 @@ class DataEntryAddMutation(BaseWriteMutation):
         if "entry_type" in kwargs:
             kwargs["entry_type"] = DataEntry.get_entry_type_from_text(kwargs["entry_type"])
 
-        group_slug = kwargs.pop("group_slug")
-        try:
-            group = Group.objects.get(slug=group_slug)
-        except Group.DoesNotExist:
-            logger.error("Group not found when adding Data Entry", extra={"group_slug": group_slug})
-            raise GraphQLNotFoundException(field="group", model_name=DataEntry.__name__)
-
         result = super().mutate_and_get_payload(root, info, **kwargs)
 
         result.data_entry.groups.set([group])

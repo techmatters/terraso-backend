@@ -1,4 +1,4 @@
-from .projects import Project
+from .projects import Project, ProjectSettings
 from .sites import Site
 
-__all__ = ["Project", "Site"]
+__all__ = ["Project", "ProjectSettings", "Site"]
