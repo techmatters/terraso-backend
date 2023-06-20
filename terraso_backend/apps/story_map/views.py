@@ -80,6 +80,14 @@ class StoryMapAddView(AuthenticationRequiredMixin, FormView):
             )
             return JsonResponse({"errors": [{"message": [asdict(error_message)]}]}, status=400)
 
+        if "chapters" in config:
+            media_type = config["chapters"][0]["media"]["type"]
+            if not (media_type and (media_type.startswith("image") or media_type.startswith("audio") or media_type.startswith("video"))):
+                logger.info("Warning: invalid media type")
+                error_message = ErrorMessage(
+                    code="Invalid Media Type", context=ErrorContext(model="StoryMap", field=NON_FIELD_ERRORS)
+                )
+                return JsonResponse({"errors": [{"message": [asdict(error_message)]}]}, status=400)
         try:
             story_map = StoryMap.objects.create(
                 story_map_id=secrets.token_hex(4),
@@ -159,17 +167,11 @@ class StoryMapUpdateView(AuthenticationRequiredMixin, FormView):
 
         return JsonResponse(story_map.to_dict(), status=201)
 
-def is_valid_media(media):
-    if (media and (media["type"].startswith("image") or media["type"].startswith("audio") or media["type"].startswith("video"))):
-        return True
-    logger.info("Invalid media type.")
-    raise Exception("Invalid media type")
-
 def handle_config_media(new_config, current_config, request):
     if "chapters" in new_config:
         for chapter in new_config["chapters"]:
             media = chapter.get("media")
-            if media and is_valid_media(media) and "contentId" in media:
+            if media and "contentId" in media:
                 file_id = media["contentId"]
                 matching_file = next(
                     (file for file in request.FILES.getlist("files") if file.name == file_id), None
