@@ -20,12 +20,14 @@ from apps.project_management.models import Site
 pytestmark = pytest.mark.django_db
 
 
-def test_query_by_project(client_query, project, project_manager, site):
+def test_query_by_project(client, client_query, project, project_manager, site):
+    project.add_manager(project_manager)
     site.project = project
     site.owner = None
     site.save()
     site2 = Site(name=2, project=project, latitude=site.latitude, longitude=site.longitude)
     site2.save()
+    client.force_login(project_manager)
     query = """
     {
       sites(orderBy: "%s", project_Id: "%s") {
@@ -43,6 +45,7 @@ def test_query_by_project(client_query, project, project_manager, site):
     )
     response = graphql_query(
         query,
+        client=client,
     )
     assert "errors" not in response.json()
     edges = response.json()["data"]["sites"]["edges"]
@@ -66,8 +69,96 @@ def test_query_by_project(client_query, project, project_manager, site):
     )
     response = graphql_query(
         query,
+        client=client,
     )
     assert "errors" not in response.json()
     edges = response.json()["data"]["sites"]["edges"]
     assert len(edges) == 2
     assert edges[0]["node"]["name"] == str(site2.name)
+
+
+def test_query_site_permissions(client, client_query, project, project_manager, site, user):
+    project.add_manager(project_manager)
+    site.project = None
+    site.owner = project_manager
+    site.save()
+    client.force_login(project_manager)
+    assert project_manager != user
+    site2 = Site(name=2, latitude=site.latitude, longitude=site.longitude, owner=user)
+    site2.save()
+    site3 = Site(name=3, latitude=site.latitude, longitude=site.longitude, owner=user)
+    site3.save()
+    query = """
+       {
+         sites(orderBy: "%s") {
+           edges {
+             node {
+               id
+               name
+             }
+           }
+         }
+       }
+       """ % (
+        "created_at",
+    )
+    response = graphql_query(
+        query,
+        client=client,
+    )
+
+    assert "errors" not in response.json()
+    edges = response.json()["data"]["sites"]["edges"]
+    assert len(edges) == 1
+
+    site.project = project
+    site.owner = None
+    site.save()
+    client.force_login(project_manager)
+    query = """
+       {
+         sites(orderBy: "%s") {
+           edges {
+             node {
+               id
+               name
+             }
+           }
+         }
+       }
+       """ % (
+        "created_at",
+    )
+    response = graphql_query(
+        query,
+        client=client,
+    )
+    assert "errors" not in response.json()
+    edges = response.json()["data"]["sites"]["edges"]
+    assert len(edges) == 1
+
+    client.force_login(user)
+    query = """
+           {
+             sites(orderBy: "%s") {
+               edges {
+                 node {
+                   id
+                   name
+                 }
+               }
+             }
+           }
+           """ % (
+        "created_at",
+    )
+    response = graphql_query(
+        query,
+        client=client,
+    )
+    assert "errors" not in response.json()
+    edges = response.json()["data"]["sites"]["edges"]
+    assert len(edges) == 2
+
+
+
