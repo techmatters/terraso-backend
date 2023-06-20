@@ -159,7 +159,6 @@ class StoryMapUpdateView(AuthenticationRequiredMixin, FormView):
 
         return JsonResponse(story_map.to_dict(), status=201)
 
-## separate function to validate handle config media-- throw exception
 def is_valid_media(media):
     if (media and (media["type"].startswith("image") or media["type"].startswith("audio") or media["type"].startswith("video"))):
         return True
