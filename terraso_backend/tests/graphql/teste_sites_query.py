@@ -159,6 +159,3 @@ def test_query_site_permissions(client, client_query, project, project_manager, 
     assert "errors" not in response.json()
     edges = response.json()["data"]["sites"]["edges"]
     assert len(edges) == 2
-
-
-
