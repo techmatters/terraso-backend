@@ -20,8 +20,7 @@ from graphene import relay
 from graphene_django import DjangoObjectType
 
 from apps.audit_logs import api as audit_log_api
-from apps.project_management.models import Project, Site
-from apps.project_management.models import sites
+from apps.project_management.models import Project, Site, sites
 
 from .commons import BaseWriteMutation, TerrasoConnection
 from .constants import MutationTypes
