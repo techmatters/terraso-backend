@@ -119,12 +119,18 @@ class StoryMapUpdateView(AuthenticationRequiredMixin, FormView):
 
         return JsonResponse(story_map.to_dict(), status=201)
 
+## separate function to validate handle config media-- throw exception
+def is_valid_media(media):
+    if (media and (media["type"].startswith("image") or media["type"].startswith("audio") or media["type"].startswith("video"))):
+        return True
+    logger.info("Invalid media type.")
+    raise Exception("Invalid media type")
 
 def handle_config_media(new_config, current_config, request):
     if "chapters" in new_config:
         for chapter in new_config["chapters"]:
             media = chapter.get("media")
-            if media and "contentId" in media:
+            if media and is_valid_media(media) and "contentId" in media:
                 file_id = media["contentId"]
                 matching_file = next(
                     (file for file in request.FILES.getlist("files") if file.name == file_id), None
