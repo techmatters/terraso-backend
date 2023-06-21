@@ -61,12 +61,14 @@ class StoryMapAddView(AuthenticationRequiredMixin, FormView):
         if "chapters" in config:
             media_type = config["chapters"][0]["media"]["type"]
             if not (
-                media_type 
-                and (media_type.startswith("image") or media_type.startswith("audio") or media_type.startswith("video"))
+                media_type
+                and (media_type.startswith("image") 
+                or media_type.startswith("audio") 
+                or media_type.startswith("video"))
             ):
                 logger.info("Warning: invalid media type")
                 error_message = ErrorMessage(
-                    code="Invalid Media Type", 
+                    code="Invalid Media Type",
                     context=ErrorContext(model="StoryMap", field=NON_FIELD_ERRORS)
                 )
                 return JsonResponse({"errors": [{"message": [asdict(error_message)]}]}, status=400)
