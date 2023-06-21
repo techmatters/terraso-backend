@@ -84,9 +84,9 @@ class StoryMapAddView(AuthenticationRequiredMixin, FormView):
             media_type = config["chapters"][0]["media"]["type"]
             if not (
                 media_type
-                and (media_type.startswith("image") 
-                or media_type.startswith("audio") 
-                or media_type.startswith("video"))
+                and (media_type.startswith("image")
+                     or media_type.startswith("audio")
+                     or media_type.startswith("video"))
             ):
                 logger.info("Warning: invalid media type")
                 error_message = ErrorMessage(
