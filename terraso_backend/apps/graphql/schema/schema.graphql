@@ -684,6 +684,7 @@ type Mutations {
   addSite(input: SiteAddMutationInput!): SiteAddMutationPayload!
   editSite(input: SiteEditMutationInput!): SiteEditMutationPayload!
   addProject(input: ProjectAddMutationInput!): ProjectAddMutationPayload!
+  deleteProject(input: ProjectDeleteMutationInput!): ProjectDeleteMutationPayload!
 }
 
 type GroupAddMutationPayload {
@@ -1076,4 +1077,16 @@ input ProjectAddMutationInput {
 enum ProjectPrivacy {
   PRIVATE
   PUBLIC
+}
+
+type ProjectDeleteMutationPayload {
+  errors: GenericScalar
+  project: ProjectNode!
+  clientMutationId: String
+}
+
+input ProjectDeleteMutationInput {
+  id: ID!
+  transferProjectId: ID
+  clientMutationId: String
 }

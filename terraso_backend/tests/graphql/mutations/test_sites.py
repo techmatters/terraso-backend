@@ -62,7 +62,7 @@ def test_site_creation(client_query, user):
     assert log_result.event == CREATE.value
     assert log_result.user == user
     assert log_result.resource_object == site
-    expected_metadata = {'name': 'Test Site', 'latitude': 0.0, 'longitude': 0.0}
+    expected_metadata = {"name": "Test Site", "latitude": 0.0, "longitude": 0.0}
     assert log_result.metadata == expected_metadata
 
 
@@ -86,7 +86,7 @@ def test_site_creation_in_project(client, project_manager, project):
     log_result = logs[0]
     assert log_result.event == CREATE.value
     assert log_result.resource_object == site
-    expected_metadata = {'name': 'Test Site', 'latitude': 0.0, 'longitude': 0.0}
+    expected_metadata = {"name": "Test Site", "latitude": 0.0, "longitude": 0.0}
     assert log_result.metadata["name"] == expected_metadata["name"]
     assert log_result.metadata["latitude"] == expected_metadata["latitude"]
     assert log_result.metadata["longitude"] == expected_metadata["longitude"]

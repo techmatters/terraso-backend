@@ -36,3 +36,13 @@ def allowed_to_edit_site(user, site):
     if site.project.is_member(user):
         return site.project.settings.member_can_edit_site
     return False
+
+
+@rules.predicate
+def allowed_to_delete_project(user, project):
+    return project.is_manager(user)
+
+
+@rules.predicate
+def allowed_to_add_to_project(user, project):
+    return project.is_manager(user)

@@ -62,7 +62,7 @@ class Site(BaseModel):
         Project,
         null=True,
         blank=True,
-        on_delete=models.RESTRICT,
+        on_delete=models.CASCADE,
         verbose_name="project to which the site belongs",
     )
 
