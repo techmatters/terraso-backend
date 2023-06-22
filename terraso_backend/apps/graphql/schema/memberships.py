@@ -65,6 +65,7 @@ class MembershipNode(DjangoObjectType):
 
 
 class MembershipAddMutation(BaseAuthenticatedMutation):
+    model_class = Membership
     membership = graphene.Field(MembershipNode)
 
     class Input:
@@ -121,6 +122,7 @@ class MembershipAddMutation(BaseAuthenticatedMutation):
 
 
 class MembershipUpdateMutation(BaseAuthenticatedMutation):
+    model_class = Membership
     membership = graphene.Field(MembershipNode)
 
     class Input:

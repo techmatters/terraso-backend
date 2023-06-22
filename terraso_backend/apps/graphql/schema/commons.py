@@ -31,7 +31,6 @@ from apps.graphql.exceptions import (
     GraphQLNotFoundException,
     GraphQLValidationException,
 )
-from apps.graphql.exceptions import GraphQLNotFoundException
 
 from .constants import MutationTypes
 
@@ -107,6 +106,24 @@ class BaseMutation(relay.ClientIDMutation):
             )
             return cls(errors=[{"message": str(error)}])
 
+    @classmethod
+    def get_or_throw(cls, model, field_name, id_):
+        try:
+            return model.objects.get(id=id_)
+        except model.DoesNotExist:
+            return GraphQLNotFoundException(field_name=field_name, model_name=model.__name__)
+
+    @classmethod
+    def not_allowed(cls, model, mutation_type=None, msg=None, extra=None):
+        if not extra:
+            extra = {}
+        model_name = model.__name__
+        if not msg:
+            mutation_type = mutation_type.value if mutation_type else "change"
+            msg = "Tried to {mutation_type} {model_name}, but user is not allowed"
+        logger.error(msg, extra=extra)
+        raise GraphQLNotAllowedException(model_name, operation=mutation_type)
+
 
 class BaseAdminMutation(BaseMutation):
     class Meta:
@@ -135,6 +152,8 @@ class BaseAuthenticatedMutation(BaseMutation):
     class Meta:
         abstract = True
 
+    model_class = None
+
     @classmethod
     def mutate(cls, root, info, input):
         user = info.context.user
@@ -149,24 +168,16 @@ class BaseAuthenticatedMutation(BaseMutation):
         return super().mutate(root, info, input)
 
     @classmethod
-    def not_allowed(cls, model, mutation_type=None, msg=None, extra=None):
-        if not extra:
-            extra = {}
-        model_name = model.__name__
-        if not msg:
-            mutation_type = mutation_type.value if mutation_type else "change"
-            msg = "Tried to {mutation_type} {model_name}, but user is not allowed"
-        logger.error(msg, extra=extra)
-        raise GraphQLNotAllowedException(model_name, operation=mutation_type)
+    def not_allowed(cls, mutation_type=None, msg=None, extra=None):
+        raise super().not_allowed(cls.model_class, mutation_type=mutation_type, msg=msg, extra=None)
 
     @classmethod
     def not_allowed_create(cls, model, msg=None, extra=None):
-        raise cls.not_allowed(model, MutationTypes.CREATE, msg, extra)
+        raise cls.not_allowed(MutationTypes.CREATE, msg, extra)
 
 
 class BaseWriteMutation(BaseAuthenticatedMutation):
     logger: Optional[audit_log_api.AuditLog] = None
-    model_class = None
 
     @classmethod
     def mutate_and_get_payload(cls, root, info, **kwargs):
@@ -228,17 +239,6 @@ class BaseWriteMutation(BaseAuthenticatedMutation):
         return "id" in data
 
     @classmethod
-    def not_allowed(cls, mutation_type=None):
-        raise super().not_allowed(cls.model_class, mutation_type)
-
-    @classmethod
-    def get_or_throw(cls, model, field_name, id_):
-        try:
-            return model.objects.get(id=id_)
-        except model.DoesNotExist:
-            return GraphQLNotFoundException(field_name=field_name, model_name=model.__name__)
-
-    @classmethod
     def get_logger(cls):
         """Returns the logger instance."""
         if not cls.logger:
@@ -247,8 +247,6 @@ class BaseWriteMutation(BaseAuthenticatedMutation):
 
 
 class BaseDeleteMutation(BaseAuthenticatedMutation):
-    model_class = None
-
     @classmethod
     def mutate_and_get_payload(cls, root, info, **kwargs):
         _id = kwargs.pop("id", None)
@@ -261,21 +259,3 @@ class BaseDeleteMutation(BaseAuthenticatedMutation):
 
         result_kwargs = {from_camel_to_snake_case(cls.model_class.__name__): model_instance}
         return cls(**result_kwargs)
-
-    @classmethod
-    def not_allowed(cls):
-        raise super().not_allowed(cls.model_class, MutationTypes.DELETE)
-
-    @classmethod
-    def get_or_throw(cls, field_name, id_):
-        try:
-            return cls.model_class.objects.get(id=id_)
-        except cls.model_class.DoesNotExist:
-            raise GraphQLNotFoundException(
-                field_name=field_name, model_name=cls.model_class.__name__
-            )
-
-
-
-
-

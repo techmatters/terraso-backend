@@ -26,6 +26,7 @@ from apps.project_management.models.sites import Site
 
 from .commons import BaseDeleteMutation, BaseWriteMutation, TerrasoConnection
 
+
 class ProjectNode(DjangoObjectType):
     id = graphene.ID(source="pk", required=True)
 
@@ -74,9 +75,10 @@ class ProjectAddMutation(BaseWriteMutation):
             action=action,
             resource=result.project,
             client_time=client_time,
-            metadata=metadata
+            metadata=metadata,
         )
         return result
+
 
 class ProjectDeleteMutation(BaseDeleteMutation):
     project = graphene.Field(ProjectNode, required=True)
@@ -91,13 +93,13 @@ class ProjectDeleteMutation(BaseDeleteMutation):
     @transaction.atomic
     def mutate_and_get_payload(cls, root, info, **kwargs):
         user = info.context.user
-        project_id = kwargs['id']
-        project = cls.get_or_throw('id', project_id)
+        project_id = kwargs["id"]
+        project = cls.get_or_throw(Project, "id", project_id)
         if not user.has_perm(Project.get_perm("delete"), project):
             cls.not_allowed()
-        if 'transfer_project_id' in kwargs:
-            transfer_project_id = kwargs['transfer_project_id']
-            transfer_project = cls.get_or_throw('id', transfer_project_id)
+        if "transfer_project_id" in kwargs:
+            transfer_project_id = kwargs["transfer_project_id"]
+            transfer_project = cls.get_or_throw(Project, "id", transfer_project_id)
             if not user.has_perm(Project.get_perm("add"), transfer_project):
                 cls.not_allowed()
             project_sites = project.site_set.all()

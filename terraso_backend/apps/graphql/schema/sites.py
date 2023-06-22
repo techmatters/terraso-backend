@@ -100,7 +100,7 @@ class SiteAddMutation(BaseWriteMutation):
             action=audit_log_api.CREATE,
             resource=site,
             metadata=metadata,
-            client_time=client_time
+            client_time=client_time,
         )
         return result
 
@@ -152,7 +152,7 @@ class SiteEditMutation(BaseWriteMutation):
             action=audit_log_api.CHANGE,
             resource=site,
             metadata=metadata,
-            client_time=client_time
+            client_time=client_time,
         )
 
         return result
