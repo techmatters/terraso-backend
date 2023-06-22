@@ -504,8 +504,22 @@ type VisualizationConfigNode implements Node {
   title: String!
   configuration: JSONString
   createdBy: UserNode
+  mapboxTilesetId: String!
+  mapboxTilesetStatus: SharedDataVisualizationConfigMapboxTilesetStatusChoices!
   dataEntry: DataEntryNode!
   group: GroupNode!
+}
+
+"""An enumeration."""
+enum SharedDataVisualizationConfigMapboxTilesetStatusChoices {
+  """Pending"""
+  PENDING
+
+  """Ready"""
+  READY
+
+  """Failed"""
+  FAILED
 }
 
 type LandscapeNodeConnection {

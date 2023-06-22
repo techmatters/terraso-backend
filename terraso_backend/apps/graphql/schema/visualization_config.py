@@ -13,15 +13,21 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see https://www.gnu.org/licenses/.
 
+import json
+import secrets
+
 import graphene
+import openpyxl
 import structlog
 from graphene import relay
 from graphene_django import DjangoObjectType
 
+from apps.core.gis.mapbox import create_tileset
 from apps.core.models import Group, Membership
 from apps.graphql.exceptions import GraphQLNotAllowedException
 from apps.shared_data.models.data_entries import DataEntry
 from apps.shared_data.models.visualization_config import VisualizationConfig
+from apps.shared_data.services import data_entry_upload_service
 
 from ..exceptions import GraphQLNotFoundException
 from .commons import BaseDeleteMutation, BaseWriteMutation, TerrasoConnection
@@ -49,6 +55,8 @@ class VisualizationConfigNode(DjangoObjectType):
             "created_at",
             "data_entry",
             "group",
+            "mapbox_tileset_id",
+            "mapbox_tileset_status",
         )
         interfaces = (relay.Node,)
         connection_class = TerrasoConnection
@@ -109,6 +117,75 @@ class VisualizationConfigAddMutation(BaseWriteMutation):
 
         if not cls.is_update(kwargs):
             kwargs["created_by"] = user
+
+        # Create mapbox tileset
+        spreadsheet = data_entry_upload_service.get_file(data_entry.s3_object_name)
+        workbook = openpyxl.load_workbook(spreadsheet)
+        worksheet = workbook.active
+
+        col_count = worksheet.max_column
+
+        first_row = [cell.value for cell in worksheet[1]]
+
+        dataset_config = kwargs["configuration"]["datasetConfig"]
+        annotate_config = kwargs["configuration"]["annotateConfig"]
+
+        latitude_column = dataset_config["latitude"]
+        longitude_column = dataset_config["longitude"]
+        data_points = annotate_config["dataPoints"]
+
+        geojson = {
+            "type": "FeatureCollection",
+            "features": [],
+        }
+
+        for row in worksheet.iter_rows(min_row=2, min_col=1, max_col=col_count):
+            fields = []
+            for data_point in data_points:
+                column_index = first_row.index(data_point["column"])
+                fields.append(
+                    {
+                        "label": data_point["label"]
+                        if "label" in data_point
+                        else data_point["column"],
+                        "value": row[column_index].value,
+                    }
+                )
+            properties = {}
+            if (
+                "annotationTitle" in annotate_config
+                and annotate_config["annotationTitle"] is not None
+                and annotate_config["annotationTitle"] in first_row
+            ):
+                title_index = first_row.index(annotate_config["annotationTitle"])
+                properties["title"] = row[title_index].value
+            properties["fields"] = json.dumps(fields)
+            longitude_index = first_row.index(longitude_column)
+            latitude_index = first_row.index(latitude_column)
+            try:
+                longitude = float(row[longitude_index].value)
+                latitude = float(row[latitude_index].value)
+                feature = {
+                    "type": "Feature",
+                    "geometry": {
+                        "type": "Point",
+                        "coordinates": [longitude, latitude],
+                    },
+                    "properties": properties,
+                }
+
+                geojson["features"].append(feature)
+            except ValueError:
+                print("Invalid value for row")
+                continue
+
+        try:
+            random_id = secrets.token_hex(4)
+            id = "{}-{}".format(random_id, group_entry.slug)[:32]
+            tileset_id = create_tileset(id, geojson, kwargs["title"], "")
+            kwargs["mapbox_tileset_id"] = tileset_id
+        except Exception:
+            raise Exception("Error creating tileset")
 
         return super().mutate_and_get_payload(root, info, **kwargs)
 

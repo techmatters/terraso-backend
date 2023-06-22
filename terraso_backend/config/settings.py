@@ -382,3 +382,6 @@ JWT_EXCHANGE_PROVIDERS: dict[str, JWTProvider] = {
         client_id=config("GOOGLE_MOBILE_CLIENT_ID", default=""),
     )
 }
+
+MAPBOX_USERNAME = config("MAPBOX_USERNAME", default="")
+MAPBOX_ACCESS_TOKEN = config("MAPBOX_ACCESS_TOKEN", default="")

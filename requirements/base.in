@@ -20,3 +20,4 @@ pyproj
 python-magic
 rules
 shapely
+openpyxl

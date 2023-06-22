@@ -98,6 +98,10 @@ class UploadService:
         signed_url = self.storage.url(path)
         return signed_url
 
+    def get_file(self, path):
+        print(f"Getting file from {path}")
+        return self.storage.open(path)
+
 
 class ProfileImageService(UploadService):
     storage = ProfileImageStorage()
