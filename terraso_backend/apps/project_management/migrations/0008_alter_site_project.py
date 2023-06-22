@@ -3,7 +3,6 @@
 import django.db.models.deletion
 from django.db import migrations, models
 
-
 class Migration(migrations.Migration):
     dependencies = [
         ("project_management", "0007_remove_project_settings_site_created_by"),
