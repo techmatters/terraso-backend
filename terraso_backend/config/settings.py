@@ -14,6 +14,7 @@
 # along with this program. If not, see https://www.gnu.org/licenses/.
 import base64
 import os
+from typing import TypedDict
 
 import django
 import structlog
@@ -364,3 +365,17 @@ PUBLIC_BASE_PATHS = [
     "/healthz/",
     "/web-client/sitemap.xml",
 ]
+
+
+class JWTProvider(TypedDict):
+    url: str
+    client_id: str
+    name: str
+
+
+JWT_EXCHANGE_PROVIDERS: dict[str, JWTProvider] = {
+    "google": dict(
+        url="https://www.googleapis.com/oauth2/v3/certs",
+        client_id=config("GOOGLE_MOBILE_CLIENT_ID", default=""),
+    )
+}

@@ -18,6 +18,7 @@ import json
 from urllib.parse import urlparse
 
 import httpx
+import jwt
 import structlog
 from django.conf import settings
 from django.contrib.auth import get_user_model
@@ -243,3 +244,48 @@ def terraso_login(request, user):
     dj_login(request, user, backend="django.contrib.auth.backends.ModelBackend")
 
     return access_token, refresh_token
+
+
+class TokenExchangeView(View):
+    @staticmethod
+    def _check_request(contents):
+        missing_keys = []
+        for key in ("jwt", "provider"):
+            if key not in contents:
+                missing_keys.append(key)
+        if missing_keys:
+            return JsonResponse({"missing_keys": missing_keys}, status=400)
+        provider = contents["provider"]
+        if provider not in settings.JWT_EXCHANGE_PROVIDERS:
+            return JsonResponse({"bad_provider": provider}, status=400)
+
+    @staticmethod
+    def _get_signing_key(token, provider_url):
+        # fetch jwks
+        jwks_client = jwt.PyJWKClient(provider_url)
+        return jwks_client.get_signing_key_from_jwt(token)
+
+    @staticmethod
+    def _verify_payload(token, signing_key, client_id):
+        algorithms = [signing_key.key_type]
+        return jwt.decode(token, signing_key.key, algorithms=algorithms, audience=client_id)
+
+    def post(self, request, *args, **kwargs):
+        contents = json.loads(request.body)
+        if resp := self._check_request(contents):
+            return resp
+        provider_name = contents["provider"]
+        provider = settings.JWT_EXCHANGE_PROVIDERS[provider_name]
+        try:
+            signing_key = self._get_signing_key(contents["jwt"], provider_url=provider["url"])
+        except Exception:
+            return JsonResponse(
+                {"jwk_error": f"could not retrieve signing key for {provider_name}"}, status=500
+            )
+        try:
+            payload = self._verify_payload(contents["jwt"], signing_key, provider["client_id"])
+        except Exception:
+            return JsonResponse({"token_error": "token was not verified"})
+        user = self._create_or_fetch_user(payload)
+        rtoken, atoken = terraso_login(user, request)
+        return JsonResponse({"rtoken": rtoken, "atoken": atoken})
