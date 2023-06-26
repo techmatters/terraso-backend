@@ -504,7 +504,7 @@ type VisualizationConfigNode implements Node {
   title: String!
   configuration: JSONString
   createdBy: UserNode
-  mapboxTilesetId: String!
+  mapboxTilesetId: String
   mapboxTilesetStatus: SharedDataVisualizationConfigMapboxTilesetStatusChoices!
   dataEntry: DataEntryNode!
   group: GroupNode!

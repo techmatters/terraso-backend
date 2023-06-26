@@ -43,7 +43,7 @@ class VisualizationConfig(SlugModel):
         on_delete=models.PROTECT,
         related_name="created_visualization_configs",
     )
-    mapbox_tileset_id = models.CharField(max_length=128, blank=True, default="")
+    mapbox_tileset_id = models.CharField(max_length=128, null=True)
     mapbox_tileset_status = models.CharField(
         max_length=128, choices=MAPBOX_TILESET_STATUSES, default=MAPBOX_TILESET_PENDING
     )
