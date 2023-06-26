@@ -120,3 +120,24 @@ def test_delete_project_transfer_sites(is_manager, project_with_sites, client, p
         assert Site.objects.filter(project=other_project, id__in=site_ids).exists()
     else:
         assert "errors" in content or "errors" in content["data"]["deleteProject"]
+
+ARCHIVE_PROJECT_GRAPHQL = """
+    mutation($input: ProjectArchiveMutationInput!) {
+    archiveProject(input: $input) {
+        project{
+        id,
+        name
+        }
+    }
+    }
+"""
+
+def test_archive_project(project_with_sites, client, project_manager):
+    site_ids = [site.id for site in project_with_sites.site_set.all()]
+    input = {"id": str(project_with_sites.id), "archived": True}
+    client.force_login(project_manager)
+    response = graphql_query(ARCHIVE_PROJECT_GRAPHQL, input_data=input, client=client)
+    content = json.loads(response.content)
+    assert "errors" not in content and "errors" not in content["data"]["archiveProject"]
+    assert Project.objects.filter(id=project_with_sites.id, archived=True).exists()
+    # assert Site.objects.filter(id__in=site_ids, archived=True).exists()

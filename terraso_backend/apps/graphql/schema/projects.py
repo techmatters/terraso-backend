@@ -108,3 +108,16 @@ class ProjectDeleteMutation(BaseDeleteMutation):
             Site.objects.bulk_update(project_sites, ["project"])
         result = super().mutate_and_get_payload(root, info, **kwargs)
         return result
+
+class ProjectArchiveMutation(BaseWriteMutation):
+    project = graphene.Field(ProjectNode, required=True)
+
+    model_class = Project
+
+    class Input:
+        id = graphene.ID(required=True)
+        archived = graphene.Boolean(required=True)
+
+    # @classmethod
+    # def mutate_and_get_payload(cls, root, info, **kwargs):
+    #     user = info.context.user
