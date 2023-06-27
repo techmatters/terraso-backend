@@ -33,6 +33,8 @@ django.utils.encoding.force_text = force_str
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 PROJECT_DIR = os.path.dirname(os.path.abspath(BASE_DIR))
 
+ENV = config("ENV", default="development")
+
 DEBUG = config("DEBUG", default=False, cast=config.boolean)
 
 ALLOWED_HOSTS = config("ALLOWED_HOSTS", default="*", cast=config.list)

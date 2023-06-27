@@ -19,6 +19,7 @@ import json
 import graphene
 import openpyxl
 import structlog
+from django.conf import settings
 from graphene import relay
 from graphene_django import DjangoObjectType
 
@@ -162,9 +163,10 @@ def create_mapbox_tileset(data_entry, group_entry, visualization):
         "features": features,
     }
     try:
-        title = f"Terraso - {group_entry.name} - {visualization.title}"
+        title = f"Terraso - {visualization.title}"[:64]
+        description = f"Terraso({settings.ENV}) - {group_entry.name} - {visualization.title}"
         id = str(visualization.id).replace("-", "")
-        tileset_id = create_tileset(id, geojson, title, "")
+        tileset_id = create_tileset(id, geojson, title, description)
         return tileset_id
     except Exception as error:
         raise Exception("Error creating tileset", error)
@@ -224,7 +226,7 @@ class VisualizationConfigAddMutation(BaseWriteMutation):
         # Create mapbox tileset
         try:
             tileset_id = create_mapbox_tileset(data_entry, group_entry, result.visualization_config)
-            result.visualization_config.tileset_id = tileset_id
+            result.visualization_config.mapbox_tileset_id = tileset_id
             result.visualization_config.save()
         except Exception as error:
             logger.error(
