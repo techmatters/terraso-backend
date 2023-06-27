@@ -383,5 +383,7 @@ JWT_EXCHANGE_PROVIDERS: dict[str, JWTProvider] = {
     )
 }
 
+
+MAPBOX_API_URL = config("MAPBOX_API_URL", default="https://api.mapbox.com")
 MAPBOX_USERNAME = config("MAPBOX_USERNAME", default="")
 MAPBOX_ACCESS_TOKEN = config("MAPBOX_ACCESS_TOKEN", default="")

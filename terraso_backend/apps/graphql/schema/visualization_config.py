@@ -13,8 +13,8 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see https://www.gnu.org/licenses/.
 
+import csv
 import json
-import secrets
 
 import graphene
 import openpyxl
@@ -22,7 +22,7 @@ import structlog
 from graphene import relay
 from graphene_django import DjangoObjectType
 
-from apps.core.gis.mapbox import create_tileset
+from apps.core.gis.mapbox import create_tileset, get_publish_status, remove_tileset
 from apps.core.models import Group, Membership
 from apps.graphql.exceptions import GraphQLNotAllowedException
 from apps.shared_data.models.data_entries import DataEntry
@@ -56,7 +56,6 @@ class VisualizationConfigNode(DjangoObjectType):
             "data_entry",
             "group",
             "mapbox_tileset_id",
-            "mapbox_tileset_status",
         )
         interfaces = (relay.Node,)
         connection_class = TerrasoConnection
@@ -67,6 +66,108 @@ class VisualizationConfigNode(DjangoObjectType):
             user=info.context.user, membership_status=Membership.APPROVED
         ).values_list("group", flat=True)
         return queryset.filter(data_entry__groups__in=user_groups_ids)
+
+    def resolve_mapbox_tileset_id(self, info):
+        if self.mapbox_tileset_id is None:
+            return None
+        if self.mapbox_tileset_status == VisualizationConfig.MAPBOX_TILESET_READY:
+            return self.mapbox_tileset_id
+
+        # Check if tileset ready to be published and update status
+        published = get_publish_status(self.mapbox_tileset_id)
+        if published:
+            self.mapbox_tileset_status = VisualizationConfig.MAPBOX_TILESET_READY
+            self.save()
+            return self.mapbox_tileset_id
+
+
+def get_rows_from_file(data_entry):
+    type = data_entry.resource_type
+    if type.startswith("csv"):
+        file = data_entry_upload_service.get_file(data_entry.s3_object_name, "rt")
+        reader = csv.reader(file)
+        return [row for row in reader]
+    elif type.startswith("xls"):
+        file = data_entry_upload_service.get_file(data_entry.s3_object_name, "rb")
+        wb = openpyxl.load_workbook(file)
+        ws = wb.active
+        return [[cell.value for cell in row] for row in ws.iter_rows()]
+    else:
+        raise Exception("File type not supported")
+
+
+def create_mapbox_tileset(data_entry, group_entry, visualization):
+    rows = get_rows_from_file(data_entry)
+    first_row = rows[0]
+
+    dataset_config = visualization.configuration["datasetConfig"]
+    annotate_config = visualization.configuration["annotateConfig"]
+
+    longitude_column = dataset_config["longitude"]
+    longitude_index = first_row.index(longitude_column)
+
+    latitude_column = dataset_config["latitude"]
+    latitude_index = first_row.index(latitude_column)
+
+    data_points = annotate_config["dataPoints"]
+    data_points_indexes = [
+        {
+            "label": data_point.get("label", data_point["column"]),
+            "index": first_row.index(data_point["column"]),
+        }
+        for data_point in data_points
+    ]
+
+    annotation_title = annotate_config.get("annotationTitle")
+
+    title_index = (
+        first_row.index(annotation_title)
+        if annotation_title and annotation_title in first_row
+        else None
+    )
+
+    features = []
+    for row in rows:
+        fields = [
+            {
+                "label": data_point["label"],
+                "value": row[data_point["index"]],
+            }
+            for data_point in data_points_indexes
+        ]
+
+        properties = {
+            "title": row[title_index] if title_index else None,
+            "fields": json.dumps(fields),
+        }
+
+        try:
+            longitude = float(row[longitude_index])
+            latitude = float(row[latitude_index])
+            feature = {
+                "type": "Feature",
+                "geometry": {
+                    "type": "Point",
+                    "coordinates": [longitude, latitude],
+                },
+                "properties": properties,
+            }
+
+            features.append(feature)
+        except ValueError:
+            continue
+
+    geojson = {
+        "type": "FeatureCollection",
+        "features": features,
+    }
+    try:
+        title = f"Terraso - {group_entry.name} - {visualization.title}"
+        id = str(visualization.id).replace("-", "")
+        tileset_id = create_tileset(id, geojson, title, "")
+        return tileset_id
+    except Exception as error:
+        raise Exception("Error creating tileset", error)
 
 
 class VisualizationConfigAddMutation(BaseWriteMutation):
@@ -118,76 +219,20 @@ class VisualizationConfigAddMutation(BaseWriteMutation):
         if not cls.is_update(kwargs):
             kwargs["created_by"] = user
 
+        result = super().mutate_and_get_payload(root, info, **kwargs)
+
         # Create mapbox tileset
-        spreadsheet = data_entry_upload_service.get_file(data_entry.s3_object_name)
-        workbook = openpyxl.load_workbook(spreadsheet)
-        worksheet = workbook.active
-
-        col_count = worksheet.max_column
-
-        first_row = [cell.value for cell in worksheet[1]]
-
-        dataset_config = kwargs["configuration"]["datasetConfig"]
-        annotate_config = kwargs["configuration"]["annotateConfig"]
-
-        latitude_column = dataset_config["latitude"]
-        longitude_column = dataset_config["longitude"]
-        data_points = annotate_config["dataPoints"]
-
-        geojson = {
-            "type": "FeatureCollection",
-            "features": [],
-        }
-
-        for row in worksheet.iter_rows(min_row=2, min_col=1, max_col=col_count):
-            fields = []
-            for data_point in data_points:
-                column_index = first_row.index(data_point["column"])
-                fields.append(
-                    {
-                        "label": data_point["label"]
-                        if "label" in data_point
-                        else data_point["column"],
-                        "value": row[column_index].value,
-                    }
-                )
-            properties = {}
-            if (
-                "annotationTitle" in annotate_config
-                and annotate_config["annotationTitle"] is not None
-                and annotate_config["annotationTitle"] in first_row
-            ):
-                title_index = first_row.index(annotate_config["annotationTitle"])
-                properties["title"] = row[title_index].value
-            properties["fields"] = json.dumps(fields)
-            longitude_index = first_row.index(longitude_column)
-            latitude_index = first_row.index(latitude_column)
-            try:
-                longitude = float(row[longitude_index].value)
-                latitude = float(row[latitude_index].value)
-                feature = {
-                    "type": "Feature",
-                    "geometry": {
-                        "type": "Point",
-                        "coordinates": [longitude, latitude],
-                    },
-                    "properties": properties,
-                }
-
-                geojson["features"].append(feature)
-            except ValueError:
-                print("Invalid value for row")
-                continue
-
         try:
-            random_id = secrets.token_hex(4)
-            id = "{}-{}".format(random_id, group_entry.slug)[:32]
-            tileset_id = create_tileset(id, geojson, kwargs["title"], "")
-            kwargs["mapbox_tileset_id"] = tileset_id
-        except Exception:
-            raise Exception("Error creating tileset")
+            tileset_id = create_mapbox_tileset(data_entry, group_entry, result.visualization_config)
+            result.visualization_config.tileset_id = tileset_id
+            result.visualization_config.save()
+        except Exception as error:
+            logger.error(
+                "Error creating mapbox tileset",
+                extra={"data_entry_id": kwargs["data_entry_id"], "error": str(error)},
+            )
 
-        return super().mutate_and_get_payload(root, info, **kwargs)
+        return cls(visualization_config=result.visualization_config)
 
 
 class VisualizationConfigUpdateMutation(BaseWriteMutation):
@@ -213,6 +258,27 @@ class VisualizationConfigUpdateMutation(BaseWriteMutation):
                 model_name=VisualizationConfig.__name__, operation=MutationTypes.UPDATE
             )
 
+        # Delete mapbox tileset
+        try:
+            if visualization_config.mapbox_tileset_id:
+                remove_tileset(visualization_config.mapbox_tileset_id)
+        except Exception as error:
+            logger.error(
+                "Error deleting mapbox tileset",
+                extra={"data_entry_id": kwargs["data_entry_id"], "error": str(error)},
+            )
+
+        # Create mapbox tileset
+        try:
+            data_entry = visualization_config.data_entry
+            group_entry = visualization_config.group
+            tileset_id = create_mapbox_tileset(data_entry, group_entry, kwargs)
+            kwargs["mapbox_tileset_id"] = tileset_id
+        except Exception as error:
+            logger.error(
+                "Error creating mapbox tileset",
+                extra={"data_entry_id": kwargs["data_entry_id"], "error": str(error)},
+            )
         return super().mutate_and_get_payload(root, info, **kwargs)
 
 
@@ -237,4 +303,15 @@ class VisualizationConfigDeleteMutation(BaseDeleteMutation):
             raise GraphQLNotAllowedException(
                 model_name=VisualizationConfig.__name__, operation=MutationTypes.DELETE
             )
+
+        # Delete mapbox tileset
+        try:
+            if visualization_config.mapbox_tileset_id:
+                remove_tileset(visualization_config.mapbox_tileset_id)
+        except Exception as error:
+            logger.error(
+                "Error deleting mapbox tileset",
+                extra={"data_entry_id": kwargs["data_entry_id"], "error": str(error)},
+            )
+
         return super().mutate_and_get_payload(root, info, **kwargs)
