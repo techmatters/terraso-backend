@@ -53,15 +53,13 @@ def create_tileset(id, geojson, name, description):
 
 
 def remove_tileset(id):
-    response, status_code = _delete_tileset_source(id)
-
-    if status_code != 200:
-        raise Exception("Delete Mapbox tileset source error", response)
-
     response, status_code = _delete_tileset(id)
-
     if status_code != 200:
         raise Exception("Delete Mapbox tileset error", response)
+
+    response, status_code = _delete_tileset_source(id)
+    if status_code != 204:
+        raise Exception("Delete Mapbox tileset source error", response)
 
     return True
 
@@ -91,9 +89,8 @@ def _post_tileset_source(geojson, id):
 def _delete_tileset_source(id):
     url = f"{API_URL}/tilesets/v1/sources/{USERNAME}/{id}?access_token={TOKEN}"
     r = requests.delete(url)
-    response = r.json()
     status_code = r.status_code
-    return response, status_code
+    return None, status_code
 
 
 def _post_tileset(recipe_json, id):
@@ -110,9 +107,8 @@ def _post_tileset(recipe_json, id):
 def _delete_tileset(id):
     url = f"{API_URL}/tilesets/v1/{USERNAME}.{id}?access_token={TOKEN}"
     r = requests.delete(url)
-    response = r.json()
     status_code = r.status_code
-    return response, status_code
+    return None, status_code
 
 
 def _publish_tileset(id):
