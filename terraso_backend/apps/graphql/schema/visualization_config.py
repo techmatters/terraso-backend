@@ -163,8 +163,8 @@ def create_mapbox_tileset(data_entry, group_entry, visualization):
         "type": "FeatureCollection",
         "features": features,
     }
-    title = f"Terraso - {visualization.title}"[:64]
-    description = f"Terraso({settings.ENV}) - {group_entry.name} - {visualization.title}"
+    title = f"{settings.ENV} - {visualization.title}"[:64]
+    description = f"{settings.ENV} - {group_entry.name} - {visualization.title}"
     id = str(visualization.id).replace("-", "")
     tileset_id = create_tileset(id, geojson, title, description)
     return tileset_id
