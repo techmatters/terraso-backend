@@ -26,11 +26,6 @@ def other_private_key():
     return rsa.generate_private_key(public_exponent=65537, key_size=2048)
 
 
-def get_public_numbers(private_key):
-    pubnum = private_key.public_key().public_numbers()
-    return pubnum.e, pubnum.n
-
-
 @pytest.fixture
 def payload():
     return {
@@ -45,7 +40,7 @@ def payload():
     }
 
 
-@pytest.fixture
+@pytest.fixture(autouse=True)
 def exchange_providers(settings):
     settings.JWT_EXCHANGE_PROVIDERS = {
         "example": {"url": "https://example.org/keys", "client_id": "CLIENT_KEY"}
@@ -54,6 +49,11 @@ def exchange_providers(settings):
 
 def sign_payload(payload, private_key):
     return jwt.encode(payload, private_key, "RS256")
+
+
+def get_public_numbers(private_key):
+    pubnum = private_key.public_key().public_numbers()
+    return pubnum.e, pubnum.n
 
 
 def jwks(private_key):
@@ -73,14 +73,14 @@ def encode_int(n: int):
     return base64.b64encode(n.to_bytes(math.ceil(n.bit_length() / 8), "big"))
 
 
-@pytest.fixture
+@pytest.fixture(autouse=True)
 def patch_jwks_client(private_key):
     with patch("jwt.PyJWKClient.get_signing_key_from_jwt") as mock:
         mock.return_value = jwt.api_jwk.PyJWK(jwks(private_key))
         yield mock
 
 
-def test_token_exchange(patch_jwks_client, client, private_key, payload, exchange_providers):
+def test_token_exchange(client, private_key, payload):
     resp = client.post(
         reverse("apps.auth:token-exchange"),
         content_type="application/json",
@@ -94,15 +94,36 @@ def test_token_exchange(patch_jwks_client, client, private_key, payload, exchang
     assert User.objects.filter(email="test@example.org").exists()
 
 
-def test_token_exchange_bad_token(
-    patch_jwks_client, client, other_private_key, payload, exchange_providers
-):
+def test_token_exchange_token_signed_by_different_key(client, other_private_key, payload):
     """JWKS uses public key for fixture `private_key`, but the token being exchanged
     has been signed by `other_private_key`"""
     resp = client.post(
         reverse("apps.auth:token-exchange"),
         content_type="application/json",
         data={"jwt": sign_payload(payload, other_private_key), "provider": "example"},
+    )
+    contents = resp.json()
+    assert "token_error" in contents
+    assert not User.objects.filter(email="test@example.org").exists()
+
+
+@pytest.mark.parametrize(
+    "payload_update",
+    [
+        {
+            "exp": int((datetime.now() - timedelta(seconds=10)).timestamp()),
+        },
+        {"aud": "BAD_CLIENT"},
+    ],
+)
+def test_token_exchange_bad_id_token(payload_update, client, private_key, payload):
+    """Tests that bad id tokens are not verified. The first example is an expired JWT.
+    The second has a different client id than the one saved in our config."""
+    payload.update(payload_update)
+    resp = client.post(
+        reverse("apps.auth:token-exchange"),
+        content_type="application/json",
+        data={"jwt": sign_payload(payload, private_key), "provider": "example"},
     )
     contents = resp.json()
     assert "token_error" in contents
