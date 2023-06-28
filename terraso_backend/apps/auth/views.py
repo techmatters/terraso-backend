@@ -306,8 +306,8 @@ class TokenExchangeView(View):
             logger.exception("token was not verified")
             return JsonResponse({"token_error": "token was not verified"})
         user, created = self._create_or_fetch_user(**payload)
-        if created:
-            # TODO: Create analytics event to track user signup
-            pass
         rtoken, atoken = terraso_login(request, user)
-        return JsonResponse({"rtoken": rtoken, "atoken": atoken})
+        resp_payload = {"rtoken": rtoken, "atoken": atoken}
+        if created:
+            resp_payload["created"] = True
+        return JsonResponse(resp_payload)

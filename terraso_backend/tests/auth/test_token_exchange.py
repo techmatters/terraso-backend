@@ -1,8 +1,7 @@
 import base64
-import json
 import math
 from datetime import datetime, timedelta
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 import jwt
 import pytest
@@ -70,20 +69,18 @@ def jwks(private_key):
 
 
 def encode_int(n: int):
+    """JWKS specs expect numbers to be encoded in base64"""
     return base64.b64encode(n.to_bytes(math.ceil(n.bit_length() / 8), "big"))
 
 
-def set_urlopen_mock(mock, jwks):
-    ret = MagicMock()
-    ret.getcode.return_value = 200
-    ret.read.return_value = json.dumps(jwks)
-    ret.__enter__.return_value = ret
-    mock.return_value = ret
+@pytest.fixture
+def patch_jwks_client(private_key):
+    with patch("jwt.PyJWKClient.get_signing_key_from_jwt") as mock:
+        mock.return_value = jwt.api_jwk.PyJWK(jwks(private_key))
+        yield mock
 
 
-@patch("jwt.PyJWKClient.get_signing_key_from_jwt")
-def test_token_exchange(mock, client, private_key, payload, exchange_providers):
-    mock.return_value = jwt.api_jwk.PyJWK(jwks(private_key))
+def test_token_exchange(patch_jwks_client, client, private_key, payload, exchange_providers):
     resp = client.post(
         reverse("apps.auth:token-exchange"),
         content_type="application/json",
@@ -95,3 +92,18 @@ def test_token_exchange(mock, client, private_key, payload, exchange_providers):
     rtoken = jwt_service.verify_token(contents["rtoken"])
     assert atoken["email"] == rtoken["email"] == "test@example.org"
     assert User.objects.filter(email="test@example.org").exists()
+
+
+def test_token_exchange_bad_token(
+    patch_jwks_client, client, other_private_key, payload, exchange_providers
+):
+    """JWKS uses public key for fixture `private_key`, but the token being exchanged
+    has been signed by `other_private_key`"""
+    resp = client.post(
+        reverse("apps.auth:token-exchange"),
+        content_type="application/json",
+        data={"jwt": sign_payload(payload, other_private_key), "provider": "example"},
+    )
+    contents = resp.json()
+    assert "token_error" in contents
+    assert not User.objects.filter(email="test@example.org").exists()
