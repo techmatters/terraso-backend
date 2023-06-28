@@ -118,6 +118,17 @@ class ProjectArchiveMutation(BaseWriteMutation):
         id = graphene.ID(required=True)
         archived = graphene.Boolean(required=True)
 
-    # @classmethod
-    # def mutate_and_get_payload(cls, root, info, **kwargs):
-    #     user = info.context.user
+    @classmethod
+    @transaction.atomic
+    def mutate_and_get_payload(cls, root, info, **kwargs):
+        user = info.context.user
+        project_id = kwargs["id"]
+        project = cls.get_or_throw(Project, "id", project_id)
+        if not user.has_perm(Project.get_perm("archive"), project):
+            cls.not_allowed()
+        project_sites = project.site_set.all()
+        for site in project_sites:
+            site.archived = kwargs["archived"]
+        Site.objects.bulk_update(project_sites, ["archived"])
+        result = super().mutate_and_get_payload(root, info, **kwargs)
+        return result
