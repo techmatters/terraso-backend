@@ -15,6 +15,7 @@
 
 import functools
 import json
+from typing import Optional
 from urllib.parse import urlparse
 
 import httpx
@@ -267,8 +268,24 @@ class TokenExchangeView(View):
 
     @staticmethod
     def _verify_payload(token, signing_key, client_id):
-        algorithms = [signing_key.key_type]
+        algorithms = [signing_key._jwk_data.get("alg", "RS256")]
         return jwt.decode(token, signing_key.key, algorithms=algorithms, audience=client_id)
+
+    @staticmethod
+    def _create_or_fetch_user(
+        email: str = "",
+        first_name: str = "",
+        last_name: str = "",
+        picture: Optional[str] = None,
+        **kwargs,
+    ):
+        account_service = AccountService()
+        additional_kwargs = {}
+        if picture:
+            additional_kwargs["profile_image_url"] = picture
+        # TODO: using a private method of AccountService is weird, should be refactored
+        user, created = account_service._persist_user(email, first_name, last_name)
+        return user, created
 
     def post(self, request, *args, **kwargs):
         contents = json.loads(request.body)
@@ -279,13 +296,18 @@ class TokenExchangeView(View):
         try:
             signing_key = self._get_signing_key(contents["jwt"], provider_url=provider["url"])
         except Exception:
-            return JsonResponse(
-                {"jwk_error": f"could not retrieve signing key for {provider_name}"}, status=500
-            )
+            msg = f"could not retrieve signing key for {provider_name}"
+            logger.exception(msg)
+            return JsonResponse({"jwk_error": msg}, status=500)
         try:
             payload = self._verify_payload(contents["jwt"], signing_key, provider["client_id"])
         except Exception:
+            msg = "token was not verified"
+            logger.exception("token was not verified")
             return JsonResponse({"token_error": "token was not verified"})
-        user = self._create_or_fetch_user(payload)
-        rtoken, atoken = terraso_login(user, request)
+        user, created = self._create_or_fetch_user(**payload)
+        if created:
+            # TODO: Create analytics event to track user signup
+            pass
+        rtoken, atoken = terraso_login(request, user)
         return JsonResponse({"rtoken": rtoken, "atoken": atoken})
