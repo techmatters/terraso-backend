@@ -29,6 +29,7 @@ from django.views.generic.edit import FormView
 
 from apps.auth.mixins import AuthenticationRequiredMixin
 from apps.core.exceptions import ErrorContext, ErrorMessage
+from config.settings import STORY_MAP_MEDIA_UPLOAD_MAX_SIZE
 
 from .forms import StoryMapForm
 from .models import StoryMap
@@ -58,22 +59,15 @@ class StoryMapAddView(AuthenticationRequiredMixin, FormView):
                 {"errors": [{"message": [asdict(e) for e in error_messages]}]}, status=400
             )
 
-        if "chapters" in config:
-            for chapter in config["chapters"]:
-                media = chapter.get("media")
-                if not (
-                    media
-                    and (media["type"].startswith("image")
-                         or media["type"].startswith("audio")
-                         or media["type"].startswith("video"))
-                ):
-                    logger.info("Warning: invalid media type")
-                    error_message = ErrorMessage(
-                        code="Invalid Media Type",
-                        context=ErrorContext(model="StoryMap", field=NON_FIELD_ERRORS)
-                    )
-                    return JsonResponse({"errors": [{
-                        "message": [asdict(error_message)]}]}, status=400)
+        if not valid_media_type(config):
+            logger.info("Warning: invalid media type")
+            error_message = ErrorMessage(
+                code="Invalid Media Type",
+                context=ErrorContext(model="StoryMap", field=NON_FIELD_ERRORS)
+            )
+            return JsonResponse({"errors": [{
+                "message": [asdict(error_message)]}]}, status=400)
+
         try:
             story_map = StoryMap.objects.create(
                 story_map_id=secrets.token_hex(4),
@@ -116,6 +110,15 @@ class StoryMapUpdateView(AuthenticationRequiredMixin, FormView):
         story_map.is_published = form_data["is_published"] == "true"
 
         new_config = json.loads(form_data["configuration"])
+
+        if not valid_media_type(new_config):
+            logger.info("Warning: invalid media type")
+            error_message = ErrorMessage(
+                code="Invalid Media Type",
+                context=ErrorContext(model="StoryMap", field=NON_FIELD_ERRORS)
+            )
+            return JsonResponse({"errors": [{
+                "message": [asdict(error_message)]}]}, status=400)
 
         story_map.configuration = handle_config_media(new_config, story_map.configuration, request)
 
@@ -179,6 +182,18 @@ def handle_config_media(new_config, current_config, request):
 
     return new_config
 
+def valid_media_type(config):
+    if "chapters" in config:
+        for chapter in config["chapters"]:
+            media = chapter.get("media")
+            if (
+                media 
+                and (media["type"].startswith("image")
+                or media["type"].startswith("audio")
+                or media["type"].startswith("video"))
+            ):
+                return True
+            return False
 
 def handle_integrity_error(exc):
     logger.info(
