@@ -226,14 +226,25 @@ class VisualizationConfigAddMutation(BaseWriteMutation):
         # Create mapbox tileset
         try:
             tileset_id = create_mapbox_tileset(data_entry, group_entry, result.visualization_config)
-            result.visualization_config.mapbox_tileset_id = tileset_id
-            result.visualization_config.save()
         except Exception as error:
             logger.error(
                 "Error creating mapbox tileset",
                 extra={"data_entry_id": kwargs["data_entry_id"], "error": str(error)},
             )
 
+        if tileset_id:
+            result.visualization_config.mapbox_tileset_id = tileset_id
+            try:
+                result.visualization_config.save()
+            except Exception as error:
+                logger.error(
+                    "Error saving mapbox tileset id",
+                    extra={
+                        "data_entry_id": kwargs["data_entry_id"],
+                        "tileset_id": tileset_id,
+                        "error": str(error),
+                    },
+                )
         return cls(visualization_config=result.visualization_config)
 
 

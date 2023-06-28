@@ -24,9 +24,9 @@ TOKEN = settings.MAPBOX_ACCESS_TOKEN
 
 def create_tileset(id, geojson, name, description):
     tileset_source_id = id
-    response, status_code = _send_tileset_source(geojson, tileset_source_id)
+    response, status_code = _post_tileset_source(geojson, tileset_source_id)
     if status_code != 200:
-        raise Exception("Error creating tileset source", response)
+        raise Exception("Post Mapbox tileset source error", response)
 
     recipe_json = {
         "recipe": {
@@ -39,15 +39,15 @@ def create_tileset(id, geojson, name, description):
     }
 
     tileset_id = id
-    response, status_code = _send_tileset(recipe_json, tileset_id)
+    response, status_code = _post_tileset(recipe_json, tileset_id)
 
     if status_code != 200:
-        raise Exception("Error creating tileset", response)
+        raise Exception("Post Mapbox tileset error", response)
 
     response, status_code = _publish_tileset(tileset_id)
 
     if status_code != 200:
-        raise Exception("Error publishing tileset", response)
+        raise Exception("Publish Mapbox tileset error", response)
 
     return tileset_id
 
@@ -56,12 +56,12 @@ def remove_tileset(id):
     response, status_code = _delete_tileset_source(id)
 
     if status_code != 200:
-        raise Exception("Error deleting tileset source", response)
+        raise Exception("Delete Mapbox tileset source error", response)
 
     response, status_code = _delete_tileset(id)
 
     if status_code != 200:
-        raise Exception("Error deleting tileset", response)
+        raise Exception("Delete Mapbox tileset error", response)
 
     return True
 
@@ -76,7 +76,7 @@ def get_publish_status(id):
     return len(response) > 0
 
 
-def _send_tileset_source(geojson, id):
+def _post_tileset_source(geojson, id):
     line_delimited_geojson = "\n".join([json.dumps(feature) for feature in geojson["features"]])
 
     file = open("test.ndjson", "w")
@@ -99,7 +99,7 @@ def _delete_tileset_source(id):
     return response, status_code
 
 
-def _send_tileset(recipe_json, id):
+def _post_tileset(recipe_json, id):
     url = f"{API_URL}/tilesets/v1/{USERNAME}.{id}?access_token={TOKEN}"
     headers = {
         "Content-Type": "application/json",
