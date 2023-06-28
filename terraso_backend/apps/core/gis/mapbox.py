@@ -79,9 +79,6 @@ def get_publish_status(id):
 def _post_tileset_source(geojson, id):
     line_delimited_geojson = "\n".join([json.dumps(feature) for feature in geojson["features"]])
 
-    file = open("test.ndjson", "w")
-    file.write(line_delimited_geojson)
-
     url = f"{API_URL}/tilesets/v1/sources/{USERNAME}/{id}?access_token={TOKEN}"
     multipart_data = [("file", ("test.ndjson", line_delimited_geojson, "text/plain"))]
 
