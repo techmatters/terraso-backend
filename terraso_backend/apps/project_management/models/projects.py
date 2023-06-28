@@ -37,6 +37,7 @@ class Project(BaseModel):
             "delete": permission_rules.allowed_to_delete_project,
             "add": permission_rules.allowed_to_add_to_project,
             "add_site": permission_rules.allowed_to_add_site_to_project,
+            "archive": permission_rules.allowed_to_archive_project,
         }
 
     PRIVATE = "private"
