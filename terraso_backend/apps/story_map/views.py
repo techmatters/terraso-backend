@@ -80,22 +80,15 @@ class StoryMapAddView(AuthenticationRequiredMixin, FormView):
             )
             return JsonResponse({"errors": [{"message": [asdict(error_message)]}]}, status=400)
 
-        if "chapters" in config:
-            for chapter in config["chapters"]:
-                media = chapter.get("media")
-                if not (
-                    media
-                    and (media["type"].startswith("image")
-                         or media["type"].startswith("audio")
-                         or media["type"].startswith("video"))
-                ):
-                    logger.info("Warning: invalid media type")
-                    error_message = ErrorMessage(
-                        code="Invalid Media Type",
-                        context=ErrorContext(model="StoryMap", field=NON_FIELD_ERRORS)
-                    )
-                    return JsonResponse({"errors": [{
-                        "message": [asdict(error_message)]}]}, status=400)
+        if not valid_media_type(config):
+            logger.info("Warning: invalid media type")
+            error_message = ErrorMessage(
+                code="Invalid Media Type",
+                context=ErrorContext(model="StoryMap", field=NON_FIELD_ERRORS)
+            )
+            return JsonResponse({"errors": [{
+                "message": [asdict(error_message)]}]}, status=400)
+
         try:
             story_map = StoryMap.objects.create(
                 story_map_id=secrets.token_hex(4),
@@ -220,6 +213,18 @@ def handle_config_media(new_config, current_config, request):
 
     return new_config
 
+def valid_media_type(config):
+    if "chapters" in config:
+        for chapter in config["chapters"]:
+            media = chapter.get("media")
+            if (
+                media 
+                and (media["type"].startswith("image")
+                or media["type"].startswith("audio")
+                or media["type"].startswith("video"))
+            ):
+                return True
+            return False
 
 def invalid_media_type(config):
     if "chapters" in config:
