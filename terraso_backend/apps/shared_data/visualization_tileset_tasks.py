@@ -57,6 +57,7 @@ def remove_mapbox_tileset(tileset_id):
 
 
 def create_mapbox_tileset(visualization_id):
+    logger.info("Creating mapbox tileset", visualization_id=visualization_id)
     visualization = VisualizationConfig.objects.get(pk=visualization_id)
     data_entry = visualization.data_entry
     group_entry = visualization.group
@@ -130,12 +131,27 @@ def create_mapbox_tileset(visualization_id):
             "type": "FeatureCollection",
             "features": features,
         }
+        logger.info(
+            "Geojson generated for mapbox tileset",
+            visualization_id=visualization_id,
+            rows=len(rows),
+        )
         title = f"{settings.ENV} - {visualization.title}"[:64]
         description = f"{settings.ENV} - {group_entry.name} - {visualization.title}"
         id = str(visualization.id).replace("-", "")
         tileset_id = create_tileset(id, geojson, title, description)
+        logger.info(
+            "Mapbox tileset created",
+            visualization_id=visualization_id,
+            tileset_id=tileset_id,
+        )
         visualization.mapbox_tileset_id = tileset_id
         visualization.save()
+        logger.info(
+            "Mapbox tileset id saved",
+            visualization_id=visualization_id,
+            tileset_id=tileset_id,
+        )
     except Exception as error:
         logger.exception(
             "Error creating mapbox tileset",
