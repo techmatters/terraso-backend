@@ -98,7 +98,11 @@ def get_rows_from_file(data_entry):
 
 
 def create_mapbox_tileset(data_entry, group_entry, visualization):
-    rows = get_rows_from_file(data_entry)
+    try:
+        rows = get_rows_from_file(data_entry)
+    except Exception as error:
+        raise Exception(f"Error reading file: {error}")
+
     first_row = rows[0]
 
     dataset_config = visualization.configuration["datasetConfig"]
@@ -162,10 +166,10 @@ def create_mapbox_tileset(data_entry, group_entry, visualization):
         "type": "FeatureCollection",
         "features": features,
     }
+    title = f"Terraso - {visualization.title}"[:64]
+    description = f"Terraso({settings.ENV}) - {group_entry.name} - {visualization.title}"
+    id = str(visualization.id).replace("-", "")
     try:
-        title = f"Terraso - {visualization.title}"[:64]
-        description = f"Terraso({settings.ENV}) - {group_entry.name} - {visualization.title}"
-        id = str(visualization.id).replace("-", "")
         tileset_id = create_tileset(id, geojson, title, description)
         return tileset_id
     except Exception as error:
@@ -232,7 +236,7 @@ class VisualizationConfigAddMutation(BaseWriteMutation):
                 extra={"data_entry_id": kwargs["data_entry_id"], "error": str(error)},
             )
 
-        if tileset_id:
+        if tileset_id is not None:
             result.visualization_config.mapbox_tileset_id = tileset_id
             try:
                 result.visualization_config.save()
