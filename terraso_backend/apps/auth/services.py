@@ -250,3 +250,60 @@ class PlausibleService:
                 return
         props = {"service": auth_provider}
         self.track_event(event_name, user_agent, ip_address, self.EVENT_URL, props)
+
+
+class TokenExchangeException(Exception):
+    def __init__(self, message: str, error_type: str):
+        super().__init__(message)
+        self.message = message
+        self.error_type = error_type
+
+
+class TokenExchangeService:
+    def __init__(self, token, jwks_uri, client_id, provider_name):
+        self.token = token
+        self.jwks_uri = jwks_uri
+        self.client_id = client_id
+        self.provider_name = provider_name
+
+    @classmethod
+    def from_payload(cls, payload, settings):
+        provider_name = payload["provider"]
+        token = payload["jwt"]
+        provider = settings.JWT_EXCHANGE_PROVIDERS[provider_name]
+        if "url" not in provider or "client_id" not in provider:
+            raise TokenExchangeException(
+                f"provider {provider_name} is missing config variables", "bad_config"
+            )
+        return cls(
+            token=token,
+            jwks_uri=provider["url"],
+            client_id=provider["client_id"],
+            provider_name=provider_name,
+        )
+
+    @staticmethod
+    def _get_signing_key(token, provider_url):
+        # fetch jwks
+        jwks_client = jwt.PyJWKClient(provider_url)
+        return jwks_client.get_signing_key_from_jwt(token)
+
+    @staticmethod
+    def _verify_payload(token, signing_key, client_id):
+        algorithms = [signing_key._jwk_data.get("alg", "RS256")]
+        return jwt.decode(token, signing_key.key, algorithms=algorithms, audience=client_id)
+
+    def validate(self):
+        try:
+            signing_key = self._get_signing_key(self.token, self.jwks_uri)
+        except Exception:
+            msg = f"could not retrieve signing key for {self.provider_name}"
+            logger.exception(msg)
+            raise TokenExchangeException(message=msg, error_type="jwks_error")
+        try:
+            payload = self._verify_payload(self.token, signing_key, self.client_id)
+        except Exception:
+            msg = "token was not verified"
+            logger.exception(msg)
+            raise TokenExchangeException(message=msg, error_type="token_error")
+        return payload
