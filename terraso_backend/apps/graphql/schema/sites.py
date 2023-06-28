@@ -20,7 +20,7 @@ from graphene import relay
 from graphene_django import DjangoObjectType
 
 from apps.audit_logs import api as audit_log_api
-from apps.project_management.models import Project, Site
+from apps.project_management.models import Project, Site, sites
 
 from .commons import BaseWriteMutation, TerrasoConnection
 from .constants import MutationTypes
@@ -50,6 +50,13 @@ class SiteNode(DjangoObjectType):
 
         interfaces = (relay.Node,)
         connection_class = TerrasoConnection
+
+    @classmethod
+    def get_queryset(cls, queryset, info):
+        user = info.context.user
+        if user.is_anonymous:
+            return queryset.none()
+        return sites.filter_only_sites_user_owner_or_member(user, queryset)
 
 
 class SiteAddMutation(BaseWriteMutation):
