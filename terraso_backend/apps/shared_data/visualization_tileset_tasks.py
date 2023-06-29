@@ -41,7 +41,10 @@ def get_rows_from_file(data_entry):
         ws = wb.active
         return [[cell.value for cell in row] for row in ws.iter_rows()]
     else:
-        raise Exception("File type not supported")
+        raise Exception(
+            "Invalid file type for creating mapbox tileset",
+            extra={"file_type": type, "data_entry_id": data_entry.id},
+        )
 
 
 def remove_mapbox_tileset(tileset_id):
