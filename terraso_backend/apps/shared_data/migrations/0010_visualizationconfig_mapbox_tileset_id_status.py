@@ -35,7 +35,7 @@ class Migration(migrations.Migration):
             model_name="visualizationconfig",
             name="mapbox_tileset_status",
             field=models.CharField(
-                choices=[("pending", "Pending"), ("ready", "Ready"), ("failed", "Failed")],
+                choices=[("pending", "Pending"), ("ready", "Ready")],
                 default="pending",
                 max_length=128,
             ),

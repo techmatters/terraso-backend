@@ -26,12 +26,10 @@ from .data_entries import DataEntry
 class VisualizationConfig(SlugModel):
     MAPBOX_TILESET_PENDING = "pending"
     MAPBOX_TILESET_READY = "ready"
-    MAPBOX_TILESET_FAILED = "failed"
 
     MAPBOX_TILESET_STATUSES = (
         (MAPBOX_TILESET_PENDING, _("Pending")),
         (MAPBOX_TILESET_READY, _("Ready")),
-        (MAPBOX_TILESET_FAILED, _("Failed")),
     )
 
     title = models.CharField(max_length=128, validators=[validate_name])
