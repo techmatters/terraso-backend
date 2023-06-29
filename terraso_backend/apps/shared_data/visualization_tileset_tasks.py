@@ -16,8 +16,7 @@ logger = structlog.get_logger(__name__)
 
 class AsyncTaskHandler:
     def start_task(self, method, args):
-        t = threading.Thread(target=method, args=[*args])
-        t.setDaemon(True)
+        t = threading.Thread(target=method, args=[*args], daemon=True)
         t.start()
 
 
