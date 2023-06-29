@@ -256,8 +256,8 @@ class TokenExchangeView(View):
     @staticmethod
     def _create_or_fetch_user(
         email: str = "",
-        first_name: str = "",
-        last_name: str = "",
+        given_name: str = "",
+        family_name: str = "",
         picture: Optional[str] = None,
         **kwargs,
     ):
@@ -266,7 +266,9 @@ class TokenExchangeView(View):
         if picture:
             additional_kwargs["profile_image_url"] = picture
         # TODO: using a private method of AccountService is weird, should be refactored
-        user, created = account_service._persist_user(email, first_name, last_name)
+        user, created = account_service._persist_user(
+            email, first_name=given_name, last_name=family_name, **additional_kwargs
+        )
         return user, created
 
     @staticmethod
@@ -305,7 +307,11 @@ class TokenExchangeView(View):
 
         user, created = self._create_or_fetch_user(**payload)
         rtoken, atoken = terraso_login(request, user)
-        resp_payload = {"rtoken": rtoken, "atoken": atoken}
+        resp_payload = {
+            "rtoken": rtoken,
+            "atoken": atoken,
+            "user": {"email": user.email, "firstName": user.first_name, "lastName": user.last_name},
+        }
         if created:
             resp_payload["created"] = True
         return JsonResponse(resp_payload)

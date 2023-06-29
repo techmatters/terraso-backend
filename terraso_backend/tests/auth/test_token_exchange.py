@@ -92,6 +92,9 @@ def test_token_exchange(client, private_key, payload):
     rtoken = jwt_service.verify_token(contents["rtoken"])
     assert atoken["email"] == rtoken["email"] == "test@example.org"
     assert User.objects.filter(email="test@example.org").exists()
+    user = User.objects.get(email="test@example.org")
+    assert user.first_name == payload["given_name"]
+    assert user.last_name == payload["family_name"]
 
 
 def test_token_exchange_token_signed_by_different_key(client, other_private_key, payload):
