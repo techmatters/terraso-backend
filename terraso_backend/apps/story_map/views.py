@@ -29,7 +29,6 @@ from django.views.generic.edit import FormView
 
 from apps.auth.mixins import AuthenticationRequiredMixin
 from apps.core.exceptions import ErrorContext, ErrorMessage
-from config.settings import STORY_MAP_MEDIA_UPLOAD_MAX_SIZE
 
 from .forms import StoryMapForm
 from .models import StoryMap
@@ -182,18 +181,20 @@ def handle_config_media(new_config, current_config, request):
 
     return new_config
 
+
 def valid_media_type(config):
     if "chapters" in config:
         for chapter in config["chapters"]:
             media = chapter.get("media")
             if (
-                media 
-                and (media["type"].startswith("image")
-                or media["type"].startswith("audio")
-                or media["type"].startswith("video"))
+                media
+                    and (media["type"].startswith("image")
+                         or media["type"].startswith("audio")
+                         or media["type"].startswith("video"))
             ):
                 return True
             return False
+
 
 def handle_integrity_error(exc):
     logger.info(
