@@ -188,9 +188,7 @@ def invalid_media_type(config):
             media = chapter.get("media")
             if not (
                 media
-                    and (media["type"].startswith("image")
-                         or media["type"].startswith("audio")
-                         or media["type"].startswith("video"))
+                    and media["type"].startswith(("image", "audio", "video"))
             ):
                 return True
             return False
