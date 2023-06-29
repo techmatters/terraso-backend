@@ -80,7 +80,7 @@ class StoryMapAddView(AuthenticationRequiredMixin, FormView):
             )
             return JsonResponse({"errors": [{"message": [asdict(error_message)]}]}, status=400)
 
-        if not valid_media_type(config):
+        if invalid_media_type(config):
             logger.info("Warning: invalid media type")
             error_message = ErrorMessage(
                 code="Invalid Media Type",
@@ -214,11 +214,11 @@ def handle_config_media(new_config, current_config, request):
     return new_config
 
 
-def valid_media_type(config):
+def invalid_media_type(config):
     if "chapters" in config:
         for chapter in config["chapters"]:
             media = chapter.get("media")
-            if (
+            if not (
                 media
                     and (media["type"].startswith("image")
                          or media["type"].startswith("audio")
