@@ -17,5 +17,6 @@ def is_file_upload_oversized(files, max_size):
     for file in files:
         return get_file_size(file) > max_size
 
+
 def get_file_size(file):
     return file.size

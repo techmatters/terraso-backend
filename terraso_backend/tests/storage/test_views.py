@@ -76,7 +76,7 @@ def test_create_data_entry_successfully(logged_client, landscape_profile_image_p
 
 
 @mock.patch("apps.storage.file_utils.get_file_size")
-def test_create_oversized_data_entry_invalid(mock_get_size, logged_client, landscape_profile_image_payload):
+def test_create_oversized_data_entry(mock_get_size, logged_client, landscape_profile_image_payload):
     url = reverse("terraso_storage:landscape-profile-image")
     mock_get_size.return_value = 10000001
     with patch(

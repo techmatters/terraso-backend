@@ -42,8 +42,9 @@ def data_entry_payload(group):
         ),
     )
 
+
 @mock.patch("apps.storage.file_utils.get_file_size")
-def test_create_date_entry_oversized_file(mock_get_size, logged_client, upload_url, data_entry_payload):
+def test_create_oversized_data_entry(mock_get_size, logged_client, upload_url, data_entry_payload):
     mock_get_size.return_value = 10000001
     with patch(
         "apps.shared_data.forms.data_entry_upload_service.upload_file"
@@ -59,6 +60,7 @@ def test_create_date_entry_oversized_file(mock_get_size, logged_client, upload_u
     assert response_data['errors'][0]['message'][0]['code'] == 'File size exceeds 10 MB'
 
     assert "errors" in response_data
+
 
 def test_create_data_entry_successfully(logged_client, upload_url, data_entry_payload):
     with patch(

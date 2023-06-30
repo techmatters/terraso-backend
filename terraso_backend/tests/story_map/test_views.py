@@ -131,6 +131,7 @@ def test_update_upload_media(logged_client, users):
     assert json_response["configuration"]["chapters"][0]["media"]["url"] is not None
     assert "contentId" not in json_response["configuration"]["chapters"][0]["media"]
 
+
 @mock.patch("apps.storage.file_utils.get_file_size")
 def test_update_oversized_media_upload(mock_get_size, logged_client, users):
     story_map = mixer.blend("story_map.StoryMap", created_by=users[0])
