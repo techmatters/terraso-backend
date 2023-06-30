@@ -17,12 +17,12 @@ import mimetypes
 from dataclasses import asdict
 
 import structlog
+from config.settings import MEDIA_UPLOAD_MAX_FILE_SIZE
 from django.http import JsonResponse
 from django.views.generic.edit import FormView
 
 from apps.auth.mixins import AuthenticationRequiredMixin
 from apps.core.exceptions import ErrorContext, ErrorMessage
-from config.settings import MEDIA_UPLOAD_MAX_FILE_SIZE
 from apps.storage.file_utils import is_file_upload_oversized
 
 from .forms import DataEntryForm

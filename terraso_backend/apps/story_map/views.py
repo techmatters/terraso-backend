@@ -21,6 +21,7 @@ from datetime import datetime
 
 import rules
 import structlog
+from config.settings import MEDIA_UPLOAD_MAX_FILE_SIZE
 from django.core.exceptions import NON_FIELD_ERRORS, ValidationError
 from django.db import IntegrityError
 from django.http import JsonResponse
@@ -29,7 +30,6 @@ from django.views.generic.edit import FormView
 
 from apps.auth.mixins import AuthenticationRequiredMixin
 from apps.core.exceptions import ErrorContext, ErrorMessage
-from config.settings import MEDIA_UPLOAD_MAX_FILE_SIZE
 from apps.storage.file_utils import is_file_upload_oversized
 
 from .forms import StoryMapForm
