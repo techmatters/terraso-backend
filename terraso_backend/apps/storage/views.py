@@ -23,6 +23,8 @@ from django.views.generic.edit import FormView
 from apps.auth.mixins import AuthenticationRequiredMixin
 from apps.core.exceptions import ErrorContext, ErrorMessage
 from apps.storage.forms import LandscapeProfileImageForm
+from config.settings import MEDIA_UPLOAD_MAX_FILE_SIZE
+from apps.storage.file_utils import is_file_upload_oversized
 
 from .services import ProfileImageService
 
@@ -51,6 +53,13 @@ class LandscapeProfileImageView(AuthenticationRequiredMixin, FormView):
     def post(self, request, **kwargs):
         user = request.user
         form_data = request.POST.copy()
+        if is_file_upload_oversized(request.FILES.getlist('data_file'), MEDIA_UPLOAD_MAX_FILE_SIZE):
+            error_message = ErrorMessage(
+                code="File size exceeds 10 MB",
+                context=ErrorContext(model="LandscapeProfile", field="data_file")
+            )
+            return JsonResponse({"errors": [{
+                "message": [asdict(error_message)]}]}, status=400)
         entry_form = LandscapeProfileImageForm(data=form_data, files=request.FILES)
         if not entry_form.is_valid():
             error_messages = get_error_messages("Landscape", entry_form.errors.as_data())

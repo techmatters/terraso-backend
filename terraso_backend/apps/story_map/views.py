@@ -29,6 +29,8 @@ from django.views.generic.edit import FormView
 
 from apps.auth.mixins import AuthenticationRequiredMixin
 from apps.core.exceptions import ErrorContext, ErrorMessage
+from config.settings import MEDIA_UPLOAD_MAX_FILE_SIZE
+from apps.storage.file_utils import is_file_upload_oversized
 
 from .forms import StoryMapForm
 from .models import StoryMap
@@ -58,6 +60,14 @@ class StoryMapAddView(AuthenticationRequiredMixin, FormView):
             return JsonResponse(
                 {"errors": [{"message": [asdict(e) for e in error_messages]}]}, status=400
             )
+
+        if is_file_upload_oversized(request.FILES.getlist("files"), MEDIA_UPLOAD_MAX_FILE_SIZE):
+            error_message = ErrorMessage(
+                code="File size exceeds 10 MB",
+                context=ErrorContext(model="StoryMap", field="files")
+            )
+            return JsonResponse({"errors": [{
+                "message": [asdict(error_message)]}]}, status=400)
 
         try:
             story_map = StoryMap.objects.create(
@@ -101,6 +111,14 @@ class StoryMapUpdateView(AuthenticationRequiredMixin, FormView):
         story_map.is_published = form_data["is_published"] == "true"
 
         new_config = json.loads(form_data["configuration"])
+
+        if is_file_upload_oversized(request.FILES.getlist("files"), MEDIA_UPLOAD_MAX_FILE_SIZE):
+            error_message = ErrorMessage(
+                code="File size exceeds 10 MB",
+                context=ErrorContext(model="StoryMap", field="files")
+            )
+            return JsonResponse({"errors": [{
+                "message": [asdict(error_message)]}]}, status=400)
 
         story_map.configuration = handle_config_media(new_config, story_map.configuration, request)
 
