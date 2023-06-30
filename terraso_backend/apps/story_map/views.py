@@ -84,7 +84,7 @@ class StoryMapAddView(AuthenticationRequiredMixin, FormView):
             logger.info("Warning: invalid media type")
             error_message = ErrorMessage(
                 code="Invalid Media Type",
-                context=ErrorContext(model="StoryMap", field=NON_FIELD_ERRORS)
+                context=ErrorContext(model="StoryMap", field="config")
             )
             return JsonResponse({"errors": [{
                 "message": [asdict(error_message)]}]}, status=400)
@@ -117,7 +117,7 @@ class StoryMapUpdateView(AuthenticationRequiredMixin, FormView):
                 extra={"user_id": user.pk, "story_map_id": str(story_map.id)},
             )
             error_message = ErrorMessage(
-                code="update", context=ErrorContext(model="StoryMap", field=NON_FIELD_ERRORS)
+                code="update", context=ErrorContext(model="StoryMap", field="new_config")
             )
             return JsonResponse({"errors": [{"message": [asdict(error_message)]}]}, status=400)
 
