@@ -129,3 +129,45 @@ def test_update_upload_media(logged_client, users):
     assert response.status_code == 201
     assert json_response["configuration"]["chapters"][0]["media"]["url"] is not None
     assert "contentId" not in json_response["configuration"]["chapters"][0]["media"]
+
+def test_update_upload_media_invalid(logged_client, users):
+    story_map = mixer.blend("story_map.StoryMap", created_by=users[0])
+    url = reverse("story_map:update")
+    data = {
+        "id": story_map.pk,
+        "title": "Test StoryMap Invalid Media",
+        "is_published": "false",
+        "files": SimpleUploadedFile(
+            name="audio_file.MOV",
+            content="content".encode(),
+            content_type="movie/MOV",
+        ),
+        "configuration": json.dumps(
+            {
+                "title": "Test StoryMap Updated",
+                "chapters": [
+                    {
+                        "id": "chapter-1",
+                        "title": "Chapter 1",
+                        "description": "Chapter 1 description",
+                        "media": {
+                            "contentId": "audio_file.MOV",
+                            "type": "movie/MOV",
+                        },
+                    },
+                ],
+            }
+        ),
+    }
+    with patch(
+        "apps.story_map.views.story_map_media_upload_service.upload_file_get_path"
+    ) as mocked_upload_service:
+        mocked_upload_service.return_value = "https://example.org/uploaded_file.mp3"
+        response = logged_client.post(url, data=data)
+        mocked_upload_service.assert_not_called()
+
+    response_data = response.json()
+
+    assert response.status_code == 400
+    assert response_data['errors'][0]['message'][0]['code'] == 'Invalid Media Type'    
+    assert "errors" in response_data
