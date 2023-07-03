@@ -81,7 +81,7 @@ class StoryMapAddView(AuthenticationRequiredMixin, FormView):
             return JsonResponse({"errors": [{"message": [asdict(error_message)]}]}, status=400)
 
         if invalid_media_type(config):
-            logger.info("Warning: invalid media type")
+            logger.warning("Invalid media type")
             error_message = ErrorMessage(
                 code="Invalid Media Type",
                 context=ErrorContext(model="StoryMap", field="config")
