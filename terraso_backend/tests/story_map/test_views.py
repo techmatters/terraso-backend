@@ -172,4 +172,3 @@ def test_update_upload_media_invalid(logged_client, users):
     assert response.status_code == 400
     assert response_data['errors'][0]['message'][0]['code'] == 'Invalid Media Type'
     assert "errors" in response_data
-    
