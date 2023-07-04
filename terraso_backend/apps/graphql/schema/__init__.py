@@ -56,6 +56,7 @@ from .projects import (
     ProjectAddMutation,
     ProjectArchiveMutation,
     ProjectDeleteMutation,
+    ProjectNode,
     ProjectUpdateMutation,
 )
 from .sites import SiteAddMutation, SiteNode, SiteUpdateMutation
@@ -101,6 +102,9 @@ class Query(graphene.ObjectType):
     taxonomy_terms = DjangoFilterConnectionField(TaxonomyTermNode)
     story_map = TerrasoRelayNode.Field(StoryMapNode)
     story_maps = DjangoFilterConnectionField(StoryMapNode)
+    project = TerrasoRelayNode.Field(ProjectNode)
+    projects = DjangoFilterConnectionField(ProjectNode)
+    site = TerrasoRelayNode.Field(SiteNode)
     sites = DjangoFilterConnectionField(SiteNode)
     audit_logs = DjangoFilterConnectionField(AuditLogNode)
 
