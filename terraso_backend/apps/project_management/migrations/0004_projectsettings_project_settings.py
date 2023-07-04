@@ -44,7 +44,7 @@ class Migration(migrations.Migration):
                 ),
                 ("created_at", models.DateTimeField(auto_now_add=True)),
                 ("updated_at", models.DateTimeField(auto_now=True)),
-                ("member_can_edit_site", models.BooleanField(default=False)),
+                ("member_can_update_site", models.BooleanField(default=False)),
                 ("member_can_add_site_to_project", models.BooleanField(default=False)),
             ],
             options={

@@ -121,9 +121,9 @@ def test_delete_project_transfer_sites(is_manager, project_with_sites, client, p
     else:
         assert "errors" in content or "errors" in content["data"]["deleteProject"]
 
-EDIT_PROJECT_GRAPHQL = """
+UPDATE_PROJECT_GRAPHQL = """
     mutation($input: ProjectUpdateMutationInput!) {
-    editProject(input: $input) {
+    updateProject(input: $input) {
         project{
         id,
         name,
@@ -134,22 +134,22 @@ EDIT_PROJECT_GRAPHQL = """
     }
 """
 
-def test_edit_project_user_is_manager(project, client, project_manager):
+def test_update_project_user_is_manager(project, client, project_manager):
     input = {"id": str(project.id), "name": "test_name", "privacy": "PRIVATE"}
     client.force_login(project_manager)
-    response = graphql_query(EDIT_PROJECT_GRAPHQL, input_data=input, client=client)
+    response = graphql_query(UPDATE_PROJECT_GRAPHQL, input_data=input, client=client)
     content = json.loads(response.content)
-    assert content["data"]["editProject"]["errors"] == None
-    assert content["data"]["editProject"]["project"]["id"] == str(project.id) 
-    assert content["data"]["editProject"]["project"]["name"] == "test_name" 
-    assert content["data"]["editProject"]["project"]["privacy"] == "PRIVATE"
+    assert content["data"]["updateProject"]["errors"] == None
+    assert content["data"]["updateProject"]["project"]["id"] == str(project.id) 
+    assert content["data"]["updateProject"]["project"]["name"] == "test_name" 
+    assert content["data"]["updateProject"]["project"]["privacy"] == "PRIVATE"
 
-def test_edit_project_user_not_manager(project, client):
+def test_update_project_user_not_manager(project, client):
     user = mixer.blend(User)
     project.add_member(user)
     input = {"id": str(project.id), "name": "test_name", "privacy": "PRIVATE"}
     client.force_login(user)
-    response = graphql_query(EDIT_PROJECT_GRAPHQL, input_data=input, client=client)
-    error_result = response.json()["data"]["editProject"]["errors"][0]["message"]
+    response = graphql_query(UPDATE_PROJECT_GRAPHQL, input_data=input, client=client)
+    error_result = response.json()["data"]["updateProject"]["errors"][0]["message"]
     json_error = json.loads(error_result)
     assert json_error[0]["code"] == "change_not_allowed"

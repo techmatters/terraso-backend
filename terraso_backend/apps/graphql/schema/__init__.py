@@ -130,10 +130,10 @@ class Mutations(graphene.ObjectType):
     delete_visualization_config = VisualizationConfigDeleteMutation.Field()
     delete_story_map = StoryMapDeleteMutation.Field()
     add_site = SiteAddMutation.Field()
-    edit_site = SiteUpdateMutation.Field()
+    update_site = SiteUpdateMutation.Field()
     add_project = ProjectAddMutation.Field()
     delete_project = ProjectDeleteMutation.Field()
-    edit_project = ProjectUpdateMutation.Field()
+    update_project = ProjectUpdateMutation.Field()
 
 
 schema = graphene.Schema(query=Query, mutation=Mutations)

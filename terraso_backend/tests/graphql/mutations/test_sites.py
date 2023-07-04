@@ -92,9 +92,9 @@ def test_site_creation_in_project(client, project_manager, project):
     assert log_result.metadata["longitude"] == expected_metadata["longitude"]
 
 
-EDIT_SITE_QUERY = """
+UPDATE_SITE_QUERY = """
     mutation SiteUpdateMutation($input: SiteUpdateMutationInput!) {
-        editSite(input: $input) {
+        updateSite(input: $input) {
             site {
                id
                project {
@@ -107,20 +107,20 @@ EDIT_SITE_QUERY = """
 """
 
 
-def test_edit_site_in_project(client, project, project_manager, site):
+def test_update_site_in_project(client, project, project_manager, site):
     original_project = mixer.blend(Project)
     original_project.add_manager(project_manager)
     site.add_to_project(project)
 
     client.force_login(project_manager)
     response = graphql_query(
-        EDIT_SITE_QUERY,
+        UPDATE_SITE_QUERY,
         variables={"input": {"id": str(site.id), "projectId": str(project.id)}},
         client=client,
     )
     content = json.loads(response.content)
-    assert content["data"]["editSite"]["errors"] == None
-    payload = content["data"]["editSite"]["site"]
+    assert content["data"]["updateSite"]["errors"] == None
+    payload = content["data"]["updateSite"]["site"]
     site_id = payload["id"]
     project_id = payload["project"]["id"]
     assert site_id == str(site.id)
@@ -141,12 +141,12 @@ def test_adding_site_to_project_user_not_manager(client, project, site, user):
     project.add_member(user)
     client.force_login(site_creator)
     response = graphql_query(
-        EDIT_SITE_QUERY,
+        UPDATE_SITE_QUERY,
         variables={"input": {"id": str(site.id), "projectId": str(project.id)}},
         client=client,
     )
 
-    error_result = response.json()["data"]["editSite"]["errors"][0]["message"]
+    error_result = response.json()["data"]["updateSite"]["errors"][0]["message"]
     json_error = json.loads(error_result)
     assert json_error[0]["code"] == "update_not_allowed"
 
@@ -155,13 +155,13 @@ def test_adding_site_owned_by_user_to_project(client, project, site, project_man
     site.add_owner(project_manager)
     client.force_login(project_manager)
     response = graphql_query(
-        EDIT_SITE_QUERY,
+        UPDATE_SITE_QUERY,
         variables={"input": {"id": str(site.id), "projectId": str(project.id)}},
         client=client,
     )
     content = json.loads(response.content)
-    assert content["data"]["editSite"]["errors"] == None
-    payload = content["data"]["editSite"]["site"]
+    assert content["data"]["updateSite"]["errors"] == None
+    payload = content["data"]["updateSite"]["site"]
     site_id = payload["id"]
     project_id = payload["project"]["id"]
     assert site_id == str(site.id)
@@ -180,19 +180,19 @@ def test_user_can_add_site_to_project_if_project_setting_set(
     site.add_owner(project_user)
     client.force_login(project_user)
     response = graphql_query(
-        EDIT_SITE_QUERY,
+        UPDATE_SITE_QUERY,
         variables={"input": {"id": str(site.id), "projectId": str(project.id)}},
         client=client,
     )
     content = json.loads(response.content)
     if allow_adding_site:
-        assert content["data"]["editSite"]["errors"] == None
-        payload = content["data"]["editSite"]["site"]
+        assert content["data"]["updateSite"]["errors"] == None
+        payload = content["data"]["updateSite"]["site"]
         assert payload["id"] == str(site.id)
         site.refresh_from_db()
         assert site.owned_by(project)
     else:    
-        error_result = response.json()["data"]["editSite"]["errors"][0]["message"]
+        error_result = response.json()["data"]["updateSite"]["errors"][0]["message"]
         json_error = json.loads(error_result)
         assert json_error[0]["code"] == "update_not_allowed"
 
