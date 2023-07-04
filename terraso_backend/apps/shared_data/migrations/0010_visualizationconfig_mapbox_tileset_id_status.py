@@ -21,7 +21,6 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
     dependencies = [
-        migrations.swappable_dependency(settings.AUTH_USER_MODEL),
         ("shared_data", "0009_alter_dataentry_resource_type"),
     ]
 
