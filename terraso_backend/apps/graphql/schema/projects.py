@@ -34,7 +34,7 @@ class ProjectNode(DjangoObjectType):
         model = Project
 
         filter_fields = {"name": ["icontains"]}
-        fields = ("name",)
+        fields = ("name", "privacy")
 
         interfaces = (relay.Node,)
         connection_class = TerrasoConnection
@@ -108,3 +108,24 @@ class ProjectDeleteMutation(BaseDeleteMutation):
             Site.objects.bulk_update(project_sites, ["project"])
         result = super().mutate_and_get_payload(root, info, **kwargs)
         return result
+
+class ProjectEditMutation(BaseWriteMutation):
+    project = graphene.Field(ProjectNode)
+
+    model_class = Project
+    class Input:
+        id = graphene.ID(required=True)
+        name = graphene.String()
+        privacy = graphene.Field(ProjectPrivacy)
+
+    @classmethod
+    @transaction.atomic
+    def mutate_and_get_payload(cls, root, info, **kwargs):
+        user = info.context.user
+        project_id = kwargs["id"]
+        project = cls.get_or_throw(Project, "id", project_id)
+        if not user.has_perm(Project.get_perm("change"), project):
+            cls.not_allowed()
+        kwargs["privacy"] = kwargs["privacy"].value
+        return super().mutate_and_get_payload(root, info, **kwargs)
+        

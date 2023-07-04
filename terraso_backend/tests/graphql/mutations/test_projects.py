@@ -120,3 +120,51 @@ def test_delete_project_transfer_sites(is_manager, project_with_sites, client, p
         assert Site.objects.filter(project=other_project, id__in=site_ids).exists()
     else:
         assert "errors" in content or "errors" in content["data"]["deleteProject"]
+
+EDIT_PROJECT_GRAPHQL = """
+    mutation($input: ProjectEditMutationInput!) {
+    editProject(input: $input) {
+        project{
+        id,
+        name,
+        privacy
+        }
+    }
+    errors
+    }
+"""
+
+def test_edit_project_user_is_manager(project, client, project_manager):
+    input = {"id": str(project.id), "name": "test_name", "privacy": "PRIVATE"}
+    client.force_login(project_manager)
+    response = graphql_query(EDIT_PROJECT_GRAPHQL, input_data=input, client=client)
+    content = json.loads(response.content)
+    assert "errors" not in content and "errors" not in content["data"]["editProject"]
+    assert content["data"]["editProject"]["project"]["id"] == str(project.id) 
+    assert content["data"]["editProject"]["project"]["name"] == "test_name" 
+    assert content["data"]["editProject"]["project"]["privacy"] == "PRIVATE"
+
+def test_edit_project_user_not_manager(project, client):
+    user = mixer.blend(User)
+    project.add_member(user)
+    input = {"id": str(project.id), "name": "test_name", "privacy": "PRIVATE"}
+    client.force_login(user)
+    # response = graphql_query(EDIT_PROJECT_GRAPHQL, input_data=input, client=client)
+    response = graphql_query(
+        """
+        mutation editProject($input: ProjectEditMutationInput!){
+          editProject(input: $input) {
+            project {
+              id,
+              name,
+              privacy
+            }
+            errors
+          }
+        }
+        """,
+        input_data=input, client=client,
+    )
+    error_result = response.json()["data"]["editProject"]["errors"][0]["message"]
+    json_error = json.loads(error_result)
+    assert json_error[0]["code"] == "change_not_allowed"

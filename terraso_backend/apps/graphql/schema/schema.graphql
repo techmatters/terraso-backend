@@ -593,7 +593,17 @@ type SiteNode implements Node {
 
 type ProjectNode implements Node {
   name: String!
+  privacy: ProjectManagementProjectPrivacyChoices!
   id: ID!
+}
+
+"""An enumeration."""
+enum ProjectManagementProjectPrivacyChoices {
+  """Private"""
+  PRIVATE
+
+  """Public"""
+  PUBLIC
 }
 
 type AuditLogNodeConnection {
@@ -685,6 +695,7 @@ type Mutations {
   editSite(input: SiteEditMutationInput!): SiteEditMutationPayload!
   addProject(input: ProjectAddMutationInput!): ProjectAddMutationPayload!
   deleteProject(input: ProjectDeleteMutationInput!): ProjectDeleteMutationPayload!
+  editProject(input: ProjectEditMutationInput!): ProjectEditMutationPayload!
 }
 
 type GroupAddMutationPayload {
@@ -1088,5 +1099,18 @@ type ProjectDeleteMutationPayload {
 input ProjectDeleteMutationInput {
   id: ID!
   transferProjectId: ID
+  clientMutationId: String
+}
+
+type ProjectEditMutationPayload {
+  errors: GenericScalar
+  project: ProjectNode
+  clientMutationId: String
+}
+
+input ProjectEditMutationInput {
+  id: ID!
+  name: String
+  privacy: ProjectPrivacy = null
   clientMutationId: String
 }
