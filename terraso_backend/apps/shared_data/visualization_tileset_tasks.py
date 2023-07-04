@@ -2,7 +2,7 @@ import csv
 import json
 import threading
 
-import openpyxl
+import pandas
 import structlog
 from django.conf import settings
 
@@ -36,9 +36,9 @@ def get_rows_from_file(data_entry):
         return [row for row in reader]
     elif type.startswith("xls"):
         file = data_entry_upload_service.get_file(data_entry.s3_object_name, "rb")
-        wb = openpyxl.load_workbook(file)
-        ws = wb.active
-        return [[cell.value for cell in row] for row in ws.iter_rows()]
+        df = pandas.read_excel(file)
+        rows = df.values.tolist()
+        return [df.columns.tolist()] + rows
     else:
         raise Exception(
             "Invalid file type for creating mapbox tileset",
