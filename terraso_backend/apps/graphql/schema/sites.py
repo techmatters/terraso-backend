@@ -16,8 +16,10 @@ from datetime import datetime
 
 import django_filters
 import graphene
+from django.db.models import Q
 from graphene import relay
 from graphene_django import DjangoObjectType
+from graphene_django.filter import GlobalIDFilter
 
 from apps.audit_logs import api as audit_log_api
 from apps.project_management.models import Project, Site, sites
@@ -27,6 +29,8 @@ from .constants import MutationTypes
 
 
 class SiteFilter(django_filters.FilterSet):
+    visible_to_user__id = GlobalIDFilter(method="filter_visible_to_user")
+
     class Meta:
         model = Site
         fields = ["name", "owner", "project", "project__id", "archived"]
@@ -37,6 +41,9 @@ class SiteFilter(django_filters.FilterSet):
             ("created_at", "created_at"),
         )
     )
+
+    def filter_visible_to_user(self, queryset, name, id):
+        return queryset.filter(Q(project__group__memberships__user__id=id) | Q(owner__id=id))
 
 
 class SiteNode(DjangoObjectType):
