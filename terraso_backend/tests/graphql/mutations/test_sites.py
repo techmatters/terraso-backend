@@ -93,7 +93,7 @@ def test_site_creation_in_project(client, project_manager, project):
 
 
 EDIT_SITE_QUERY = """
-    mutation siteEditMutation($input: SiteEditMutationInput!) {
+    mutation SiteUpdateMutation($input: SiteUpdateMutationInput!) {
         editSite(input: $input) {
             site {
                id
@@ -101,6 +101,7 @@ EDIT_SITE_QUERY = """
                  id
                }
             }
+            errors
         }
     }
 """
@@ -118,8 +119,7 @@ def test_edit_site_in_project(client, project, project_manager, site):
         client=client,
     )
     content = json.loads(response.content)
-
-    assert "errors" not in content and "errors" not in content["data"]
+    assert content["data"]["editSite"]["errors"] == None
     payload = content["data"]["editSite"]["site"]
     site_id = payload["id"]
     project_id = payload["project"]["id"]
@@ -146,8 +146,9 @@ def test_adding_site_to_project_user_not_manager(client, project, site, user):
         client=client,
     )
 
-    content = json.loads(response.content)
-    assert "errors" in content
+    error_result = response.json()["data"]["editSite"]["errors"][0]["message"]
+    json_error = json.loads(error_result)
+    assert json_error[0]["code"] == "update_not_allowed"
 
 
 def test_adding_site_owned_by_user_to_project(client, project, site, project_manager):
@@ -159,7 +160,7 @@ def test_adding_site_owned_by_user_to_project(client, project, site, project_man
         client=client,
     )
     content = json.loads(response.content)
-    assert "errors" not in content and "errors" not in content["data"]
+    assert content["data"]["editSite"]["errors"] == None
     payload = content["data"]["editSite"]["site"]
     site_id = payload["id"]
     project_id = payload["project"]["id"]
@@ -185,13 +186,15 @@ def test_user_can_add_site_to_project_if_project_setting_set(
     )
     content = json.loads(response.content)
     if allow_adding_site:
-        assert "errors" not in content and "errors" not in content["data"]
+        assert content["data"]["editSite"]["errors"] == None
         payload = content["data"]["editSite"]["site"]
         assert payload["id"] == str(site.id)
         site.refresh_from_db()
         assert site.owned_by(project)
-    else:
-        assert "errors" in content or "errors" in content["data"]
+    else:    
+        error_result = response.json()["data"]["editSite"]["errors"][0]["message"]
+        json_error = json.loads(error_result)
+        assert json_error[0]["code"] == "update_not_allowed"
 
 
 @pytest.mark.parametrize("allow_adding_site", [True, False])

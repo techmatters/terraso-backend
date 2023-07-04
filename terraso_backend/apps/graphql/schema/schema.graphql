@@ -692,10 +692,10 @@ type Mutations {
   deleteVisualizationConfig(input: VisualizationConfigDeleteMutationInput!): VisualizationConfigDeleteMutationPayload!
   deleteStoryMap(input: StoryMapDeleteMutationInput!): StoryMapDeleteMutationPayload!
   addSite(input: SiteAddMutationInput!): SiteAddMutationPayload!
-  editSite(input: SiteEditMutationInput!): SiteEditMutationPayload!
+  editSite(input: SiteUpdateMutationInput!): SiteUpdateMutationPayload!
   addProject(input: ProjectAddMutationInput!): ProjectAddMutationPayload!
   deleteProject(input: ProjectDeleteMutationInput!): ProjectDeleteMutationPayload!
-  editProject(input: ProjectEditMutationInput!): ProjectEditMutationPayload!
+  editProject(input: ProjectUpdateMutationInput!): ProjectUpdateMutationPayload!
 }
 
 type GroupAddMutationPayload {
@@ -1058,13 +1058,13 @@ input SiteAddMutationInput {
   clientMutationId: String
 }
 
-type SiteEditMutationPayload {
+type SiteUpdateMutationPayload {
   errors: GenericScalar
   site: SiteNode!
   clientMutationId: String
 }
 
-input SiteEditMutationInput {
+input SiteUpdateMutationInput {
   id: ID!
   name: String
   latitude: Float
@@ -1102,13 +1102,13 @@ input ProjectDeleteMutationInput {
   clientMutationId: String
 }
 
-type ProjectEditMutationPayload {
+type ProjectUpdateMutationPayload {
   errors: GenericScalar
   project: ProjectNode
   clientMutationId: String
 }
 
-input ProjectEditMutationInput {
+input ProjectUpdateMutationInput {
   id: ID!
   name: String
   privacy: ProjectPrivacy = null

@@ -178,16 +178,16 @@
               <li><a href="#definition-ProjectAddMutationPayload">ProjectAddMutationPayload</a></li>
               <li><a href="#definition-ProjectDeleteMutationInput">ProjectDeleteMutationInput</a></li>
               <li><a href="#definition-ProjectDeleteMutationPayload">ProjectDeleteMutationPayload</a></li>
-              <li><a href="#definition-ProjectEditMutationInput">ProjectEditMutationInput</a></li>
-              <li><a href="#definition-ProjectEditMutationPayload">ProjectEditMutationPayload</a></li>
+              <li><a href="#definition-ProjectUpdateMutationInput">ProjectUpdateMutationInput</a></li>
+              <li><a href="#definition-ProjectUpdateMutationPayload">ProjectUpdateMutationPayload</a></li>
               <li><a href="#definition-ProjectManagementProjectPrivacyChoices">ProjectManagementProjectPrivacyChoices</a></li>
               <li><a href="#definition-ProjectNode">ProjectNode</a></li>
               <li><a href="#definition-ProjectPrivacy">ProjectPrivacy</a></li>
               <li><a href="#definition-SharedDataDataEntryEntryTypeChoices">SharedDataDataEntryEntryTypeChoices</a></li>
               <li><a href="#definition-SiteAddMutationInput">SiteAddMutationInput</a></li>
               <li><a href="#definition-SiteAddMutationPayload">SiteAddMutationPayload</a></li>
-              <li><a href="#definition-SiteEditMutationInput">SiteEditMutationInput</a></li>
-              <li><a href="#definition-SiteEditMutationPayload">SiteEditMutationPayload</a></li>
+              <li><a href="#definition-SiteUpdateMutationInput">SiteUpdateMutationInput</a></li>
+              <li><a href="#definition-SiteUpdateMutationPayload">SiteUpdateMutationPayload</a></li>
               <li><a href="#definition-SiteNode">SiteNode</a></li>
               <li><a href="#definition-SiteNodeConnection">SiteNodeConnection</a></li>
               <li><a href="#definition-SiteNodeEdge">SiteNodeEdge</a></li>
@@ -5275,7 +5275,7 @@
               <div class="doc-copy">
                 <div class="operation-response doc-copy-section">
                   <h5>Response</h5>
-                  <p> Returns a <a href="#definition-ProjectEditMutationPayload"><code>ProjectEditMutationPayload!</code></a>
+                  <p> Returns a <a href="#definition-ProjectUpdateMutationPayload"><code>ProjectUpdateMutationPayload!</code></a>
                   </p>
                 </div>
                 <div class="operation-arguments doc-copy-section">
@@ -5290,7 +5290,7 @@
                     <tbody>
                       <tr>
                         <td>
-                          <span class="property-name"><code>input</code></span> - <span class="property-type"><a href="#definition-ProjectEditMutationInput"><code>ProjectEditMutationInput!</code></a></span>
+                          <span class="property-name"><code>input</code></span> - <span class="property-type"><a href="#definition-ProjectUpdateMutationInput"><code>ProjectUpdateMutationInput!</code></a></span>
                         </td>
                         <td>
                         </td>
@@ -5305,7 +5305,7 @@
                   <h5>Query</h5>
                   <html>
                     <head></head>
-                    <body><pre><code class="hljs language-gql"><span class="hljs-symbol"><span class="hljs-keyword">mutation</span> editProject<span class="hljs-tag">(<span class="hljs-code">$input</span>:<span class="hljs-type"> ProjectEditMutationInput!</span>)</span> <span class="hljs-tag">{
+                    <body><pre><code class="hljs language-gql"><span class="hljs-symbol"><span class="hljs-keyword">mutation</span> editProject<span class="hljs-tag">(<span class="hljs-code">$input</span>:<span class="hljs-type"> ProjectUpdateMutationInput!</span>)</span> <span class="hljs-tag">{
   <span class="hljs-symbol">editProject<span class="hljs-tag">(input: <span class="hljs-code">$input</span>)</span> <span class="hljs-tag">{
     <span class="hljs-symbol">errors</span>
     <span class="hljs-symbol">project <span class="hljs-tag">{
@@ -5322,7 +5322,7 @@
                   <h5>Variables</h5>
                   <html>
                     <head></head>
-                    <body><pre><code class="hljs language-json"><span class="hljs-punctuation">{</span><span class="hljs-attr">"input"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">ProjectEditMutationInput</span><span class="hljs-punctuation">}</span>
+                    <body><pre><code class="hljs language-json"><span class="hljs-punctuation">{</span><span class="hljs-attr">"input"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">ProjectUpdateMutationInput</span><span class="hljs-punctuation">}</span>
 </code></pre>
                     </body>
                   </html>
@@ -5358,7 +5358,7 @@
               <div class="doc-copy">
                 <div class="operation-response doc-copy-section">
                   <h5>Response</h5>
-                  <p> Returns a <a href="#definition-SiteEditMutationPayload"><code>SiteEditMutationPayload!</code></a>
+                  <p> Returns a <a href="#definition-SiteUpdateMutationPayload"><code>SiteUpdateMutationPayload!</code></a>
                   </p>
                 </div>
                 <div class="operation-arguments doc-copy-section">
@@ -5373,7 +5373,7 @@
                     <tbody>
                       <tr>
                         <td>
-                          <span class="property-name"><code>input</code></span> - <span class="property-type"><a href="#definition-SiteEditMutationInput"><code>SiteEditMutationInput!</code></a></span>
+                          <span class="property-name"><code>input</code></span> - <span class="property-type"><a href="#definition-SiteUpdateMutationInput"><code>SiteUpdateMutationInput!</code></a></span>
                         </td>
                         <td>
                         </td>
@@ -5388,7 +5388,7 @@
                   <h5>Query</h5>
                   <html>
                     <head></head>
-                    <body><pre><code class="hljs language-gql"><span class="hljs-symbol"><span class="hljs-keyword">mutation</span> editSite<span class="hljs-tag">(<span class="hljs-code">$input</span>:<span class="hljs-type"> SiteEditMutationInput!</span>)</span> <span class="hljs-tag">{
+                    <body><pre><code class="hljs language-gql"><span class="hljs-symbol"><span class="hljs-keyword">mutation</span> editSite<span class="hljs-tag">(<span class="hljs-code">$input</span>:<span class="hljs-type"> SiteUpdateMutationInput!</span>)</span> <span class="hljs-tag">{
   <span class="hljs-symbol">editSite<span class="hljs-tag">(input: <span class="hljs-code">$input</span>)</span> <span class="hljs-tag">{
     <span class="hljs-symbol">errors</span>
     <span class="hljs-symbol">site <span class="hljs-tag">{
@@ -5405,7 +5405,7 @@
                   <h5>Variables</h5>
                   <html>
                     <head></head>
-                    <body><pre><code class="hljs language-json"><span class="hljs-punctuation">{</span><span class="hljs-attr">"input"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">SiteEditMutationInput</span><span class="hljs-punctuation">}</span>
+                    <body><pre><code class="hljs language-json"><span class="hljs-punctuation">{</span><span class="hljs-attr">"input"</span><span class="hljs-punctuation">:</span> <span class="hljs-string">SiteUpdateMutationInput</span><span class="hljs-punctuation">}</span>
 </code></pre>
                     </body>
                   </html>
@@ -11319,11 +11319,11 @@
               </div>
             </div>
           </section>
-          <section id="definition-ProjectEditMutationInput" class="definition definition-input-object" data-traverse-target="definition-ProjectEditMutationInput">
+          <section id="definition-ProjectUpdateMutationInput" class="definition definition-input-object" data-traverse-target="definition-ProjectUpdateMutationInput">
             <div class="definition-group-name">
               <a href="#group-Types">Types</a>
             </div>
-            <h2 class="definition-heading">ProjectEditMutationInput</h2>
+            <h2 class="definition-heading">ProjectUpdateMutationInput</h2>
             <div class="doc-row">
               <div class="doc-copy">
                 <div class="definition-properties doc-copy-section">
@@ -11386,11 +11386,11 @@
               </div>
             </div>
           </section>
-          <section id="definition-ProjectEditMutationPayload" class="definition definition-object" data-traverse-target="definition-ProjectEditMutationPayload">
+          <section id="definition-ProjectUpdateMutationPayload" class="definition definition-object" data-traverse-target="definition-ProjectUpdateMutationPayload">
             <div class="definition-group-name">
               <a href="#group-Types">Types</a>
             </div>
-            <h2 class="definition-heading">ProjectEditMutationPayload</h2>
+            <h2 class="definition-heading">ProjectUpdateMutationPayload</h2>
             <div class="doc-row">
               <div class="doc-copy">
                 <div class="definition-properties doc-copy-section">
@@ -11777,11 +11777,11 @@
               </div>
             </div>
           </section>
-          <section id="definition-SiteEditMutationInput" class="definition definition-input-object" data-traverse-target="definition-SiteEditMutationInput">
+          <section id="definition-SiteUpdateMutationInput" class="definition definition-input-object" data-traverse-target="definition-SiteUpdateMutationInput">
             <div class="definition-group-name">
               <a href="#group-Types">Types</a>
             </div>
-            <h2 class="definition-heading">SiteEditMutationInput</h2>
+            <h2 class="definition-heading">SiteUpdateMutationInput</h2>
             <div class="doc-row">
               <div class="doc-copy">
                 <div class="definition-properties doc-copy-section">
@@ -11860,11 +11860,11 @@
               </div>
             </div>
           </section>
-          <section id="definition-SiteEditMutationPayload" class="definition definition-object" data-traverse-target="definition-SiteEditMutationPayload">
+          <section id="definition-SiteUpdateMutationPayload" class="definition definition-object" data-traverse-target="definition-SiteUpdateMutationPayload">
             <div class="definition-group-name">
               <a href="#group-Types">Types</a>
             </div>
-            <h2 class="definition-heading">SiteEditMutationPayload</h2>
+            <h2 class="definition-heading">SiteUpdateMutationPayload</h2>
             <div class="doc-row">
               <div class="doc-copy">
                 <div class="definition-properties doc-copy-section">
