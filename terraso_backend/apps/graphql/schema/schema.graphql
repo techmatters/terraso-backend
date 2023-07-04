@@ -54,6 +54,15 @@ type Query {
     id: ID!
   ): StoryMapNode
   storyMaps(offset: Int, before: String, after: String, first: Int, last: Int, slug: String, storyMapId: String, createdBy_Email: String, createdBy_Email_Not: String): StoryMapNodeConnection
+  project(
+    """The ID of the object"""
+    id: ID!
+  ): ProjectNode
+  projects(offset: Int, before: String, after: String, first: Int, last: Int, name_Icontains: String): ProjectNodeConnection
+  site(
+    """The ID of the object"""
+    id: ID!
+  ): SiteNode
   sites(
     offset: Int
     before: String
@@ -65,6 +74,7 @@ type Query {
     project: ID
     project_Id: ID
     archived: Boolean
+    visibleToUser_Id: ID
 
     """Ordering"""
     orderBy: String
@@ -566,6 +576,48 @@ type StoryMapNodeEdge {
   cursor: String!
 }
 
+type ProjectNode implements Node {
+  name: String!
+  privacy: ProjectManagementProjectPrivacyChoices!
+  id: ID!
+}
+
+"""An enumeration."""
+enum ProjectManagementProjectPrivacyChoices {
+  """Private"""
+  PRIVATE
+
+  """Public"""
+  PUBLIC
+}
+
+type ProjectNodeConnection {
+  """Pagination data for this connection."""
+  pageInfo: PageInfo!
+
+  """Contains the nodes in this connection."""
+  edges: [ProjectNodeEdge!]!
+  totalCount: Int!
+}
+
+"""A Relay edge containing a `ProjectNode` and its cursor."""
+type ProjectNodeEdge {
+  """The item at the end of the edge"""
+  node: ProjectNode!
+
+  """A cursor for use in pagination"""
+  cursor: String!
+}
+
+type SiteNode implements Node {
+  name: String!
+  latitude: Float!
+  longitude: Float!
+  project: ProjectNode
+  archived: Boolean!
+  id: ID!
+}
+
 type SiteNodeConnection {
   """Pagination data for this connection."""
   pageInfo: PageInfo!
@@ -582,30 +634,6 @@ type SiteNodeEdge {
 
   """A cursor for use in pagination"""
   cursor: String!
-}
-
-type SiteNode implements Node {
-  name: String!
-  latitude: Float!
-  longitude: Float!
-  project: ProjectNode
-  archived: Boolean!
-  id: ID!
-}
-
-type ProjectNode implements Node {
-  name: String!
-  privacy: ProjectManagementProjectPrivacyChoices!
-  id: ID!
-}
-
-"""An enumeration."""
-enum ProjectManagementProjectPrivacyChoices {
-  """Private"""
-  PRIVATE
-
-  """Public"""
-  PUBLIC
 }
 
 type AuditLogNodeConnection {
