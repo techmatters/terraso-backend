@@ -50,3 +50,4 @@ def allowed_to_add_to_project(user, project):
 @rules.predicate
 def allowed_to_archive_project(user, project):
     return project.is_manager(user)
+    
