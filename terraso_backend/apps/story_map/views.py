@@ -117,7 +117,7 @@ class StoryMapUpdateView(AuthenticationRequiredMixin, FormView):
                 extra={"user_id": user.pk, "story_map_id": str(story_map.id)},
             )
             error_message = ErrorMessage(
-                code="update", context=ErrorContext(model="StoryMap", field="new_config")
+                code="update", context=ErrorContext(model="StoryMap", field=NON_FIELD_ERRORS)
             )
             return JsonResponse({"errors": [{"message": [asdict(error_message)]}]}, status=400)
 
