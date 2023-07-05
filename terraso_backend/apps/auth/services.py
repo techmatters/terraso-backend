@@ -14,6 +14,7 @@
 # along with this program. If not, see https://www.gnu.org/licenses/.
 
 import ipaddress
+from contextlib import contextmanager
 from datetime import timedelta
 from typing import Any, Optional
 from urllib.parse import urlparse
@@ -290,20 +291,30 @@ class TokenExchangeService:
 
     @staticmethod
     def _verify_payload(token, signing_key, client_id):
+        if "alg" not in signing_key._jwk_data:
+            raise TokenExchangeException("alg header missing in mobile JWT token")
         algorithms = [signing_key._jwk_data.get("alg", "RS256")]
         return jwt.decode(token, signing_key.key, algorithms=algorithms, audience=client_id)
 
+    @staticmethod
+    @contextmanager
+    def _transform_error(exception_class, message, error_type):
+        try:
+            yield
+        except exception_class:
+            logger.exception(message)
+            raise TokenExchangeException(message, error_type=error_type)
+
     def validate(self):
-        try:
+        with self._transform_error(
+            jwt.exceptions.PyJWTError,
+            f"could not retrieve signing key for {self.provider_name}",
+            "jwks_error",
+        ):
             signing_key = self._get_signing_key(self.token, self.jwks_uri)
-        except Exception:
-            msg = f"could not retrieve signing key for {self.provider_name}"
-            logger.exception(msg)
-            raise TokenExchangeException(message=msg, error_type="jwks_error")
-        try:
+        with self._transform_error(
+            jwt.exceptions.InvalidTokenError, "token was not verified", "token_error"
+        ):
             payload = self._verify_payload(self.token, signing_key, self.client_id)
-        except Exception:
-            msg = "token was not verified"
-            logger.exception(msg)
-            raise TokenExchangeException(message=msg, error_type="token_error")
+
         return payload

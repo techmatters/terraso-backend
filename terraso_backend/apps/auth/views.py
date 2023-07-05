@@ -266,6 +266,7 @@ class TokenExchangeView(View):
         if picture:
             additional_kwargs["profile_image_url"] = picture
         # TODO: using a private method of AccountService is weird, should be refactored
+        # Should be a public method, and arguably static
         user, created = account_service._persist_user(
             email, first_name=given_name, last_name=family_name, **additional_kwargs
         )

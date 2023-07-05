@@ -368,6 +368,8 @@ PUBLIC_BASE_PATHS = [
 
 
 class JWTProvider(TypedDict):
+    """Type hint to indicate correct config for JWT_EXCHANGE_PROVIDERS"""
+
     url: str
     client_id: str
     name: str
