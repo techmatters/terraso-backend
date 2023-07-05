@@ -7,27 +7,27 @@ type Query {
   group(
     """The ID of the object"""
     id: ID!
-  ): GroupNode
+  ): GroupNode!
   landscape(
     """The ID of the object"""
     id: ID!
-  ): LandscapeNode
+  ): LandscapeNode!
   user(
     """The ID of the object"""
     id: ID!
-  ): UserNode
+  ): UserNode!
   landscapeGroup(
     """The ID of the object"""
     id: ID!
-  ): LandscapeGroupNode
+  ): LandscapeGroupNode!
   membership(
     """The ID of the object"""
     id: ID!
-  ): MembershipNode
+  ): MembershipNode!
   groupAssociation(
     """The ID of the object"""
     id: ID!
-  ): GroupAssociationNode
+  ): GroupAssociationNode!
   groups(offset: Int, before: String, after: String, first: Int, last: Int, name: String, name_Icontains: String, name_Istartswith: String, slug: String, slug_Icontains: String, description_Icontains: String, memberships_Email: String, associatedLandscapes_IsDefaultLandscapeGroup: Boolean, associatedLandscapes_Isnull: Boolean, associatedLandscapes_IsPartnership: Boolean): GroupNodeConnection
   landscapes(offset: Int, before: String, after: String, first: Int, last: Int, name_Icontains: String, description_Icontains: String, slug: String, slug_Icontains: String, website_Icontains: String, location_Icontains: String): LandscapeNodeConnection
   users(offset: Int, before: String, after: String, first: Int, last: Int, email: String, email_Icontains: String, firstName_Icontains: String, lastName_Icontains: String): UserNodeConnection
@@ -37,32 +37,32 @@ type Query {
   dataEntry(
     """The ID of the object"""
     id: ID!
-  ): DataEntryNode
+  ): DataEntryNode!
   dataEntries(offset: Int, before: String, after: String, first: Int, last: Int, name_Icontains: String, description_Icontains: String, url_Icontains: String, entryType_In: [SharedDataDataEntryEntryTypeChoices], resourceType_In: [String], groups_Slug: String, groups_Slug_Icontains: String, groups_Id: ID): DataEntryNodeConnection
   visualizationConfig(
     """The ID of the object"""
     id: ID!
-  ): VisualizationConfigNode
+  ): VisualizationConfigNode!
   visualizationConfigs(offset: Int, before: String, after: String, first: Int, last: Int, slug: String, slug_Icontains: String, dataEntry_Groups_Slug: String, dataEntry_Groups_Slug_Icontains: String, dataEntry_Groups_Id: ID): VisualizationConfigNodeConnection
   taxonomyTerm(
     """The ID of the object"""
     id: ID!
-  ): TaxonomyTermNode
+  ): TaxonomyTermNode!
   taxonomyTerms(offset: Int, before: String, after: String, first: Int, last: Int, type: CoreTaxonomyTermTypeChoices, type_In: [CoreTaxonomyTermTypeChoices]): TaxonomyTermNodeConnection
   storyMap(
     """The ID of the object"""
     id: ID!
-  ): StoryMapNode
+  ): StoryMapNode!
   storyMaps(offset: Int, before: String, after: String, first: Int, last: Int, slug: String, storyMapId: String, createdBy_Email: String, createdBy_Email_Not: String): StoryMapNodeConnection
   project(
     """The ID of the object"""
     id: ID!
-  ): ProjectNode
+  ): ProjectNode!
   projects(offset: Int, before: String, after: String, first: Int, last: Int, name_Icontains: String): ProjectNodeConnection!
   site(
     """The ID of the object"""
     id: ID!
-  ): SiteNode
+  ): SiteNode!
   sites(
     offset: Int
     before: String

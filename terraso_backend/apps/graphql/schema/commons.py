@@ -38,6 +38,11 @@ logger = structlog.get_logger(__name__)
 
 
 class TerrasoRelayNode(relay.Node):
+    @classmethod
+    def Field(cls, *args, **kwargs):  # noqa: N802
+        kwargs["required"] = kwargs.pop("required", True)
+        return super().Field(*args, **kwargs)
+
     @staticmethod
     def get_node_from_global_id(info, global_id, only_type=None):
         return info.return_type.graphene_type._meta.model.objects.get(pk=global_id)
