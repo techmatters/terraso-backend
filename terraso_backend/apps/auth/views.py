@@ -311,7 +311,6 @@ class TokenExchangeView(View):
         resp_payload = {
             "rtoken": rtoken,
             "atoken": atoken,
-            "user": {"email": user.email, "firstName": user.first_name, "lastName": user.last_name},
         }
         if created:
             resp_payload["created"] = True
