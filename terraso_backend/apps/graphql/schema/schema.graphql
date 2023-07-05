@@ -58,7 +58,7 @@ type Query {
     """The ID of the object"""
     id: ID!
   ): ProjectNode
-  projects(offset: Int, before: String, after: String, first: Int, last: Int, name_Icontains: String): ProjectNodeConnection
+  projects(offset: Int, before: String, after: String, first: Int, last: Int, name_Icontains: String): ProjectNodeConnection!
   site(
     """The ID of the object"""
     id: ID!
@@ -78,7 +78,7 @@ type Query {
 
     """Ordering"""
     orderBy: String
-  ): SiteNodeConnection
+  ): SiteNodeConnection!
   auditLogs(
     offset: Int
     before: String

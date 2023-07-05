@@ -103,9 +103,9 @@ class Query(graphene.ObjectType):
     story_map = TerrasoRelayNode.Field(StoryMapNode)
     story_maps = DjangoFilterConnectionField(StoryMapNode)
     project = TerrasoRelayNode.Field(ProjectNode)
-    projects = DjangoFilterConnectionField(ProjectNode)
+    projects = DjangoFilterConnectionField(ProjectNode, required=True)
     site = TerrasoRelayNode.Field(SiteNode)
-    sites = DjangoFilterConnectionField(SiteNode)
+    sites = DjangoFilterConnectionField(SiteNode, required=True)
     audit_logs = DjangoFilterConnectionField(AuditLogNode)
 
 
