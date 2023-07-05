@@ -96,8 +96,8 @@ class Site(BaseModel):
 
 def filter_only_sites_user_owner_or_member(user: User, queryset):
     return queryset.filter(
-        Q(owner=user) |
-        Q(
+        Q(owner=user)
+        | Q(
             project__group__memberships__user=user,
             project__group__memberships__membership_status=Membership.APPROVED,
         )

@@ -16,6 +16,7 @@ from datetime import datetime
 
 import django_filters
 import graphene
+from django.db import transaction
 from django.db.models import Q
 from graphene import relay
 from graphene_django import DjangoObjectType
@@ -24,7 +25,7 @@ from graphene_django.filter import GlobalIDFilter
 from apps.audit_logs import api as audit_log_api
 from apps.project_management.models import Project, Site, sites
 
-from .commons import BaseWriteMutation, TerrasoConnection
+from .commons import BaseDeleteMutation, BaseWriteMutation, TerrasoConnection
 from .constants import MutationTypes
 
 
@@ -170,3 +171,21 @@ class SiteUpdateMutation(BaseWriteMutation):
         )
 
         return result
+
+
+class SiteDeleteMutation(BaseDeleteMutation):
+    model_class = Site
+
+    class Input:
+        id = graphene.ID(required=True)
+
+    @classmethod
+    @transaction.atomic
+    def mutate_and_get_payload(cls, root, info, **kwargs):
+        user = info.context.user
+        site_id = kwargs["id"]
+        site = cls.get_or_throw(Site, "id", site_id)
+        if not user.has_perm(Site.get_perm("change"), site):
+            cls.not_allowed()
+
+        return super().mutate_and_get_payload(root, info, **kwargs)

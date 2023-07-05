@@ -724,10 +724,11 @@ type Mutations {
   deleteStoryMap(input: StoryMapDeleteMutationInput!): StoryMapDeleteMutationPayload!
   addSite(input: SiteAddMutationInput!): SiteAddMutationPayload!
   updateSite(input: SiteUpdateMutationInput!): SiteUpdateMutationPayload!
+  deleteSite(input: SiteDeleteMutationInput!): SiteDeleteMutationPayload!
   addProject(input: ProjectAddMutationInput!): ProjectAddMutationPayload!
-  deleteProject(input: ProjectDeleteMutationInput!): ProjectDeleteMutationPayload!
-  archiveProject(input: ProjectArchiveMutationInput!): ProjectArchiveMutationPayload!
   updateProject(input: ProjectUpdateMutationInput!): ProjectUpdateMutationPayload!
+  archiveProject(input: ProjectArchiveMutationInput!): ProjectArchiveMutationPayload!
+  deleteProject(input: ProjectDeleteMutationInput!): ProjectDeleteMutationPayload!
 }
 
 type GroupAddMutationPayload {
@@ -1105,6 +1106,16 @@ input SiteUpdateMutationInput {
   clientMutationId: String
 }
 
+type SiteDeleteMutationPayload {
+  errors: GenericScalar
+  clientMutationId: String
+}
+
+input SiteDeleteMutationInput {
+  id: ID!
+  clientMutationId: String
+}
+
 type ProjectAddMutationPayload {
   errors: GenericScalar
   project: ProjectNode!
@@ -1122,15 +1133,16 @@ enum ProjectPrivacy {
   PUBLIC
 }
 
-type ProjectDeleteMutationPayload {
+type ProjectUpdateMutationPayload {
   errors: GenericScalar
-  project: ProjectNode!
+  project: ProjectNode
   clientMutationId: String
 }
 
-input ProjectDeleteMutationInput {
+input ProjectUpdateMutationInput {
   id: ID!
-  transferProjectId: ID
+  name: String
+  privacy: ProjectPrivacy = null
   clientMutationId: String
 }
 
@@ -1146,15 +1158,14 @@ input ProjectArchiveMutationInput {
   clientMutationId: String
 }
 
-type ProjectUpdateMutationPayload {
+type ProjectDeleteMutationPayload {
   errors: GenericScalar
-  project: ProjectNode
+  project: ProjectNode!
   clientMutationId: String
 }
 
-input ProjectUpdateMutationInput {
+input ProjectDeleteMutationInput {
   id: ID!
-  name: String
-  privacy: ProjectPrivacy = null
+  transferProjectId: ID
   clientMutationId: String
 }

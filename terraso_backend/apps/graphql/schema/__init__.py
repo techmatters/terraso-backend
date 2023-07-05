@@ -59,7 +59,7 @@ from .projects import (
     ProjectNode,
     ProjectUpdateMutation,
 )
-from .sites import SiteAddMutation, SiteNode, SiteUpdateMutation
+from .sites import SiteAddMutation, SiteDeleteMutation, SiteNode, SiteUpdateMutation
 from .story_maps import StoryMapDeleteMutation, StoryMapNode
 from .taxnomy_terms import TaxonomyTermNode
 from .users import (
@@ -140,10 +140,11 @@ class Mutations(graphene.ObjectType):
     delete_story_map = StoryMapDeleteMutation.Field()
     add_site = SiteAddMutation.Field()
     update_site = SiteUpdateMutation.Field()
+    delete_site = SiteDeleteMutation.Field()
     add_project = ProjectAddMutation.Field()
-    delete_project = ProjectDeleteMutation.Field()
-    archive_project = ProjectArchiveMutation.Field()
     update_project = ProjectUpdateMutation.Field()
+    archive_project = ProjectArchiveMutation.Field()
+    delete_project = ProjectDeleteMutation.Field()
 
 
 schema = graphene.Schema(query=Query, mutation=Mutations)
