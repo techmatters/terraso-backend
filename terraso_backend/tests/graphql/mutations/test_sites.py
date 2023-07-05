@@ -112,7 +112,7 @@ def test_update_site_in_project(client, project, project_manager, site):
         client=client,
     )
     content = json.loads(response.content)
-    assert content["data"]["updateSite"]["errors"] == None
+    assert content["data"]["updateSite"]["errors"] is None
     payload = content["data"]["updateSite"]["site"]
     site_id = payload["id"]
     project_id = payload["project"]["id"]
@@ -153,7 +153,7 @@ def test_adding_site_owned_by_user_to_project(client, project, site, project_man
         client=client,
     )
     content = json.loads(response.content)
-    assert content["data"]["updateSite"]["errors"] == None
+    assert content["data"]["updateSite"]["errors"] is None
     payload = content["data"]["updateSite"]["site"]
     site_id = payload["id"]
     project_id = payload["project"]["id"]
@@ -179,7 +179,7 @@ def test_user_can_add_site_to_project_if_project_setting_set(
     )
     content = json.loads(response.content)
     if allow_adding_site:
-        assert content["data"]["updateSite"]["errors"] == None
+        assert content["data"]["updateSite"]["errors"] is None
         payload = content["data"]["updateSite"]["site"]
         assert payload["id"] == str(site.id)
         site.refresh_from_db()

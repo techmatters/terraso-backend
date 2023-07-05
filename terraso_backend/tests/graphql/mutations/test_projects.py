@@ -141,7 +141,7 @@ def test_update_project_user_is_manager(project, client, project_manager):
     client.force_login(project_manager)
     response = graphql_query(UPDATE_PROJECT_GRAPHQL, input_data=input, client=client)
     content = json.loads(response.content)
-    assert content["data"]["updateProject"]["errors"] == None
+    assert content["data"]["updateProject"]["errors"] is None
     assert content["data"]["updateProject"]["project"]["id"] == str(project.id)
     assert content["data"]["updateProject"]["project"]["name"] == "test_name"
     assert content["data"]["updateProject"]["project"]["privacy"] == "PRIVATE"
