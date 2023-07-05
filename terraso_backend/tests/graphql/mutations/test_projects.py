@@ -121,6 +121,7 @@ def test_delete_project_transfer_sites(is_manager, project_with_sites, client, p
     else:
         assert "errors" in content or "errors" in content["data"]["deleteProject"]
 
+
 UPDATE_PROJECT_GRAPHQL = """
     mutation($input: ProjectUpdateMutationInput!) {
     updateProject(input: $input) {
@@ -134,15 +135,17 @@ UPDATE_PROJECT_GRAPHQL = """
     }
 """
 
+
 def test_update_project_user_is_manager(project, client, project_manager):
     input = {"id": str(project.id), "name": "test_name", "privacy": "PRIVATE"}
     client.force_login(project_manager)
     response = graphql_query(UPDATE_PROJECT_GRAPHQL, input_data=input, client=client)
     content = json.loads(response.content)
     assert content["data"]["updateProject"]["errors"] == None
-    assert content["data"]["updateProject"]["project"]["id"] == str(project.id) 
-    assert content["data"]["updateProject"]["project"]["name"] == "test_name" 
+    assert content["data"]["updateProject"]["project"]["id"] == str(project.id)
+    assert content["data"]["updateProject"]["project"]["name"] == "test_name"
     assert content["data"]["updateProject"]["project"]["privacy"] == "PRIVATE"
+
 
 def test_update_project_user_not_manager(project, client):
     user = mixer.blend(User)

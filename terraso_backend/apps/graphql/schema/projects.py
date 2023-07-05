@@ -109,10 +109,12 @@ class ProjectDeleteMutation(BaseDeleteMutation):
         result = super().mutate_and_get_payload(root, info, **kwargs)
         return result
 
+
 class ProjectUpdateMutation(BaseWriteMutation):
     project = graphene.Field(ProjectNode)
 
     model_class = Project
+
     class Input:
         id = graphene.ID(required=True)
         name = graphene.String()
@@ -128,4 +130,3 @@ class ProjectUpdateMutation(BaseWriteMutation):
             cls.not_allowed()
         kwargs["privacy"] = kwargs["privacy"].value
         return super().mutate_and_get_payload(root, info, **kwargs)
-        
