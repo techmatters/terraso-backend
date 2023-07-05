@@ -17,11 +17,13 @@ import mimetypes
 from dataclasses import asdict
 
 import structlog
+from config.settings import MEDIA_UPLOAD_MAX_FILE_SIZE
 from django.http import JsonResponse
 from django.views.generic.edit import FormView
 
 from apps.auth.mixins import AuthenticationRequiredMixin
 from apps.core.exceptions import ErrorContext, ErrorMessage
+from apps.storage.file_utils import is_file_upload_oversized
 
 from .forms import DataEntryForm
 from .models import DataEntry
@@ -37,6 +39,14 @@ class DataEntryFileUploadView(AuthenticationRequiredMixin, FormView):
         form_data = request.POST.copy()
         form_data["created_by"] = str(request.user.id)
         form_data["entry_type"] = DataEntry.ENTRY_TYPE_FILE
+
+        if is_file_upload_oversized(request.FILES.getlist('data_file'), MEDIA_UPLOAD_MAX_FILE_SIZE):
+            error_message = ErrorMessage(
+                code="File size exceeds 10 MB",
+                context=ErrorContext(model="DataEntry", field="data_file")
+            )
+            return JsonResponse({"errors": [{
+                "message": [asdict(error_message)]}]}, status=400)
 
         entry_form = DataEntryForm(data=form_data, files=request.FILES)
 
