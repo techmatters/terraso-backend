@@ -17,7 +17,6 @@ from datetime import datetime
 import django_filters
 import graphene
 from django.db import transaction
-from django.db.models import Q
 from graphene import relay
 from graphene_django import DjangoObjectType
 from graphene_django.filter import GlobalIDFilter
@@ -30,11 +29,11 @@ from .constants import MutationTypes
 
 
 class SiteFilter(django_filters.FilterSet):
-    visible_to_user__id = GlobalIDFilter(method="filter_visible_to_user")
+    project__member = GlobalIDFilter(lookup_expr="project__group__memberships__user__id")
 
     class Meta:
         model = Site
-        fields = ["name", "owner", "project", "project__id", "archived"]
+        fields = ["name", "owner", "project", "archived"]
 
     order_by = django_filters.OrderingFilter(
         fields=(
@@ -42,9 +41,6 @@ class SiteFilter(django_filters.FilterSet):
             ("created_at", "created_at"),
         )
     )
-
-    def filter_visible_to_user(self, queryset, name, id):
-        return queryset.filter(Q(project__group__memberships__user__id=id) | Q(owner__id=id))
 
 
 class SiteNode(DjangoObjectType):
