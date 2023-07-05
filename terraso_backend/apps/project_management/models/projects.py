@@ -62,9 +62,7 @@ class Project(BaseModel):
         ProjectSettings, on_delete=models.PROTECT, default=default_settings
     )
 
-    archived = models.BooleanField(
-        default=False,
-    )
+    archived = models.BooleanField(default=False,)
 
     @staticmethod
     def create_default_group(name: str):

@@ -109,6 +109,7 @@ class ProjectDeleteMutation(BaseDeleteMutation):
         result = super().mutate_and_get_payload(root, info, **kwargs)
         return result
 
+
 class ProjectArchiveMutation(BaseWriteMutation):
     project = graphene.Field(ProjectNode, required=True)
 

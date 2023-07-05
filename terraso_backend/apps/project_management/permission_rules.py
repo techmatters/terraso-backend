@@ -47,7 +47,7 @@ def allowed_to_delete_project(user, project):
 def allowed_to_add_to_project(user, project):
     return project.is_manager(user)
 
+
 @rules.predicate
 def allowed_to_archive_project(user, project):
     return project.is_manager(user)
-    

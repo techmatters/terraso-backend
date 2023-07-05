@@ -121,6 +121,7 @@ def test_delete_project_transfer_sites(is_manager, project_with_sites, client, p
     else:
         assert "errors" in content or "errors" in content["data"]["deleteProject"]
 
+
 ARCHIVE_PROJECT_GRAPHQL = """
     mutation($input: ProjectArchiveMutationInput!) {
     archiveProject(input: $input) {
@@ -132,6 +133,7 @@ ARCHIVE_PROJECT_GRAPHQL = """
     }
 """
 
+
 @pytest.mark.parametrize("archived", [True, False])
 def test_archive_project(archived, project_with_sites, client, project_manager):
     site_ids = [site.id for site in project_with_sites.site_set.all()]
@@ -142,6 +144,7 @@ def test_archive_project(archived, project_with_sites, client, project_manager):
     assert "errors" not in content and "errors" not in content["data"]["archiveProject"]
     assert Project.objects.filter(id=project_with_sites.id, archived=archived).exists()
     assert Site.objects.filter(id__in=site_ids, archived=archived).exists()
+
 
 def test_archive_project_user_not_manager(project, client):
     user = mixer.blend(User)
