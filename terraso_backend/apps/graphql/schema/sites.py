@@ -52,7 +52,7 @@ class SiteNode(DjangoObjectType):
     class Meta:
         model = Site
 
-        fields = ("name", "latitude", "longitude", "project", "archived")
+        fields = ("name", "latitude", "longitude", "project", "archived", "owner")
         filterset_class = SiteFilter
 
         interfaces = (relay.Node,)

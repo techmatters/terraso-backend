@@ -613,6 +613,7 @@ type SiteNode implements Node {
   name: String!
   latitude: Float!
   longitude: Float!
+  owner: UserNode
   project: ProjectNode
   archived: Boolean!
   id: ID!
