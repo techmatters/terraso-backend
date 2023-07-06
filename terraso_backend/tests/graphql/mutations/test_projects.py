@@ -128,6 +128,7 @@ ARCHIVE_PROJECT_GRAPHQL = """
         project{
         id,
         name
+        }
     }
     }
 """
@@ -140,6 +141,7 @@ def test_archive_project(archived, project_with_sites, client, project_manager):
     client.force_login(project_manager)
     response = graphql_query(ARCHIVE_PROJECT_GRAPHQL, input_data=input, client=client)
     content = json.loads(response.content)
+    print(content)
     assert "errors" not in content and "errors" not in content["data"]["archiveProject"]
     assert Project.objects.filter(id=project_with_sites.id, archived=archived).exists()
     assert Site.objects.filter(id__in=site_ids, archived=archived).exists()

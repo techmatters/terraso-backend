@@ -113,6 +113,8 @@ class ProjectDeleteMutation(BaseDeleteMutation):
 class ProjectArchiveMutation(BaseWriteMutation):
     project = graphene.Field(ProjectNode, required=True)
 
+    model_class = Project
+
     class Input:
         id = graphene.ID(required=True)
         archived = graphene.Boolean(required=True)
