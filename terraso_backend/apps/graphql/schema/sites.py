@@ -29,7 +29,7 @@ from .constants import MutationTypes
 class SiteFilter(django_filters.FilterSet):
     class Meta:
         model = Site
-        fields = ["name", "owner", "project", "project__id"]
+        fields = ["name", "owner", "project", "project__id", "archived"]
 
     order_by = django_filters.OrderingFilter(
         fields=(
@@ -45,7 +45,7 @@ class SiteNode(DjangoObjectType):
     class Meta:
         model = Site
 
-        fields = ("name", "latitude", "longitude", "project")
+        fields = ("name", "latitude", "longitude", "project", "archived")
         filterset_class = SiteFilter
 
         interfaces = (relay.Node,)

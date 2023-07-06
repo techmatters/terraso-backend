@@ -64,6 +64,7 @@ type Query {
     owner: ID
     project: ID
     project_Id: ID
+    archived: Boolean
 
     """Ordering"""
     orderBy: String
@@ -588,6 +589,7 @@ type SiteNode implements Node {
   latitude: Float!
   longitude: Float!
   project: ProjectNode
+  archived: Boolean!
   id: ID!
 }
 
@@ -695,6 +697,7 @@ type Mutations {
   updateSite(input: SiteUpdateMutationInput!): SiteUpdateMutationPayload!
   addProject(input: ProjectAddMutationInput!): ProjectAddMutationPayload!
   deleteProject(input: ProjectDeleteMutationInput!): ProjectDeleteMutationPayload!
+  archiveProject(input: ProjectArchiveMutationInput!): ProjectArchiveMutationPayload!
   updateProject(input: ProjectUpdateMutationInput!): ProjectUpdateMutationPayload!
 }
 
@@ -1099,6 +1102,18 @@ type ProjectDeleteMutationPayload {
 input ProjectDeleteMutationInput {
   id: ID!
   transferProjectId: ID
+  clientMutationId: String
+}
+
+type ProjectArchiveMutationPayload {
+  errors: GenericScalar
+  project: ProjectNode!
+  clientMutationId: String
+}
+
+input ProjectArchiveMutationInput {
+  id: ID!
+  archived: Boolean!
   clientMutationId: String
 }
 

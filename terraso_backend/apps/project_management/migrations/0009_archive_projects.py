@@ -19,19 +19,22 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
     dependencies = [
-        ("project_management", "0007_remove_project_settings_site_created_by"),
+        ("project_management", "0008_alter_site_project"),
     ]
 
     operations = [
-        migrations.AlterField(
+        migrations.AddField(
             model_name="site",
-            name="project",
-            field=models.ForeignKey(
-                blank=True,
-                null=True,
-                on_delete=django.db.models.deletion.CASCADE,
-                to="project_management.project",
-                verbose_name="project to which the site belongs",
+            name="archived",
+            field=models.BooleanField(
+                default=False,
+            ),
+        ),
+        migrations.AddField(
+            model_name="project",
+            name="archived",
+            field=models.BooleanField(
+                default=False,
             ),
         ),
     ]

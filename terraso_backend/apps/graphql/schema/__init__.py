@@ -52,7 +52,12 @@ from .memberships import (
     MembershipNode,
     MembershipUpdateMutation,
 )
-from .projects import ProjectAddMutation, ProjectDeleteMutation, ProjectUpdateMutation
+from .projects import (
+    ProjectAddMutation,
+    ProjectArchiveMutation,
+    ProjectDeleteMutation,
+    ProjectUpdateMutation,
+)
 from .sites import SiteAddMutation, SiteNode, SiteUpdateMutation
 from .story_maps import StoryMapDeleteMutation, StoryMapNode
 from .taxnomy_terms import TaxonomyTermNode
@@ -133,6 +138,7 @@ class Mutations(graphene.ObjectType):
     update_site = SiteUpdateMutation.Field()
     add_project = ProjectAddMutation.Field()
     delete_project = ProjectDeleteMutation.Field()
+    archive_project = ProjectArchiveMutation.Field()
     update_project = ProjectUpdateMutation.Field()
 
 

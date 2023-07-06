@@ -67,6 +67,10 @@ class Site(BaseModel):
         verbose_name="project to which the site belongs",
     )
 
+    archived = models.BooleanField(
+        default=False,
+    )
+
     @property
     def owned_by_user(self):
         return self.owner is not None
