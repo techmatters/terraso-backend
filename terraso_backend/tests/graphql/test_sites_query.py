@@ -16,6 +16,7 @@ import pytest
 from graphene_django.utils.testing import graphql_query
 
 from apps.project_management.models import Site
+from apps.project_management.models.projects import Project
 
 pytestmark = pytest.mark.django_db
 
@@ -28,7 +29,7 @@ def test_query_by_project(client, project, project_manager, site):
     site2.save()
     query = """
     {
-      sites(orderBy: "%s", project_Id: "%s") {
+      sites(orderBy: "%s", project: "%s") {
         edges {
           node {
             id
@@ -70,6 +71,42 @@ def test_query_by_project(client, project, project_manager, site):
     assert edges[0]["node"]["name"] == str(site2.name)
 
 
+def test_query_by_project_member(client, project, site, project_user):
+    project2 = Project(name="2")
+    project2.group = project2.create_default_group("2")
+    project2.settings = project2.default_settings()
+    project2.save()
+    site.project = project
+    site.owner = None
+    site.save()
+    site2 = Site(name="2", project=project2, latitude=site.latitude, longitude=site.longitude)
+    site2.save()
+    site3 = Site(name="3", owner=project_user, latitude=site.latitude, longitude=site.longitude)
+    site3.save()
+    print(project.id)
+    print(site.id)
+    query = """
+    {
+      sites(project_Member: "%s") {
+        edges {
+          node {
+            id
+            name
+          }
+        }
+      }
+    }
+    """ % (
+        project_user.id,
+    )
+    client.force_login(project_user)
+    response = graphql_query(query, client=client)
+    assert "errors" not in response.json()
+    edges = response.json()["data"]["sites"]["edges"]
+    assert len(edges) == 1
+    assert edges[0]["node"]["name"] == str(site.name)
+
+
 def test_query_site_permissions(client, client_query, project, project_manager, site, user):
     project.add_manager(project_manager)
     site.project = None
@@ -95,7 +132,7 @@ def test_query_site_permissions(client, client_query, project, project_manager, 
        """ % (
         "created_at",
     )
-    response = graphql_query(query, client=client,)
+    response = graphql_query(query, client=client)
 
     assert "errors" not in response.json()
     edges = response.json()["data"]["sites"]["edges"]
@@ -119,7 +156,7 @@ def test_query_site_permissions(client, client_query, project, project_manager, 
        """ % (
         "created_at",
     )
-    response = graphql_query(query, client=client,)
+    response = graphql_query(query, client=client)
     assert "errors" not in response.json()
     edges = response.json()["data"]["sites"]["edges"]
     assert len(edges) == 1
@@ -139,7 +176,7 @@ def test_query_site_permissions(client, client_query, project, project_manager, 
            """ % (
         "created_at",
     )
-    response = graphql_query(query, client=client,)
+    response = graphql_query(query, client=client)
     assert "errors" not in response.json()
     edges = response.json()["data"]["sites"]["edges"]
     assert len(edges) == 2

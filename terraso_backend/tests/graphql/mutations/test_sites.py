@@ -43,7 +43,7 @@ def site_creation_keywords():
 
 def test_site_creation(client_query, user):
     kwargs = site_creation_keywords()
-    response = client_query(CREATE_SITE_QUERY, variables={"input": kwargs},)
+    response = client_query(CREATE_SITE_QUERY, variables={"input": kwargs})
     content = json.loads(response.content)
     assert "errors" not in content
     id = content["data"]["addSite"]["site"]["id"]
@@ -67,7 +67,7 @@ def test_site_creation_in_project(client, project_manager, project):
     kwargs = site_creation_keywords()
     kwargs["projectId"] = str(project.id)
     client.force_login(project_manager)
-    response = graphql_query(CREATE_SITE_QUERY, variables={"input": kwargs}, client=client,)
+    response = graphql_query(CREATE_SITE_QUERY, variables={"input": kwargs}, client=client)
     content = json.loads(response.content)
     assert "errors" not in content and "errors" not in content["data"]
     id = content["data"]["addSite"]["site"]["id"]
@@ -200,7 +200,7 @@ def test_user_can_add_new_site_to_project_if_project_setting_set(
     client.force_login(project_user)
     kwargs = site_creation_keywords()
     kwargs["projectId"] = str(project.id)
-    response = graphql_query(CREATE_SITE_QUERY, variables={"input": kwargs}, client=client,)
+    response = graphql_query(CREATE_SITE_QUERY, variables={"input": kwargs}, client=client)
     content = json.loads(response.content)
     if allow_adding_site:
         assert "errors" not in content and "errors" not in content["data"]
@@ -209,3 +209,39 @@ def test_user_can_add_new_site_to_project_if_project_setting_set(
         assert site.owned_by(project)
     else:
         assert "errors" in content or "errors" in content["data"]
+
+
+DELETE_SITE_QUERY = """
+    mutation SiteDeleteMutation($input: SiteDeleteMutationInput!) {
+        deleteSite(input: $input) {
+            errors
+        }
+    }
+"""
+
+
+def test_delete_site(client, site, site_creator):
+    client.force_login(site_creator)
+    response = graphql_query(
+        DELETE_SITE_QUERY,
+        variables={"input": {"id": str(site.id)}},
+        client=client,
+    )
+
+    assert response.json()["data"]["deleteSite"]["errors"] is None
+    assert len(Site.objects.filter(id=site.id)) == 0
+
+
+def test_delete_site_not_allowed(client, site):
+    user = mixer.blend(User)
+    client.force_login(user)
+    response = graphql_query(
+        DELETE_SITE_QUERY,
+        variables={"input": {"id": str(site.id)}},
+        client=client,
+    )
+
+    error_msg = response.json()["data"]["deleteSite"]["errors"][0]["message"]
+    assert json.loads(error_msg)[0]["code"] == "delete_not_allowed"
+
+    assert len(Site.objects.filter(id=site.id)) == 1

@@ -19,7 +19,7 @@ import graphene
 from django.db import transaction
 from graphene import relay
 from graphene_django import DjangoObjectType
-from graphene_django.filter import GlobalIDFilter
+from graphene_django.filter import TypedFilter
 
 from apps.audit_logs import api as audit_log_api
 from apps.project_management.models import Project, Site, sites
@@ -29,7 +29,7 @@ from .constants import MutationTypes
 
 
 class SiteFilter(django_filters.FilterSet):
-    project__member = GlobalIDFilter(lookup_expr="project__group__memberships__user__id")
+    project__member = TypedFilter(field_name="project__group__memberships__user")
 
     class Meta:
         model = Site
@@ -170,6 +170,8 @@ class SiteUpdateMutation(BaseWriteMutation):
 
 
 class SiteDeleteMutation(BaseDeleteMutation):
+    site = graphene.Field(SiteNode, required=True)
+
     model_class = Site
 
     class Input:
@@ -181,7 +183,7 @@ class SiteDeleteMutation(BaseDeleteMutation):
         user = info.context.user
         site_id = kwargs["id"]
         site = cls.get_or_throw(Site, "id", site_id)
-        if not user.has_perm(Site.get_perm("change"), site):
-            cls.not_allowed()
+        if not user.has_perm(Site.get_perm("delete"), site):
+            cls.not_allowed(MutationTypes.DELETE)
 
         return super().mutate_and_get_payload(root, info, **kwargs)

@@ -20,7 +20,7 @@ from django.db import transaction
 from django_filters import FilterSet
 from graphene import relay
 from graphene_django import DjangoObjectType
-from graphene_django.filter import GlobalIDFilter
+from graphene_django.filter import TypedFilter
 
 from apps.audit_logs import api as log_api
 from apps.project_management.models import Project
@@ -30,7 +30,7 @@ from .commons import BaseDeleteMutation, BaseWriteMutation, TerrasoConnection
 
 
 class ProjectFilterSet(FilterSet):
-    member = GlobalIDFilter(lookup_expr="group__memberships__user__id")
+    member = TypedFilter(field_name="group__memberships__user")
 
     class Meta:
         model = Project
