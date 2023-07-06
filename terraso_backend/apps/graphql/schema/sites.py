@@ -29,11 +29,13 @@ from .constants import MutationTypes
 
 
 class SiteFilter(django_filters.FilterSet):
+    project = TypedFilter()
+    owner = TypedFilter()
     project__member = TypedFilter(field_name="project__group__memberships__user")
 
     class Meta:
         model = Site
-        fields = ["name", "owner", "project", "archived"]
+        fields = ["name", "archived"]
 
     order_by = django_filters.OrderingFilter(
         fields=(

@@ -14,7 +14,9 @@
 # along with this program. If not, see https://www.gnu.org/licenses/.
 import pytest
 from graphene_django.utils.testing import graphql_query
+from mixer.backend.django import mixer
 
+from apps.core.models.users import User
 from apps.project_management.models import Site
 from apps.project_management.models.projects import Project
 
@@ -51,7 +53,7 @@ def test_query_by_project(client, project, project_manager, site):
 
     query = """
         {
-          sites(orderBy: "-%s", project_Id: "%s") {
+          sites(orderBy: "-%s", project: "%s") {
             edges {
               node {
                 id
@@ -83,8 +85,6 @@ def test_query_by_project_member(client, project, site, project_user):
     site2.save()
     site3 = Site(name="3", owner=project_user, latitude=site.latitude, longitude=site.longitude)
     site3.save()
-    print(project.id)
-    print(site.id)
     query = """
     {
       sites(project_Member: "%s") {
@@ -105,6 +105,32 @@ def test_query_by_project_member(client, project, site, project_user):
     edges = response.json()["data"]["sites"]["edges"]
     assert len(edges) == 1
     assert edges[0]["node"]["name"] == str(site.name)
+
+
+def test_query_by_owner(client, project, site, user):
+    user2 = mixer.blend(User)
+    site2 = Site(name="2", owner=user2, latitude=site.latitude, longitude=site.longitude)
+    site2.save()
+    query = """
+    {
+      sites(owner: "%s") {
+        edges {
+          node {
+            id
+            name
+          }
+        }
+      }
+    }
+    """ % (
+        user2.id,
+    )
+    client.force_login(user2)
+    response = graphql_query(query, client=client)
+    assert "errors" not in response.json()
+    edges = response.json()["data"]["sites"]["edges"]
+    assert len(edges) == 1
+    assert edges[0]["node"]["name"] == str(site2.name)
 
 
 def test_query_site_permissions(client, client_query, project, project_manager, site, user):

@@ -70,9 +70,9 @@ type Query {
     first: Int
     last: Int
     name: String
-    owner: ID
-    project: ID
     archived: Boolean
+    project: ID
+    owner: ID
     project_Member: ID
 
     """Ordering"""
