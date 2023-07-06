@@ -20,7 +20,7 @@ from apps.project_management.models import Site
 pytestmark = pytest.mark.django_db
 
 
-def test_query_by_project(client_query, project, project_manager, site):
+def test_query_by_project(client, project, project_manager, site):
     site.project = project
     site.owner = None
     site.save()
@@ -41,7 +41,8 @@ def test_query_by_project(client_query, project, project_manager, site):
         "created_at",
         project.id,
     )
-    response = graphql_query(query,)
+    client.force_login(project_manager)
+    response = graphql_query(query, client=client)
     assert "errors" not in response.json()
     edges = response.json()["data"]["sites"]["edges"]
     assert len(edges) == 2
@@ -62,7 +63,7 @@ def test_query_by_project(client_query, project, project_manager, site):
         "created_at",
         project.id,
     )
-    response = graphql_query(query,)
+    response = graphql_query(query, client=client)
     assert "errors" not in response.json()
     edges = response.json()["data"]["sites"]["edges"]
     assert len(edges) == 2
