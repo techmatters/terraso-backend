@@ -39,6 +39,11 @@ def allowed_to_update_site(user, site):
 
 
 @rules.predicate
+def allowed_to_delete_site(user, site):
+    return allowed_to_update_site(user, site)
+
+
+@rules.predicate
 def allowed_to_delete_project(user, project):
     return project.is_manager(user)
 

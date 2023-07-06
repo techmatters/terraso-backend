@@ -56,9 +56,10 @@ from .projects import (
     ProjectAddMutation,
     ProjectArchiveMutation,
     ProjectDeleteMutation,
+    ProjectNode,
     ProjectUpdateMutation,
 )
-from .sites import SiteAddMutation, SiteNode, SiteUpdateMutation
+from .sites import SiteAddMutation, SiteDeleteMutation, SiteNode, SiteUpdateMutation
 from .story_maps import StoryMapDeleteMutation, StoryMapNode
 from .taxnomy_terms import TaxonomyTermNode
 from .users import (
@@ -101,7 +102,10 @@ class Query(graphene.ObjectType):
     taxonomy_terms = DjangoFilterConnectionField(TaxonomyTermNode)
     story_map = TerrasoRelayNode.Field(StoryMapNode)
     story_maps = DjangoFilterConnectionField(StoryMapNode)
-    sites = DjangoFilterConnectionField(SiteNode)
+    project = TerrasoRelayNode.Field(ProjectNode)
+    projects = DjangoFilterConnectionField(ProjectNode, required=True)
+    site = TerrasoRelayNode.Field(SiteNode)
+    sites = DjangoFilterConnectionField(SiteNode, required=True)
     audit_logs = DjangoFilterConnectionField(AuditLogNode)
 
 
@@ -136,10 +140,11 @@ class Mutations(graphene.ObjectType):
     delete_story_map = StoryMapDeleteMutation.Field()
     add_site = SiteAddMutation.Field()
     update_site = SiteUpdateMutation.Field()
+    delete_site = SiteDeleteMutation.Field()
     add_project = ProjectAddMutation.Field()
-    delete_project = ProjectDeleteMutation.Field()
-    archive_project = ProjectArchiveMutation.Field()
     update_project = ProjectUpdateMutation.Field()
+    archive_project = ProjectArchiveMutation.Field()
+    delete_project = ProjectDeleteMutation.Field()
 
 
 schema = graphene.Schema(query=Query, mutation=Mutations)

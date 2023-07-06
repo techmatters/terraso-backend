@@ -16,20 +16,26 @@ from datetime import datetime
 
 import django_filters
 import graphene
+from django.db import transaction
 from graphene import relay
 from graphene_django import DjangoObjectType
+from graphene_django.filter import TypedFilter
 
 from apps.audit_logs import api as audit_log_api
 from apps.project_management.models import Project, Site, sites
 
-from .commons import BaseWriteMutation, TerrasoConnection
+from .commons import BaseDeleteMutation, BaseWriteMutation, TerrasoConnection
 from .constants import MutationTypes
 
 
 class SiteFilter(django_filters.FilterSet):
+    project = TypedFilter()
+    owner = TypedFilter()
+    project__member = TypedFilter(field_name="project__group__memberships__user")
+
     class Meta:
         model = Site
-        fields = ["name", "owner", "project", "project__id", "archived"]
+        fields = ["name", "archived"]
 
     order_by = django_filters.OrderingFilter(
         fields=(
@@ -45,7 +51,7 @@ class SiteNode(DjangoObjectType):
     class Meta:
         model = Site
 
-        fields = ("name", "latitude", "longitude", "project", "archived")
+        fields = ("name", "latitude", "longitude", "project", "archived", "owner")
         filterset_class = SiteFilter
 
         interfaces = (relay.Node,)
@@ -163,3 +169,23 @@ class SiteUpdateMutation(BaseWriteMutation):
         )
 
         return result
+
+
+class SiteDeleteMutation(BaseDeleteMutation):
+    site = graphene.Field(SiteNode, required=True)
+
+    model_class = Site
+
+    class Input:
+        id = graphene.ID(required=True)
+
+    @classmethod
+    @transaction.atomic
+    def mutate_and_get_payload(cls, root, info, **kwargs):
+        user = info.context.user
+        site_id = kwargs["id"]
+        site = cls.get_or_throw(Site, "id", site_id)
+        if not user.has_perm(Site.get_perm("delete"), site):
+            cls.not_allowed(MutationTypes.DELETE)
+
+        return super().mutate_and_get_payload(root, info, **kwargs)

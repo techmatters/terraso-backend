@@ -17,8 +17,10 @@ from datetime import datetime
 
 import graphene
 from django.db import transaction
+from django_filters import FilterSet
 from graphene import relay
 from graphene_django import DjangoObjectType
+from graphene_django.filter import TypedFilter
 
 from apps.audit_logs import api as log_api
 from apps.project_management.models import Project
@@ -27,13 +29,21 @@ from apps.project_management.models.sites import Site
 from .commons import BaseDeleteMutation, BaseWriteMutation, TerrasoConnection
 
 
+class ProjectFilterSet(FilterSet):
+    member = TypedFilter(field_name="group__memberships__user")
+
+    class Meta:
+        model = Project
+        fields = {"name": ["exact", "icontains"]}
+
+
 class ProjectNode(DjangoObjectType):
     id = graphene.ID(source="pk", required=True)
 
     class Meta:
         model = Project
 
-        filter_fields = {"name": ["icontains"]}
+        filterset_class = ProjectFilterSet
         fields = ("name", "privacy")
 
         interfaces = (relay.Node,)

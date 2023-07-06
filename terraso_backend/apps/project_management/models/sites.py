@@ -35,7 +35,10 @@ class Site(BaseModel):
                 name="site_must_be_owned_once",
             )
         ]
-        rules_permissions = {"change": permission_rules.allowed_to_update_site}
+        rules_permissions = {
+            "change": permission_rules.allowed_to_update_site,
+            "delete": permission_rules.allowed_to_delete_site,
+        }
 
     name = models.CharField(max_length=200)
     latitude = models.FloatField()
@@ -96,8 +99,8 @@ class Site(BaseModel):
 
 def filter_only_sites_user_owner_or_member(user: User, queryset):
     return queryset.filter(
-        Q(owner=user) |
-        Q(
+        Q(owner=user)
+        | Q(
             project__group__memberships__user=user,
             project__group__memberships__membership_status=Membership.APPROVED,
         )

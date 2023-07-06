@@ -22,6 +22,7 @@ from django.core.exceptions import NON_FIELD_ERRORS, ValidationError
 from django.db import IntegrityError
 from graphene import Connection, Field, Int, List, NonNull, ObjectType, String, relay
 from graphene.types.generic import GenericScalar
+from graphql import get_nullable_type
 
 from apps.audit_logs import api as audit_log_api
 from apps.audit_logs import services as audit_log_services
@@ -37,10 +38,19 @@ from .constants import MutationTypes
 logger = structlog.get_logger(__name__)
 
 
+# we make TerrasoRelayNode.Field required by default since django's objects.get raises
+# an error if the object is not found, so a nullable return result would be redundant
 class TerrasoRelayNode(relay.Node):
+    @classmethod
+    def Field(cls, *args, **kwargs):
+        kwargs["required"] = kwargs.pop("required", True)
+        return super().Field(*args, **kwargs)
+
     @staticmethod
     def get_node_from_global_id(info, global_id, only_type=None):
-        return info.return_type.graphene_type._meta.model.objects.get(pk=global_id)
+        return get_nullable_type(info.return_type).graphene_type._meta.model.objects.get(
+            pk=global_id
+        )
 
 
 class TerrasoConnection(Connection):
