@@ -24,7 +24,7 @@ class ProjectSettings(BaseModel):
     class Meta(BaseModel.Meta):
         abstract = False
 
-    member_can_edit_site = models.BooleanField(default=False)
+    member_can_update_site = models.BooleanField(default=False)
     member_can_add_site_to_project = models.BooleanField(default=False)
 
 

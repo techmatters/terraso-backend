@@ -35,7 +35,7 @@ class Site(BaseModel):
                 name="site_must_be_owned_once",
             )
         ]
-        rules_permissions = {"change": permission_rules.allowed_to_edit_site}
+        rules_permissions = {"change": permission_rules.allowed_to_update_site}
 
     name = models.CharField(max_length=200)
     latitude = models.FloatField()

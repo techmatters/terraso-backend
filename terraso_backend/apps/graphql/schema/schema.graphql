@@ -595,7 +595,17 @@ type SiteNode implements Node {
 
 type ProjectNode implements Node {
   name: String!
+  privacy: ProjectManagementProjectPrivacyChoices!
   id: ID!
+}
+
+"""An enumeration."""
+enum ProjectManagementProjectPrivacyChoices {
+  """Private"""
+  PRIVATE
+
+  """Public"""
+  PUBLIC
 }
 
 type AuditLogNodeConnection {
@@ -684,10 +694,11 @@ type Mutations {
   deleteVisualizationConfig(input: VisualizationConfigDeleteMutationInput!): VisualizationConfigDeleteMutationPayload!
   deleteStoryMap(input: StoryMapDeleteMutationInput!): StoryMapDeleteMutationPayload!
   addSite(input: SiteAddMutationInput!): SiteAddMutationPayload!
-  editSite(input: SiteEditMutationInput!): SiteEditMutationPayload!
+  updateSite(input: SiteUpdateMutationInput!): SiteUpdateMutationPayload!
   addProject(input: ProjectAddMutationInput!): ProjectAddMutationPayload!
   deleteProject(input: ProjectDeleteMutationInput!): ProjectDeleteMutationPayload!
   archiveProject(input: ProjectArchiveMutationInput!): ProjectArchiveMutationPayload!
+  updateProject(input: ProjectUpdateMutationInput!): ProjectUpdateMutationPayload!
 }
 
 type GroupAddMutationPayload {
@@ -1050,13 +1061,13 @@ input SiteAddMutationInput {
   clientMutationId: String
 }
 
-type SiteEditMutationPayload {
+type SiteUpdateMutationPayload {
   errors: GenericScalar
-  site: SiteNode!
+  site: SiteNode
   clientMutationId: String
 }
 
-input SiteEditMutationInput {
+input SiteUpdateMutationInput {
   id: ID!
   name: String
   latitude: Float
@@ -1103,5 +1114,18 @@ type ProjectArchiveMutationPayload {
 input ProjectArchiveMutationInput {
   id: ID!
   archived: Boolean!
+  clientMutationId: String
+}
+
+type ProjectUpdateMutationPayload {
+  errors: GenericScalar
+  project: ProjectNode
+  clientMutationId: String
+}
+
+input ProjectUpdateMutationInput {
+  id: ID!
+  name: String
+  privacy: ProjectPrivacy = null
   clientMutationId: String
 }

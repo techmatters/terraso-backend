@@ -112,8 +112,8 @@ class SiteAddMutation(BaseWriteMutation):
         return result
 
 
-class SiteEditMutation(BaseWriteMutation):
-    site = graphene.Field(SiteNode, required=True)
+class SiteUpdateMutation(BaseWriteMutation):
+    site = graphene.Field(SiteNode)
 
     model_class = Site
 
