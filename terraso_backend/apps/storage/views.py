@@ -60,7 +60,7 @@ class LandscapeProfileImageView(AuthenticationRequiredMixin, FormView):
             )
             return JsonResponse({"errors": [{
                 "message": [asdict(error_message)]}]}, status=400)   
-        if is_file_upload_oversized(request.FILES.getlist('data_file'), MEDIA_UPLOAD_MAX_FILE_SIZE, "LandscapeProfile", "data_file"):
+        if is_file_upload_oversized(request.FILES.getlist('data_file'), MEDIA_UPLOAD_MAX_FILE_SIZE):
             error_message = ErrorMessage(
                 code="File size exceeds 10 MB",
                 context=ErrorContext(model="LandscapeProfile", field="data_file")
