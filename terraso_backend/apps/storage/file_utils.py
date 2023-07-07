@@ -12,11 +12,19 @@
 #
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see https://www.gnu.org/licenses/.
+from apps.core.exceptions import ErrorContext, ErrorMessage
+from django.http import JsonResponse
+from dataclasses import asdict
 
-def is_file_upload_oversized(files, max_size):
-    for file in files:
-        if get_file_size(file) > max_size:
-            return True
+def has_multiple_files(files):
+    if len(files) > 1:
+        return True
+    return False
+
+
+def is_file_upload_oversized(files, max_size, errorContextModel, errorContextField):
+    if len(files) == 1:
+        return get_file_size(files[0]) > max_size
     return False
 
 

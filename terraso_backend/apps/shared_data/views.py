@@ -23,7 +23,7 @@ from django.views.generic.edit import FormView
 
 from apps.auth.mixins import AuthenticationRequiredMixin
 from apps.core.exceptions import ErrorContext, ErrorMessage
-from apps.storage.file_utils import is_file_upload_oversized
+from apps.storage.file_utils import is_file_upload_oversized, has_multiple_files
 
 from .forms import DataEntryForm
 from .models import DataEntry
@@ -40,7 +40,14 @@ class DataEntryFileUploadView(AuthenticationRequiredMixin, FormView):
         form_data["created_by"] = str(request.user.id)
         form_data["entry_type"] = DataEntry.ENTRY_TYPE_FILE
 
-        if is_file_upload_oversized(request.FILES.getlist('data_file'), MEDIA_UPLOAD_MAX_FILE_SIZE):
+        if has_multiple_files(request.FILES.getlist('data_file')):
+            error_message = ErrorMessage(
+                code="Uploaded more than one file",
+                context=ErrorContext(model="DataEntry", field="data_file")
+            )
+            return JsonResponse({"errors": [{
+                "message": [asdict(error_message)]}]}, status=400)
+        if is_file_upload_oversized(request.FILES.getlist('data_file'), MEDIA_UPLOAD_MAX_FILE_SIZE, "DataEntry", "data_file"):
             error_message = ErrorMessage(
                 code="File size exceeds 10 MB",
                 context=ErrorContext(model="DataEntry", field="data_file")
