@@ -12,9 +12,7 @@
 #
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see https://www.gnu.org/licenses/.
-from apps.core.exceptions import ErrorContext, ErrorMessage
-from django.http import JsonResponse
-from dataclasses import asdict
+
 
 def has_multiple_files(files):
     if len(files) > 1:
