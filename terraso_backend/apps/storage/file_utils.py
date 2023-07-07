@@ -13,9 +13,17 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see https://www.gnu.org/licenses/.
 
+
+def has_multiple_files(files):
+    if len(files) > 1:
+        return True
+    return False
+
+
 def is_file_upload_oversized(files, max_size):
-    for file in files:
-        return get_file_size(file) > max_size
+    if len(files) == 1:
+        return get_file_size(files[0]) > max_size
+    return False
 
 
 def get_file_size(file):
