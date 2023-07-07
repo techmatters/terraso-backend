@@ -35,7 +35,7 @@ def create_tileset(id, geojson, name, description):
         },
         "name": name,
         "description": description,
-        "attribution": [{"text": "© Terraso", "link": ""}],
+        "attribution": [{"text": "© 2023 Terraso", "link": ""}],
     }
 
     tileset_id = id
