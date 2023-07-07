@@ -26,7 +26,9 @@ def create_tileset(id, geojson, name, description):
     tileset_source_id = id
     response, status_code = _post_tileset_source(geojson, tileset_source_id)
     if status_code != 200:
-        raise Exception("Post Mapbox tileset source error", response)
+        raise Exception(
+            "Received error sending post request to create tileset source. Response=", response
+        )
 
     recipe_json = {
         "recipe": {
@@ -42,12 +44,16 @@ def create_tileset(id, geojson, name, description):
     response, status_code = _post_tileset(recipe_json, tileset_id)
 
     if status_code != 200:
-        raise Exception("Post Mapbox tileset error", response)
+        raise Exception(
+            "Received error sending post request to create tileset. Response=", response
+        )
 
     response, status_code = _publish_tileset(tileset_id)
 
     if status_code != 200:
-        raise Exception("Publish Mapbox tileset error", response)
+        raise Exception(
+            "Received error sending post request to publish tileset. Response=", response
+        )
 
     return tileset_id
 
@@ -55,23 +61,27 @@ def create_tileset(id, geojson, name, description):
 def remove_tileset(id):
     response, status_code = _delete_tileset(id)
     if status_code != 200:
-        raise Exception("Delete Mapbox tileset error", response)
+        raise Exception(
+            "Received error sending delete request to delete tileset. Response=", response
+        )
 
     response, status_code = _delete_tileset_source(id)
     if status_code != 204:
-        raise Exception("Delete Mapbox tileset source error", response)
+        raise Exception(
+            "Received error sending delete request to delete tileset source. Response=", response
+        )
 
     return True
 
 
 def get_publish_status(id):
     url = f"{API_URL}/tilesets/v1/{USERNAME}.{id}/jobs?stage=success&access_token={TOKEN}"
-    r = requests.get(url)
-    response = r.json()
-    status_code = r.status_code
+    response = requests.get(url)
+    response_json = response.json()
+    status_code = response.status_code
     if status_code != 200:
         return False
-    return len(response) > 0
+    return len(response_json) > 0
 
 
 def _post_tileset_source(geojson, id):
@@ -80,16 +90,16 @@ def _post_tileset_source(geojson, id):
     url = f"{API_URL}/tilesets/v1/sources/{USERNAME}/{id}?access_token={TOKEN}"
     multipart_data = [("file", ("test.ndjson", line_delimited_geojson, "text/plain"))]
 
-    r = requests.post(url, files=multipart_data)
-    response = r.json()
-    status_code = r.status_code
-    return response, status_code
+    response = requests.post(url, files=multipart_data)
+    response_json = response.json()
+    status_code = response.status_code
+    return response_json, status_code
 
 
 def _delete_tileset_source(id):
     url = f"{API_URL}/tilesets/v1/sources/{USERNAME}/{id}?access_token={TOKEN}"
-    r = requests.delete(url)
-    status_code = r.status_code
+    response = requests.delete(url)
+    status_code = response.status_code
     return None, status_code
 
 
@@ -98,22 +108,22 @@ def _post_tileset(recipe_json, id):
     headers = {
         "Content-Type": "application/json",
     }
-    r = requests.post(url, json=recipe_json, headers=headers)
-    response = r.json()
-    status_code = r.status_code
-    return response, status_code
+    response = requests.post(url, json=recipe_json, headers=headers)
+    response_json = response.json()
+    status_code = response.status_code
+    return response_json, status_code
 
 
 def _delete_tileset(id):
     url = f"{API_URL}/tilesets/v1/{USERNAME}.{id}?access_token={TOKEN}"
-    r = requests.delete(url)
-    status_code = r.status_code
+    response = requests.delete(url)
+    status_code = response.status_code
     return None, status_code
 
 
 def _publish_tileset(id):
     url = f"{API_URL}/tilesets/v1/{USERNAME}.{id}/publish?access_token={TOKEN}"
-    r = requests.post(url)
-    response = r.json()
-    status_code = r.status_code
-    return response, status_code
+    response = requests.post(url)
+    response_json = response.json()
+    status_code = response.status_code
+    return response_json, status_code
