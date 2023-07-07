@@ -30,7 +30,7 @@ from django.views.generic.edit import FormView
 
 from apps.auth.mixins import AuthenticationRequiredMixin
 from apps.core.exceptions import ErrorContext, ErrorMessage
-from apps.storage.file_utils import is_file_upload_oversized, has_multiple_files
+from apps.storage.file_utils import has_multiple_files, is_file_upload_oversized
 
 from .forms import StoryMapForm
 from .models import StoryMap
