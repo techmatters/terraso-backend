@@ -64,7 +64,8 @@ def create_mapbox_tileset(visualization_id):
     data_entry = visualization.data_entry
     group_entry = visualization.group
 
-    # Delete mapbox tileset if mapbox_tileset_id is not None
+    # Delete mapbox tileset if updated tileset, to update a tileset we have
+    # to delete it and create a new one
     remove_mapbox_tileset(visualization.mapbox_tileset_id)
 
     try:
