@@ -8,9 +8,9 @@ aniso8601==9.0.1 \
     --hash=sha256:1d2b7ef82963909e93c4f24ce48d4de9e66009a21bf1c1e1c85bdd0812fe412f \
     --hash=sha256:72e3117667eedf66951bb2d93f4296a56b94b078a8a95905a052611fb3f1b973
     # via graphene
-anyio==3.7.0 \
-    --hash=sha256:275d9973793619a5374e1c89a4f4ad3f4b0a5510a2b5b939444bee8f4c4d37ce \
-    --hash=sha256:eddca883c4175f14df8aedce21054bfca3adb70ffe76a9f607aef9d7fa2ea7f0
+anyio==3.7.1 \
+    --hash=sha256:44a3c9aba0f5defa43261a8b3efb97891f2bd7d804e0e1f56419befa1adfc780 \
+    --hash=sha256:91dee416e570e92c64041bd18b900d1d6fa78dff7048769ce5ac5ddad004fbb5
     # via httpcore
 asgiref==3.7.2 \
     --hash=sha256:89b2ef2247e3b562a16eef663bc0e2e703ec6468e2fa8a5cd61cd449786d4f6e \
