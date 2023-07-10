@@ -63,18 +63,16 @@ class StoryMapAddView(AuthenticationRequiredMixin, FormView):
         if has_multiple_files(request.FILES.getlist("files")):
             error_message = ErrorMessage(
                 code="More than one file uploaded",
-                context=ErrorContext(model="StoryMap", field="files")
+                context=ErrorContext(model="StoryMap", field="files"),
             )
-            return JsonResponse({"errors": [{
-                "message": [asdict(error_message)]}]}, status=400)
+            return JsonResponse({"errors": [{"message": [asdict(error_message)]}]}, status=400)
 
         if is_file_upload_oversized(request.FILES.getlist("files"), MEDIA_UPLOAD_MAX_FILE_SIZE):
             error_message = ErrorMessage(
                 code="File size exceeds 10 MB",
-                context=ErrorContext(model="StoryMap", field="files")
+                context=ErrorContext(model="StoryMap", field="files"),
             )
-            return JsonResponse({"errors": [{
-                "message": [asdict(error_message)]}]}, status=400)
+            return JsonResponse({"errors": [{"message": [asdict(error_message)]}]}, status=400)
 
         try:
             story_map = StoryMap.objects.create(
@@ -122,17 +120,15 @@ class StoryMapUpdateView(AuthenticationRequiredMixin, FormView):
         if has_multiple_files(request.FILES.getlist("files")):
             error_message = ErrorMessage(
                 code="Uploaded more than one file",
-                context=ErrorContext(model="StoryMap", field="files")
+                context=ErrorContext(model="StoryMap", field="files"),
             )
-            return JsonResponse({"errors": [{
-                "message": [asdict(error_message)]}]}, status=400)
+            return JsonResponse({"errors": [{"message": [asdict(error_message)]}]}, status=400)
         if is_file_upload_oversized(request.FILES.getlist("files"), MEDIA_UPLOAD_MAX_FILE_SIZE):
             error_message = ErrorMessage(
                 code="File size exceeds 10 MB",
-                context=ErrorContext(model="StoryMap", field="files")
+                context=ErrorContext(model="StoryMap", field="files"),
             )
-            return JsonResponse({"errors": [{
-                "message": [asdict(error_message)]}]}, status=400)
+            return JsonResponse({"errors": [{"message": [asdict(error_message)]}]}, status=400)
 
         story_map.configuration = handle_config_media(new_config, story_map.configuration, request)
 

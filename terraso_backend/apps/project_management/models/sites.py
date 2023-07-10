@@ -14,7 +14,6 @@
 # along with this program. If not, see https://www.gnu.org/licenses/.
 from typing import Union
 
-from django.conf import settings
 from django.db import models
 from django.db.models import Q
 
@@ -51,15 +50,6 @@ class Site(BaseModel):
         blank=True,
         on_delete=models.RESTRICT,
         verbose_name="owner to which the site belongs",
-    )
-
-    created_by = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        null=True,
-        blank=True,
-        on_delete=models.RESTRICT,
-        verbose_name="user who created the site",
-        related_name="created_by",
     )
 
     project = models.ForeignKey(

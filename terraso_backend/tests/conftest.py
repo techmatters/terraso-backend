@@ -58,7 +58,9 @@ def unit_polygon():
     x_degrees, y_degrees = proj.transform(xs, ys)
     geojson = {
         "type": "Polygon",
-        "coordinates": [list(zip(x_degrees, y_degrees)), ],
+        "coordinates": [
+            list(zip(x_degrees, y_degrees)),
+        ],
     }
     return geojson
 
