@@ -461,9 +461,9 @@ jmespath==1.0.1 \
     # via
     #   boto3
     #   botocore
-jsonschema==4.17.3 \
-    --hash=sha256:0f864437ab8b6076ba6707453ef8f98a6a0d512a80e93f8abdb676f737ecb60d \
-    --hash=sha256:a870ad254da1a8ca84b6a2905cac29d265f805acc57af304784962a2aa6508f6
+jsonschema==4.18.0 \
+    --hash=sha256:8caf5b57a990a98e9b39832ef3cb35c176fe331414252b6e1b26fd5866f891a4 \
+    --hash=sha256:b508dd6142bd03f4c3670534c80af68cd7bbff9ea830b9cf2625d4a3c49ddf60
     # via ddtrace
 jwcrypto==1.5.0 \
     --hash=sha256:2c1dc51cf8e38ddf324795dfe9426dee9dd46caf47f535ccbc18781fba810b8d
