@@ -25,6 +25,7 @@ from apps.auth.views import (
     MicrosoftAuthorizeView,
     MicrosoftCallbackView,
     RefreshAccessTokenView,
+    TokenExchangeView,
 )
 
 app_name = "apps.auth"
@@ -54,4 +55,5 @@ urlpatterns = [
     ),
     path("tokens", csrf_exempt(RefreshAccessTokenView.as_view()), name="tokens"),
     path("logout", csrf_exempt(LogoutView.as_view()), name="logout"),
+    path("token-exchange", csrf_exempt(TokenExchangeView.as_view()), name="token-exchange"),
 ]
