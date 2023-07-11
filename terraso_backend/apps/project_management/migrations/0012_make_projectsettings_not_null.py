@@ -18,6 +18,8 @@
 import django.db.models.deletion
 from django.db import migrations, models
 
+from apps.project_management.models import Project
+
 
 class Migration(migrations.Migration):
     dependencies = [
