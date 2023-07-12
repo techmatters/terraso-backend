@@ -58,9 +58,15 @@ class Project(BaseModel):
         settings.save()
         return settings
 
-    settings = models.OneToOneField(
-        ProjectSettings, on_delete=models.PROTECT, default=default_settings
-    )
+    settings = models.OneToOneField(ProjectSettings, on_delete=models.PROTECT)
+
+    # overriding save to ensure the necessart
+    def save(self, *args, **kwargs):
+        if not hasattr(self, "settings"):
+            self.settings = self.default_settings()
+        if not hasattr(self, "group"):
+            self.group = self.create_default_group(f"project_group_{self.name}")
+        return super(Project, self).save(*args, **kwargs)
 
     archived = models.BooleanField(
         default=False,
@@ -94,3 +100,6 @@ class Project(BaseModel):
 
     def add_member(self, user: User):
         return self.group.add_member(user)
+
+    def __str__(self):
+        return self.name

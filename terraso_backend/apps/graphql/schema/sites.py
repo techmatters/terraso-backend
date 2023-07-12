@@ -80,8 +80,6 @@ class SiteAddMutation(BaseWriteMutation):
     def mutate_and_get_payload(cls, root, info, **kwargs):
         log = cls.get_logger()
         user = info.context.user
-        if not cls.is_update(kwargs):
-            kwargs["created_by"] = user
 
         client_time = kwargs.pop("client_time", None)
         if not client_time:

@@ -54,7 +54,6 @@ class StoryMapAddView(AuthenticationRequiredMixin, FormView):
         )
 
         entry_form = StoryMapForm(data=form_data)
-
         if not entry_form.is_valid():
             error_messages = get_error_messages(entry_form.errors.as_data())
             return JsonResponse(
@@ -71,6 +70,13 @@ class StoryMapAddView(AuthenticationRequiredMixin, FormView):
             error_message = ErrorMessage(
                 code="File size exceeds 10 MB",
                 context=ErrorContext(model="StoryMap", field="files"),
+            )
+            return JsonResponse({"errors": [{"message": [asdict(error_message)]}]}, status=400)
+
+        if invalid_media_type(config):
+            error_message = ErrorMessage(
+                code="Invalid Media Type",
+                context=ErrorContext(model="StoryMap", field="configuration"),
             )
             return JsonResponse({"errors": [{"message": [asdict(error_message)]}]}, status=400)
 
@@ -117,6 +123,12 @@ class StoryMapUpdateView(AuthenticationRequiredMixin, FormView):
 
         new_config = json.loads(form_data["configuration"])
 
+        if invalid_media_type(new_config):
+            error_message = ErrorMessage(
+                code="Invalid Media Type",
+                context=ErrorContext(model="StoryMap", field="configuration"),
+            )
+            return JsonResponse({"errors": [{"message": [asdict(error_message)]}]}, status=400)
         if has_multiple_files(request.FILES.getlist("files")):
             error_message = ErrorMessage(
                 code="Uploaded more than one file",
@@ -191,6 +203,15 @@ def handle_config_media(new_config, current_config, request):
                 )
 
     return new_config
+
+
+def invalid_media_type(config):
+    if "chapters" in config:
+        for chapter in config["chapters"]:
+            media = chapter.get("media")
+            if not (media and media["type"].startswith(("image", "audio", "video"))):
+                return True
+            return False
 
 
 def handle_integrity_error(exc):

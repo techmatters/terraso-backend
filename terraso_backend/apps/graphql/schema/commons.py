@@ -188,6 +188,7 @@ class BaseAuthenticatedMutation(BaseMutation):
 
 class BaseWriteMutation(BaseAuthenticatedMutation):
     logger: Optional[audit_log_api.AuditLog] = None
+    skip_field_validation: Optional[str] = None
 
     @classmethod
     def mutate_and_get_payload(cls, root, info, **kwargs):
@@ -208,7 +209,10 @@ class BaseWriteMutation(BaseAuthenticatedMutation):
             setattr(model_instance, attr, value)
 
         try:
-            model_instance.full_clean()
+            kwargs = {}
+            if cls.skip_field_validation is not None:
+                kwargs["exclude"] = cls.skip_field_validation
+            model_instance.full_clean(**kwargs)
         except ValidationError as exc:
             logger.info(
                 "Attempt to mutate an model, but it's invalid",

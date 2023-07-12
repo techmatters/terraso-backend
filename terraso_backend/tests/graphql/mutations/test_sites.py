@@ -52,7 +52,6 @@ def test_site_creation(client_query, user):
     assert site.latitude == pytest.approx(site.latitude)
     assert site.longitude == pytest.approx(site.longitude)
     assert site.owner == user
-    assert site.created_by == user
     logs = Log.objects.all()
     assert len(logs) == 1
     log_result = logs[0]
@@ -73,7 +72,6 @@ def test_site_creation_in_project(client, project_manager, project):
     id = content["data"]["addSite"]["site"]["id"]
     site = Site.objects.get(pk=id)
     assert site.project == project
-    assert site.created_by == project_manager
     logs = Log.objects.all()
     assert len(logs) == 1
     log_result = logs[0]
