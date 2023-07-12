@@ -173,6 +173,6 @@ def test_update_oversized_media_upload(mock_get_size, logged_client, users):
     json_response = response.json()
 
     assert response.status_code == 400
-    assert json_response['errors'][0]['message'][0]['code'] == 'File size exceeds 10 MB'
+    assert json_response["errors"][0]["message"][0]["code"] == "File size exceeds 10 MB"
 
     assert "errors" in json_response
