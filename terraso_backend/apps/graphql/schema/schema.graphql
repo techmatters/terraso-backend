@@ -1125,6 +1125,7 @@ type ProjectAddMutationPayload {
 input ProjectAddMutationInput {
   name: String!
   privacy: ProjectPrivacy!
+  description: String
   clientMutationId: String
 }
 
@@ -1143,6 +1144,7 @@ input ProjectUpdateMutationInput {
   id: ID!
   name: String
   privacy: ProjectPrivacy = null
+  description: String
   clientMutationId: String
 }
 

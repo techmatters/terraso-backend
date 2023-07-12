@@ -47,6 +47,11 @@ class Project(BaseModel):
     PRIVACY_STATUS = ((PRIVATE, _("Private")), (PUBLIC, _("Public")))
 
     name = models.CharField(max_length=200)
+    description = models.CharField(
+        max_length=512,
+        null=True,
+        blank=True,
+    )
     group = models.OneToOneField(Group, on_delete=models.CASCADE)
     privacy = models.CharField(
         max_length=32, choices=PRIVACY_STATUS, default=DEFAULT_PRIVACY_STATUS
@@ -60,7 +65,7 @@ class Project(BaseModel):
 
     settings = models.OneToOneField(ProjectSettings, on_delete=models.PROTECT)
 
-    # overriding save to ensure the necessart
+    # overriding save to ensure we have a group and settings
     def save(self, *args, **kwargs):
         if not hasattr(self, "settings"):
             self.settings = self.default_settings()
