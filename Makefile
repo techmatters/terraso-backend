@@ -43,7 +43,7 @@ install-dev:
 	pip install -r requirements-dev.txt
 
 lint: check_api_schema
-	flake8 terraso_backend && isort -c terraso_backend
+	flake8 terraso_backend && isort -c terraso_backend && black --check terraso_backend
 
 lock: pip-tools
 	CUSTOM_COMPILE_COMMAND="make lock" pip-compile --upgrade --generate-hashes --output-file requirements.txt requirements/base.in requirements/deploy.in
