@@ -25,7 +25,9 @@ def test_create_project(client, user):
         }
     }
     """,
-        variables={"input": {"name": "testProject", "privacy": "PRIVATE"}},
+        variables={
+            "input": {"name": "testProject", "privacy": "PRIVATE", "description": "A test project"}
+        },
         client=client,
     )
     content = json.loads(response.content)
@@ -33,6 +35,7 @@ def test_create_project(client, user):
     id = content["data"]["addProject"]["project"]["id"]
     project = Project.objects.get(pk=id)
     assert list(project.managers.all()) == [user]
+    assert project.description == "A test project"
 
     logs = Log.objects.all()
     assert len(logs) == 1

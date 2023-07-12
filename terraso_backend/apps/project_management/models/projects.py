@@ -65,7 +65,7 @@ class Project(BaseModel):
 
     settings = models.OneToOneField(ProjectSettings, on_delete=models.PROTECT)
 
-    # overriding save to ensure the necessart
+    # overriding save to ensure we have a group and settings
     def save(self, *args, **kwargs):
         if not hasattr(self, "settings"):
             self.settings = self.default_settings()

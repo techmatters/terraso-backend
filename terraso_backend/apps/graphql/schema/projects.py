@@ -64,6 +64,7 @@ class ProjectAddMutation(BaseWriteMutation):
     class Input:
         name = graphene.String(required=True)
         privacy = graphene.Field(ProjectPrivacy, required=True)
+        description = graphene.String()
 
     @classmethod
     def mutate_and_get_payload(cls, root, info, **kwargs):
@@ -155,6 +156,7 @@ class ProjectUpdateMutation(BaseWriteMutation):
         id = graphene.ID(required=True)
         name = graphene.String()
         privacy = graphene.Field(ProjectPrivacy)
+        description = graphene.String()
 
     @classmethod
     @transaction.atomic
