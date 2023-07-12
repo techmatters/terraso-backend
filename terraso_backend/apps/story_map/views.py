@@ -132,6 +132,7 @@ class StoryMapUpdateView(AuthenticationRequiredMixin, FormView):
             error_message = ErrorMessage(
                 code="Invalid Media Type",
                 context=ErrorContext(model="StoryMap", field="configuration")
+            )
             return JsonResponse({"errors": [{
                 "message": [asdict(error_message)]}]}, status=400)
         if has_multiple_files(request.FILES.getlist("files")):
