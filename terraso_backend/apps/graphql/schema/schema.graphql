@@ -577,7 +577,7 @@ type StoryMapNodeEdge {
 
 type ProjectNode implements Node {
   name: String!
-  description: String
+  description: String!
   privacy: ProjectManagementProjectPrivacyChoices!
   id: ID!
 }
