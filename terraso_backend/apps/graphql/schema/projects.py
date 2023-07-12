@@ -56,6 +56,7 @@ class ProjectPrivacy(graphene.Enum):
 
 
 class ProjectAddMutation(BaseWriteMutation):
+    skip_field_validation = ["group", "settings"]
     project = graphene.Field(ProjectNode, required=True)
 
     model_class = Project

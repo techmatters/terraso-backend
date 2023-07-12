@@ -40,20 +40,18 @@ class DataEntryFileUploadView(AuthenticationRequiredMixin, FormView):
         form_data["created_by"] = str(request.user.id)
         form_data["entry_type"] = DataEntry.ENTRY_TYPE_FILE
 
-        if has_multiple_files(request.FILES.getlist('data_file')):
+        if has_multiple_files(request.FILES.getlist("data_file")):
             error_message = ErrorMessage(
                 code="Uploaded more than one file",
-                context=ErrorContext(model="DataEntry", field="data_file")
+                context=ErrorContext(model="DataEntry", field="data_file"),
             )
-            return JsonResponse({"errors": [{
-                "message": [asdict(error_message)]}]}, status=400)
-        if is_file_upload_oversized(request.FILES.getlist('data_file'), MEDIA_UPLOAD_MAX_FILE_SIZE):
+            return JsonResponse({"errors": [{"message": [asdict(error_message)]}]}, status=400)
+        if is_file_upload_oversized(request.FILES.getlist("data_file"), MEDIA_UPLOAD_MAX_FILE_SIZE):
             error_message = ErrorMessage(
                 code="File size exceeds 10 MB",
-                context=ErrorContext(model="DataEntry", field="data_file")
+                context=ErrorContext(model="DataEntry", field="data_file"),
             )
-            return JsonResponse({"errors": [{
-                "message": [asdict(error_message)]}]}, status=400)
+            return JsonResponse({"errors": [{"message": [asdict(error_message)]}]}, status=400)
 
         entry_form = DataEntryForm(data=form_data, files=request.FILES)
 

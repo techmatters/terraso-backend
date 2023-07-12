@@ -90,6 +90,6 @@ def test_create_oversized_data_entry(mock_get_size, logged_client, landscape_pro
 
     response_data = response.json()
     assert response.status_code == 400
-    assert response_data['errors'][0]['message'][0]['code'] == 'File size exceeds 10 MB'
+    assert response_data["errors"][0]["message"][0]["code"] == "File size exceeds 10 MB"
 
     assert "errors" in response_data
