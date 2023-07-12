@@ -28,11 +28,31 @@ def allowed_to_add_site_to_project(user, project):
 
 
 @rules.predicate
-def allowed_to_edit_site(user, site):
+def allowed_to_update_site(user, site):
     if site.owned_by_user:
         return site.owner == user
     if site.project.is_manager(user):
         return True
     if site.project.is_member(user):
-        return site.project.settings.member_can_edit_site
+        return site.project.settings.member_can_update_site
     return False
+
+
+@rules.predicate
+def allowed_to_delete_site(user, site):
+    return allowed_to_update_site(user, site)
+
+
+@rules.predicate
+def allowed_to_delete_project(user, project):
+    return project.is_manager(user)
+
+
+@rules.predicate
+def allowed_to_add_to_project(user, project):
+    return project.is_manager(user)
+
+
+@rules.predicate
+def allowed_to_archive_project(user, project):
+    return project.is_manager(user)

@@ -7,27 +7,27 @@ type Query {
   group(
     """The ID of the object"""
     id: ID!
-  ): GroupNode
+  ): GroupNode!
   landscape(
     """The ID of the object"""
     id: ID!
-  ): LandscapeNode
+  ): LandscapeNode!
   user(
     """The ID of the object"""
     id: ID!
-  ): UserNode
+  ): UserNode!
   landscapeGroup(
     """The ID of the object"""
     id: ID!
-  ): LandscapeGroupNode
+  ): LandscapeGroupNode!
   membership(
     """The ID of the object"""
     id: ID!
-  ): MembershipNode
+  ): MembershipNode!
   groupAssociation(
     """The ID of the object"""
     id: ID!
-  ): GroupAssociationNode
+  ): GroupAssociationNode!
   groups(offset: Int, before: String, after: String, first: Int, last: Int, name: String, name_Icontains: String, name_Istartswith: String, slug: String, slug_Icontains: String, description_Icontains: String, memberships_Email: String, associatedLandscapes_IsDefaultLandscapeGroup: Boolean, associatedLandscapes_Isnull: Boolean, associatedLandscapes_IsPartnership: Boolean): GroupNodeConnection
   landscapes(offset: Int, before: String, after: String, first: Int, last: Int, name_Icontains: String, description_Icontains: String, slug: String, slug_Icontains: String, website_Icontains: String, location_Icontains: String): LandscapeNodeConnection
   users(offset: Int, before: String, after: String, first: Int, last: Int, email: String, email_Icontains: String, firstName_Icontains: String, lastName_Icontains: String): UserNodeConnection
@@ -37,23 +37,32 @@ type Query {
   dataEntry(
     """The ID of the object"""
     id: ID!
-  ): DataEntryNode
+  ): DataEntryNode!
   dataEntries(offset: Int, before: String, after: String, first: Int, last: Int, name_Icontains: String, description_Icontains: String, url_Icontains: String, entryType_In: [SharedDataDataEntryEntryTypeChoices], resourceType_In: [String], groups_Slug: String, groups_Slug_Icontains: String, groups_Id: ID): DataEntryNodeConnection
   visualizationConfig(
     """The ID of the object"""
     id: ID!
-  ): VisualizationConfigNode
+  ): VisualizationConfigNode!
   visualizationConfigs(offset: Int, before: String, after: String, first: Int, last: Int, slug: String, slug_Icontains: String, dataEntry_Groups_Slug: String, dataEntry_Groups_Slug_Icontains: String, dataEntry_Groups_Id: ID): VisualizationConfigNodeConnection
   taxonomyTerm(
     """The ID of the object"""
     id: ID!
-  ): TaxonomyTermNode
+  ): TaxonomyTermNode!
   taxonomyTerms(offset: Int, before: String, after: String, first: Int, last: Int, type: CoreTaxonomyTermTypeChoices, type_In: [CoreTaxonomyTermTypeChoices]): TaxonomyTermNodeConnection
   storyMap(
     """The ID of the object"""
     id: ID!
-  ): StoryMapNode
+  ): StoryMapNode!
   storyMaps(offset: Int, before: String, after: String, first: Int, last: Int, slug: String, storyMapId: String, createdBy_Email: String, createdBy_Email_Not: String): StoryMapNodeConnection
+  project(
+    """The ID of the object"""
+    id: ID!
+  ): ProjectNode!
+  projects(offset: Int, before: String, after: String, first: Int, last: Int, name: String, name_Icontains: String, member: ID): ProjectNodeConnection!
+  site(
+    """The ID of the object"""
+    id: ID!
+  ): SiteNode!
   sites(
     offset: Int
     before: String
@@ -61,13 +70,14 @@ type Query {
     first: Int
     last: Int
     name: String
-    owner: ID
+    archived: Boolean
     project: ID
-    project_Id: ID
+    owner: ID
+    project_Member: ID
 
     """Ordering"""
     orderBy: String
-  ): SiteNodeConnection
+  ): SiteNodeConnection!
   auditLogs(
     offset: Int
     before: String
@@ -565,6 +575,49 @@ type StoryMapNodeEdge {
   cursor: String!
 }
 
+type ProjectNode implements Node {
+  name: String!
+  privacy: ProjectManagementProjectPrivacyChoices!
+  id: ID!
+}
+
+"""An enumeration."""
+enum ProjectManagementProjectPrivacyChoices {
+  """Private"""
+  PRIVATE
+
+  """Public"""
+  PUBLIC
+}
+
+type ProjectNodeConnection {
+  """Pagination data for this connection."""
+  pageInfo: PageInfo!
+
+  """Contains the nodes in this connection."""
+  edges: [ProjectNodeEdge!]!
+  totalCount: Int!
+}
+
+"""A Relay edge containing a `ProjectNode` and its cursor."""
+type ProjectNodeEdge {
+  """The item at the end of the edge"""
+  node: ProjectNode!
+
+  """A cursor for use in pagination"""
+  cursor: String!
+}
+
+type SiteNode implements Node {
+  name: String!
+  latitude: Float!
+  longitude: Float!
+  owner: UserNode
+  project: ProjectNode
+  archived: Boolean!
+  id: ID!
+}
+
 type SiteNodeConnection {
   """Pagination data for this connection."""
   pageInfo: PageInfo!
@@ -581,19 +634,6 @@ type SiteNodeEdge {
 
   """A cursor for use in pagination"""
   cursor: String!
-}
-
-type SiteNode implements Node {
-  name: String!
-  latitude: Float!
-  longitude: Float!
-  project: ProjectNode
-  id: ID!
-}
-
-type ProjectNode implements Node {
-  name: String!
-  id: ID!
 }
 
 type AuditLogNodeConnection {
@@ -682,8 +722,12 @@ type Mutations {
   deleteVisualizationConfig(input: VisualizationConfigDeleteMutationInput!): VisualizationConfigDeleteMutationPayload!
   deleteStoryMap(input: StoryMapDeleteMutationInput!): StoryMapDeleteMutationPayload!
   addSite(input: SiteAddMutationInput!): SiteAddMutationPayload!
-  editSite(input: SiteEditMutationInput!): SiteEditMutationPayload!
+  updateSite(input: SiteUpdateMutationInput!): SiteUpdateMutationPayload!
+  deleteSite(input: SiteDeleteMutationInput!): SiteDeleteMutationPayload!
   addProject(input: ProjectAddMutationInput!): ProjectAddMutationPayload!
+  updateProject(input: ProjectUpdateMutationInput!): ProjectUpdateMutationPayload!
+  archiveProject(input: ProjectArchiveMutationInput!): ProjectArchiveMutationPayload!
+  deleteProject(input: ProjectDeleteMutationInput!): ProjectDeleteMutationPayload!
 }
 
 type GroupAddMutationPayload {
@@ -1046,18 +1090,29 @@ input SiteAddMutationInput {
   clientMutationId: String
 }
 
-type SiteEditMutationPayload {
+type SiteUpdateMutationPayload {
   errors: GenericScalar
-  site: SiteNode!
+  site: SiteNode
   clientMutationId: String
 }
 
-input SiteEditMutationInput {
+input SiteUpdateMutationInput {
   id: ID!
   name: String
   latitude: Float
   longitude: Float
   projectId: ID
+  clientMutationId: String
+}
+
+type SiteDeleteMutationPayload {
+  errors: GenericScalar
+  site: SiteNode!
+  clientMutationId: String
+}
+
+input SiteDeleteMutationInput {
+  id: ID!
   clientMutationId: String
 }
 
@@ -1076,4 +1131,41 @@ input ProjectAddMutationInput {
 enum ProjectPrivacy {
   PRIVATE
   PUBLIC
+}
+
+type ProjectUpdateMutationPayload {
+  errors: GenericScalar
+  project: ProjectNode
+  clientMutationId: String
+}
+
+input ProjectUpdateMutationInput {
+  id: ID!
+  name: String
+  privacy: ProjectPrivacy = null
+  clientMutationId: String
+}
+
+type ProjectArchiveMutationPayload {
+  errors: GenericScalar
+  project: ProjectNode!
+  clientMutationId: String
+}
+
+input ProjectArchiveMutationInput {
+  id: ID!
+  archived: Boolean!
+  clientMutationId: String
+}
+
+type ProjectDeleteMutationPayload {
+  errors: GenericScalar
+  project: ProjectNode!
+  clientMutationId: String
+}
+
+input ProjectDeleteMutationInput {
+  id: ID!
+  transferProjectId: ID
+  clientMutationId: String
 }

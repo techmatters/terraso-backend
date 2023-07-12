@@ -58,9 +58,7 @@ def unit_polygon():
     x_degrees, y_degrees = proj.transform(xs, ys)
     geojson = {
         "type": "Polygon",
-        "coordinates": [
-            list(zip(x_degrees, y_degrees)),
-        ],
+        "coordinates": [list(zip(x_degrees, y_degrees)), ],
     }
     return geojson
 
@@ -77,6 +75,11 @@ def usa_geojson():
 def site(user: User) -> Site:
     """Sample site created by user fixture"""
     return mixer.blend(Site, owner=user)
+
+
+@pytest.fixture
+def archived_site(user: User) -> Site:
+    return mixer.blend(Site, owner=user, archived=True)
 
 
 @pytest.fixture
@@ -97,6 +100,12 @@ def project() -> Project:
 @pytest.fixture
 def project_manager(project: Project) -> User:
     return project.managers.first()
+
+
+@pytest.fixture
+def project_with_sites(project: Project) -> Project:
+    mixer.blend(Site, project=project)
+    return project
 
 
 @pytest.fixture

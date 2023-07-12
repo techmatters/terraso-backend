@@ -1,4 +1,5 @@
 import json
+from unittest import mock
 from unittest.mock import patch
 
 import pytest
@@ -129,6 +130,95 @@ def test_update_upload_media(logged_client, users):
     assert response.status_code == 201
     assert json_response["configuration"]["chapters"][0]["media"]["url"] is not None
     assert "contentId" not in json_response["configuration"]["chapters"][0]["media"]
+
+
+def test_update_upload_media(logged_client, users):
+    story_map = mixer.blend("story_map.StoryMap", created_by=users[0])
+    url = reverse("story_map:update")
+    data = {
+        "id": story_map.pk,
+        "title": "Test StoryMap Updated",
+        "is_published": "false",
+        "files": SimpleUploadedFile(
+            name="audio_file.mp3",
+            content="content".encode(),
+            content_type="audio/mp3",
+        ),
+        "configuration": json.dumps(
+            {
+                "title": "Test StoryMap Updated",
+                "chapters": [
+                    {
+                        "id": "chapter-1",
+                        "title": "Chapter 1",
+                        "description": "Chapter 1 description",
+                        "media": {
+                            "contentId": "audio_file.mp3",
+                            "type": "audio/mp3",
+                        },
+                    },
+                ],
+            }
+        ),
+    }
+    with patch(
+        "apps.story_map.views.story_map_media_upload_service.upload_file_get_path"
+    ) as mocked_upload_service:
+        mocked_upload_service.return_value = "https://example.org/uploaded_file.mp3"
+        response = logged_client.post(url, data=data)
+        mocked_upload_service.assert_called_once()
+
+    json_response = response.json()
+
+    assert response.status_code == 201
+    assert json_response["configuration"]["chapters"][0]["media"]["url"] is not None
+    assert "contentId" not in json_response["configuration"]["chapters"][0]["media"]
+
+
+@mock.patch("apps.storage.file_utils.get_file_size")
+def test_update_oversized_media_upload(mock_get_size, logged_client, users):
+    story_map = mixer.blend("story_map.StoryMap", created_by=users[0])
+    url = reverse("story_map:update")
+    data = {
+        "id": story_map.pk,
+        "title": "Test StoryMap Updated",
+        "is_published": "false",
+        "files": SimpleUploadedFile(
+            name="audio_file.mp3",
+            content="content".encode(),
+            content_type="audio/mp3",
+        ),
+        "configuration": json.dumps(
+            {
+                "title": "Test StoryMap Updated",
+                "chapters": [
+                    {
+                        "id": "chapter-1",
+                        "title": "Chapter 1",
+                        "description": "Chapter 1 description",
+                        "media": {
+                            "contentId": "audio_file.mp3",
+                            "type": "audio/mp3",
+                        },
+                    },
+                ],
+            }
+        ),
+    }
+    mock_get_size.return_value = 10000001
+    with patch(
+        "apps.story_map.views.story_map_media_upload_service.upload_file_get_path"
+    ) as mocked_upload_service:
+        mocked_upload_service.return_value = "https://example.org/uploaded_file.mp3"
+        response = logged_client.post(url, data=data)
+        mocked_upload_service.assert_not_called()
+
+    json_response = response.json()
+
+    assert response.status_code == 400
+    assert json_response['errors'][0]['message'][0]['code'] == 'File size exceeds 10 MB'
+
+    assert "errors" in json_response
 
 
 def test_update_upload_media_invalid(logged_client, users):

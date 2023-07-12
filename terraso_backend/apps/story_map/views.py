@@ -21,6 +21,7 @@ from datetime import datetime
 
 import rules
 import structlog
+from config.settings import MEDIA_UPLOAD_MAX_FILE_SIZE
 from django.core.exceptions import NON_FIELD_ERRORS, ValidationError
 from django.db import IntegrityError
 from django.http import JsonResponse
@@ -29,6 +30,7 @@ from django.views.generic.edit import FormView
 
 from apps.auth.mixins import AuthenticationRequiredMixin
 from apps.core.exceptions import ErrorContext, ErrorMessage
+from apps.storage.file_utils import has_multiple_files, is_file_upload_oversized
 
 from .forms import StoryMapForm
 from .models import StoryMap
@@ -57,6 +59,21 @@ class StoryMapAddView(AuthenticationRequiredMixin, FormView):
             return JsonResponse(
                 {"errors": [{"message": [asdict(e) for e in error_messages]}]}, status=400
             )
+        if has_multiple_files(request.FILES.getlist("files")):
+            error_message = ErrorMessage(
+                code="More than one file uploaded",
+                context=ErrorContext(model="StoryMap", field="files")
+            )
+            return JsonResponse({"errors": [{
+                "message": [asdict(error_message)]}]}, status=400)
+
+        if is_file_upload_oversized(request.FILES.getlist("files"), MEDIA_UPLOAD_MAX_FILE_SIZE):
+            error_message = ErrorMessage(
+                code="File size exceeds 10 MB",
+                context=ErrorContext(model="StoryMap", field="files")
+            )
+            return JsonResponse({"errors": [{
+                "message": [asdict(error_message)]}]}, status=400)
 
         if invalid_media_type(config):
             logger.warning("Invalid media type")
@@ -115,6 +132,19 @@ class StoryMapUpdateView(AuthenticationRequiredMixin, FormView):
             error_message = ErrorMessage(
                 code="Invalid Media Type",
                 context=ErrorContext(model="StoryMap", field="configuration")
+            return JsonResponse({"errors": [{
+                "message": [asdict(error_message)]}]}, status=400)
+        if has_multiple_files(request.FILES.getlist("files")):
+            error_message = ErrorMessage(
+                code="Uploaded more than one file",
+                context=ErrorContext(model="StoryMap", field="files")
+            )
+            return JsonResponse({"errors": [{
+                "message": [asdict(error_message)]}]}, status=400)
+        if is_file_upload_oversized(request.FILES.getlist("files"), MEDIA_UPLOAD_MAX_FILE_SIZE):
+            error_message = ErrorMessage(
+                code="File size exceeds 10 MB",
+                context=ErrorContext(model="StoryMap", field="files")
             )
             return JsonResponse({"errors": [{
                 "message": [asdict(error_message)]}]}, status=400)
