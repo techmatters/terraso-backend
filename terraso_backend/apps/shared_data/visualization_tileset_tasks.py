@@ -139,8 +139,13 @@ def create_mapbox_tileset(visualization_id):
             visualization_id=visualization_id,
             rows=len(rows),
         )
+
+        # Title and description goes to mapbox API, it is important to add
+        # the environment to the title to be able to disntinguish between
+        # different environments in the mapbox studio UI
         title = f"{settings.ENV} - {visualization.title}"[:64]
         description = f"{settings.ENV} - {group_entry.name} - {visualization.title}"
+
         id = str(visualization.id).replace("-", "")
         tileset_id = create_tileset(id, geojson, title, description)
         logger.info(
