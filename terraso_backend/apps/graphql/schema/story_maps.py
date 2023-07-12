@@ -72,7 +72,7 @@ class StoryMapNode(DjangoObjectType):
             if (
                 media
                 and "url" in media
-                and (media["type"].startswith("image") or media["type"].startswith("audio"))
+                and media["type"].startswith(("image", "audio", "video"))
             ):
                 signed_url = story_map_media_upload_service.get_signed_url(media["url"])
                 chapter["media"]["signedUrl"] = signed_url
