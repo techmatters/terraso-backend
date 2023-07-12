@@ -3,18 +3,17 @@ FROM python:3.11.4-slim-bullseye
 RUN adduser --disabled-password terraso
 
 ENV PATH /home/terraso/.local/bin:$PATH
-# see https://github.com/aws/aws-cli/tags for list of versions
-ENV AWS_CLI_VERSION 2.8.12
 
-RUN apt-get update && \
-    apt-get install -q -y --no-install-recommends \
+RUN apt-get update
+RUN apt-get install -q -y --no-install-recommends \
                      build-essential libpq-dev dnsutils libmagic-dev mailcap \
                      gettext software-properties-common \
                      libgdal-dev gdal-bin unzip curl && \
-    curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip" && \
-    unzip awscliv2.zip && \
-    ./aws/install && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
+
+RUN curl -O "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" && \
+    unzip awscli-exe-linux-x86_64.zip && \
+    ./aws/install
 
 WORKDIR /app
 
