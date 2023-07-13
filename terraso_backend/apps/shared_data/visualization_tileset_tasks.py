@@ -139,9 +139,9 @@ def create_mapbox_tileset(visualization_id):
             rows=len(rows),
         )
 
-        # Title and description goes to mapbox API, it is important to add
-        # the environment to the title to be able to disntinguish between
-        # different environments in the mapbox studio UI
+        # Include the environment in the title and description when calling the Mapbox API.
+        # Adding the environment to the title allows us to distinguish between environments
+        # in the Mapbox studio UI.
         title = f"{settings.ENV} - {visualization.title}"[:64]
         description = f"{settings.ENV} - {group_entry.name} - {visualization.title}"
 
