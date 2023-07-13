@@ -228,15 +228,18 @@ def test_update_upload_multiple_media_invalid(logged_client, users):
         "id": story_map.pk,
         "title": "Test StoryMap Invalid Media",
         "is_published": "false",
-        "files": [SimpleUploadedFile(
-            name="audio_file.mp4",
-            content="content".encode(),
-            content_type="video/mp4",
-        ), SimpleUploadedFile(
-            name="audio_file.MOV",
-            content="content".encode(),
-            content_type="movie/MOV",
-        )],
+        "files": [
+            SimpleUploadedFile(
+                name="audio_file.mp4",
+                content="content".encode(),
+                content_type="video/mp4",
+            ),
+            SimpleUploadedFile(
+                name="audio_file.MOV",
+                content="content".encode(),
+                content_type="movie/MOV",
+            ),
+        ],
         "configuration": json.dumps(
             {
                 "title": "Test StoryMap Updated",
