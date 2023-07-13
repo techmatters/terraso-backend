@@ -209,9 +209,9 @@ def invalid_media_type(config):
     if "chapters" in config:
         for chapter in config["chapters"]:
             media = chapter.get("media")
-            if not (media and media["type"].startswith(("image", "audio", "video"))):
+            if media and not (media["type"].startswith(("image", "audio", "video"))):
                 return True
-            return False
+        return False
 
 
 def handle_integrity_error(exc):
