@@ -208,8 +208,7 @@ def invalid_media_type(config):
         for chapter in config["chapters"]:
             media = chapter.get("media")
             if media and not (
-                media["type"].startswith(("image", "audio", "video"))
-                or media["source"].startswith(("youtube", "vimeo"))
+                media["type"].startswith(("image", "audio", "video", "embedded"))
             ):
                 return True
         return False
