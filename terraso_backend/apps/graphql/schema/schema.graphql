@@ -504,6 +504,7 @@ type VisualizationConfigNode implements Node {
   title: String!
   configuration: JSONString
   createdBy: UserNode
+  mapboxTilesetId: String
   dataEntry: DataEntryNode!
   group: GroupNode!
 }

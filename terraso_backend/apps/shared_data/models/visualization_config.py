@@ -14,6 +14,7 @@
 # along with this program. If not, see https://www.gnu.org/licenses/.
 
 from django.db import models
+from django.utils.translation import gettext_lazy as _
 
 from apps.core.models import BaseModel, Group, SlugModel, User
 from apps.core.models.commons import validate_name
@@ -23,6 +24,14 @@ from .data_entries import DataEntry
 
 
 class VisualizationConfig(SlugModel):
+    MAPBOX_TILESET_PENDING = "pending"
+    MAPBOX_TILESET_READY = "ready"
+
+    MAPBOX_TILESET_STATUSES = (
+        (MAPBOX_TILESET_PENDING, _("Pending")),
+        (MAPBOX_TILESET_READY, _("Ready")),
+    )
+
     title = models.CharField(max_length=128, validators=[validate_name])
     configuration = models.JSONField(blank=True, null=True)
     created_by = models.ForeignKey(
@@ -31,6 +40,10 @@ class VisualizationConfig(SlugModel):
         null=True,
         on_delete=models.PROTECT,
         related_name="created_visualization_configs",
+    )
+    mapbox_tileset_id = models.CharField(max_length=128, blank=True, null=True)
+    mapbox_tileset_status = models.CharField(
+        max_length=128, choices=MAPBOX_TILESET_STATUSES, default=MAPBOX_TILESET_PENDING
     )
     data_entry = models.ForeignKey(
         DataEntry, on_delete=models.CASCADE, related_name="visualizations"

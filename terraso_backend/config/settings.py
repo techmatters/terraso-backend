@@ -33,6 +33,8 @@ django.utils.encoding.force_text = force_str
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 PROJECT_DIR = os.path.dirname(os.path.abspath(BASE_DIR))
 
+ENV = config("ENV", default="development")
+
 DEBUG = config("DEBUG", default=False, cast=config.boolean)
 
 ALLOWED_HOSTS = config("ALLOWED_HOSTS", default="*", cast=config.list)
@@ -382,3 +384,8 @@ JWT_EXCHANGE_PROVIDERS: dict[str, JWTProvider] = {
         client_id=config("GOOGLE_MOBILE_CLIENT_ID", default=""),
     )
 }
+
+
+MAPBOX_API_URL = config("MAPBOX_API_URL", default="https://api.mapbox.com")
+MAPBOX_USERNAME = config("MAPBOX_USERNAME", default="")
+MAPBOX_ACCESS_TOKEN = config("MAPBOX_ACCESS_TOKEN", default="")
