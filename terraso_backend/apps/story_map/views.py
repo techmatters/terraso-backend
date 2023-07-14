@@ -30,7 +30,7 @@ from django.views.generic.edit import FormView
 
 from apps.auth.mixins import AuthenticationRequiredMixin
 from apps.core.exceptions import ErrorContext, ErrorMessage
-from apps.storage.file_utils import has_multiple_files, is_file_upload_oversized
+from apps.storage.file_utils import is_file_upload_oversized
 
 from .forms import StoryMapForm
 from .models import StoryMap
@@ -59,12 +59,6 @@ class StoryMapAddView(AuthenticationRequiredMixin, FormView):
             return JsonResponse(
                 {"errors": [{"message": [asdict(e) for e in error_messages]}]}, status=400
             )
-        if has_multiple_files(request.FILES.getlist("files")):
-            error_message = ErrorMessage(
-                code="More than one file uploaded",
-                context=ErrorContext(model="StoryMap", field="files"),
-            )
-            return JsonResponse({"errors": [{"message": [asdict(error_message)]}]}, status=400)
 
         if is_file_upload_oversized(request.FILES.getlist("files"), MEDIA_UPLOAD_MAX_FILE_SIZE):
             error_message = ErrorMessage(
@@ -129,12 +123,7 @@ class StoryMapUpdateView(AuthenticationRequiredMixin, FormView):
                 context=ErrorContext(model="StoryMap", field="configuration"),
             )
             return JsonResponse({"errors": [{"message": [asdict(error_message)]}]}, status=400)
-        if has_multiple_files(request.FILES.getlist("files")):
-            error_message = ErrorMessage(
-                code="Uploaded more than one file",
-                context=ErrorContext(model="StoryMap", field="files"),
-            )
-            return JsonResponse({"errors": [{"message": [asdict(error_message)]}]}, status=400)
+
         if is_file_upload_oversized(request.FILES.getlist("files"), MEDIA_UPLOAD_MAX_FILE_SIZE):
             error_message = ErrorMessage(
                 code="File size exceeds 10 MB",
@@ -209,9 +198,9 @@ def invalid_media_type(config):
     if "chapters" in config:
         for chapter in config["chapters"]:
             media = chapter.get("media")
-            if not (media and media["type"].startswith(("image", "audio", "video"))):
+            if media and not (media["type"].startswith(("image", "audio", "video", "embedded"))):
                 return True
-            return False
+        return False
 
 
 def handle_integrity_error(exc):
@@ -242,7 +231,6 @@ def from_validation_error(validation_error):
                     context=ErrorContext(model="StoryMap", field=field),
                 )
             )
-
     return error_messages
 
 
