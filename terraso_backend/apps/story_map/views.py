@@ -225,7 +225,6 @@ def handle_integrity_error(exc):
             NON_FIELD_ERRORS: ValidationError(
                 message="This StoryMap title already exists",
                 code="unique",
-                message="This StoryMap title already exists", code="unique",
             )
         },
     )
@@ -238,7 +237,7 @@ def from_validation_error(validation_error):
     for field, validation_errors in validation_error.error_dict.items():
         for error in validation_errors:
             error_messages.append(
-                ErrorMessage(                    
+                ErrorMessage(
                     code=error.code,
                     context=ErrorContext(model="StoryMap", field=field),
                 )
