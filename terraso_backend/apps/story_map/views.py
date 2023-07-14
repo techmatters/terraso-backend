@@ -59,12 +59,6 @@ class StoryMapAddView(AuthenticationRequiredMixin, FormView):
             return JsonResponse(
                 {"errors": [{"message": [asdict(e) for e in error_messages]}]}, status=400
             )
-        if has_multiple_files(request.FILES.getlist("files")):
-            error_message = ErrorMessage(
-                code="More than one file uploaded",
-                context=ErrorContext(model="StoryMap", field="files"),
-            )
-            return JsonResponse({"errors": [{"message": [asdict(error_message)]}]}, status=400)
 
         if is_file_upload_oversized(request.FILES.getlist("files"), MEDIA_UPLOAD_MAX_FILE_SIZE):
             error_message = ErrorMessage(
@@ -129,12 +123,7 @@ class StoryMapUpdateView(AuthenticationRequiredMixin, FormView):
                 context=ErrorContext(model="StoryMap", field="configuration"),
             )
             return JsonResponse({"errors": [{"message": [asdict(error_message)]}]}, status=400)
-        if has_multiple_files(request.FILES.getlist("files")):
-            error_message = ErrorMessage(
-                code="Uploaded more than one file",
-                context=ErrorContext(model="StoryMap", field="files"),
-            )
-            return JsonResponse({"errors": [{"message": [asdict(error_message)]}]}, status=400)
+
         if is_file_upload_oversized(request.FILES.getlist("files"), MEDIA_UPLOAD_MAX_FILE_SIZE):
             error_message = ErrorMessage(
                 code="File size exceeds 10 MB",
