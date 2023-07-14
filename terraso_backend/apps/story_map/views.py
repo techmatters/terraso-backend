@@ -171,7 +171,9 @@ def handle_config_media(new_config, current_config, request):
                 )
                 if matching_file:
                     url = story_map_media_upload_service.upload_file_get_path(
-                        str(request.user.id), matching_file, file_name=uuid.uuid4(),
+                        str(request.user.id),
+                        matching_file,
+                        file_name=uuid.uuid4(),
                     )
                     chapter["media"] = {"url": url, "type": media["type"]}
 
@@ -221,6 +223,8 @@ def handle_integrity_error(exc):
     validation_error = ValidationError(
         message={
             NON_FIELD_ERRORS: ValidationError(
+                message="This StoryMap title already exists",
+                code="unique",
                 message="This StoryMap title already exists", code="unique",
             )
         },
@@ -234,9 +238,11 @@ def from_validation_error(validation_error):
     for field, validation_errors in validation_error.error_dict.items():
         for error in validation_errors:
             error_messages.append(
-                ErrorMessage(code=error.code, context=ErrorContext(model="StoryMap", field=field),)
+                ErrorMessage(                    
+                    code=error.code,
+                    context=ErrorContext(model="StoryMap", field=field),
+                )
             )
-
     return error_messages
 
 
@@ -248,7 +254,11 @@ def get_error_messages(validation_errors):
             error_messages.append(
                 ErrorMessage(
                     code=error.code,
-                    context=ErrorContext(model="StoryMap", field=field, extra=error.message,),
+                    context=ErrorContext(
+                        model="StoryMap",
+                        field=field,
+                        extra=error.message,
+                    ),
                 )
             )
 
