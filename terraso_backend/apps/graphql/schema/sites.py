@@ -72,7 +72,7 @@ class SiteAddMutation(BaseWriteMutation):
 
     @classmethod
     def mutate_and_get_payload(cls, root, info, **kwargs):
-        log = cls.get_logger()
+        logger = cls.get_logger()
         user = info.context.user
         if not cls.is_update(kwargs):
             kwargs["created_by"] = user
@@ -90,11 +90,25 @@ class SiteAddMutation(BaseWriteMutation):
         else:
             kwargs["owner"] = info.context.user
 
+        try:
+            original_site = Site.objects.get(id=kwargs.get("id", None))
+        except Site.DoesNotExist:
+            original_site = None
+
         result = super().mutate_and_get_payload(root, info, **kwargs)
         if result.errors:
             return result
 
         site = result.site
+        if original_site and original_site.project != site.project:
+            logger.log(
+                user=user,
+                actionaudit_log_api.CHANGE,
+                resource=site,
+                metadata={"event_type": "site_transfer"},
+                client_time=client_time,
+            )
+
         metadata = {
             "latitude": kwargs["latitude"],
             "longitude": kwargs["longitude"],
@@ -102,7 +116,7 @@ class SiteAddMutation(BaseWriteMutation):
         }
         if kwargs.get("project_id", None):
             metadata["project_id"] = kwargs["project_id"]
-        log.log(
+        logger.log(
             user=user,
             action=audit_log_api.CREATE,
             resource=site,
