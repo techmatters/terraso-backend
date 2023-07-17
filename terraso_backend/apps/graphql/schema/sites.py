@@ -103,7 +103,7 @@ class SiteAddMutation(BaseWriteMutation):
         if original_site and original_site.project != site.project:
             logger.log(
                 user=user,
-                actionaudit_log_api.CHANGE,
+                action=audit_log_api.CHANGE,
                 resource=site,
                 metadata={"event_type": "site_transfer"},
                 client_time=client_time,
