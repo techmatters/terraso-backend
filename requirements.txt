@@ -25,9 +25,9 @@ attrs==23.1.0 \
     #   cattrs
     #   ddtrace
     #   fiona
-boto3==1.28.2 \
-    --hash=sha256:0d53fe604dc30edded21906bc56b30a7684f0715f4f6897307d53f8184997368 \
-    --hash=sha256:9933e40dc9ac72deac45cecce2df020e3bf8d0d537538d2b361c17d1cee807cc
+boto3==1.28.3 \
+    --hash=sha256:34f07b3fc2503240c0f58114cf3afea91295c7996d084991b78a278a56157c48 \
+    --hash=sha256:610369a7f984b58973c097ea649ec81976c04565d39a2d6d3edc280d23b0cb87
     # via
     #   -r requirements/base.in
     #   django-ses
