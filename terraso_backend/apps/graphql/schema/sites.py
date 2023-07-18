@@ -147,6 +147,10 @@ class SiteEditMutation(BaseWriteMutation):
         if not user.has_perm(Site.get_perm("change"), site):
             raise cls.not_allowed(MutationTypes.UPDATE)
         project_id = kwargs.pop("project_id", False)
+        try:
+            original_site = Site.objects.get(id=kwargs.get("id", None))
+        except Site.DoesNotExist:
+            original_site = None
         result = super().mutate_and_get_payload(root, info, **kwargs)
         client_time = kwargs.get("client_time", None)
         if not client_time:
@@ -158,14 +162,10 @@ class SiteEditMutation(BaseWriteMutation):
         if not user.has_perm(Project.get_perm("add_site"), project):
             raise cls.not_allowed(MutationTypes.UPDATE)
         site.add_to_project(project)
-        log.log(
-            user=user,
-            action=audit_log_api.CHANGE,
-            resource=project,
-            metadata={},
-            client_time=client_time
-        )
+        site = result.site
         metadata = {}
+        if original_site and original_site.project != site.project:
+            metadata["event_type"] = "site_transfer"
         for key, value in kwargs.items():
             if key == "id":
                 continue
