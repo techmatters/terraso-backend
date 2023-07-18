@@ -164,8 +164,8 @@ def test_adding_site_owned_by_user_to_project(client, project, site, project_man
     site_id = payload["id"]
     project_id = payload["project"]["id"]
     logs = Log.objects.all()
-    assert len(logs) == 2
-    log_result = logs[1]
+    assert len(logs) == 1
+    log_result = logs[0]
     assert log_result.event == CHANGE.value
     assert site_id == str(site.id)
     assert project_id == str(project.id)

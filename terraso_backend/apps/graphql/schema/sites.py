@@ -165,7 +165,7 @@ class SiteEditMutation(BaseWriteMutation):
         site = result.site
         metadata = {}
         if original_site and original_site.project != site.project:
-            metadata["event_type"] = "site_transfer"
+            metadata["site_transfer"] = True
         for key, value in kwargs.items():
             if key == "id":
                 continue
