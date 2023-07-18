@@ -577,9 +577,26 @@ type StoryMapNodeEdge {
 }
 
 type ProjectNode implements Node {
+  updatedAt: DateTime!
   name: String!
   description: String!
+  group: GroupNode!
   privacy: ProjectManagementProjectPrivacyChoices!
+  siteSet(
+    offset: Int
+    before: String
+    after: String
+    first: Int
+    last: Int
+    name: String
+    archived: Boolean
+    project: ID
+    owner: ID
+    project_Member: ID
+
+    """Ordering"""
+    orderBy: String
+  ): SiteNodeConnection!
   id: ID!
 }
 
@@ -590,34 +607,6 @@ enum ProjectManagementProjectPrivacyChoices {
 
   """Public"""
   PUBLIC
-}
-
-type ProjectNodeConnection {
-  """Pagination data for this connection."""
-  pageInfo: PageInfo!
-
-  """Contains the nodes in this connection."""
-  edges: [ProjectNodeEdge!]!
-  totalCount: Int!
-}
-
-"""A Relay edge containing a `ProjectNode` and its cursor."""
-type ProjectNodeEdge {
-  """The item at the end of the edge"""
-  node: ProjectNode!
-
-  """A cursor for use in pagination"""
-  cursor: String!
-}
-
-type SiteNode implements Node {
-  name: String!
-  latitude: Float!
-  longitude: Float!
-  owner: UserNode
-  project: ProjectNode
-  archived: Boolean!
-  id: ID!
 }
 
 type SiteNodeConnection {
@@ -633,6 +622,34 @@ type SiteNodeConnection {
 type SiteNodeEdge {
   """The item at the end of the edge"""
   node: SiteNode!
+
+  """A cursor for use in pagination"""
+  cursor: String!
+}
+
+type SiteNode implements Node {
+  name: String!
+  latitude: Float!
+  longitude: Float!
+  owner: UserNode
+  project: ProjectNode
+  archived: Boolean!
+  id: ID!
+}
+
+type ProjectNodeConnection {
+  """Pagination data for this connection."""
+  pageInfo: PageInfo!
+
+  """Contains the nodes in this connection."""
+  edges: [ProjectNodeEdge!]!
+  totalCount: Int!
+}
+
+"""A Relay edge containing a `ProjectNode` and its cursor."""
+type ProjectNodeEdge {
+  """The item at the end of the edge"""
+  node: ProjectNode!
 
   """A cursor for use in pagination"""
   cursor: String!
