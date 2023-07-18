@@ -15,6 +15,7 @@
 
 import mimetypes
 from dataclasses import asdict
+from pathlib import Path
 
 import structlog
 from config.settings import DATA_ENTRY_ACCEPTED_EXTENSIONS, MEDIA_UPLOAD_MAX_FILE_SIZE
@@ -52,7 +53,7 @@ class DataEntryFileUploadView(AuthenticationRequiredMixin, FormView):
                 context=ErrorContext(model="DataEntry", field="data_file"),
             )
             return JsonResponse({"errors": [{"message": [asdict(error_message)]}]}, status=400)
-        if invalid_media_types(request.FILES.getlist("data_file")):
+        if not is_valid_shared_data_type(request.FILES.getlist("data_file")):
             error_message = ErrorMessage(
                 code="Invalid media type",
                 context=ErrorContext(model="Shared Data", field="context_type"),
@@ -72,13 +73,15 @@ class DataEntryFileUploadView(AuthenticationRequiredMixin, FormView):
         return JsonResponse(data_entry.to_dict(), status=201)
 
 
-def invalid_media_types(files):
+def is_valid_shared_data_type(files):
     for file in files:
-        type = "." + file.content_type.split("/")[1]
+        extension = Path(file.content_type)
+        logger.info("EXTENSION")
+        type = "." + extension.parts[-1]
+        logger.info(type)
         if type not in DATA_ENTRY_ACCEPTED_EXTENSIONS:
-            return True
-    return False
-
+            return False
+    return True
 
 def get_error_messages(validation_errors):
     error_messages = []
