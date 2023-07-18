@@ -326,6 +326,24 @@ DATA_ENTRY_GIS_TYPES = {
 DATA_ENTRY_ACCEPTED_TYPES = (
     DATA_ENTRY_DOCUMENT_TYPES | DATA_ENTRY_SPREADSHEET_TYPES | DATA_ENTRY_GIS_TYPES
 )
+DATA_ENTRY_ACCEPTED_EXTENSIONS = [
+    ".geojson",
+    ".json",
+    ".csv",
+    ".doc",
+    ".csv",
+    ".doc",
+    ".docx",
+    ".gpx",
+    ".kml",
+    ".kmz",
+    ".pdf",
+    ".ppt",
+    ".pptx",
+    ".xlsx",
+    ".xls",
+    ".zip",
+]
 
 DB_BACKUP_S3_BUCKET = config("DB_BACKUP_S3_BUCKET", default="")
 

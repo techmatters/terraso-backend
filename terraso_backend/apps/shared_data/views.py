@@ -17,7 +17,7 @@ import mimetypes
 from dataclasses import asdict
 
 import structlog
-from config.settings import MEDIA_UPLOAD_MAX_FILE_SIZE
+from config.settings import DATA_ENTRY_ACCEPTED_EXTENSIONS, MEDIA_UPLOAD_MAX_FILE_SIZE
 from django.http import JsonResponse
 from django.views.generic.edit import FormView
 
@@ -52,6 +52,12 @@ class DataEntryFileUploadView(AuthenticationRequiredMixin, FormView):
                 context=ErrorContext(model="DataEntry", field="data_file"),
             )
             return JsonResponse({"errors": [{"message": [asdict(error_message)]}]}, status=400)
+        if invalid_media_types(request.FILES.getlist("data_file")):
+            error_message = ErrorMessage(
+                code="Invalid media type",
+                context=ErrorContext(model="Shared Data", field="context_type"),
+            )
+            return JsonResponse({"errors": [{"message": [asdict(error_message)]}]}, status=400)
 
         entry_form = DataEntryForm(data=form_data, files=request.FILES)
 
@@ -64,6 +70,14 @@ class DataEntryFileUploadView(AuthenticationRequiredMixin, FormView):
         data_entry = entry_form.save()
 
         return JsonResponse(data_entry.to_dict(), status=201)
+
+
+def invalid_media_types(files):
+    for file in files:
+        type = "." + file.content_type.split("/")[1]
+        if type not in DATA_ENTRY_ACCEPTED_EXTENSIONS:
+            return True
+    return False
 
 
 def get_error_messages(validation_errors):
