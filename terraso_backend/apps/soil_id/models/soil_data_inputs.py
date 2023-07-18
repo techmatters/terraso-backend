@@ -13,10 +13,11 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see https://www.gnu.org/licenses/.
 
-from apps.core.models.commons import BaseModel
 from django.db import models
+
+from apps.core.models.commons import BaseModel
 from apps.project_management.models.sites import Site
 
 
 class SoilDataInput(BaseModel):
-    sites = models.OneToOneField(Site, on_delete=models.CASCADE)
+    site = models.OneToOneField(Site, on_delete=models.CASCADE)
