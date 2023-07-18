@@ -83,6 +83,7 @@ def is_valid_shared_data_type(files):
             return False
     return True
 
+
 def get_error_messages(validation_errors):
     error_messages = []
 
