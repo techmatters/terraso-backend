@@ -18,5 +18,5 @@ from apps.project_management.models.sites import Site
 from apps.project_management.models import Project
 
 class DepthDefaultInterval(BaseModel):
-    site = models.OneToOneField(Site)
-    project = models.OneToOneField(Project)
+    site = models.OneToOneField(Site, on_delete=models.CASCADE)
+    project = models.OneToOneField(Project, on_delete=models.CASCADE)

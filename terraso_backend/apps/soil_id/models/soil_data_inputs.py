@@ -19,4 +19,4 @@ from apps.project_management.models.sites import Site
 
 
 class SoilDataInput(BaseModel):
-    sites = models.OneToOneField(Site)
+    sites = models.OneToOneField(Site, on_delete=models.CASCADE)
