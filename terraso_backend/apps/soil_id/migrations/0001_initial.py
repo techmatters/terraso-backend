@@ -71,7 +71,7 @@ class Migration(migrations.Migration):
                 ("depth_top", models.IntegerField(blank=True)),
                 ("depth_bottom", models.IntegerField(blank=True)),
                 (
-                    "soil_data_inputs",
+                    "soil_data_input",
                     models.ForeignKey(
                         on_delete=django.db.models.deletion.CASCADE, to="soil_id.soildata"
                     ),
