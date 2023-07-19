@@ -24,7 +24,7 @@ class ProjectSettings(BaseModel):
     class Meta(BaseModel.Meta):
         abstract = False
 
-    member_can_edit_site = models.BooleanField(default=False)
+    member_can_update_site = models.BooleanField(default=False)
     member_can_add_site_to_project = models.BooleanField(default=False)
 
 
@@ -34,7 +34,10 @@ class Project(BaseModel):
 
         rules_permissions = {
             "change": permission_rules.allowed_to_change_project,
+            "delete": permission_rules.allowed_to_delete_project,
+            "add": permission_rules.allowed_to_add_to_project,
             "add_site": permission_rules.allowed_to_add_site_to_project,
+            "archive": permission_rules.allowed_to_archive_project,
         }
 
     PRIVATE = "private"
@@ -44,6 +47,7 @@ class Project(BaseModel):
     PRIVACY_STATUS = ((PRIVATE, _("Private")), (PUBLIC, _("Public")))
 
     name = models.CharField(max_length=200)
+    description = models.CharField(max_length=512, default="", blank=True)
     group = models.OneToOneField(Group, on_delete=models.CASCADE)
     privacy = models.CharField(
         max_length=32, choices=PRIVACY_STATUS, default=DEFAULT_PRIVACY_STATUS
@@ -55,8 +59,18 @@ class Project(BaseModel):
         settings.save()
         return settings
 
-    settings = models.OneToOneField(
-        ProjectSettings, on_delete=models.PROTECT, default=default_settings
+    settings = models.OneToOneField(ProjectSettings, on_delete=models.PROTECT)
+
+    # overriding save to ensure we have a group and settings
+    def save(self, *args, **kwargs):
+        if not hasattr(self, "settings"):
+            self.settings = self.default_settings()
+        if not hasattr(self, "group"):
+            self.group = self.create_default_group(f"project_group_{self.name}")
+        return super(Project, self).save(*args, **kwargs)
+
+    archived = models.BooleanField(
+        default=False,
     )
 
     @staticmethod
@@ -87,3 +101,6 @@ class Project(BaseModel):
 
     def add_member(self, user: User):
         return self.group.add_member(user)
+
+    def __str__(self):
+        return self.name

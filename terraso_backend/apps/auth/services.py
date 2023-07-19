@@ -14,6 +14,7 @@
 # along with this program. If not, see https://www.gnu.org/licenses/.
 
 import ipaddress
+from contextlib import contextmanager
 from datetime import timedelta
 from typing import Any, Optional
 from urllib.parse import urlparse
@@ -250,3 +251,70 @@ class PlausibleService:
                 return
         props = {"service": auth_provider}
         self.track_event(event_name, user_agent, ip_address, self.EVENT_URL, props)
+
+
+class TokenExchangeException(Exception):
+    def __init__(self, message: str, error_type: str):
+        super().__init__(message)
+        self.message = message
+        self.error_type = error_type
+
+
+class TokenExchangeService:
+    def __init__(self, token, jwks_uri, client_id, provider_name):
+        self.token = token
+        self.jwks_uri = jwks_uri
+        self.client_id = client_id
+        self.provider_name = provider_name
+
+    @classmethod
+    def from_payload(cls, payload, settings):
+        provider_name = payload["provider"]
+        token = payload["jwt"]
+        provider = settings.JWT_EXCHANGE_PROVIDERS[provider_name]
+        if "url" not in provider or "client_id" not in provider:
+            raise TokenExchangeException(
+                f"provider {provider_name} is missing config variables", "bad_config"
+            )
+        return cls(
+            token=token,
+            jwks_uri=provider["url"],
+            client_id=provider["client_id"],
+            provider_name=provider_name,
+        )
+
+    @staticmethod
+    def _get_signing_key(token, provider_url):
+        # fetch jwks
+        jwks_client = jwt.PyJWKClient(provider_url)
+        return jwks_client.get_signing_key_from_jwt(token)
+
+    @staticmethod
+    def _verify_payload(token, signing_key, client_id):
+        if "alg" not in signing_key._jwk_data:
+            raise TokenExchangeException("alg header missing in mobile JWT token")
+        algorithms = [signing_key._jwk_data.get("alg", "RS256")]
+        return jwt.decode(token, signing_key.key, algorithms=algorithms, audience=client_id)
+
+    @staticmethod
+    @contextmanager
+    def _transform_error(exception_class, message, error_type):
+        try:
+            yield
+        except exception_class:
+            logger.exception(message)
+            raise TokenExchangeException(message, error_type=error_type)
+
+    def validate(self):
+        with self._transform_error(
+            jwt.exceptions.PyJWTError,
+            f"could not retrieve signing key for {self.provider_name}",
+            "jwks_error",
+        ):
+            signing_key = self._get_signing_key(self.token, self.jwks_uri)
+        with self._transform_error(
+            jwt.exceptions.InvalidTokenError, "token was not verified", "token_error"
+        ):
+            payload = self._verify_payload(self.token, signing_key, self.client_id)
+
+        return payload

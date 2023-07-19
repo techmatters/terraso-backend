@@ -80,6 +80,11 @@ def site(user: User) -> Site:
 
 
 @pytest.fixture
+def archived_site(user: User) -> Site:
+    return mixer.blend(Site, owner=user, archived=True)
+
+
+@pytest.fixture
 def site_creator(site: Site) -> User:
     return site.owner
 
@@ -97,6 +102,12 @@ def project() -> Project:
 @pytest.fixture
 def project_manager(project: Project) -> User:
     return project.managers.first()
+
+
+@pytest.fixture
+def project_with_sites(project: Project) -> Project:
+    mixer.blend(Site, project=project)
+    return project
 
 
 @pytest.fixture

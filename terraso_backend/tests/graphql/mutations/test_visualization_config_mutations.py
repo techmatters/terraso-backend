@@ -14,6 +14,7 @@
 # along with this program. If not, see https://www.gnu.org/licenses/.
 
 import json
+from unittest import mock
 
 import pytest
 
@@ -22,7 +23,10 @@ from apps.shared_data.models import VisualizationConfig
 pytestmark = pytest.mark.django_db
 
 
-def test_visualization_config_add(client_query, visualization_configs, data_entries):
+@mock.patch("apps.graphql.schema.visualization_config.start_create_mapbox_tileset_task")
+def test_visualization_config_add(
+    mock_create_tileset, client_query, visualization_configs, data_entries
+):
     group_id = str(visualization_configs[0].group.id)
     data_entry_id = str(data_entries[0].id)
     new_data = {
@@ -58,10 +62,12 @@ def test_visualization_config_add(client_query, visualization_configs, data_entr
         "group": {"id": group_id},
         "dataEntry": {"id": data_entry_id},
     }
+    mock_create_tileset.assert_called_once()
 
 
+@mock.patch("apps.graphql.schema.visualization_config.start_create_mapbox_tileset_task")
 def test_visualization_config_add_fails_due_uniqueness_check(
-    client_query, visualization_configs, data_entries
+    mock_create_tileset, client_query, visualization_configs, data_entries
 ):
     new_data = {
         "title": visualization_configs[0].title,
@@ -90,9 +96,13 @@ def test_visualization_config_add_fails_due_uniqueness_check(
         0
     ]
     assert error_message["code"] == "unique"
+    mock_create_tileset.assert_not_called()
 
 
-def test_visualization_config_update_by_creator_works(client_query, visualization_configs):
+@mock.patch("apps.graphql.schema.visualization_config.start_create_mapbox_tileset_task")
+def test_visualization_config_update_by_creator_works(
+    mock_create_tileset, client_query, visualization_configs
+):
     old_visualization_config = visualization_configs[0]
 
     new_data = {
@@ -115,10 +125,12 @@ def test_visualization_config_update_by_creator_works(client_query, visualizatio
     result = response.json()["data"]["updateVisualizationConfig"]["visualizationConfig"]
 
     assert result == new_data
+    mock_create_tileset.assert_called_once()
 
 
+@mock.patch("apps.graphql.schema.visualization_config.start_create_mapbox_tileset_task")
 def test_visualization_config_update_by_non_creator_fails_due_permission_check(
-    client_query, visualization_configs, users
+    mock_create_tileset, client_query, visualization_configs, users
 ):
     old_visualization_config = visualization_configs[0]
 
@@ -151,9 +163,13 @@ def test_visualization_config_update_by_non_creator_fails_due_permission_check(
         "update_not_allowed"
         in response["data"]["updateVisualizationConfig"]["errors"][0]["message"]
     )
+    mock_create_tileset.assert_not_called()
 
 
-def test_visualization_config_delete_by_creator_works(client_query, visualization_configs):
+@mock.patch("apps.graphql.schema.visualization_config.start_remove_mapbox_tileset_task")
+def test_visualization_config_delete_by_creator_works(
+    mock_remove_tileset, client_query, visualization_configs
+):
     old_visualization_config = visualization_configs[0]
 
     response = client_query(
@@ -176,10 +192,12 @@ def test_visualization_config_delete_by_creator_works(client_query, visualizatio
 
     assert visualization_config_result["configuration"] == old_visualization_config.configuration
     assert not VisualizationConfig.objects.filter(id=old_visualization_config.id)
+    mock_remove_tileset.assert_called_once()
 
 
+@mock.patch("apps.graphql.schema.visualization_config.start_remove_mapbox_tileset_task")
 def test_visualization_config_delete_by_non_creator_fails_due_permission_check(
-    client_query, visualization_configs, users
+    mock_remove_tileset, client_query, visualization_configs, users
 ):
     old_visualization_config = visualization_configs[0]
 
@@ -209,3 +227,4 @@ def test_visualization_config_delete_by_non_creator_fails_due_permission_check(
         "delete_not_allowed"
         in response["data"]["deleteVisualizationConfig"]["errors"][0]["message"]
     )
+    mock_remove_tileset.assert_not_called()

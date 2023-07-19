@@ -73,3 +73,23 @@ def test_create_data_entry_successfully(logged_client, landscape_profile_image_p
 
     assert "message" in response_data
     assert response_data["message"] == "OK"
+
+
+@mock.patch("apps.storage.file_utils.get_file_size")
+def test_create_oversized_data_entry(mock_get_size, logged_client, landscape_profile_image_payload):
+    url = reverse("terraso_storage:landscape-profile-image")
+    mock_get_size.return_value = 10000001
+    with patch(
+        "apps.storage.forms.profile_image_upload_service.upload_file"
+    ) as mocked_upload_service:
+        mocked_upload_service.return_value = "https://example.org/uploaded_file.jpeg"
+
+        response = logged_client.post(url, landscape_profile_image_payload)
+
+        mocked_upload_service.assert_not_called()
+
+    response_data = response.json()
+    assert response.status_code == 400
+    assert response_data["errors"][0]["message"][0]["code"] == "File size exceeds 10 MB"
+
+    assert "errors" in response_data

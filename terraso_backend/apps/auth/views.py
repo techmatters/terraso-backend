@@ -15,6 +15,7 @@
 
 import functools
 import json
+from typing import Optional
 from urllib.parse import urlparse
 
 import httpx
@@ -29,7 +30,13 @@ from django.views import View
 
 from .constants import OAUTH_COOKIE_MAX_AGE_SECONDS, OAUTH_COOKIE_NAME
 from .providers import AppleProvider, GoogleProvider, MicrosoftProvider
-from .services import AccountService, JWTService, PlausibleService
+from .services import (
+    AccountService,
+    JWTService,
+    PlausibleService,
+    TokenExchangeException,
+    TokenExchangeService,
+)
 
 logger = structlog.get_logger(__name__)
 User = get_user_model()
@@ -243,3 +250,68 @@ def terraso_login(request, user):
     dj_login(request, user, backend="django.contrib.auth.backends.ModelBackend")
 
     return access_token, refresh_token
+
+
+class TokenExchangeView(View):
+    @staticmethod
+    def _create_or_fetch_user(
+        email: str = "",
+        given_name: str = "",
+        family_name: str = "",
+        picture: Optional[str] = None,
+        **kwargs,
+    ):
+        account_service = AccountService()
+        additional_kwargs = {}
+        if picture:
+            additional_kwargs["profile_image_url"] = picture
+        # TODO: using a private method of AccountService is weird, should be refactored
+        # Should be a public method, and arguably static
+        user, created = account_service._persist_user(
+            email, first_name=given_name, last_name=family_name, **additional_kwargs
+        )
+        return user, created
+
+    @staticmethod
+    def _check_request(contents):
+        missing_keys = []
+        for key in ("jwt", "provider"):
+            if key not in contents:
+                missing_keys.append(key)
+        if missing_keys:
+            return JsonResponse({"missing_keys": missing_keys}, status=400)
+        provider = contents["provider"]
+        if provider not in settings.JWT_EXCHANGE_PROVIDERS:
+            return JsonResponse({"bad_provider": provider}, status=400)
+
+    @staticmethod
+    def _token_error(e):
+        match e.error_type:
+            case "jwks_error" | "bad_config":
+                status_code = 500
+            case "token_error":
+                status_code = 400
+            case _:
+                status_code = 500
+        return JsonResponse({e.error_type: e.message}, status=status_code)
+
+    def post(self, request, *args, **kwargs):
+        contents = json.loads(request.body)
+        if resp := self._check_request(contents):
+            return resp
+
+        try:
+            tokex_service = TokenExchangeService.from_payload(contents, settings)
+            payload = tokex_service.validate()
+        except TokenExchangeException as e:
+            return self._token_error(e)
+
+        user, created = self._create_or_fetch_user(**payload)
+        rtoken, atoken = terraso_login(request, user)
+        resp_payload = {
+            "rtoken": rtoken,
+            "atoken": atoken,
+        }
+        if created:
+            resp_payload["created"] = True
+        return JsonResponse(resp_payload)

@@ -14,6 +14,7 @@
 # along with this program. If not, see https://www.gnu.org/licenses/.
 import base64
 import os
+from typing import TypedDict
 
 import django
 import structlog
@@ -31,6 +32,8 @@ django.utils.encoding.force_text = force_str
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 PROJECT_DIR = os.path.dirname(os.path.abspath(BASE_DIR))
+
+ENV = config("ENV", default="development")
 
 DEBUG = config("DEBUG", default=False, cast=config.boolean)
 
@@ -353,6 +356,7 @@ RENDER_API_URL = config("RENDER_API_URL", default="https://api.render.com/v1/")
 RENDER_API_TOKEN = config("RENDER_API_TOKEN", default="")
 
 DATA_UPLOAD_MAX_MEMORY_SIZE = 70000000  # 70MB
+MEDIA_UPLOAD_MAX_FILE_SIZE = 10000000  # 10MB
 
 STORY_MAP_MEDIA_S3_BUCKET = config("STORY_MAP_MEDIA_S3_BUCKET", default="")
 STORY_MAP_MEDIA_BASE_URL = f"https://{STORY_MAP_MEDIA_S3_BUCKET}"
@@ -364,4 +368,26 @@ PUBLIC_BASE_PATHS = [
     "/healthz/",
     "/web-client/sitemap.xml",
 ]
+
 HARDDELETE_DELETION_GAP = config("HARDDELETE_DELETION_GAP_DAYS", default="30", cast=config.eval)
+
+
+class JWTProvider(TypedDict):
+    """Type hint to indicate correct config for JWT_EXCHANGE_PROVIDERS"""
+
+    url: str
+    client_id: str
+    name: str
+
+
+JWT_EXCHANGE_PROVIDERS: dict[str, JWTProvider] = {
+    "google": dict(
+        url="https://www.googleapis.com/oauth2/v3/certs",
+        client_id=config("GOOGLE_MOBILE_CLIENT_ID", default=""),
+    )
+}
+
+
+MAPBOX_API_URL = config("MAPBOX_API_URL", default="https://api.mapbox.com")
+MAPBOX_USERNAME = config("MAPBOX_USERNAME", default="")
+MAPBOX_ACCESS_TOKEN = config("MAPBOX_ACCESS_TOKEN", default="")

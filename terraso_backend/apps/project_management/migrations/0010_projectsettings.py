@@ -26,34 +26,11 @@ class Migration(migrations.Migration):
     dependencies = [
         (
             "project_management",
-            "0003_remove_site_project_management_site_unique_active_slug_and_more",
+            "0009_archive_projects",
         ),
     ]
 
     operations = [
-        migrations.CreateModel(
-            name="ProjectSettings",
-            fields=[
-                ("deleted_at", models.DateTimeField(db_index=True, editable=False, null=True)),
-                ("deleted_by_cascade", models.BooleanField(default=False, editable=False)),
-                (
-                    "id",
-                    models.UUIDField(
-                        default=uuid.uuid4, editable=False, primary_key=True, serialize=False
-                    ),
-                ),
-                ("created_at", models.DateTimeField(auto_now_add=True)),
-                ("updated_at", models.DateTimeField(auto_now=True)),
-                ("member_can_update_site", models.BooleanField(default=False)),
-                ("member_can_add_site_to_project", models.BooleanField(default=False)),
-            ],
-            options={
-                "ordering": ["created_at"],
-                "get_latest_by": "-created_at",
-                "abstract": False,
-            },
-            bases=(rules.contrib.models.RulesModelMixin, models.Model),
-        ),
         migrations.AddField(
             model_name="project",
             name="settings",

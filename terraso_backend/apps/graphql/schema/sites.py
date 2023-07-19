@@ -16,20 +16,26 @@ from datetime import datetime
 
 import django_filters
 import graphene
+from django.db import transaction
 from graphene import relay
 from graphene_django import DjangoObjectType
+from graphene_django.filter import TypedFilter
 
 from apps.audit_logs import api as audit_log_api
-from apps.project_management.models import Project, Site
+from apps.project_management.models import Project, Site, sites
 
-from .commons import BaseWriteMutation, TerrasoConnection
+from .commons import BaseDeleteMutation, BaseWriteMutation, TerrasoConnection
 from .constants import MutationTypes
 
 
 class SiteFilter(django_filters.FilterSet):
+    project = TypedFilter()
+    owner = TypedFilter()
+    project__member = TypedFilter(field_name="project__group__memberships__user")
+
     class Meta:
         model = Site
-        fields = ["name", "owner", "project", "project__id"]
+        fields = ["name", "archived"]
 
     order_by = django_filters.OrderingFilter(
         fields=(
@@ -45,11 +51,18 @@ class SiteNode(DjangoObjectType):
     class Meta:
         model = Site
 
-        fields = ("name", "latitude", "longitude", "project")
+        fields = ("name", "latitude", "longitude", "project", "archived", "owner")
         filterset_class = SiteFilter
 
         interfaces = (relay.Node,)
         connection_class = TerrasoConnection
+
+    @classmethod
+    def get_queryset(cls, queryset, info):
+        user = info.context.user
+        if user.is_anonymous:
+            return queryset.none()
+        return sites.filter_only_sites_user_owner_or_member(user, queryset)
 
 
 class SiteAddMutation(BaseWriteMutation):
@@ -67,8 +80,6 @@ class SiteAddMutation(BaseWriteMutation):
     def mutate_and_get_payload(cls, root, info, **kwargs):
         log = cls.get_logger()
         user = info.context.user
-        if not cls.is_update(kwargs):
-            kwargs["created_by"] = user
 
         client_time = kwargs.pop("client_time", None)
         if not client_time:
@@ -100,13 +111,13 @@ class SiteAddMutation(BaseWriteMutation):
             action=audit_log_api.CREATE,
             resource=site,
             metadata=metadata,
-            client_time=client_time
+            client_time=client_time,
         )
         return result
 
 
-class SiteEditMutation(BaseWriteMutation):
-    site = graphene.Field(SiteNode, required=True)
+class SiteUpdateMutation(BaseWriteMutation):
+    site = graphene.Field(SiteNode)
 
     model_class = Site
 
@@ -152,7 +163,27 @@ class SiteEditMutation(BaseWriteMutation):
             action=audit_log_api.CHANGE,
             resource=site,
             metadata=metadata,
-            client_time=client_time
+            client_time=client_time,
         )
 
         return result
+
+
+class SiteDeleteMutation(BaseDeleteMutation):
+    site = graphene.Field(SiteNode, required=True)
+
+    model_class = Site
+
+    class Input:
+        id = graphene.ID(required=True)
+
+    @classmethod
+    @transaction.atomic
+    def mutate_and_get_payload(cls, root, info, **kwargs):
+        user = info.context.user
+        site_id = kwargs["id"]
+        site = cls.get_or_throw(Site, "id", site_id)
+        if not user.has_perm(Site.get_perm("delete"), site):
+            cls.not_allowed(MutationTypes.DELETE)
+
+        return super().mutate_and_get_payload(root, info, **kwargs)

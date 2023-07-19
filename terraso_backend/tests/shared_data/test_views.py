@@ -14,6 +14,7 @@
 # along with this program. If not, see https://www.gnu.org/licenses/.
 
 import json
+from unittest import mock
 from unittest.mock import patch
 
 import pytest
@@ -40,6 +41,25 @@ def data_entry_payload(group):
             content_type="application/json",
         ),
     )
+
+
+@mock.patch("apps.storage.file_utils.get_file_size")
+def test_create_oversized_data_entry(mock_get_size, logged_client, upload_url, data_entry_payload):
+    mock_get_size.return_value = 10000001
+    with patch(
+        "apps.shared_data.forms.data_entry_upload_service.upload_file"
+    ) as mocked_upload_service:
+        mocked_upload_service.return_value = "https://example.org/uploaded_file.json"
+
+        response = logged_client.post(upload_url, data_entry_payload)
+
+        mocked_upload_service.assert_not_called()
+
+    response_data = response.json()
+    assert response.status_code == 400
+    assert response_data["errors"][0]["message"][0]["code"] == "File size exceeds 10 MB"
+
+    assert "errors" in response_data
 
 
 def test_create_data_entry_successfully(logged_client, upload_url, data_entry_payload):

@@ -18,10 +18,15 @@ import structlog
 from graphene import relay
 from graphene_django import DjangoObjectType
 
+from apps.core.gis.mapbox import get_publish_status
 from apps.core.models import Group, Membership
 from apps.graphql.exceptions import GraphQLNotAllowedException
 from apps.shared_data.models.data_entries import DataEntry
 from apps.shared_data.models.visualization_config import VisualizationConfig
+from apps.shared_data.visualization_tileset_tasks import (
+    start_create_mapbox_tileset_task,
+    start_remove_mapbox_tileset_task,
+)
 
 from ..exceptions import GraphQLNotFoundException
 from .commons import BaseDeleteMutation, BaseWriteMutation, TerrasoConnection
@@ -49,6 +54,7 @@ class VisualizationConfigNode(DjangoObjectType):
             "created_at",
             "data_entry",
             "group",
+            "mapbox_tileset_id",
         )
         interfaces = (relay.Node,)
         connection_class = TerrasoConnection
@@ -59,6 +65,19 @@ class VisualizationConfigNode(DjangoObjectType):
             user=info.context.user, membership_status=Membership.APPROVED
         ).values_list("group", flat=True)
         return queryset.filter(data_entry__groups__in=user_groups_ids)
+
+    def resolve_mapbox_tileset_id(self, info):
+        if self.mapbox_tileset_id is None:
+            return None
+        if self.mapbox_tileset_status == VisualizationConfig.MAPBOX_TILESET_READY:
+            return self.mapbox_tileset_id
+
+        # Check if tileset ready to be published and update status
+        published = get_publish_status(self.mapbox_tileset_id)
+        if published:
+            self.mapbox_tileset_status = VisualizationConfig.MAPBOX_TILESET_READY
+            self.save()
+            return self.mapbox_tileset_id
 
 
 class VisualizationConfigAddMutation(BaseWriteMutation):
@@ -110,7 +129,12 @@ class VisualizationConfigAddMutation(BaseWriteMutation):
         if not cls.is_update(kwargs):
             kwargs["created_by"] = user
 
-        return super().mutate_and_get_payload(root, info, **kwargs)
+        result = super().mutate_and_get_payload(root, info, **kwargs)
+
+        # Create mapbox tileset
+        start_create_mapbox_tileset_task(result.visualization_config.id)
+
+        return cls(visualization_config=result.visualization_config)
 
 
 class VisualizationConfigUpdateMutation(BaseWriteMutation):
@@ -136,7 +160,12 @@ class VisualizationConfigUpdateMutation(BaseWriteMutation):
                 model_name=VisualizationConfig.__name__, operation=MutationTypes.UPDATE
             )
 
-        return super().mutate_and_get_payload(root, info, **kwargs)
+        result = super().mutate_and_get_payload(root, info, **kwargs)
+
+        # Create mapbox tileset
+        start_create_mapbox_tileset_task(result.visualization_config.id)
+
+        return cls(visualization_config=result.visualization_config)
 
 
 class VisualizationConfigDeleteMutation(BaseDeleteMutation):
@@ -160,4 +189,8 @@ class VisualizationConfigDeleteMutation(BaseDeleteMutation):
             raise GraphQLNotAllowedException(
                 model_name=VisualizationConfig.__name__, operation=MutationTypes.DELETE
             )
+
+        # Delete mapbox tileset
+        start_remove_mapbox_tileset_task(visualization_config.mapbox_tileset_id)
+
         return super().mutate_and_get_payload(root, info, **kwargs)

@@ -48,6 +48,7 @@ def data_entry(user, data_entry_filename):
         size=1,
         url=f"{settings.DATA_ENTRY_FILE_BASE_URL}/{user.id}/{data_entry_filename}",
         created_by=user,
+        resource_type="csv",
     )
 
 

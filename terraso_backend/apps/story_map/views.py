@@ -21,6 +21,7 @@ from datetime import datetime
 
 import rules
 import structlog
+from config.settings import MEDIA_UPLOAD_MAX_FILE_SIZE
 from django.core.exceptions import NON_FIELD_ERRORS, ValidationError
 from django.db import IntegrityError
 from django.http import JsonResponse
@@ -29,6 +30,7 @@ from django.views.generic.edit import FormView
 
 from apps.auth.mixins import AuthenticationRequiredMixin
 from apps.core.exceptions import ErrorContext, ErrorMessage
+from apps.storage.file_utils import is_file_upload_oversized
 
 from .forms import StoryMapForm
 from .models import StoryMap
@@ -52,12 +54,25 @@ class StoryMapAddView(AuthenticationRequiredMixin, FormView):
         )
 
         entry_form = StoryMapForm(data=form_data)
-
         if not entry_form.is_valid():
             error_messages = get_error_messages(entry_form.errors.as_data())
             return JsonResponse(
                 {"errors": [{"message": [asdict(e) for e in error_messages]}]}, status=400
             )
+
+        if is_file_upload_oversized(request.FILES.getlist("files"), MEDIA_UPLOAD_MAX_FILE_SIZE):
+            error_message = ErrorMessage(
+                code="File size exceeds 10 MB",
+                context=ErrorContext(model="StoryMap", field="files"),
+            )
+            return JsonResponse({"errors": [{"message": [asdict(error_message)]}]}, status=400)
+
+        if invalid_media_type(config):
+            error_message = ErrorMessage(
+                code="Invalid Media Type",
+                context=ErrorContext(model="StoryMap", field="configuration"),
+            )
+            return JsonResponse({"errors": [{"message": [asdict(error_message)]}]}, status=400)
 
         try:
             story_map = StoryMap.objects.create(
@@ -101,6 +116,20 @@ class StoryMapUpdateView(AuthenticationRequiredMixin, FormView):
         story_map.is_published = form_data["is_published"] == "true"
 
         new_config = json.loads(form_data["configuration"])
+
+        if invalid_media_type(new_config):
+            error_message = ErrorMessage(
+                code="Invalid Media Type",
+                context=ErrorContext(model="StoryMap", field="configuration"),
+            )
+            return JsonResponse({"errors": [{"message": [asdict(error_message)]}]}, status=400)
+
+        if is_file_upload_oversized(request.FILES.getlist("files"), MEDIA_UPLOAD_MAX_FILE_SIZE):
+            error_message = ErrorMessage(
+                code="File size exceeds 10 MB",
+                context=ErrorContext(model="StoryMap", field="files"),
+            )
+            return JsonResponse({"errors": [{"message": [asdict(error_message)]}]}, status=400)
 
         story_map.configuration = handle_config_media(new_config, story_map.configuration, request)
 
@@ -165,6 +194,15 @@ def handle_config_media(new_config, current_config, request):
     return new_config
 
 
+def invalid_media_type(config):
+    if "chapters" in config:
+        for chapter in config["chapters"]:
+            media = chapter.get("media")
+            if media and not (media["type"].startswith(("image", "audio", "video", "embedded"))):
+                return True
+        return False
+
+
 def handle_integrity_error(exc):
     logger.info(
         "Attempt to mutate an model, but it's not unique because of the title unique constraint",
@@ -193,7 +231,6 @@ def from_validation_error(validation_error):
                     context=ErrorContext(model="StoryMap", field=field),
                 )
             )
-
     return error_messages
 
 

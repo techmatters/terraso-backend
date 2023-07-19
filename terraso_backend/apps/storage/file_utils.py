@@ -12,17 +12,19 @@
 #
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see https://www.gnu.org/licenses/.
-# from django.contrib import admin
-
-# Register your models here.
-from django.contrib import admin
-
-from apps.project_management.models import Project, ProjectSettings, Site
-
-admin.site.register(Site)
-admin.site.register(ProjectSettings)
 
 
-@admin.register(Project)
-class ProjectAdmin(admin.ModelAdmin):
-    readonly_fields = ("group", "settings")
+def has_multiple_files(files):
+    if len(files) > 1:
+        return True
+    return False
+
+
+def is_file_upload_oversized(files, max_size):
+    if len(files) == 1:
+        return get_file_size(files[0]) > max_size
+    return False
+
+
+def get_file_size(file):
+    return file.size
