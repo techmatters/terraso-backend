@@ -14,10 +14,11 @@
 # along with this program. If not, see https://www.gnu.org/licenses/.
 
 
-from django.db import migrations, models
+import uuid
+
 import django.db.models.deletion
 import rules.contrib.models
-import uuid
+from django.db import migrations, models
 
 
 class Migration(migrations.Migration):

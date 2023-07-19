@@ -14,7 +14,7 @@
 # along with this program. If not, see https://www.gnu.org/licenses/.
 
 
-from .soil_data import SoilData
 from .depth_dependent_soil_data import DepthDependentSoilData
+from .soil_data import SoilData
 
 __all__ = ["SoilData", "DepthDependentSoilData"]
