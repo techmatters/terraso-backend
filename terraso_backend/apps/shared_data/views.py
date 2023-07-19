@@ -76,9 +76,7 @@ class DataEntryFileUploadView(AuthenticationRequiredMixin, FormView):
 def is_valid_shared_data_type(files):
     for file in files:
         extension = Path(file.content_type)
-        logger.info("EXTENSION")
         type = "." + extension.parts[-1]
-        logger.info(type)
         if type not in DATA_ENTRY_ACCEPTED_EXTENSIONS:
             return False
     return True
