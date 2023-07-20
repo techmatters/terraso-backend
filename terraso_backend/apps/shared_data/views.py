@@ -74,9 +74,7 @@ class DataEntryFileUploadView(AuthenticationRequiredMixin, FormView):
 
 
 def is_valid_shared_data_type(files):
-    return all(
-        Path(str(file)).suffix in DATA_ENTRY_ACCEPTED_EXTENSIONS for file in files
-    )
+    return all(Path(str(file)).suffix in DATA_ENTRY_ACCEPTED_EXTENSIONS for file in files)
 
 
 def get_error_messages(validation_errors):
