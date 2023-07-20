@@ -196,11 +196,11 @@ def handle_config_media(new_config, current_config, request):
 
 def is_valid_media_type(config):
     if "chapters" in config:
-        for chapter in config["chapters"]:
-            media = chapter.get("media")
-            if media and not (media["type"].startswith(("image", "audio", "video", "embedded"))):
-                return False
-        return True
+        return all(
+            chapter.get("media") is None
+            or chapter["media"]["type"].startswith(("image", "audio", "video", "embedded"))
+            for chapter in config["chapters"]
+        )
 
 
 def handle_integrity_error(exc):
