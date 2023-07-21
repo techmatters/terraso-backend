@@ -16,6 +16,7 @@ from typing import Union
 
 from django.db import models
 from django.db.models import Q
+from django.utils.translation import gettext_lazy as _
 
 from apps.core.models import Membership, User
 from apps.core.models.commons import BaseModel
@@ -50,6 +51,16 @@ class Site(BaseModel):
         blank=True,
         on_delete=models.RESTRICT,
         verbose_name="owner to which the site belongs",
+    )
+
+    PRIVATE = "private"
+    PUBLIC = "public"
+    DEFAULT_PRIVACY_STATUS = PRIVATE
+
+    PRIVACY_STATUS = ((PRIVATE, _("Private")), (PUBLIC, _("Public")))
+
+    privacy = models.CharField(
+        max_length=32, null=False, choices=PRIVACY_STATUS, default=DEFAULT_PRIVACY_STATUS
     )
 
     project = models.ForeignKey(

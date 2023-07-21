@@ -51,7 +51,7 @@ class SiteNode(DjangoObjectType):
     class Meta:
         model = Site
 
-        fields = ("name", "latitude", "longitude", "project", "archived", "owner")
+        fields = ("name", "latitude", "longitude", "project", "archived", "owner", "privacy")
         filterset_class = SiteFilter
 
         interfaces = (relay.Node,)
@@ -64,6 +64,10 @@ class SiteNode(DjangoObjectType):
             return queryset.none()
         return sites.filter_only_sites_user_owner_or_member(user, queryset)
 
+    @classmethod
+    def privacy_enum(cls):
+        return cls._meta.fields["privacy"].type.of_type()
+
 
 class SiteAddMutation(BaseWriteMutation):
     site = graphene.Field(SiteNode, required=True)
@@ -74,6 +78,7 @@ class SiteAddMutation(BaseWriteMutation):
         name = graphene.String(required=True)
         latitude = graphene.Float(required=True)
         longitude = graphene.Float(required=True)
+        privacy = SiteNode.privacy_enum()
         project_id = graphene.ID()
 
     @classmethod
@@ -126,7 +131,7 @@ class SiteUpdateMutation(BaseWriteMutation):
         name = graphene.String()
         latitude = graphene.Float()
         longitude = graphene.Float()
-
+        privacy = SiteNode.privacy_enum()
         project_id = graphene.ID()
 
     @classmethod
