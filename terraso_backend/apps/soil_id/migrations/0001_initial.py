@@ -25,7 +25,7 @@ class Migration(migrations.Migration):
     initial = True
 
     dependencies = [
-        ("project_management", "0014_alter_project_description"),
+        ("project_management", "0013_remove_site_created_by_project_description"),
     ]
 
     operations = [
