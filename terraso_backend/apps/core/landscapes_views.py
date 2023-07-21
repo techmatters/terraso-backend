@@ -39,7 +39,7 @@ class LandscapeExportView(View):
             "website": landscape.website,
             "areaPolygon": landscape.area_polygon,
             "areaTypes": landscape.area_types,
-            "areaScalarHa": landscape.area_scalar_m2 / 10000,
+            "areaScalarHa": landscape.area_scalar_m2 / 10000 if landscape.area_scalar_m2 else None,
             "population": landscape.population,
             "profileImage": landscape.profile_image,
             "profileImageDescription": landscape.profile_image_description,
