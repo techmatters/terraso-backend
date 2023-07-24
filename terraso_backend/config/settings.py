@@ -370,6 +370,8 @@ PUBLIC_BASE_PATHS = [
     "/web-client/sitemap.xml",
 ]
 
+HARD_DELETE_DELETION_GAP = config("HARD_DELETE_DELETION_GAP_DAYS", default="30", cast=config.eval)
+
 
 class JWTProvider(TypedDict):
     """Type hint to indicate correct config for JWT_EXCHANGE_PROVIDERS"""
