@@ -23,6 +23,62 @@ from apps.project_management.models.projects import Project
 pytestmark = pytest.mark.django_db
 
 
+def test_query_site_fields(client, project, user):
+    sites = [
+        Site(
+            name="site 1",
+            latitude=1.0,
+            longitude=-1.0,
+            owner=user,
+            privacy="PRIVATE",
+            archived=False,
+        ),
+        Site(
+            name="site 2",
+            latitude=-2.0,
+            longitude=2.0,
+            project=project,
+            privacy="PUBLIC",
+            archived=True,
+        ),
+    ]
+    for site in sites:
+        site.save()
+
+    query = """
+    {
+      site(id: "%s") {
+        id
+        name
+        latitude
+        longitude
+        privacy
+        archived
+        owner { id }
+        project { id }
+      }
+    }
+    """
+    client.force_login(user)
+
+    for site, response in [(site, graphql_query(query % site.id, client=client)) for site in sites]:
+        assert "errors" not in response.json()
+        site_json = response.json()["data"]["site"]
+        assert site_json["name"] == site.name
+        assert site_json["latitude"] == site.latitude
+        assert site_json["longitude"] == site.longitude
+        assert site_json["privacy"] == site.privacy
+        assert site_json["archived"] == site.archived
+        if site_json["owner"] is None:
+            assert site.owner is None
+        else:
+            assert site.owner is not None and site_json["owner"]["id"] == str(site.owner.id)
+        if site_json["project"] is None:
+            assert site.project is None
+        else:
+            assert site.project is not None and site_json["project"]["id"] == str(site.project.id)
+
+
 def test_query_by_project(client, project, project_manager, site):
     site.project = project
     site.owner = None
