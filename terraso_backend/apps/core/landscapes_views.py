@@ -18,7 +18,8 @@ class LandscapeExportView(View):
     def to_json(self, landscape):
         development_strategy = landscape.associated_development_strategy.last()
         terms = landscape.taxonomy_terms.all()
-        groups = landscape.groups.all()
+        associated_groups = landscape.associated_groups.exclude(is_default_landscape_group=True)
+        groups = [associated_group.group for associated_group in associated_groups]
 
         # Get most recent last updated date from landscape, development strategy, terms and groups
         last_updated = max(
