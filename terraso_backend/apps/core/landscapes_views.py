@@ -54,12 +54,12 @@ class LandscapeExportView(View):
                 }
                 for term in terms
             ],
-            "associatedGroups": [group.name for group in groups],
+            "associatedGroups": list(set([group.name for group in groups])),
             "developmentStrategy": {
                 "objectives": development_strategy.objectives,
                 "problemSituation": development_strategy.problem_situtation,
                 "interventionStrategy": development_strategy.intervention_strategy,
-                "oppurtunities": development_strategy.opportunities,
+                "opportunities": development_strategy.opportunities,
             }
             if development_strategy
             else None,
