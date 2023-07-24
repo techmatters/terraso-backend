@@ -9,24 +9,24 @@ pytestmark = pytest.mark.django_db
 
 
 @pytest.mark.parametrize("model", [User, Group, DataEntry])
-def test_delete_model_deleted(model, exec_time, delete_date):
+def test_delete_model_deleted(model, delete_date):
     obj = mixer.blend(model)
     obj.delete()
     obj.deleted_at = delete_date
     obj.save(keep_deleted=True)
-    call_command("harddelete", exec_time=exec_time)
+    call_command("harddelete")
     assert (
         not model.objects.all(force_visibility=True).filter(id=obj.id).exists()
-    ), "User should be deleted"
+    ), "Model should be deleted"
 
 
 @pytest.mark.parametrize("model", [User, Group, DataEntry])
-def test_delete_model_not_deleted(model, exec_time, no_delete_date):
+def test_delete_model_not_deleted(model, no_delete_date):
     obj = mixer.blend(model)
     obj.delete()
     obj.deleted_at = no_delete_date
     obj.save(keep_deleted=True)
-    call_command("harddelete", exec_time=exec_time)
+    call_command("harddelete")
     assert (
         model.objects.all(force_visibility=True).filter(id=obj.id).exists()
-    ), "User should not be deleted"
+    ), "Model should not be deleted"

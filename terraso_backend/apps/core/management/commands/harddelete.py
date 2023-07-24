@@ -17,12 +17,6 @@ class Command(BaseCommand):
 
     def add_arguments(self, parser):
         parser.add_argument(
-            "--exec_time",
-            type=datetime.fromisoformat,
-            default=datetime.now(timezone.utc),
-            help="Manually set the execution time. Default is to use the current time.",
-        )
-        parser.add_argument(
             "--deletion_gap",
             type=lambda x: timedelta(days=int(x)),
             default=self.DEFAULT_DELETION_GAP,
@@ -46,7 +40,7 @@ class Command(BaseCommand):
         return objects
 
     def handle(self, *args, **options):
-        exec_time = options["exec_time"]
+        exec_time = datetime.now(timezone.utc)
         deletion_gap = options["deletion_gap"]
         cutoff_date = exec_time - deletion_gap
         to_delete = self.all_objects(cutoff_date)

@@ -11,15 +11,10 @@ def deletion_gap():
 
 
 @pytest.fixture
-def exec_time():
-    return datetime.now(timezone.utc)
+def delete_date(deletion_gap):
+    return datetime.now(timezone.utc) - (deletion_gap + timedelta(days=1))
 
 
 @pytest.fixture
-def delete_date(exec_time, deletion_gap):
-    return exec_time - (deletion_gap + timedelta(days=1))
-
-
-@pytest.fixture
-def no_delete_date(exec_time, deletion_gap):
-    return exec_time - (deletion_gap - timedelta(days=1))
+def no_delete_date(deletion_gap):
+    return datetime.now(timezone.utc) - (deletion_gap - timedelta(days=1))
