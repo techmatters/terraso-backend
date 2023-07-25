@@ -55,7 +55,7 @@ class DataEntryFileUploadView(AuthenticationRequiredMixin, FormView):
             return JsonResponse({"errors": [{"message": [asdict(error_message)]}]}, status=400)
         if not is_valid_shared_data_type(request.FILES.getlist("data_file")):
             error_message = ErrorMessage(
-                code="Invalid media type",
+                code="invalid_media_type",
                 context=ErrorContext(model="Shared Data", field="context_type"),
             )
             return JsonResponse({"errors": [{"message": [asdict(error_message)]}]}, status=400)
