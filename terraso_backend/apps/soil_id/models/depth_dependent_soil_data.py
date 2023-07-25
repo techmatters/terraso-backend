@@ -253,7 +253,7 @@ class DepthDependentSoilData(BaseModel):
     color_chroma = models.CharField(null=True, choices=COLOR_CHROMAS)
     conductivity = models.DecimalField(
         null=True, max_digits=100, decimal_places=2, validators=[MinValueValidator(0)]
-    )  ## max digit dont know
+    )
     conductivity_test = models.CharField(null=True, choices=CONDUCTIVITY_TESTS)
     conductivity_unit = models.CharField(null=True, choices=CONDUCTIVITY_UNITS)
     structure = models.CharField(null=True, choices=STRUCTURES)
