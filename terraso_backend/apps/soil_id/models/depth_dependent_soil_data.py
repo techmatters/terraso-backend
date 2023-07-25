@@ -13,26 +13,273 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see https://www.gnu.org/licenses/.
 
+from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
+from django.utils.translation import gettext_lazy as _
 
 from apps.core.models.commons import BaseModel
 from apps.soil_id.models.soil_data import SoilData
+
+OTHER = "other"
+
+SAND = "sand"
+LOAMY_SAND = "loamy sand"
+SANDY_LOAM = "sandy loam"
+SILT_LOAM = "slit loam"
+SILT = "silt"
+LOAM = "loam"
+SANDY_CLAY_LOAM = "sandy clay loam"
+SILTY_CLAY_LOAM = "silty clay loam"
+CLAY_LOAM = "clay loam"
+SANDY_CLAY = "sandy clay"
+SILTY_CLAY = "silty clay"
+CLAY = "clay"
+
+TEXTURES = (
+    (SAND, _("Sand")),
+    (LOAMY_SAND, _("Loamy sand")),
+    (SANDY_LOAM, _("Sandy loam")),
+    (SILT_LOAM, _("Silt loam")),
+    (SILT, _("Silt")),
+    (LOAM, _("Loam")),
+    (SANDY_CLAY_LOAM, _("Sandy clay loam")),
+    (SILTY_CLAY_LOAM, _("Silty clay loam")),
+    (CLAY_LOAM, _("Clay loam")),
+    (SANDY_CLAY, _("Sandy clay")),
+    (SILTY_CLAY, _("Silty clay")),
+    (CLAY, _("Clay")),
+)
+
+ROCK_FRAGMENT_0_1 = "0 - 1%"
+ROCK_FRAGMENT_1_15 = "1 - 15%"
+ROCK_FRAGMENT_15_35 = "15 - 35%"
+ROCK_FRAGMENT_35_60 = "35 - 60%"
+ROCK_FRAGMENT_60 = "> 60%"
+
+ROCK_FRAGMENT_VOLUMES = (
+    (ROCK_FRAGMENT_0_1, _("0 - 1%")),
+    (ROCK_FRAGMENT_1_15, _("1 - 15%")),
+    (ROCK_FRAGMENT_15_35, _("15 - 35%")),
+    (ROCK_FRAGMENT_35_60, _("35 - 60%")),
+    (ROCK_FRAGMENT_60, _("> 60%")),
+)
+
+
+HUE_2_5 = "2.5"
+HUE_5 = "5"
+HUE_7_5 = "7.5"
+HUE_10 = "10"
+
+COLOR_HUES = ((HUE_2_5, _("2.5")), (HUE_5, _("5")), (HUE_7_5, _("7.5")), (HUE_10, _("10")))
+
+RED = "R"
+YELLOW_RED = "YR"
+YELLOW = "Y"
+GREEN_YELLOW = "GY"
+GREEN = "G"
+BLUE = "B"
+BLUE_GREEN = "BG"
+
+COLOR_HUES_SUBSTEPS = (
+    (RED, _("r")),
+    (YELLOW_RED, _("yr")),
+    (YELLOW, _("y")),
+    (GREEN_YELLOW, _("gy")),
+    (GREEN, _("g")),
+    (BLUE, _("b")),
+    (BLUE_GREEN, _("bg")),
+)
+
+COLOR_VALUE_2_5 = "2.5"
+COLOR_VALUE_3 = "3"
+COLOR_VALUE_4 = "4"
+COLOR_VALUE_5 = "5"
+COLOR_VALUE_6 = "6"
+COLOR_VALUE_7 = "7"
+COLOR_VALUE_8 = "8"
+COLOR_VALUE_8_5 = "8.5"
+COLOR_VALUE_9 = "9"
+COLOR_VALUE_9_5 = "9.5"
+
+COLOR_VALUES = (
+    (COLOR_VALUE_2_5, _("2.5")),
+    (COLOR_VALUE_3, _("3")),
+    (COLOR_VALUE_4, _("4")),
+    (COLOR_VALUE_5, _("5")),
+    (COLOR_VALUE_6, _("6")),
+    (COLOR_VALUE_7, _("7")),
+    (COLOR_VALUE_8, _("8")),
+    (COLOR_VALUE_8_5, _("8.5")),
+    (COLOR_VALUE_9, _("9")),
+    (COLOR_VALUE_9_5, _("9.5")),
+)
+
+COLOR_CHROMA_1 = "1"
+COLOR_CHROMA_2 = "2"
+COLOR_CHROMA_3 = "3"
+COLOR_CHROMA_4 = "4"
+COLOR_CHROMA_5 = "5"
+COLOR_CHROMA_6 = "6"
+COLOR_CHROMA_7 = "7"
+COLOR_CHROMA_8 = "8"
+
+COLOR_CHROMAS = (
+    (COLOR_CHROMA_1, _("1")),
+    (COLOR_CHROMA_2, _("2")),
+    (COLOR_CHROMA_3, _("3")),
+    (COLOR_CHROMA_4, _("4")),
+    (COLOR_CHROMA_5, _("5")),
+    (COLOR_CHROMA_6, _("6")),
+    (COLOR_CHROMA_7, _("7")),
+    (COLOR_CHROMA_8, _("8")),
+)
+
+CONDUCTIVITY_SATURATED_PASTE = "saturate paste"
+CONDUCTIVITY_SOIL_WATER_1_1 = "1:1 soil/water"
+CONDUCTIVITY_SOIL_WATER_1_2 = "1:2 soil/water"
+CONDUCTIVITY_SOIL_CONTACT_PROBE = "soil contact probe"
+
+CONDUCTIVITY_TESTS = (
+    (CONDUCTIVITY_SATURATED_PASTE, _("Saturated paste")),
+    (CONDUCTIVITY_SOIL_WATER_1_1, _("1:1 soil/water")),
+    (CONDUCTIVITY_SOIL_WATER_1_2, _("1:2 soil/water")),
+    (CONDUCTIVITY_SOIL_CONTACT_PROBE, _("Soil contact probe")),
+    (OTHER, _("Other")),
+)
+
+MILLISIEMENS_CENTIMETER = "mS/cm"
+MILLIMHOS_CENTIMETER = "mmhos/cm"
+MICROSIEMENS_METER = "µS/m"
+MILLISIEMENS_METER = "mS/m"
+DECISIEMENS_METER = "dS/m"
+
+CONDUCTIVITY_UNITS = (
+    (MILLISIEMENS_CENTIMETER, _("mS/cm")),
+    (MILLIMHOS_CENTIMETER, _("mmhos/cm")),
+    (MICROSIEMENS_METER, _("µS/m")),
+    (MILLISIEMENS_METER, _("mS/m")),
+    (DECISIEMENS_METER, _("dS/m")),
+    (OTHER, _("other")),
+)
+
+GRANULAR = "granular"
+SUBANGULAR_BLOCKY = "subangular blocky"
+ANGULAR_BLOCKY = "angular blocky"
+LENTICULAR = "lenticular"
+PLAY = "play"
+WEDGE = "wedge"
+PRISMATIC = "prismatic"
+COLUMNAR = "columnar"
+SINGLE_GRAIN = "single grain"
+MASSIVE = "massive"
+
+STRUCTURES = (
+    (GRANULAR, _("Granular")),
+    (SUBANGULAR_BLOCKY, _("Subangular Blocky")),
+    (ANGULAR_BLOCKY, _("Angular Blocky")),
+    (LENTICULAR, _("lenticular")),
+    (PLAY, _("Play")),
+    (WEDGE, _("Wedge")),
+    (PRISMATIC, _("Prismatic")),
+    (COLUMNAR, _("Columnar")),
+    (SINGLE_GRAIN, _("Single Grain")),
+    (MASSIVE, _("Massive")),
+)
+
+PH_TESTING_SOIL_WATER_1_1 = "1:1 soil/water"
+PH_TESTING_SOIL_WATER_1_2 = "1:2 soil/water"
+PH_TESTING_SOIL_WATER_1_2_5 = "1:2.5 soil/water"
+PH_TESTING_SOIL_WATER_1_5 = "1:5 soil/water"
+PH_TESTING_SOIL_CACL2_1_1 = "1:1 soil/0.1 M CaCL2"
+PH_TESTING_SOIL_CACL2_1_2 = "1:2 soil/0.1 M CaCL2"
+PH_TESTING_SOIL_CACL2_1_5 = "1:5 soil/0.1 M CaCL2"
+PH_TESTING_SOIL_KCL_1_1 = "1:1 soil/1.0 M KCL"
+PH_TESTING_SOIL_KCL_1_2_5 = "1:2.5 soil/1.0 M KCL"
+PH_TESTING_SOIL_KCL_1_5 = "1:5 soil/1.0 M KCL"
+PH_TESTING_SATURATED_PASTE_EXTRACT = "saturated paste extract"
+
+PH_TESTING_SOLUTIONS = (
+    (PH_TESTING_SOIL_WATER_1_1, _("1:1 soil/water")),
+    (PH_TESTING_SOIL_WATER_1_2, _("1:2 soil/water")),
+    (PH_TESTING_SOIL_WATER_1_2_5, _("1:2.5 soil/water")),
+    (PH_TESTING_SOIL_WATER_1_5, _("1:5 soil/water")),
+    (PH_TESTING_SOIL_CACL2_1_1, _("1:1 soil/0.1 M CaCL2")),
+    (PH_TESTING_SOIL_CACL2_1_2, _("1:2 soil/0.1 M CaCL2")),
+    (PH_TESTING_SOIL_CACL2_1_5, _("1:5 soil/0.1 M CaCL2")),
+    (PH_TESTING_SOIL_KCL_1_1, _("1:1 soil/1.0 M KCL")),
+    (PH_TESTING_SOIL_KCL_1_2_5, _("1:2.5 soil/1.0 M KCL")),
+    (PH_TESTING_SOIL_KCL_1_5, _("1:5 soil/1.0 M KCL")),
+    (PH_TESTING_SATURATED_PASTE_EXTRACT, _("Saturated Paste Extract")),
+    (OTHER, _("Other")),
+)
+
+
+PH_TESTING_INDICATOR_STRIP = "pH indicator strip"
+PH_TESTING_INDICATOR_SOLUTION = "pH indicator solution"
+PH_TESTING_METER = "pH meter"
+
+PH_TESTING_METHODS = (
+    (PH_TESTING_INDICATOR_STRIP, _("pH indicator strip")),
+    (PH_TESTING_INDICATOR_SOLUTION, _("pH indicator solution")),
+    (PH_TESTING_METER, _("pH meter")),
+    (OTHER, _("other")),
+)
+
+SOIL_TESTING_DRY_COMBUSTION = "Dry combustion"
+SOIL_TESTING_WET_OXIDATION = "Wet oxidation (Walkey-Black)"
+SOIL_TESTING_LOSS_ON_IGNITION = "Loss-on-ignition"
+SOIL_TESTING_REFLECTANCE_SPECTROSCOPY = "Reflectance spectroscopy"
+SOIL_TESTING_FIELD_REFLECTOMETER = "Field reflectometer"
+
+SOIL_TESTING_METHODS = (
+    (SOIL_TESTING_DRY_COMBUSTION, _("Dry combustion")),
+    (SOIL_TESTING_WET_OXIDATION, _("Wet oxidation (Walkey-Black)")),
+    (SOIL_TESTING_LOSS_ON_IGNITION, _("Loss-on-ignition")),
+    (SOIL_TESTING_REFLECTANCE_SPECTROSCOPY, _("Reflectance spectroscopy")),
+    (SOIL_TESTING_FIELD_REFLECTOMETER, _("Field reflectometer")),
+    (OTHER, _("Other")),
+)
 
 
 class DepthDependentSoilData(BaseModel):
     soil_data_input = models.ForeignKey(SoilData, on_delete=models.CASCADE)
     depth_top = models.IntegerField(blank=True)
     depth_bottom = models.IntegerField(blank=True)
-    slope = models.IntegerField(blank=True)
-    texture = models.CharField(blank=True)
-    color_hue_float = models.FloatField(blank=True)
-    color_hue_char = models.CharField(blank=True)
-    color_value = models.FloatField(blank=True)
-    color_chroma = models.IntegerField(blank=True)
-    conductivity = models.FloatField(blank=True)
-    structure = models.CharField(blank=True)
-    ph = models.FloatField(blank=True)
-    soc = models.FloatField(blank=True)
-    som = models.FloatField(blank=True)
-    sar = models.FloatField(blank=True)
-    bedrock = models.PositiveIntegerField(blank=True)
+    texture = models.CharField(null=True, choices=TEXTURES)
+    rock_fragment_volume = models.CharField(null=True, choices=ROCK_FRAGMENT_VOLUMES)
+    color_hue = models.CharField(null=True, choices=COLOR_HUES)
+    color_hue_substep = models.CharField(null=True, choices=COLOR_HUES_SUBSTEPS)
+    color_value = models.CharField(null=True, choices=COLOR_VALUES)
+    color_chroma = models.CharField(null=True, choices=COLOR_CHROMAS)
+    conductivity = models.DecimalField(
+        null=True, max_digits=100, decimal_places=2, validators=[MinValueValidator(0)]
+    )  ## max digit dont know
+    conductivity_test = models.CharField(null=True, choices=CONDUCTIVITY_TESTS)
+    conductivity_unit = models.CharField(null=True, choices=CONDUCTIVITY_UNITS)
+    structure = models.CharField(null=True, choices=STRUCTURES)
+    ph = models.DecimalField(
+        null=True,
+        max_digits=3,
+        decimal_places=1,
+        validators=[MinValueValidator(0.0), MaxValueValidator(14.0)],
+    )
+    ph_testing_solution = models.CharField(null=True, choices=PH_TESTING_SOLUTIONS)
+    ph_testing_method = models.CharField(null=True, choices=PH_TESTING_METHODS)
+    soil_organic_carbon = models.DecimalField(
+        null=True,
+        max_digits=100,
+        decimal_places=1,
+        validators=[MinValueValidator(0), MaxValueValidator(100)],
+    )
+    soil_organic_matter = models.DecimalField(
+        null=True,
+        max_digits=100,
+        decimal_places=1,
+        validators=[MinValueValidator(0), MaxValueValidator(100)],
+    )
+    soil_organic_carbon_testing = models.CharField(null=True, choices=SOIL_TESTING_METHODS)
+    soil_organic_matter_testing = models.CharField(null=True, choices=SOIL_TESTING_METHODS)
+    sodium_absorption_ratio = models.DecimalField(
+        null=True, max_digits=100, decimal_places=2, validators=[MinValueValidator(0)]
+    )
+    bedrock = models.PositiveIntegerField(null=True)
