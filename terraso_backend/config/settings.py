@@ -382,10 +382,14 @@ class JWTProvider(TypedDict):
 
 
 JWT_EXCHANGE_PROVIDERS: dict[str, JWTProvider] = {
-    "google": dict(
+    "google-android": dict(
         url="https://www.googleapis.com/oauth2/v3/certs",
-        client_id=config("GOOGLE_MOBILE_CLIENT_ID", default=""),
-    )
+        client_id=config("GOOGLE_ANDROID_CLIENT_ID", default=""),
+    ),
+    "google-ios": dict(
+        url="https://www.googleapis.com/oauth2/v3/certs",
+        client_id=config("GOOGLE_IOS_CLIENT_ID", default=""),
+    ),
 }
 
 
