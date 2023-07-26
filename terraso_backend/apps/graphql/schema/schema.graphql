@@ -632,9 +632,19 @@ type SiteNode implements Node {
   latitude: Float!
   longitude: Float!
   owner: UserNode
+  privacy: ProjectManagementSitePrivacyChoices!
   project: ProjectNode
   archived: Boolean!
   id: ID!
+}
+
+"""An enumeration."""
+enum ProjectManagementSitePrivacyChoices {
+  """Private"""
+  PRIVATE
+
+  """Public"""
+  PUBLIC
 }
 
 type ProjectNodeConnection {
@@ -1105,6 +1115,7 @@ input SiteAddMutationInput {
   name: String!
   latitude: Float!
   longitude: Float!
+  privacy: ProjectManagementSitePrivacyChoices
   projectId: ID
   clientMutationId: String
 }
@@ -1120,6 +1131,7 @@ input SiteUpdateMutationInput {
   name: String
   latitude: Float
   longitude: Float
+  privacy: ProjectManagementSitePrivacyChoices
   projectId: ID
   clientMutationId: String
 }
