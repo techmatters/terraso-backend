@@ -278,3 +278,31 @@ def test_update_upload_multiple_media_invalid(logged_client, users):
     assert response.status_code == 400
     assert response_data["errors"][0]["message"][0]["code"] == "Invalid Media Type"
     assert "errors" in response_data
+
+
+def test_add_null_media_valid(logged_client, users):
+    story_map = mixer.blend("story_map.StoryMap", created_by=users[0])
+    url = reverse("story_map:add")
+    data = {
+        "id": story_map.pk,
+        "title": "Test StoryMap Updated",
+        "is_published": "true",
+        "configuration": json.dumps(
+            {
+                "title": "Test StoryMap Updated",
+                "chapters": [
+                    {
+                        "id": "chapter-1",
+                        "title": "Chapter 1",
+                        "description": "Chapter 1 description",
+                    },
+                ],
+            }
+        ),
+    }
+    response = logged_client.post(url, data=data)
+
+    assert response.status_code == 201
+    assert response.json()["title"] == data["title"]
+    assert response.json()["created_by"] == str(users[0].id)
+    assert response.json()["is_published"]
