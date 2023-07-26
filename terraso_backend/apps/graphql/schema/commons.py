@@ -14,13 +14,12 @@
 # along with this program. If not, see https://www.gnu.org/licenses/.
 
 import json
-import re
 from typing import Optional
 
 import structlog
 from django.core.exceptions import NON_FIELD_ERRORS, ValidationError
 from django.db import IntegrityError
-from graphene import Connection, Field, Int, List, NonNull, ObjectType, String, relay
+from graphene import Connection, Int, relay
 from graphene.types.generic import GenericScalar
 from graphql import get_nullable_type
 
@@ -63,34 +62,10 @@ class TerrasoConnection(Connection):
         queryset = self.iterable
         return queryset.count()
 
-    # This will coax graphene to output more precise types for connections.
-    # Context: https://github.com/graphql-python/graphene/pull/1504
-    # Will be unnecessary after https://github.com/graphql-python/graphene-django/issues/901
     @classmethod
-    def __init_subclass_with_meta__(cls, node=None, **options):
-        type_name = re.sub("Connection$", "", cls.__name__)
-
-        node_for_edge = node
-        if node is not None and not isinstance(node, NonNull):
-            node_for_edge = NonNull(node)
-
-        class Edge(ObjectType):
-            node = Field(node_for_edge, description="The item at the end of the edge")
-            cursor = String(required=True, description="A cursor for use in pagination")
-
-        class Meta:
-            description = f"A Relay edge containing a `{type_name}` and its cursor."
-
-        edge_type = type(f"{type_name}Edge", (Edge,), {"Meta": Meta})
-
-        cls.Edge = edge_type
-
-        cls.edges = Field(
-            NonNull(List(NonNull(edge_type))),
-            description="Contains the nodes in this connection.",
-        )
-
-        super().__init_subclass_with_meta__(node=node, **options)
+    def __init_subclass_with_meta__(cls, **options):
+        options["strict_types"] = options.pop("strict_types", True)
+        super().__init_subclass_with_meta__(**options)
 
 
 class BaseMutation(relay.ClientIDMutation):
