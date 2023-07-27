@@ -211,7 +211,7 @@ class DepthDependentSoilData(BaseModel):
 
     ph = models.DecimalField(
         null=True,
-        max_digits=100,
+        max_digits=3,
         decimal_places=1,
         validators=[MinValueValidator(0.0), MaxValueValidator(14.0)],
     )
@@ -258,23 +258,23 @@ class DepthDependentSoilData(BaseModel):
 
     soil_organic_carbon = models.DecimalField(
         null=True,
-        max_digits=3,
+        max_digits=4,
         decimal_places=1,
         validators=[MinValueValidator(0), MaxValueValidator(100)],
     )
 
     soil_organic_matter = models.DecimalField(
         null=True,
-        max_digits=3,
+        max_digits=4,
         decimal_places=1,
         validators=[MinValueValidator(0), MaxValueValidator(100)],
     )
 
-    SOIL_TESTING_DRY_COMBUSTION = "Dry combustion"
-    SOIL_TESTING_WET_OXIDATION = "Wet oxidation (Walkey-Black)"
-    SOIL_TESTING_LOSS_ON_IGNITION = "Loss-on-ignition"
-    SOIL_TESTING_REFLECTANCE_SPECTROSCOPY = "Reflectance spectroscopy"
-    SOIL_TESTING_FIELD_REFLECTOMETER = "Field reflectometer"
+    SOIL_TESTING_DRY_COMBUSTION = "dry combustion"
+    SOIL_TESTING_WET_OXIDATION = "wet oxidation (Walkey-Black)"
+    SOIL_TESTING_LOSS_ON_IGNITION = "loss-on-ignition"
+    SOIL_TESTING_REFLECTANCE_SPECTROSCOPY = "reflectance spectroscopy"
+    SOIL_TESTING_FIELD_REFLECTOMETER = "field reflectometer"
 
     SOIL_TESTING_METHODS = (
         (SOIL_TESTING_DRY_COMBUSTION, _("Dry combustion")),
@@ -292,3 +292,19 @@ class DepthDependentSoilData(BaseModel):
     )
 
     bedrock = models.PositiveIntegerField(null=True)
+
+    NONEFFERVESCENT = "noneffervescent - No bubbles form"
+    VERY_SLIGHTLY_EFFERVESCENT = "very slightly effervescent - Few bubbles form"
+    SLIGHTLY_EFFERVESCENT = "slightly effervescent - Numerous bubbles form"
+    STRONGLY_EFFERVESCENT = "strongly effervescent - Bubbles form a low foam"
+    VIOLENTLY_EFFERVESCENT = "violently effervescent - Bubbles rapidly form a thick foam"
+
+    CARBONATES = (
+        (NONEFFERVESCENT, _("Noneffervescent - No bubbles form")),
+        (VERY_SLIGHTLY_EFFERVESCENT, _("Very slightly effervescent - Few bubbles form")),
+        (SLIGHTLY_EFFERVESCENT, _("Slightly effervescent - Numerous bubbles form")),
+        (STRONGLY_EFFERVESCENT, _("Strongly effervescent - Bubbles form a low foam")),
+        (VIOLENTLY_EFFERVESCENT, _("Violently effervescent - Bubbles rapidly form a thick foam")),
+    )
+
+    carbonate = models.CharField(null=True, choices=CARBONATES)
