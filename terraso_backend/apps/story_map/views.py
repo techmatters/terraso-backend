@@ -67,7 +67,7 @@ class StoryMapAddView(AuthenticationRequiredMixin, FormView):
             )
             return JsonResponse({"errors": [{"message": [asdict(error_message)]}]}, status=400)
 
-        if invalid_media_type(config):
+        if not is_valid_media_type(config):
             error_message = ErrorMessage(
                 code="Invalid Media Type",
                 context=ErrorContext(model="StoryMap", field="configuration"),
@@ -117,7 +117,7 @@ class StoryMapUpdateView(AuthenticationRequiredMixin, FormView):
 
         new_config = json.loads(form_data["configuration"])
 
-        if invalid_media_type(new_config):
+        if not is_valid_media_type(new_config):
             error_message = ErrorMessage(
                 code="Invalid Media Type",
                 context=ErrorContext(model="StoryMap", field="configuration"),
@@ -194,13 +194,13 @@ def handle_config_media(new_config, current_config, request):
     return new_config
 
 
-def invalid_media_type(config):
+def is_valid_media_type(config):
     if "chapters" in config:
-        for chapter in config["chapters"]:
-            media = chapter.get("media")
-            if media and not (media["type"].startswith(("image", "audio", "video", "embedded"))):
-                return True
-        return False
+        return all(
+            chapter.get("media") is None
+            or chapter["media"]["type"].startswith(("image", "audio", "video", "embedded"))
+            for chapter in config["chapters"]
+        )
 
 
 def handle_integrity_error(exc):
