@@ -29,8 +29,10 @@ SLOPE_SHAPES = ((CONCAVE, _("Concave")), (CONVEX, _("Convex")), (LINEAR, _("Line
 
 class SoilData(BaseModel):
     site = models.OneToOneField(Site, on_delete=models.CASCADE)
-    slope = models.IntegerField(
+    down_slope = models.IntegerField(
+        null=True, validators=[MinValueValidator(0), MaxValueValidator(100)]
+    )
+    cross_slope = models.IntegerField(
         null=True, validators=[MinValueValidator(0), MaxValueValidator(100)]
     )
     slope_shape = models.CharField(null=True, choices=SLOPE_SHAPES)
-    # add slope aspect ?? (north, south, east ..)
