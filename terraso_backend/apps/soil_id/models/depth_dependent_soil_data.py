@@ -22,7 +22,6 @@ from apps.soil_id.models.soil_data import SoilData
 
 OTHER = "other"
 
-
 class DepthDependentSoilData(BaseModel):
     soil_data_input = models.ForeignKey(SoilData, on_delete=models.CASCADE)
     depth_top = models.IntegerField(blank=True)
@@ -151,7 +150,7 @@ class DepthDependentSoilData(BaseModel):
     color_chroma = models.CharField(null=True, choices=COLOR_CHROMAS)
 
     conductivity = models.DecimalField(
-        null=True, max_digits=None, decimal_places=2, validators=[MinValueValidator(0)]
+        null=True, max_digits=100, decimal_places=2, validators=[MinValueValidator(0)]
     )
 
     CONDUCTIVITY_SATURATED_PASTE = "saturated paste"
@@ -211,7 +210,7 @@ class DepthDependentSoilData(BaseModel):
 
     ph = models.DecimalField(
         null=True,
-        max_digits=None,
+        max_digits=100,
         decimal_places=1,
         validators=[MinValueValidator(0.0), MaxValueValidator(14.0)],
     )
@@ -258,14 +257,14 @@ class DepthDependentSoilData(BaseModel):
 
     soil_organic_carbon = models.DecimalField(
         null=True,
-        max_digits=None,
+        max_digits=3,
         decimal_places=1,
         validators=[MinValueValidator(0), MaxValueValidator(100)],
     )
 
     soil_organic_matter = models.DecimalField(
         null=True,
-        max_digits=None,
+        max_digits=3,
         decimal_places=1,
         validators=[MinValueValidator(0), MaxValueValidator(100)],
     )
@@ -288,7 +287,7 @@ class DepthDependentSoilData(BaseModel):
     soil_organic_matter_testing = models.CharField(null=True, choices=SOIL_TESTING_METHODS)
 
     sodium_absorption_ratio = models.DecimalField(
-        null=True, max_digits=None, decimal_places=2, validators=[MinValueValidator(0)]
+        null=True, max_digits=100, decimal_places=2, validators=[MinValueValidator(0)]
     )
 
     bedrock = models.PositiveIntegerField(null=True)
