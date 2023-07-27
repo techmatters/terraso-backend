@@ -86,6 +86,9 @@ class SiteAddMutation(BaseWriteMutation):
         log = cls.get_logger()
         user = info.context.user
 
+        if "privacy" in kwargs:
+            kwargs["privacy"] = kwargs["privacy"].value
+
         client_time = kwargs.pop("client_time", None)
         if not client_time:
             client_time = datetime.now()
@@ -142,6 +145,10 @@ class SiteUpdateMutation(BaseWriteMutation):
         if not user.has_perm(Site.get_perm("change"), site):
             raise cls.not_allowed(MutationTypes.UPDATE)
         project_id = kwargs.pop("project_id", False)
+
+        if "privacy" in kwargs:
+            kwargs["privacy"] = kwargs["privacy"].value
+
         result = super().mutate_and_get_payload(root, info, **kwargs)
         if not project_id:
             return result

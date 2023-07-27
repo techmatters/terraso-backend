@@ -38,7 +38,7 @@ CREATE_SITE_QUERY = """
 
 
 def site_creation_keywords():
-    return {"latitude": 0, "longitude": 0, "name": "Test Site"}
+    return {"latitude": 0, "longitude": 0, "name": "Test Site", "privacy": "PUBLIC"}
 
 
 def test_site_creation(client_query, user):
@@ -52,6 +52,7 @@ def test_site_creation(client_query, user):
     assert site.latitude == pytest.approx(site.latitude)
     assert site.longitude == pytest.approx(site.longitude)
     assert site.owner == user
+    assert site.privacy == "public"
     logs = Log.objects.all()
     assert len(logs) == 1
     log_result = logs[0]
@@ -88,6 +89,7 @@ UPDATE_SITE_QUERY = """
         updateSite(input: $input) {
             site {
                id
+               privacy
                project {
                  id
                }
@@ -106,7 +108,9 @@ def test_update_site_in_project(client, project, project_manager, site):
     client.force_login(project_manager)
     response = graphql_query(
         UPDATE_SITE_QUERY,
-        variables={"input": {"id": str(site.id), "projectId": str(project.id)}},
+        variables={
+            "input": {"id": str(site.id), "projectId": str(project.id), "privacy": "PUBLIC"}
+        },
         client=client,
     )
     content = json.loads(response.content)
@@ -118,6 +122,7 @@ def test_update_site_in_project(client, project, project_manager, site):
     assert project_id == str(project.id)
     site.refresh_from_db()
     assert site.project.id == project.id
+    assert site.privacy == "public"
 
     logs = Log.objects.all()
     assert len(logs) == 1
