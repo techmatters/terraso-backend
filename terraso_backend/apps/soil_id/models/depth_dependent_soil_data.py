@@ -22,6 +22,7 @@ from apps.soil_id.models.soil_data import SoilData
 
 OTHER = "other"
 
+
 class DepthDependentSoilData(BaseModel):
     soil_data_input = models.ForeignKey(SoilData, on_delete=models.CASCADE)
     depth_top = models.IntegerField(blank=True)
