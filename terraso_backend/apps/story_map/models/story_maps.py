@@ -16,6 +16,7 @@
 from django.db import models
 from safedelete.models import SOFT_DELETE
 
+from apps.collaboration.models import MembershipList
 from apps.core.models import BaseModel, SlugModel, User
 from apps.core.models.commons import validate_name
 from apps.story_map import permission_rules as perm_rules
@@ -34,6 +35,10 @@ class StoryMap(SlugModel):
     is_published = models.BooleanField(blank=True, default=False)
     published_at = models.DateTimeField(blank=True, null=True)
 
+    membership_list = models.ForeignKey(
+        MembershipList, on_delete=models.CASCADE, related_name="story_map", null=True
+    )
+
     field_to_slug = "title"
     fields_to_trim = ["title"]
 
@@ -50,6 +55,8 @@ class StoryMap(SlugModel):
             "change": perm_rules.allowed_to_change_story_map,
             "delete": perm_rules.allowed_to_delete_story_map,
             "view": perm_rules.allowed_to_view_story_map,
+            "save_membership": perm_rules.allowed_to_save_membership,
+            "delete_membership": perm_rules.allowed_to_delete_membership,
         }
 
     def to_dict(self):

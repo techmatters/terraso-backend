@@ -21,3 +21,4 @@ from .models import StoryMap
 @admin.register(StoryMap)
 class DataEntryAdmin(admin.ModelAdmin):
     list_display = ("title", "created_by")
+    raw_id_fields = ("membership_list",)
