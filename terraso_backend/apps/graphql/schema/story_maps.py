@@ -16,15 +16,19 @@
 import django_filters
 import graphene
 import structlog
+from django.db import transaction
 from django.db.models import Q
 from graphene import relay
 from graphene_django import DjangoObjectType
 
-from apps.graphql.exceptions import GraphQLNotAllowedException
+from apps.collaboration.graphql import BaseSaveInput, CollaborationMembershipNode
+from apps.collaboration.models import Membership
+from apps.graphql.exceptions import GraphQLNotAllowedException, GraphQLNotFoundException
+from apps.story_map.collaboration_roles import ROLE_CONTRIBUTOR
 from apps.story_map.models.story_maps import StoryMap
 from apps.story_map.services import story_map_media_upload_service
 
-from .commons import BaseDeleteMutation, TerrasoConnection
+from .commons import BaseAuthenticatedMutation, BaseDeleteMutation, TerrasoConnection
 from .constants import MutationTypes
 
 logger = structlog.get_logger(__name__)
@@ -61,6 +65,7 @@ class StoryMapNode(DjangoObjectType):
             "created_at",
             "updated_at",
             "published_at",
+            "membership_list",
         )
         filterset_class = StoryMapFilterSet
         interfaces = (relay.Node,)
@@ -102,4 +107,118 @@ class StoryMapDeleteMutation(BaseDeleteMutation):
             raise GraphQLNotAllowedException(
                 model_name=StoryMap.__name__, operation=MutationTypes.DELETE
             )
+        return super().mutate_and_get_payload(root, info, **kwargs)
+
+
+class StoryMapMembershipSaveMutation(BaseAuthenticatedMutation):
+    model_class = Membership
+    membership = graphene.Field(CollaborationMembershipNode)
+
+    class Input(BaseSaveInput):
+        story_map_id = graphene.String(required=True)
+        story_map_slug = graphene.String(required=True)
+
+    @classmethod
+    @transaction.atomic
+    def mutate_and_get_payload(cls, root, info, **kwargs):
+        user = info.context.user
+
+        if kwargs["user_role"] != ROLE_CONTRIBUTOR:
+            logger.info(
+                "Attempt to save a Membership, but user has no permission",
+                extra=kwargs,
+            )
+            raise GraphQLNotAllowedException(
+                model_name=Membership.__name__, operation=MutationTypes.UPDATE
+            )
+
+        story_map_id = kwargs["story_map_id"]
+        story_map_slug = kwargs["story_map_slug"]
+
+        try:
+            story_map = StoryMap.objects.get(slug=story_map_slug, story_map_id=story_map_id)
+        except StoryMap.DoesNotExist:
+            logger.error(
+                "Attempt to save a Membership, but Story Map was not found",
+                extra={"story_map_id": story_map_id, "story_map_slug": story_map_slug},
+            )
+            raise GraphQLNotFoundException(model_name=StoryMap.__name__)
+
+        if not user.has_perm(
+            StoryMap.get_perm("save_membership"),
+            obj={
+                "story_map": story_map,
+                "membership": kwargs,
+            },
+        ):
+            logger.info(
+                "Attempt to update a Membership, but user has no permission",
+                extra=kwargs,
+            )
+            raise GraphQLNotAllowedException(
+                model_name=Membership.__name__, operation=MutationTypes.UPDATE
+            )
+
+        try:
+            membership = story_map.membership_list.save_member(kwargs)
+        except Membership.DoesNotExist:
+            logger.error(
+                "Attempt to update a Membership, but it was not found",
+                extra=kwargs,
+            )
+            raise GraphQLNotFoundException(model_name=Membership.__name__)
+
+        return cls(membership=membership)
+
+
+class StoryMapMembershipDeleteMutation(BaseDeleteMutation):
+    membership = graphene.Field(CollaborationMembershipNode)
+
+    model_class = Membership
+
+    class Input:
+        id = graphene.ID()
+        story_map_id = graphene.String(required=True)
+        story_map_slug = graphene.String(required=True)
+
+    @classmethod
+    def mutate_and_get_payload(cls, root, info, **kwargs):
+        user = info.context.user
+        membership_id = kwargs["id"]
+        story_map_id = kwargs["story_map_id"]
+        story_map_slug = kwargs["story_map_slug"]
+
+        try:
+            story_map = StoryMap.objects.get(slug=story_map_slug, story_map_id=story_map_id)
+        except StoryMap.DoesNotExist:
+            logger.error(
+                "Attempt to save a Membership, but Story Map was not found",
+                extra={"story_map_id": story_map_id, "story_map_slug": story_map_slug},
+            )
+            raise GraphQLNotFoundException(model_name=StoryMap.__name__)
+
+        try:
+            membership = story_map.membership_list.get(pk=membership_id)
+        except Membership.DoesNotExist:
+            logger.error(
+                "Attempt to delete a Membership, but it was not found",
+                extra={"membership_id": membership_id},
+            )
+            raise GraphQLNotFoundException(model_name=Membership.__name__)
+
+        if not user.has_perm(
+            StoryMap.get_perm("delete_membership"),
+            obj={
+                "story_map": story_map,
+                "membership": membership,
+            },
+        ):
+            logger.info(
+                "Attempt to delete a Membership, but user has no permission",
+                extra={"user_id": user.pk, "membership_id": membership_id},
+            )
+            raise GraphQLNotAllowedException(
+                model_name=Membership.__name__, operation=MutationTypes.DELETE
+            )
+
         return super().mutate_and_get_payload(root, info, **kwargs)
