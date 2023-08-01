@@ -23,7 +23,7 @@ class MembershipInline(admin.TabularInline):
 
 
 @admin.register(MembershipList)
-class GroupAdmin(admin.ModelAdmin):
+class MembershipListAdmin(admin.ModelAdmin):
     list_display = ("id", "created_at")
     inlines = [MembershipInline]
 

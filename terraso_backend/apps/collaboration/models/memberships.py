@@ -70,13 +70,13 @@ class MembershipList(BaseModel):
         )
 
         if is_membership_approved:
-            EmailNotification.send_membership_approval(membership.user, membership.group)
+            EmailNotification.send_membership_approval(membership.user, membership.membership_list)
 
         membership.save()
         return membership
 
     @property
-    def group_members(self):
+    def members(self):
         member_memberships = models.Subquery(self.memberships.approved_only().values("user_id"))
         return User.objects.filter(id__in=member_memberships)
 
@@ -84,7 +84,7 @@ class MembershipList(BaseModel):
         return self.memberships.by_role(role).filter(id=user.id).exists()
 
     def is_member(self, user: User) -> bool:
-        return self.group_members.filter(id=user.id).exists()
+        return self.members.filter(id=user.id).exists()
 
     def get_membership(self, user: User):
         return self.memberships.filter(user=user).first()
