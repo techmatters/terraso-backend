@@ -35,7 +35,7 @@ class WebClientSitemap(GenericSitemap):
 
     @classmethod
     def location(cls, item):
-        if type(item) == Landscape:
+        if isinstance(item, Landscape):
             return f"/landscapes/{item.slug}/profile"
 
     @classmethod
