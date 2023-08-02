@@ -31,7 +31,7 @@ class DepthDependentSoilData(BaseModel):
     SAND = "sand"
     LOAMY_SAND = "loamy sand"
     SANDY_LOAM = "sandy loam"
-    SILT_LOAM = "slit loam"
+    SILT_LOAM = "silt loam"
     SILT = "silt"
     LOAM = "loam"
     SANDY_CLAY_LOAM = "sandy clay loam"
@@ -57,17 +57,17 @@ class DepthDependentSoilData(BaseModel):
     )
     texture = models.CharField(null=True, choices=TEXTURES)
 
-    ROCK_FRAGMENT_0_1 = "0 - 1%"
-    ROCK_FRAGMENT_1_15 = "1 - 15%"
-    ROCK_FRAGMENT_15_35 = "15 - 35%"
-    ROCK_FRAGMENT_35_60 = "35 - 60%"
+    ROCK_FRAGMENT_0_1 = "0 — 1%"
+    ROCK_FRAGMENT_1_15 = "1 — 15%"
+    ROCK_FRAGMENT_15_35 = "15 — 35%"
+    ROCK_FRAGMENT_35_60 = "35 — 60%"
     ROCK_FRAGMENT_60 = "> 60%"
 
     ROCK_FRAGMENT_VOLUMES = (
-        (ROCK_FRAGMENT_0_1, _("0 - 1%")),
-        (ROCK_FRAGMENT_1_15, _("1 - 15%")),
-        (ROCK_FRAGMENT_15_35, _("15 - 35%")),
-        (ROCK_FRAGMENT_35_60, _("35 - 60%")),
+        (ROCK_FRAGMENT_0_1, _("0 — 1%")),
+        (ROCK_FRAGMENT_1_15, _("1 — 15%")),
+        (ROCK_FRAGMENT_15_35, _("15 — 35%")),
+        (ROCK_FRAGMENT_35_60, _("35 — 60%")),
         (ROCK_FRAGMENT_60, _("> 60%")),
     )
     rock_fragment_volume = models.CharField(null=True, choices=ROCK_FRAGMENT_VOLUMES)
@@ -271,15 +271,15 @@ class DepthDependentSoilData(BaseModel):
     )
 
     SOIL_TESTING_DRY_COMBUSTION = "dry combustion"
-    SOIL_TESTING_WET_OXIDATION = "wet oxidation (Walkey-Black)"
-    SOIL_TESTING_LOSS_ON_IGNITION = "loss-on-ignition"
+    SOIL_TESTING_WET_OXIDATION = "wet oxidation (Walkey—Black)"
+    SOIL_TESTING_LOSS_ON_IGNITION = "loss—on—ignition"
     SOIL_TESTING_REFLECTANCE_SPECTROSCOPY = "reflectance spectroscopy"
     SOIL_TESTING_FIELD_REFLECTOMETER = "field reflectometer"
 
     SOIL_TESTING_METHODS = (
         (SOIL_TESTING_DRY_COMBUSTION, _("Dry combustion")),
-        (SOIL_TESTING_WET_OXIDATION, _("Wet oxidation (Walkey-Black)")),
-        (SOIL_TESTING_LOSS_ON_IGNITION, _("Loss-on-ignition")),
+        (SOIL_TESTING_WET_OXIDATION, _("Wet oxidation (Walkey—Black)")),
+        (SOIL_TESTING_LOSS_ON_IGNITION, _("Loss—on—ignition")),
         (SOIL_TESTING_REFLECTANCE_SPECTROSCOPY, _("Reflectance spectroscopy")),
         (SOIL_TESTING_FIELD_REFLECTOMETER, _("Field reflectometer")),
         (OTHER, _("Other")),
@@ -293,18 +293,18 @@ class DepthDependentSoilData(BaseModel):
 
     bedrock = models.PositiveIntegerField(null=True)
 
-    NONEFFERVESCENT = "noneffervescent - No bubbles form"
-    VERY_SLIGHTLY_EFFERVESCENT = "very slightly effervescent - Few bubbles form"
-    SLIGHTLY_EFFERVESCENT = "slightly effervescent - Numerous bubbles form"
-    STRONGLY_EFFERVESCENT = "strongly effervescent - Bubbles form a low foam"
-    VIOLENTLY_EFFERVESCENT = "violently effervescent - Bubbles rapidly form a thick foam"
+    NONEFFERVESCENT = "noneffervescent — No bubbles form"
+    VERY_SLIGHTLY_EFFERVESCENT = "very slightly effervescent — Few bubbles form"
+    SLIGHTLY_EFFERVESCENT = "slightly effervescent — Numerous bubbles form"
+    STRONGLY_EFFERVESCENT = "strongly effervescent — Bubbles form a low foam"
+    VIOLENTLY_EFFERVESCENT = "violently effervescent — Bubbles rapidly form a thick foam"
 
     CARBONATES = (
-        (NONEFFERVESCENT, _("Noneffervescent - No bubbles form")),
-        (VERY_SLIGHTLY_EFFERVESCENT, _("Very slightly effervescent - Few bubbles form")),
-        (SLIGHTLY_EFFERVESCENT, _("Slightly effervescent - Numerous bubbles form")),
-        (STRONGLY_EFFERVESCENT, _("Strongly effervescent - Bubbles form a low foam")),
-        (VIOLENTLY_EFFERVESCENT, _("Violently effervescent - Bubbles rapidly form a thick foam")),
+        (NONEFFERVESCENT, _("Noneffervescent — No bubbles form")),
+        (VERY_SLIGHTLY_EFFERVESCENT, _("Very slightly effervescent — Few bubbles form")),
+        (SLIGHTLY_EFFERVESCENT, _("Slightly effervescent — Numerous bubbles form")),
+        (STRONGLY_EFFERVESCENT, _("Strongly effervescent — Bubbles form a low foam")),
+        (VIOLENTLY_EFFERVESCENT, _("Violently effervescent — Bubbles rapidly form a thick foam")),
     )
 
     carbonate = models.CharField(null=True, choices=CARBONATES)
