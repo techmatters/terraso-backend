@@ -127,7 +127,9 @@ class DepthDependentSoilData(BaseModel):
         (COLOR_VALUE_9, _("9")),
         (COLOR_VALUE_9_5, _("9.5")),
     )
-    color_value = models.DecimalField(null=True, max_digits=2, decimal_places=1, choices=COLOR_VALUES)
+    color_value = models.DecimalField(
+        null=True, max_digits=2, decimal_places=1, choices=COLOR_VALUES
+    )
 
     COLOR_CHROMA_1 = 1
     COLOR_CHROMA_2 = 2
