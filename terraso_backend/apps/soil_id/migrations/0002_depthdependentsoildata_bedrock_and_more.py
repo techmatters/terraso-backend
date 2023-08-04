@@ -13,6 +13,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see https://www.gnu.org/licenses/.
 
+
 import django.core.validators
 from django.db import migrations, models
 
@@ -30,17 +31,43 @@ class Migration(migrations.Migration):
         ),
         migrations.AddField(
             model_name="depthdependentsoildata",
-            name="color_chroma",
+            name="carbonate",
             field=models.CharField(
                 choices=[
-                    ("1", "1"),
-                    ("2", "2"),
-                    ("3", "3"),
-                    ("4", "4"),
-                    ("5", "5"),
-                    ("6", "6"),
-                    ("7", "7"),
-                    ("8", "8"),
+                    ("noneffervescent — No bubbles form", "Noneffervescent — No bubbles form"),
+                    (
+                        "very slightly effervescent — Few bubbles form",
+                        "Very slightly effervescent — Few bubbles form",
+                    ),
+                    (
+                        "slightly effervescent — Numerous bubbles form",
+                        "Slightly effervescent — Numerous bubbles form",
+                    ),
+                    (
+                        "strongly effervescent — Bubbles form a low foam",
+                        "Strongly effervescent — Bubbles form a low foam",
+                    ),
+                    (
+                        "violently effervescent — Bubbles rapidly form a thick foam",
+                        "Violently effervescent — Bubbles rapidly form a thick foam",
+                    ),
+                ],
+                null=True,
+            ),
+        ),
+        migrations.AddField(
+            model_name="depthdependentsoildata",
+            name="color_chroma",
+            field=models.IntegerField(
+                choices=[
+                    (1, "1"),
+                    (2, "2"),
+                    (3, "3"),
+                    (4, "4"),
+                    (5, "5"),
+                    (6, "6"),
+                    (7, "7"),
+                    (8, "8"),
                 ],
                 null=True,
             ),
@@ -71,19 +98,21 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name="depthdependentsoildata",
             name="color_value",
-            field=models.CharField(
+            field=models.DecimalField(
                 choices=[
-                    ("2.5", "2.5"),
-                    ("3", "3"),
-                    ("4", "4"),
-                    ("5", "5"),
-                    ("6", "6"),
-                    ("7", "7"),
-                    ("8", "8"),
-                    ("8.5", "8.5"),
-                    ("9", "9"),
-                    ("9.5", "9.5"),
+                    (2.5, "2.5"),
+                    (3, "3"),
+                    (4, "4"),
+                    (5, "5"),
+                    (6, "6"),
+                    (7, "7"),
+                    (8, "8"),
+                    (8.5, "8.5"),
+                    (9, "9"),
+                    (9.5, "9.5"),
                 ],
+                decimal_places=1,
+                max_digits=2,
                 null=True,
             ),
         ),
@@ -131,7 +160,7 @@ class Migration(migrations.Migration):
             name="ph",
             field=models.DecimalField(
                 decimal_places=1,
-                max_digits=100,
+                max_digits=3,
                 null=True,
                 validators=[
                     django.core.validators.MinValueValidator(0.0),
@@ -178,10 +207,10 @@ class Migration(migrations.Migration):
             name="rock_fragment_volume",
             field=models.CharField(
                 choices=[
-                    ("0 - 1%", "0 - 1%"),
-                    ("1 - 15%", "1 - 15%"),
-                    ("15 - 35%", "15 - 35%"),
-                    ("35 - 60%", "35 - 60%"),
+                    ("0 — 1%", "0 — 1%"),
+                    ("1 — 15%", "1 — 15%"),
+                    ("15 — 35%", "15 — 35%"),
+                    ("35 — 60%", "35 — 60%"),
                     ("> 60%", "> 60%"),
                 ],
                 null=True,
@@ -202,7 +231,7 @@ class Migration(migrations.Migration):
             name="soil_organic_carbon",
             field=models.DecimalField(
                 decimal_places=1,
-                max_digits=3,
+                max_digits=4,
                 null=True,
                 validators=[
                     django.core.validators.MinValueValidator(0),
@@ -215,11 +244,11 @@ class Migration(migrations.Migration):
             name="soil_organic_carbon_testing",
             field=models.CharField(
                 choices=[
-                    ("Dry combustion", "Dry combustion"),
-                    ("Wet oxidation (Walkey-Black)", "Wet oxidation (Walkey-Black)"),
-                    ("Loss-on-ignition", "Loss-on-ignition"),
-                    ("Reflectance spectroscopy", "Reflectance spectroscopy"),
-                    ("Field reflectometer", "Field reflectometer"),
+                    ("dry combustion", "Dry combustion"),
+                    ("wet oxidation (Walkey—Black)", "Wet oxidation (Walkey—Black)"),
+                    ("loss—on—ignition", "Loss—on—ignition"),
+                    ("reflectance spectroscopy", "Reflectance spectroscopy"),
+                    ("field reflectometer", "Field reflectometer"),
                     ("other", "Other"),
                 ],
                 null=True,
@@ -230,7 +259,7 @@ class Migration(migrations.Migration):
             name="soil_organic_matter",
             field=models.DecimalField(
                 decimal_places=1,
-                max_digits=3,
+                max_digits=4,
                 null=True,
                 validators=[
                     django.core.validators.MinValueValidator(0),
@@ -243,11 +272,11 @@ class Migration(migrations.Migration):
             name="soil_organic_matter_testing",
             field=models.CharField(
                 choices=[
-                    ("Dry combustion", "Dry combustion"),
-                    ("Wet oxidation (Walkey-Black)", "Wet oxidation (Walkey-Black)"),
-                    ("Loss-on-ignition", "Loss-on-ignition"),
-                    ("Reflectance spectroscopy", "Reflectance spectroscopy"),
-                    ("Field reflectometer", "Field reflectometer"),
+                    ("dry combustion", "Dry combustion"),
+                    ("wet oxidation (Walkey—Black)", "Wet oxidation (Walkey—Black)"),
+                    ("loss—on—ignition", "Loss—on—ignition"),
+                    ("reflectance spectroscopy", "Reflectance spectroscopy"),
+                    ("field reflectometer", "Field reflectometer"),
                     ("other", "Other"),
                 ],
                 null=True,
@@ -280,7 +309,7 @@ class Migration(migrations.Migration):
                     ("sand", "Sand"),
                     ("loamy sand", "Loamy sand"),
                     ("sandy loam", "Sandy loam"),
-                    ("slit loam", "Silt loam"),
+                    ("silt loam", "Silt loam"),
                     ("silt", "Silt"),
                     ("loam", "Loam"),
                     ("sandy clay loam", "Sandy clay loam"),
