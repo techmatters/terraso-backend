@@ -116,18 +116,18 @@ class DepthDependentSoilData(BaseModel):
     COLOR_VALUE_9_5 = 9.5
 
     COLOR_VALUES = (
-        (COLOR_VALUE_2_5, _(2.5)),
-        (COLOR_VALUE_3, _(3)),
-        (COLOR_VALUE_4, _(4)),
-        (COLOR_VALUE_5, _(5)),
-        (COLOR_VALUE_6, _(6)),
-        (COLOR_VALUE_7, _(7)),
-        (COLOR_VALUE_8, _(8)),
-        (COLOR_VALUE_8_5, _(8.5)),
-        (COLOR_VALUE_9, _(9)),
-        (COLOR_VALUE_9_5, _(9.5)),
+        (COLOR_VALUE_2_5, _("2.5")),
+        (COLOR_VALUE_3, _("3")),
+        (COLOR_VALUE_4, _("4")),
+        (COLOR_VALUE_5, _("5")),
+        (COLOR_VALUE_6, _("6")),
+        (COLOR_VALUE_7, _("7")),
+        (COLOR_VALUE_8, _("8")),
+        (COLOR_VALUE_8_5, _("8.5")),
+        (COLOR_VALUE_9, _("9")),
+        (COLOR_VALUE_9_5, _("9.5")),
     )
-    color_value = models.DecimalField(null=True, choices=COLOR_VALUES)
+    color_value = models.DecimalField(null=True, max_digits=2, decimal_places=1, choices=COLOR_VALUES)
 
     COLOR_CHROMA_1 = 1
     COLOR_CHROMA_2 = 2
@@ -139,14 +139,14 @@ class DepthDependentSoilData(BaseModel):
     COLOR_CHROMA_8 = 8
 
     COLOR_CHROMAS = (
-        (COLOR_CHROMA_1, _(1)),
-        (COLOR_CHROMA_2, _(2)),
-        (COLOR_CHROMA_3, _(3)),
-        (COLOR_CHROMA_4, _(4)),
-        (COLOR_CHROMA_5, _(5)),
-        (COLOR_CHROMA_6, _(6)),
-        (COLOR_CHROMA_7, _(7)),
-        (COLOR_CHROMA_8, _(8)),
+        (COLOR_CHROMA_1, _("1")),
+        (COLOR_CHROMA_2, _("2")),
+        (COLOR_CHROMA_3, _("3")),
+        (COLOR_CHROMA_4, _("4")),
+        (COLOR_CHROMA_5, _("5")),
+        (COLOR_CHROMA_6, _("6")),
+        (COLOR_CHROMA_7, _("7")),
+        (COLOR_CHROMA_8, _("8")),
     )
     color_chroma = models.IntegerField(null=True, choices=COLOR_CHROMAS)
 
