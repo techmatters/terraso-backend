@@ -40,15 +40,16 @@ class MembershipList(BaseModel):
     )
 
     def save_member(self, kwargs):
-        user_email = kwargs["user_email"]
-        user_role = kwargs["user_role"]
-        membership_status = kwargs["membership_status"]
+        user_email = kwargs.get("user_email")
+        user_role = kwargs.get("user_role")
+        membership_status = kwargs.get("membership_status")
 
         user = User.objects.get(email=user_email)
 
         membership = self.get_membership(user)
         is_closed = self.membership_type == MembershipList.MEMBERSHIP_TYPE_CLOSED
         is_new = not membership
+        previous_membership_status = membership.membership_status if not is_new else None
         if is_new:
             membership = Membership(
                 membership_list=self,
@@ -57,7 +58,6 @@ class MembershipList(BaseModel):
                 membership_status=Membership.PENDING if is_closed else Membership.APPROVED,
             )
         else:
-            previous_membership_status = membership.membership_status
             membership.user_role = user_role
             if membership_status:
                 membership.membership_status = Membership.get_membership_status_from_text(
@@ -67,7 +67,8 @@ class MembershipList(BaseModel):
         membership_status = membership.membership_status
 
         is_membership_approved = (
-            previous_membership_status != Membership.APPROVED
+            previous_membership_status is not None
+            and previous_membership_status != Membership.APPROVED
             and membership_status == Membership.APPROVED
         )
 

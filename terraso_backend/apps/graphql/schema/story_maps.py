@@ -140,10 +140,14 @@ class StoryMapMembershipSaveMutation(BaseAuthenticatedMutation):
 
         try:
             story_map = StoryMap.objects.get(slug=story_map_slug, story_map_id=story_map_id)
-        except StoryMap.DoesNotExist:
+        except Exception as error:
             logger.error(
                 "Attempt to save a Membership, but Story Map was not found",
-                extra={"story_map_id": story_map_id, "story_map_slug": story_map_slug},
+                extra={
+                    "story_map_id": story_map_id,
+                    "story_map_slug": story_map_slug,
+                    "error": error,
+                },
             )
             raise GraphQLNotFoundException(model_name=StoryMap.__name__)
 
@@ -209,7 +213,7 @@ class StoryMapMembershipDeleteMutation(BaseDeleteMutation):
             raise GraphQLNotFoundException(model_name=StoryMap.__name__)
 
         try:
-            membership = story_map.membership_list.get(pk=membership_id)
+            membership = story_map.membership_list.memberships.get(id=membership_id)
         except Membership.DoesNotExist:
             logger.error(
                 "Attempt to delete a Membership, but it was not found",
