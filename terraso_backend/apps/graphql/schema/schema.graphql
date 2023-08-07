@@ -1166,14 +1166,14 @@ input StoryMapDeleteMutationInput {
 
 type StoryMapMembershipSaveMutationPayload {
   errors: GenericScalar
-  membership: CollaborationMembershipNode
+  memberships: [CollaborationMembershipNode]
   clientMutationId: String
 }
 
 input StoryMapMembershipSaveMutationInput {
-  userEmail: String!
   userRole: String
   membershipStatus: String
+  userEmails: [String]!
   storyMapId: String!
   storyMapSlug: String!
   clientMutationId: String

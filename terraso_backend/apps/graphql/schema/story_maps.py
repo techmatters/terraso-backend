@@ -21,7 +21,7 @@ from django.db.models import Q
 from graphene import relay
 from graphene_django import DjangoObjectType
 
-from apps.collaboration.graphql import BaseSaveInput, CollaborationMembershipNode
+from apps.collaboration.graphql import CollaborationMembershipNode
 from apps.collaboration.models import Membership
 from apps.graphql.exceptions import GraphQLNotAllowedException, GraphQLNotFoundException
 from apps.story_map.collaboration_roles import ROLE_CONTRIBUTOR
@@ -112,9 +112,12 @@ class StoryMapDeleteMutation(BaseDeleteMutation):
 
 class StoryMapMembershipSaveMutation(BaseAuthenticatedMutation):
     model_class = Membership
-    membership = graphene.Field(CollaborationMembershipNode)
+    memberships = graphene.Field(graphene.List(CollaborationMembershipNode))
 
-    class Input(BaseSaveInput):
+    class Input:
+        user_role = graphene.String()
+        membership_status = graphene.String()
+        user_emails = graphene.List(graphene.String, required=True)
         story_map_id = graphene.String(required=True)
         story_map_slug = graphene.String(required=True)
 
@@ -160,15 +163,23 @@ class StoryMapMembershipSaveMutation(BaseAuthenticatedMutation):
             )
 
         try:
-            membership = story_map.membership_list.save_member(kwargs)
-        except Membership.DoesNotExist:
+            memberships = [
+                story_map.membership_list.save_member(
+                    {
+                        "user_email": email,
+                        "user_role": kwargs["user_role"],
+                    }
+                )
+                for email in kwargs["user_emails"]
+            ]
+        except Exception as error:
             logger.error(
-                "Attempt to update a Membership, but it was not found",
-                extra=kwargs,
+                "Attempt to update Story Map Memberships, but there was an error",
+                extra={"error": str(error)},
             )
             raise GraphQLNotFoundException(model_name=Membership.__name__)
 
-        return cls(membership=membership)
+        return cls(memberships=memberships)
 
 
 class StoryMapMembershipDeleteMutation(BaseDeleteMutation):

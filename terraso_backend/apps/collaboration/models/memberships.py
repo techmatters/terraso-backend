@@ -40,9 +40,11 @@ class MembershipList(BaseModel):
     )
 
     def save_member(self, kwargs):
-        user = kwargs["user"]
+        user_email = kwargs["user_email"]
         user_role = kwargs["user_role"]
         membership_status = kwargs["membership_status"]
+
+        user = User.objects.get(email=user_email)
 
         membership = self.get_membership(user)
         is_closed = self.membership_type == MembershipList.MEMBERSHIP_TYPE_CLOSED

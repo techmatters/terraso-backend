@@ -99,9 +99,3 @@ class CollaborationMembershipNode(DjangoObjectType):
             | Q(membership_list__in=user_membership_list_ids)
             | Q(user=info.context.user)
         )
-
-
-class BaseSaveInput:
-    user_email = graphene.String(required=True)
-    user_role = graphene.String()
-    membership_status = graphene.String()
