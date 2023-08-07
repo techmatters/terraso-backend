@@ -83,7 +83,14 @@ class StoryMapNode(DjangoObjectType):
     @classmethod
     def get_queryset(cls, queryset, info):
         user_pk = getattr(info.context.user, "pk", False)
-        return queryset.filter(Q(is_published=True) | Q(created_by=user_pk))
+        return queryset.filter(
+            Q(is_published=True)
+            | Q(created_by=user_pk)
+            | Q(
+                membership_list__memberships__user=user_pk,
+                membership_list__memberships__membership_status=Membership.APPROVED,
+            )
+        )
 
 
 class StoryMapDeleteMutation(BaseDeleteMutation):

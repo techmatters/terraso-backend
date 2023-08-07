@@ -15,6 +15,8 @@
 
 import rules
 
+from .collaboration_roles import ROLE_CONTRIBUTOR
+
 
 @rules.predicate
 def allowed_to_view_story_map(user, story_map):
@@ -23,7 +25,13 @@ def allowed_to_view_story_map(user, story_map):
 
 @rules.predicate
 def allowed_to_change_story_map(user, story_map):
-    return story_map.created_by == user
+    is_owner = story_map.created_by == user
+    if is_owner:
+        return True
+    account_membership = (
+        story_map.membership_list.memberships.approved_only().filter(user=user).first()
+    )
+    return account_membership is not None and account_membership.user_role == ROLE_CONTRIBUTOR
 
 
 @rules.predicate
