@@ -33,7 +33,7 @@ createsuperuser: check_rebuild
 	$(DC_RUN_CMD) python terraso_backend/manage.py createsuperuser
 
 format: ${VIRTUAL_ENV}/scripts/black ${VIRTUAL_ENV}/scripts/isort
-	isort -rc --atomic terraso_backend
+	isort --atomic terraso_backend
 	black terraso_backend
 
 install:
