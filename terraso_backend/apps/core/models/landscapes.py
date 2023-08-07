@@ -126,7 +126,8 @@ class Landscape(SlugModel, DirtyFieldsMixin):
         with transaction.atomic():
             ret = super().delete(*args, **kwargs)
             # default group should be deleted as well
-            default_group.delete()
+            if default_group is not None:
+                default_group.delete()
 
         return ret
 
