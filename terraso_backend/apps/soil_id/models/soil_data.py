@@ -13,11 +13,26 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see https://www.gnu.org/licenses/.
 
+from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
+from django.utils.translation import gettext_lazy as _
 
 from apps.core.models.commons import BaseModel
 from apps.project_management.models.sites import Site
 
+CONCAVE = "concave"
+CONVEX = "convex"
+LINEAR = "linear"
+
+SLOPE_SHAPES = ((CONCAVE, _("Concave")), (CONVEX, _("Convex")), (LINEAR, _("Linear")))
+
 
 class SoilData(BaseModel):
     site = models.OneToOneField(Site, on_delete=models.CASCADE)
+    down_slope = models.IntegerField(
+        null=True, validators=[MinValueValidator(0), MaxValueValidator(100)]
+    )
+    cross_slope = models.IntegerField(
+        null=True, validators=[MinValueValidator(0), MaxValueValidator(100)]
+    )
+    slope_shape = models.CharField(null=True, choices=SLOPE_SHAPES)
