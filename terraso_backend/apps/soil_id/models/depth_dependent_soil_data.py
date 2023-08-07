@@ -201,7 +201,7 @@ class DepthDependentSoilData(BaseModel):
         (GRANULAR, _("Granular")),
         (SUBANGULAR_BLOCKY, _("Subangular Blocky")),
         (ANGULAR_BLOCKY, _("Angular Blocky")),
-        (LENTICULAR, _("lenticular")),
+        (LENTICULAR, _("Lenticular")),
         (PLAY, _("Play")),
         (WEDGE, _("Wedge")),
         (PRISMATIC, _("Prismatic")),
