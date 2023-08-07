@@ -35,18 +35,29 @@ logger = structlog.get_logger(__name__)
 
 
 class StoryMapFilterSet(django_filters.FilterSet):
-    created_by__email__not = django_filters.CharFilter(method="filter_created_by_email_not")
+    can_change__email__not = django_filters.CharFilter(method="filter_can_change_by_email_not")
+    can_change__email = django_filters.CharFilter(method="filter_can_change_by_email")
 
     class Meta:
         model = StoryMap
         fields = {
             "slug": ["exact"],
             "story_map_id": ["exact"],
-            "created_by__email": ["exact"],
         }
 
-    def filter_created_by_email_not(self, queryset, name, value):
-        return queryset.exclude(created_by__email=value)
+    def filter_can_change_by_email(self, queryset, name, value):
+        return queryset.filter(
+            Q(created_by__email=value)
+            | Q(
+                membership_list__memberships__user__email=value,
+                membership_list__memberships__membership_status=Membership.APPROVED,
+            )
+        )
+
+    def filter_can_change_by_email_not(self, queryset, name, value):
+        return queryset.exclude(
+            Q(created_by__email=value) | Q(membership_list__memberships__user__email=value)
+        )
 
 
 class StoryMapNode(DjangoObjectType):
