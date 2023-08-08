@@ -57,3 +57,4 @@ def allowed_to_delete_membership(user, obj):
 
 
 rules.add_rule("allowed_to_change_story_map", allowed_to_change_story_map)
+rules.add_rule("allowed_to_delete_story_map", allowed_to_delete_story_map)

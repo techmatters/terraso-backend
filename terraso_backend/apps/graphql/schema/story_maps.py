@@ -15,6 +15,7 @@
 
 import django_filters
 import graphene
+import rules
 import structlog
 from django.db import transaction
 from django.db.models import Q
@@ -129,7 +130,7 @@ class StoryMapDeleteMutation(BaseDeleteMutation):
         user = info.context.user
         story_map = StoryMap.objects.get(pk=kwargs["id"])
 
-        if not user.has_perm(StoryMap.get_perm("delete"), obj=story_map):
+        if not rules.test_rule("allowed_to_delete_story_map", user, story_map):
             logger.info(
                 "Attempt to delete a StoryMap, but user lacks permission",
                 extra={"user_id": user.pk, "story_map_id": str(story_map.id)},
@@ -137,6 +138,7 @@ class StoryMapDeleteMutation(BaseDeleteMutation):
             raise GraphQLNotAllowedException(
                 model_name=StoryMap.__name__, operation=MutationTypes.DELETE
             )
+
         return super().mutate_and_get_payload(root, info, **kwargs)
 
 
