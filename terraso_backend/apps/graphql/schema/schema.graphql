@@ -582,6 +582,7 @@ type ProjectNode implements Node {
   description: String!
   group: GroupNode!
   privacy: ProjectManagementProjectPrivacyChoices!
+  archived: Boolean!
   siteSet(
     offset: Int
     before: String

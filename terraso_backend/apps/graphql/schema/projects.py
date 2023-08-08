@@ -44,7 +44,7 @@ class ProjectNode(DjangoObjectType):
         model = Project
 
         filterset_class = ProjectFilterSet
-        fields = ("name", "privacy", "description", "updated_at", "group", "site_set")
+        fields = ("name", "privacy", "description", "updated_at", "group", "site_set", "archived")
 
         interfaces = (relay.Node,)
         connection_class = TerrasoConnection
