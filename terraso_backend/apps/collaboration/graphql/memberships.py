@@ -15,7 +15,6 @@
 
 import graphene
 import structlog
-from django.db.models import Q
 from graphene import relay
 from graphene_django import DjangoObjectType
 
@@ -86,12 +85,4 @@ class CollaborationMembershipNode(DjangoObjectType):
         if user.is_anonymous:
             return queryset.none()
 
-        user_membership_list_ids = Membership.objects.filter(
-            user=info.context.user, membership_status=Membership.APPROVED
-        ).values_list("membership_list", flat=True)
-
-        return queryset.filter(
-            Q(membership_list__membership_type=MembershipList.MEMBERSHIP_TYPE_OPEN)
-            | Q(membership_list__in=user_membership_list_ids)
-            | Q(user=info.context.user)
-        )
+        return queryset

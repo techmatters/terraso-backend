@@ -22,7 +22,7 @@ from graphene import relay
 from graphene_django import DjangoObjectType
 
 from apps.collaboration.graphql import CollaborationMembershipNode
-from apps.collaboration.models import Membership
+from apps.collaboration.models import Membership, MembershipList
 from apps.graphql.exceptions import GraphQLNotAllowedException, GraphQLNotFoundException
 from apps.story_map.collaboration_roles import ROLE_CONTRIBUTOR
 from apps.story_map.models.story_maps import StoryMap
@@ -91,6 +91,18 @@ class StoryMapNode(DjangoObjectType):
 
         return self.configuration
 
+    def resolve_membership_list(self, info):
+        user = info.context.user
+        if user.is_anonymous:
+            return None
+
+        if self.created_by == user:
+            return self.membership_list
+
+        if self.membership_list.is_member(user):
+            return self.membership_list
+        return None
+
     @classmethod
     def get_queryset(cls, queryset, info):
         user_pk = getattr(info.context.user, "pk", False)
@@ -101,7 +113,7 @@ class StoryMapNode(DjangoObjectType):
                 membership_list__memberships__user=user_pk,
                 membership_list__memberships__membership_status=Membership.APPROVED,
             )
-        )
+        ).distinct()
 
 
 class StoryMapDeleteMutation(BaseDeleteMutation):
@@ -184,13 +196,21 @@ class StoryMapMembershipSaveMutation(BaseAuthenticatedMutation):
                 model_name=Membership.__name__, operation=MutationTypes.UPDATE
             )
 
+        if not story_map.membership_list:
+            story_map.membership_list = MembershipList.objects.create(
+                enroll_method=MembershipList.ENROLL_METHOD_INVITE,
+                membership_type=MembershipList.MEMBERSHIP_TYPE_CLOSED,
+            )
+            story_map.save()
+
         try:
             memberships = [
                 story_map.membership_list.save_member(
                     {
                         "user_email": email,
                         "user_role": kwargs["user_role"],
-                    }
+                    },
+                    requestor_can_approve=True,
                 )
                 for email in kwargs["user_emails"]
             ]
