@@ -216,6 +216,7 @@ class StoryMapMembershipDeleteMutation(BaseDeleteMutation):
 
     @classmethod
     def mutate_and_get_payload(cls, root, info, **kwargs):
+        # TODO check delete permissions for members
         user = info.context.user
         membership_id = kwargs["id"]
         story_map_id = kwargs["story_map_id"]
