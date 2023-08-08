@@ -31,10 +31,6 @@ class CollaborationMembershipListNode(DjangoObjectType):
     account_membership = graphene.Field("apps.collaboration.graphql.CollaborationMembershipNode")
     memberships_count = graphene.Int()
 
-    @classmethod
-    def get_queryset(cls, queryset, info):
-        return queryset.filter(project__isnull=True)
-
     class Meta:
         model = MembershipList
         fields = (
