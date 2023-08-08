@@ -34,7 +34,8 @@ urlpatterns = [
     path("admin/restore/jobs/<int:task_id>", check_restore_job_status),
     path("gis/parse/", csrf_exempt(ParseGeoFileView.as_view()), name="parse"),
     path(
-        "landscapes/<str:slug>/export/<str:format>",
+        "landscapes/<str:slug>/<str:format>",
         csrf_exempt(auth_optional(LandscapeExportView.as_view())),
+        name="landscape-export",
     ),
 ]
