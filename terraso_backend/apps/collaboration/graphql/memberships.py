@@ -13,6 +13,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see https://www.gnu.org/licenses/.
 
+import django_filters
 import graphene
 import structlog
 from graphene import relay
@@ -64,18 +65,29 @@ class CollaborationMembershipListNode(DjangoObjectType):
         return self.memberships.approved_only().count()
 
 
-class CollaborationMembershipNode(DjangoObjectType):
-    id = graphene.ID(source="pk", required=True)
+class CollaborationMembershipFilterSet(django_filters.FilterSet):
+    user__email__not = django_filters.CharFilter(method="filter_user_email_not")
 
     class Meta:
         model = Membership
-        filter_fields = {
+        fields = {
             "user": ["exact", "in"],
             "user_role": ["exact"],
             "user__email": ["icontains", "in"],
             "membership_status": ["exact"],
         }
+
+    def filter_user_email_not(self, queryset, name, value):
+        return queryset.exclude(user__email=value)
+
+
+class CollaborationMembershipNode(DjangoObjectType):
+    id = graphene.ID(source="pk", required=True)
+
+    class Meta:
+        model = Membership
         fields = ("membership_list", "user", "user_role", "membership_status")
+        filterset_class = CollaborationMembershipFilterSet
         interfaces = (relay.Node,)
         connection_class = TerrasoConnection
 

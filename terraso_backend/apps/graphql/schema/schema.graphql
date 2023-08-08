@@ -561,7 +561,7 @@ type StoryMapNode implements Node {
 
 type CollaborationMembershipListNode implements Node {
   membershipType: CollaborationMembershipListMembershipTypeChoices!
-  memberships(offset: Int, before: String, after: String, first: Int, last: Int, user: ID, user_In: [ID], userRole: String, user_Email_Icontains: String, user_Email_In: [String], membershipStatus: CollaborationMembershipMembershipStatusChoices): CollaborationMembershipNodeConnection!
+  memberships(offset: Int, before: String, after: String, first: Int, last: Int, user: ID, user_In: [ID], userRole: String, user_Email_Icontains: String, user_Email_In: [String], membershipStatus: CollaborationMembershipMembershipStatusChoices, user_Email_Not: String): CollaborationMembershipNodeConnection!
   id: ID!
   accountMembership: CollaborationMembershipNode
   membershipsCount: Int
