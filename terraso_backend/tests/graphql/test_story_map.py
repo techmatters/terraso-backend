@@ -43,10 +43,10 @@ def test_story_maps_query(client_query, story_maps, users):
         assert story_map["isPublished"] is True or story_map["createdBy"]["id"] == str(users[0].id)
 
 
-def test_story_maps_filter_by_reated_by_email(client_query, story_maps, users):
+def test_story_maps_filter_by_can_change_by_email(client_query, story_maps, users):
     response = client_query(
         """
-        {storyMaps(createdBy_Email_Not: "%s") {
+        {storyMaps(canChange_Email_Not: "%s") {
           edges {
             node {
               id
