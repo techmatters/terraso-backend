@@ -18,7 +18,7 @@ import graphene
 import rules
 import structlog
 from django.db import transaction
-from django.db.models import Q
+from django.db.models import Exists, OuterRef, Q
 from graphene import relay
 from graphene_django import DjangoObjectType
 
@@ -47,13 +47,12 @@ class StoryMapFilterSet(django_filters.FilterSet):
         }
 
     def filter_can_change_by_email(self, queryset, name, value):
-        return queryset.filter(
-            Q(created_by__email=value)
-            | Q(
-                membership_list__memberships__user__email=value,
-                membership_list__memberships__membership_status=Membership.APPROVED,
-            )
+        approved_memberships = Membership.objects.filter(
+            user__email=value,
+            membership_status=Membership.APPROVED,
+            membership_list=OuterRef("membership_list"),
         )
+        return queryset.filter(Q(created_by__email=value) | Exists(approved_memberships))
 
     def filter_can_change_by_email_not(self, queryset, name, value):
         return queryset.exclude(
