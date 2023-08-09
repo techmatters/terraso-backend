@@ -55,8 +55,6 @@ class StoryMap(SlugModel):
             "change": perm_rules.allowed_to_change_story_map,
             "delete": perm_rules.allowed_to_delete_story_map,
             "view": perm_rules.allowed_to_view_story_map,
-            "save_membership": perm_rules.allowed_to_save_membership,
-            "delete_membership": perm_rules.allowed_to_delete_membership,
         }
 
     def to_dict(self):

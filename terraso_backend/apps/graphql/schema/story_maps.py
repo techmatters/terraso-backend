@@ -183,9 +183,10 @@ class StoryMapMembershipSaveMutation(BaseAuthenticatedMutation):
             )
             raise GraphQLNotFoundException(model_name=StoryMap.__name__)
 
-        if not user.has_perm(
-            StoryMap.get_perm("save_membership"),
-            obj={
+        if not rules.test_rule(
+            "allowed_to_save_story_map_membership",
+            user,
+            {
                 "story_map": story_map,
                 "membership": kwargs,
             },
@@ -262,9 +263,10 @@ class StoryMapMembershipDeleteMutation(BaseDeleteMutation):
             )
             raise GraphQLNotFoundException(model_name=Membership.__name__)
 
-        if not user.has_perm(
-            StoryMap.get_perm("delete_membership"),
-            obj={
+        if not rules.test_rule(
+            "allowed_to_delete_story_map_membership",
+            user,
+            {
                 "story_map": story_map,
                 "membership": membership,
             },
