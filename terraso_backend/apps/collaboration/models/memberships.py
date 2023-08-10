@@ -4,7 +4,6 @@ from django.utils.translation import gettext_lazy as _
 from safedelete.models import SafeDeleteManager
 
 from apps.core.models import BaseModel, User
-from apps.notifications.email import EmailNotification
 
 
 class MembershipList(BaseModel):
@@ -95,11 +94,8 @@ class MembershipList(BaseModel):
             and membership_status == Membership.APPROVED
         )
 
-        if is_membership_approved:
-            EmailNotification.send_membership_approval(membership.user, membership.membership_list)
-
         membership.save()
-        return membership
+        return is_membership_approved, membership
 
     @property
     def approved_members(self):

@@ -27,6 +27,7 @@ from apps.collaboration.models import Membership, MembershipList
 from apps.graphql.exceptions import GraphQLNotAllowedException, GraphQLNotFoundException
 from apps.story_map.collaboration_roles import ROLE_CONTRIBUTOR
 from apps.story_map.models.story_maps import StoryMap
+from apps.story_map.notifications import send_memberships_invite_email
 from apps.story_map.services import story_map_media_upload_service
 
 from .commons import BaseAuthenticatedMutation, BaseDeleteMutation, TerrasoConnection
@@ -207,21 +208,27 @@ class StoryMapMembershipSaveMutation(BaseAuthenticatedMutation):
 
         try:
             memberships = [
-                story_map.membership_list.save_member(
-                    {
-                        "user_email": email,
-                        "user_role": kwargs["user_role"],
-                    },
-                    requestor_can_approve=True,
-                )
+                result[1]
                 for email in kwargs["user_emails"]
+                for result in [
+                    story_map.membership_list.save_member(
+                        {
+                            "user_email": email,
+                            "user_role": kwargs["user_role"],
+                        },
+                        requestor_can_approve=True,
+                    )
+                ]
             ]
+
         except Exception as error:
             logger.error(
                 "Attempt to update Story Map Memberships, but there was an error",
                 extra={"error": str(error)},
             )
             raise GraphQLNotFoundException(model_name=Membership.__name__)
+
+        send_memberships_invite_email(memberships, story_map)
 
         return cls(memberships=memberships)
 

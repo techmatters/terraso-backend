@@ -108,6 +108,7 @@ TEMPLATES = [
         "DIRS": [
             os.path.join(BASE_DIR, "custom_templates"),
             os.path.join(BASE_DIR, "apps", "notifications", "templates"),
+            os.path.join(BASE_DIR, "apps", "story_map", "templates"),
         ],
         "OPTIONS": {
             "context_processors": [
