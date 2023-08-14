@@ -94,7 +94,7 @@ class StoryMapNode(DjangoObjectType):
 
     def resolve_membership_list(self, info):
         user = info.context.user
-        if user.is_anonymous:
+        if user.is_anonymous or self.membership_list is None:
             return None
 
         if self.created_by == user:
