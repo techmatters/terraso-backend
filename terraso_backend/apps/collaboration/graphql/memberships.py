@@ -44,24 +44,12 @@ class CollaborationMembershipListNode(DjangoObjectType):
         user = info.context.user
         if user.is_anonymous:
             return None
-        if hasattr(self, "account_memberships"):
-            if len(self.account_memberships) > 0:
-                return self.account_memberships[0]
-            return None
         return self.memberships.filter(user=user).first()
 
     def resolve_memberships_count(self, info):
-        if hasattr(self, "memberships_count"):
-            return self.memberships_count
-
-        # Nonmembers cannot see the number of members of a closed membership list
-        if self.membership_type == MembershipList.MEMBERSHIP_TYPE_CLOSED:
-            is_member = (
-                self.memberships.approved_only().filter(user__id=info.context.user.pk).exists()
-            )
-            if not is_member:
-                return 0
-
+        user = info.context.user
+        if user.is_anonymous:
+            return 0
         return self.memberships.approved_only().count()
 
 
