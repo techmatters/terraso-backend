@@ -290,7 +290,7 @@ class DepthDependentSoilData(BaseModel):
     soil_organic_matter_testing = models.CharField(null=True, choices=SOIL_TESTING_METHODS)
 
     sodium_absorption_ratio = models.DecimalField(
-        null=True, max_digits=100, decimal_places=2, validators=[MinValueValidator(0)]
+        null=True, max_digits=100, decimal_places=1, validators=[MinValueValidator(0)]
     )
 
     bedrock = models.PositiveIntegerField(null=True)
