@@ -418,9 +418,9 @@ graphene==3.3 \
     --hash=sha256:529bf40c2a698954217d3713c6041d69d3f719ad0080857d7ee31327112446b0 \
     --hash=sha256:bb3810be33b54cb3e6969506671eb72319e8d7ba0d5ca9c8066472f75bf35a38
     # via graphene-django
-graphene-django==3.1.3 \
-    --hash=sha256:2611462ca96beead7b2e5e4f45a6633cfb760f9d2dab9cbb7709e6376c47304d \
-    --hash=sha256:6a29f4d9ede9c74d4adbe772c5a6da1d26e075b8b23ec8da9e74c379ee412ae6
+graphene-django==3.1.5 \
+    --hash=sha256:2e42742fae21fa50e514f3acae26a9bc6cb5e51c179a97b3db5390ff258ca816 \
+    --hash=sha256:abe42f820b9731d94bebff6d73088d0dc2ffb8c8863a6d7bf3d378412d866a3b
     # via -r requirements/base.in
 graphql-core==3.2.3 \
     --hash=sha256:06d2aad0ac723e35b1cb47885d3e5c45e956a53bc1b209a9fc5369007fe46676 \
