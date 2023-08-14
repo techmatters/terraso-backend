@@ -620,9 +620,9 @@ wcwidth==0.2.6 \
     --hash=sha256:795b138f6875577cd91bba52baf9e445cd5118fd32723b460e30a0af30ea230e \
     --hash=sha256:a5220780a404dbe3353789870978e472cfe477761f06ee55077256e509b156d0
     # via prompt-toolkit
-werkzeug==2.3.6 \
-    --hash=sha256:935539fa1413afbb9195b24880778422ed620c0fc09670945185cce4d91a8890 \
-    --hash=sha256:98c774df2f91b05550078891dee5f0eb0cb797a522c757a2452b9cee5b202330
+werkzeug==2.3.7 \
+    --hash=sha256:2b8c0e447b4b9dbcc85dd97b6eeb4dcbaf6c8b6c3be0bd654e25553e0a2157d8 \
+    --hash=sha256:effc12dba7f3bd72e605ce49807bbe692bd729c3bb122a3b91747a6ae77df528
     # via moto
 xmltodict==0.13.0 \
     --hash=sha256:341595a488e3e01a85a9d8911d8912fd922ede5fecc4dce437eb4b6c8d037e56 \
