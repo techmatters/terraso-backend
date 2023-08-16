@@ -38,9 +38,10 @@ logger = structlog.get_logger(__name__)
 
 
 class StoryMapFilterSet(django_filters.FilterSet):
-    membership_list__memberships__user__email__not = django_filters.CharFilter(
-        method="filter_membership_list_memberships_user_email_not"
+    memberships__user__email__not = django_filters.CharFilter(
+        method="filter_memberships_user_email_not"
     )
+    memberships__user__email = django_filters.CharFilter(method="filter_memberships_user_email")
 
     class Meta:
         model = StoryMap
@@ -50,8 +51,15 @@ class StoryMapFilterSet(django_filters.FilterSet):
             "membership_list__memberships__user__email": ["exact"],
         }
 
-    def filter_membership_list_memberships_user_email_not(self, queryset, name, value):
-        return queryset.exclude(membership_list__memberships__user__email=value)
+    def filter_memberships_user_email_not(self, queryset, name, value):
+        return queryset.exclude(
+            Q(membership_list__memberships__user__email=value) | Q(created_by__email=value)
+        )
+
+    def filter_memberships_user_email(self, queryset, name, value):
+        return queryset.filter(
+            Q(membership_list__memberships__user__email=value) | Q(created_by__email=value)
+        )
 
 
 class StoryMapNode(DjangoObjectType):
