@@ -25,7 +25,7 @@ from graphene_django import DjangoObjectType
 from apps.collaboration.graphql import CollaborationMembershipNode
 from apps.collaboration.models import Membership, MembershipList
 from apps.graphql.exceptions import GraphQLNotAllowedException, GraphQLNotFoundException
-from apps.story_map.collaboration_roles import ROLE_CONTRIBUTOR
+from apps.story_map.collaboration_roles import ROLE_COLLABORATOR
 from apps.story_map.models.story_maps import StoryMap
 from apps.story_map.notifications import send_memberships_invite_email
 from apps.story_map.services import story_map_media_upload_service
@@ -158,7 +158,7 @@ class StoryMapMembershipSaveMutation(BaseAuthenticatedMutation):
     def mutate_and_get_payload(cls, root, info, **kwargs):
         user = info.context.user
 
-        if kwargs["user_role"] != ROLE_CONTRIBUTOR:
+        if kwargs["user_role"] != ROLE_COLLABORATOR:
             logger.info(
                 "Attempt to save a Membership, but user has no permission",
                 extra=kwargs,

@@ -15,7 +15,7 @@
 
 import rules
 
-from .collaboration_roles import ROLE_CONTRIBUTOR
+from .collaboration_roles import ROLE_COLLABORATOR
 
 
 @rules.predicate
@@ -31,7 +31,7 @@ def allowed_to_change_story_map(user, story_map):
     account_membership = (
         story_map.membership_list.memberships.approved_only().filter(user=user).first()
     )
-    return account_membership is not None and account_membership.user_role == ROLE_CONTRIBUTOR
+    return account_membership is not None and account_membership.user_role == ROLE_COLLABORATOR
 
 
 @rules.predicate

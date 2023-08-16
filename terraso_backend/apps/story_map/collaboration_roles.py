@@ -1,1 +1,1 @@
-ROLE_CONTRIBUTOR = "contributor"
+ROLE_COLLABORATOR = "collaborator"
