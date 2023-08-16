@@ -54,7 +54,7 @@ class MembershipList(BaseModel):
         default=DEFAULT_MEMERBSHIP_TYPE,
     )
 
-    def save_member(self, user_email, user_role, membership_status, validation_func):
+    def save_membership(self, user_email, user_role, membership_status, validation_func):
         user = User.objects.get(email=user_email)
 
         membership = self.get_membership(user)
@@ -93,6 +93,17 @@ class MembershipList(BaseModel):
 
         membership.save()
         return is_membership_approved, membership
+
+    def approve_membership(self, user_email):
+        user = User.objects.get(email=user_email)
+        membership = self.get_membership(user)
+
+        if membership.membership_status == Membership.APPROVED:
+            return membership
+
+        membership.membership_status = Membership.APPROVED
+        membership.save()
+        return membership
 
     @property
     def approved_members(self):

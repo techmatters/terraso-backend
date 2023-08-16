@@ -70,6 +70,13 @@ def allowed_to_change_story_map_membership(user, obj):
 
 
 @rules.predicate
+def allowed_to_approve_story_map_membership(user, obj):
+    membership = obj.get("membership")
+    is_user_membership = membership.user.email == user.email
+    return is_user_membership
+
+
+@rules.predicate
 def allowed_to_delete_story_map_membership(user, obj):
     story_map = obj.get("story_map")
     membership = obj.get("membership")
@@ -82,4 +89,5 @@ def allowed_to_delete_story_map_membership(user, obj):
 rules.add_rule("allowed_to_change_story_map", allowed_to_change_story_map)
 rules.add_rule("allowed_to_delete_story_map", allowed_to_delete_story_map)
 rules.add_rule("allowed_to_change_story_map_membership", allowed_to_change_story_map_membership)
+rules.add_rule("allowed_to_approve_story_map_membership", allowed_to_approve_story_map_membership)
 rules.add_rule("allowed_to_delete_story_map_membership", allowed_to_delete_story_map_membership)

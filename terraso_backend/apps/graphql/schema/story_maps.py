@@ -19,7 +19,7 @@ import rules
 import structlog
 from django.core.exceptions import ValidationError
 from django.db import transaction
-from django.db.models import Exists, OuterRef, Q
+from django.db.models import Q
 from graphene import relay
 from graphene_django import DjangoObjectType
 
@@ -38,28 +38,20 @@ logger = structlog.get_logger(__name__)
 
 
 class StoryMapFilterSet(django_filters.FilterSet):
-    can_change__email__not = django_filters.CharFilter(method="filter_can_change_by_email_not")
-    can_change__email = django_filters.CharFilter(method="filter_can_change_by_email")
+    membership_list__memberships__user__email__not = django_filters.CharFilter(
+        method="filter_membership_list_memberships_user_email_not"
+    )
 
     class Meta:
         model = StoryMap
         fields = {
             "slug": ["exact"],
             "story_map_id": ["exact"],
+            "membership_list__memberships__user__email": ["exact"],
         }
 
-    def filter_can_change_by_email(self, queryset, name, value):
-        approved_memberships = Membership.objects.filter(
-            user__email=value,
-            membership_status=Membership.APPROVED,
-            membership_list=OuterRef("membership_list"),
-        )
-        return queryset.filter(Q(created_by__email=value) | Exists(approved_memberships))
-
-    def filter_can_change_by_email_not(self, queryset, name, value):
-        return queryset.exclude(
-            Q(created_by__email=value) | Q(membership_list__memberships__user__email=value)
-        )
+    def filter_membership_list_memberships_user_email_not(self, queryset, name, value):
+        return queryset.exclude(membership_list__memberships__user__email=value)
 
 
 class StoryMapNode(DjangoObjectType):
@@ -149,7 +141,6 @@ class StoryMapMembershipSaveMutation(BaseAuthenticatedMutation):
 
     class Input:
         user_role = graphene.String()
-        membership_status = graphene.String()
         user_emails = graphene.List(graphene.String, required=True)
         story_map_id = graphene.String(required=True)
         story_map_slug = graphene.String(required=True)
@@ -218,7 +209,7 @@ class StoryMapMembershipSaveMutation(BaseAuthenticatedMutation):
                     story_map.membership_list.save_member(
                         user_email=email,
                         user_role=kwargs["user_role"],
-                        membership_status=Membership.APPROVED,
+                        membership_status=Membership.PENDING,
                         validation_func=validate,
                     )
                 ]
@@ -244,6 +235,76 @@ class StoryMapMembershipSaveMutation(BaseAuthenticatedMutation):
         send_memberships_invite_email(approved_memberships, story_map)
 
         return cls(memberships=[membership["membership"] for membership in memberships])
+
+
+class StoryMapMembershipApproveMutation(BaseAuthenticatedMutation):
+    model_class = Membership
+    membership = graphene.Field(CollaborationMembershipNode)
+
+    class Input:
+        user_email = graphene.List(graphene.String, required=True)
+        story_map_id = graphene.String(required=True)
+        story_map_slug = graphene.String(required=True)
+
+    @classmethod
+    @transaction.atomic
+    def mutate_and_get_payload(cls, root, info, **kwargs):
+        user = info.context.user
+
+        user_email = kwargs["user_email"]
+        story_map_id = kwargs["story_map_id"]
+        story_map_slug = kwargs["story_map_slug"]
+
+        try:
+            story_map = StoryMap.objects.get(slug=story_map_slug, story_map_id=story_map_id)
+        except Exception as error:
+            logger.error(
+                "Attempt to approve Membership, but Story Map was not found",
+                extra={
+                    "story_map_id": story_map_id,
+                    "story_map_slug": story_map_slug,
+                    "error": error,
+                },
+            )
+            raise GraphQLNotFoundException(model_name=StoryMap.__name__)
+
+        try:
+            membership = story_map.membership_list.memberships.get(
+                user__email=kwargs["user_email"], membership_status=Membership.PENDING
+            )
+        except Membership.DoesNotExist:
+            logger.error(
+                "Attempt to approve Membership, but it was not found",
+                extra={"user_email": kwargs["user_email"]},
+            )
+            raise GraphQLNotFoundException(model_name=Membership.__name__)
+
+        if not rules.test_rule(
+            "allowed_to_approve_story_map_membership",
+            user,
+            {
+                "story_map": story_map,
+                "membership": membership,
+            },
+        ):
+            logger.info(
+                "Attempt to approve a Membership, but user has no permission",
+                extra=kwargs,
+            )
+            raise GraphQLNotAllowedException(
+                model_name=Membership.__name__, operation=MutationTypes.UPDATE
+            )
+
+        try:
+            story_map.membership_list.approve_membership(
+                user_email=user_email,
+            )
+        except Exception as error:
+            logger.error(
+                "Attempt to approve Membership, but there was an error",
+                extra={"error": str(error)},
+            )
+            raise GraphQLNotFoundException(model_name=Membership.__name__)
 
 
 class StoryMapMembershipDeleteMutation(BaseDeleteMutation):
