@@ -115,8 +115,11 @@ class MembershipList(BaseModel):
     def has_role(self, user: User, role: str) -> bool:
         return self.memberships.by_role(role).filter(id=user.id).exists()
 
-    def is_member(self, user: User) -> bool:
+    def is_approved_member(self, user: User) -> bool:
         return self.approved_members.filter(id=user.id).exists()
+
+    def is_member(self, user: User) -> bool:
+        return self.members.filter(id=user.id).exists()
 
     def get_membership(self, user: User):
         return self.memberships.filter(user=user).first()

@@ -85,6 +85,14 @@ class StoryMapNode(DjangoObjectType):
         connection_class = TerrasoConnection
 
     def resolve_configuration(self, info):
+        is_owner = self.created_by == info.context.user
+        is_approved_member = self.membership_list and self.membership_list.is_approved_member(
+            info.context.user
+        )
+
+        if not self.is_published and not is_owner and not is_approved_member:
+            return None
+
         for chapter in self.configuration["chapters"]:
             media = chapter.get("media")
             if media and "url" in media and media["type"].startswith(("image", "audio", "video")):
@@ -98,11 +106,12 @@ class StoryMapNode(DjangoObjectType):
         if user.is_anonymous or self.membership_list is None:
             return None
 
-        if self.created_by == user:
+        is_owner = self.created_by == info.context.user
+        is_member = self.membership_list and self.membership_list.is_member(info.context.user)
+
+        if is_owner or is_member:
             return self.membership_list
 
-        if self.membership_list.is_member(user):
-            return self.membership_list
         return None
 
     @classmethod
@@ -113,7 +122,6 @@ class StoryMapNode(DjangoObjectType):
             | Q(created_by=user_pk)
             | Q(
                 membership_list__memberships__user=user_pk,
-                membership_list__memberships__membership_status=Membership.APPROVED,
             )
         ).distinct()
 
