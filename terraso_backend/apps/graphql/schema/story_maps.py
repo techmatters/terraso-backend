@@ -222,7 +222,7 @@ class StoryMapMembershipSaveMutation(BaseAuthenticatedMutation):
                 }
                 for email in kwargs["user_emails"]
                 for result in [
-                    story_map.membership_list.save_member(
+                    story_map.membership_list.save_membership(
                         user_email=email,
                         user_role=kwargs["user_role"],
                         membership_status=Membership.PENDING,
@@ -258,42 +258,32 @@ class StoryMapMembershipApproveMutation(BaseAuthenticatedMutation):
     membership = graphene.Field(CollaborationMembershipNode)
 
     class Input:
-        user_email = graphene.List(graphene.String, required=True)
-        story_map_id = graphene.String(required=True)
-        story_map_slug = graphene.String(required=True)
+        membership_id = graphene.String(required=True)
 
     @classmethod
-    @transaction.atomic
     def mutate_and_get_payload(cls, root, info, **kwargs):
         user = info.context.user
 
-        user_email = kwargs["user_email"]
-        story_map_id = kwargs["story_map_id"]
-        story_map_slug = kwargs["story_map_slug"]
+        membership_id = kwargs["membership_id"]
 
         try:
-            story_map = StoryMap.objects.get(slug=story_map_slug, story_map_id=story_map_id)
+            membership = Membership.objects.get(id=membership_id)
         except Exception as error:
+            logger.error(
+                "Attempt to approve Membership, but it was not found",
+                extra={"membership_id": membership_id, "error": error},
+            )
+            raise GraphQLNotFoundException(model_name=Membership.__name__)
+
+        story_map = membership.membership_list.story_map
+        if not story_map:
             logger.error(
                 "Attempt to approve Membership, but Story Map was not found",
                 extra={
-                    "story_map_id": story_map_id,
-                    "story_map_slug": story_map_slug,
-                    "error": error,
+                    "membership": membership,
                 },
             )
             raise GraphQLNotFoundException(model_name=StoryMap.__name__)
-
-        try:
-            membership = story_map.membership_list.memberships.get(
-                user__email=kwargs["user_email"], membership_status=Membership.PENDING
-            )
-        except Membership.DoesNotExist:
-            logger.error(
-                "Attempt to approve Membership, but it was not found",
-                extra={"user_email": kwargs["user_email"]},
-            )
-            raise GraphQLNotFoundException(model_name=Membership.__name__)
 
         if not rules.test_rule(
             "allowed_to_approve_story_map_membership",
@@ -313,7 +303,7 @@ class StoryMapMembershipApproveMutation(BaseAuthenticatedMutation):
 
         try:
             story_map.membership_list.approve_membership(
-                user_email=user_email,
+                user_email=membership.user.email,
             )
         except Exception as error:
             logger.error(

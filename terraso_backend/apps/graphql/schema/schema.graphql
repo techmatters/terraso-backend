@@ -809,6 +809,7 @@ type Mutations {
   deleteStoryMap(input: StoryMapDeleteMutationInput!): StoryMapDeleteMutationPayload!
   saveStoryMapMembership(input: StoryMapMembershipSaveMutationInput!): StoryMapMembershipSaveMutationPayload!
   deleteStoryMapMembership(input: StoryMapMembershipDeleteMutationInput!): StoryMapMembershipDeleteMutationPayload!
+  approveStoryMapMembership(input: StoryMapMembershipApproveMutationInput!): StoryMapMembershipApproveMutationPayload!
   addSite(input: SiteAddMutationInput!): SiteAddMutationPayload!
   updateSite(input: SiteUpdateMutationInput!): SiteUpdateMutationPayload!
   deleteSite(input: SiteDeleteMutationInput!): SiteDeleteMutationPayload!
@@ -1188,6 +1189,17 @@ input StoryMapMembershipDeleteMutationInput {
   id: ID
   storyMapId: String!
   storyMapSlug: String!
+  clientMutationId: String
+}
+
+type StoryMapMembershipApproveMutationPayload {
+  errors: GenericScalar
+  membership: CollaborationMembershipNode
+  clientMutationId: String
+}
+
+input StoryMapMembershipApproveMutationInput {
+  membershipId: String!
   clientMutationId: String
 }
 
