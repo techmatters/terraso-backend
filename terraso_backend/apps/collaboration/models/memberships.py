@@ -39,52 +39,34 @@ class MembershipList(BaseModel):
         default=DEFAULT_MEMERBSHIP_TYPE,
     )
 
-    def save_member(self, kwargs, requestor_can_approve=False):
-        user_email = kwargs.get("user_email")
-        user_role = kwargs.get("user_role")
-        membership_status = kwargs.get("membership_status")
-
+    def save_member(self, user_email, user_role, membership_status, validation_func):
         user = User.objects.get(email=user_email)
 
         membership = self.get_membership(user)
         is_new = not membership
 
-        can_request_membership = (
-            self.membership_type == MembershipList.MEMBERSHIP_TYPE_OPEN
-            or requestor_can_approve
-            or (
-                self.membership_type == MembershipList.MEMBERSHIP_TYPE_CLOSED
-                and (
-                    self.enroll_method == MembershipList.ENROLL_METHOD_JOIN
-                    or self.enroll_method == MembershipList.ENROLL_METHOD_BOTH
-                )
-            )
-        )
+        previous_membership_status = membership.membership_status if not is_new else None
 
-        if not can_request_membership:
+        if validation_func(
+            {
+                "user_role": user_role,
+                "membership_status": membership_status,
+                "current_membership": membership,
+            }
+        ):
             raise ValidationError("User cannot request membership")
 
-        is_pending_membership = (
-            self.membership_type == MembershipList.MEMBERSHIP_TYPE_CLOSED
-            and not requestor_can_approve
-        )
-
-        previous_membership_status = membership.membership_status if not is_new else None
         if is_new:
             membership = Membership(
                 membership_list=self,
                 user=user,
                 user_role=user_role,
-                membership_status=Membership.PENDING
-                if is_pending_membership
-                else Membership.APPROVED,
+                membership_status=membership_status,
             )
         else:
             membership.user_role = user_role
             if membership_status:
-                membership.membership_status = Membership.get_membership_status_from_text(
-                    membership_status
-                )
+                membership.membership_status = membership_status
 
         membership_status = membership.membership_status
 

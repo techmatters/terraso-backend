@@ -17,6 +17,7 @@ import django_filters
 import graphene
 import rules
 import structlog
+from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.db.models import Exists, OuterRef, Q
 from graphene import relay
@@ -183,22 +184,6 @@ class StoryMapMembershipSaveMutation(BaseAuthenticatedMutation):
             )
             raise GraphQLNotFoundException(model_name=StoryMap.__name__)
 
-        if not rules.test_rule(
-            "allowed_to_save_story_map_membership",
-            user,
-            {
-                "story_map": story_map,
-                "membership": kwargs,
-            },
-        ):
-            logger.info(
-                "Attempt to update a Membership, but user has no permission",
-                extra=kwargs,
-            )
-            raise GraphQLNotAllowedException(
-                model_name=Membership.__name__, operation=MutationTypes.UPDATE
-            )
-
         if not story_map.membership_list:
             story_map.membership_list = MembershipList.objects.create(
                 enroll_method=MembershipList.ENROLL_METHOD_INVITE,
@@ -206,21 +191,44 @@ class StoryMapMembershipSaveMutation(BaseAuthenticatedMutation):
             )
             story_map.save()
 
+        user_membership = story_map.membership_list.memberships.filter(user=user).first()
+
+        def validate(context):
+            if not rules.test_rule(
+                "allowed_to_save_story_map_membership",
+                user,
+                {
+                    "story_map": story_map,
+                    "user_membership": user_membership,
+                    **context,
+                },
+            ):
+                raise ValidationError("User cannot request membership")
+
         try:
             memberships = [
-                result[1]
+                {
+                    "membership": result[1],
+                    "was_approved": result[0],
+                }
                 for email in kwargs["user_emails"]
                 for result in [
                     story_map.membership_list.save_member(
-                        {
-                            "user_email": email,
-                            "user_role": kwargs["user_role"],
-                        },
-                        requestor_can_approve=True,
+                        user_email=email,
+                        user_role=kwargs["user_role"],
+                        membership_status=Membership.APPROVED,
+                        validation_func=validate,
                     )
                 ]
             ]
-
+        except ValidationError as error:
+            logger.error(
+                "Attempt to save a Membership, but user is not allowed",
+                extra={"error": str(error)},
+            )
+            raise GraphQLNotAllowedException(
+                model_name=Membership.__name__, operation=MutationTypes.UPDATE
+            )
         except Exception as error:
             logger.error(
                 "Attempt to update Story Map Memberships, but there was an error",
@@ -228,9 +236,12 @@ class StoryMapMembershipSaveMutation(BaseAuthenticatedMutation):
             )
             raise GraphQLNotFoundException(model_name=Membership.__name__)
 
-        send_memberships_invite_email(memberships, story_map)
+        approved_memberships = [
+            membership["membership"] for membership in memberships if membership["was_approved"]
+        ]
+        send_memberships_invite_email(approved_memberships, story_map)
 
-        return cls(memberships=memberships)
+        return cls(memberships=[membership["membership"] for membership in memberships])
 
 
 class StoryMapMembershipDeleteMutation(BaseDeleteMutation):

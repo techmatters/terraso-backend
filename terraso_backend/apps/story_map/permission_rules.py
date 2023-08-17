@@ -15,6 +15,8 @@
 
 import rules
 
+from apps.collaboration.models import Membership
+
 from .collaboration_roles import ROLE_COLLABORATOR
 
 
@@ -42,8 +44,26 @@ def allowed_to_delete_story_map(user, story_map):
 @rules.predicate
 def allowed_to_save_story_map_membership(user, obj):
     story_map = obj.get("story_map")
+
     is_owner = story_map.created_by == user
-    return is_owner
+    if is_owner:
+        return True
+
+    current_membership = obj.get("current_membership")
+    is_new = not current_membership
+    if not is_new:
+        return False
+
+    user_membership = obj.get("user_membership")
+
+    is_collaborator = (
+        user_membership.user_role == ROLE_COLLABORATOR
+        and user_membership.membership_status == Membership.APPROVED
+    )
+    if is_collaborator:
+        return True
+
+    return False
 
 
 @rules.predicate
