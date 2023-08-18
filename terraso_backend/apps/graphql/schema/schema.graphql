@@ -1195,6 +1195,7 @@ input StoryMapMembershipDeleteMutationInput {
 type StoryMapMembershipApproveMutationPayload {
   errors: GenericScalar
   membership: CollaborationMembershipNode
+  storyMap: StoryMapNode
   clientMutationId: String
 }
 

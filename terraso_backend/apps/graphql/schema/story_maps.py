@@ -256,6 +256,7 @@ class StoryMapMembershipSaveMutation(BaseAuthenticatedMutation):
 class StoryMapMembershipApproveMutation(BaseAuthenticatedMutation):
     model_class = Membership
     membership = graphene.Field(CollaborationMembershipNode)
+    story_map = graphene.Field(StoryMapNode)
 
     class Input:
         membership_id = graphene.String(required=True)
@@ -302,7 +303,7 @@ class StoryMapMembershipApproveMutation(BaseAuthenticatedMutation):
             )
 
         try:
-            story_map.membership_list.approve_membership(
+            membership.membership_list.approve_membership(
                 user_email=membership.user.email,
             )
         except Exception as error:
@@ -311,6 +312,8 @@ class StoryMapMembershipApproveMutation(BaseAuthenticatedMutation):
                 extra={"error": str(error)},
             )
             raise GraphQLNotFoundException(model_name=Membership.__name__)
+
+        return cls(membership=membership, story_map=story_map)
 
 
 class StoryMapMembershipDeleteMutation(BaseDeleteMutation):
