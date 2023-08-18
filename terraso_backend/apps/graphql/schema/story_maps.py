@@ -23,15 +23,22 @@ from django.db.models import Q
 from graphene import relay
 from graphene_django import DjangoObjectType
 
+from apps.auth.services import JWTService
 from apps.collaboration.graphql import CollaborationMembershipNode
 from apps.collaboration.models import Membership, MembershipList
+from apps.core.models import User
 from apps.graphql.exceptions import GraphQLNotAllowedException, GraphQLNotFoundException
 from apps.story_map.collaboration_roles import ROLE_COLLABORATOR
 from apps.story_map.models.story_maps import StoryMap
 from apps.story_map.notifications import send_memberships_invite_email
 from apps.story_map.services import story_map_media_upload_service
 
-from .commons import BaseAuthenticatedMutation, BaseDeleteMutation, TerrasoConnection
+from .commons import (
+    BaseAuthenticatedMutation,
+    BaseDeleteMutation,
+    BaseUnauthenticatedMutation,
+    TerrasoConnection,
+)
 from .constants import MutationTypes
 
 logger = structlog.get_logger(__name__)
@@ -252,34 +259,69 @@ class StoryMapMembershipSaveMutation(BaseAuthenticatedMutation):
             )
             raise GraphQLNotFoundException(model_name=Membership.__name__)
 
-        approved_memberships = [
-            membership["membership"] for membership in memberships if membership["was_approved"]
+        pending_memberships = [
+            membership["membership"] for membership in memberships if not membership["was_approved"]
         ]
-        send_memberships_invite_email(approved_memberships, story_map)
+        send_memberships_invite_email(pending_memberships, story_map)
 
         return cls(memberships=[membership["membership"] for membership in memberships])
 
 
-class StoryMapMembershipApproveMutation(BaseAuthenticatedMutation):
+class StoryMapMembershipApproveMutation(BaseUnauthenticatedMutation):
     model_class = Membership
     membership = graphene.Field(CollaborationMembershipNode)
     story_map = graphene.Field(StoryMapNode)
 
     class Input:
-        membership_id = graphene.String(required=True)
+        membership_id = graphene.String()
+        invite_token = graphene.String()
 
     @classmethod
     def mutate_and_get_payload(cls, root, info, **kwargs):
-        user = info.context.user
-
         membership_id = kwargs["membership_id"]
+        invite_token = kwargs["invite_token"]
+
+        if not membership_id and not invite_token or (membership_id and invite_token):
+            logger.error(
+                "No membership_id or invite_token was provided",
+                extra=kwargs,
+            )
+            raise GraphQLNotFoundException(model_name=Membership.__name__)
+
+        if invite_token:
+            try:
+                decoded_payload = JWTService().verify_token(invite_token)
+                user = User.objects.get(pk=decoded_payload["sub"])
+            except Exception:
+                logger.exception("Failure to verify JWT token", extra={"token": invite_token})
+                raise GraphQLNotAllowedException(
+                    model_name=StoryMap.__name__, operation=MutationTypes.UPDATE
+                )
+        else:
+            user = info.context.user
+
+        if not user:
+            logger.error(
+                "Attempt to approve a Membership, but user was not found",
+                extra=kwargs,
+            )
+            raise GraphQLNotFoundException(model_name=User.__name__)
 
         try:
-            membership = Membership.objects.get(id=membership_id)
+            membership = Membership.objects.get(
+                id=membership_id if membership_id else decoded_payload["membership_id"]
+            )
         except Exception as error:
             logger.error(
                 "Attempt to approve Membership, but it was not found",
                 extra={"membership_id": membership_id, "error": error},
+            )
+            raise GraphQLNotFoundException(model_name=Membership.__name__)
+
+        if membership.user != user:
+            logger.error(
+                "Attempt to approve Membership, but user does not match",
+                extra={"membership_id": membership_id, "user_id": user.pk},
             )
             raise GraphQLNotFoundException(model_name=Membership.__name__)
 

@@ -1200,7 +1200,8 @@ type StoryMapMembershipApproveMutationPayload {
 }
 
 input StoryMapMembershipApproveMutationInput {
-  membershipId: String!
+  membershipId: String
+  inviteToken: String
   clientMutationId: String
 }
 

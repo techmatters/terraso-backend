@@ -21,25 +21,32 @@ from django.template.loader import render_to_string
 from django.utils import translation
 from django.utils.translation import gettext_lazy as _
 
+from apps.auth.services import JWTService
 from apps.notifications.email import TRACKING_PARAMETERS, EmailNotification
 
 
-def send_memberships_invite_email(memberships, story_map):
-    params = urlencode(TRACKING_PARAMETERS)
-    story_map_url = (
-        f"{settings.WEB_CLIENT_URL}/tools/story-maps/"
-        f"{story_map.story_map_id}/{story_map.slug}/edit?"
-        f"{params}"
+def accept_invite_url(user, membership):
+    params = TRACKING_PARAMETERS
+    params["token"] = JWTService().create_token(
+        user,
+        extra_payload={
+            "membership_id": str(membership.id),
+        },
     )
-    users = [
-        membership.user for membership in memberships if membership.user.notifications_enabled()
+    return f"{settings.WEB_CLIENT_URL}/tools/story-maps/accept?{urlencode(params)}"
+
+
+def send_memberships_invite_email(memberships, story_map):
+    memberships = [
+        membership for membership in memberships if membership.user.notifications_enabled()
     ]
-    for user in users:
+    for membership in memberships:
+        user = membership.user
         recipients = [user.name_and_email()]
         context = {
             "firstName": user.first_name,
             "storyMapTitle": story_map.title,
-            "storyMapUrl": story_map_url,
+            "acceptInviteUrl": accept_invite_url(user, membership),
             "unsubscribeUrl": EmailNotification.unsubscribe_url(user),
         }
 
