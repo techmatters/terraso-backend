@@ -276,7 +276,7 @@ class StoryMapMembershipApproveMutation(BaseAuthenticatedMutation):
             )
             raise GraphQLNotFoundException(model_name=Membership.__name__)
 
-        story_map = membership.membership_list.story_map
+        story_map = membership.membership_list.story_map.get()
         if not story_map:
             logger.error(
                 "Attempt to approve Membership, but Story Map was not found",
