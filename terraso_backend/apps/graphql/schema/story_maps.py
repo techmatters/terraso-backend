@@ -48,17 +48,24 @@ class StoryMapFilterSet(django_filters.FilterSet):
         fields = {
             "slug": ["exact"],
             "story_map_id": ["exact"],
-            "membership_list__memberships__user__email": ["exact"],
         }
 
     def filter_memberships_user_email_not(self, queryset, name, value):
         return queryset.exclude(
-            Q(membership_list__memberships__user__email=value) | Q(created_by__email=value)
+            Q(
+                membership_list__memberships__user__email=value,
+                membership_list__memberships__deleted_at__isnull=True,
+            )
+            | Q(created_by__email=value)
         )
 
     def filter_memberships_user_email(self, queryset, name, value):
         return queryset.filter(
-            Q(membership_list__memberships__user__email=value) | Q(created_by__email=value)
+            Q(
+                membership_list__memberships__user__email=value,
+                membership_list__memberships__deleted_at__isnull=True,
+            )
+            | Q(created_by__email=value)
         )
 
 

@@ -53,7 +53,7 @@ type Query {
     """The ID of the object"""
     id: ID!
   ): StoryMapNode!
-  storyMaps(offset: Int, before: String, after: String, first: Int, last: Int, slug: String, storyMapId: String, membershipList_Memberships_User_Email: String, memberships_User_Email_Not: String, memberships_User_Email: String): StoryMapNodeConnection
+  storyMaps(offset: Int, before: String, after: String, first: Int, last: Int, slug: String, storyMapId: String, memberships_User_Email_Not: String, memberships_User_Email: String): StoryMapNodeConnection
   project(
     """The ID of the object"""
     id: ID!
