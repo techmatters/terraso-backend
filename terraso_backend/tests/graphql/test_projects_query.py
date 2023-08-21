@@ -32,6 +32,9 @@ def test_query_by_member(client, project, project_user):
           node {
             id
             name
+            group {
+              id
+            }
           }
         }
       }
