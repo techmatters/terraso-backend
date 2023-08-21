@@ -55,7 +55,8 @@ class MembershipList(BaseModel):
     )
 
     def save_membership(self, user_email, user_role, membership_status, validation_func):
-        user = User.objects.get(email=user_email)
+        user = User.objects.filter(email=user_email).first()
+        user_exists = user is not None
 
         membership = self.get_membership(user)
         is_new = not membership
@@ -74,7 +75,8 @@ class MembershipList(BaseModel):
         if is_new:
             membership = Membership(
                 membership_list=self,
-                user=user,
+                user=user if user_exists else None,
+                pending_email=user_email if not user_exists else None,
                 user_role=user_role,
                 membership_status=membership_status,
             )
@@ -156,12 +158,14 @@ class Membership(BaseModel):
         MembershipList, on_delete=models.CASCADE, related_name="memberships"
     )
     user = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name="collaboration_memberships"
+        User, on_delete=models.CASCADE, related_name="collaboration_memberships", null=True
     )
 
     user_role = models.CharField(max_length=64)
 
     membership_status = models.CharField(max_length=64, choices=APPROVAL_STATUS, default=APPROVED)
+
+    pending_email = models.EmailField(null=True, blank=True)
 
     objects = MembershipObjectsManager()
 

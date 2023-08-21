@@ -179,9 +179,9 @@ class JWTService:
         return {
             "iss": self.JWT_ISS,
             "iat": timezone.now(),
-            "sub": str(user.id),
+            "sub": str(user.id) if user else None,
             "jti": uuid4().hex,
-            "email": user.email,
+            "email": user.email if user else None,
         }
 
 

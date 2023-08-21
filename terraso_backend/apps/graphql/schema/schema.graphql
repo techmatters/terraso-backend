@@ -598,9 +598,10 @@ type CollaborationMembershipNodeEdge {
 
 type CollaborationMembershipNode implements Node {
   membershipList: CollaborationMembershipListNode!
-  user: UserNode!
+  user: UserNode
   userRole: String!
   membershipStatus: CollaborationMembershipMembershipStatusChoices!
+  pendingEmail: String
   id: ID!
 }
 

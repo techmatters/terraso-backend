@@ -262,7 +262,7 @@ class StoryMapMembershipSaveMutation(BaseAuthenticatedMutation):
         pending_memberships = [
             membership["membership"] for membership in memberships if not membership["was_approved"]
         ]
-        send_memberships_invite_email(pending_memberships, story_map)
+        send_memberships_invite_email(user, pending_memberships, story_map)
 
         return cls(memberships=[membership["membership"] for membership in memberships])
 

@@ -36,11 +36,13 @@ def accept_invite_url(user, membership):
     return f"{settings.WEB_CLIENT_URL}/tools/story-maps/accept?{urlencode(params)}"
 
 
-def send_memberships_invite_email(memberships, story_map):
-    memberships = [
-        membership for membership in memberships if membership.user.notifications_enabled()
+def send_memberships_invite_email(requestor, memberships, story_map):
+    signed_up_memberships = [
+        membership
+        for membership in memberships
+        if membership.user is not None and membership.user.notifications_enabled()
     ]
-    for membership in memberships:
+    for membership in signed_up_memberships:
         user = membership.user
         recipients = [user.name_and_email()]
         context = {
@@ -51,6 +53,26 @@ def send_memberships_invite_email(memberships, story_map):
         }
 
         with translation.override(user.language()):
+            subject = _(
+                "Membership in “%(storyMapTitle)s” has been approved"
+                % {"storyMapTitle": story_map.title}
+            )
+            body = render_to_string("story-map-membership-invite.html", context)
+
+        send_mail(subject, None, EmailNotification.sender(), recipients, html_message=body)
+
+    not_signed_up_memberships = [
+        membership for membership in memberships if membership.user is None
+    ]
+    for membership in not_signed_up_memberships:
+        recipients = [membership.pending_email]
+        context = {
+            "firstName": membership.pending_email,
+            "storyMapTitle": story_map.title,
+            "acceptInviteUrl": accept_invite_url(None, membership),
+        }
+
+        with translation.override(requestor.language()):
             subject = _(
                 "Membership in “%(storyMapTitle)s” has been approved"
                 % {"storyMapTitle": story_map.title}
