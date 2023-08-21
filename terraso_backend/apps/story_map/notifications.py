@@ -30,7 +30,7 @@ def accept_invite_url(user, membership):
     params["token"] = JWTService().create_token(
         user,
         extra_payload={
-            "membership_id": str(membership.id),
+            "membershipId": str(membership.id),
         },
     )
     return f"{settings.WEB_CLIENT_URL}/tools/story-maps/accept?{urlencode(params)}"

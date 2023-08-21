@@ -278,8 +278,8 @@ class StoryMapMembershipApproveMutation(BaseUnauthenticatedMutation):
 
     @classmethod
     def mutate_and_get_payload(cls, root, info, **kwargs):
-        membership_id = kwargs["membership_id"]
-        invite_token = kwargs["invite_token"]
+        membership_id = kwargs["membership_id"] if "membership_id" in kwargs else None
+        invite_token = kwargs["invite_token"] if "invite_token" in kwargs else None
 
         if not membership_id and not invite_token or (membership_id and invite_token):
             logger.error(
@@ -309,7 +309,7 @@ class StoryMapMembershipApproveMutation(BaseUnauthenticatedMutation):
 
         try:
             membership = Membership.objects.get(
-                id=membership_id if membership_id else decoded_payload["membership_id"]
+                id=membership_id if membership_id else decoded_payload["membershipId"]
             )
         except Exception as error:
             logger.error(
