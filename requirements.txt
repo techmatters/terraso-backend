@@ -25,15 +25,15 @@ attrs==23.1.0 \
     #   cattrs
     #   ddtrace
     #   fiona
-boto3==1.28.25 \
-    --hash=sha256:20feedb753e87d6dd55665e2e9dda08b031518291350c9c57b552c86a537fd4e \
-    --hash=sha256:f08f6c83608721c2142abd2ccc5f15bd5c98c282ad9e0d39f9efc59d98604658
+boto3==1.28.31 \
+    --hash=sha256:2761f3249fe25c3ec1a8cd6b95fca2317747503e6f1d127daf6a3d2cdeb25680 \
+    --hash=sha256:dc6d72470f6d8926b8cdc10ee7708d7ccdd36d6313c7aa298bc1cf6bedb8921e
     # via
     #   -r requirements/base.in
     #   django-ses
-botocore==1.31.30 \
-    --hash=sha256:269f20dcadd8dfd0c26d0e6fbceb84814ff6638ff3aafcc5324b9fb9949a7051 \
-    --hash=sha256:3cf6a9d7621b897c9ff23cd02113826141b3dd3d7e90273b661efc4dc05f84e2
+botocore==1.31.31 \
+    --hash=sha256:1eef14ae98e8662e43f7cf6d993c732793def02644e2d489c5171d3b9269e900 \
+    --hash=sha256:950a49c5286fe1f6d72cfbe2910b9ddbdfbb907975ddc41cf38ac9709b4d1291
     # via
     #   boto3
     #   s3transfer
