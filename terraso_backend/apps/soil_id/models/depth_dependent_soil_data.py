@@ -293,7 +293,6 @@ class DepthDependentSoilData(BaseModel):
         null=True, max_digits=100, decimal_places=1, validators=[MinValueValidator(0)]
     )
 
-    bedrock = models.PositiveIntegerField(null=True)
 
     NONEFFERVESCENT = "noneffervescent — No bubbles form"
     VERY_SLIGHTLY_EFFERVESCENT = "very slightly effervescent — Few bubbles form"

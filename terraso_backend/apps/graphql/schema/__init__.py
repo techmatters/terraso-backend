@@ -15,6 +15,7 @@
 
 import graphene
 from graphene_django.filter import DjangoFilterConnectionField
+from apps.graphql.schema.site_soil_data import SoilDataUpdateMutation
 
 from .audit_logs import AuditLogNode
 from .commons import TerrasoRelayNode
@@ -145,6 +146,7 @@ class Mutations(graphene.ObjectType):
     update_project = ProjectUpdateMutation.Field()
     archive_project = ProjectArchiveMutation.Field()
     delete_project = ProjectDeleteMutation.Field()
+    update_soil_data = SoilDataUpdateMutation.Field()
 
 
 schema = graphene.Schema(query=Query, mutation=Mutations)

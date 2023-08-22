@@ -637,6 +637,7 @@ type SiteNode implements Node {
   privacy: ProjectManagementSitePrivacyChoices!
   project: ProjectNode
   archived: Boolean!
+  soilData: SoilDataNode
   id: ID!
 }
 
@@ -647,6 +648,90 @@ enum ProjectManagementSitePrivacyChoices {
 
   """Public"""
   PUBLIC
+}
+
+type SoilDataNode {
+  deletedAt: DateTime
+  deletedByCascade: Boolean!
+  id: UUID!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  site: SiteNode!
+  downSlope: Int
+  crossSlope: Int
+  slopeShape: SoilIdSoilDataSlopeShapeChoices
+  slopeLandscapePosition: SoilIdSoilDataSlopeLandscapePositionChoices
+  slopeAspect: Int
+  slopeRangeSelect: SoilIdSoilDataSlopeRangeSelectChoices
+  slopeRangeManual: Int
+  slopeSteepnessPercent: Int
+  slopeSteepnessDegree: Int
+}
+
+"""
+Leverages the internal Python implementation of UUID (uuid.UUID) to provide native UUID objects
+in fields, resolvers and input.
+"""
+scalar UUID
+
+"""An enumeration."""
+enum SoilIdSoilDataSlopeShapeChoices {
+  """Concave"""
+  CONCAVE
+
+  """Convex"""
+  CONVEX
+
+  """Linear"""
+  LINEAR
+}
+
+"""An enumeration."""
+enum SoilIdSoilDataSlopeLandscapePositionChoices {
+  """Alluvial Fan"""
+  ALLUVIAL_FAN
+
+  """Floodpain/Basin"""
+  FLOODPAIN_BASIN
+
+  """Flat/Low Rolling Plain"""
+  FLAT_LOW_ROLLING_PLAIN
+
+  """Playa"""
+  PLAYA
+
+  """Dunes"""
+  DUNES
+}
+
+"""An enumeration."""
+enum SoilIdSoilDataSlopeRangeSelectChoices {
+  """0 - 2% (flat)"""
+  A_0_2_FLAT_
+
+  """2 - 5% (gentle)"""
+  A_2_5_GENTLE_
+
+  """5 - 10% (moderate)"""
+  A_5_10_MODERATE_
+
+  """10 - 15% (rolling)"""
+  A_10_15_ROLLING_
+
+  """15 - 30% (hilly)"""
+  A_15_30_HILLY_
+
+  """30 - 50% (steep)"""
+  A_30_50_STEEP_
+
+  """50 - 60% (moderately steep)"""
+  A_50_60_MODERATELY_STEEP_
+
+  """60 - 100% (very steep)"""
+  A_60_100_VERY_STEEP_
+
+  """100%+ (steepest)"""
+  A_100_STEEPEST_
 }
 
 type ProjectNodeConnection {
@@ -713,12 +798,6 @@ enum AuditLogsLogEventChoices {
 }
 
 """
-Leverages the internal Python implementation of UUID (uuid.UUID) to provide native UUID objects
-in fields, resolvers and input.
-"""
-scalar UUID
-
-"""
 The `GenericScalar` scalar type represents a generic
 GraphQL scalar value that could be:
 String, Boolean, Int, Float, List or Object.
@@ -759,6 +838,7 @@ type Mutations {
   updateProject(input: ProjectUpdateMutationInput!): ProjectUpdateMutationPayload!
   archiveProject(input: ProjectArchiveMutationInput!): ProjectArchiveMutationPayload!
   deleteProject(input: ProjectDeleteMutationInput!): ProjectDeleteMutationPayload!
+  updateSoilData(input: SoilDataUpdateMutationInput!): SoilDataUpdateMutationPayload!
 }
 
 type GroupAddMutationPayload {
@@ -1202,5 +1282,25 @@ type ProjectDeleteMutationPayload {
 input ProjectDeleteMutationInput {
   id: ID!
   transferProjectId: ID
+  clientMutationId: String
+}
+
+type SoilDataUpdateMutationPayload {
+  errors: GenericScalar
+  soilData: SoilDataNode
+  clientMutationId: String
+}
+
+input SoilDataUpdateMutationInput {
+  siteId: ID!
+  downSlope: Int
+  crossSlope: Int
+  slopeShape: String
+  slopeLandscapePosition: String
+  slopeAspect: Int
+  slopeRangeSelect: String
+  slopeRangeManual: Int
+  slopeSteepnessPercent: Int
+  slopeSteepnessDegree: Int
   clientMutationId: String
 }

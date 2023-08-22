@@ -27,26 +27,28 @@ LINEAR = "linear"
 SLOPE_SHAPES = ((CONCAVE, _("Concave")), (CONVEX, _("Convex")), (LINEAR, _("Linear")))
 
 HILLS_MOUNTAINS = "Hills/Mountains"
-SUMMIT = "Summit"
-SHOULDER = "Shoulder"
-BACKSLOPE = "Backslope"
+HILLS_SUMMIT = "Summit"
+HILLS_SHOULDER = "Shoulder"
+HILLS_BACKSLOPE = "Backslope"
 ALLUVIAL_FAN = "Alluvial Fan"
 FLOODPLAIN_BASIN = "Floodpain/Basin"
 TERRACE = "Terrace"
-TREAD = "Tread"
-RISER = "Riser"
+TERRACE_TREAD = "Tread"
+TERRACE_RISER = "Riser"
 FLAT_LOW_ROLLING_PLAIN = "Flat/Low Rolling Plain"
 PLAYA = "Playa"
 DUNES = "Dunes"
 
 LANDSCAPE_POSITIONS = (
-    (
-        HILLS_MOUNTAINS,
-        _((SUMMIT, _("Summit")), (SHOULDER, _("Shoulder")), (BACKSLOPE, _("Backslope"))),
-    ),
+    (HILLS_MOUNTAINS, _("Hills/Mountains")),
+    (HILLS_SUMMIT, _("Summit")),
+    (HILLS_SHOULDER, _("Shoulder")),
+    (HILLS_BACKSLOPE, _("Backslope")),
     (ALLUVIAL_FAN, _("Alluvial Fan")),
     (FLOODPLAIN_BASIN, _("Floodpain/Basin")),
-    (TERRACE, _((TREAD, _("Tread")), (RISER, _("Riser")))),
+    (TERRACE, _("Terrace")),
+    (TERRACE_TREAD, _("Tread")),
+    (TERRACE_RISER, _("Riser")),
     (FLAT_LOW_ROLLING_PLAIN, _("Flat/Low Rolling Plain")),
     (PLAYA, _("Playa")),
     (DUNES, _("Dunes")),
@@ -60,7 +62,7 @@ HILLY = "15 - 30% (hilly)"
 STEEP = "30 - 50% (steep)"
 MODERATELY_STEEP = "50 - 60% (moderately steep)"
 VERY_STEEP = "60 - 100% (very steep)"
-STEEPEST = "> 100% (steepest)"
+STEEPEST = "100%+ (steepest)"
 
 SLOPE_RANGES = (
     (FLAT, _("0 - 2% (flat)")),
@@ -71,27 +73,24 @@ SLOPE_RANGES = (
     (STEEP, _("30 - 50% (steep)")),
     (MODERATELY_STEEP, _("50 - 60% (moderately steep)")),
     (VERY_STEEP, _("60 - 100% (very steep)")),
-    (STEEPEST, _("> 100% (steepest)")),
+    (STEEPEST, _("100%+ (steepest)")),
 )
 
 
 class SoilData(BaseModel):
-    site = models.OneToOneField(Site, on_delete=models.CASCADE)
-    down_slope = models.IntegerField(
-        null=True, validators=[MinValueValidator(0), MaxValueValidator(100)]
+    site = models.OneToOneField(Site, on_delete=models.CASCADE, related_name="soil_data")
+    down_slope = models.CharField(
+        null=True, choices=SLOPE_SHAPES
     )
-    cross_slope = models.IntegerField(
-        null=True, validators=[MinValueValidator(0), MaxValueValidator(100)]
+    cross_slope = models.CharField(
+        null=True, choices=SLOPE_SHAPES
     )
-    slope_shape = models.CharField(null=True, choices=SLOPE_SHAPES)
+    bedrock = models.PositiveIntegerField(null=True)
     slope_landscape_position = models.CharField(null=True, choices=LANDSCAPE_POSITIONS)
     slope_aspect = models.IntegerField(
         null=True, validators=[MinValueValidator(0), MaxValueValidator(359)]
     )
-    slope_range_select = models.CharField(null=True, choices=SLOPE_RANGES)
-    slope_range_manual = models.IntegerField(
-        null=True, validators=[MinValueValidator(0), MaxValueValidator(100)]
-    )
+    slope_steepness_select = models.CharField(null=True, choices=SLOPE_RANGES)
     slope_steepness_percent = models.IntegerField(null=True, validators=[MinValueValidator(0)])
     slope_steepness_degree = models.IntegerField(
         null=True, validators=[MinValueValidator(0), MaxValueValidator(90)]

@@ -27,6 +27,8 @@ from apps.project_management.models import Project, Site, sites
 from .commons import BaseDeleteMutation, BaseWriteMutation, TerrasoConnection
 from .constants import MutationTypes
 
+import structlog
+logger = structlog.get_logger(__name__)
 
 class SiteFilter(django_filters.FilterSet):
     project = TypedFilter()
@@ -60,6 +62,7 @@ class SiteNode(DjangoObjectType):
             "owner",
             "privacy",
             "updated_at",
+            "soil_data",
         )
         filterset_class = SiteFilter
 

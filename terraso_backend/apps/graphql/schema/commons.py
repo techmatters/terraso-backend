@@ -173,12 +173,15 @@ class BaseWriteMutation(BaseAuthenticatedMutation):
         called both when adding and updating a model. The `kwargs` receives
         a dictionary with all inputs informed.
         """
-        _id = kwargs.pop("id", None)
-
-        if _id:
-            model_instance = cls.model_class.objects.get(pk=_id)
+        if "model_instance" in kwargs:
+            model_instance = kwargs.pop("model_instance")
         else:
-            model_instance = cls.model_class()
+            _id = kwargs.pop("id", None)
+
+            if _id:
+                model_instance = cls.model_class.objects.get(pk=_id)
+            else:
+                model_instance = cls.model_class()
 
         for attr, value in kwargs.items():
             setattr(model_instance, attr, value)
