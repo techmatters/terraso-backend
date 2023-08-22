@@ -125,6 +125,8 @@ class MembershipList(BaseModel):
         return self.members.filter(id=user.id).exists()
 
     def get_membership(self, user: User):
+        if not user:
+            return None
         return self.memberships.filter(user=user).first()
 
     @property
