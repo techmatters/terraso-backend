@@ -31,6 +31,7 @@ def accept_invite_url(user, membership):
         user,
         extra_payload={
             "membershipId": str(membership.id),
+            "pendingEmail": membership.pending_email if user is None else None,
         },
     )
     return f"{settings.WEB_CLIENT_URL}/tools/story-maps/accept?{urlencode(params)}"

@@ -63,6 +63,7 @@ from .sites import SiteAddMutation, SiteDeleteMutation, SiteNode, SiteUpdateMuta
 from .story_maps import (
     StoryMapDeleteMutation,
     StoryMapMembershipApproveMutation,
+    StoryMapMembershipApproveTokenMutation,
     StoryMapMembershipDeleteMutation,
     StoryMapMembershipSaveMutation,
     StoryMapNode,
@@ -147,6 +148,7 @@ class Mutations(graphene.ObjectType):
     save_story_map_membership = StoryMapMembershipSaveMutation.Field()
     delete_story_map_membership = StoryMapMembershipDeleteMutation.Field()
     approve_story_map_membership = StoryMapMembershipApproveMutation.Field()
+    approve_story_map_membership_token = StoryMapMembershipApproveTokenMutation.Field()
     add_site = SiteAddMutation.Field()
     update_site = SiteUpdateMutation.Field()
     delete_site = SiteDeleteMutation.Field()

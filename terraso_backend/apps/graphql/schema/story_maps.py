@@ -267,38 +267,103 @@ class StoryMapMembershipSaveMutation(BaseAuthenticatedMutation):
         return cls(memberships=[membership["membership"] for membership in memberships])
 
 
-class StoryMapMembershipApproveMutation(BaseUnauthenticatedMutation):
+class StoryMapMembershipApproveTokenMutation(BaseUnauthenticatedMutation):
     model_class = Membership
     membership = graphene.Field(CollaborationMembershipNode)
     story_map = graphene.Field(StoryMapNode)
 
     class Input:
-        membership_id = graphene.String()
-        invite_token = graphene.String()
+        invite_token = graphene.String(required=True)
 
     @classmethod
     def mutate_and_get_payload(cls, root, info, **kwargs):
-        membership_id = kwargs["membership_id"] if "membership_id" in kwargs else None
-        invite_token = kwargs["invite_token"] if "invite_token" in kwargs else None
+        invite_token = kwargs["invite_token"]
 
-        if not membership_id and not invite_token or (membership_id and invite_token):
+        try:
+            decoded_token = JWTService().verify_token(invite_token)
+            user = User.objects.filter(pk=decoded_token["sub"]).first()
+        except Exception:
+            logger.exception("Failure to verify JWT token", extra={"token": invite_token})
+            raise GraphQLNotAllowedException(
+                model_name=StoryMap.__name__, operation=MutationTypes.UPDATE
+            )
+
+        try:
+            membership = Membership.objects.get(id=decoded_token["membershipId"])
+        except Exception as error:
             logger.error(
-                "No membership_id or invite_token was provided",
-                extra=kwargs,
+                "Attempt to approve Membership, but it was not found",
+                extra={"membership_id": decoded_token["membershipId"], "error": error},
             )
             raise GraphQLNotFoundException(model_name=Membership.__name__)
 
-        if invite_token:
-            try:
-                decoded_payload = JWTService().verify_token(invite_token)
-                user = User.objects.get(pk=decoded_payload["sub"])
-            except Exception:
-                logger.exception("Failure to verify JWT token", extra={"token": invite_token})
-                raise GraphQLNotAllowedException(
-                    model_name=StoryMap.__name__, operation=MutationTypes.UPDATE
-                )
-        else:
-            user = info.context.user
+        if not user and membership.pending_email is None:
+            logger.error(
+                "Attempt to approve a Membership, but user was not found",
+                extra=kwargs,
+            )
+            raise GraphQLNotFoundException(model_name=User.__name__)
+
+        if membership.user != user or membership.pending_email != decoded_token["pendingEmail"]:
+            logger.error(
+                "Attempt to approve Membership, but user does not match",
+                extra={"membership_id": decoded_token["membershipId"], "user_id": user.pk},
+            )
+            raise GraphQLNotFoundException(model_name=Membership.__name__)
+
+        story_map = membership.membership_list.story_map.get()
+        if not story_map:
+            logger.error(
+                "Attempt to approve Membership, but Story Map was not found",
+                extra={
+                    "membership": membership,
+                },
+            )
+            raise GraphQLNotFoundException(model_name=StoryMap.__name__)
+
+        if not rules.test_rule(
+            "allowed_to_approve_story_map_membership_token",
+            user,
+            {
+                "decoded_token": decoded_token,
+                "story_map": story_map,
+                "membership": membership,
+            },
+        ):
+            logger.info(
+                "Attempt to approve a Membership, but user has no permission",
+                extra=kwargs,
+            )
+            raise GraphQLNotAllowedException(
+                model_name=Membership.__name__, operation=MutationTypes.UPDATE
+            )
+
+        try:
+            membership.membership_list.approve_membership(
+                user_email=membership.user.email,
+            )
+        except Exception as error:
+            logger.error(
+                "Attempt to approve Membership, but there was an error",
+                extra={"error": str(error)},
+            )
+            raise GraphQLNotFoundException(model_name=Membership.__name__)
+
+        return cls(membership=membership, story_map=story_map)
+
+
+class StoryMapMembershipApproveMutation(BaseAuthenticatedMutation):
+    model_class = Membership
+    membership = graphene.Field(CollaborationMembershipNode)
+    story_map = graphene.Field(StoryMapNode)
+
+    class Input:
+        membership_id = graphene.String(required=True)
+
+    @classmethod
+    def mutate_and_get_payload(cls, root, info, **kwargs):
+        membership_id = kwargs["membership_id"]
+        user = info.context.user
 
         if not user:
             logger.error(
@@ -308,9 +373,7 @@ class StoryMapMembershipApproveMutation(BaseUnauthenticatedMutation):
             raise GraphQLNotFoundException(model_name=User.__name__)
 
         try:
-            membership = Membership.objects.get(
-                id=membership_id if membership_id else decoded_payload["membershipId"]
-            )
+            membership = Membership.objects.get(id=membership_id)
         except Exception as error:
             logger.error(
                 "Attempt to approve Membership, but it was not found",

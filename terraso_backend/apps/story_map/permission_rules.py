@@ -77,6 +77,20 @@ def allowed_to_approve_story_map_membership(user, obj):
 
 
 @rules.predicate
+def allowed_to_approve_story_map_membership_token(user, obj):
+    membership = obj.get("membership")
+    decoded_token = obj.get("decoded_token")
+    pending_email = decoded_token.get("pendingEmail")
+    membership_id = decoded_token.get("membershipId")
+    is_valid_membership_for_token = (
+        membership_id == str(membership.id)
+        and pending_email is not None
+        and pending_email == membership.pending_email
+    )
+    return is_valid_membership_for_token
+
+
+@rules.predicate
 def allowed_to_delete_story_map_membership(user, obj):
     story_map = obj.get("story_map")
     membership = obj.get("membership")
@@ -90,4 +104,7 @@ rules.add_rule("allowed_to_change_story_map", allowed_to_change_story_map)
 rules.add_rule("allowed_to_delete_story_map", allowed_to_delete_story_map)
 rules.add_rule("allowed_to_change_story_map_membership", allowed_to_change_story_map_membership)
 rules.add_rule("allowed_to_approve_story_map_membership", allowed_to_approve_story_map_membership)
+rules.add_rule(
+    "allowed_to_approve_story_map_membership_token", allowed_to_approve_story_map_membership_token
+)
 rules.add_rule("allowed_to_delete_story_map_membership", allowed_to_delete_story_map_membership)
