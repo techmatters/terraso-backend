@@ -96,9 +96,10 @@ class MembershipList(BaseModel):
         membership.save()
         return is_membership_approved, membership
 
-    def approve_membership(self, user_email):
-        user = User.objects.get(email=user_email)
-        membership = self.get_membership(user)
+    def approve_membership(self, membership_id):
+        membership = self.memberships.filter(id=membership_id).first()
+        if not membership:
+            raise ValidationError("Membership not found")
 
         if membership.membership_status == Membership.APPROVED:
             return membership

@@ -340,7 +340,7 @@ class StoryMapMembershipApproveTokenMutation(BaseUnauthenticatedMutation):
 
         try:
             membership.membership_list.approve_membership(
-                user_email=membership.user.email,
+                membership_id=membership.id,
             )
         except Exception as error:
             logger.error(
@@ -416,7 +416,7 @@ class StoryMapMembershipApproveMutation(BaseAuthenticatedMutation):
 
         try:
             membership.membership_list.approve_membership(
-                user_email=membership.user.email,
+                membership_id=membership.id,
             )
         except Exception as error:
             logger.error(
