@@ -32,6 +32,7 @@ from apps.core.models import UserPreference
 from apps.storage.services import ProfileImageService
 
 from .providers import AppleProvider, GoogleProvider, MicrosoftProvider
+from .signals import user_signup_signal
 
 logger = structlog.get_logger(__name__)
 User = get_user_model()
@@ -107,6 +108,8 @@ class AccountService:
 
         if update_name:
             user.save()
+
+        user_signup_signal.send(sender=self.__class__, user=user)
 
         return user, True
 
