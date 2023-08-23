@@ -83,8 +83,6 @@ class SiteNode(DjangoObjectType):
 
 
 class SiteAddMutation(BaseWriteMutation):
-    logger.info("site mutation")
-    print("printed site mutation")
     site = graphene.Field(SiteNode, required=True)
 
     model_class = Site
