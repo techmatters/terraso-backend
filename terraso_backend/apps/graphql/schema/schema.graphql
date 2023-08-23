@@ -657,13 +657,12 @@ type SoilDataNode {
   createdAt: DateTime!
   updatedAt: DateTime!
   site: SiteNode!
-  downSlope: Int
-  crossSlope: Int
-  slopeShape: SoilIdSoilDataSlopeShapeChoices
+  downSlope: SoilIdSoilDataDownSlopeChoices
+  crossSlope: SoilIdSoilDataCrossSlopeChoices
+  bedrock: Int
   slopeLandscapePosition: SoilIdSoilDataSlopeLandscapePositionChoices
   slopeAspect: Int
-  slopeRangeSelect: SoilIdSoilDataSlopeRangeSelectChoices
-  slopeRangeManual: Int
+  slopeSteepnessSelect: SoilIdSoilDataSlopeSteepnessSelectChoices
   slopeSteepnessPercent: Int
   slopeSteepnessDegree: Int
 }
@@ -675,7 +674,19 @@ in fields, resolvers and input.
 scalar UUID
 
 """An enumeration."""
-enum SoilIdSoilDataSlopeShapeChoices {
+enum SoilIdSoilDataDownSlopeChoices {
+  """Concave"""
+  CONCAVE
+
+  """Convex"""
+  CONVEX
+
+  """Linear"""
+  LINEAR
+}
+
+"""An enumeration."""
+enum SoilIdSoilDataCrossSlopeChoices {
   """Concave"""
   CONCAVE
 
@@ -688,11 +699,32 @@ enum SoilIdSoilDataSlopeShapeChoices {
 
 """An enumeration."""
 enum SoilIdSoilDataSlopeLandscapePositionChoices {
+  """Hills/Mountains"""
+  HILLS_MOUNTAINS
+
+  """Summit"""
+  SUMMIT
+
+  """Shoulder"""
+  SHOULDER
+
+  """Backslope"""
+  BACKSLOPE
+
   """Alluvial Fan"""
   ALLUVIAL_FAN
 
   """Floodpain/Basin"""
   FLOODPAIN_BASIN
+
+  """Terrace"""
+  TERRACE
+
+  """Tread"""
+  TREAD
+
+  """Riser"""
+  RISER
 
   """Flat/Low Rolling Plain"""
   FLAT_LOW_ROLLING_PLAIN
@@ -705,7 +737,7 @@ enum SoilIdSoilDataSlopeLandscapePositionChoices {
 }
 
 """An enumeration."""
-enum SoilIdSoilDataSlopeRangeSelectChoices {
+enum SoilIdSoilDataSlopeSteepnessSelectChoices {
   """0 - 2% (flat)"""
   A_0_2_FLAT_
 
@@ -1295,11 +1327,10 @@ input SoilDataUpdateMutationInput {
   siteId: ID!
   downSlope: Int
   crossSlope: Int
-  slopeShape: String
+  bedrock: Int
   slopeLandscapePosition: String
   slopeAspect: Int
-  slopeRangeSelect: String
-  slopeRangeManual: Int
+  slopeSteepnessSelect: String
   slopeSteepnessPercent: Int
   slopeSteepnessDegree: Int
   clientMutationId: String
