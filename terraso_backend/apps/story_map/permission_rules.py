@@ -82,11 +82,16 @@ def allowed_to_approve_story_map_membership_token(user, obj):
     decoded_token = obj.get("decoded_token")
     pending_email = decoded_token.get("pendingEmail")
     membership_id = decoded_token.get("membershipId")
-    is_valid_membership_for_token = (
-        membership_id == str(membership.id)
-        and pending_email is not None
-        and pending_email == membership.pending_email
-    )
+    if pending_email is not None:
+        is_valid_membership_for_token = (
+            membership_id == str(membership.id)
+            and pending_email is not None
+            and pending_email == membership.pending_email
+        )
+        return is_valid_membership_for_token
+
+    is_valid_membership_for_token = membership_id == str(membership.id)
+
     return is_valid_membership_for_token
 
 
