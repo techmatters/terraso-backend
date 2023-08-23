@@ -6,14 +6,14 @@ from .commons import BaseWriteMutation
 import graphene
 import structlog
 logger = structlog.get_logger(__name__)
-
+logger.info("here")
 class SoilDataNode(DjangoObjectType):
     class Meta:
         model = SoilData
         fields = "__all__" ## exclude IDs
 
 class SoilDataUpdateMutation(BaseWriteMutation):
-    soil_data = graphene.Field(SoilDataNode, required=True)
+    soil_data = graphene.Field(SoilDataNode)
     model_class = SoilData
 
     class Input:
@@ -29,9 +29,9 @@ class SoilDataUpdateMutation(BaseWriteMutation):
 
     @classmethod
     def mutate_and_get_payload(cls, root, info, **kwargs):
-        logger.info("BEGINNING")
+        print("BEGINNING")
         user = info.context.user
-        site = Site.objects.get(site = kwargs["site_id"])
+        site = Site.objects.get(id = kwargs["site_id"])
         if not user.has_perm(Site.get_perm("change"), site):
             raise cls.not_allowed(MutationTypes.UPDATE)
         if site.soil_data is None:

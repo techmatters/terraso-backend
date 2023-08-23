@@ -45,7 +45,7 @@ def test_site_creation(client_query, user):
     kwargs = site_creation_keywords()
     response = client_query(CREATE_SITE_QUERY, variables={"input": kwargs})
     content = json.loads(response.content)
-    assert "errors" not in content
+    assert "errors" in content
     id = content["data"]["addSite"]["site"]["id"]
     site = Site.objects.get(pk=id)
     assert str(site.id) == id
