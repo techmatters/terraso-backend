@@ -35,12 +35,12 @@ class SoilDataUpdateMutation(BaseWriteMutation):
 
     @classmethod
     def mutate_and_get_payload(cls, root, info, **kwargs):
-        print("BEGINNING")
+        logger.info("BEGINNING")
         user = info.context.user
-        site = Site.objects.get(id=kwargs["site_id"])
+        site = cls.get_or_throw(Site, "id", kwargs.pop("site_id"))
         if not user.has_perm(Site.get_perm("change"), site):
             raise cls.not_allowed(MutationTypes.UPDATE)
-        if site.soil_data is None:
+        if not hasattr(site, "soil_data"):
             site.soil_data = SoilData()
         kwargs["model_instance"] = site.soil_data
         results = super().mutate_and_get_payload(root, info, **kwargs)

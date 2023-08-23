@@ -96,7 +96,7 @@ class BaseMutation(relay.ClientIDMutation):
         try:
             return model.objects.get(id=id_)
         except model.DoesNotExist:
-            return GraphQLNotFoundException(field_name=field_name, model_name=model.__name__)
+            raise GraphQLNotFoundException(field=field_name, model_name=model.__name__)
 
     @classmethod
     def not_allowed(cls, model, mutation_type=None, msg=None, extra=None):

@@ -35,11 +35,10 @@ def test_update_soil_data(client, project_manager, site):
         "bedrock": 1,
         "slopeSteepnessPercent": 10,
     }
-    response = graphql_query(UPDATE_SOIL_DATA_QUERY, variables={"input": new_data})
+    response = graphql_query(UPDATE_SOIL_DATA_QUERY, variables={"input": new_data}, client=client)
     content = json.loads(response.content)
     logger.info(content)
     payload = content["data"]["updateSoilData"]["soilData"]
     site_id = payload["siteId"]
     assert site_id == str(site.id)
-    assert content["data"]["updateSoilData"]
-    ["errors"] is None
+    assert content["data"]["updateSoilData"]["errors"] is None
