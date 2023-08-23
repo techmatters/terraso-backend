@@ -79,12 +79,8 @@ SLOPE_RANGES = (
 
 class SoilData(BaseModel):
     site = models.OneToOneField(Site, on_delete=models.CASCADE, related_name="soil_data")
-    down_slope = models.CharField(
-        null=True, choices=SLOPE_SHAPES
-    )
-    cross_slope = models.CharField(
-        null=True, choices=SLOPE_SHAPES
-    )
+    down_slope = models.CharField(null=True, choices=SLOPE_SHAPES)
+    cross_slope = models.CharField(null=True, choices=SLOPE_SHAPES)
     bedrock = models.PositiveIntegerField(null=True)
     slope_landscape_position = models.CharField(null=True, choices=LANDSCAPE_POSITIONS)
     slope_aspect = models.IntegerField(

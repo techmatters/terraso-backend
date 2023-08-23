@@ -293,7 +293,6 @@ class DepthDependentSoilData(BaseModel):
         null=True, max_digits=100, decimal_places=1, validators=[MinValueValidator(0)]
     )
 
-
     NONEFFERVESCENT = "noneffervescent — No bubbles form"
     VERY_SLIGHTLY_EFFERVESCENT = "very slightly effervescent — Few bubbles form"
     SLIGHTLY_EFFERVESCENT = "slightly effervescent — Numerous bubbles form"

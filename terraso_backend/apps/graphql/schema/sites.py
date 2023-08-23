@@ -16,6 +16,7 @@ from datetime import datetime
 
 import django_filters
 import graphene
+import structlog
 from django.db import transaction
 from graphene import relay
 from graphene_django import DjangoObjectType
@@ -27,9 +28,9 @@ from apps.project_management.models import Project, Site, sites
 from .commons import BaseDeleteMutation, BaseWriteMutation, TerrasoConnection
 from .constants import MutationTypes
 
-import structlog
 logger = structlog.get_logger(__name__)
 logger.info("sites")
+
 
 class SiteFilter(django_filters.FilterSet):
     project = TypedFilter()

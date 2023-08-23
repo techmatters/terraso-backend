@@ -1,16 +1,22 @@
-from graphene_django import DjangoObjectType
-from apps.soil_id.models.soil_data import SoilData
-from apps.project_management.models.sites import Site
-from apps.graphql.schema.constants import MutationTypes
-from .commons import BaseWriteMutation
 import graphene
 import structlog
+from graphene_django import DjangoObjectType
+
+from apps.graphql.schema.constants import MutationTypes
+from apps.project_management.models.sites import Site
+from apps.soil_id.models.soil_data import SoilData
+
+from .commons import BaseWriteMutation
+
 logger = structlog.get_logger(__name__)
 logger.info("here")
+
+
 class SoilDataNode(DjangoObjectType):
     class Meta:
         model = SoilData
-        fields = "__all__" ## exclude IDs
+        fields = "__all__"  # exclude IDs
+
 
 class SoilDataUpdateMutation(BaseWriteMutation):
     soil_data = graphene.Field(SoilDataNode)
@@ -31,7 +37,7 @@ class SoilDataUpdateMutation(BaseWriteMutation):
     def mutate_and_get_payload(cls, root, info, **kwargs):
         print("BEGINNING")
         user = info.context.user
-        site = Site.objects.get(id = kwargs["site_id"])
+        site = Site.objects.get(id=kwargs["site_id"])
         if not user.has_perm(Site.get_perm("change"), site):
             raise cls.not_allowed(MutationTypes.UPDATE)
         if site.soil_data is None:
@@ -40,4 +46,3 @@ class SoilDataUpdateMutation(BaseWriteMutation):
         results = super().mutate_and_get_payload(root, info, **kwargs)
         logger.info("TESTING")
         return results
-

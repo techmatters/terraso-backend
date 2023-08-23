@@ -1,8 +1,11 @@
-from graphene_django.utils.testing import graphql_query
 import json
+
 import pytest
-pytestmark = pytest.mark.django_db
 import structlog
+from graphene_django.utils.testing import graphql_query
+
+pytestmark = pytest.mark.django_db
+
 logger = structlog.get_logger(__name__)
 
 UPDATE_SOIL_DATA_QUERY = """
@@ -22,6 +25,7 @@ UPDATE_SOIL_DATA_QUERY = """
     }
 """
 
+
 def test_update_soil_data(client, project_manager, site):
     site.add_owner(project_manager)
     client.force_login(project_manager)
@@ -31,8 +35,7 @@ def test_update_soil_data(client, project_manager, site):
         "bedrock": 1,
         "slopeSteepnessPercent": 10,
     }
-    response = graphql_query(UPDATE_SOIL_DATA_QUERY,
-                             variables={"input": new_data})
+    response = graphql_query(UPDATE_SOIL_DATA_QUERY, variables={"input": new_data})
     content = json.loads(response.content)
     logger.info(content)
     payload = content["data"]["updateSoilData"]["soilData"]
