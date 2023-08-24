@@ -71,8 +71,6 @@ class ProjectAddMutation(BaseWriteMutation):
         logger = cls.get_logger()
         user = info.context.user
         with transaction.atomic():
-            group = Project.create_default_group(name=kwargs["name"])
-            kwargs["group"] = group
             kwargs["privacy"] = kwargs["privacy"].value
             result = super().mutate_and_get_payload(root, info, **kwargs)
             result.project.add_manager(user)

@@ -12,6 +12,8 @@
 #
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see https://www.gnu.org/licenses/.
+import secrets
+
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
@@ -66,7 +68,7 @@ class Project(BaseModel):
         if not hasattr(self, "settings"):
             self.settings = self.default_settings()
         if not hasattr(self, "group"):
-            self.group = self.create_default_group(f"project_group_{self.name}")
+            self.group = self.create_default_group(self.name)
         return super(Project, self).save(*args, **kwargs)
 
     archived = models.BooleanField(
@@ -76,8 +78,9 @@ class Project(BaseModel):
     @staticmethod
     def create_default_group(name: str):
         """Creates a default group for a project"""
+        group_name = f"project_group_{name}_{secrets.token_hex(6)}"
         return Group.objects.create(
-            name=name,
+            name=group_name,
             membership_type=Group.MEMBERSHIP_TYPE_OPEN,
             enroll_method=Group.ENROLL_METHOD_INVITE,
         )
