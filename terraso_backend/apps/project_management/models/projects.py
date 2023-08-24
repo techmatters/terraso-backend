@@ -12,7 +12,7 @@
 #
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see https://www.gnu.org/licenses/.
-from datetime import datetime
+import secrets
 
 from django.db import models
 from django.utils.translation import gettext_lazy as _
@@ -78,7 +78,7 @@ class Project(BaseModel):
     @staticmethod
     def create_default_group(name: str):
         """Creates a default group for a project"""
-        group_name = f"project_group_{name}_{datetime.now().timestamp()}"
+        group_name = f"project_group_{name}_{secrets.token_hex(6)}"
         return Group.objects.create(
             name=group_name,
             membership_type=Group.MEMBERSHIP_TYPE_OPEN,
