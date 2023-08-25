@@ -16,7 +16,7 @@
 import graphene
 from graphene_django.filter import DjangoFilterConnectionField
 
-from apps.graphql.schema.site_soil_data import SoilDataUpdateMutation
+from apps.graphql.schema.soil_data import SoilDataUpdateMutation
 
 from .audit_logs import AuditLogNode
 from .commons import TerrasoRelayNode

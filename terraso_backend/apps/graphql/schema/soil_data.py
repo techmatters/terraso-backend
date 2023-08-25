@@ -16,6 +16,9 @@ class SoilDataNode(DjangoObjectType):
     class Meta:
         model = SoilData
         fields = "__all__"  # exclude IDs
+    @classmethod
+    def slope_enum(cls):
+        return cls._meta.fields["down_slope"].type
 
 
 class SoilDataUpdateMutation(BaseWriteMutation):
@@ -24,25 +27,25 @@ class SoilDataUpdateMutation(BaseWriteMutation):
 
     class Input:
         site_id = graphene.ID(required=True)
-        down_slope = graphene.Int()
-        cross_slope = graphene.Int()
-        bedrock = graphene.Int()
-        slope_landscape_position = graphene.String()
-        slope_aspect = graphene.Int()
-        slope_steepness_select = graphene.String()
-        slope_steepness_percent = graphene.Int()
-        slope_steepness_degree = graphene.Int()
+        down_slope = SoilDataNode.slope_enum()
+        cross_slope = SoilDataNode.slope_enum()
+        bedrock = graphene.Int(blank=True)
+        slope_landscape_position = graphene.String(blank=True)
+        slope_aspect = graphene.Int(blank=True)
+        slope_steepness_select = graphene.String(blank=True)
+        slope_steepness_percent = graphene.Int(blank=True)
+        slope_steepness_degree = graphene.Int(blank=True)
 
     @classmethod
     def mutate_and_get_payload(cls, root, info, **kwargs):
-        logger.info("BEGINNING")
         user = info.context.user
         site = cls.get_or_throw(Site, "id", kwargs.pop("site_id"))
         if not user.has_perm(Site.get_perm("change"), site):
             raise cls.not_allowed(MutationTypes.UPDATE)
         if not hasattr(site, "soil_data"):
             site.soil_data = SoilData()
+        if "down_slope" in kwargs:
+            kwargs["down_slope"] = kwargs["down_slope"].value
         kwargs["model_instance"] = site.soil_data
         results = super().mutate_and_get_payload(root, info, **kwargs)
-        logger.info("TESTING")
         return results
