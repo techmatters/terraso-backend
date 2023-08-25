@@ -29,7 +29,6 @@ from .commons import BaseDeleteMutation, BaseWriteMutation, TerrasoConnection
 from .constants import MutationTypes
 
 logger = structlog.get_logger(__name__)
-logger.info("sites")
 
 
 class SiteFilter(django_filters.FilterSet):
