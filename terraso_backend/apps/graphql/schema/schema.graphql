@@ -1325,8 +1325,6 @@ type SoilDataUpdateMutationPayload {
 
 input SoilDataUpdateMutationInput {
   siteId: ID!
-  downSlope: Int
-  crossSlope: Int
   bedrock: Int
   slopeLandscapePosition: String
   slopeAspect: Int
