@@ -17,7 +17,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-05-19 14:51+0000\n"
+"POT-Creation-Date: 2023-08-25 20:50+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -172,6 +172,37 @@ msgstr "Archivo"
 #: terraso_backend/apps/shared_data/models/data_entries.py:64
 msgid "Link"
 msgstr "Enlace"
+
+#: terraso_backend/apps/story_map/notifications.py:63
+#, python-format
+msgid "%(firstName)s, you are invited to edit “%(storyMapTitle)s” in Terraso"
+msgstr "%(firstName)s, estás invitado a editar “%(storyMapTitle)s” en Terraso"
+
+#: terraso_backend/apps/story_map/notifications.py:81
+#, python-format
+msgid "You are invited to edit “%(storyMapTitle)s” in Terraso"
+msgstr "Estás invitado a editar “%(storyMapTitle)s” en Terraso"
+
+#: terraso_backend/apps/story_map/templates/story-map-membership-invite.html:5
+#, python-format
+msgid "%(firstName)s invited you to edit a story map"
+msgstr "%(firstName)s te invitó a editar un story map"
+
+#: terraso_backend/apps/story_map/templates/story-map-membership-invite.html:7
+#, fuzzy, python-format
+#| msgid ""
+#| "%(firstName)s, your request for membership in the group %(groupName)s has "
+#| "been approved."
+msgid ""
+"%(firstName)s, your request for membership in the story map "
+"%(storyMapTitle)s has been approved."
+msgstr ""
+"%(firstName)s, su solicitud de membresía en el grupo “%(groupName)s“ ha sido "
+"aprobada."
+
+#: terraso_backend/apps/story_map/templates/story-map-membership-invite.html:9
+msgid "email.story_map.accept_invite"
+msgstr "Aceptar la invitacion"
 
 #: terraso_backend/config/settings.py:169
 msgid "settings.language.es"

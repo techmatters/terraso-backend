@@ -37,26 +37,30 @@ def accept_invite_url(user, membership):
     return f"{settings.WEB_CLIENT_URL}/tools/story-maps/accept?{urlencode(params)}"
 
 
-def send_memberships_invite_email(requestor, memberships, story_map):
+def send_memberships_invite_email(inviter, memberships, story_map):
     signed_up_memberships = [
         membership
         for membership in memberships
         if membership.user is not None and membership.user.notifications_enabled()
     ]
+    base_context = {
+        "storyMapOwnerFirstName": story_map.created_by.first_name,
+        "inviterFirstName": inviter.first_name,
+        "storyMapTitle": story_map.title,
+        "unsubscribeUrl": EmailNotification.unsubscribe_url(inviter),
+    }
     for membership in signed_up_memberships:
         user = membership.user
         recipients = [user.name_and_email()]
         context = {
             "firstName": user.first_name,
-            "storyMapTitle": story_map.title,
             "acceptInviteUrl": accept_invite_url(user, membership),
-            "unsubscribeUrl": EmailNotification.unsubscribe_url(user),
+            **base_context,
         }
 
         with translation.override(user.language()):
             subject = _(
-                "Membership in “%(storyMapTitle)s” has been approved"
-                % {"storyMapTitle": story_map.title}
+                "%(firstName)s, you are invited to edit “%(storyMapTitle)s” in Terraso" % context
             )
             body = render_to_string("story-map-membership-invite.html", context)
 
@@ -69,15 +73,12 @@ def send_memberships_invite_email(requestor, memberships, story_map):
         recipients = [membership.pending_email]
         context = {
             "firstName": membership.pending_email,
-            "storyMapTitle": story_map.title,
             "acceptInviteUrl": accept_invite_url(None, membership),
+            **base_context,
         }
 
-        with translation.override(requestor.language()):
-            subject = _(
-                "Membership in “%(storyMapTitle)s” has been approved"
-                % {"storyMapTitle": story_map.title}
-            )
+        with translation.override(inviter.language()):
+            subject = _("You are invited to edit “%(storyMapTitle)s” in Terraso" % context)
             body = render_to_string("story-map-membership-invite.html", context)
 
         send_mail(subject, None, EmailNotification.sender(), recipients, html_message=body)
