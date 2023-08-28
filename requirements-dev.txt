@@ -44,9 +44,9 @@ black==23.7.0 \
     --hash=sha256:f9062af71c59c004cd519e2fb8f5d25d39e46d3af011b41ab43b9c74e27e236f \
     --hash=sha256:fb074d8b213749fa1d077d630db0d5f8cc3b2ae63587ad4116e8a436e9bbe995
     # via -r requirements/dev.in
-boto3==1.28.31 \
-    --hash=sha256:2761f3249fe25c3ec1a8cd6b95fca2317747503e6f1d127daf6a3d2cdeb25680 \
-    --hash=sha256:dc6d72470f6d8926b8cdc10ee7708d7ccdd36d6313c7aa298bc1cf6bedb8921e
+boto3==1.28.35 \
+    --hash=sha256:580b584e36967155abed7cc9b088b3bd784e8242ae4d8841f58cb50ab05520dc \
+    --hash=sha256:d77415f22bbc14f3d72eaed2fc9f96d161f3ba7686922ad26d6bbc9d4985f3df
     # via moto
 botocore==1.31.35 \
     --hash=sha256:7e4534325262f43293a9cc9937cb3f1711365244ffde8b925a6ee862bcf30a83 \
