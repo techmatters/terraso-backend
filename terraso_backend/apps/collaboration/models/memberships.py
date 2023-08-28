@@ -179,6 +179,11 @@ class Membership(BaseModel):
                 condition=models.Q(deleted_at__isnull=True),
                 name="unique_active_collaboration_membership",
             ),
+            models.UniqueConstraint(
+                fields=("membership_list", "pending_email"),
+                condition=models.Q(deleted_at__isnull=True),
+                name="unique_pending_collaboration_membership",
+            ),
         )
 
     @classmethod

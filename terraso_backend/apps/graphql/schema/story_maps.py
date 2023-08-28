@@ -17,8 +17,8 @@ import django_filters
 import graphene
 import rules
 import structlog
-from django.core.exceptions import ValidationError
-from django.db import transaction
+from django.core.exceptions import NON_FIELD_ERRORS, ValidationError
+from django.db import IntegrityError, transaction
 from django.db.models import Q
 from graphene import relay
 from graphene_django import DjangoObjectType
@@ -27,7 +27,11 @@ from apps.auth.services import JWTService
 from apps.collaboration.graphql import CollaborationMembershipNode
 from apps.collaboration.models import Membership, MembershipList
 from apps.core.models import User
-from apps.graphql.exceptions import GraphQLNotAllowedException, GraphQLNotFoundException
+from apps.graphql.exceptions import (
+    GraphQLNotAllowedException,
+    GraphQLNotFoundException,
+    GraphQLValidationException,
+)
 from apps.story_map.collaboration_roles import ROLE_COLLABORATOR
 from apps.story_map.models.story_maps import StoryMap
 from apps.story_map.notifications import send_memberships_invite_email
@@ -251,6 +255,23 @@ class StoryMapMembershipSaveMutation(BaseAuthenticatedMutation):
             )
             raise GraphQLNotAllowedException(
                 model_name=Membership.__name__, operation=MutationTypes.UPDATE
+            )
+        except IntegrityError as exc:
+            logger.info(
+                "Attempt to mutate an model, but it's not unique",
+                extra={"model": Membership.__name__, "integrity_error": exc},
+            )
+
+            validation_error = ValidationError(
+                message={
+                    NON_FIELD_ERRORS: ValidationError(
+                        message=f"This {Membership.__name__} already exists",
+                        code="unique",
+                    )
+                },
+            )
+            raise GraphQLValidationException.from_validation_error(
+                validation_error, model_name=Membership.__name__
             )
         except Exception as error:
             logger.error(
