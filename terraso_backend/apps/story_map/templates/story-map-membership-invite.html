@@ -4,7 +4,7 @@
 {% block content %}
 <h2>{% blocktranslate with firstName=firstName %}{{firstName}} invited you to edit a story map{% endblocktranslate %}</h2>
 
-<p>{% blocktranslate with firstName=firstName storyMapTitle=storyMapTitle %}{{firstName}}, your request for membership in the story map {{storyMapTitle}} has been approved.{% endblocktranslate %}</p>
+<p>{% blocktranslate with storyMapOwnerFirstName=storyMapOwnerFirstName storyMapTitle=storyMapTitle %}You can work on {{storyMapOwnerFirstName}}’s {{storyMapTitle}} draft in Terraso.{% endblocktranslate %}</p>
 
 <p style="margin: 3em;"><a style="padding: 0.5em 1em; background-color: #028843; color: #fff; border-radius: 0.5em; text-decoration: none;" href="{{acceptInviteUrl}}">{% translate "email.story_map.accept_invite" %}</a></p>
 
