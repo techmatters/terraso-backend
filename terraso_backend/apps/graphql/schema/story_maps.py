@@ -289,7 +289,7 @@ class StoryMapMembershipDeleteMutation(BaseDeleteMutation):
             },
         ):
             logger.info(
-                "Attempt to delete a Membership, but user has no permission",
+                "Attempt to delete a membership, but user has no permission",
                 extra={"user_id": user.pk, "membership_id": membership_id},
             )
             raise GraphQLNotAllowedException(
