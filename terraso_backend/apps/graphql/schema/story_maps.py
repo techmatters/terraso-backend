@@ -161,7 +161,7 @@ class StoryMapMembershipSaveMutation(BaseAuthenticatedMutation):
 
         if kwargs["user_role"] != ROLE_COLLABORATOR:
             logger.info(
-                "Attempt to save a Membership, but user has no permission",
+                "Attempt to save a membership, but user has no permission",
                 extra=kwargs,
             )
             raise GraphQLNotAllowedException(
