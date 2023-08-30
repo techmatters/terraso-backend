@@ -175,7 +175,7 @@ class StoryMapMembershipSaveMutation(BaseAuthenticatedMutation):
             story_map = StoryMap.objects.get(slug=story_map_slug, story_map_id=story_map_id)
         except Exception as error:
             logger.error(
-                "Attempt to save a Membership, but Story Map was not found",
+                "Attempt to save a membership, but story map was not found",
                 extra={
                     "story_map_id": story_map_id,
                     "story_map_slug": story_map_slug,
