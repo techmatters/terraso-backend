@@ -236,6 +236,9 @@ class Membership(BaseModel):
 
     objects = MembershipObjectsManager()
 
+    def __str__(self):
+        return f"u:{self.user} g:{self.group.name} r:{self.user_role} s:{self.membership_status}"
+
     class Meta:
         constraints = (
             models.UniqueConstraint(
