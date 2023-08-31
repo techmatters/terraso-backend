@@ -75,6 +75,9 @@ class Site(BaseModel):
         default=False,
     )
 
+    def __str__(self):
+        return f"{self.name} ({self.id})"
+
     @property
     def owned_by_user(self):
         return self.owner is not None
