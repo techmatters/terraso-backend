@@ -19,6 +19,7 @@ from django.db.models import Count, ProtectedError
 
 from apps.core.models import User
 from apps.project_management.models import Project
+from apps.project_management.models.sites import Site
 
 
 class Command(BaseCommand):
@@ -49,6 +50,12 @@ class Command(BaseCommand):
 
         for project in projects:
             project.delete()
+
+        # sites created by the user
+        sites = Site.objects.filter(owner_id=user.id)
+
+        for site in sites:
+            site.delete()
 
         # NOTE: user deletion currently fails due to audit logs
         try:
