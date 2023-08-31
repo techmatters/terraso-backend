@@ -15,8 +15,10 @@
 
 from django.core.exceptions import ValidationError
 from django.core.management.base import BaseCommand, CommandError
+from django.db.models import Count, ProtectedError
 
 from apps.core.models import User
+from apps.project_management.models import Project
 
 
 class Command(BaseCommand):
@@ -40,4 +42,16 @@ class Command(BaseCommand):
             except (User.DoesNotExist, ValidationError):
                 raise CommandError(f"Please specify a valid user ID [input: {user_id}]")
 
-        user.delete()
+        # projects where the user is the only member
+        projects = Project.objects.annotate(members_count=Count("group__members__id")).filter(
+            members_count=1, group__members__id=user.id
+        )
+
+        for project in projects:
+            project.delete()
+
+        # NOTE: user deletion currently fails due to audit logs
+        try:
+            user.delete()
+        except ProtectedError:
+            raise CommandError(f"Unable to delete user {user}")
