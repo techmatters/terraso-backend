@@ -13,6 +13,8 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see https://www.gnu.org/licenses/.
 
+import json
+
 import pytest
 
 from apps.story_map.models import StoryMap
@@ -71,3 +73,82 @@ def test_story_map_delete_by_non_creator_fails_due_permission_check(
 
     assert "errors" in response["data"]["deleteStoryMap"]
     assert "delete_not_allowed" in response["data"]["deleteStoryMap"]["errors"][0]["message"]
+
+
+def test_story_map_save_membership_by_creator_works(client_query, story_maps, users):
+    old_story_map = story_maps[0]
+
+    old_story_map.created_by = users[0]
+    old_story_map.save()
+
+    response = client_query(
+        """
+        mutation saveStoryMapMembership($input: StoryMapMembershipSaveMutationInput!){
+          saveStoryMapMembership(input: $input) {
+            memberships {
+              id
+              membershipStatus
+            }
+            errors
+          }
+        }
+        """,
+        variables={
+            "input": {
+                "storyMapId": str(old_story_map.story_map_id),
+                "storyMapSlug": old_story_map.slug,
+                "userRole": "collaborator",
+                "userEmails": [users[1].email, users[2].email],
+            }
+        },
+    )
+    json_response = response.json()
+
+    assert json_response["data"]["saveStoryMapMembership"]["errors"] is None
+
+    print(f"json_response: {json_response}")
+    memberships_result = json_response["data"]["saveStoryMapMembership"]["memberships"]
+
+    print(f"memberships_result: {memberships_result}")
+    assert len(memberships_result) == 2
+    assert old_story_map.membership_list.memberships.count() == 2
+    assert memberships_result[0]["membershipStatus"] == "PENDING"
+    assert memberships_result[1]["membershipStatus"] == "PENDING"
+
+
+def test_story_map_save_membership_by_non_creator_fails_due_permission_check(
+    client_query, story_maps, users
+):
+    old_story_map = story_maps[0]
+
+    old_story_map.created_by = users[2]
+    old_story_map.save()
+
+    response = client_query(
+        """
+        mutation saveStoryMapMembership($input: StoryMapMembershipSaveMutationInput!){
+          saveStoryMapMembership(input: $input) {
+            memberships {
+              id
+              membershipStatus
+            }
+            errors
+          }
+        }
+        """,
+        variables={
+            "input": {
+                "storyMapId": str(old_story_map.story_map_id),
+                "storyMapSlug": old_story_map.slug,
+                "userRole": "collaborator",
+                "userEmails": [users[1].email, users[2].email],
+            }
+        },
+    )
+    json_response = response.json()
+    print(f"json_response: {json_response}")
+
+    assert "errors" in json_response["data"]["saveStoryMapMembership"]
+    error_result = response.json()["data"]["saveStoryMapMembership"]["errors"][0]["message"]
+    json_error = json.loads(error_result)
+    assert json_error[0]["code"] == "update_not_allowed"
