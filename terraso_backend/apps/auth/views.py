@@ -210,7 +210,7 @@ class RefreshAccessTokenView(View):
             )
 
         try:
-            refresh_payload = jwt_service.verify_token(refresh_token)
+            refresh_payload = jwt_service.verify_refresh_token(refresh_token)
         except Exception as exc:
             logger.exception("Error verifying refresh token")
             return JsonResponse({"error": str(exc)}, status=400)
@@ -246,6 +246,7 @@ class LogoutView(View):
 
 def terraso_login(request, user):
     access_token = jwt_service.create_access_token(user)
+    print(f"terraso_login access_token: {access_token}")
     refresh_token = jwt_service.create_refresh_token(user)
     dj_login(request, user, backend="django.contrib.auth.backends.ModelBackend")
 
@@ -307,11 +308,13 @@ class TokenExchangeView(View):
             return self._token_error(e)
 
         user, created = self._create_or_fetch_user(**payload)
-        rtoken, atoken = terraso_login(request, user)
+        atoken, rtoken = terraso_login(request, user)
         resp_payload = {
             "rtoken": rtoken,
             "atoken": atoken,
         }
+        print(f"atoken: {atoken}")
+
         if created:
             resp_payload["created"] = True
         return JsonResponse(resp_payload)

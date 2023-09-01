@@ -143,18 +143,42 @@ class JWTService:
     def create_test_access_token(self, user):
         if not user.test_user:
             raise ValueError("User is not a test user")
-        return self.create_token(user, None, {"test": True})
+        return self.create_token(user, None, {"test": True, "access": True})
 
     def create_access_token(self, user):
-        return self.create_token(user, self.JWT_ACCESS_EXP_DELTA_SECONDS)
+        token = self.create_token(user, self.JWT_ACCESS_EXP_DELTA_SECONDS, {"access": True})
+        print(f"create_access_token: {user}")
+        print(f"create_access_token: {token}")
+
+        return token
+
+    def verify_access_token(self, token):
+        print(f"verify_access_token: {token}")
+        decoded = self._verify_token(token)
+        print(f"decoded: {decoded}")
+        if not decoded["access"] or not decoded["exp"]:
+            raise ValueError("Token is not an access token")
+        return decoded
 
     def create_refresh_token(self, user):
-        return self.create_token(user, self.JWT_REFRESH_EXP_DELTA_SECONDS)
+        return self.create_token(user, self.JWT_REFRESH_EXP_DELTA_SECONDS, {"refresh": True})
+
+    def verify_refresh_token(self, token):
+        decoded = self._verify_token(token)
+        if not decoded["refresh"] or not decoded["exp"]:
+            raise ValueError("Token is not a refresh token")
+        return decoded
 
     def create_unsubscribe_token(self, user):
-        return self.create_token(user)
+        return self.create_token(user, None, {"unsubscribe": True})
 
-    def verify_token(self, token):
+    def verify_unsubscribe_token(self, token):
+        decoded = self._verify_token(token)
+        if not decoded["unsubscribe"]:
+            raise ValueError("Token is not an unsubscribe token")
+        return decoded
+
+    def _verify_token(self, token):
         return jwt.decode(token, self.JWT_SECRET, algorithms=self.JWT_ALGORITHM)
 
     def _get_base_payload(self, user):

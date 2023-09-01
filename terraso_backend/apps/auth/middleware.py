@@ -85,7 +85,7 @@ class JWTAuthenticationMiddleware:
             raise ValidationError(f"Unexpected token type: {token_type}")
 
         try:
-            decoded_payload = JWTService().verify_token(token)
+            decoded_payload = JWTService().verify_access_token(token)
         except InvalidTokenError as e:
             logger.exception("Failure to verify JWT token", extra={"token": token})
             raise ValidationError(f"Invalid JWT token: {e}")
