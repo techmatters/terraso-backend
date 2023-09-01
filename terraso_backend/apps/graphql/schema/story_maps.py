@@ -195,7 +195,7 @@ class StoryMapMembershipSaveMutation(BaseAuthenticatedMutation):
 
         def validate(context):
             if not rules.test_rule(
-                "allowed_to_save_story_map_membership",
+                "allowed_to_change_story_map_membership",
                 user,
                 {
                     "story_map": story_map,

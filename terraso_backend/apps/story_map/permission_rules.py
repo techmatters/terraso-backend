@@ -42,7 +42,7 @@ def allowed_to_delete_story_map(user, story_map):
 
 
 @rules.predicate
-def allowed_to_save_story_map_membership(user, obj):
+def allowed_to_change_story_map_membership(user, obj):
     story_map = obj.get("story_map")
 
     is_owner = story_map.created_by == user
@@ -78,5 +78,5 @@ def allowed_to_delete_story_map_membership(user, obj):
 
 rules.add_rule("allowed_to_change_story_map", allowed_to_change_story_map)
 rules.add_rule("allowed_to_delete_story_map", allowed_to_delete_story_map)
-rules.add_rule("allowed_to_save_story_map_membership", allowed_to_save_story_map_membership)
+rules.add_rule("allowed_to_change_story_map_membership", allowed_to_change_story_map_membership)
 rules.add_rule("allowed_to_delete_story_map_membership", allowed_to_delete_story_map_membership)
