@@ -161,8 +161,10 @@ class StoryMapMembershipSaveMutation(BaseAuthenticatedMutation):
 
         if kwargs["user_role"] != ROLE_COLLABORATOR:
             logger.info(
-                "Attempt to save a membership, but user has no permission",
-                extra=kwargs,
+                "Attempt to save Story Map Memberships, but user role is not collaborator",
+                extra={
+                    "user_role": kwargs["user_role"],
+                },
             )
             raise GraphQLNotAllowedException(
                 model_name=Membership.__name__, operation=MutationTypes.UPDATE
@@ -175,7 +177,7 @@ class StoryMapMembershipSaveMutation(BaseAuthenticatedMutation):
             story_map = StoryMap.objects.get(slug=story_map_slug, story_map_id=story_map_id)
         except Exception as error:
             logger.error(
-                "Attempt to save a membership, but story map was not found",
+                "Attempt to save Story Map Memberships, but story map was not found",
                 extra={
                     "story_map_id": story_map_id,
                     "story_map_slug": story_map_slug,
@@ -223,7 +225,7 @@ class StoryMapMembershipSaveMutation(BaseAuthenticatedMutation):
             ]
         except ValidationError as error:
             logger.error(
-                "Attempt to save a Membership, but user is not allowed",
+                "Attempt to save Story Map Memberships, but user is not allowed",
                 extra={"error": str(error)},
             )
             raise GraphQLNotAllowedException(
@@ -256,7 +258,6 @@ class StoryMapMembershipDeleteMutation(BaseDeleteMutation):
 
     @classmethod
     def mutate_and_get_payload(cls, root, info, **kwargs):
-        # TODO check delete permissions for members
         user = info.context.user
         membership_id = kwargs["id"]
         story_map_id = kwargs["story_map_id"]
@@ -266,7 +267,7 @@ class StoryMapMembershipDeleteMutation(BaseDeleteMutation):
             story_map = StoryMap.objects.get(slug=story_map_slug, story_map_id=story_map_id)
         except StoryMap.DoesNotExist:
             logger.error(
-                "Attempt to save a membership, but story map was not found",
+                "Attempt to delete Story Map Memberships, but story map was not found",
                 extra={"story_map_id": story_map_id, "story_map_slug": story_map_slug},
             )
             raise GraphQLNotFoundException(model_name=StoryMap.__name__)
@@ -275,7 +276,7 @@ class StoryMapMembershipDeleteMutation(BaseDeleteMutation):
             membership = story_map.membership_list.memberships.get(id=membership_id)
         except Membership.DoesNotExist:
             logger.error(
-                "Attempt to delete a membership, but it was not found",
+                "Attempt to delete Story Map Memberships, but it was not found",
                 extra={"membership_id": membership_id},
             )
             raise GraphQLNotFoundException(model_name=Membership.__name__)
@@ -289,7 +290,7 @@ class StoryMapMembershipDeleteMutation(BaseDeleteMutation):
             },
         ):
             logger.info(
-                "Attempt to delete a membership, but user has no permission",
+                "Attempt to delete Story Map Memberships, but user has no permission",
                 extra={"user_id": user.pk, "membership_id": membership_id},
             )
             raise GraphQLNotAllowedException(
