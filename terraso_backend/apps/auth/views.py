@@ -307,10 +307,10 @@ class TokenExchangeView(View):
             return self._token_error(e)
 
         user, created = self._create_or_fetch_user(**payload)
-        atoken, rtoken = terraso_login(request, user)
+        access_token, refresh_token = terraso_login(request, user)
         resp_payload = {
-            "rtoken": rtoken,
-            "atoken": atoken,
+            "rtoken": refresh_token,
+            "atoken": access_token,
         }
 
         if created:
