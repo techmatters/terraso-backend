@@ -88,9 +88,9 @@ def test_token_exchange(client, private_key, payload):
     )
     contents = resp.json()
     jwt_service = JWTService()
-    atoken = jwt_service.verify_token(contents["atoken"])
-    rtoken = jwt_service.verify_token(contents["rtoken"])
-    assert atoken["email"] == rtoken["email"] == "test@example.org"
+    access_token = jwt_service.verify_access_token(contents["atoken"])
+    refresh_token = jwt_service.verify_refresh_token(contents["rtoken"])
+    assert access_token["email"] == refresh_token["email"] == "test@example.org"
     assert User.objects.filter(email="test@example.org").exists()
     user = User.objects.get(email="test@example.org")
     assert user.first_name == payload["given_name"]

@@ -248,7 +248,7 @@ class UserUnsubscribeUpdate(BaseUnauthenticatedMutation):
         token = kwargs.pop("token")
 
         try:
-            decoded_payload = JWTService().verify_token(token)
+            decoded_payload = JWTService().verify_unsubscribe_token(token)
         except Exception:
             logger.exception("Failure to verify JWT token", extra={"token": token})
             raise GraphQLNotAllowedException(
