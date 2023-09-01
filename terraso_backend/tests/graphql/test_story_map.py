@@ -46,7 +46,7 @@ def test_story_maps_query(client_query, story_maps, users):
 def test_story_maps_filter_by_can_change_by_email(client_query, story_maps, users):
     response = client_query(
         """
-        {storyMaps(canChange_Email_Not: "%s") {
+        {storyMaps(memberships_User_Email_Not: "%s") {
           edges {
             node {
               id
