@@ -73,7 +73,6 @@ def test_get_landscape_json_view(client, landscape):
 
     assert response.status_code == 200
     json_response = response.json()
-    print(json_response)
     expected = {
         "id": "4c54cf7a-10e0-4442-b48d-acea76c9047c",
         "name": "Test Landscape",
@@ -131,8 +130,6 @@ def test_get_landscape_json_view_terms(client, landscape):
 
     assert response.status_code == 200
     json_response = response.json()
-
-    print(json_response["taxonomyTerms"])
 
     assert json_response["taxonomyTerms"] == [
         {

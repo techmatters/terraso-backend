@@ -146,16 +146,10 @@ class JWTService:
         return self.create_token(user, None, {"test": True, "access": True})
 
     def create_access_token(self, user):
-        token = self.create_token(user, self.JWT_ACCESS_EXP_DELTA_SECONDS, {"access": True})
-        print(f"create_access_token: {user}")
-        print(f"create_access_token: {token}")
-
-        return token
+        return self.create_token(user, self.JWT_ACCESS_EXP_DELTA_SECONDS, {"access": True})
 
     def verify_access_token(self, token):
-        print(f"verify_access_token: {token}")
         decoded = self._verify_token(token)
-        print(f"decoded: {decoded}")
         if not decoded["access"] or not decoded["exp"]:
             raise ValueError("Token is not an access token")
         return decoded

@@ -246,7 +246,6 @@ class LogoutView(View):
 
 def terraso_login(request, user):
     access_token = jwt_service.create_access_token(user)
-    print(f"terraso_login access_token: {access_token}")
     refresh_token = jwt_service.create_refresh_token(user)
     dj_login(request, user, backend="django.contrib.auth.backends.ModelBackend")
 
@@ -313,7 +312,6 @@ class TokenExchangeView(View):
             "rtoken": rtoken,
             "atoken": atoken,
         }
-        print(f"atoken: {atoken}")
 
         if created:
             resp_payload["created"] = True
