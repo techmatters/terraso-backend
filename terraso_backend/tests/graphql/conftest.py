@@ -22,6 +22,7 @@ from graphene_django.utils.testing import graphql_query
 from mixer.backend.django import mixer
 
 from apps.auth.services import JWTService
+from apps.collaboration.models import MembershipList
 from apps.core.models import (
     Group,
     GroupAssociation,
@@ -329,6 +330,17 @@ def story_maps(users):
         + user_1_stories_published
         + user_1_stories_drafts
     )
+
+
+@pytest.fixture
+def story_map_user_memberships(users, story_maps):
+    story_map = story_maps[0]
+    story_map.membership_list = mixer.blend(MembershipList)
+    story_map.save()
+
+    story_map.membership_list.members.add(users[0])
+    story_map.membership_list.members.add(users[1])
+    return story_map.membership_list.memberships.all()
 
 
 @pytest.fixture
