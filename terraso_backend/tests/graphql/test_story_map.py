@@ -78,6 +78,10 @@ def test_story_maps_anonymous_user(client_query_no_token, story_maps):
               createdBy {
                 id
               }
+              membershipList {
+                id
+              }
+              configuration
             }
           }
         }}
@@ -90,3 +94,79 @@ def test_story_maps_anonymous_user(client_query_no_token, story_maps):
     assert len(entries_result) == 6
     for story_map in entries_result:
         assert story_map["isPublished"] is True
+        assert story_map["membershipList"] is None
+        assert story_map["configuration"] is None
+
+
+def test_story_map_by_membership_email_filter_no_results(client_query, users):
+    response = client_query(
+        """
+        {storyMaps(memberships_User_Email: "%s") {
+          edges {
+            node {
+              id
+              createdBy {
+                email
+              }
+            }
+          }
+        }}
+        """
+        % users[2].email
+    )
+
+    edges = response.json()["data"]["storyMaps"]["edges"]
+    story_maps_result = [edge["node"] for edge in edges]
+
+    assert len(story_maps_result) == 0
+
+
+def test_story_map_by_membership_email_filter(client_query, story_map_user_memberships, users):
+    membership = story_map_user_memberships[0]
+    print(f"memberships: {membership}")
+    membership.user = users[2]
+    membership.save()
+
+    response = client_query(
+        """
+        {storyMaps(memberships_User_Email: "%s") {
+          edges {
+            node {
+              id
+              createdBy {
+                email
+              }
+            }
+          }
+        }}
+        """
+        % users[2].email
+    )
+
+    edges = response.json()["data"]["storyMaps"]["edges"]
+    story_maps_result = [edge["node"] for edge in edges]
+
+    assert len(story_maps_result) == 1
+
+
+def test_story_map_by_membership_email_not_filter(client_query, story_map_user_memberships, users):
+    response = client_query(
+        """
+        {storyMaps(memberships_User_Email_Not: "%s") {
+          edges {
+            node {
+              id
+              createdBy {
+                email
+              }
+            }
+          }
+        }}
+        """
+        % users[0].email
+    )
+
+    edges = response.json()["data"]["storyMaps"]["edges"]
+    story_maps_result = [edge["node"] for edge in edges]
+
+    assert len(story_maps_result) == 4
