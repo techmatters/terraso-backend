@@ -311,3 +311,77 @@ def test_story_map_delete_membership_by_non_membership_owner_fails_due_permissio
     error_result = json_response["data"]["deleteStoryMapMembership"]["errors"][0]["message"]
     json_error = json.loads(error_result)
     assert json_error[0]["code"] == "delete_not_allowed"
+
+
+def test_story_map_approve_membership_by_membership_owner_works(
+    client_query, story_maps, users, story_map_user_memberships
+):
+    story_map = story_maps[0]
+    story_map_user_0_membership = story_map_user_memberships[0]
+
+    story_map.created_by = users[1]
+    story_map.save()
+
+    assert str(story_map_user_0_membership.user.id) != str(story_map.created_by.id)
+
+    response = client_query(
+        """
+        mutation approveStoryMapMembership($input: StoryMapMembershipApproveMutationInput!){
+          approveStoryMapMembership(input: $input) {
+            membership {
+              id
+              membershipStatus
+            }
+            errors
+          }
+        }
+        """,
+        variables={
+            "input": {
+                "membershipId": str(story_map_user_0_membership.id),
+            }
+        },
+    )
+    json_response = response.json()
+
+    assert json_response["data"]["approveStoryMapMembership"]["errors"] is None
+
+    membership = json_response["data"]["approveStoryMapMembership"]["membership"]
+
+    assert membership["id"] == str(story_map_user_0_membership.id)
+    assert membership["membershipStatus"] == "APPROVED"
+
+
+def test_story_map_approve_membership_by_non_membership_owner_fails_due_permission_check(
+    client_query, story_maps, users, story_map_user_memberships
+):
+    story_map = story_maps[0]
+    story_map_user_1_membership = story_map_user_memberships[1]
+
+    story_map.created_by = users[2]
+    story_map.save()
+
+    response = client_query(
+        """
+        mutation approveStoryMapMembership($input: StoryMapMembershipApproveMutationInput!){
+          approveStoryMapMembership(input: $input) {
+            membership {
+              id
+              membershipStatus
+            }
+            errors
+          }
+        }
+        """,
+        variables={
+            "input": {
+                "membershipId": str(story_map_user_1_membership.id),
+            }
+        },
+    )
+    json_response = response.json()
+
+    assert "errors" in json_response["data"]["approveStoryMapMembership"]
+    error_result = json_response["data"]["approveStoryMapMembership"]["errors"][0]["message"]
+    json_error = json.loads(error_result)
+    assert json_error[0]["code"] == "update_not_allowed"
