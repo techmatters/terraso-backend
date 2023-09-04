@@ -79,23 +79,21 @@ def allowed_to_approve_story_map_membership(user, obj):
     return is_user_membership
 
 
+# This rule is used to check if the user is allowed to approve a membership
+# with a token. This is used when the user is not logged in or when the user
+# is logged in but the membership is associated with the user.
 @rules.predicate
-def allowed_to_approve_story_map_membership_token(user, obj):
+def allowed_to_approve_story_map_membership_with_token(user, obj):
     membership = obj.get("membership")
-    decoded_token = obj.get("decoded_token")
-    pending_email = decoded_token.get("pendingEmail")
-    membership_id = decoded_token.get("membershipId")
-    if pending_email is not None:
-        is_valid_membership_for_token = (
-            membership_id == str(membership.id)
-            and pending_email is not None
-            and pending_email == membership.pending_email
-        )
-        return is_valid_membership_for_token
+    request_user = user
 
-    is_valid_membership_for_token = membership_id == str(membership.id)
+    if membership.pending_email is not None:
+        return request_user.is_anonymous
 
-    return is_valid_membership_for_token
+    if request_user.is_anonymous or request_user.id == membership.user.id:
+        return True
+
+    return False
 
 
 @rules.predicate
@@ -113,6 +111,7 @@ rules.add_rule("allowed_to_delete_story_map", allowed_to_delete_story_map)
 rules.add_rule("allowed_to_change_story_map_membership", allowed_to_change_story_map_membership)
 rules.add_rule("allowed_to_approve_story_map_membership", allowed_to_approve_story_map_membership)
 rules.add_rule(
-    "allowed_to_approve_story_map_membership_token", allowed_to_approve_story_map_membership_token
+    "allowed_to_approve_story_map_membership_with_token",
+    allowed_to_approve_story_map_membership_with_token,
 )
 rules.add_rule("allowed_to_delete_story_map_membership", allowed_to_delete_story_map_membership)

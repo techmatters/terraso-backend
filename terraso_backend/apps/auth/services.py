@@ -175,6 +175,23 @@ class JWTService:
             raise ValueError("Token is not an unsubscribe token")
         return decoded
 
+    def create_story_map_membership_approve_token(self, membership):
+        user = membership.user
+        return self.create_token(
+            user,
+            extra_payload={
+                "membershipId": str(membership.id),
+                "pendingEmail": membership.pending_email if user is None else None,
+                "approveStoryMapMembership": True,
+            },
+        )
+
+    def verify_story_map_membership_approve_token(self, token):
+        decoded = self._verify_token(token)
+        if not decoded["approveStoryMapMembership"]:
+            raise ValueError("Token is not a story map membership approve token")
+        return decoded
+
     def _verify_token(self, token):
         return jwt.decode(token, self.JWT_SECRET, algorithms=self.JWT_ALGORITHM)
 

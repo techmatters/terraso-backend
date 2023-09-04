@@ -300,10 +300,11 @@ class StoryMapMembershipApproveTokenMutation(BaseUnauthenticatedMutation):
 
     @classmethod
     def mutate_and_get_payload(cls, root, info, **kwargs):
+        request_user = info.context.user
         invite_token = kwargs["invite_token"]
 
         try:
-            decoded_token = JWTService().verify_token(invite_token)
+            decoded_token = JWTService().verify_story_map_membership_approve_token(invite_token)
             user = User.objects.filter(pk=decoded_token["sub"]).first()
         except Exception:
             logger.exception("Failure to verify JWT token", extra={"token": invite_token})
@@ -327,13 +328,6 @@ class StoryMapMembershipApproveTokenMutation(BaseUnauthenticatedMutation):
             )
             raise GraphQLNotFoundException(model_name=User.__name__)
 
-        if membership.user != user or membership.pending_email != decoded_token["pendingEmail"]:
-            logger.error(
-                "Attempt to approve Membership, but user does not match",
-                extra={"membership_id": decoded_token["membershipId"], "user_id": user.pk},
-            )
-            raise GraphQLNotFoundException(model_name=Membership.__name__)
-
         story_map = membership.membership_list.story_map.get()
         if not story_map:
             logger.error(
@@ -345,11 +339,10 @@ class StoryMapMembershipApproveTokenMutation(BaseUnauthenticatedMutation):
             raise GraphQLNotFoundException(model_name=StoryMap.__name__)
 
         if not rules.test_rule(
-            "allowed_to_approve_story_map_membership_token",
-            user,
+            "allowed_to_approve_story_map_membership_with_token",
+            request_user,
             {
                 "decoded_token": decoded_token,
-                "story_map": story_map,
                 "membership": membership,
             },
         ):
@@ -409,7 +402,9 @@ class StoryMapMembershipApproveMutation(BaseAuthenticatedMutation):
                 "Attempt to approve Membership, but user does not match",
                 extra={"membership_id": membership_id, "user_id": user.pk},
             )
-            raise GraphQLNotFoundException(model_name=Membership.__name__)
+            raise GraphQLNotAllowedException(
+                model_name=Membership.__name__, operation=MutationTypes.UPDATE
+            )
 
         story_map = membership.membership_list.story_map.get()
         if not story_map:

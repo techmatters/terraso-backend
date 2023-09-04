@@ -27,13 +27,7 @@ from apps.notifications.email import TRACKING_PARAMETERS, EmailNotification
 
 def accept_invite_url(user, membership):
     params = TRACKING_PARAMETERS
-    params["token"] = JWTService().create_token(
-        user,
-        extra_payload={
-            "membershipId": str(membership.id),
-            "pendingEmail": membership.pending_email if user is None else None,
-        },
-    )
+    params["token"] = JWTService().create_story_map_membership_approve_token(membership)
     return f"{settings.WEB_CLIENT_URL}/tools/story-maps/accept?{urlencode(params)}"
 
 

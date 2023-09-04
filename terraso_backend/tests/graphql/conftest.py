@@ -22,6 +22,7 @@ from graphene_django.utils.testing import graphql_query
 from mixer.backend.django import mixer
 
 from apps.auth.services import JWTService
+from apps.collaboration.models import Membership as CollaborationMembership
 from apps.collaboration.models import MembershipList
 from apps.core.models import (
     Group,
@@ -333,14 +334,64 @@ def story_maps(users):
 
 
 @pytest.fixture
-def story_map_user_memberships(users, story_maps):
+def story_map_membership_list(story_maps):
     story_map = story_maps[0]
     story_map.membership_list = mixer.blend(MembershipList)
     story_map.save()
 
-    story_map.membership_list.members.add(users[0])
-    story_map.membership_list.members.add(users[1])
-    return story_map.membership_list.memberships.all()
+    return story_map.membership_list
+
+
+@pytest.fixture
+def story_map_user_memberships(story_map_membership_list, users):
+    return mixer.cycle(2).blend(
+        CollaborationMembership,
+        membership_list=story_map_membership_list,
+        user=(u for u in users),
+        pending_email=None,
+    )
+
+
+@pytest.fixture
+def story_map_user_memberships_not_registered(story_map_membership_list):
+    return mixer.cycle(2).blend(
+        CollaborationMembership,
+        membership_list=story_map_membership_list,
+        user=None,
+        pending_email=(mixer.faker.email() for _ in range(2)),
+    )
+
+
+@pytest.fixture
+def story_map_user_memberships_approve_tokens(story_map_user_memberships):
+    return [
+        JWTService().create_token(
+            membership.user,
+            extra_payload={
+                "membershipId": str(membership.id),
+                "pendingEmail": None,
+                "approveStoryMapMembership": True,
+            },
+        )
+        for membership in story_map_user_memberships
+    ]
+
+
+@pytest.fixture
+def story_map_user_memberships_not_registered_approve_tokens(
+    story_map_user_memberships_not_registered,
+):
+    return [
+        JWTService().create_token(
+            None,
+            extra_payload={
+                "membershipId": str(membership.id),
+                "pendingEmail": membership.pending_email,
+                "approveStoryMapMembership": True,
+            },
+        )
+        for membership in story_map_user_memberships_not_registered
+    ]
 
 
 @pytest.fixture
