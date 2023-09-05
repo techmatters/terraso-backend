@@ -96,8 +96,10 @@ class MembershipList(BaseModel):
 
     @property
     def approved_members(self):
-        member_memberships = models.Subquery(self.memberships.approved_only().values("user_id"))
-        return User.objects.filter(id__in=member_memberships)
+        approved_memberships_user_ids = models.Subquery(
+            self.memberships.approved_only().values("user_id")
+        )
+        return User.objects.filter(id__in=approved_memberships_user_ids)
 
     def has_role(self, user: User, role: str) -> bool:
         return self.memberships.by_role(role).filter(id=user.id).exists()
