@@ -32,7 +32,7 @@ def accept_invite_url(user, membership):
 
 
 def send_memberships_invite_email(inviter, memberships, story_map):
-    signed_up_memberships = [
+    member_signups = [
         membership
         for membership in memberships
         if membership.user is not None and membership.user.notifications_enabled()
@@ -43,7 +43,7 @@ def send_memberships_invite_email(inviter, memberships, story_map):
         "storyMapTitle": story_map.title,
         "unsubscribeUrl": EmailNotification.unsubscribe_url(inviter),
     }
-    for membership in signed_up_memberships:
+    for membership in member_signups:
         user = membership.user
         recipients = [user.name_and_email()]
         context = {
@@ -60,10 +60,10 @@ def send_memberships_invite_email(inviter, memberships, story_map):
 
         send_mail(subject, None, EmailNotification.sender(), recipients, html_message=body)
 
-    not_signed_up_memberships = [
+    nonmember_signups = [
         membership for membership in memberships if membership.user is None
     ]
-    for membership in not_signed_up_memberships:
+    for membership in nonmember_signups:
         recipients = [membership.pending_email]
         context = {
             "firstName": membership.pending_email,
