@@ -60,9 +60,7 @@ def send_memberships_invite_email(inviter, memberships, story_map):
 
         send_mail(subject, None, EmailNotification.sender(), recipients, html_message=body)
 
-    nonmember_signups = [
-        membership for membership in memberships if membership.user is None
-    ]
+    nonmember_signups = [membership for membership in memberships if membership.user is None]
     for membership in nonmember_signups:
         recipients = [membership.pending_email]
         context = {

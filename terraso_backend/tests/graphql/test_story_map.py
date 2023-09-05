@@ -123,7 +123,6 @@ def test_story_map_by_membership_email_filter_no_results(client_query, users):
 
 def test_story_map_by_membership_email_filter(client_query, story_map_user_memberships, users):
     membership = story_map_user_memberships[0]
-    print(f"memberships: {membership}")
     membership.user = users[2]
     membership.save()
 
