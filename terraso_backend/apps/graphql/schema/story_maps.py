@@ -201,7 +201,7 @@ class StoryMapMembershipSaveMutation(BaseAuthenticatedMutation):
                 user,
                 {
                     "story_map": story_map,
-                    "user_membership": user_membership,
+                    "requestor_membership": user_membership,
                     **context,
                 },
             ):
