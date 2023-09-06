@@ -58,9 +58,6 @@ def allowed_to_change_story_map_membership(user, obj):
     requestor_membership = obj.get("requestor_membership")
     requestor_is_member = requestor_membership is not None
 
-    if user_membership is None:
-        return False
-
     is_collaborator = (
         requestor_is_member
         and requestor_membership.user_role == ROLE_COLLABORATOR
