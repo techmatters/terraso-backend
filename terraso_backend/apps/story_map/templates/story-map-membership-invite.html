@@ -2,7 +2,7 @@
 {% load i18n %}
 
 {% block content %}
-<h2>{% blocktranslate with firstName=firstName %}{{firstName}} invited you to edit a story map{% endblocktranslate %}</h2>
+<h2>{% blocktranslate with inviterFirstName=inviterFirstName %}{{inviterFirstName}} invited you to edit a story map{% endblocktranslate %}</h2>
 
 <p>{% blocktranslate with storyMapOwnerFirstName=storyMapOwnerFirstName storyMapTitle=storyMapTitle %}You can work on {{storyMapOwnerFirstName}}’s "{{storyMapTitle}}" in Terraso.{% endblocktranslate %}</p>
 
