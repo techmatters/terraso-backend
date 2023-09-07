@@ -756,11 +756,11 @@ enum SoilIdSoilDataSlopeSteepnessSelectChoices {
 }
 
 type DepthDependentSoilDataNode {
-  depthTop: Int!
-  depthBottom: Int!
+  depthStart: Int!
+  depthEnd: Int!
   texture: SoilIdDepthDependentSoilDataTextureChoices
   rockFragmentVolume: SoilIdDepthDependentSoilDataRockFragmentVolumeChoices
-  colorHueSubsteps: SoilIdDepthDependentSoilDataColorHueSubstepsChoices
+  colorHueSubstep: SoilIdDepthDependentSoilDataColorHueSubstepChoices
   colorHue: SoilIdDepthDependentSoilDataColorHueChoices
   colorValue: SoilIdDepthDependentSoilDataColorValueChoices
   colorChroma: SoilIdDepthDependentSoilDataColorChromaChoices
@@ -821,23 +821,23 @@ enum SoilIdDepthDependentSoilDataTextureChoices {
 """An enumeration."""
 enum SoilIdDepthDependentSoilDataRockFragmentVolumeChoices {
   """0 — 1%"""
-  ROCK_FRAGMENT_0_1
+  VOLUME_0_1
 
   """1 — 15%"""
-  ROCK_FRAGMENT_1_15
+  VOLUME_1_15
 
   """15 — 35%"""
-  ROCK_FRAGMENT_15_35
+  VOLUME_15_35
 
   """35 — 60%"""
-  ROCK_FRAGMENT_35_60
+  VOLUME_35_60
 
   """> 60%"""
-  ROCK_FRAGMENT_60
+  VOLUME_60
 }
 
 """An enumeration."""
-enum SoilIdDepthDependentSoilDataColorHueSubstepsChoices {
+enum SoilIdDepthDependentSoilDataColorHueSubstepChoices {
   """2.5"""
   SUBSTEP_2_5
 
@@ -1709,11 +1709,11 @@ type DepthDependentSoilDataUpdateMutationPayload {
 
 input DepthDependentSoilDataUpdateMutationInput {
   siteId: ID!
-  depthTop: Int!
-  depthBottom: Int!
+  depthStart: Int!
+  depthEnd: Int!
   texture: SoilIdDepthDependentSoilDataTextureChoices
   rockFragmentVolume: SoilIdDepthDependentSoilDataRockFragmentVolumeChoices
-  colorHueSubsteps: SoilIdDepthDependentSoilDataColorHueSubstepsChoices
+  colorHueSubstep: SoilIdDepthDependentSoilDataColorHueSubstepChoices
   colorHue: SoilIdDepthDependentSoilDataColorHueChoices
   colorValue: SoilIdDepthDependentSoilDataColorValueChoices
   colorChroma: SoilIdDepthDependentSoilDataColorChromaChoices
