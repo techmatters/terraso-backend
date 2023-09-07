@@ -1,5 +1,4 @@
 import graphene
-import structlog
 from django.db import transaction
 from graphene_django import DjangoObjectType
 
@@ -8,8 +7,6 @@ from apps.graphql.schema.constants import MutationTypes
 from apps.project_management.models.sites import Site
 from apps.soil_id.models.depth_dependent_soil_data import DepthDependentSoilData
 from apps.soil_id.models.soil_data import SoilData
-
-logger = structlog.get_logger(__name__)
 
 
 class SoilDataNode(DjangoObjectType):

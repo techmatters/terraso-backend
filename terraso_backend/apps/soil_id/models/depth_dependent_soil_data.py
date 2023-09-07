@@ -19,8 +19,6 @@ from django.db import models
 from apps.core.models.commons import BaseModel
 from apps.soil_id.models.soil_data import SoilData
 
-OTHER = "other"
-
 
 class DepthDependentSoilData(BaseModel):
     class Meta:
