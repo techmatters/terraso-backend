@@ -13,6 +13,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see https://www.gnu.org/licenses/.
 
+import enum
 import json
 from typing import Optional
 
@@ -184,6 +185,8 @@ class BaseWriteMutation(BaseAuthenticatedMutation):
                 model_instance = cls.model_class()
 
         for attr, value in kwargs.items():
+            if isinstance(value, enum.Enum):
+                value = value.value
             setattr(model_instance, attr, value)
 
         try:

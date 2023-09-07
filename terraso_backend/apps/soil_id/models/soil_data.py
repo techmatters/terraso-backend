@@ -15,139 +15,61 @@
 
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
-from django.utils.translation import gettext_lazy as _
 
 from apps.core.models.commons import BaseModel
 from apps.project_management.models.sites import Site
 
-CONCAVE = "concave"
-CONVEX = "convex"
-LINEAR = "linear"
-
-SLOPE_SHAPES = ((CONCAVE, _("Concave")), (CONVEX, _("Convex")), (LINEAR, _("Linear")))
-
-HILLS_MOUNTAINS = "Hills/Mountains"
-HILLS_SUMMIT = "Summit"
-HILLS_SHOULDER = "Shoulder"
-HILLS_BACKSLOPE = "Backslope"
-ALLUVIAL_FAN = "Alluvial Fan"
-FLOODPLAIN_BASIN = "Floodpain/Basin"
-TERRACE = "Terrace"
-TERRACE_TREAD = "Tread"
-TERRACE_RISER = "Riser"
-FLAT_LOW_ROLLING_PLAIN = "Flat/Low Rolling Plain"
-PLAYA = "Playa"
-DUNES = "Dunes"
-
-LANDSCAPE_POSITIONS = (
-    (HILLS_MOUNTAINS, _("Hills/Mountains")),
-    (HILLS_SUMMIT, _("Summit")),
-    (HILLS_SHOULDER, _("Shoulder")),
-    (HILLS_BACKSLOPE, _("Backslope")),
-    (ALLUVIAL_FAN, _("Alluvial Fan")),
-    (FLOODPLAIN_BASIN, _("Floodpain/Basin")),
-    (TERRACE, _("Terrace")),
-    (TERRACE_TREAD, _("Tread")),
-    (TERRACE_RISER, _("Riser")),
-    (FLAT_LOW_ROLLING_PLAIN, _("Flat/Low Rolling Plain")),
-    (PLAYA, _("Playa")),
-    (DUNES, _("Dunes")),
-)
-
-FLAT = "0 - 2% (flat)"
-GENTLE = "2 - 5% (gentle)"
-MODERATE = "5 - 10% (moderate)"
-ROLLING = "10 - 15% (rolling)"
-HILLY = "15 - 30% (hilly)"
-STEEP = "30 - 50% (steep)"
-MODERATELY_STEEP = "50 - 60% (moderately steep)"
-VERY_STEEP = "60 - 100% (very steep)"
-STEEPEST = "100%+ (steepest)"
-
-SLOPE_RANGES = (
-    (FLAT, _("0 - 2% (flat)")),
-    (GENTLE, _("2 - 5% (gentle)")),
-    (MODERATE, _("5 - 10% (moderate)")),
-    (ROLLING, _("10 - 15% (rolling)")),
-    (HILLY, _("15 - 30% (hilly)")),
-    (STEEP, _("30 - 50% (steep)")),
-    (MODERATELY_STEEP, _("50 - 60% (moderately steep)")),
-    (VERY_STEEP, _("60 - 100% (very steep)")),
-    (STEEPEST, _("100%+ (steepest)")),
-)
-
 
 class SoilData(BaseModel):
     site = models.OneToOneField(Site, on_delete=models.CASCADE, related_name="soil_data")
-    
-    CONCAVE = "concave"
-    CONVEX = "convex"
-    LINEAR = "linear"
 
-    SLOPE_SHAPES = ((CONCAVE, _("Concave")), (CONVEX, _("Convex")), (LINEAR, _("Linear")))
-    down_slope = models.CharField(blank=True, choices=SLOPE_SHAPES)
-    cross_slope = models.CharField(blank=True, choices=SLOPE_SHAPES)
-    
+    class SlopeShape(models.TextChoices):
+        CONCAVE = "CONCAVE"
+        CONVEX = "CONVEX"
+        LINEAR = "LINEAR"
+
+    down_slope = models.CharField(blank=True, choices=SlopeShape.choices)
+    cross_slope = models.CharField(blank=True, choices=SlopeShape.choices)
+
     bedrock = models.PositiveIntegerField(blank=True, null=True)
-        
-    HILLS_MOUNTAINS = "Hills/Mountains"
-    HILLS_SUMMIT = "Summit"
-    HILLS_SHOULDER = "Shoulder"
-    HILLS_BACKSLOPE = "Backslope"
-    ALLUVIAL_FAN = "Alluvial Fan"
-    FLOODPLAIN_BASIN = "Floodpain/Basin"
-    TERRACE = "Terrace"
-    TERRACE_TREAD = "Tread"
-    TERRACE_RISER = "Riser"
-    FLAT_LOW_ROLLING_PLAIN = "Flat/Low Rolling Plain"
-    PLAYA = "Playa"
-    DUNES = "Dunes"
 
-    LANDSCAPE_POSITIONS = (
-        (HILLS_MOUNTAINS, _("Hills/Mountains")),
-        (HILLS_SUMMIT, _("Summit")),
-        (HILLS_SHOULDER, _("Shoulder")),
-        (HILLS_BACKSLOPE, _("Backslope")),
-        (ALLUVIAL_FAN, _("Alluvial Fan")),
-        (FLOODPLAIN_BASIN, _("Floodpain/Basin")),
-        (TERRACE, _("Terrace")),
-        (TERRACE_TREAD, _("Tread")),
-        (TERRACE_RISER, _("Riser")),
-        (FLAT_LOW_ROLLING_PLAIN, _("Flat/Low Rolling Plain")),
-        (PLAYA, _("Playa")),
-        (DUNES, _("Dunes")),
-    )   
-    slope_landscape_position = models.CharField(blank=True, choices=LANDSCAPE_POSITIONS)
-    
+    class LandscapePosition(models.TextChoices):
+        HILLS_MOUNTAINS = "HILLS_MOUNTAINS", "Hills/Mountains"
+        HILLS_MOUNTAINS_SUMMIT = "HILLS_MOUNTAINS_SUMMIT", "Hills/Mountains (Summit)"
+        HILLS_MOUNTAINS_SHOULDER = "HILLS_MOUNTAINS_SHOULDER", "Hills/Mountains (Shoulder)"
+        HILLS_MOUNTAINS_BACKSLOPE = "HILLS_MOUNTAINS_BACKSLOPE", "Hills/Mountains (Backslope)"
+        ALLUVIAL_FAN = "ALLUVIAL_FAN"
+        FLOODPLAIN_BASIN = "FLOODPLAIN_BASIN", "Floodplain/Basin"
+        TERRACE = "TERRACE"
+        TERRACE_TREAD = "TERRACE_TREAD", "Terrace (Tread)"
+        TERRACE_RISER = "TERRACE_RISER", "Terrace (Riser)"
+        FLAT_LOW_ROLLING_PLAIN = "FLAT_LOW_ROLLING_PLAIN", "Flat/Low Rolling Plain"
+        PLAYA = "PLAYA"
+        DUNES = "DUNES"
+
+    slope_landscape_position = models.CharField(blank=True, choices=LandscapePosition.choices)
+
     slope_aspect = models.IntegerField(
         blank=True, null=True, validators=[MinValueValidator(0), MaxValueValidator(359)]
     )
 
-    FLAT = "0 - 2% (flat)"
-    GENTLE = "2 - 5% (gentle)"
-    MODERATE = "5 - 10% (moderate)"
-    ROLLING = "10 - 15% (rolling)"
-    HILLY = "15 - 30% (hilly)"
-    STEEP = "30 - 50% (steep)"
-    MODERATELY_STEEP = "50 - 60% (moderately steep)"
-    VERY_STEEP = "60 - 100% (very steep)"
-    STEEPEST = "100%+ (steepest)"
+    class SlopeSteepness(models.TextChoices):
+        FLAT = "FLAT", "0 - 2% (flat)"
+        GENTLE = "GENTLE", "2 - 5% (gentle)"
+        MODERATE = "MODERATE", "5 - 10% (moderate)"
+        ROLLING = "ROLLING", "10 - 15% (rolling)"
+        HILLY = "HILLY", "15 - 30% (hilly)"
+        STEEP = "STEEP", "30 - 50% (steep)"
+        MODERATELY_STEEP = "MODERATELY_STEEP", "50 - 60% (moderately steep)"
+        VERY_STEEP = "VERY_STEEP", "60 - 100% (very steep)"
+        STEEPEST = "STEEPEST", "100%+ (steepest)"
 
-    SLOPE_RANGES = (
-        (FLAT, _("0 - 2% (flat)")),
-        (GENTLE, _("2 - 5% (gentle)")),
-        (MODERATE, _("5 - 10% (moderate)")),
-        (ROLLING, _("10 - 15% (rolling)")),
-        (HILLY, _("15 - 30% (hilly)")),
-        (STEEP, _("30 - 50% (steep)")),
-        (MODERATELY_STEEP, _("50 - 60% (moderately steep)")),
-        (VERY_STEEP, _("60 - 100% (very steep)")),
-        (STEEPEST, _("100%+ (steepest)")),
+    slope_steepness_select = models.CharField(blank=True, choices=SlopeSteepness.choices)
+
+    slope_steepness_percent = models.IntegerField(
+        blank=True, null=True, validators=[MinValueValidator(0)]
     )
-    slope_steepness_select = models.CharField(blank=True, choices=SLOPE_RANGES)
-    
-    slope_steepness_percent = models.IntegerField(blank=True, null=True, validators=[MinValueValidator(0)])
-    
+
     slope_steepness_degree = models.IntegerField(
         blank=True, null=True, validators=[MinValueValidator(0), MaxValueValidator(90)]
     )

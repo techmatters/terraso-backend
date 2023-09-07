@@ -3,7 +3,6 @@ import json
 import pytest
 import structlog
 from graphene_django.utils.testing import graphql_query
-from apps.soil_id.models.soil_data import CONVEX
 
 pytestmark = pytest.mark.django_db
 
@@ -34,11 +33,15 @@ def test_update_soil_data(client, project_manager, site):
     new_data = {
         "siteId": str(site.id),
         "bedrock": 1,
-        "downSlope": "convex",
+        "downSlope": "CONVEX",
+        "crossSlope": "CONCAVE",
+        "slopeLandscapePosition": "HILLS_MOUNTAINS",
+        "slopeSteepnessSelect": "FLAT",
     }
     response = graphql_query(UPDATE_SOIL_DATA_QUERY, variables={"input": new_data}, client=client)
     content = json.loads(response.content)
     logger.info(content)
     payload = content["data"]["updateSoilData"]["soilData"]
-    assert payload["bedrock"] == 1
-    assert content["data"]["updateSoilData"]["errors"] == None
+    assert content["data"]["updateSoilData"]["errors"] is None
+    for attr, value in new_data.items():
+        assert payload[attr] == value
