@@ -28,8 +28,8 @@ class SoilData(BaseModel):
         CONVEX = "CONVEX"
         LINEAR = "LINEAR"
 
-    down_slope = models.CharField(blank=True, choices=SlopeShape.choices)
-    cross_slope = models.CharField(blank=True, choices=SlopeShape.choices)
+    down_slope = models.CharField(blank=True, null=True, choices=SlopeShape.choices)
+    cross_slope = models.CharField(blank=True, null=True, choices=SlopeShape.choices)
 
     bedrock = models.PositiveIntegerField(blank=True, null=True)
 
@@ -47,7 +47,9 @@ class SoilData(BaseModel):
         PLAYA = "PLAYA"
         DUNES = "DUNES"
 
-    slope_landscape_position = models.CharField(blank=True, choices=LandscapePosition.choices)
+    slope_landscape_position = models.CharField(
+        blank=True, null=True, choices=LandscapePosition.choices
+    )
 
     slope_aspect = models.IntegerField(
         blank=True, null=True, validators=[MinValueValidator(0), MaxValueValidator(359)]
@@ -64,7 +66,7 @@ class SoilData(BaseModel):
         VERY_STEEP = "VERY_STEEP", "60 - 100% (very steep)"
         STEEPEST = "STEEPEST", "100%+ (steepest)"
 
-    slope_steepness_select = models.CharField(blank=True, choices=SlopeSteepness.choices)
+    slope_steepness_select = models.CharField(blank=True, null=True, choices=SlopeSteepness.choices)
 
     slope_steepness_percent = models.IntegerField(
         blank=True, null=True, validators=[MinValueValidator(0)]

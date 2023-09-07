@@ -1,5 +1,6 @@
 import graphene
 import structlog
+from django.db import transaction
 from graphene_django import DjangoObjectType
 
 from apps.graphql.schema.commons import BaseWriteMutation
@@ -54,8 +55,8 @@ class DepthDependentSoilDataNode(DjangoObjectType):
         return cls._meta.fields["rock_fragment_volume"].type()
 
     @classmethod
-    def color_hue_substeps_enum(cls):
-        return cls._meta.fields["color_hue_substeps"].type()
+    def color_hue_substep_enum(cls):
+        return cls._meta.fields["color_hue_substep"].type()
 
     @classmethod
     def color_hue_enum(cls):
@@ -139,11 +140,11 @@ class DepthDependentSoilDataUpdateMutation(BaseWriteMutation):
 
     class Input:
         site_id = graphene.ID(required=True)
-        depth_top = graphene.Int(required=True)
-        depth_bottom = graphene.Int(required=True)
+        depth_start = graphene.Int(required=True)
+        depth_end = graphene.Int(required=True)
         texture = DepthDependentSoilDataNode.texture_enum()
         rock_fragment_volume = DepthDependentSoilDataNode.rock_fragment_volume_enum()
-        color_hue_substeps = DepthDependentSoilDataNode.color_hue_substeps_enum()
+        color_hue_substep = DepthDependentSoilDataNode.color_hue_substep_enum()
         color_hue = DepthDependentSoilDataNode.color_hue_enum()
         color_value = DepthDependentSoilDataNode.color_value_enum()
         color_chroma = DepthDependentSoilDataNode.color_chroma_enum()
@@ -162,24 +163,20 @@ class DepthDependentSoilDataUpdateMutation(BaseWriteMutation):
         carbonates = DepthDependentSoilDataNode.carbonates_enum()
 
     @classmethod
-    def mutate_and_get_payload(cls, root, info, site_id, depth_top, depth_bottom, **kwargs):
+    def mutate_and_get_payload(cls, root, info, site_id, depth_start, depth_end, **kwargs):
         site = cls.get_or_throw(Site, "id", site_id)
 
         user = info.context.user
         if not user.has_perm(Site.get_perm("change"), site):
             raise cls.not_allowed(MutationTypes.UPDATE)
 
-        if not hasattr(site, "soil_data"):
-            site.soil_data = SoilData()
+        with transaction.atomic():
+            if not hasattr(site, "soil_data"):
+                site.soil_data = SoilData()
+                site.soil_data.save()
 
-        depth_dependent_data = site.soil_data.depth_dependent_data.filter(
-            depth_top=depth_top, depth_bottom=depth_bottom
-        )
-        if depth_dependent_data is None:
-            depth_dependent_data = DepthDependentSoilData(
-                soil_data=site.soil_data, depth_top=depth_top, depth_bottom=depth_bottom
+            kwargs["model_instance"], _ = site.soil_data.depth_dependent_data.get_or_create(
+                depth_start=depth_start, depth_end=depth_end
             )
 
-        kwargs["model_instance"] = depth_dependent_data
-
-        return super().mutate_and_get_payload(root, info, **kwargs)
+            return super().mutate_and_get_payload(root, info, **kwargs)

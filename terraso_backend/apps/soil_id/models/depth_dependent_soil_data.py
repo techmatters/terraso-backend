@@ -23,11 +23,22 @@ OTHER = "other"
 
 
 class DepthDependentSoilData(BaseModel):
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["soil_data", "depth_start", "depth_end"], name="unique_depth_interval"
+            ),
+            models.CheckConstraint(
+                check=models.Q(depth_start__lt=models.F("depth_end")),
+                name="depth_interval_coherence",
+            ),
+        ]
+
     soil_data = models.ForeignKey(
         SoilData, on_delete=models.CASCADE, related_name="depth_dependent_data"
     )
-    depth_top = models.IntegerField(blank=True)
-    depth_bottom = models.IntegerField(blank=True)
+    depth_start = models.PositiveIntegerField(validators=[MaxValueValidator(200)])
+    depth_end = models.PositiveIntegerField(validators=[MaxValueValidator(200)])
 
     class Texture(models.TextChoices):
         SAND = "SAND"
@@ -43,16 +54,18 @@ class DepthDependentSoilData(BaseModel):
         SILTY_CLAY = "SILTY_CLAY"
         CLAY = "CLAY"
 
-    texture = models.CharField(null=True, choices=Texture.choices)
+    texture = models.CharField(blank=True, null=True, choices=Texture.choices)
 
     class RockFragmentVolume(models.TextChoices):
-        VOLUME_0_1 = "ROCK_FRAGMENT_0_1", "0 — 1%"
-        VOLUME_1_15 = "ROCK_FRAGMENT_1_15", "1 — 15%"
-        VOLUME_15_35 = "ROCK_FRAGMENT_15_35", "15 — 35%"
-        VOLUME_35_60 = "ROCK_FRAGMENT_35_60", "35 — 60%"
-        VOLUME_60 = "ROCK_FRAGMENT_60", "> 60%"
+        VOLUME_0_1 = "VOLUME_0_1", "0 — 1%"
+        VOLUME_1_15 = "VOLUME_1_15", "1 — 15%"
+        VOLUME_15_35 = "VOLUME_15_35", "15 — 35%"
+        VOLUME_35_60 = "VOLUME_35_60", "35 — 60%"
+        VOLUME_60 = "VOLUME_60", "> 60%"
 
-    rock_fragment_volume = models.CharField(null=True, choices=RockFragmentVolume.choices)
+    rock_fragment_volume = models.CharField(
+        blank=True, null=True, choices=RockFragmentVolume.choices
+    )
 
     class ColorHueSubstep(models.TextChoices):
         SUBSTEP_2_5 = "SUBSTEP_2_5", "2.5"
@@ -60,7 +73,7 @@ class DepthDependentSoilData(BaseModel):
         SUBSTEP_7_5 = "SUBSTEP_7_5", "7.5"
         SUBSTEP_10 = "SUBSTEP_10", "10"
 
-    color_hue_substeps = models.CharField(null=True, choices=ColorHueSubstep.choices)
+    color_hue_substep = models.CharField(blank=True, null=True, choices=ColorHueSubstep.choices)
 
     class ColorHue(models.TextChoices):
         R = "R", "R"
@@ -71,7 +84,7 @@ class DepthDependentSoilData(BaseModel):
         B = "B", "B"
         BG = "BG", "BG"
 
-    color_hue = models.CharField(null=True, choices=ColorHue.choices)
+    color_hue = models.CharField(blank=True, null=True, choices=ColorHue.choices)
 
     class ColorValue(models.TextChoices):
         VALUE_2_5 = "VALUE_2_5", "2.5"
@@ -85,7 +98,7 @@ class DepthDependentSoilData(BaseModel):
         VALUE_9 = "VALUE_9", "9"
         VALUE_9_5 = "VALUE_9_5", "9.5"
 
-    color_value = models.CharField(null=True, choices=ColorValue.choices)
+    color_value = models.CharField(blank=True, null=True, choices=ColorValue.choices)
 
     class ColorChroma(models.TextChoices):
         CHROMA_1 = "CHROMA_1", "1"
@@ -97,10 +110,10 @@ class DepthDependentSoilData(BaseModel):
         CHROMA_7 = "CHROMA_7", "7"
         CHROMA_8 = "CHROMA_8", "8"
 
-    color_chroma = models.CharField(null=True, choices=ColorChroma.choices)
+    color_chroma = models.CharField(blank=True, null=True, choices=ColorChroma.choices)
 
     conductivity = models.DecimalField(
-        null=True, max_digits=100, decimal_places=2, validators=[MinValueValidator(0)]
+        blank=True, null=True, max_digits=100, decimal_places=2, validators=[MinValueValidator(0)]
     )
 
     class ConductivityTest(models.TextChoices):
@@ -110,7 +123,7 @@ class DepthDependentSoilData(BaseModel):
         SOIL_CONTACT_PROBE = "SOIL_CONTACT_PROBE"
         OTHER = "OTHER"
 
-    conductivity_test = models.CharField(null=True, choices=ConductivityTest.choices)
+    conductivity_test = models.CharField(blank=True, null=True, choices=ConductivityTest.choices)
 
     class ConductivityUnit(models.TextChoices):
         MILLISIEMENS_CENTIMETER = "MILLISIEMENS_CENTIMETER", "mS/cm"
@@ -120,7 +133,7 @@ class DepthDependentSoilData(BaseModel):
         DECISIEMENS_METER = "DECISIEMENS_METER", "dS/m"
         OTHER = "OTHER"
 
-    conductivity_unit = models.CharField(null=True, choices=ConductivityUnit.choices)
+    conductivity_unit = models.CharField(blank=True, null=True, choices=ConductivityUnit.choices)
 
     class SoilStructure(models.TextChoices):
         GRANULAR = "GRANULAR"
@@ -134,9 +147,10 @@ class DepthDependentSoilData(BaseModel):
         SINGLE_GRAIN = "SINGLE_GRAIN"
         MASSIVE = "MASSIVE"
 
-    structure = models.CharField(null=True, choices=SoilStructure.choices)
+    structure = models.CharField(blank=True, null=True, choices=SoilStructure.choices)
 
     ph = models.DecimalField(
+        blank=True,
         null=True,
         max_digits=3,
         decimal_places=1,
@@ -157,7 +171,7 @@ class DepthDependentSoilData(BaseModel):
         SATURATED_PASTE_EXTRACT = "SATURATED_PASTE_EXTRACT"
         OTHER = "OTHER"
 
-    ph_testing_solution = models.CharField(null=True, choices=PhTestingSolution.choices)
+    ph_testing_solution = models.CharField(blank=True, null=True, choices=PhTestingSolution.choices)
 
     class PhTestingMethod(models.TextChoices):
         INDICATOR_STRIP = "INDICATOR_STRIP", "pH indicator strip"
@@ -165,9 +179,10 @@ class DepthDependentSoilData(BaseModel):
         METER = "METER", "pH meter"
         OTHER = "OTHER"
 
-    ph_testing_method = models.CharField(null=True, choices=PhTestingMethod.choices)
+    ph_testing_method = models.CharField(blank=True, null=True, choices=PhTestingMethod.choices)
 
     soil_organic_carbon = models.DecimalField(
+        blank=True,
         null=True,
         max_digits=4,
         decimal_places=1,
@@ -175,6 +190,7 @@ class DepthDependentSoilData(BaseModel):
     )
 
     soil_organic_matter = models.DecimalField(
+        blank=True,
         null=True,
         max_digits=4,
         decimal_places=1,
@@ -189,11 +205,15 @@ class DepthDependentSoilData(BaseModel):
         FIELD_REFLECTOMETER = "FIELD_REFLECTOMETER"
         OTHER = "OTHER"
 
-    soil_organic_carbon_testing = models.CharField(null=True, choices=SoilTestingMethod.choices)
-    soil_organic_matter_testing = models.CharField(null=True, choices=SoilTestingMethod.choices)
+    soil_organic_carbon_testing = models.CharField(
+        blank=True, null=True, choices=SoilTestingMethod.choices
+    )
+    soil_organic_matter_testing = models.CharField(
+        blank=True, null=True, choices=SoilTestingMethod.choices
+    )
 
     sodium_absorption_ratio = models.DecimalField(
-        null=True, max_digits=100, decimal_places=1, validators=[MinValueValidator(0)]
+        blank=True, null=True, max_digits=100, decimal_places=1, validators=[MinValueValidator(0)]
     )
 
     class CarbonateResponse(models.TextChoices):
@@ -215,4 +235,4 @@ class DepthDependentSoilData(BaseModel):
             "violently effervescent — Bubbles rapidly form a thick foam",
         )
 
-    carbonates = models.CharField(null=True, choices=CarbonateResponse.choices)
+    carbonates = models.CharField(blank=True, null=True, choices=CarbonateResponse.choices)
