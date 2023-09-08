@@ -32,7 +32,7 @@ from apps.graphql.exceptions import (
     GraphQLNotFoundException,
     GraphQLValidationException,
 )
-from apps.story_map.collaboration_roles import ROLE_COLLABORATOR
+from apps.story_map.collaboration_roles import ROLE_EDITOR
 from apps.story_map.models.story_maps import StoryMap
 from apps.story_map.notifications import send_memberships_invite_email
 from apps.story_map.services import story_map_media_upload_service
@@ -186,9 +186,9 @@ class StoryMapMembershipSaveMutation(BaseAuthenticatedMutation):
     def mutate_and_get_payload(cls, root, info, **kwargs):
         user = info.context.user
 
-        if kwargs["user_role"] != ROLE_COLLABORATOR:
+        if kwargs["user_role"] != ROLE_EDITOR:
             logger.info(
-                "Attempt to save Story Map Memberships, but user role is not collaborator",
+                "Attempt to save Story Map Memberships, but user role is not editor",
                 extra={
                     "user_role": kwargs["user_role"],
                 },

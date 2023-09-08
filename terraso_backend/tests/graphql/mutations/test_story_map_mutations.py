@@ -17,6 +17,7 @@ import json
 
 import pytest
 
+from apps.story_map.collaboration_roles import ROLE_EDITOR
 from apps.story_map.models import StoryMap
 
 pytestmark = pytest.mark.django_db
@@ -97,7 +98,7 @@ def test_story_map_save_membership_by_creator_works(client_query, story_maps, us
             "input": {
                 "storyMapId": str(old_story_map.story_map_id),
                 "storyMapSlug": old_story_map.slug,
-                "userRole": "collaborator",
+                "userRole": ROLE_EDITOR,
                 "userEmails": [users[1].email, users[2].email],
             }
         },
@@ -138,7 +139,7 @@ def test_story_map_save_membership_by_non_creator_fails_due_permission_check(
             "input": {
                 "storyMapId": str(old_story_map.story_map_id),
                 "storyMapSlug": old_story_map.slug,
-                "userRole": "collaborator",
+                "userRole": ROLE_EDITOR,
                 "userEmails": [users[1].email, users[2].email],
             }
         },
