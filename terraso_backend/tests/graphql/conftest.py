@@ -150,16 +150,26 @@ def users():
 
 
 @pytest.fixture
-def unsubscribe_token(users_with_notifications):
-    return JWTService().create_unsubscribe_token(users_with_notifications[0])
+def unsubscribe_token(users_with_group_notifications):
+    return JWTService().create_unsubscribe_token(users_with_group_notifications[0])
 
 
 @pytest.fixture
-def users_with_notifications():
+def users_with_group_notifications():
     users = mixer.cycle(5).blend(User)
 
     for user in users:
-        mixer.blend(UserPreference, user=user, key="notifications", value="true")
+        mixer.blend(UserPreference, user=user, key="group_notifications", value="true")
+
+    return users
+
+
+@pytest.fixture
+def users_with_story_map_notifications():
+    users = mixer.cycle(5).blend(User)
+
+    for user in users:
+        mixer.blend(UserPreference, user=user, key="story_map_notifications", value="true")
 
     return users
 
@@ -199,11 +209,11 @@ def memberships_pending(groups, users):
 
 
 @pytest.fixture
-def memberships_pending_with_notifications(groups, users_with_notifications):
+def memberships_pending_with_notifications(groups, users_with_group_notifications):
     return mixer.cycle(5).blend(
         Membership,
         group=(g for g in groups),
-        user=(u for u in users_with_notifications),
+        user=(u for u in users_with_group_notifications),
         user_role=Membership.ROLE_MEMBER,
         membership_status=Membership.PENDING,
     )

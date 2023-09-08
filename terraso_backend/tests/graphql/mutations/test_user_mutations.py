@@ -277,9 +277,11 @@ def test_users_preference_delete_by_other_fail(client_query, users):
 
 
 def test_users_unsubscribe_update(
-    client_query_no_token, users_with_notifications, unsubscribe_token
+    client_query_no_token, users_with_group_notifications, unsubscribe_token
 ):
-    assert "true" == users_with_notifications[0].preferences.filter(key="notifications")[0].value
+    assert (
+        "true" == users_with_group_notifications[0].preferences.filter(key="notifications")[0].value
+    )
 
     response = client_query_no_token(
         """
@@ -295,7 +297,10 @@ def test_users_unsubscribe_update(
 
     assert "errors" in response["data"]["unsubscribeUser"]
     assert response["data"]["unsubscribeUser"]["errors"] is None
-    assert "false" == users_with_notifications[0].preferences.filter(key="notifications")[0].value
+    assert (
+        "false"
+        == users_with_group_notifications[0].preferences.filter(key="notifications")[0].value
+    )
 
 
 def test_users_unsubscribe_update_fail(client_query_no_token):
