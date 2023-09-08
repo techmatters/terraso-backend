@@ -80,7 +80,8 @@ class AccountService:
         )
 
     def _set_default_preferences(self, user):
-        UserPreference.objects.create(user=user, key="notifications", value="true")
+        UserPreference.objects.create(user=user, key="group_notifications", value="true")
+        UserPreference.objects.create(user=user, key="story_map_notifications", value="true")
 
     @transaction.atomic
     def _persist_user(self, email, first_name="", last_name="", profile_image_url=None):
