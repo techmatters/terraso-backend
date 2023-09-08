@@ -125,8 +125,14 @@ class User(SafeDeleteModel, AbstractUser):
     def name_and_email(self):
         return f"'{self.full_name()}' <{self.email}>"
 
-    def notifications_enabled(self):
-        preferences = self.preferences.filter(key="notifications")
+    def group_notifications_enabled(self):
+        return self._notifications_enabled("group")
+
+    def story_map_notifications_enabled(self):
+        return self._notifications_enabled("story_map")
+
+    def _notifications_enabled(self, type):
+        preferences = self.preferences.filter(key=f"{type}_notifications")
         if len(preferences) != 1 or not hasattr(preferences[0], "value"):
             return False
 
