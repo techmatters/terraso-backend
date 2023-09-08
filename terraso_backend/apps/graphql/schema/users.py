@@ -33,7 +33,7 @@ from .constants import MutationTypes
 
 logger = structlog.get_logger(__name__)
 
-ALLOWED_PREFERENCE_KEYS = ["language", "notifications"]
+ALLOWED_PREFERENCE_KEYS = ["language", "group_notifications", "story_map_notifications"]
 
 
 class UserNode(DjangoObjectType):
