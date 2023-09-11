@@ -21,11 +21,11 @@ from django.db.models import Q
 
 def update_rows(apps, schema_editor):
     User = apps.get_model("core", "User")
+    UserPreference = apps.get_model("core", "UserPreference")
 
     for obj in User.objects.filter(~Q(preferences__key="story_map_notifications")):
         UserPreference.objects.create(user=obj, key="story_map_notifications", value="true")
 
-    UserPreference = apps.get_model("core", "UserPreference")
     UserPreference.objects.filter(key="notifications").update(key="group_notifications")
 
 

@@ -35,7 +35,7 @@ def send_memberships_invite_email(inviter, memberships, story_map):
     member_signups = [
         membership
         for membership in memberships
-        if membership.user is not None and membership.user.notifications_enabled()
+        if membership.user is not None and membership.user.story_map_notifications_enabled()
     ]
     base_context = {
         "storyMapOwnerFirstName": story_map.created_by.first_name,
