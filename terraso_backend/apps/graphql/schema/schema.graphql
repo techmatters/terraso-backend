@@ -53,7 +53,7 @@ type Query {
     """The ID of the object"""
     id: ID!
   ): StoryMapNode!
-  storyMaps(offset: Int, before: String, after: String, first: Int, last: Int, slug: String, storyMapId: String, createdBy_Email: String, createdBy_Email_Not: String): StoryMapNodeConnection
+  storyMaps(offset: Int, before: String, after: String, first: Int, last: Int, slug: String, storyMapId: String, memberships_User_Email_Not: String, memberships_User_Email: String): StoryMapNodeConnection
   project(
     """The ID of the object"""
     id: ID!
@@ -556,6 +556,62 @@ type StoryMapNode implements Node {
   createdBy: UserNode
   isPublished: Boolean!
   publishedAt: DateTime
+  membershipList: CollaborationMembershipListNode
+}
+
+type CollaborationMembershipListNode implements Node {
+  membershipType: CollaborationMembershipListMembershipTypeChoices!
+  memberships(offset: Int, before: String, after: String, first: Int, last: Int, user: ID, user_In: [ID], userRole: String, user_Email_Icontains: String, user_Email_In: [String], membershipStatus: CollaborationMembershipMembershipStatusChoices, user_Email_Not: String): CollaborationMembershipNodeConnection!
+  id: ID!
+  accountMembership: CollaborationMembershipNode
+  membershipsCount: Int
+}
+
+"""An enumeration."""
+enum CollaborationMembershipListMembershipTypeChoices {
+  """Open"""
+  OPEN
+
+  """Closed"""
+  CLOSED
+}
+
+type CollaborationMembershipNodeConnection {
+  """Pagination data for this connection."""
+  pageInfo: PageInfo!
+
+  """Contains the nodes in this connection."""
+  edges: [CollaborationMembershipNodeEdge!]!
+  totalCount: Int!
+}
+
+"""
+A Relay edge containing a `CollaborationMembershipNode` and its cursor.
+"""
+type CollaborationMembershipNodeEdge {
+  """The item at the end of the edge"""
+  node: CollaborationMembershipNode!
+
+  """A cursor for use in pagination"""
+  cursor: String!
+}
+
+type CollaborationMembershipNode implements Node {
+  membershipList: CollaborationMembershipListNode!
+  user: UserNode
+  userRole: String!
+  membershipStatus: CollaborationMembershipMembershipStatusChoices!
+  pendingEmail: String
+  id: ID!
+}
+
+"""An enumeration."""
+enum CollaborationMembershipMembershipStatusChoices {
+  """Approved"""
+  APPROVED
+
+  """Pending"""
+  PENDING
 }
 
 type StoryMapNodeConnection {
@@ -752,6 +808,10 @@ type Mutations {
   updateVisualizationConfig(input: VisualizationConfigUpdateMutationInput!): VisualizationConfigUpdateMutationPayload!
   deleteVisualizationConfig(input: VisualizationConfigDeleteMutationInput!): VisualizationConfigDeleteMutationPayload!
   deleteStoryMap(input: StoryMapDeleteMutationInput!): StoryMapDeleteMutationPayload!
+  saveStoryMapMembership(input: StoryMapMembershipSaveMutationInput!): StoryMapMembershipSaveMutationPayload!
+  deleteStoryMapMembership(input: StoryMapMembershipDeleteMutationInput!): StoryMapMembershipDeleteMutationPayload!
+  approveStoryMapMembership(input: StoryMapMembershipApproveMutationInput!): StoryMapMembershipApproveMutationPayload!
+  approveStoryMapMembershipToken(input: StoryMapMembershipApproveTokenMutationInput!): StoryMapMembershipApproveTokenMutationPayload!
   addSite(input: SiteAddMutationInput!): SiteAddMutationPayload!
   updateSite(input: SiteUpdateMutationInput!): SiteUpdateMutationPayload!
   deleteSite(input: SiteDeleteMutationInput!): SiteDeleteMutationPayload!
@@ -1104,6 +1164,57 @@ type StoryMapDeleteMutationPayload {
 
 input StoryMapDeleteMutationInput {
   id: ID
+  clientMutationId: String
+}
+
+type StoryMapMembershipSaveMutationPayload {
+  errors: GenericScalar
+  memberships: [CollaborationMembershipNode]
+  clientMutationId: String
+}
+
+input StoryMapMembershipSaveMutationInput {
+  userRole: String
+  userEmails: [String]!
+  storyMapId: String!
+  storyMapSlug: String!
+  clientMutationId: String
+}
+
+type StoryMapMembershipDeleteMutationPayload {
+  errors: GenericScalar
+  membership: CollaborationMembershipNode
+  clientMutationId: String
+}
+
+input StoryMapMembershipDeleteMutationInput {
+  id: ID
+  storyMapId: String!
+  storyMapSlug: String!
+  clientMutationId: String
+}
+
+type StoryMapMembershipApproveMutationPayload {
+  errors: GenericScalar
+  membership: CollaborationMembershipNode
+  storyMap: StoryMapNode
+  clientMutationId: String
+}
+
+input StoryMapMembershipApproveMutationInput {
+  membershipId: String!
+  clientMutationId: String
+}
+
+type StoryMapMembershipApproveTokenMutationPayload {
+  errors: GenericScalar
+  membership: CollaborationMembershipNode
+  storyMap: StoryMapNode
+  clientMutationId: String
+}
+
+input StoryMapMembershipApproveTokenMutationInput {
+  inviteToken: String!
   clientMutationId: String
 }
 

@@ -1,4 +1,4 @@
-﻿# Copyright © 2023 Technology Matters
+# Copyright © 2023 Technology Matters
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as published
@@ -13,24 +13,18 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see https://www.gnu.org/licenses/.
 
-from django import forms
-from django.contrib import admin
+from django.dispatch import receiver
 
-from .models import StoryMap
+from apps.auth.signals import user_signup_signal
 
-
-class CustomStoryMapForm(forms.ModelForm):
-    class Meta:
-        model = StoryMap
-        fields = "__all__"
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.fields["membership_list"].required = False
+from .models.memberships import Membership
 
 
-@admin.register(StoryMap)
-class StoryMapAdmin(admin.ModelAdmin):
-    list_display = ("title", "created_by")
-    raw_id_fields = ("membership_list",)
-    form = CustomStoryMapForm
+@receiver(user_signup_signal)
+def handle_pending_memberships(sender, **kwargs):
+    user = kwargs["user"]
+    pending_memberships = Membership.objects.filter(pending_email=user.email)
+    for membership in pending_memberships:
+        membership.pending_email = None
+        membership.user = user
+        membership.save()

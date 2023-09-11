@@ -1,4 +1,4 @@
-﻿# Copyright © 2023 Technology Matters
+# Copyright © 2023 Technology Matters
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as published
@@ -13,24 +13,12 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see https://www.gnu.org/licenses/.
 
-from django import forms
-from django.contrib import admin
-
-from .models import StoryMap
+from django.apps import AppConfig
 
 
-class CustomStoryMapForm(forms.ModelForm):
-    class Meta:
-        model = StoryMap
-        fields = "__all__"
+class CollaboartionConfig(AppConfig):
+    default_auto_field = "django.db.models.BigAutoField"
+    name = "apps.collaboration"
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.fields["membership_list"].required = False
-
-
-@admin.register(StoryMap)
-class StoryMapAdmin(admin.ModelAdmin):
-    list_display = ("title", "created_by")
-    raw_id_fields = ("membership_list",)
-    form = CustomStoryMapForm
+    def ready(self):
+        from .signals import handle_pending_memberships  # noqa

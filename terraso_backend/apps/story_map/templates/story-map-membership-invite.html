@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block content %}
+<h2>{% blocktranslate with inviterFirstName=inviterFirstName %}{{inviterFirstName}} invited you to edit a story map{% endblocktranslate %}</h2>
+
+<p>{% blocktranslate with storyMapOwnerFirstName=storyMapOwnerFirstName storyMapTitle=storyMapTitle %}You can work on {{storyMapOwnerFirstName}}’s "{{storyMapTitle}}" in Terraso.{% endblocktranslate %}</p>
+
+<p style="margin: 3em;"><a style="padding: 0.5em 1em; background-color: #028843; color: #fff; border-radius: 0.5em; text-decoration: none;" href="{{acceptInviteUrl}}">{% translate "email.story_map.accept_invite" %}</a></p>
+
+{% endblock %}

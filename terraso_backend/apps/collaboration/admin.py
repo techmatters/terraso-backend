@@ -1,4 +1,4 @@
-﻿# Copyright © 2023 Technology Matters
+# Copyright © 2023 Technology Matters
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as published
@@ -13,24 +13,21 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see https://www.gnu.org/licenses/.
 
-from django import forms
 from django.contrib import admin
 
-from .models import StoryMap
+from .models import Membership, MembershipList
 
 
-class CustomStoryMapForm(forms.ModelForm):
-    class Meta:
-        model = StoryMap
-        fields = "__all__"
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.fields["membership_list"].required = False
+class MembershipInline(admin.TabularInline):
+    model = Membership
 
 
-@admin.register(StoryMap)
-class StoryMapAdmin(admin.ModelAdmin):
-    list_display = ("title", "created_by")
-    raw_id_fields = ("membership_list",)
-    form = CustomStoryMapForm
+@admin.register(MembershipList)
+class MembershipListAdmin(admin.ModelAdmin):
+    list_display = ("id", "created_at")
+    inlines = [MembershipInline]
+
+
+@admin.register(Membership)
+class MembershipAdmin(admin.ModelAdmin):
+    list_display = ("user", "membership_list", "user_role", "membership_status", "created_at")

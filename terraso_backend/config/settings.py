@@ -72,6 +72,7 @@ INSTALLED_APPS = [
     "apps.audit_logs",
     "apps.e2e_tests",
     "apps.soil_id",
+    "apps.collaboration",
 ]
 
 # Used for sitemap generation.
@@ -107,6 +108,7 @@ TEMPLATES = [
         "DIRS": [
             os.path.join(BASE_DIR, "custom_templates"),
             os.path.join(BASE_DIR, "apps", "notifications", "templates"),
+            os.path.join(BASE_DIR, "apps", "story_map", "templates"),
         ],
         "OPTIONS": {
             "context_processors": [

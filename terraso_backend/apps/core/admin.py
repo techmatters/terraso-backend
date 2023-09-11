@@ -25,6 +25,7 @@ from .models import (
     Membership,
     TaxonomyTerm,
     User,
+    UserPreference,
 )
 
 
@@ -93,9 +94,14 @@ class MembershipAdmin(admin.ModelAdmin):
     list_display = ("user", "group", "user_role", "membership_status", "created_at")
 
 
+class UserPreferenceInline(admin.TabularInline):
+    model = UserPreference
+
+
 @admin.register(User)
 class UserAdmin(admin.ModelAdmin):
     list_display = ("email", "first_name", "last_name", "created_at", "is_staff")
+    inlines = [UserPreferenceInline]
 
 
 @admin.register(TaxonomyTerm)

@@ -29,9 +29,11 @@ from django.db import transaction
 from django.utils import timezone
 
 from apps.core.models import UserPreference
+from apps.core.models.users import NOTIFICATION_KEYS
 from apps.storage.services import ProfileImageService
 
 from .providers import AppleProvider, GoogleProvider, MicrosoftProvider
+from .signals import user_signup_signal
 
 logger = structlog.get_logger(__name__)
 User = get_user_model()
@@ -80,7 +82,8 @@ class AccountService:
         )
 
     def _set_default_preferences(self, user):
-        UserPreference.objects.create(user=user, key="notifications", value="true")
+        for notification_key in NOTIFICATION_KEYS:
+            UserPreference.objects.create(user=user, key=notification_key, value="true")
 
     @transaction.atomic
     def _persist_user(self, email, first_name="", last_name="", profile_image_url=None):
@@ -107,6 +110,8 @@ class AccountService:
 
         if update_name:
             user.save()
+
+        user_signup_signal.send(sender=self.__class__, user=user)
 
         return user, True
 
@@ -172,6 +177,23 @@ class JWTService:
             raise ValueError("Token is not an unsubscribe token")
         return decoded
 
+    def create_story_map_membership_approve_token(self, membership):
+        user = membership.user
+        return self.create_token(
+            user,
+            extra_payload={
+                "membershipId": str(membership.id),
+                "pendingEmail": membership.pending_email if user is None else None,
+                "approveStoryMapMembership": True,
+            },
+        )
+
+    def verify_story_map_membership_approve_token(self, token):
+        decoded = self._verify_token(token)
+        if not decoded["approveStoryMapMembership"]:
+            raise ValueError("Token is not a story map membership approve token")
+        return decoded
+
     def _verify_token(self, token):
         return jwt.decode(token, self.JWT_SECRET, algorithms=self.JWT_ALGORITHM)
 
@@ -179,9 +201,9 @@ class JWTService:
         return {
             "iss": self.JWT_ISS,
             "iat": timezone.now(),
-            "sub": str(user.id),
+            "sub": str(user.id) if user else None,
             "jti": uuid4().hex,
-            "email": user.email,
+            "email": user.email if user else None,
         }
 
 

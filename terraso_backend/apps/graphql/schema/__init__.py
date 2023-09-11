@@ -60,7 +60,14 @@ from .projects import (
     ProjectUpdateMutation,
 )
 from .sites import SiteAddMutation, SiteDeleteMutation, SiteNode, SiteUpdateMutation
-from .story_maps import StoryMapDeleteMutation, StoryMapNode
+from .story_maps import (
+    StoryMapDeleteMutation,
+    StoryMapMembershipApproveMutation,
+    StoryMapMembershipApproveTokenMutation,
+    StoryMapMembershipDeleteMutation,
+    StoryMapMembershipSaveMutation,
+    StoryMapNode,
+)
 from .taxnomy_terms import TaxonomyTermNode
 from .users import (
     UserAddMutation,
@@ -138,6 +145,10 @@ class Mutations(graphene.ObjectType):
     update_visualization_config = VisualizationConfigUpdateMutation.Field()
     delete_visualization_config = VisualizationConfigDeleteMutation.Field()
     delete_story_map = StoryMapDeleteMutation.Field()
+    save_story_map_membership = StoryMapMembershipSaveMutation.Field()
+    delete_story_map_membership = StoryMapMembershipDeleteMutation.Field()
+    approve_story_map_membership = StoryMapMembershipApproveMutation.Field()
+    approve_story_map_membership_token = StoryMapMembershipApproveTokenMutation.Field()
     add_site = SiteAddMutation.Field()
     update_site = SiteUpdateMutation.Field()
     delete_site = SiteDeleteMutation.Field()

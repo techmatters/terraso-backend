@@ -246,11 +246,11 @@ def test_membership_add_manager_closed(client_query, groups_closed, users):
 
 @mock.patch("apps.notifications.email.send_mail")
 def test_membership_add_member_closed_with_notification(
-    mocked_send_mail, client_query, groups_closed, users_with_notifications
+    mocked_send_mail, client_query, groups_closed, users_with_group_notifications
 ):
     group = groups_closed[0]
-    user = users_with_notifications[0]
-    other_user = users_with_notifications[1]
+    user = users_with_group_notifications[0]
+    other_user = users_with_group_notifications[1]
 
     group.add_manager(other_user)
 
