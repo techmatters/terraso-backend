@@ -29,6 +29,7 @@ from django.db import transaction
 from django.utils import timezone
 
 from apps.core.models import UserPreference
+from apps.core.models.users import NOTIFICATION_KEYS
 from apps.storage.services import ProfileImageService
 
 from .providers import AppleProvider, GoogleProvider, MicrosoftProvider
@@ -81,8 +82,8 @@ class AccountService:
         )
 
     def _set_default_preferences(self, user):
-        UserPreference.objects.create(user=user, key="group_notifications", value="true")
-        UserPreference.objects.create(user=user, key="story_map_notifications", value="true")
+        for notification_key in NOTIFICATION_KEYS:
+            UserPreference.objects.create(user=user, key=notification_key, value="true")
 
     @transaction.atomic
     def _persist_user(self, email, first_name="", last_name="", profile_image_url=None):

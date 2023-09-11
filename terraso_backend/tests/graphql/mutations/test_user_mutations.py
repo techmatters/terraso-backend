@@ -16,6 +16,7 @@
 import pytest
 
 from apps.core.models import User
+from apps.core.models.users import NOTIFICATION_KEY_GROUP
 
 pytestmark = pytest.mark.django_db
 
@@ -280,7 +281,8 @@ def test_users_unsubscribe_update(
     client_query_no_token, users_with_group_notifications, unsubscribe_token
 ):
     assert (
-        "true" == users_with_group_notifications[0].preferences.filter(key="notifications")[0].value
+        "true"
+        == users_with_group_notifications[0].preferences.filter(key=NOTIFICATION_KEY_GROUP)[0].value
     )
 
     response = client_query_no_token(
@@ -299,7 +301,7 @@ def test_users_unsubscribe_update(
     assert response["data"]["unsubscribeUser"]["errors"] is None
     assert (
         "false"
-        == users_with_group_notifications[0].preferences.filter(key="notifications")[0].value
+        == users_with_group_notifications[0].preferences.filter(key="group_notifications")[0].value
     )
 
 

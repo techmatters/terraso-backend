@@ -21,6 +21,7 @@ from graphene_django import DjangoObjectType
 
 from apps.auth.services import JWTService
 from apps.core.models import User, UserPreference
+from apps.core.models.users import NOTIFICATION_KEYS
 from apps.graphql.exceptions import GraphQLNotAllowedException
 
 from .commons import (
@@ -32,8 +33,6 @@ from .commons import (
 from .constants import MutationTypes
 
 logger = structlog.get_logger(__name__)
-
-ALLOWED_PREFERENCE_KEYS = ["language", "group_notifications", "story_map_notifications"]
 
 
 class UserNode(DjangoObjectType):
@@ -171,7 +170,7 @@ class UserPreferenceUpdate(BaseAuthenticatedMutation):
                 model_name=UserPreference.__name__, operation=MutationTypes.UPDATE
             )
 
-        if key not in ALLOWED_PREFERENCE_KEYS:
+        if key not in NOTIFICATION_KEYS:
             logger.error(
                 "Attempt to update a User preferences, key not allowed",
                 extra={"request_user_id": request_user.id, "target_user_id": user.id, "key": key},
@@ -221,7 +220,7 @@ class UserPreferenceDelete(BaseAuthenticatedMutation):
                 model_name=UserPreference.__name__, operation=MutationTypes.DELETE
             )
 
-        if key not in ALLOWED_PREFERENCE_KEYS:
+        if key not in NOTIFICATION_KEYS:
             logger.error(
                 "Attempt to delete a User preferences, key not allowed",
                 extra={"request_user_id": request_user.id, "target_user_id": user.id, "key": key},
@@ -266,8 +265,11 @@ class UserUnsubscribeUpdate(BaseUnauthenticatedMutation):
                 model_name=UserPreference.__name__, operation=MutationTypes.UPDATE
             )
 
-        preference, _ = UserPreference.objects.get_or_create(user_id=user.id, key="notifications")
-        preference.value = "false"
-        preference.save()
+        for notification_key in NOTIFICATION_KEYS:
+            preference, _ = UserPreference.objects.get_or_create(
+                user_id=user.id, key=notification_key
+            )
+            preference.value = "false"
+            preference.save()
 
         return cls(success=True)

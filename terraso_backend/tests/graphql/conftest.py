@@ -34,6 +34,7 @@ from apps.core.models import (
     User,
     UserPreference,
 )
+from apps.core.models.users import NOTIFICATION_KEY_GROUP, NOTIFICATION_KEY_STORY_MAP
 from apps.shared_data.models import DataEntry, VisualizationConfig
 from apps.story_map.models import StoryMap
 
@@ -161,7 +162,7 @@ def users_with_group_notifications():
     users = mixer.cycle(5).blend(User)
 
     for user in users:
-        mixer.blend(UserPreference, user=user, key="group_notifications", value="true")
+        mixer.blend(UserPreference, user=user, key=NOTIFICATION_KEY_GROUP, value="true")
 
     return users
 
@@ -171,7 +172,7 @@ def users_with_story_map_notifications():
     users = mixer.cycle(5).blend(User)
 
     for user in users:
-        mixer.blend(UserPreference, user=user, key="story_map_notifications", value="true")
+        mixer.blend(UserPreference, user=user, key=NOTIFICATION_KEY_STORY_MAP, value="true")
 
     return users
 

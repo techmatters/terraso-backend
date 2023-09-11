@@ -21,6 +21,11 @@ from django.db import models
 from django.utils.translation import gettext_lazy as _
 from safedelete.models import SOFT_DELETE_CASCADE, SafeDeleteManager, SafeDeleteModel
 
+NOTIFICATION_KEY_GROUP = "group_notifications"
+NOTIFICATION_KEY_STORY_MAP = "story_map_notifications"
+NOTIFICATION_KEY_LANGUAGE = "language"
+NOTIFICATION_KEYS = [NOTIFICATION_KEY_GROUP, NOTIFICATION_KEY_STORY_MAP, NOTIFICATION_KEY_LANGUAGE]
+
 
 class UserManager(SafeDeleteManager, BaseUserManager):
     use_in_migrations = True
@@ -126,13 +131,13 @@ class User(SafeDeleteModel, AbstractUser):
         return f"'{self.full_name()}' <{self.email}>"
 
     def group_notifications_enabled(self):
-        return self._notifications_enabled("group")
+        return self._notifications_enabled(NOTIFICATION_KEY_GROUP)
 
     def story_map_notifications_enabled(self):
-        return self._notifications_enabled("story_map")
+        return self._notifications_enabled(NOTIFICATION_KEY_STORY_MAP)
 
-    def _notifications_enabled(self, type):
-        preferences = self.preferences.filter(key=f"{type}_notifications")
+    def _notifications_enabled(self, key):
+        preferences = self.preferences.filter(key=key)
         if len(preferences) != 1 or not hasattr(preferences[0], "value"):
             return False
 
