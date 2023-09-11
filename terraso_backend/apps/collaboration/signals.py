@@ -13,4 +13,18 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see https://www.gnu.org/licenses/.
 
-ROLE_EDITOR = "editor"
+from django.dispatch import receiver
+
+from apps.auth.signals import user_signup_signal
+
+from .models.memberships import Membership
+
+
+@receiver(user_signup_signal)
+def handle_pending_memberships(sender, **kwargs):
+    user = kwargs["user"]
+    pending_memberships = Membership.objects.filter(pending_email=user.email)
+    for membership in pending_memberships:
+        membership.pending_email = None
+        membership.user = user
+        membership.save()

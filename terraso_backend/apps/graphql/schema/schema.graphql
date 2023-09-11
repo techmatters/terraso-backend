@@ -53,7 +53,7 @@ type Query {
     """The ID of the object"""
     id: ID!
   ): StoryMapNode!
-  storyMaps(offset: Int, before: String, after: String, first: Int, last: Int, slug: String, storyMapId: String, canChange_Email_Not: String, canChange_Email: String): StoryMapNodeConnection
+  storyMaps(offset: Int, before: String, after: String, first: Int, last: Int, slug: String, storyMapId: String, memberships_User_Email_Not: String, memberships_User_Email: String): StoryMapNodeConnection
   project(
     """The ID of the object"""
     id: ID!
@@ -598,9 +598,10 @@ type CollaborationMembershipNodeEdge {
 
 type CollaborationMembershipNode implements Node {
   membershipList: CollaborationMembershipListNode!
-  user: UserNode!
+  user: UserNode
   userRole: String!
   membershipStatus: CollaborationMembershipMembershipStatusChoices!
+  pendingEmail: String
   id: ID!
 }
 
@@ -809,6 +810,8 @@ type Mutations {
   deleteStoryMap(input: StoryMapDeleteMutationInput!): StoryMapDeleteMutationPayload!
   saveStoryMapMembership(input: StoryMapMembershipSaveMutationInput!): StoryMapMembershipSaveMutationPayload!
   deleteStoryMapMembership(input: StoryMapMembershipDeleteMutationInput!): StoryMapMembershipDeleteMutationPayload!
+  approveStoryMapMembership(input: StoryMapMembershipApproveMutationInput!): StoryMapMembershipApproveMutationPayload!
+  approveStoryMapMembershipToken(input: StoryMapMembershipApproveTokenMutationInput!): StoryMapMembershipApproveTokenMutationPayload!
   addSite(input: SiteAddMutationInput!): SiteAddMutationPayload!
   updateSite(input: SiteUpdateMutationInput!): SiteUpdateMutationPayload!
   deleteSite(input: SiteDeleteMutationInput!): SiteDeleteMutationPayload!
@@ -1172,7 +1175,6 @@ type StoryMapMembershipSaveMutationPayload {
 
 input StoryMapMembershipSaveMutationInput {
   userRole: String
-  membershipStatus: String
   userEmails: [String]!
   storyMapId: String!
   storyMapSlug: String!
@@ -1189,6 +1191,30 @@ input StoryMapMembershipDeleteMutationInput {
   id: ID
   storyMapId: String!
   storyMapSlug: String!
+  clientMutationId: String
+}
+
+type StoryMapMembershipApproveMutationPayload {
+  errors: GenericScalar
+  membership: CollaborationMembershipNode
+  storyMap: StoryMapNode
+  clientMutationId: String
+}
+
+input StoryMapMembershipApproveMutationInput {
+  membershipId: String!
+  clientMutationId: String
+}
+
+type StoryMapMembershipApproveTokenMutationPayload {
+  errors: GenericScalar
+  membership: CollaborationMembershipNode
+  storyMap: StoryMapNode
+  clientMutationId: String
+}
+
+input StoryMapMembershipApproveTokenMutationInput {
+  inviteToken: String!
   clientMutationId: String
 }
 

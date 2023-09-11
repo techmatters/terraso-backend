@@ -22,6 +22,8 @@ from graphene_django.utils.testing import graphql_query
 from mixer.backend.django import mixer
 
 from apps.auth.services import JWTService
+from apps.collaboration.models import Membership as CollaborationMembership
+from apps.collaboration.models import MembershipList
 from apps.core.models import (
     Group,
     GroupAssociation,
@@ -32,6 +34,7 @@ from apps.core.models import (
     User,
     UserPreference,
 )
+from apps.core.models.users import NOTIFICATION_KEY_GROUP, NOTIFICATION_KEY_STORY_MAP
 from apps.shared_data.models import DataEntry, VisualizationConfig
 from apps.story_map.models import StoryMap
 
@@ -150,16 +153,26 @@ def users():
 
 
 @pytest.fixture
-def unsubscribe_token(users_with_notifications):
-    return JWTService().create_unsubscribe_token(users_with_notifications[0])
+def unsubscribe_token(users_with_group_notifications):
+    return JWTService().create_unsubscribe_token(users_with_group_notifications[0])
 
 
 @pytest.fixture
-def users_with_notifications():
+def users_with_group_notifications():
     users = mixer.cycle(5).blend(User)
 
     for user in users:
-        mixer.blend(UserPreference, user=user, key="notifications", value="true")
+        mixer.blend(UserPreference, user=user, key=NOTIFICATION_KEY_GROUP, value="true")
+
+    return users
+
+
+@pytest.fixture
+def users_with_story_map_notifications():
+    users = mixer.cycle(5).blend(User)
+
+    for user in users:
+        mixer.blend(UserPreference, user=user, key=NOTIFICATION_KEY_STORY_MAP, value="true")
 
     return users
 
@@ -199,11 +212,11 @@ def memberships_pending(groups, users):
 
 
 @pytest.fixture
-def memberships_pending_with_notifications(groups, users_with_notifications):
+def memberships_pending_with_notifications(groups, users_with_group_notifications):
     return mixer.cycle(5).blend(
         Membership,
         group=(g for g in groups),
-        user=(u for u in users_with_notifications),
+        user=(u for u in users_with_group_notifications),
         user_role=Membership.ROLE_MEMBER,
         membership_status=Membership.PENDING,
     )
@@ -329,6 +342,67 @@ def story_maps(users):
         + user_1_stories_published
         + user_1_stories_drafts
     )
+
+
+@pytest.fixture
+def story_map_membership_list(story_maps):
+    story_map = story_maps[0]
+    story_map.membership_list = mixer.blend(MembershipList)
+    story_map.save()
+
+    return story_map.membership_list
+
+
+@pytest.fixture
+def story_map_user_memberships(story_map_membership_list, users):
+    return mixer.cycle(2).blend(
+        CollaborationMembership,
+        membership_list=story_map_membership_list,
+        user=(u for u in users),
+        pending_email=None,
+    )
+
+
+@pytest.fixture
+def story_map_user_memberships_not_registered(story_map_membership_list):
+    return mixer.cycle(2).blend(
+        CollaborationMembership,
+        membership_list=story_map_membership_list,
+        user=None,
+        pending_email=(mixer.faker.email() for _ in range(2)),
+    )
+
+
+@pytest.fixture
+def story_map_user_memberships_approve_tokens(story_map_user_memberships):
+    return [
+        JWTService().create_token(
+            membership.user,
+            extra_payload={
+                "membershipId": str(membership.id),
+                "pendingEmail": None,
+                "approveStoryMapMembership": True,
+            },
+        )
+        for membership in story_map_user_memberships
+    ]
+
+
+@pytest.fixture
+def story_map_user_memberships_not_registered_approve_tokens(
+    story_map_user_memberships_not_registered,
+):
+    return [
+        JWTService().create_token(
+            None,
+            extra_payload={
+                "membershipId": str(membership.id),
+                "pendingEmail": membership.pending_email,
+                "approveStoryMapMembership": True,
+            },
+        )
+        for membership in story_map_user_memberships_not_registered
+    ]
 
 
 @pytest.fixture

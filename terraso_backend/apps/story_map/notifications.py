@@ -21,33 +21,56 @@ from django.template.loader import render_to_string
 from django.utils import translation
 from django.utils.translation import gettext_lazy as _
 
+from apps.auth.services import JWTService
 from apps.notifications.email import TRACKING_PARAMETERS, EmailNotification
 
 
-def send_memberships_invite_email(memberships, story_map):
-    params = urlencode(TRACKING_PARAMETERS)
-    story_map_url = (
-        f"{settings.WEB_CLIENT_URL}/tools/story-maps/"
-        f"{story_map.story_map_id}/{story_map.slug}/edit?"
-        f"{params}"
-    )
-    users = [
-        membership.user for membership in memberships if membership.user.notifications_enabled()
+def accept_invite_url(user, membership):
+    params = TRACKING_PARAMETERS
+    params["token"] = JWTService().create_story_map_membership_approve_token(membership)
+    return f"{settings.WEB_CLIENT_URL}/tools/story-maps/accept?{urlencode(params)}"
+
+
+def send_memberships_invite_email(inviter, memberships, story_map):
+    member_signups = [
+        membership
+        for membership in memberships
+        if membership.user is not None and membership.user.story_map_notifications_enabled()
     ]
-    for user in users:
+    base_context = {
+        "storyMapOwnerFirstName": story_map.created_by.first_name,
+        "inviterFirstName": inviter.first_name,
+        "storyMapTitle": story_map.title,
+        "unsubscribeUrl": EmailNotification.unsubscribe_url(inviter),
+    }
+    for membership in member_signups:
+        user = membership.user
         recipients = [user.name_and_email()]
         context = {
             "firstName": user.first_name,
-            "storyMapTitle": story_map.title,
-            "storyMapUrl": story_map_url,
-            "unsubscribeUrl": EmailNotification.unsubscribe_url(user),
+            "acceptInviteUrl": accept_invite_url(user, membership),
+            **base_context,
         }
 
         with translation.override(user.language()):
             subject = _(
-                "Membership in “%(storyMapTitle)s” has been approved"
-                % {"storyMapTitle": story_map.title}
+                "%(firstName)s, you are invited to edit “%(storyMapTitle)s” in Terraso" % context
             )
+            body = render_to_string("story-map-membership-invite.html", context)
+
+        send_mail(subject, None, EmailNotification.sender(), recipients, html_message=body)
+
+    nonmember_signups = [membership for membership in memberships if membership.user is None]
+    for membership in nonmember_signups:
+        recipients = [membership.pending_email]
+        context = {
+            "firstName": membership.pending_email,
+            "acceptInviteUrl": accept_invite_url(None, membership),
+            **base_context,
+        }
+
+        with translation.override(inviter.language()):
+            subject = _("You are invited to edit “%(storyMapTitle)s” in Terraso" % context)
             body = render_to_string("story-map-membership-invite.html", context)
 
         send_mail(subject, None, EmailNotification.sender(), recipients, html_message=body)

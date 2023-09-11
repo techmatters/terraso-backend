@@ -74,7 +74,7 @@ class CollaborationMembershipNode(DjangoObjectType):
 
     class Meta:
         model = Membership
-        fields = ("membership_list", "user", "user_role", "membership_status")
+        fields = ("membership_list", "user", "user_role", "membership_status", "pending_email")
         filterset_class = CollaborationMembershipFilterSet
         interfaces = (relay.Node,)
         connection_class = TerrasoConnection

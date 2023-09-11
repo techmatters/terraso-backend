@@ -54,8 +54,9 @@ class MembershipList(BaseModel):
         default=DEFAULT_MEMERBSHIP_TYPE,
     )
 
-    def save_member(self, user_email, user_role, membership_status, validation_func):
-        user = User.objects.get(email=user_email)
+    def save_membership(self, user_email, user_role, membership_status, validation_func):
+        user = User.objects.filter(email=user_email).first()
+        user_exists = user is not None
 
         membership = self.get_membership(user)
         is_new = not membership
@@ -74,7 +75,8 @@ class MembershipList(BaseModel):
         if is_new:
             membership = Membership(
                 membership_list=self,
-                user=user,
+                user=user if user_exists else None,
+                pending_email=user_email if not user_exists else None,
                 user_role=user_role,
                 membership_status=membership_status,
             )
@@ -94,6 +96,18 @@ class MembershipList(BaseModel):
         membership.save()
         return is_membership_approved, membership
 
+    def approve_membership(self, membership_id):
+        membership = self.memberships.filter(id=membership_id).first()
+        if not membership:
+            raise ValidationError("Membership not found")
+
+        if membership.membership_status == Membership.APPROVED:
+            return membership
+
+        membership.membership_status = Membership.APPROVED
+        membership.save()
+        return membership
+
     @property
     def approved_members(self):
         approved_memberships_user_ids = models.Subquery(
@@ -104,10 +118,15 @@ class MembershipList(BaseModel):
     def has_role(self, user: User, role: str) -> bool:
         return self.memberships.by_role(role).filter(id=user.id).exists()
 
-    def is_member(self, user: User) -> bool:
+    def is_approved_member(self, user: User) -> bool:
         return self.approved_members.filter(id=user.id).exists()
 
+    def is_member(self, user: User) -> bool:
+        return self.members.filter(id=user.id).exists()
+
     def get_membership(self, user: User):
+        if not user:
+            return None
         return self.memberships.filter(user=user).first()
 
     @property
@@ -142,12 +161,14 @@ class Membership(BaseModel):
         MembershipList, on_delete=models.CASCADE, related_name="memberships"
     )
     user = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name="collaboration_memberships"
+        User, on_delete=models.CASCADE, related_name="collaboration_memberships", null=True
     )
 
     user_role = models.CharField(max_length=64)
 
     membership_status = models.CharField(max_length=64, choices=APPROVAL_STATUS, default=APPROVED)
+
+    pending_email = models.EmailField(null=True, blank=True)
 
     objects = MembershipObjectsManager()
 
@@ -157,6 +178,11 @@ class Membership(BaseModel):
                 fields=("membership_list", "user"),
                 condition=models.Q(deleted_at__isnull=True),
                 name="unique_active_collaboration_membership",
+            ),
+            models.UniqueConstraint(
+                fields=("membership_list", "pending_email"),
+                condition=models.Q(deleted_at__isnull=True),
+                name="unique_pending_collaboration_membership",
             ),
         )
 

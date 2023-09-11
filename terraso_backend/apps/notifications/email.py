@@ -65,7 +65,7 @@ class EmailNotification:
         managerList = [
             membership.user
             for membership in group.memberships.managers_only()
-            if membership.user.notifications_enabled()
+            if membership.user.group_notifications_enabled()
         ]
 
         for manager in managerList:
@@ -84,7 +84,7 @@ class EmailNotification:
 
     @classmethod
     def send_membership_approval(cls, user, group):
-        if not user.notifications_enabled():
+        if not user.group_notifications_enabled():
             return
 
         params = urlencode(TRACKING_PARAMETERS)

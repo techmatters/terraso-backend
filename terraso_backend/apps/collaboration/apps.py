@@ -13,4 +13,12 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see https://www.gnu.org/licenses/.
 
-ROLE_EDITOR = "editor"
+from django.apps import AppConfig
+
+
+class CollaboartionConfig(AppConfig):
+    default_auto_field = "django.db.models.BigAutoField"
+    name = "apps.collaboration"
+
+    def ready(self):
+        from .signals import handle_pending_memberships  # noqa

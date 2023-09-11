@@ -17,7 +17,7 @@ import rules
 
 from apps.collaboration.models import Membership
 
-from .collaboration_roles import ROLE_COLLABORATOR
+from .collaboration_roles import ROLE_EDITOR
 
 
 @rules.predicate
@@ -33,7 +33,7 @@ def allowed_to_change_story_map(user, story_map):
     account_membership = (
         story_map.membership_list.memberships.approved_only().filter(user=user).first()
     )
-    return account_membership is not None and account_membership.user_role == ROLE_COLLABORATOR
+    return account_membership is not None and account_membership.user_role == ROLE_EDITOR
 
 
 @rules.predicate
@@ -58,12 +58,36 @@ def allowed_to_change_story_map_membership(user, obj):
     requestor_membership = obj.get("requestor_membership")
     requestor_is_member = requestor_membership is not None
 
-    is_collaborator = (
+    is_editor = (
         requestor_is_member
-        and requestor_membership.user_role == ROLE_COLLABORATOR
+        and requestor_membership.user_role == ROLE_EDITOR
         and requestor_membership.membership_status == Membership.APPROVED
     )
-    if is_collaborator:
+    if is_editor:
+        return True
+
+    return False
+
+
+@rules.predicate
+def allowed_to_approve_story_map_membership(user, obj):
+    membership = obj.get("membership")
+    is_user_membership = membership.user.email == user.email
+    return is_user_membership
+
+
+# This rule is used to check if the user is allowed to approve a membership
+# with a token. This is used when the user is not logged in or when the user
+# is logged in but the membership is associated with the user.
+@rules.predicate
+def allowed_to_approve_story_map_membership_with_token(user, obj):
+    membership = obj.get("membership")
+    request_user = user
+
+    if membership.pending_email is not None:
+        return request_user.is_anonymous
+
+    if request_user.is_anonymous or request_user.id == membership.user.id:
         return True
 
     return False
@@ -82,4 +106,9 @@ def allowed_to_delete_story_map_membership(user, obj):
 rules.add_rule("allowed_to_change_story_map", allowed_to_change_story_map)
 rules.add_rule("allowed_to_delete_story_map", allowed_to_delete_story_map)
 rules.add_rule("allowed_to_change_story_map_membership", allowed_to_change_story_map_membership)
+rules.add_rule("allowed_to_approve_story_map_membership", allowed_to_approve_story_map_membership)
+rules.add_rule(
+    "allowed_to_approve_story_map_membership_with_token",
+    allowed_to_approve_story_map_membership_with_token,
+)
 rules.add_rule("allowed_to_delete_story_map_membership", allowed_to_delete_story_map_membership)
