@@ -72,6 +72,47 @@ def test_add_user_to_project(client, project, project_manager, user):
     assert project.is_member(user)
 
 
+def test_add_user_to_project_audit_log(client, project, project_manager, user):
+    client.force_login(project_manager)
+
+    assert project_manager.id != user.id
+
+    graphql_query(
+        """
+     mutation addUserToProject($input: MembershipAddMutationInput!) {
+        addMembership(input: $input) {
+          membership {
+             id
+          }
+        }
+     }
+        """,
+        variables={
+            "input": {
+                "userEmail": user.email,
+                "groupSlug": project.group.slug,
+                "userRole": "member",
+            }
+        },
+        client=client,
+    )
+
+    membership = project.group.memberships.filter(user=user).first()
+
+    logs = Log.objects.all()
+    assert len(logs) == 1
+    log_result = logs[0]
+    assert log_result.event == CREATE.value
+    assert log_result.user_human_readable == project_manager.full_name()
+    assert log_result.resource_object == membership
+    expected_metadata = {
+        "user_email": user.email,
+        "user_role": "member",
+        "project_id": str(project.id),
+    }
+    assert log_result.metadata == expected_metadata
+
+
 DELETE_PROJECT_GRAPHQL = """
     mutation($input: ProjectDeleteMutationInput!) {
     deleteProject(input: $input) {
