@@ -4,7 +4,7 @@ import pytest
 from graphene_django.utils.testing import graphql_query
 from mixer.backend.django import mixer
 
-from apps.audit_logs.api import CREATE
+from apps.audit_logs.api import CHANGE, CREATE
 from apps.audit_logs.models import Log
 from apps.core.models.users import User
 from apps.project_management.models import Project
@@ -77,7 +77,7 @@ def test_add_user_to_project_audit_log(client, project, project_manager, user):
 
     assert project_manager.id != user.id
 
-    graphql_query(
+    response = graphql_query(
         """
      mutation addUserToProject($input: MembershipAddMutationInput!) {
         addMembership(input: $input) {
@@ -97,6 +97,8 @@ def test_add_user_to_project_audit_log(client, project, project_manager, user):
         client=client,
     )
 
+    assert response.status_code == 200
+
     membership = project.group.memberships.filter(user=user).first()
 
     logs = Log.objects.all()
@@ -108,6 +110,51 @@ def test_add_user_to_project_audit_log(client, project, project_manager, user):
     expected_metadata = {
         "user_email": user.email,
         "user_role": "member",
+        "project_id": str(project.id),
+    }
+    assert log_result.metadata == expected_metadata
+
+
+def test_update_user_to_project_audit_log(client, project, project_manager, user):
+    client.force_login(project_manager)
+
+    assert project_manager.id != user.id
+
+    project.group.add_member(user)
+    membership = project.group.memberships.filter(user=user).first()
+
+    response = graphql_query(
+        """
+     mutation updateMembership($input: MembershipUpdateMutationInput!) {
+        updateMembership(input: $input) {
+          membership {
+             id
+          }
+        }
+     }
+        """,
+        variables={
+            "input": {
+                "id": str(membership.id),
+                "userRole": "manager",
+            }
+        },
+        client=client,
+    )
+
+    assert response.status_code == 200
+
+    membership = project.group.memberships.filter(user=user).first()
+
+    logs = Log.objects.all()
+    assert len(logs) == 1
+    log_result = logs[0]
+    assert log_result.event == CHANGE.value
+    assert log_result.user_human_readable == project_manager.full_name()
+    assert log_result.resource_object == membership
+    expected_metadata = {
+        "user_email": user.email,
+        "user_role": "manager",
         "project_id": str(project.id),
     }
     assert log_result.metadata == expected_metadata

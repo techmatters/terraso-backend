@@ -19,17 +19,12 @@ from django.dispatch import receiver
 
 from apps.audit_logs import api as audit_log_api
 from apps.audit_logs import services
-from apps.graphql.signals import membership_added_signal
+from apps.graphql.signals import membership_added_signal, membership_updated_signal
 
 audit_logger = services.new_audit_logger()
 
 
-@receiver(membership_added_signal)
-def handle_membership_added(sender, **kwargs):
-    membership = kwargs["membership"]
-    user = kwargs["user"]
-    client_time = datetime.now()
-
+def _handle_membership_log(user, action, membership, client_time):
     try:
         project = membership.group.project
     except Exception:
@@ -40,7 +35,7 @@ def handle_membership_added(sender, **kwargs):
 
     audit_logger.log(
         user=user,
-        action=audit_log_api.CREATE,
+        action=action,
         resource=membership,
         metadata={
             "user_email": membership.user.email,
@@ -49,3 +44,21 @@ def handle_membership_added(sender, **kwargs):
         },
         client_time=client_time,
     )
+
+
+@receiver(membership_added_signal)
+def handle_membership_added(sender, **kwargs):
+    membership = kwargs["membership"]
+    user = kwargs["user"]
+    client_time = datetime.now()
+
+    _handle_membership_log(user, audit_log_api.CREATE, membership, client_time)
+
+
+@receiver(membership_updated_signal)
+def handle_membership_updated(sender, **kwargs):
+    membership = kwargs["membership"]
+    user = kwargs["user"]
+    client_time = datetime.now()
+
+    _handle_membership_log(user, audit_log_api.CHANGE, membership, client_time)

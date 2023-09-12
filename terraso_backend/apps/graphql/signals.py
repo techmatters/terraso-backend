@@ -16,3 +16,4 @@
 from django.dispatch import Signal
 
 membership_added_signal = Signal()
+membership_updated_signal = Signal()

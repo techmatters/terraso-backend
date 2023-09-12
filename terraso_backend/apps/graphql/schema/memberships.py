@@ -24,7 +24,7 @@ from apps.core.models import Group, Membership, User
 from apps.graphql.exceptions import GraphQLNotAllowedException, GraphQLNotFoundException
 from apps.notifications.email import EmailNotification
 
-from ..signals import membership_added_signal
+from ..signals import membership_added_signal, membership_updated_signal
 from .commons import BaseAuthenticatedMutation, BaseDeleteMutation, TerrasoConnection
 from .constants import MutationTypes
 
@@ -184,6 +184,8 @@ class MembershipUpdateMutation(BaseAuthenticatedMutation):
                 EmailNotification.send_membership_approval(membership.user, membership.group)
 
         membership.save()
+
+        membership_updated_signal.send(sender=cls, membership=membership, user=user)
 
         return cls(membership=membership)
 
