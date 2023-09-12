@@ -42,22 +42,29 @@ def test_create_project(client, user):
     log_result = logs[0]
     assert log_result.event == CREATE.value
     assert log_result.resource_object == project
-    expected_metadata = {"name": "testProject", "privacy": "private"}
+    expected_metadata = {
+        "name": "testProject",
+        "privacy": "private",
+        "description": "A test project",
+    }
     assert log_result.metadata == expected_metadata
+
+
+ADD_MEMBERSHIP_GRAPHQL = """
+    mutation addUserToProject($input: MembershipAddMutationInput!) {
+        addMembership(input: $input) {
+            membership {
+                id
+            }
+        }
+    }
+"""
 
 
 def test_add_user_to_project(client, project, project_manager, user):
     client.force_login(project_manager)
     response = graphql_query(
-        """
-     mutation addUserToProject($input: MembershipAddMutationInput!) {
-        addMembership(input: $input) {
-          membership {
-             id
-          }
-        }
-     }
-        """,
+        ADD_MEMBERSHIP_GRAPHQL,
         variables={
             "input": {
                 "userEmail": user.email,
@@ -78,15 +85,7 @@ def test_add_user_to_project_audit_log(client, project, project_manager, user):
     assert project_manager.id != user.id
 
     response = graphql_query(
-        """
-     mutation addUserToProject($input: MembershipAddMutationInput!) {
-        addMembership(input: $input) {
-          membership {
-             id
-          }
-        }
-     }
-        """,
+        ADD_MEMBERSHIP_GRAPHQL,
         variables={
             "input": {
                 "userEmail": user.email,
@@ -271,6 +270,29 @@ def test_update_project_user_is_manager(project, client, project_manager):
     assert content["data"]["updateProject"]["project"]["id"] == str(project.id)
     assert content["data"]["updateProject"]["project"]["name"] == "test_name"
     assert content["data"]["updateProject"]["project"]["privacy"] == "PRIVATE"
+
+
+def test_update_project_audit_log(project, client, project_manager):
+    input = {
+        "id": str(project.id),
+        "name": "test_name",
+        "privacy": "PRIVATE",
+        "description": "A test project",
+    }
+    client.force_login(project_manager)
+
+    response = graphql_query(UPDATE_PROJECT_GRAPHQL, input_data=input, client=client)
+
+    assert response.status_code == 200
+
+    logs = Log.objects.all()
+    assert len(logs) == 1
+    log_result = logs[0]
+    assert log_result.event == CHANGE.value
+    assert log_result.user_human_readable == project_manager.full_name()
+    assert log_result.resource_object == project
+    expected_metadata = {"name": "test_name", "privacy": "private", "description": "A test project"}
+    assert log_result.metadata == expected_metadata
 
 
 def test_update_project_user_not_manager(project, client):
