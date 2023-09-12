@@ -177,7 +177,7 @@ class SiteUpdateMutation(BaseWriteMutation):
                 continue
             metadata[key] = value
         if project_id:
-            metadata["project_name"] = project.name
+            metadata["project_id"] = str(project.id)
 
         log.log(
             user=user,
