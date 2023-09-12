@@ -25,7 +25,7 @@ audit_logger = services.new_audit_logger()
 
 
 @receiver(membership_added_signal)
-def handle_membership_update(sender, **kwargs):
+def handle_membership_added(sender, **kwargs):
     membership = kwargs["membership"]
     user = kwargs["user"]
     client_time = datetime.now()

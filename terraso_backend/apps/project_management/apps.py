@@ -20,4 +20,4 @@ class ProjectManagementConfig(AppConfig):
     name = "apps.project_management"
 
     def ready(self):
-        from .signals import handle_membership_update  # noqa
+        from .signals import handle_membership_added  # noqa
