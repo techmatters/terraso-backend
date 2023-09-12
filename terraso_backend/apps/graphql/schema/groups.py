@@ -64,10 +64,6 @@ class GroupNode(DjangoObjectType):
     account_membership = graphene.Field("apps.graphql.schema.memberships.MembershipNode")
     memberships_count = graphene.Int()
 
-    @classmethod
-    def get_queryset(cls, queryset, info):
-        return queryset.filter(project__isnull=True)
-
     class Meta:
         model = Group
         fields = (

@@ -636,7 +636,7 @@ type ProjectNode implements Node {
   updatedAt: DateTime!
   name: String!
   description: String!
-  group: GroupNode!
+  membershipList: CollaborationMembershipListNode!
   privacy: ProjectManagementProjectPrivacyChoices!
   archived: Boolean!
   siteSet(

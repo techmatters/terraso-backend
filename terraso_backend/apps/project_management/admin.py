@@ -25,4 +25,4 @@ admin.site.register(ProjectSettings)
 
 @admin.register(Project)
 class ProjectAdmin(admin.ModelAdmin):
-    readonly_fields = ("group", "settings")
+    readonly_fields = ("membership_list", "settings")

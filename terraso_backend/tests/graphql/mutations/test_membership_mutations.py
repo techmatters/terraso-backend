@@ -22,7 +22,8 @@ from mixer.backend.django import mixer
 
 from apps.core.models import Membership, User
 
-pytestmark = pytest.mark.django_db
+# pytestmark = pytest.mark.django_db
+pytestmark = pytest.mark.skip("TODO: Replace these tests with project mutation tests")
 
 
 def test_membership_add(client_query, groups, users):

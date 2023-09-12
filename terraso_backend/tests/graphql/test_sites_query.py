@@ -131,8 +131,6 @@ def test_query_by_project(client, project, project_manager, site):
 
 def test_query_by_project_member(client, project, site, project_user):
     project2 = Project(name="2")
-    project2.group = project2.create_default_group("2")
-    project2.settings = project2.default_settings()
     project2.save()
     site.project = project
     site.owner = None
@@ -190,7 +188,6 @@ def test_query_by_owner(client, project, site, user):
 
 
 def test_query_site_permissions(client, client_query, project, project_manager, site, user):
-    project.add_manager(project_manager)
     site.project = None
     site.owner = project_manager
     site.save()

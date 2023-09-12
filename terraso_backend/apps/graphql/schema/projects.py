@@ -30,7 +30,7 @@ from .commons import BaseDeleteMutation, BaseWriteMutation, TerrasoConnection
 
 
 class ProjectFilterSet(FilterSet):
-    member = TypedFilter(field_name="group__memberships__user")
+    member = TypedFilter(field_name="membership_list__memberships__user")
 
     class Meta:
         model = Project
@@ -44,7 +44,15 @@ class ProjectNode(DjangoObjectType):
         model = Project
 
         filterset_class = ProjectFilterSet
-        fields = ("name", "privacy", "description", "updated_at", "group", "site_set", "archived")
+        fields = (
+            "name",
+            "privacy",
+            "description",
+            "updated_at",
+            "membership_list",
+            "site_set",
+            "archived",
+        )
 
         interfaces = (relay.Node,)
         connection_class = TerrasoConnection
@@ -56,7 +64,7 @@ class ProjectPrivacy(graphene.Enum):
 
 
 class ProjectAddMutation(BaseWriteMutation):
-    skip_field_validation = ["group", "settings"]
+    skip_field_validation = ["membership_list", "settings"]
     project = graphene.Field(ProjectNode, required=True)
 
     model_class = Project
@@ -166,3 +174,49 @@ class ProjectUpdateMutation(BaseWriteMutation):
             cls.not_allowed()
         kwargs["privacy"] = kwargs["privacy"].value
         return super().mutate_and_get_payload(root, info, **kwargs)
+
+
+class ProjectAddUserMutation(BaseWriteMutation):
+    project_id = graphene.ID(required=True)
+    membership_id = graphene.ID(required=True)
+
+    class Input:
+        project_id = graphene.ID(required=True)
+        user_id = graphene.ID(required=True)
+        role = graphene.String(required=True)
+
+    @classmethod
+    def mutate_and_get_payload(cls, root, info, project_id, user_id, role):
+        # check if user has proper permissions
+        # add membership
+        pass
+
+
+class ProjectRemoveUserMutation(BaseWriteMutation):
+    project_id = graphene.ID(required=True)
+    membership_id = graphene.ID(required=True)
+
+    class Input:
+        project_id = graphene.ID(required=True)
+        user_id = graphene.ID(required=True)
+
+    @classmethod
+    def mutate_and_get_payload(cls, root, info, project_id, user_id):
+        # check if user has proper permissions
+        # remove membership
+        pass
+
+
+class ProjectProjectChangeUserRole(BaseWriteMutation):
+    project_id = graphene.ID(required=True)
+
+    class Input:
+        project_id = graphene.ID(required=True)
+        user_id = graphene.ID(required=True)
+        new_role = graphene.String(required=True)
+
+    @classmethod
+    def mutate_and_get_payload(cls, root, info, project_id, user_id, new_role):
+        # check if user has proper permissions
+        # activate
+        pass

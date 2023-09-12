@@ -22,9 +22,10 @@ from mixer.backend.django import mixer
 from pyproj import CRS, Transformer
 
 from apps.auth.services import JWTService
+from apps.collaboration.models import Membership
 from apps.core.gis.utils import DEFAULT_CRS
 from apps.core.models import User
-from apps.project_management.models import Project, ProjectSettings, Site
+from apps.project_management.models import Project, Site
 
 pytestmark = pytest.mark.django_db
 
@@ -91,17 +92,15 @@ def site_creator(site: Site) -> User:
 
 @pytest.fixture
 def project() -> Project:
-    group = Project.create_default_group("test_group")
-    project = mixer.blend(Project, group=group)
+    project = mixer.blend(Project)
     user = mixer.blend(User)
     project.add_manager(user)
-    ProjectSettings.objects.create(project=project)
     return project
 
 
 @pytest.fixture
 def project_manager(project: Project) -> User:
-    return project.managers.first()
+    return project.manager_memberships.first().user
 
 
 @pytest.fixture
@@ -113,5 +112,10 @@ def project_with_sites(project: Project) -> Project:
 @pytest.fixture
 def project_user(project: Project) -> User:
     user = mixer.blend(User)
-    project.add_member(user)
+    Membership.objects.create(
+        user=user,
+        membership_list=project.membership_list,
+        user_role="VIEWER",
+        membership_status=Membership.APPROVED,
+    )
     return user
