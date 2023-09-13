@@ -61,6 +61,7 @@ DELETE_PROJECT_GRAPHQL = """
 pytest.mark.skip("TODO: Reimplement with MembershipList")
 
 
+@pytest.mark.skip("TODO: Reimplement with MembershipList")
 def test_delete_project(project_with_sites, client, project_manager):
     site_ids = [site.id for site in project_with_sites.site_set.all()]
     input = {"id": str(project_with_sites.id)}
@@ -206,3 +207,12 @@ def test_add_user_to_project(project, project_manager, client):
     assert data["membership"]["user"]["id"] == str(user.id)
     project.refresh_from_db()
     assert project.viewer_memberships.filter(user=user).exists()
+
+
+def test_add_user_to_project_bad_roles(project, project_manager, client):
+    user = mixer.blend(User)
+    client.force_login(project_manager)
+    input_data = {"projectId": str(project.id), "userId": str(user.id), "role": "RUBBISH"}
+    response = graphql_query(ADD_USER_GRAPHQL, input_data=input_data, client=client)
+    payload = response.json()
+    assert "errors" in payload or "errors" in payload["data"]

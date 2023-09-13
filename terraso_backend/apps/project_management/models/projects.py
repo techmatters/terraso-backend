@@ -43,6 +43,8 @@ class Project(BaseModel):
             "archive": permission_rules.allowed_to_archive_project,
         }
 
+    ROLES = ("VIEWER", "CONTRIBUTOR", "MANAGER")
+
     PRIVATE = "private"
     PUBLIC = "public"
     DEFAULT_PRIVACY_STATUS = PRIVATE

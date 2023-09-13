@@ -30,6 +30,7 @@ from apps.collaboration.graphql.memberships import (
 )
 from apps.collaboration.models import Membership
 from apps.core.models import User
+from apps.graphql.exceptions import GraphQLValidationException
 from apps.project_management.models import Project
 from apps.project_management.models.sites import Site
 
@@ -194,6 +195,8 @@ class ProjectAddUserMutation(BaseWriteMutation):
 
     @classmethod
     def mutate_and_get_payload(cls, root, info, project_id, user_id, role):
+        if role not in Project.ROLES:
+            raise GraphQLValidationException(message=f"Invalid role: {role}")
         project = cls.get_or_throw(Project, "project_id", project_id)
         user = cls.get_or_throw(User, "user_id", user_id)
         current_user = info.context.user
