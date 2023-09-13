@@ -117,7 +117,7 @@ class Project(BaseModel):
 
     @property
     def contributor_memberships(self):
-        return self.memberhsip_list.memberships.by_role("CONTRIBUTOR")
+        return self.membership_list.memberships.by_role("CONTRIBUTOR")
 
     def add_manager(self, user: User):
         return Membership.objects.create(
@@ -127,6 +127,9 @@ class Project(BaseModel):
             user_role="MANAGER",
             pending_email=None,
         )
+
+    def get_membership(self, user: User):
+        return self.membership_list.memberships.filter(user=user).first()
 
     def __str__(self):
         return self.name

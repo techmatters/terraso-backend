@@ -54,6 +54,7 @@ from .memberships import (
 )
 from .projects import (
     ProjectAddMutation,
+    ProjectAddUserMutation,
     ProjectArchiveMutation,
     ProjectDeleteMutation,
     ProjectNode,
@@ -156,6 +157,7 @@ class Mutations(graphene.ObjectType):
     update_project = ProjectUpdateMutation.Field()
     archive_project = ProjectArchiveMutation.Field()
     delete_project = ProjectDeleteMutation.Field()
+    add_user_project = ProjectAddUserMutation.Field()
 
 
 schema = graphene.Schema(query=Query, mutation=Mutations)

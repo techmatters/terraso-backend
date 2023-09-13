@@ -16,6 +16,8 @@
 from datetime import datetime
 
 import graphene
+import rules
+from django.core.exceptions import ValidationError
 from django.db import transaction
 from django_filters import FilterSet
 from graphene import relay
@@ -23,6 +25,11 @@ from graphene_django import DjangoObjectType
 from graphene_django.filter import TypedFilter
 
 from apps.audit_logs import api as log_api
+from apps.collaboration.graphql.memberships import (
+    CollaborationMembershipNode as MembershipNode,
+)
+from apps.collaboration.models import Membership
+from apps.core.models import User
 from apps.project_management.models import Project
 from apps.project_management.models.sites import Site
 
@@ -177,8 +184,8 @@ class ProjectUpdateMutation(BaseWriteMutation):
 
 
 class ProjectAddUserMutation(BaseWriteMutation):
-    project_id = graphene.ID(required=True)
-    membership_id = graphene.ID(required=True)
+    project = graphene.Field(ProjectNode, required=True)
+    membership = graphene.Field(MembershipNode, required=True)
 
     class Input:
         project_id = graphene.ID(required=True)
@@ -187,9 +194,34 @@ class ProjectAddUserMutation(BaseWriteMutation):
 
     @classmethod
     def mutate_and_get_payload(cls, root, info, project_id, user_id, role):
+        project = cls.get_or_throw(Project, "project_id", project_id)
+        user = cls.get_or_throw(User, "user_id", user_id)
+        current_user = info.context.user
+        requester_membership = project.get_membership(current_user)
+        if not requester_membership:
+            cls.not_allowed_create(model=Membership, msg="User does not belong to project")
+
         # check if user has proper permissions
+        def validate(context):
+            if not rules.test_rule(
+                "allowed_to_add_member_to_project",
+                current_user,
+                {"project": project, "requester_membership": requester_membership},
+            ):
+                raise ValidationError("User cannot add membership to this project")
+
         # add membership
-        pass
+        try:
+            _, membership = project.membership_list.save_membership(
+                user_email=user.email,
+                user_role=role,
+                membership_status=Membership.APPROVED,
+                validation_func=validate,
+            )
+        except ValidationError as e:
+            cls.not_allowed_create(model=Membership, msg=e.message)
+
+        return ProjectAddUserMutation(project=project, membership=membership)
 
 
 class ProjectRemoveUserMutation(BaseWriteMutation):

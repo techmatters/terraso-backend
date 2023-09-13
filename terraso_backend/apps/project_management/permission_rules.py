@@ -56,3 +56,16 @@ def allowed_to_add_to_project(user, project):
 @rules.predicate
 def allowed_to_archive_project(user, project):
     return project.is_manager(user)
+
+
+@rules.predicate
+def allowed_to_add_member_to_project(user, context):
+    project = context["project"]
+    requester_membership = context["requester_membership"]
+    return (
+        requester_membership.membership_list == project.membership_list
+        and requester_membership.user_role == "MANAGER"
+    )
+
+
+rules.add_rule("allowed_to_add_member_to_project", allowed_to_add_member_to_project)
