@@ -693,6 +693,7 @@ type SiteNode implements Node {
   privacy: ProjectManagementSitePrivacyChoices!
   project: ProjectNode
   archived: Boolean!
+  soilData: SoilDataNode
   id: ID!
 }
 
@@ -703,6 +704,480 @@ enum ProjectManagementSitePrivacyChoices {
 
   """Public"""
   PUBLIC
+}
+
+type SoilDataNode {
+  downSlope: SoilIdSoilDataDownSlopeChoices
+  crossSlope: SoilIdSoilDataCrossSlopeChoices
+  bedrock: Int
+  slopeLandscapePosition: SoilIdSoilDataSlopeLandscapePositionChoices
+  slopeAspect: Int
+  slopeSteepnessSelect: SoilIdSoilDataSlopeSteepnessSelectChoices
+  slopeSteepnessPercent: Int
+  slopeSteepnessDegree: Int
+  depthDependentData: [DepthDependentSoilDataNode!]!
+}
+
+"""An enumeration."""
+enum SoilIdSoilDataDownSlopeChoices {
+  """Concave"""
+  CONCAVE
+
+  """Convex"""
+  CONVEX
+
+  """Linear"""
+  LINEAR
+}
+
+"""An enumeration."""
+enum SoilIdSoilDataCrossSlopeChoices {
+  """Concave"""
+  CONCAVE
+
+  """Convex"""
+  CONVEX
+
+  """Linear"""
+  LINEAR
+}
+
+"""An enumeration."""
+enum SoilIdSoilDataSlopeLandscapePositionChoices {
+  """Hills/Mountains"""
+  HILLS_MOUNTAINS
+
+  """Hills/Mountains (Summit)"""
+  HILLS_MOUNTAINS_SUMMIT
+
+  """Hills/Mountains (Shoulder)"""
+  HILLS_MOUNTAINS_SHOULDER
+
+  """Hills/Mountains (Backslope)"""
+  HILLS_MOUNTAINS_BACKSLOPE
+
+  """Alluvial Fan"""
+  ALLUVIAL_FAN
+
+  """Floodplain/Basin"""
+  FLOODPLAIN_BASIN
+
+  """Terrace"""
+  TERRACE
+
+  """Terrace (Tread)"""
+  TERRACE_TREAD
+
+  """Terrace (Riser)"""
+  TERRACE_RISER
+
+  """Flat/Low Rolling Plain"""
+  FLAT_LOW_ROLLING_PLAIN
+
+  """Playa"""
+  PLAYA
+
+  """Dunes"""
+  DUNES
+}
+
+"""An enumeration."""
+enum SoilIdSoilDataSlopeSteepnessSelectChoices {
+  """0 - 2% (flat)"""
+  FLAT
+
+  """2 - 5% (gentle)"""
+  GENTLE
+
+  """5 - 10% (moderate)"""
+  MODERATE
+
+  """10 - 15% (rolling)"""
+  ROLLING
+
+  """15 - 30% (hilly)"""
+  HILLY
+
+  """30 - 50% (steep)"""
+  STEEP
+
+  """50 - 60% (moderately steep)"""
+  MODERATELY_STEEP
+
+  """60 - 100% (very steep)"""
+  VERY_STEEP
+
+  """100%+ (steepest)"""
+  STEEPEST
+}
+
+type DepthDependentSoilDataNode {
+  depthStart: Int!
+  depthEnd: Int!
+  texture: SoilIdDepthDependentSoilDataTextureChoices
+  rockFragmentVolume: SoilIdDepthDependentSoilDataRockFragmentVolumeChoices
+  colorHueSubstep: SoilIdDepthDependentSoilDataColorHueSubstepChoices
+  colorHue: SoilIdDepthDependentSoilDataColorHueChoices
+  colorValue: SoilIdDepthDependentSoilDataColorValueChoices
+  colorChroma: SoilIdDepthDependentSoilDataColorChromaChoices
+  conductivity: Decimal
+  conductivityTest: SoilIdDepthDependentSoilDataConductivityTestChoices
+  conductivityUnit: SoilIdDepthDependentSoilDataConductivityUnitChoices
+  structure: SoilIdDepthDependentSoilDataStructureChoices
+  ph: Decimal
+  phTestingSolution: SoilIdDepthDependentSoilDataPhTestingSolutionChoices
+  phTestingMethod: SoilIdDepthDependentSoilDataPhTestingMethodChoices
+  soilOrganicCarbon: Decimal
+  soilOrganicMatter: Decimal
+  soilOrganicCarbonTesting: SoilIdDepthDependentSoilDataSoilOrganicCarbonTestingChoices
+  soilOrganicMatterTesting: SoilIdDepthDependentSoilDataSoilOrganicMatterTestingChoices
+  sodiumAbsorptionRatio: Decimal
+  carbonates: SoilIdDepthDependentSoilDataCarbonatesChoices
+}
+
+"""An enumeration."""
+enum SoilIdDepthDependentSoilDataTextureChoices {
+  """Sand"""
+  SAND
+
+  """Loamy Sand"""
+  LOAMY_SAND
+
+  """Sandy Loam"""
+  SANDY_LOAM
+
+  """Silt Loam"""
+  SILT_LOAM
+
+  """Silt"""
+  SILT
+
+  """Loam"""
+  LOAM
+
+  """Sandy Clay Loam"""
+  SANDY_CLAY_LOAM
+
+  """Silty Clay Loam"""
+  SILTY_CLAY_LOAM
+
+  """Clay Loam"""
+  CLAY_LOAM
+
+  """Sandy Clay"""
+  SANDY_CLAY
+
+  """Silty Clay"""
+  SILTY_CLAY
+
+  """Clay"""
+  CLAY
+}
+
+"""An enumeration."""
+enum SoilIdDepthDependentSoilDataRockFragmentVolumeChoices {
+  """0 — 1%"""
+  VOLUME_0_1
+
+  """1 — 15%"""
+  VOLUME_1_15
+
+  """15 — 35%"""
+  VOLUME_15_35
+
+  """35 — 60%"""
+  VOLUME_35_60
+
+  """> 60%"""
+  VOLUME_60
+}
+
+"""An enumeration."""
+enum SoilIdDepthDependentSoilDataColorHueSubstepChoices {
+  """2.5"""
+  SUBSTEP_2_5
+
+  """5"""
+  SUBSTEP_5
+
+  """7.5"""
+  SUBSTEP_7_5
+
+  """10"""
+  SUBSTEP_10
+}
+
+"""An enumeration."""
+enum SoilIdDepthDependentSoilDataColorHueChoices {
+  """R"""
+  R
+
+  """YR"""
+  YR
+
+  """Y"""
+  Y
+
+  """GY"""
+  GY
+
+  """G"""
+  G
+
+  """B"""
+  B
+
+  """BG"""
+  BG
+}
+
+"""An enumeration."""
+enum SoilIdDepthDependentSoilDataColorValueChoices {
+  """2.5"""
+  VALUE_2_5
+
+  """3"""
+  VALUE_3
+
+  """4"""
+  VALUE_4
+
+  """5"""
+  VALUE_5
+
+  """6"""
+  VALUE_6
+
+  """7"""
+  VALUE_7
+
+  """8"""
+  VALUE_8
+
+  """8.5"""
+  VALUE_8_5
+
+  """9"""
+  VALUE_9
+
+  """9.5"""
+  VALUE_9_5
+}
+
+"""An enumeration."""
+enum SoilIdDepthDependentSoilDataColorChromaChoices {
+  """1"""
+  CHROMA_1
+
+  """2"""
+  CHROMA_2
+
+  """3"""
+  CHROMA_3
+
+  """4"""
+  CHROMA_4
+
+  """5"""
+  CHROMA_5
+
+  """6"""
+  CHROMA_6
+
+  """7"""
+  CHROMA_7
+
+  """8"""
+  CHROMA_8
+}
+
+"""The `Decimal` scalar type represents a python Decimal."""
+scalar Decimal
+
+"""An enumeration."""
+enum SoilIdDepthDependentSoilDataConductivityTestChoices {
+  """Saturated Paste"""
+  SATURATED_PASTE
+
+  """1:1 soil/water"""
+  SOIL_WATER_1_1
+
+  """1:2 soil/water"""
+  SOIL_WATER_1_2
+
+  """Soil Contact Probe"""
+  SOIL_CONTACT_PROBE
+
+  """Other"""
+  OTHER
+}
+
+"""An enumeration."""
+enum SoilIdDepthDependentSoilDataConductivityUnitChoices {
+  """mS/cm"""
+  MILLISIEMENS_CENTIMETER
+
+  """mmhos/cm"""
+  MILLIMHOS_CENTIMETER
+
+  """µS/m"""
+  MICROSIEMENS_METER
+
+  """mS/m"""
+  MILLISIEMENS_METER
+
+  """dS/m"""
+  DECISIEMENS_METER
+
+  """Other"""
+  OTHER
+}
+
+"""An enumeration."""
+enum SoilIdDepthDependentSoilDataStructureChoices {
+  """Granular"""
+  GRANULAR
+
+  """Subangular Blocky"""
+  SUBANGULAR_BLOCKY
+
+  """Angular Blocky"""
+  ANGULAR_BLOCKY
+
+  """Lenticular"""
+  LENTICULAR
+
+  """Play"""
+  PLAY
+
+  """Wedge"""
+  WEDGE
+
+  """Prismatic"""
+  PRISMATIC
+
+  """Columnar"""
+  COLUMNAR
+
+  """Single Grain"""
+  SINGLE_GRAIN
+
+  """Massive"""
+  MASSIVE
+}
+
+"""An enumeration."""
+enum SoilIdDepthDependentSoilDataPhTestingSolutionChoices {
+  """1:1 soil/water"""
+  SOIL_WATER_1_1
+
+  """1:2 soil/water"""
+  SOIL_WATER_1_2
+
+  """1:2.5 soil/water"""
+  SOIL_WATER_1_2_5
+
+  """1:5 soil/water"""
+  SOIL_WATER_1_5
+
+  """1:1 soil/0.1 M CaCL2"""
+  SOIL_CACL2_1_1
+
+  """1:2 soil/0.1 M CaCL2"""
+  SOIL_CACL2_1_2
+
+  """1:5 soil/0.1 M CaCL2"""
+  SOIL_CACL2_1_5
+
+  """1:1 soil/1.0 M KCL"""
+  SOIL_KCL_1_1
+
+  """1:2.5 soil/1.0 M KCL"""
+  SOIL_KCL_1_2_5
+
+  """1:5 soil/1.0 M KCL"""
+  SOIL_KCL_1_5
+
+  """Saturated Paste Extract"""
+  SATURATED_PASTE_EXTRACT
+
+  """Other"""
+  OTHER
+}
+
+"""An enumeration."""
+enum SoilIdDepthDependentSoilDataPhTestingMethodChoices {
+  """pH indicator strip"""
+  INDICATOR_STRIP
+
+  """pH indicator solution"""
+  INDICATOR_SOLUTION
+
+  """pH meter"""
+  METER
+
+  """Other"""
+  OTHER
+}
+
+"""An enumeration."""
+enum SoilIdDepthDependentSoilDataSoilOrganicCarbonTestingChoices {
+  """Dry Combustion"""
+  DRY_COMBUSTION
+
+  """Wet oxidation (Walkey—Black)"""
+  WET_OXIDATION
+
+  """Loss—on—ignition"""
+  LOSS_ON_IGNITION
+
+  """Reflectance Spectroscopy"""
+  REFLECTANCE_SPECTROSCOPY
+
+  """Field Reflectometer"""
+  FIELD_REFLECTOMETER
+
+  """Other"""
+  OTHER
+}
+
+"""An enumeration."""
+enum SoilIdDepthDependentSoilDataSoilOrganicMatterTestingChoices {
+  """Dry Combustion"""
+  DRY_COMBUSTION
+
+  """Wet oxidation (Walkey—Black)"""
+  WET_OXIDATION
+
+  """Loss—on—ignition"""
+  LOSS_ON_IGNITION
+
+  """Reflectance Spectroscopy"""
+  REFLECTANCE_SPECTROSCOPY
+
+  """Field Reflectometer"""
+  FIELD_REFLECTOMETER
+
+  """Other"""
+  OTHER
+}
+
+"""An enumeration."""
+enum SoilIdDepthDependentSoilDataCarbonatesChoices {
+  """noneffervescent — No bubbles form"""
+  NONEFFERVESCENT
+
+  """very slightly effervescent — Few bubbles form"""
+  VERY_SLIGHTLY_EFFERVESCENT
+
+  """slightly effervescent — Numerous bubbles form"""
+  SLIGHTLY_EFFERVESCENT
+
+  """strongly effervescent — Bubbles form a low foam"""
+  STRONGLY_EFFERVESCENT
+
+  """violently effervescent — Bubbles rapidly form a thick foam"""
+  VIOLENTLY_EFFERVESCENT
 }
 
 type ProjectNodeConnection {
@@ -819,6 +1294,8 @@ type Mutations {
   updateProject(input: ProjectUpdateMutationInput!): ProjectUpdateMutationPayload!
   archiveProject(input: ProjectArchiveMutationInput!): ProjectArchiveMutationPayload!
   deleteProject(input: ProjectDeleteMutationInput!): ProjectDeleteMutationPayload!
+  updateSoilData(input: SoilDataUpdateMutationInput!): SoilDataUpdateMutationPayload!
+  updateDepthDependentSoilData(input: DepthDependentSoilDataUpdateMutationInput!): DepthDependentSoilDataUpdateMutationPayload!
 }
 
 type GroupAddMutationPayload {
@@ -1313,5 +1790,56 @@ type ProjectDeleteMutationPayload {
 input ProjectDeleteMutationInput {
   id: ID!
   transferProjectId: ID
+  clientMutationId: String
+}
+
+type SoilDataUpdateMutationPayload {
+  errors: GenericScalar
+  soilData: SoilDataNode
+  clientMutationId: String
+}
+
+input SoilDataUpdateMutationInput {
+  siteId: ID!
+  downSlope: SoilIdSoilDataDownSlopeChoices
+  crossSlope: SoilIdSoilDataCrossSlopeChoices
+  bedrock: Int
+  slopeLandscapePosition: SoilIdSoilDataSlopeLandscapePositionChoices
+  slopeAspect: Int
+  slopeSteepnessSelect: SoilIdSoilDataSlopeSteepnessSelectChoices
+  slopeSteepnessPercent: Int
+  slopeSteepnessDegree: Int
+  clientMutationId: String
+}
+
+type DepthDependentSoilDataUpdateMutationPayload {
+  errors: GenericScalar
+  depthDependentSoilData: DepthDependentSoilDataNode
+  clientMutationId: String
+}
+
+input DepthDependentSoilDataUpdateMutationInput {
+  siteId: ID!
+  depthStart: Int!
+  depthEnd: Int!
+  texture: SoilIdDepthDependentSoilDataTextureChoices
+  rockFragmentVolume: SoilIdDepthDependentSoilDataRockFragmentVolumeChoices
+  colorHueSubstep: SoilIdDepthDependentSoilDataColorHueSubstepChoices
+  colorHue: SoilIdDepthDependentSoilDataColorHueChoices
+  colorValue: SoilIdDepthDependentSoilDataColorValueChoices
+  colorChroma: SoilIdDepthDependentSoilDataColorChromaChoices
+  conductivity: Decimal
+  conductivityTest: SoilIdDepthDependentSoilDataConductivityTestChoices
+  conductivityUnit: SoilIdDepthDependentSoilDataConductivityUnitChoices
+  structure: SoilIdDepthDependentSoilDataStructureChoices
+  ph: Decimal
+  phTestingSolution: SoilIdDepthDependentSoilDataPhTestingSolutionChoices
+  phTestingMethod: SoilIdDepthDependentSoilDataPhTestingMethodChoices
+  soilOrganicCarbon: Decimal
+  soilOrganicMatter: Decimal
+  soilOrganicCarbonTesting: SoilIdDepthDependentSoilDataSoilOrganicCarbonTestingChoices
+  soilOrganicMatterTesting: SoilIdDepthDependentSoilDataSoilOrganicMatterTestingChoices
+  sodiumAbsorptionRatio: Decimal
+  carbonates: SoilIdDepthDependentSoilDataCarbonatesChoices
   clientMutationId: String
 }
