@@ -28,9 +28,7 @@ def _handle_membership_log(user, action, membership, client_time):
     try:
         project = membership.group.project
     except Exception:
-        project = None
-
-    if project is None:
+        # No project for membership, do nothing
         return
 
     audit_logger.log(
