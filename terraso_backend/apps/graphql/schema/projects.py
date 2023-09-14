@@ -275,8 +275,11 @@ class ProjectDeleteUserMutation(BaseWriteMutation):
         return ProjectDeleteUserMutation(project=project, membership=membership)
 
 
-class ProjectProjectChangeUserRole(BaseWriteMutation):
-    project_id = graphene.ID(required=True)
+class ProjectUpdateUserRoleMutation(BaseWriteMutation):
+    model_class = Membership
+
+    project = graphene.Field(ProjectNode, required=True)
+    membership = graphene.Field(MembershipNode, required=True)
 
     class Input:
         project_id = graphene.ID(required=True)
@@ -285,6 +288,31 @@ class ProjectProjectChangeUserRole(BaseWriteMutation):
 
     @classmethod
     def mutate_and_get_payload(cls, root, info, project_id, user_id, new_role):
-        # check if user has proper permissions
-        # activate
-        pass
+        project = cls.get_or_throw(Project, "project_id", project_id)
+        requester = info.context.user
+
+        if not (requester_membership := project.get_membership(requester)):
+            cls.not_allowed(MutationTypes.UPDATE, msg="Requesting member not a member of project")
+
+        target_user = cls.get_or_throw(User, "user_id", user_id)
+        if not (target_membership := project.get_membership(target_user)):
+            cls.not_allowed(MutationTypes.UPDATE, msg="Target user not a member of project")
+
+        if not rules.test_rule(
+            "allowed_to_change_user_project_role",
+            requester,
+            {
+                "project": project,
+                "requester_membership": requester_membership,
+                "target_membership": target_membership,
+                "user_role": new_role,
+            },
+        ):
+            cls.not_allowed(
+                MutationTypes.UPDATE, msg="User is not allowed to change other user role"
+            )
+
+        target_membership.user_role = new_role
+        target_membership.save()
+
+        return ProjectUpdateUserRoleMutation(project=project, membership=target_membership)

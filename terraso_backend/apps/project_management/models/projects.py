@@ -101,25 +101,25 @@ class Project(BaseModel):
         return cls.objects.create(name=name, description=description, privacy=privacy)
 
     def is_manager(self, user: User) -> bool:
-        return self.managers.filter(id=user.id).exists()
+        return self.manager_memberships.filter(user=user).exists()
 
     def is_viewer(self, user: User) -> bool:
-        return self.viewers.filter(id=user.id).exists()
+        return self.viewer_memberships.filter(user=user).exists()
 
     def is_contributor(self, user: User) -> bool:
-        return self.contributors.filter(id=user.id).exists()
+        return self.contributor_memberships.filter(user=user).exists()
 
     @property
     def manager_memberships(self):
-        return self.membership_list.memberships.by_role("MANAGER")
+        return self.membership_list.memberships.by_role("manager")
 
     @property
     def viewer_memberships(self):
-        return self.membership_list.memberships.by_role("VIEWER")
+        return self.membership_list.memberships.by_role("viewer")
 
     @property
     def contributor_memberships(self):
-        return self.membership_list.memberships.by_role("CONTRIBUTOR")
+        return self.membership_list.memberships.by_role("contributor")
 
     def add_manager(self, user: User):
         return self.add_user_with_role(user, "manager")

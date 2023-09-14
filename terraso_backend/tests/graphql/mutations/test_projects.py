@@ -278,3 +278,35 @@ def test_delete_user_from_project_not_member(project, project_user, client):
     response = graphql_query(DELETE_USER_GRAPHQL, input_data=input_data, client=client)
     payload = response.json()
     assert "errors" in payload
+
+
+UPDATE_PROJECT_ROLE_GRAPHQL = """
+mutation updateProjectRole($input: ProjectUpdateUserRoleMutationInput!) {
+  updateUserRoleInProject(input: $input) {
+    project {
+      id
+    }
+    membership {
+      userRole
+      user {
+        id
+      }
+    }
+  }
+}
+"""
+
+
+def test_update_project_role_manager(project, project_manager, project_user, client):
+    client.force_login(project_manager)
+    input_data = {
+        "projectId": str(project.id),
+        "userId": str(project_user.id),
+        "newRole": "contributor",
+    }
+    response = graphql_query(UPDATE_PROJECT_ROLE_GRAPHQL, input_data=input_data, client=client)
+    payload = response.json()
+    assert "errors" not in payload
+    assert payload["data"]["updateUserRoleInProject"]["membership"]["userRole"] == "contributor"
+    assert project.is_contributor(project_user)
+    assert not project.is_viewer(project_user)

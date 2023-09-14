@@ -82,3 +82,20 @@ def allowed_to_delete_user_from_project(user, context):
 
 
 rules.add_rule("allowed_to_delete_user_from_project", allowed_to_delete_user_from_project)
+
+
+@rules.predicate
+def allowed_to_change_user_project_role(user, context):
+    project = context["project"]
+    requester_membership = context["requester_membership"]
+    target_membership = context["target_membership"]
+    print(requester_membership.user_role)
+    return (
+        project.membership_list
+        == requester_membership.membership_list
+        == target_membership.membership_list
+        and requester_membership.user_role == "manager"
+    )
+
+
+rules.add_rule("allowed_to_change_user_project_role", allowed_to_change_user_project_role)

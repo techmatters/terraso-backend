@@ -60,6 +60,7 @@ from .projects import (
     ProjectDeleteUserMutation,
     ProjectNode,
     ProjectUpdateMutation,
+    ProjectUpdateUserRoleMutation,
 )
 from .sites import SiteAddMutation, SiteDeleteMutation, SiteNode, SiteUpdateMutation
 from .story_maps import (
@@ -160,6 +161,7 @@ class Mutations(graphene.ObjectType):
     delete_project = ProjectDeleteMutation.Field()
     add_user_to_project = ProjectAddUserMutation.Field()
     delete_user_from_project = ProjectDeleteUserMutation.Field()
+    update_user_role_in_project = ProjectUpdateUserRoleMutation.Field()
 
 
 schema = graphene.Schema(query=Query, mutation=Mutations)
