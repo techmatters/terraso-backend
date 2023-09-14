@@ -57,6 +57,7 @@ from .projects import (
     ProjectAddUserMutation,
     ProjectArchiveMutation,
     ProjectDeleteMutation,
+    ProjectDeleteUserMutation,
     ProjectNode,
     ProjectUpdateMutation,
 )
@@ -157,7 +158,8 @@ class Mutations(graphene.ObjectType):
     update_project = ProjectUpdateMutation.Field()
     archive_project = ProjectArchiveMutation.Field()
     delete_project = ProjectDeleteMutation.Field()
-    add_user_project = ProjectAddUserMutation.Field()
+    add_user_to_project = ProjectAddUserMutation.Field()
+    delete_user_from_project = ProjectDeleteUserMutation.Field()
 
 
 schema = graphene.Schema(query=Query, mutation=Mutations)

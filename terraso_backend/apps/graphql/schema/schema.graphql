@@ -819,7 +819,8 @@ type Mutations {
   updateProject(input: ProjectUpdateMutationInput!): ProjectUpdateMutationPayload!
   archiveProject(input: ProjectArchiveMutationInput!): ProjectArchiveMutationPayload!
   deleteProject(input: ProjectDeleteMutationInput!): ProjectDeleteMutationPayload!
-  addUserProject(input: ProjectAddUserMutationInput!): ProjectAddUserMutationPayload!
+  addUserToProject(input: ProjectAddUserMutationInput!): ProjectAddUserMutationPayload!
+  deleteUserFromProject(input: ProjectDeleteUserMutationInput!): ProjectDeleteUserMutationPayload!
 }
 
 type GroupAddMutationPayload {
@@ -1328,5 +1329,18 @@ input ProjectAddUserMutationInput {
   projectId: ID!
   userId: ID!
   role: String!
+  clientMutationId: String
+}
+
+type ProjectDeleteUserMutationPayload {
+  errors: GenericScalar
+  project: ProjectNode!
+  membership: CollaborationMembershipNode!
+  clientMutationId: String
+}
+
+input ProjectDeleteUserMutationInput {
+  projectId: ID!
+  userId: ID!
   clientMutationId: String
 }

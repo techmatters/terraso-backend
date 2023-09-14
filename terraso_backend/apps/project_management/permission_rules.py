@@ -64,8 +64,20 @@ def allowed_to_add_member_to_project(user, context):
     requester_membership = context["requester_membership"]
     return (
         requester_membership.membership_list == project.membership_list
-        and requester_membership.user_role == "MANAGER"
+        and requester_membership.user_role == "manager"
     )
 
 
 rules.add_rule("allowed_to_add_member_to_project", allowed_to_add_member_to_project)
+
+
+@rules.predicate
+def allowed_to_delete_user_from_project(user, context):
+    project = context["project"]
+    requester_membership = context["requester_membership"]
+    return project.membership_list == requester_membership.membership_list and (
+        user == requester_membership.user or requester_membership.user_role == "manager"
+    )
+
+
+rules.add_rule("allowed_to_delete_user_from_project", allowed_to_delete_user_from_project)

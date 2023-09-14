@@ -182,7 +182,7 @@ def test_update_project_user_not_manager(project, client):
 
 ADD_USER_GRAPHQL = """
 mutation addUser($input: ProjectAddUserMutationInput!) {
-  addUserProject(input: $input) {
+  addUserToProject(input: $input) {
     project {
       id
     }
@@ -199,7 +199,7 @@ mutation addUser($input: ProjectAddUserMutationInput!) {
 def test_add_user_to_project(project, project_manager, client):
     user = mixer.blend(User)
     client.force_login(project_manager)
-    input_data = {"projectId": str(project.id), "userId": str(user.id), "role": "VIEWER"}
+    input_data = {"projectId": str(project.id), "userId": str(user.id), "role": "viewer"}
     response = graphql_query(ADD_USER_GRAPHQL, input_data=input_data, client=client)
     payload = response.json()
     assert "errors" not in payload and "errors" not in payload["data"]
@@ -212,7 +212,35 @@ def test_add_user_to_project(project, project_manager, client):
 def test_add_user_to_project_bad_roles(project, project_manager, client):
     user = mixer.blend(User)
     client.force_login(project_manager)
-    input_data = {"projectId": str(project.id), "userId": str(user.id), "role": "RUBBISH"}
+    input_data = {"projectId": str(project.id), "userId": str(user.id), "role": "garbage"}
     response = graphql_query(ADD_USER_GRAPHQL, input_data=input_data, client=client)
     payload = response.json()
     assert "errors" in payload or "errors" in payload["data"]
+
+
+DELETE_USER_GRAPHQL = """
+mutation deleteUser($input: ProjectDeleteUserMutationInput!) {
+  deleteUserFromProject(input: $input) {
+    project {
+      id
+    }
+    membership {
+      user {
+        id
+      }
+    }
+  }
+}
+"""
+
+
+def test_delete_user_from_project_manager(project, project_manager, project_user, client):
+    manager_membership = project.get_membership(project_manager)
+    client.force_login(project_manager)
+    input_data = {"projectId": str(project.id), "userId": str(project_user.id)}
+    response = graphql_query(DELETE_USER_GRAPHQL, input_data=input_data, client=client)
+    payload = response.json()
+    assert "errors" not in payload and "errors" not in payload["data"]
+    assert payload["data"]["deleteUserFromProject"]["membership"]["user"]["id"]
+    project.refresh_from_db()
+    assert list(project.membership_list.memberships.all()) == [manager_membership]

@@ -31,6 +31,7 @@ from apps.collaboration.graphql.memberships import (
 from apps.collaboration.models import Membership
 from apps.core.models import User
 from apps.graphql.exceptions import GraphQLValidationException
+from apps.graphql.schema.constants import MutationTypes
 from apps.project_management.models import Project
 from apps.project_management.models.sites import Site
 
@@ -188,6 +189,8 @@ class ProjectAddUserMutation(BaseWriteMutation):
     project = graphene.Field(ProjectNode, required=True)
     membership = graphene.Field(MembershipNode, required=True)
 
+    model_class = Membership
+
     class Input:
         project_id = graphene.ID(required=True)
         user_id = graphene.ID(required=True)
@@ -204,7 +207,6 @@ class ProjectAddUserMutation(BaseWriteMutation):
         if not requester_membership:
             cls.not_allowed_create(model=Membership, msg="User does not belong to project")
 
-        # check if user has proper permissions
         def validate(context):
             if not rules.test_rule(
                 "allowed_to_add_member_to_project",
@@ -227,9 +229,11 @@ class ProjectAddUserMutation(BaseWriteMutation):
         return ProjectAddUserMutation(project=project, membership=membership)
 
 
-class ProjectRemoveUserMutation(BaseWriteMutation):
-    project_id = graphene.ID(required=True)
-    membership_id = graphene.ID(required=True)
+class ProjectDeleteUserMutation(BaseWriteMutation):
+    project = graphene.Field(ProjectNode, required=True)
+    membership = graphene.Field(MembershipNode, required=True)
+
+    model_class = Membership
 
     class Input:
         project_id = graphene.ID(required=True)
@@ -238,8 +242,23 @@ class ProjectRemoveUserMutation(BaseWriteMutation):
     @classmethod
     def mutate_and_get_payload(cls, root, info, project_id, user_id):
         # check if user has proper permissions
+        project = cls.get_or_throw(Project, "project_id", project_id)
+        user = cls.get_or_throw(User, "user_id", user_id)
+        current_user = info.context.user
+        requester_membership = project.get_membership(current_user)
+        if not rules.test_rule(
+            "allowed_to_delete_user_from_project",
+            current_user,
+            {"project": project, "requester_membership": requester_membership},
+        ):
+            cls.not_allowed(
+                MutationTypes.DELETE, msg="User not allowed to remove member from project"
+            )
         # remove membership
-        pass
+        membership = project.get_membership(user)
+        membership.delete()
+
+        return ProjectDeleteUserMutation(project=project, membership=membership)
 
 
 class ProjectProjectChangeUserRole(BaseWriteMutation):
