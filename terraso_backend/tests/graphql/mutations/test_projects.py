@@ -215,7 +215,7 @@ def test_add_user_to_project_bad_roles(project, project_manager, client):
     input_data = {"projectId": str(project.id), "userId": str(user.id), "role": "garbage"}
     response = graphql_query(ADD_USER_GRAPHQL, input_data=input_data, client=client)
     payload = response.json()
-    assert "errors" in payload or "errors" in payload["data"]
+    assert "errors" in payload
 
 
 DELETE_USER_GRAPHQL = """
@@ -253,4 +253,13 @@ def test_delete_user_from_project_not_manager(project, project_user, client):
     input_data = {"projectId": str(project.id), "userId": str(other_user.id)}
     response = graphql_query(DELETE_USER_GRAPHQL, input_data=input_data, client=client)
     payload = response.json()
-    assert "errors" in payload or "errors" in payload["data"]
+    assert "errors" in payload
+
+
+def test_delete_user_from_project_not_member(project, project_user, client):
+    other_user = mixer.blend(User)
+    client.force_login(other_user)
+    input_data = {"projectId": str(project.id), "userId": str(project_user.id)}
+    response = graphql_query(DELETE_USER_GRAPHQL, input_data=input_data, client=client)
+    payload = response.json()
+    assert "errors" in payload
