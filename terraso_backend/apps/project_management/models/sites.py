@@ -53,6 +53,8 @@ class Site(BaseModel):
         verbose_name="owner to which the site belongs",
     )
 
+    seen_by = models.ManyToManyField(User, related_name="+")
+
     PRIVATE = "private"
     PUBLIC = "public"
     DEFAULT_PRIVACY_STATUS = PRIVATE
@@ -96,6 +98,9 @@ class Site(BaseModel):
 
     def human_readable(self) -> str:
         return self.name
+
+    def mark_seen_by(self, user: User):
+        self.seen_by.add(user)
 
 
 def filter_only_sites_user_owner_or_member(user: User, queryset):
