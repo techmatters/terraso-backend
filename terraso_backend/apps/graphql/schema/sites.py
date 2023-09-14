@@ -60,6 +60,7 @@ class SiteNode(DjangoObjectType):
             "owner",
             "privacy",
             "updated_at",
+            "soil_data",
         )
         filterset_class = SiteFilter
 

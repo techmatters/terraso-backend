@@ -13,6 +13,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see https://www.gnu.org/licenses/.
 
+import enum
 import json
 from typing import Optional
 
@@ -96,7 +97,7 @@ class BaseMutation(relay.ClientIDMutation):
         try:
             return model.objects.get(id=id_)
         except model.DoesNotExist:
-            return GraphQLNotFoundException(field_name=field_name, model_name=model.__name__)
+            raise GraphQLNotFoundException(field=field_name, model_name=model.__name__)
 
     @classmethod
     def not_allowed(cls, model, mutation_type=None, msg=None, extra=None):
@@ -173,14 +174,19 @@ class BaseWriteMutation(BaseAuthenticatedMutation):
         called both when adding and updating a model. The `kwargs` receives
         a dictionary with all inputs informed.
         """
-        _id = kwargs.pop("id", None)
-
-        if _id:
-            model_instance = cls.model_class.objects.get(pk=_id)
+        if "model_instance" in kwargs:
+            model_instance = kwargs.pop("model_instance")
         else:
-            model_instance = cls.model_class()
+            _id = kwargs.pop("id", None)
+
+            if _id:
+                model_instance = cls.model_class.objects.get(pk=_id)
+            else:
+                model_instance = cls.model_class()
 
         for attr, value in kwargs.items():
+            if isinstance(value, enum.Enum):
+                value = value.value
             setattr(model_instance, attr, value)
 
         try:
