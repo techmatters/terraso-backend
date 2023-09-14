@@ -310,3 +310,28 @@ def test_update_project_role_manager(project, project_manager, project_user, cli
     assert payload["data"]["updateUserRoleInProject"]["membership"]["userRole"] == "contributor"
     assert project.is_contributor(project_user)
     assert not project.is_viewer(project_user)
+
+
+def test_update_project_role_not_manager(project, project_user, client):
+    client.force_login(project_user)
+    input_data = {
+        "projectId": str(project.id),
+        "userId": str(project_user.id),
+        "newRole": "contributor",
+    }
+    response = graphql_query(UPDATE_PROJECT_ROLE_GRAPHQL, input_data=input_data, client=client)
+    payload = response.json()
+    assert "errors" in payload
+
+
+def test_update_project_role_user_not_in_project(project, project_user, client):
+    other_user = mixer.blend(User)
+    client.force_login(other_user)
+    input_data = {
+        "projectId": str(project.id),
+        "userId": str(project_user.id),
+        "newRole": "contributor",
+    }
+    response = graphql_query(UPDATE_PROJECT_ROLE_GRAPHQL, input_data=input_data, client=client)
+    payload = response.json()
+    assert "errors" in payload
