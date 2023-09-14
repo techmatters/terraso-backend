@@ -13,7 +13,6 @@ from apps.project_management.models.sites import Site
 pytestmark = pytest.mark.django_db
 
 
-@pytest.mark.skip("TODO: Reimplement with MembershipList")
 def test_create_project(client, user):
     client.force_login(user)
     response = graphql_query(
@@ -58,10 +57,7 @@ DELETE_PROJECT_GRAPHQL = """
     }
 """
 
-pytest.mark.skip("TODO: Reimplement with MembershipList")
 
-
-@pytest.mark.skip("TODO: Reimplement with MembershipList")
 def test_delete_project(project_with_sites, client, project_manager):
     site_ids = [site.id for site in project_with_sites.site_set.all()]
     input = {"id": str(project_with_sites.id)}
@@ -73,26 +69,22 @@ def test_delete_project(project_with_sites, client, project_manager):
     assert not Site.objects.filter(id__in=site_ids).exists()
 
 
-@pytest.mark.skip("TODO: Reimplement with MembershipList")
-def test_delete_project_user_not_manager(project, client):
-    user = mixer.blend(User)
-    project.add_member(user)
+def test_delete_project_user_not_manager(project, client, project_user):
     input = {"id": str(project.id)}
-    client.force_login(user)
+    client.force_login(project_user)
     response = graphql_query(DELETE_PROJECT_GRAPHQL, input_data=input, client=client)
     content = json.loads(response.content)
     assert "errors" in content or "errors" in content["data"]["deleteProject"]
     assert Project.objects.filter(id=project.id).exists()
 
 
-@pytest.mark.skip("TODO: Reimplement with MembershipList")
 @pytest.mark.parametrize("is_manager", [True, False])
 def test_delete_project_transfer_sites(is_manager, project_with_sites, client, project_manager):
     other_project = mixer.blend(Project)
     if is_manager:
         other_project.add_manager(project_manager)
     else:
-        other_project.add_member(project_manager)
+        other_project.add_viewer(project_manager)
     input = {"id": str(project_with_sites.id), "transferProjectId": str(other_project.id)}
     site_ids = [site.id for site in project_with_sites.site_set.all()]
     client.force_login(project_manager)
@@ -117,7 +109,6 @@ ARCHIVE_PROJECT_GRAPHQL = """
 """
 
 
-@pytest.mark.skip("TODO: Reimplement with MembershipList")
 @pytest.mark.parametrize("archived", [True, False])
 def test_archive_project(archived, project_with_sites, client, project_manager):
     site_ids = [site.id for site in project_with_sites.site_set.all()]
@@ -130,12 +121,9 @@ def test_archive_project(archived, project_with_sites, client, project_manager):
     assert Site.objects.filter(id__in=site_ids, archived=archived).exists()
 
 
-@pytest.mark.skip("TODO: Reimplement with MembershipList")
-def test_archive_project_user_not_manager(project, client):
-    user = mixer.blend(User)
-    project.add_member(user)
+def test_archive_project_user_not_manager(project, client, project_user):
     input = {"id": str(project.id), "archived": True}
-    client.force_login(user)
+    client.force_login(project_user)
     response = graphql_query(ARCHIVE_PROJECT_GRAPHQL, input_data=input, client=client)
     content = json.loads(response.content)
     assert "errors" in content or "errors" in content["data"]["archiveProject"]
@@ -156,7 +144,6 @@ UPDATE_PROJECT_GRAPHQL = """
 """
 
 
-@pytest.mark.skip("TODO: Reimplement with MembershipList")
 def test_update_project_user_is_manager(project, client, project_manager):
     input = {"id": str(project.id), "name": "test_name", "privacy": "PRIVATE"}
     client.force_login(project_manager)
@@ -168,12 +155,9 @@ def test_update_project_user_is_manager(project, client, project_manager):
     assert content["data"]["updateProject"]["project"]["privacy"] == "PRIVATE"
 
 
-@pytest.mark.skip("TODO: Reimplement with MembershipList")
-def test_update_project_user_not_manager(project, client):
-    user = mixer.blend(User)
-    project.add_member(user)
+def test_update_project_user_not_manager(project, client, project_user):
     input = {"id": str(project.id), "name": "test_name", "privacy": "PRIVATE"}
-    client.force_login(user)
+    client.force_login(project_user)
     response = graphql_query(UPDATE_PROJECT_GRAPHQL, input_data=input, client=client)
     error_result = response.json()["data"]["updateProject"]["errors"][0]["message"]
     json_error = json.loads(error_result)
@@ -203,7 +187,7 @@ def test_add_user_to_project(project, project_manager, client):
     response = graphql_query(ADD_USER_GRAPHQL, input_data=input_data, client=client)
     payload = response.json()
     assert "errors" not in payload and "errors" not in payload["data"]
-    data = payload["data"]["addUserProject"]
+    data = payload["data"]["addUserToProject"]
     assert data["membership"]["user"]["id"] == str(user.id)
     project.refresh_from_db()
     assert project.viewer_memberships.filter(user=user).exists()

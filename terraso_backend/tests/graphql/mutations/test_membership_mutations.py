@@ -17,13 +17,11 @@ import uuid
 from unittest import mock
 
 import pytest
-from graphene_django.utils.testing import graphql_query
 from mixer.backend.django import mixer
 
-from apps.core.models import Membership, User
+from apps.core.models import Membership
 
-# pytestmark = pytest.mark.django_db
-pytestmark = pytest.mark.skip("TODO: Replace these tests with project mutation tests")
+pytestmark = pytest.mark.django_db
 
 
 def test_membership_add(client_query, groups, users):
@@ -649,41 +647,3 @@ def test_membership_delete_by_last_manager(client_query, memberships, users):
 
     assert "errors" in response["data"]["deleteMembership"]
     assert "delete_not_allowed" in response["data"]["deleteMembership"]["errors"][0]["message"]
-
-
-ADD_MEMBERSHIP_MUTATION = """
-mutation addMembership($input: MembershipAddMutationInput!){
-  addMembership(input: $input) {
-    membership {
-      id
-      userRole
-      user {
-        email
-      }
-      group {
-        slug
-      }
-    }
-    errors
-  }
-}
-"""
-
-
-def test_user_not_in_project_cannot_join_project_group(client, project):
-    outside_user = mixer.blend(User)
-    client.force_login(outside_user)
-    response = graphql_query(
-        ADD_MEMBERSHIP_MUTATION,
-        variables={
-            "input": {
-                "userEmail": outside_user.email,
-                "groupSlug": project.group.slug,
-                "userRole": Membership.ROLE_MEMBER,
-            }
-        },
-        client=client,
-    ).json()
-
-    assert "errors" in response["data"]["addMembership"]
-    assert "create_not_allowed" in response["data"]["addMembership"]["errors"][0]["message"]

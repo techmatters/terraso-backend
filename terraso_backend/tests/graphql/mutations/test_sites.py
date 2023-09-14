@@ -23,8 +23,7 @@ from apps.audit_logs.models import Log
 from apps.core.models import User
 from apps.project_management.models import Project, Site
 
-# pytestmark = pytest.mark.django_db
-pytestmark = pytest.mark.skip("TODO: Reimplement with MembershipList")
+pytestmark = pytest.mark.django_db
 
 
 CREATE_SITE_QUERY = """
@@ -133,9 +132,8 @@ def test_update_site_in_project(client, project, project_manager, site):
     assert log_result.metadata["project_name"] == project.name
 
 
-def test_adding_site_to_project_user_not_manager(client, project, site, user):
-    site_creator = mixer.blend(User)
-    project.add_member(user)
+def test_adding_site_to_project_user_not_manager(client, project, site, project_user):
+    site_creator = project_user
     client.force_login(site_creator)
     response = graphql_query(
         UPDATE_SITE_QUERY,

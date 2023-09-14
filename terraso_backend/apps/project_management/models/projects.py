@@ -109,6 +109,9 @@ class Project(BaseModel):
     def is_contributor(self, user: User) -> bool:
         return self.contributor_memberships.filter(user=user).exists()
 
+    def is_member(self, user: User) -> bool:
+        return self.membership_list.is_member(user)
+
     @property
     def manager_memberships(self):
         return self.membership_list.memberships.by_role("manager")
@@ -123,6 +126,9 @@ class Project(BaseModel):
 
     def add_manager(self, user: User):
         return self.add_user_with_role(user, "manager")
+
+    def add_viewer(self, user: User):
+        return self.add_user_with_role(user, "viewer")
 
     def add_user_with_role(self, user: User, role: str):
         assert role in self.ROLES
