@@ -122,11 +122,15 @@ class Project(BaseModel):
         return self.membership_list.memberships.by_role("CONTRIBUTOR")
 
     def add_manager(self, user: User):
+        return self.add_user_with_role(user, "manager")
+
+    def add_user_with_role(self, user: User, role: str):
+        assert role in self.ROLES
         return Membership.objects.create(
             membership_list=self.membership_list,
             user=user,
             membership_status=Membership.APPROVED,
-            user_role="MANAGER",
+            user_role=role,
             pending_email=None,
         )
 

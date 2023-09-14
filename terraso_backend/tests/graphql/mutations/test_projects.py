@@ -244,3 +244,13 @@ def test_delete_user_from_project_manager(project, project_manager, project_user
     assert payload["data"]["deleteUserFromProject"]["membership"]["user"]["id"]
     project.refresh_from_db()
     assert list(project.membership_list.memberships.all()) == [manager_membership]
+
+
+def test_delete_user_from_project_not_manager(project, project_user, client):
+    other_user = mixer.blend(User)
+    project.add_user_with_role(other_user, "contributor")
+    client.force_login(project_user)
+    input_data = {"projectId": str(project.id), "userId": str(other_user.id)}
+    response = graphql_query(DELETE_USER_GRAPHQL, input_data=input_data, client=client)
+    payload = response.json()
+    assert "errors" in payload or "errors" in payload["data"]

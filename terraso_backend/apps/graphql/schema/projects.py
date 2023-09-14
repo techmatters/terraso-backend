@@ -246,10 +246,24 @@ class ProjectDeleteUserMutation(BaseWriteMutation):
         user = cls.get_or_throw(User, "user_id", user_id)
         current_user = info.context.user
         requester_membership = project.get_membership(current_user)
+        if not requester_membership:
+            cls.not_allowed(
+                MutationTypes.DELETE,
+                msg="User cannot delete other users" " from project where they are not a member",
+            )
+        target_membership = project.get_membership(user)
+        if not target_membership:
+            cls.not_allowed(
+                MutationTypes.DELETE, msg="Cannot delete a user membership that does not exist"
+            )
         if not rules.test_rule(
             "allowed_to_delete_user_from_project",
             current_user,
-            {"project": project, "requester_membership": requester_membership},
+            {
+                "project": project,
+                "requester_membership": requester_membership,
+                "target_membership": target_membership,
+            },
         ):
             cls.not_allowed(
                 MutationTypes.DELETE, msg="User not allowed to remove member from project"

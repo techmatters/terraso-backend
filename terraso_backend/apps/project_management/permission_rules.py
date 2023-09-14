@@ -75,8 +75,9 @@ rules.add_rule("allowed_to_add_member_to_project", allowed_to_add_member_to_proj
 def allowed_to_delete_user_from_project(user, context):
     project = context["project"]
     requester_membership = context["requester_membership"]
+    target_membership = context["target_membership"]
     return project.membership_list == requester_membership.membership_list and (
-        user == requester_membership.user or requester_membership.user_role == "manager"
+        user == target_membership.user or requester_membership.user_role == "manager"
     )
 
 
