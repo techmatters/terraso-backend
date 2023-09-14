@@ -240,10 +240,25 @@ def test_delete_user_from_project_manager(project, project_manager, project_user
     input_data = {"projectId": str(project.id), "userId": str(project_user.id)}
     response = graphql_query(DELETE_USER_GRAPHQL, input_data=input_data, client=client)
     payload = response.json()
-    assert "errors" not in payload and "errors" not in payload["data"]
-    assert payload["data"]["deleteUserFromProject"]["membership"]["user"]["id"]
+    assert "errors" not in payload
+    assert payload["data"]["deleteUserFromProject"]["membership"]["user"]["id"] == str(
+        project_user.id
+    )
     project.refresh_from_db()
     assert list(project.membership_list.memberships.all()) == [manager_membership]
+
+
+def test_delete_user_from_project_delete_self(project, project_user, client):
+    client.force_login(project_user)
+    input_data = {"projectId": str(project.id), "userId": str(project_user.id)}
+    response = graphql_query(DELETE_USER_GRAPHQL, input_data=input_data, client=client)
+    payload = response.json()
+    assert "errors" not in payload
+    assert payload["data"]["deleteUserFromProject"]["membership"]["user"]["id"] == str(
+        project_user.id
+    )
+    project.refresh_from_db()
+    assert project_user in project.membership_list.members.all()
 
 
 def test_delete_user_from_project_not_manager(project, project_user, client):
