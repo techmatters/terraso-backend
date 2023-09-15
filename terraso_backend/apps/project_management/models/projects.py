@@ -21,6 +21,11 @@ from apps.collaboration.models import Membership, MembershipList
 from apps.core.models import User
 from apps.core.models.commons import BaseModel
 from apps.project_management import permission_rules
+from apps.project_management.collaboration_roles import (
+    ROLE_CONTRIBUTOR,
+    ROLE_MANAGER,
+    ROLE_VIEWER,
+)
 
 
 class ProjectSettings(BaseModel):
@@ -43,7 +48,7 @@ class Project(BaseModel):
             "archive": permission_rules.allowed_to_archive_project,
         }
 
-    ROLES = ("viewer", "contributor", "manager")
+    ROLES = (ROLE_VIEWER, ROLE_CONTRIBUTOR, ROLE_MANAGER)
 
     PRIVATE = "private"
     PUBLIC = "public"
@@ -96,7 +101,7 @@ class Project(BaseModel):
     ):
         membership_list = cls.create_membership_list()
         Membership.objects.create(
-            membership_list=membership_list, user=user, user_role="MANAGER", pending_email=None
+            membership_list=membership_list, user=user, user_role=ROLE_MANAGER, pending_email=None
         )
         return cls.objects.create(name=name, description=description, privacy=privacy)
 
@@ -114,21 +119,21 @@ class Project(BaseModel):
 
     @property
     def manager_memberships(self):
-        return self.membership_list.memberships.by_role("manager")
+        return self.membership_list.memberships.by_role(ROLE_MANAGER)
 
     @property
     def viewer_memberships(self):
-        return self.membership_list.memberships.by_role("viewer")
+        return self.membership_list.memberships.by_role(ROLE_VIEWER)
 
     @property
     def contributor_memberships(self):
-        return self.membership_list.memberships.by_role("contributor")
+        return self.membership_list.memberships.by_role(ROLE_CONTRIBUTOR)
 
     def add_manager(self, user: User):
-        return self.add_user_with_role(user, "manager")
+        return self.add_user_with_role(user, ROLE_MANAGER)
 
     def add_viewer(self, user: User):
-        return self.add_user_with_role(user, "viewer")
+        return self.add_user_with_role(user, ROLE_VIEWER)
 
     def add_user_with_role(self, user: User, role: str):
         assert role in self.ROLES
