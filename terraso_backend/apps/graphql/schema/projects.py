@@ -79,7 +79,11 @@ class ProjectAddMutation(BaseWriteMutation):
         if not client_time:
             client_time = datetime.now()
         action = log_api.CREATE
-        metadata = {"name": kwargs["name"], "privacy": kwargs["privacy"]}
+        metadata = {
+            "name": kwargs["name"],
+            "privacy": kwargs["privacy"],
+            "description": kwargs["description"] if "description" in kwargs else None,
+        }
         logger.log(
             user=user,
             action=action,
@@ -159,10 +163,24 @@ class ProjectUpdateMutation(BaseWriteMutation):
     @classmethod
     @transaction.atomic
     def mutate_and_get_payload(cls, root, info, **kwargs):
+        logger = cls.get_logger()
         user = info.context.user
         project_id = kwargs["id"]
         project = cls.get_or_throw(Project, "id", project_id)
         if not user.has_perm(Project.get_perm("change"), project):
             cls.not_allowed()
         kwargs["privacy"] = kwargs["privacy"].value
-        return super().mutate_and_get_payload(root, info, **kwargs)
+        result = super().mutate_and_get_payload(root, info, **kwargs)
+        metadata = {
+            "name": kwargs["name"],
+            "privacy": kwargs["privacy"],
+            "description": kwargs["description"] if "description" in kwargs else None,
+        }
+        logger.log(
+            user=user,
+            action=log_api.CHANGE,
+            resource=result.project,
+            client_time=datetime.now(),
+            metadata=metadata,
+        )
+        return result
