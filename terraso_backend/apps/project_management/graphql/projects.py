@@ -31,11 +31,14 @@ from apps.collaboration.graphql.memberships import (
 from apps.collaboration.models import Membership
 from apps.core.models import User
 from apps.graphql.exceptions import GraphQLValidationException
+from apps.graphql.schema.commons import (
+    BaseDeleteMutation,
+    BaseWriteMutation,
+    TerrasoConnection,
+)
 from apps.graphql.schema.constants import MutationTypes
 from apps.project_management.models import Project
 from apps.project_management.models.sites import Site
-
-from .commons import BaseDeleteMutation, BaseWriteMutation, TerrasoConnection
 
 
 class ProjectFilterSet(FilterSet):

@@ -16,6 +16,16 @@
 import graphene
 from graphene_django.filter import DjangoFilterConnectionField
 
+from apps.project_management.graphql.projects import (
+    ProjectAddMutation,
+    ProjectAddUserMutation,
+    ProjectArchiveMutation,
+    ProjectDeleteMutation,
+    ProjectDeleteUserMutation,
+    ProjectNode,
+    ProjectUpdateMutation,
+    ProjectUpdateUserRoleMutation,
+)
 from apps.soil_id.graphql.soil_data import (
     DepthDependentSoilDataUpdateMutation,
     SoilDataUpdateMutation,
@@ -56,16 +66,6 @@ from .memberships import (
     MembershipDeleteMutation,
     MembershipNode,
     MembershipUpdateMutation,
-)
-from .projects import (
-    ProjectAddMutation,
-    ProjectAddUserMutation,
-    ProjectArchiveMutation,
-    ProjectDeleteMutation,
-    ProjectDeleteUserMutation,
-    ProjectNode,
-    ProjectUpdateMutation,
-    ProjectUpdateUserRoleMutation,
 )
 from .sites import SiteAddMutation, SiteDeleteMutation, SiteNode, SiteUpdateMutation
 from .story_maps import (
