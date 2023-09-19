@@ -24,6 +24,7 @@ UPDATE_SOIL_DATA_QUERY = """
                 slopeSteepnessSelect
                 slopeSteepnessPercent
                 slopeSteepnessDegree
+                depthIntervals
             }
             errors
         }
@@ -45,8 +46,8 @@ def test_update_soil_data(client, user, site):
         "slopeSteepnessDegree": 60,
     }
     response = graphql_query(UPDATE_SOIL_DATA_QUERY, variables={"input": new_data}, client=client)
-    payload = response.json()["data"]["updateSoilData"]["soilData"]
     assert response.json()["data"]["updateSoilData"]["errors"] is None
+    payload = response.json()["data"]["updateSoilData"]["soilData"]
     new_data.pop("siteId")
     for attr, value in new_data.items():
         assert payload[attr] == value
@@ -111,6 +112,86 @@ def test_update_soil_data_not_allowed(client, site):
     assert json.loads(error_msg)[0]["code"] == "update_not_allowed"
 
     assert not hasattr(Site.objects.get(id=site.id), "soil_data")
+
+
+UPDATE_DEPTH_INTERVALS_QUERY = """
+    mutation DepthIntervalsUpdateMutation($input: SoilDataUpdateMutationInput!) {
+        updateSoilData(input: $input) {
+            soilData {
+                depthIntervals {
+                    start
+                    end
+                }
+            }
+            errors
+        }
+    }
+"""
+
+
+def test_update_depth_intervals(client, user, site):
+    client.force_login(user)
+
+    response = graphql_query(
+        UPDATE_DEPTH_INTERVALS_QUERY, variables={"input": {"siteId": str(site.id)}}, client=client
+    )
+    assert response.json()["data"]["updateSoilData"]["errors"] is None
+    payload = response.json()["data"]["updateSoilData"]["soilData"]
+    assert payload["depthIntervals"] == []
+
+    good_intervals = [{"start": 0, "end": 10}, {"start": 10, "end": 30}]
+    response = graphql_query(
+        UPDATE_DEPTH_INTERVALS_QUERY,
+        variables={
+            "input": {
+                "siteId": str(site.id),
+                "depthIntervals": good_intervals,
+            }
+        },
+        client=client,
+    )
+    assert response.json()["data"]["updateSoilData"]["errors"] is None
+    payload = response.json()["data"]["updateSoilData"]["soilData"]
+    assert payload["depthIntervals"] == good_intervals
+
+    bad_intervalses = [
+        [{"start": 0}],
+        [{"end": 10}],
+        [0, 10],
+        [{"start": 0, "middle": 5, "end": 10}],
+        [{"stort": 0, "end": 10}],
+        [{"start": 0, "and": 10}],
+    ]
+    for intervals in bad_intervalses:
+        response = graphql_query(
+            UPDATE_DEPTH_INTERVALS_QUERY,
+            variables={
+                "input": {
+                    "siteId": str(site.id),
+                    "depthIntervals": intervals,
+                }
+            },
+            client=client,
+        )
+        assert response.json()["errors"] is not None
+
+    bad_intervalses = [
+        [{"start": -1, "end": 10}],
+        [{"start": 0, "end": 201}],
+        [{"start": 0, "end": 10}, {"start": 9, "end": 20}],
+    ]
+    for intervals in bad_intervalses:
+        response = graphql_query(
+            UPDATE_DEPTH_INTERVALS_QUERY,
+            variables={
+                "input": {
+                    "siteId": str(site.id),
+                    "depthIntervals": intervals,
+                }
+            },
+            client=client,
+        )
+        assert response.json()["data"]["updateSoilData"]["errors"] is not None
 
 
 UPDATE_DEPTH_DEPENDENT_QUERY = """

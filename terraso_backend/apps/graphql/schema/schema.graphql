@@ -715,6 +715,7 @@ type SoilDataNode {
   slopeSteepnessSelect: SoilIdSoilDataSlopeSteepnessSelectChoices
   slopeSteepnessPercent: Int
   slopeSteepnessDegree: Int
+  depthIntervals: [DepthInterval!]!
   depthDependentData: [DepthDependentSoilDataNode!]!
 }
 
@@ -809,6 +810,11 @@ enum SoilIdSoilDataSlopeSteepnessSelectChoices {
 
   """100%+ (steepest)"""
   STEEPEST
+}
+
+type DepthInterval {
+  start: Int!
+  end: Int!
 }
 
 type DepthDependentSoilDataNode {
@@ -1809,7 +1815,13 @@ input SoilDataUpdateMutationInput {
   slopeSteepnessSelect: SoilIdSoilDataSlopeSteepnessSelectChoices
   slopeSteepnessPercent: Int
   slopeSteepnessDegree: Int
+  depthIntervals: [DepthIntervalInput!]
   clientMutationId: String
+}
+
+input DepthIntervalInput {
+  start: Int!
+  end: Int!
 }
 
 type DepthDependentSoilDataUpdateMutationPayload {
