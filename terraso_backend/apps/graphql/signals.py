@@ -1,4 +1,4 @@
-# Copyright © 2021-2023 Technology Matters
+# Copyright © 2023 Technology Matters
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as published
@@ -12,12 +12,9 @@
 #
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see https://www.gnu.org/licenses/.
-from django.apps import AppConfig
 
+from django.dispatch import Signal
 
-class ProjectManagementConfig(AppConfig):
-    default_auto_field = "django.db.models.BigAutoField"
-    name = "apps.project_management"
-
-    def ready(self):
-        from .signals import handle_membership_added, handle_membership_updated  # noqa
+membership_added_signal = Signal()
+membership_updated_signal = Signal()
+membership_deleted_signal = Signal()

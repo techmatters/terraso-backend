@@ -129,7 +129,7 @@ def test_update_site_in_project(client, project, project_manager, site):
     log_result = logs[0]
     assert log_result.event == CHANGE.value
     assert log_result.resource_object == site
-    assert log_result.metadata["project_name"] == project.name
+    assert log_result.metadata["project_id"] == str(project.id)
 
 
 def test_adding_site_to_project_user_not_manager(client, project, site, project_user):

@@ -4,7 +4,7 @@ import pytest
 from graphene_django.utils.testing import graphql_query
 from mixer.backend.django import mixer
 
-from apps.audit_logs.api import CREATE
+from apps.audit_logs.api import CHANGE, CREATE
 from apps.audit_logs.models import Log
 from apps.core.models.users import User
 from apps.project_management.models import Project
@@ -42,7 +42,11 @@ def test_create_project(client, user):
     log_result = logs[0]
     assert log_result.event == CREATE.value
     assert log_result.resource_object == project
-    expected_metadata = {"name": "testProject", "privacy": "private"}
+    expected_metadata = {
+        "name": "testProject",
+        "privacy": "private",
+        "description": "A test project",
+    }
     assert log_result.metadata == expected_metadata
 
 
@@ -155,6 +159,29 @@ def test_update_project_user_is_manager(project, client, project_manager):
     assert content["data"]["updateProject"]["project"]["privacy"] == "PRIVATE"
 
 
+def test_update_project_audit_log(project, client, project_manager):
+    input = {
+        "id": str(project.id),
+        "name": "test_name",
+        "privacy": "PRIVATE",
+        "description": "A test project",
+    }
+    client.force_login(project_manager)
+
+    response = graphql_query(UPDATE_PROJECT_GRAPHQL, input_data=input, client=client)
+
+    assert response.status_code == 200
+
+    logs = Log.objects.all()
+    assert len(logs) == 1
+    log_result = logs[0]
+    assert log_result.event == CHANGE.value
+    assert log_result.user_human_readable == project_manager.full_name()
+    assert log_result.resource_object == project
+    expected_metadata = {"name": "test_name", "privacy": "private", "description": "A test project"}
+    assert log_result.metadata == expected_metadata
+
+
 def test_update_project_user_not_manager(project, client, project_user):
     input = {"id": str(project.id), "name": "test_name", "privacy": "PRIVATE"}
     client.force_login(project_user)
@@ -191,6 +218,41 @@ def test_add_user_to_project(project, project_manager, client):
     assert data["membership"]["user"]["id"] == str(user.id)
     project.refresh_from_db()
     assert project.viewer_memberships.filter(user=user).exists()
+
+
+def test_add_user_to_project_audit_log(client, project, project_manager, user):
+    client.force_login(project_manager)
+
+    assert project_manager.id != user.id
+
+    response = graphql_query(
+        ADD_USER_GRAPHQL,
+        variables={
+            "input": {
+                "projectId": str(project.id),
+                "userId": str(user.id),
+                "role": "viewer",
+            }
+        },
+        client=client,
+    )
+
+    assert response.status_code == 200
+
+    membership = project.viewer_memberships.first()
+
+    logs = Log.objects.all()
+    assert len(logs) == 1
+    log_result = logs[0]
+    assert log_result.event == CREATE.value
+    assert log_result.user_human_readable == project_manager.full_name()
+    assert log_result.resource_object == membership
+    expected_metadata = {
+        "user_email": user.email,
+        "user_role": "viewer",
+        "project_id": str(project.id),
+    }
+    assert log_result.metadata == expected_metadata
 
 
 def test_add_user_to_project_bad_roles(project, project_manager, client):
@@ -294,6 +356,22 @@ def test_update_project_role_manager(project, project_manager, project_user, cli
     assert payload["data"]["updateUserRoleInProject"]["membership"]["userRole"] == "contributor"
     assert project.is_contributor(project_user)
     assert not project.is_viewer(project_user)
+    assert response.status_code == 200
+
+    membership = project.get_membership(user=project_user)
+
+    logs = Log.objects.all()
+    assert len(logs) == 1
+    log_result = logs[0]
+    assert log_result.event == CHANGE.value
+    assert log_result.user_human_readable == project_manager.full_name()
+    assert log_result.resource_object == membership
+    expected_metadata = {
+        "user_email": project_user.email,
+        "user_role": "contributor",
+        "project_id": str(project.id),
+    }
+    assert log_result.metadata == expected_metadata
 
 
 def test_update_project_role_not_manager(project, project_user, client):

@@ -37,6 +37,11 @@ from apps.graphql.schema.commons import (
     TerrasoConnection,
 )
 from apps.graphql.schema.constants import MutationTypes
+from apps.graphql.signals import (
+    membership_added_signal,
+    membership_deleted_signal,
+    membership_updated_signal,
+)
 from apps.project_management.models import Project
 from apps.project_management.models.sites import Site
 
@@ -99,7 +104,11 @@ class ProjectAddMutation(BaseWriteMutation):
         if not client_time:
             client_time = datetime.now()
         action = log_api.CREATE
-        metadata = {"name": kwargs["name"], "privacy": kwargs["privacy"]}
+        metadata = {
+            "name": kwargs["name"],
+            "privacy": kwargs["privacy"],
+            "description": kwargs.get("description"),
+        }
         logger.log(
             user=user,
             action=action,
@@ -179,12 +188,27 @@ class ProjectUpdateMutation(BaseWriteMutation):
     @classmethod
     @transaction.atomic
     def mutate_and_get_payload(cls, root, info, **kwargs):
+        logger = cls.get_logger()
         user = info.context.user
         project_id = kwargs["id"]
         project = cls.get_or_throw(Project, "id", project_id)
         if not user.has_perm(Project.get_perm("change"), project):
             cls.not_allowed()
         kwargs["privacy"] = kwargs["privacy"].value
+
+        metadata = {
+            "name": kwargs["name"],
+            "privacy": kwargs["privacy"],
+            "description": kwargs["description"] if "description" in kwargs else None,
+        }
+        logger.log(
+            user=user,
+            action=log_api.CHANGE,
+            resource=project,
+            client_time=datetime.now(),
+            metadata=metadata,
+        )
+
         return super().mutate_and_get_payload(root, info, **kwargs)
 
 
@@ -205,15 +229,15 @@ class ProjectAddUserMutation(BaseWriteMutation):
             raise GraphQLValidationException(message=f"Invalid role: {role}")
         project = cls.get_or_throw(Project, "project_id", project_id)
         user = cls.get_or_throw(User, "user_id", user_id)
-        current_user = info.context.user
-        requester_membership = project.get_membership(current_user)
+        request_user = info.context.user
+        requester_membership = project.get_membership(request_user)
         if not requester_membership:
             cls.not_allowed_create(model=Membership, msg="User does not belong to project")
 
         def validate(context):
             if not rules.test_rule(
                 "allowed_to_add_member_to_project",
-                current_user,
+                request_user,
                 {"project": project, "requester_membership": requester_membership},
             ):
                 raise ValidationError("User cannot add membership to this project")
@@ -228,6 +252,8 @@ class ProjectAddUserMutation(BaseWriteMutation):
             )
         except ValidationError as e:
             cls.not_allowed_create(model=Membership, msg=e.message)
+
+        membership_added_signal.send(sender=cls, membership=membership, user=request_user)
 
         return ProjectAddUserMutation(project=project, membership=membership)
 
@@ -247,8 +273,8 @@ class ProjectDeleteUserMutation(BaseWriteMutation):
         # check if user has proper permissions
         project = cls.get_or_throw(Project, "project_id", project_id)
         user = cls.get_or_throw(User, "user_id", user_id)
-        current_user = info.context.user
-        requester_membership = project.get_membership(current_user)
+        requester = info.context.user
+        requester_membership = project.get_membership(requester)
         if not requester_membership:
             cls.not_allowed(
                 MutationTypes.DELETE,
@@ -261,7 +287,7 @@ class ProjectDeleteUserMutation(BaseWriteMutation):
             )
         if not rules.test_rule(
             "allowed_to_delete_user_from_project",
-            current_user,
+            requester,
             {
                 "project": project,
                 "requester_membership": requester_membership,
@@ -274,6 +300,8 @@ class ProjectDeleteUserMutation(BaseWriteMutation):
         # remove membership
         membership = project.get_membership(user)
         membership.delete()
+
+        membership_deleted_signal.send(sender=cls, membership=target_membership, user=requester)
 
         return ProjectDeleteUserMutation(project=project, membership=membership)
 
@@ -317,5 +345,7 @@ class ProjectUpdateUserRoleMutation(BaseWriteMutation):
 
         target_membership.user_role = new_role
         target_membership.save()
+
+        membership_updated_signal.send(sender=cls, membership=target_membership, user=requester)
 
         return ProjectUpdateUserRoleMutation(project=project, membership=target_membership)

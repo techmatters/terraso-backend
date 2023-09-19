@@ -24,6 +24,7 @@ from apps.core.models import Group, Membership, User
 from apps.graphql.exceptions import GraphQLNotAllowedException, GraphQLNotFoundException
 from apps.notifications.email import EmailNotification
 
+from ..signals import membership_added_signal, membership_updated_signal
 from .commons import BaseAuthenticatedMutation, BaseDeleteMutation, TerrasoConnection
 from .constants import MutationTypes
 
@@ -75,6 +76,7 @@ class MembershipAddMutation(BaseAuthenticatedMutation):
 
     @classmethod
     def mutate_and_get_payload(cls, root, info, **kwargs):
+        request_user = info.context.user
         user_email = kwargs.pop("user_email")
         group_slug = kwargs.pop("group_slug")
 
@@ -117,6 +119,8 @@ class MembershipAddMutation(BaseAuthenticatedMutation):
 
         membership.user_role = user_role
         membership.save()
+
+        membership_added_signal.send(sender=cls, membership=membership, user=request_user)
 
         return cls(membership=membership)
 
@@ -180,6 +184,8 @@ class MembershipUpdateMutation(BaseAuthenticatedMutation):
                 EmailNotification.send_membership_approval(membership.user, membership.group)
 
         membership.save()
+
+        membership_updated_signal.send(sender=cls, membership=membership, user=user)
 
         return cls(membership=membership)
 
