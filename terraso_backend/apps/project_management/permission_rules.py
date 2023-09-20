@@ -91,7 +91,6 @@ def allowed_to_change_user_project_role(user, context):
     project = context["project"]
     requester_membership = context["requester_membership"]
     target_membership = context["target_membership"]
-    print(requester_membership.user_role)
     return (
         project.membership_list
         == requester_membership.membership_list

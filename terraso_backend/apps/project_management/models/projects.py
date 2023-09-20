@@ -12,8 +12,6 @@
 #
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see https://www.gnu.org/licenses/.
-from typing import Literal, Optional
-
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
@@ -90,20 +88,6 @@ class Project(BaseModel):
             membership_type=MembershipList.MEMBERSHIP_TYPE_OPEN,
             enroll_method=MembershipList.ENROLL_METHOD_JOIN,
         )
-
-    @classmethod
-    def create_project(
-        cls,
-        user: User,
-        name: str,
-        description: Optional[str],
-        privacy: Literal["private", "public"],
-    ):
-        membership_list = cls.create_membership_list()
-        Membership.objects.create(
-            membership_list=membership_list, user=user, user_role=ROLE_MANAGER, pending_email=None
-        )
-        return cls.objects.create(name=name, description=description, privacy=privacy)
 
     def is_manager(self, user: User) -> bool:
         return self.manager_memberships.filter(user=user).exists()

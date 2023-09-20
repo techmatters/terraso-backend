@@ -556,15 +556,15 @@ type StoryMapNode implements Node {
   createdBy: UserNode
   isPublished: Boolean!
   publishedAt: DateTime
-  membershipList: CollaborationMembershipListNode
+  membershipList: ProjectMembershipListNode
 }
 
-type CollaborationMembershipListNode implements Node {
+type ProjectMembershipListNode implements Node {
   membershipType: CollaborationMembershipListMembershipTypeChoices!
-  memberships(offset: Int, before: String, after: String, first: Int, last: Int, user: ID, user_In: [ID], userRole: String, user_Email_Icontains: String, user_Email_In: [String], membershipStatus: CollaborationMembershipMembershipStatusChoices, user_Email_Not: String): CollaborationMembershipNodeConnection!
+
+  """The ID of the object"""
   id: ID!
-  accountMembership: CollaborationMembershipNode
-  membershipsCount: Int
+  memberships: ProjectMembershipNode!
 }
 
 """An enumeration."""
@@ -576,33 +576,15 @@ enum CollaborationMembershipListMembershipTypeChoices {
   CLOSED
 }
 
-type CollaborationMembershipNodeConnection {
-  """Pagination data for this connection."""
-  pageInfo: PageInfo!
-
-  """Contains the nodes in this connection."""
-  edges: [CollaborationMembershipNodeEdge!]!
-  totalCount: Int!
-}
-
-"""
-A Relay edge containing a `CollaborationMembershipNode` and its cursor.
-"""
-type CollaborationMembershipNodeEdge {
-  """The item at the end of the edge"""
-  node: CollaborationMembershipNode!
-
-  """A cursor for use in pagination"""
-  cursor: String!
-}
-
-type CollaborationMembershipNode implements Node {
-  membershipList: CollaborationMembershipListNode!
+type ProjectMembershipNode implements Node {
+  membershipList: ProjectMembershipListNode!
   user: UserNode
-  userRole: String!
   membershipStatus: CollaborationMembershipMembershipStatusChoices!
   pendingEmail: String
+
+  """The ID of the object"""
   id: ID!
+  userRole: UserRole!
 }
 
 """An enumeration."""
@@ -612,6 +594,12 @@ enum CollaborationMembershipMembershipStatusChoices {
 
   """Pending"""
   PENDING
+}
+
+enum UserRole {
+  VIEWER
+  CONTRIBUTOR
+  MANAGER
 }
 
 type StoryMapNodeConnection {
@@ -636,7 +624,6 @@ type ProjectNode implements Node {
   updatedAt: DateTime!
   name: String!
   description: String!
-  membershipList: CollaborationMembershipListNode!
   privacy: ProjectManagementProjectPrivacyChoices!
   archived: Boolean!
   siteSet(
@@ -655,6 +642,7 @@ type ProjectNode implements Node {
     orderBy: String
   ): SiteNodeConnection!
   id: ID!
+  membershipList: ProjectMembershipListNode!
 }
 
 """An enumeration."""
@@ -1651,6 +1639,15 @@ type StoryMapMembershipSaveMutationPayload {
   errors: GenericScalar
   memberships: [CollaborationMembershipNode]
   clientMutationId: String
+}
+
+type CollaborationMembershipNode implements Node {
+  membershipList: ProjectMembershipListNode!
+  user: UserNode
+  userRole: String!
+  membershipStatus: CollaborationMembershipMembershipStatusChoices!
+  pendingEmail: String
+  id: ID!
 }
 
 input StoryMapMembershipSaveMutationInput {
