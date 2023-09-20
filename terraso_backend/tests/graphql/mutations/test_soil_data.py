@@ -24,7 +24,10 @@ UPDATE_SOIL_DATA_QUERY = """
                 slopeSteepnessSelect
                 slopeSteepnessPercent
                 slopeSteepnessDegree
-                depthIntervals
+                depthIntervals {
+                    start
+                    end
+                }
             }
             errors
         }
@@ -114,26 +117,11 @@ def test_update_soil_data_not_allowed(client, site):
     assert not hasattr(Site.objects.get(id=site.id), "soil_data")
 
 
-UPDATE_DEPTH_INTERVALS_QUERY = """
-    mutation DepthIntervalsUpdateMutation($input: SoilDataUpdateMutationInput!) {
-        updateSoilData(input: $input) {
-            soilData {
-                depthIntervals {
-                    start
-                    end
-                }
-            }
-            errors
-        }
-    }
-"""
-
-
 def test_update_depth_intervals(client, user, site):
     client.force_login(user)
 
     response = graphql_query(
-        UPDATE_DEPTH_INTERVALS_QUERY, variables={"input": {"siteId": str(site.id)}}, client=client
+        UPDATE_SOIL_DATA_QUERY, variables={"input": {"siteId": str(site.id)}}, client=client
     )
     assert response.json()["data"]["updateSoilData"]["errors"] is None
     payload = response.json()["data"]["updateSoilData"]["soilData"]
@@ -141,7 +129,7 @@ def test_update_depth_intervals(client, user, site):
 
     good_intervals = [{"start": 0, "end": 10}, {"start": 10, "end": 30}]
     response = graphql_query(
-        UPDATE_DEPTH_INTERVALS_QUERY,
+        UPDATE_SOIL_DATA_QUERY,
         variables={
             "input": {
                 "siteId": str(site.id),
@@ -164,7 +152,7 @@ def test_update_depth_intervals(client, user, site):
     ]
     for intervals in bad_intervalses:
         response = graphql_query(
-            UPDATE_DEPTH_INTERVALS_QUERY,
+            UPDATE_SOIL_DATA_QUERY,
             variables={
                 "input": {
                     "siteId": str(site.id),
@@ -182,7 +170,7 @@ def test_update_depth_intervals(client, user, site):
     ]
     for intervals in bad_intervalses:
         response = graphql_query(
-            UPDATE_DEPTH_INTERVALS_QUERY,
+            UPDATE_SOIL_DATA_QUERY,
             variables={
                 "input": {
                     "siteId": str(site.id),
