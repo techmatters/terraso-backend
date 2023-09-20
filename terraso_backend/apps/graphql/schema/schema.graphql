@@ -561,10 +561,10 @@ type StoryMapNode implements Node {
 
 type ProjectMembershipListNode implements Node {
   membershipType: CollaborationMembershipListMembershipTypeChoices!
-
-  """The ID of the object"""
-  id: ID!
   memberships: ProjectMembershipNode!
+  id: ID!
+  accountMembership: CollaborationMembershipNode
+  membershipsCount: Int
 }
 
 """An enumeration."""
@@ -579,12 +579,16 @@ enum CollaborationMembershipListMembershipTypeChoices {
 type ProjectMembershipNode implements Node {
   membershipList: ProjectMembershipListNode!
   user: UserNode
+  userRole: UserRole!
   membershipStatus: CollaborationMembershipMembershipStatusChoices!
   pendingEmail: String
-
-  """The ID of the object"""
   id: ID!
-  userRole: UserRole!
+}
+
+enum UserRole {
+  VIEWER
+  CONTRIBUTOR
+  MANAGER
 }
 
 """An enumeration."""
@@ -596,10 +600,13 @@ enum CollaborationMembershipMembershipStatusChoices {
   PENDING
 }
 
-enum UserRole {
-  VIEWER
-  CONTRIBUTOR
-  MANAGER
+type CollaborationMembershipNode implements Node {
+  membershipList: ProjectMembershipListNode!
+  user: UserNode
+  userRole: String!
+  membershipStatus: CollaborationMembershipMembershipStatusChoices!
+  pendingEmail: String
+  id: ID!
 }
 
 type StoryMapNodeConnection {
@@ -1639,15 +1646,6 @@ type StoryMapMembershipSaveMutationPayload {
   errors: GenericScalar
   memberships: [CollaborationMembershipNode]
   clientMutationId: String
-}
-
-type CollaborationMembershipNode implements Node {
-  membershipList: ProjectMembershipListNode!
-  user: UserNode
-  userRole: String!
-  membershipStatus: CollaborationMembershipMembershipStatusChoices!
-  pendingEmail: String
-  id: ID!
 }
 
 input StoryMapMembershipSaveMutationInput {

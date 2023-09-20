@@ -25,11 +25,14 @@ from graphene_django import DjangoObjectType
 from graphene_django.filter import TypedFilter
 
 from apps.audit_logs import api as log_api
-from apps.collaboration.graphql.memberships import CollaborationMembershipFilterSet
 from apps.collaboration.graphql.memberships import (
     CollaborationMembershipNode as MembershipNode,
 )
-from apps.collaboration.models import Membership, MembershipList
+from apps.collaboration.graphql.memberships import (
+    MembershipListNodeMixin,
+    MembershipNodeMixin,
+)
+from apps.collaboration.models import Membership
 from apps.core.models import User
 from apps.graphql.exceptions import GraphQLValidationException
 from apps.graphql.schema.commons import (
@@ -48,27 +51,15 @@ from apps.project_management.models import Project
 from apps.project_management.models.sites import Site
 
 
-class ProjectFilterSet(FilterSet):
-    member = TypedFilter(field_name="membership_list__memberships__user")
-
-    class Meta:
-        model = Project
-        fields = {"name": ["exact", "icontains"]}
-
-
 class UserRole(graphene.Enum):
     VIEWER = collaboration_roles.ROLE_VIEWER
     CONTRIBUTOR = collaboration_roles.ROLE_CONTRIBUTOR
     MANAGER = collaboration_roles.ROLE_MANAGER
 
 
-class ProjectMembershipNode(DjangoObjectType):
-    class Meta:
-        model = Membership
-        fields = ("membership_list", "user", "membership_status", "pending_email")
-        filterset_class = CollaborationMembershipFilterSet
-        interfaces = (relay.Node,)
-        connection_class = TerrasoConnection
+class ProjectMembershipNode(DjangoObjectType, MembershipNodeMixin):
+    class Meta(MembershipNodeMixin.Meta):
+        pass
 
     user_role = graphene.Field(UserRole, required=True)
 
@@ -84,14 +75,19 @@ class ProjectMembershipNode(DjangoObjectType):
                 raise Exception(f"Unexpected user role: {self.user_role}")
 
 
-class ProjectMembershipListNode(DjangoObjectType):
+class ProjectMembershipListNode(DjangoObjectType, MembershipListNodeMixin):
     memberships = graphene.Field(ProjectMembershipNode, required=True)
 
+    class Meta(MembershipListNodeMixin.Meta):
+        pass
+
+
+class ProjectFilterSet(FilterSet):
+    member = TypedFilter(field_name="membership_list__memberships__user")
+
     class Meta:
-        model = MembershipList
-        fields = ("membership_type",)
-        interfaces = (relay.Node,)
-        connection_class = TerrasoConnection
+        model = Project
+        fields = {"name": ["exact", "icontains"]}
 
 
 class ProjectNode(DjangoObjectType):

@@ -26,7 +26,7 @@ from ..models import Membership, MembershipList
 logger = structlog.get_logger(__name__)
 
 
-class CollaborationMembershipListNode(DjangoObjectType):
+class MembershipListNodeMixin:
     id = graphene.ID(source="pk", required=True)
     account_membership = graphene.Field("apps.collaboration.graphql.CollaborationMembershipNode")
     memberships_count = graphene.Int()
@@ -53,6 +53,11 @@ class CollaborationMembershipListNode(DjangoObjectType):
         return self.memberships.approved_only().count()
 
 
+class CollaborationMembershipListNode(MembershipListNodeMixin, DjangoObjectType):
+    class Meta(MembershipListNodeMixin.Meta):
+        pass
+
+
 class CollaborationMembershipFilterSet(django_filters.FilterSet):
     user__email__not = django_filters.CharFilter(method="filter_user_email_not")
 
@@ -69,7 +74,7 @@ class CollaborationMembershipFilterSet(django_filters.FilterSet):
         return queryset.exclude(user__email=value)
 
 
-class CollaborationMembershipNode(DjangoObjectType):
+class MembershipNodeMixin:
     id = graphene.ID(source="pk", required=True)
 
     class Meta:
@@ -86,3 +91,8 @@ class CollaborationMembershipNode(DjangoObjectType):
             return queryset.none()
 
         return queryset
+
+
+class CollaborationMembershipNode(MembershipNodeMixin, DjangoObjectType):
+    class Meta(MembershipNodeMixin.Meta):
+        pass
