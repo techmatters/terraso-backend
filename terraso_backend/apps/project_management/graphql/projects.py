@@ -52,9 +52,9 @@ from apps.project_management.models.sites import Site
 
 
 class UserRole(graphene.Enum):
-    VIEWER = collaboration_roles.ROLE_VIEWER
-    CONTRIBUTOR = collaboration_roles.ROLE_CONTRIBUTOR
-    MANAGER = collaboration_roles.ROLE_MANAGER
+    viewer = collaboration_roles.ROLE_VIEWER
+    contributor = collaboration_roles.ROLE_CONTRIBUTOR
+    manager = collaboration_roles.ROLE_MANAGER
 
 
 class ProjectMembershipNode(DjangoObjectType, MembershipNodeMixin):
@@ -65,12 +65,12 @@ class ProjectMembershipNode(DjangoObjectType, MembershipNodeMixin):
 
     def resolve_user_role(self, info):
         match self.user_role:
-            case "VIEWER":
-                return UserRole.VIEWER
-            case "CONTRIBUTOR":
-                return UserRole.CONTRIBUTOR
-            case "MANAGER":
-                return UserRole.MANAGER
+            case "viewer":
+                return UserRole.viewer
+            case "constributor":
+                return UserRole.contributor
+            case "manager":
+                return UserRole.manager
             case _:
                 raise Exception(f"Unexpected user role: {self.user_role}")
 
@@ -258,7 +258,7 @@ class ProjectAddUserMutation(BaseWriteMutation):
     class Input:
         project_id = graphene.ID(required=True)
         user_id = graphene.ID(required=True)
-        role = graphene.String(required=True)
+        role = graphene.Field(UserRole, required=True)
 
     @classmethod
     def mutate_and_get_payload(cls, root, info, project_id, user_id, role):
@@ -283,7 +283,7 @@ class ProjectAddUserMutation(BaseWriteMutation):
         try:
             _, membership = project.membership_list.save_membership(
                 user_email=user.email,
-                user_role=role,
+                user_role=role.value,
                 membership_status=Membership.APPROVED,
                 validation_func=validate,
             )
@@ -352,7 +352,7 @@ class ProjectUpdateUserRoleMutation(BaseWriteMutation):
     class Input:
         project_id = graphene.ID(required=True)
         user_id = graphene.ID(required=True)
-        new_role = graphene.String(required=True)
+        new_role = graphene.Field(UserRole, required=True)
 
     @classmethod
     def mutate_and_get_payload(cls, root, info, project_id, user_id, new_role):
@@ -380,7 +380,7 @@ class ProjectUpdateUserRoleMutation(BaseWriteMutation):
                 MutationTypes.UPDATE, msg="User is not allowed to change other user role"
             )
 
-        target_membership.user_role = new_role
+        target_membership.user_role = new_role.value
         target_membership.save()
 
         membership_updated_signal.send(sender=cls, membership=target_membership, user=requester)

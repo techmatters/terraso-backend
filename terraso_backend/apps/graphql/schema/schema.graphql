@@ -586,9 +586,9 @@ type ProjectMembershipNode implements Node {
 }
 
 enum UserRole {
-  VIEWER
-  CONTRIBUTOR
-  MANAGER
+  viewer
+  contributor
+  manager
 }
 
 """An enumeration."""
@@ -1801,7 +1801,7 @@ type ProjectAddUserMutationPayload {
 input ProjectAddUserMutationInput {
   projectId: ID!
   userId: ID!
-  role: String!
+  role: UserRole!
   clientMutationId: String
 }
 
@@ -1828,7 +1828,7 @@ type ProjectUpdateUserRoleMutationPayload {
 input ProjectUpdateUserRoleMutationInput {
   projectId: ID!
   userId: ID!
-  newRole: String!
+  newRole: UserRole!
   clientMutationId: String
 }
 
