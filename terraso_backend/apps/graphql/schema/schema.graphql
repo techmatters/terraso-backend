@@ -556,12 +556,12 @@ type StoryMapNode implements Node {
   createdBy: UserNode
   isPublished: Boolean!
   publishedAt: DateTime
-  membershipList: ProjectMembershipListNode
+  membershipList: CollaborationMembershipListNode
 }
 
-type ProjectMembershipListNode implements Node {
+type CollaborationMembershipListNode implements Node {
   membershipType: CollaborationMembershipListMembershipTypeChoices!
-  memberships(offset: Int, before: String, after: String, first: Int, last: Int, user: ID, user_In: [ID], userRole: UserRole, user_Email_Icontains: String, user_Email_In: [String], membershipStatus: CollaborationMembershipMembershipStatusChoices, user_Email_Not: String): ProjectMembershipNodeConnection
+  memberships(offset: Int, before: String, after: String, first: Int, last: Int, user: ID, user_In: [ID], userRole: String, user_Email_Icontains: String, user_Email_In: [String], membershipStatus: CollaborationMembershipMembershipStatusChoices, user_Email_Not: String): CollaborationMembershipNodeConnection!
   id: ID!
   accountMembership: CollaborationMembershipNode
   membershipsCount: Int
@@ -576,37 +576,33 @@ enum CollaborationMembershipListMembershipTypeChoices {
   CLOSED
 }
 
-type ProjectMembershipNodeConnection {
+type CollaborationMembershipNodeConnection {
   """Pagination data for this connection."""
   pageInfo: PageInfo!
 
   """Contains the nodes in this connection."""
-  edges: [ProjectMembershipNodeEdge!]!
+  edges: [CollaborationMembershipNodeEdge!]!
   totalCount: Int!
 }
 
-"""A Relay edge containing a `ProjectMembershipNode` and its cursor."""
-type ProjectMembershipNodeEdge {
+"""
+A Relay edge containing a `CollaborationMembershipNode` and its cursor.
+"""
+type CollaborationMembershipNodeEdge {
   """The item at the end of the edge"""
-  node: ProjectMembershipNode!
+  node: CollaborationMembershipNode!
 
   """A cursor for use in pagination"""
   cursor: String!
 }
 
-type ProjectMembershipNode implements Node {
-  membershipList: ProjectMembershipListNode!
+type CollaborationMembershipNode implements Node {
+  membershipList: CollaborationMembershipListNode!
   user: UserNode
-  userRole: UserRole!
+  userRole: String!
   membershipStatus: CollaborationMembershipMembershipStatusChoices!
   pendingEmail: String
   id: ID!
-}
-
-enum UserRole {
-  viewer
-  contributor
-  manager
 }
 
 """An enumeration."""
@@ -616,15 +612,6 @@ enum CollaborationMembershipMembershipStatusChoices {
 
   """Pending"""
   PENDING
-}
-
-type CollaborationMembershipNode implements Node {
-  membershipList: ProjectMembershipListNode!
-  user: UserNode
-  userRole: String!
-  membershipStatus: CollaborationMembershipMembershipStatusChoices!
-  pendingEmail: String
-  id: ID!
 }
 
 type StoryMapNodeConnection {
@@ -1191,6 +1178,47 @@ enum SoilIdDepthDependentSoilDataCarbonatesChoices {
 
   """violently effervescent — Bubbles rapidly form a thick foam"""
   VIOLENTLY_EFFERVESCENT
+}
+
+type ProjectMembershipListNode implements Node {
+  membershipType: CollaborationMembershipListMembershipTypeChoices!
+  id: ID!
+  accountMembership: CollaborationMembershipNode
+  membershipsCount: Int
+  memberships(offset: Int, before: String, after: String, first: Int, last: Int, user: ID, user_In: [ID], userRole: String, user_Email_Icontains: String, user_Email_In: [String], membershipStatus: CollaborationMembershipMembershipStatusChoices, user_Email_Not: String): ProjectMembershipNodeConnection
+}
+
+type ProjectMembershipNodeConnection {
+  """Pagination data for this connection."""
+  pageInfo: PageInfo!
+
+  """Contains the nodes in this connection."""
+  edges: [ProjectMembershipNodeEdge!]!
+  totalCount: Int!
+}
+
+"""A Relay edge containing a `ProjectMembershipNode` and its cursor."""
+type ProjectMembershipNodeEdge {
+  """The item at the end of the edge"""
+  node: ProjectMembershipNode!
+
+  """A cursor for use in pagination"""
+  cursor: String!
+}
+
+type ProjectMembershipNode implements Node {
+  membershipList: CollaborationMembershipListNode!
+  user: UserNode
+  userRole: UserRole!
+  membershipStatus: CollaborationMembershipMembershipStatusChoices!
+  pendingEmail: String
+  id: ID!
+}
+
+enum UserRole {
+  viewer
+  contributor
+  manager
 }
 
 type ProjectNodeConnection {

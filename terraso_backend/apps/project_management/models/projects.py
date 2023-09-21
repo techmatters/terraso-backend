@@ -34,6 +34,20 @@ class ProjectSettings(BaseModel):
     member_can_add_site_to_project = models.BooleanField(default=False)
 
 
+class ProjectMembership(Membership):
+    """A proxy class created soley for graphene schema reasons"""
+
+    class Meta:
+        proxy = True
+
+
+class ProjectMembershipList(MembershipList):
+    """A proxy class created soley for graphql schema reasons"""
+
+    class Meta:
+        proxy = True
+
+
 class Project(BaseModel):
     class Meta(BaseModel.Meta):
         abstract = False

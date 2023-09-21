@@ -50,7 +50,11 @@ from apps.graphql.signals import (
     membership_updated_signal,
 )
 from apps.project_management import collaboration_roles
-from apps.project_management.models import Project
+from apps.project_management.models import (
+    Project,
+    ProjectMembership,
+    ProjectMembershipList,
+)
 from apps.project_management.models.sites import Site
 
 
@@ -62,7 +66,7 @@ class UserRole(graphene.Enum):
 
 class ProjectMembershipNode(DjangoObjectType, MembershipNodeMixin):
     class Meta(MembershipNodeMixin.Meta):
-        pass
+        model = ProjectMembership
 
     user_role = graphene.Field(UserRole, required=True)
 
@@ -80,7 +84,7 @@ class ProjectMembershipNode(DjangoObjectType, MembershipNodeMixin):
 
 class ProjectMembershipListNode(DjangoObjectType, MembershipListNodeMixin):
     class Meta(MembershipListNodeMixin.Meta):
-        pass
+        model = ProjectMembershipList
 
     memberships = DjangoFilterConnectionField(
         ProjectMembershipNode, filterset_class=MembershipFilterSet
