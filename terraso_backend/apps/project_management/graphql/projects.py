@@ -22,9 +22,12 @@ from django.db import transaction
 from django_filters import FilterSet
 from graphene import relay
 from graphene_django import DjangoObjectType
-from graphene_django.filter import TypedFilter
+from graphene_django.filter import DjangoFilterConnectionField, TypedFilter
 
 from apps.audit_logs import api as log_api
+from apps.collaboration.graphql.memberships import (
+    CollaborationMembershipFilterSet as MembershipFilterSet,
+)
 from apps.collaboration.graphql.memberships import (
     CollaborationMembershipNode as MembershipNode,
 )
@@ -76,10 +79,12 @@ class ProjectMembershipNode(DjangoObjectType, MembershipNodeMixin):
 
 
 class ProjectMembershipListNode(DjangoObjectType, MembershipListNodeMixin):
-    memberships = graphene.Field(ProjectMembershipNode, required=True)
-
     class Meta(MembershipListNodeMixin.Meta):
         pass
+
+    memberships = DjangoFilterConnectionField(
+        ProjectMembershipNode, filterset_class=MembershipFilterSet
+    )
 
 
 class ProjectFilterSet(FilterSet):

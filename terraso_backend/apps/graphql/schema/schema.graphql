@@ -561,7 +561,7 @@ type StoryMapNode implements Node {
 
 type ProjectMembershipListNode implements Node {
   membershipType: CollaborationMembershipListMembershipTypeChoices!
-  memberships: ProjectMembershipNode!
+  memberships(offset: Int, before: String, after: String, first: Int, last: Int, user: ID, user_In: [ID], userRole: UserRole, user_Email_Icontains: String, user_Email_In: [String], membershipStatus: CollaborationMembershipMembershipStatusChoices, user_Email_Not: String): ProjectMembershipNodeConnection
   id: ID!
   accountMembership: CollaborationMembershipNode
   membershipsCount: Int
@@ -574,6 +574,24 @@ enum CollaborationMembershipListMembershipTypeChoices {
 
   """Closed"""
   CLOSED
+}
+
+type ProjectMembershipNodeConnection {
+  """Pagination data for this connection."""
+  pageInfo: PageInfo!
+
+  """Contains the nodes in this connection."""
+  edges: [ProjectMembershipNodeEdge!]!
+  totalCount: Int!
+}
+
+"""A Relay edge containing a `ProjectMembershipNode` and its cursor."""
+type ProjectMembershipNodeEdge {
+  """The item at the end of the edge"""
+  node: ProjectMembershipNode!
+
+  """A cursor for use in pagination"""
+  cursor: String!
 }
 
 type ProjectMembershipNode implements Node {

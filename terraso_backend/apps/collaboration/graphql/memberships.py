@@ -19,11 +19,31 @@ import structlog
 from graphene import relay
 from graphene_django import DjangoObjectType
 
-from apps.graphql.schema.commons import TerrasoConnection
-
 from ..models import Membership, MembershipList
 
+# from apps.graphql.schema.commons import TerrasoConnection
+
+
 logger = structlog.get_logger(__name__)
+
+
+# TODO: trying to import this from apps.graphql.schema.commons causes a circular import
+# Created an issue to move the module to apps.graphql.commons, as that seems simplest
+# https://github.com/techmatters/terraso-backend/issues/820
+class TerrasoConnection(graphene.Connection):
+    class Meta:
+        abstract = True
+
+    total_count = graphene.Int(required=True)
+
+    def resolve_total_count(self, info, **kwargs):
+        queryset = self.iterable
+        return queryset.count()
+
+    @classmethod
+    def __init_subclass_with_meta__(cls, **options):
+        options["strict_types"] = options.pop("strict_types", True)
+        super().__init_subclass_with_meta__(**options)
 
 
 class MembershipListNodeMixin:
