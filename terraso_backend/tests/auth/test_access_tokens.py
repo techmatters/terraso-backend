@@ -83,5 +83,4 @@ def test_test_access_token_valid(token_client_query, user, test_access_token):
 
 def test_access_token_invalid(token_client_query, user, invalid_access_token):
     response = execute_query(token_client_query, user, invalid_access_token)
-    print(response)
     assert response["error"] == "Unauthorized request"
