@@ -87,7 +87,7 @@ def test_get_landscape_json_view(client, landscape):
         "profileImageDescription": "Test Landscape Image Description",
         "areaPolygon": landscape.area_polygon,
         "taxonomyTerms": [],
-        "associatedGroups": [],
+        "organizationsInvolved": {"stakeholders": []},
         "developmentStrategy": None,
     }
 
@@ -102,6 +102,15 @@ def test_get_landscape_json_view(client, landscape):
 
 def test_get_landscape_json_view_groups(client, landscape):
     group = mixer.blend(LandscapeGroup, landscape=landscape, is_default_landscape_group=False)
+    landscape.taxonomy_terms.add(
+        mixer.blend(
+            TaxonomyTerm,
+            type=TaxonomyTerm.TYPE_ORGANIZATION.upper(),
+            value_original="Test Org",
+            value_en="Test Term Org en",
+            value_es="Test Term Org es",
+        )
+    )
     url = reverse(
         "terraso_core:landscape-export", kwargs={"slug": "test-landscape", "format": "json"}
     )
@@ -110,14 +119,15 @@ def test_get_landscape_json_view_groups(client, landscape):
     assert response.status_code == 200
     json_response = response.json()
 
-    assert json_response["associatedGroups"] == [group.group.name]
+    assert json_response["organizationsInvolved"]["stakeholders"] == ["Test Org", group.group.name]
+    assert json_response["taxonomyTerms"] == []
 
 
 def test_get_landscape_json_view_terms(client, landscape):
     landscape.taxonomy_terms.add(
         mixer.blend(
             TaxonomyTerm,
-            type=TaxonomyTerm.TYPE_ECOSYSTEM_TYPE,
+            type=TaxonomyTerm.TYPE_ECOSYSTEM_TYPE.upper(),
             value_original="Test Term",
             value_en="Test Term en",
             value_es="Test Term es",
@@ -133,7 +143,7 @@ def test_get_landscape_json_view_terms(client, landscape):
 
     assert json_response["taxonomyTerms"] == [
         {
-            "type": "ecosystem-type",
+            "type": TaxonomyTerm.TYPE_ECOSYSTEM_TYPE.upper(),
             "value": {
                 "original": "Test Term",
                 "en": "Test Term en",

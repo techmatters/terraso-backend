@@ -16,7 +16,7 @@
 from django.http import JsonResponse
 from django.views import View
 
-from .models import Landscape
+from .models import Landscape, TaxonomyTerm
 
 
 class LandscapeExportView(View):
@@ -32,7 +32,8 @@ class LandscapeExportView(View):
 
     def to_json(self, landscape):
         development_strategy = landscape.associated_development_strategy.last()
-        terms = landscape.taxonomy_terms.all()
+        terms = landscape.taxonomy_terms.exclude(type=TaxonomyTerm.TYPE_ORGANIZATION.upper())
+        organizations = landscape.taxonomy_terms.filter(type=TaxonomyTerm.TYPE_ORGANIZATION.upper())
         associated_groups = landscape.associated_groups.exclude(is_default_landscape_group=True)
         groups = [associated_group.group for associated_group in associated_groups]
 
@@ -45,6 +46,11 @@ class LandscapeExportView(View):
                 max([group.updated_at.timestamp() for group in groups]) if groups else 0,
             ]
         )
+
+        # Stakeholders are all the organization taxonomy terms plus all associated groups
+        stakeholders = [term.value_original for term in organizations] + [
+            group.name for group in groups
+        ]
 
         return {
             "id": str(landscape.id),
@@ -70,7 +76,7 @@ class LandscapeExportView(View):
                 }
                 for term in terms
             ],
-            "associatedGroups": list(set([group.name for group in groups])),
+            "organizationsInvolved": {"stakeholders": stakeholders},
             "developmentStrategy": {
                 "objectives": development_strategy.objectives,
                 "problemSituation": development_strategy.problem_situtation,
