@@ -19,15 +19,12 @@ import graphene
 import rules
 from django.core.exceptions import ValidationError
 from django.db import transaction
-from django_filters import FilterSet
+from django_filters import CharFilter, FilterSet
 from graphene import relay
 from graphene_django import DjangoObjectType
 from graphene_django.filter import DjangoFilterConnectionField, TypedFilter
 
 from apps.audit_logs import api as log_api
-from apps.collaboration.graphql.memberships import (
-    CollaborationMembershipFilterSet as MembershipFilterSet,
-)
 from apps.collaboration.graphql.memberships import (
     CollaborationMembershipNode as MembershipNode,
 )
@@ -82,13 +79,32 @@ class ProjectMembershipNode(DjangoObjectType, MembershipNodeMixin):
                 raise Exception(f"Unexpected user role: {self.user_role}")
 
 
+class ProjectMembershipFilterSet(FilterSet):
+    user__email__not = CharFilter(method="filter_user_email_not")
+
+    class Meta:
+        model = ProjectMembership
+        fields = {
+            "user": ["exact", "in"],
+            "user_role": ["exact"],
+            "user__email": ["icontains", "in"],
+            "membership_status": ["exact"],
+        }
+
+    def filter_user_email_not(self, queryset, name, value):
+        return queryset.exclude(user__email=value)
+
+
 class ProjectMembershipListNode(DjangoObjectType, MembershipListNodeMixin):
     class Meta(MembershipListNodeMixin.Meta):
         model = ProjectMembershipList
 
     memberships = DjangoFilterConnectionField(
-        ProjectMembershipNode, filterset_class=MembershipFilterSet, required=True
+        ProjectMembershipNode, filterset_class=ProjectMembershipFilterSet, required=True
     )
+
+    def resolve_memberships(self, info, **kwargs):
+        return ProjectMembershipFilterSet(kwargs).qs
 
 
 class ProjectFilterSet(FilterSet):
