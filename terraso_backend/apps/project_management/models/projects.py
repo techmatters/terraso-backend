@@ -70,7 +70,7 @@ class Project(BaseModel):
 
     name = models.CharField(max_length=200)
     description = models.CharField(max_length=512, default="", blank=True)
-    membership_list = models.OneToOneField(MembershipList, on_delete=models.CASCADE)
+    membership_list = models.OneToOneField(ProjectMembershipList, on_delete=models.CASCADE)
     privacy = models.CharField(
         max_length=32, choices=PRIVACY_STATUS, default=DEFAULT_PRIVACY_STATUS
     )

@@ -87,7 +87,7 @@ class ProjectMembershipListNode(DjangoObjectType, MembershipListNodeMixin):
         model = ProjectMembershipList
 
     memberships = DjangoFilterConnectionField(
-        ProjectMembershipNode, filterset_class=MembershipFilterSet
+        ProjectMembershipNode, filterset_class=MembershipFilterSet, required=True
     )
 
 
@@ -113,12 +113,11 @@ class ProjectNode(DjangoObjectType):
             "updated_at",
             "site_set",
             "archived",
+            "membership_list",
         )
 
         interfaces = (relay.Node,)
         connection_class = TerrasoConnection
-
-    membership_list = graphene.Field(ProjectMembershipListNode, required=True)
 
 
 class ProjectPrivacy(graphene.Enum):
