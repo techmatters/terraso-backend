@@ -89,6 +89,9 @@ class JWTAuthenticationMiddleware:
         except InvalidTokenError as e:
             logger.exception("Failure to verify JWT token", extra={"token": token})
             raise ValidationError(f"Invalid JWT token: {e}")
+        except ValueError as e:
+            logger.exception("Not valid JWT token type", extra={"token": token})
+            raise ValidationError(f"Invalid JWT token: {e}")
 
         user = self._get_user(decoded_payload["sub"])
 
