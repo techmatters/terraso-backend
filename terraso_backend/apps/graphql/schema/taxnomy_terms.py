@@ -24,6 +24,8 @@ from .commons import TerrasoConnection
 
 logger = structlog.get_logger(__name__)
 
+VALID_TYPES = [key for (key, text) in TaxonomyTerm.TYPES]
+
 
 class TaxonomyTermNode(DjangoObjectType):
     id = graphene.ID(source="pk", required=True)
@@ -42,3 +44,7 @@ class TaxonomyTermNode(DjangoObjectType):
         )
         interfaces = (relay.Node,)
         connection_class = TerrasoConnection
+
+    @classmethod
+    def get_queryset(cls, queryset, info):
+        return queryset.filter(type__in=VALID_TYPES)
