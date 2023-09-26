@@ -55,6 +55,8 @@ class Project(BaseModel):
         max_length=32, choices=PRIVACY_STATUS, default=DEFAULT_PRIVACY_STATUS
     )
 
+    seen_by = models.ManyToManyField(User, related_name="+")
+
     @staticmethod
     def default_settings():
         settings = ProjectSettings()
@@ -104,6 +106,9 @@ class Project(BaseModel):
 
     def add_member(self, user: User):
         return self.group.add_member(user)
+
+    def mark_seen_by(self, user: User):
+        self.seen_by.add(user)
 
     def __str__(self):
         return self.name

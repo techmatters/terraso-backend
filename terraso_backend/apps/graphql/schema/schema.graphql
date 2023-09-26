@@ -655,6 +655,7 @@ type ProjectNode implements Node {
     orderBy: String
   ): SiteNodeConnection!
   id: ID!
+  seen: Boolean!
 }
 
 """An enumeration."""
@@ -695,6 +696,7 @@ type SiteNode implements Node {
   archived: Boolean!
   soilData: SoilDataNode
   id: ID!
+  seen: Boolean!
 }
 
 """An enumeration."""
@@ -1296,10 +1298,12 @@ type Mutations {
   addSite(input: SiteAddMutationInput!): SiteAddMutationPayload!
   updateSite(input: SiteUpdateMutationInput!): SiteUpdateMutationPayload!
   deleteSite(input: SiteDeleteMutationInput!): SiteDeleteMutationPayload!
+  markSiteSeen(input: SiteMarkSeenMutationInput!): SiteMarkSeenMutationPayload!
   addProject(input: ProjectAddMutationInput!): ProjectAddMutationPayload!
   updateProject(input: ProjectUpdateMutationInput!): ProjectUpdateMutationPayload!
   archiveProject(input: ProjectArchiveMutationInput!): ProjectArchiveMutationPayload!
   deleteProject(input: ProjectDeleteMutationInput!): ProjectDeleteMutationPayload!
+  markProjectSeen(input: ProjectMarkSeenMutationInput!): ProjectMarkSeenMutationPayload!
   updateSoilData(input: SoilDataUpdateMutationInput!): SoilDataUpdateMutationPayload!
   updateDepthDependentSoilData(input: DepthDependentSoilDataUpdateMutationInput!): DepthDependentSoilDataUpdateMutationPayload!
 }
@@ -1743,6 +1747,17 @@ input SiteDeleteMutationInput {
   clientMutationId: String
 }
 
+type SiteMarkSeenMutationPayload {
+  errors: GenericScalar
+  site: SiteNode!
+  clientMutationId: String
+}
+
+input SiteMarkSeenMutationInput {
+  id: ID!
+  clientMutationId: String
+}
+
 type ProjectAddMutationPayload {
   errors: GenericScalar
   project: ProjectNode!
@@ -1796,6 +1811,17 @@ type ProjectDeleteMutationPayload {
 input ProjectDeleteMutationInput {
   id: ID!
   transferProjectId: ID
+  clientMutationId: String
+}
+
+type ProjectMarkSeenMutationPayload {
+  errors: GenericScalar
+  project: ProjectNode!
+  clientMutationId: String
+}
+
+input ProjectMarkSeenMutationInput {
+  id: ID!
   clientMutationId: String
 }
 

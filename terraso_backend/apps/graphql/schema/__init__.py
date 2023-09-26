@@ -61,10 +61,17 @@ from .projects import (
     ProjectAddMutation,
     ProjectArchiveMutation,
     ProjectDeleteMutation,
+    ProjectMarkSeenMutation,
     ProjectNode,
     ProjectUpdateMutation,
 )
-from .sites import SiteAddMutation, SiteDeleteMutation, SiteNode, SiteUpdateMutation
+from .sites import (
+    SiteAddMutation,
+    SiteDeleteMutation,
+    SiteMarkSeenMutation,
+    SiteNode,
+    SiteUpdateMutation,
+)
 from .story_maps import (
     StoryMapDeleteMutation,
     StoryMapMembershipApproveMutation,
@@ -157,10 +164,12 @@ class Mutations(graphene.ObjectType):
     add_site = SiteAddMutation.Field()
     update_site = SiteUpdateMutation.Field()
     delete_site = SiteDeleteMutation.Field()
+    mark_site_seen = SiteMarkSeenMutation.Field()
     add_project = ProjectAddMutation.Field()
     update_project = ProjectUpdateMutation.Field()
     archive_project = ProjectArchiveMutation.Field()
     delete_project = ProjectDeleteMutation.Field()
+    mark_project_seen = ProjectMarkSeenMutation.Field()
     update_soil_data = SoilDataUpdateMutation.Field()
     update_depth_dependent_soil_data = DepthDependentSoilDataUpdateMutation.Field()
 

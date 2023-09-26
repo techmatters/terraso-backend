@@ -26,7 +26,13 @@ from apps.audit_logs import api as log_api
 from apps.project_management.models import Project
 from apps.project_management.models.sites import Site
 
-from .commons import BaseDeleteMutation, BaseWriteMutation, TerrasoConnection
+from .commons import (
+    BaseAuthenticatedMutation,
+    BaseDeleteMutation,
+    BaseMutation,
+    BaseWriteMutation,
+    TerrasoConnection,
+)
 
 
 class ProjectFilterSet(FilterSet):
@@ -39,6 +45,7 @@ class ProjectFilterSet(FilterSet):
 
 class ProjectNode(DjangoObjectType):
     id = graphene.ID(source="pk", required=True)
+    seen = graphene.Boolean(required=True)
 
     class Meta:
         model = Project
@@ -48,6 +55,12 @@ class ProjectNode(DjangoObjectType):
 
         interfaces = (relay.Node,)
         connection_class = TerrasoConnection
+
+    def resolve_seen(self, info):
+        user = info.context.user
+        if user.is_anonymous:
+            return True
+        return self.seen_by.filter(id=user.id).exists()
 
 
 class ProjectPrivacy(graphene.Enum):
@@ -74,6 +87,7 @@ class ProjectAddMutation(BaseWriteMutation):
             kwargs["privacy"] = kwargs["privacy"].value
             result = super().mutate_and_get_payload(root, info, **kwargs)
             result.project.add_manager(user)
+            result.project.mark_seen_by(user)
 
         client_time = kwargs.get("client_time", None)
         if not client_time:
@@ -92,6 +106,20 @@ class ProjectAddMutation(BaseWriteMutation):
             metadata=metadata,
         )
         return result
+
+
+class ProjectMarkSeenMutation(BaseAuthenticatedMutation):
+    project = graphene.Field(ProjectNode, required=True)
+
+    class Input:
+        id = graphene.ID(required=True)
+
+    @classmethod
+    def mutate_and_get_payload(cls, root, info, id):
+        user = info.context.user
+        project = BaseMutation.get_or_throw(Project, "id", id)
+        project.mark_seen_by(user)
+        return ProjectMarkSeenMutation(project=project)
 
 
 class ProjectDeleteMutation(BaseDeleteMutation):
