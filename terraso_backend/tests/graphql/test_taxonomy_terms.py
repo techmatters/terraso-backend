@@ -49,6 +49,6 @@ def test_landscape_get_one_by_type(client_query, taxonomy_terms):
         """
     response = client_query(query)
     result = response.json()["data"]["taxonomyTerms"]["edges"]
-    language_terms = [term for term in taxonomy_terms if term.type == "language"]
+    language_terms = [term for term in taxonomy_terms if term.type == "LANGUAGE"]
 
     assert len(result) == len(language_terms)
