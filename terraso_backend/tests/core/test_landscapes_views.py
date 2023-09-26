@@ -146,8 +146,8 @@ def test_get_landscape_json_view_terms(client, landscape):
             "type": TaxonomyTerm.TYPE_ECOSYSTEM_TYPE.upper(),
             "value": {
                 "original": "Test Term",
-                "en": "Test Term en",
-                "es": "Test Term es",
+                "eng": "Test Term en",
+                "spa": "Test Term es",
             },
         }
     ]
