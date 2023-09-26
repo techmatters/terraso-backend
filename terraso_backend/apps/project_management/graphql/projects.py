@@ -104,7 +104,7 @@ class ProjectMembershipListNode(DjangoObjectType, MembershipListNodeMixin):
     )
 
     def resolve_memberships(self, info, **kwargs):
-        return ProjectMembershipFilterSet(kwargs).qs
+        return ProjectMembershipFilterSet(kwargs).qs.filter(membership_list=self)
 
 
 class ProjectFilterSet(FilterSet):
