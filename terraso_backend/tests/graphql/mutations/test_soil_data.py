@@ -24,10 +24,6 @@ UPDATE_SOIL_DATA_QUERY = """
                 slopeSteepnessSelect
                 slopeSteepnessPercent
                 slopeSteepnessDegree
-                depthIntervals {
-                    start
-                    end
-                }
             }
             errors
         }
@@ -94,7 +90,6 @@ def test_update_soil_data_constraints(client, user, site):
             variables={"input": {"siteId": str(site.id), attr: value}},
             client=client,
         )
-        logger.info(response.json())
         if msg is None:
             assert not hasattr(response.json(), "data") and response.json()["errors"] is not None
         else:
@@ -188,8 +183,10 @@ UPDATE_DEPTH_DEPENDENT_QUERY = """
     ) {
         updateDepthDependentSoilData(input: $input) {
             depthDependentSoilData {
-                depthStart
-                depthEnd
+                depthInterval {
+                  start
+                  end
+                }
                 texture
                 rockFragmentVolume
                 colorHueSubstep
@@ -220,8 +217,10 @@ def test_update_depth_dependent_soil_data(client, user, site):
     client.force_login(user)
     new_data = {
         "siteId": str(site.id),
-        "depthStart": 0,
-        "depthEnd": 10,
+        "depthInterval": {
+            "start": 0,
+            "end": 10,
+        },
         "texture": "CLAY",
         "rockFragmentVolume": "VOLUME_0_1",
         "colorHueSubstep": "SUBSTEP_2_5",
@@ -250,11 +249,12 @@ def test_update_depth_dependent_soil_data(client, user, site):
     new_data.pop("siteId")
     for attr, value in new_data.items():
         assert payload[attr] == value
-    new_data.pop("depthStart")
-    new_data.pop("depthEnd")
+    new_data.pop("depthInterval")
 
     cleared_data = dict(
-        {k: None for k in new_data.keys()}, siteId=str(site.id), depthStart=0, depthEnd=10
+        {k: None for k in new_data.keys()},
+        siteId=str(site.id),
+        depthInterval={"start": 0, "end": 10},
     )
     response = graphql_query(
         UPDATE_DEPTH_DEPENDENT_QUERY, variables={"input": cleared_data}, client=client
@@ -264,11 +264,10 @@ def test_update_depth_dependent_soil_data(client, user, site):
     for attr in new_data.keys():
         assert payload[attr] is None
 
-    partial_data = {"siteId": str(site.id), "depthStart": 0, "depthEnd": 10}
+    partial_data = {"siteId": str(site.id), "depthInterval": {"start": 0, "end": 10}}
     response = graphql_query(
         UPDATE_DEPTH_DEPENDENT_QUERY, variables={"input": partial_data}, client=client
     )
-    logger.info(response.json())
     payload = response.json()["data"]["updateDepthDependentSoilData"]["depthDependentSoilData"]
     assert response.json()["data"]["updateDepthDependentSoilData"]["errors"] is None
     for attr in new_data.keys():
@@ -310,11 +309,14 @@ def test_update_depth_dependent_soil_data_constraints(client, user, site):
         response = graphql_query(
             UPDATE_DEPTH_DEPENDENT_QUERY,
             variables={
-                "input": {"siteId": str(site.id), "depthStart": 0, "depthEnd": 10, attr: value}
+                "input": {
+                    "siteId": str(site.id),
+                    "depthInterval": {"start": 0, "end": 10},
+                    attr: value,
+                }
             },
             client=client,
         )
-        logger.info(response.json())
         if msg is None:
             assert not hasattr(response.json(), "data") and response.json()["errors"] is not None
         else:
@@ -330,8 +332,7 @@ def test_update_depth_dependent_soil_data_not_allowed(client, site):
     client.force_login(user)
     new_data = {
         "siteId": str(site.id),
-        "depthStart": 0,
-        "depthEnd": 10,
+        "depthInterval": {"start": 0, "end": 10},
         "texture": "CLAY",
     }
     response = graphql_query(

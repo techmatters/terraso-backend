@@ -93,6 +93,10 @@ class BaseMutation(relay.ClientIDMutation):
             return cls(errors=[{"message": str(error)}])
 
     @classmethod
+    def not_found(cls, model=None, field=None, msg=None):
+        raise GraphQLNotFoundException(msg, field=field, model_name=model.__name__)
+
+    @classmethod
     def get_or_throw(cls, model, field_name, id_):
         try:
             return model.objects.get(id=id_)
@@ -160,6 +164,10 @@ class BaseAuthenticatedMutation(BaseMutation):
     @classmethod
     def not_allowed_create(cls, model, msg=None, extra=None):
         raise cls.not_allowed(MutationTypes.CREATE, msg, extra)
+
+    @classmethod
+    def not_found(cls, model=None, field=None, msg=None):
+        raise super().not_found(msg, field=field, model=model or cls.model_class)
 
 
 class BaseWriteMutation(BaseAuthenticatedMutation):
@@ -244,13 +252,16 @@ class BaseWriteMutation(BaseAuthenticatedMutation):
 class BaseDeleteMutation(BaseAuthenticatedMutation):
     @classmethod
     def mutate_and_get_payload(cls, root, info, **kwargs):
-        _id = kwargs.pop("id", None)
-
-        if not _id:
-            model_instance = None
+        if "model_instance" in kwargs:
+            model_instance = kwargs.pop("model_instance")
         else:
-            model_instance = cls.model_class.objects.get(pk=_id)
-            model_instance.delete()
+            _id = kwargs.pop("id", None)
+
+            if not _id:
+                model_instance = None
+            else:
+                model_instance = cls.model_class.objects.get(pk=_id)
+                model_instance.delete()
 
         result_kwargs = {from_camel_to_snake_case(cls.model_class.__name__): model_instance}
         return cls(**result_kwargs)

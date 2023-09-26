@@ -23,6 +23,7 @@ from graphene_django.filter import TypedFilter
 
 from apps.audit_logs import api as audit_log_api
 from apps.project_management.models import Project, Site, sites
+from apps.soil_id.models.soil_data import SoilData
 
 from .commons import (
     BaseAuthenticatedMutation,
@@ -54,6 +55,9 @@ class SiteFilter(django_filters.FilterSet):
 class SiteNode(DjangoObjectType):
     id = graphene.ID(source="pk", required=True)
     seen = graphene.Boolean(required=True)
+    soil_data = graphene.Field(
+        "apps.soil_id.graphql.soil_data.SoilDataNode", required=True, default_value=SoilData()
+    )
 
     class Meta:
         model = Site
@@ -67,7 +71,6 @@ class SiteNode(DjangoObjectType):
             "owner",
             "privacy",
             "updated_at",
-            "soil_data",
         )
         filterset_class = SiteFilter
 

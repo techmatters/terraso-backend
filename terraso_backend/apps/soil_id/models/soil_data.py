@@ -19,6 +19,7 @@ from django.forms import ValidationError
 
 from apps.core.models.commons import BaseModel
 from apps.project_management.models.sites import Site
+from apps.soil_id.models.depth_interval import BaseDepthInterval
 
 
 def default_depth_intervals():
@@ -105,6 +106,25 @@ class SoilData(BaseModel):
         blank=True, null=True, validators=[MinValueValidator(0), MaxValueValidator(90)]
     )
 
-    depth_intervals = models.JSONField(
-        blank=True, validators=[validate_depth_intervals], default=default_depth_intervals
+
+class SoilDataDepthInterval(BaseModel, BaseDepthInterval):
+    soil_data = models.ForeignKey(
+        SoilData, on_delete=models.CASCADE, related_name="depth_intervals"
     )
+    label = models.CharField(blank=True, max_length=10)
+
+    class Meta(BaseModel.Meta):
+        constraints = BaseDepthInterval.constraints("soil_data")
+
+    slope_enabled = models.BooleanField(blank=True, default=False)
+    soil_texture_enabled = models.BooleanField(blank=True, default=False)
+    soil_color_enabled = models.BooleanField(blank=True, default=False)
+    vertical_cracking_enabled = models.BooleanField(blank=True, default=False)
+    carbonates_enabled = models.BooleanField(blank=True, default=False)
+    ph_enabled = models.BooleanField(blank=True, default=False)
+    soil_organic_carbon_matter_enabled = models.BooleanField(blank=True, default=False)
+    electrical_conductivity_enabled = models.BooleanField(blank=True, default=False)
+    sodium_adsorption_ratio_enabled = models.BooleanField(blank=True, default=False)
+    soil_structure_enabled = models.BooleanField(blank=True, default=False)
+    land_use_land_cover_enabled = models.BooleanField(blank=True, default=False)
+    soil_limitations_enabled = models.BooleanField(blank=True, default=False)
