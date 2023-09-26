@@ -9,7 +9,14 @@ from apps.soil_id.models.depth_dependent_soil_data import DepthDependentSoilData
 from apps.soil_id.models.soil_data import SoilData
 
 
+class DepthInterval(graphene.ObjectType):
+    start = graphene.Int(required=True)
+    end = graphene.Int(required=True)
+
+
 class SoilDataNode(DjangoObjectType):
+    depth_intervals = graphene.List(graphene.NonNull(DepthInterval), required=True)
+
     class Meta:
         model = SoilData
         exclude = ["deleted_at", "deleted_by_cascade", "id", "created_at", "updated_at", "site"]
@@ -100,6 +107,11 @@ class DepthDependentSoilDataNode(DjangoObjectType):
         return cls._meta.fields["carbonates"].type()
 
 
+class DepthIntervalInput(graphene.InputObjectType):
+    start = graphene.Int(required=True)
+    end = graphene.Int(required=True)
+
+
 class SoilDataUpdateMutation(BaseWriteMutation):
     soil_data = graphene.Field(SoilDataNode)
     model_class = SoilData
@@ -114,6 +126,7 @@ class SoilDataUpdateMutation(BaseWriteMutation):
         slope_steepness_select = SoilDataNode.slope_steepness_enum()
         slope_steepness_percent = graphene.Int()
         slope_steepness_degree = graphene.Int()
+        depth_intervals = graphene.List(graphene.NonNull(DepthIntervalInput))
 
     @classmethod
     def mutate_and_get_payload(cls, root, info, site_id, **kwargs):
