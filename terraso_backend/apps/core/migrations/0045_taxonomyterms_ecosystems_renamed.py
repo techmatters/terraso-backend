@@ -18,7 +18,7 @@ from django.db import migrations, models
 import apps.core.models.commons
 
 TERMS = {
-    "ecosystem-type": [
+    "ECOSYSTEM_TYPE": [
         ("Deserts", "Desert", "Desierto"),
         ("Savannas", "Savannah", "Sabana"),
         ("Shrublands", "Shrubland", "Matorrales"),
@@ -35,8 +35,17 @@ class Migration(migrations.Migration):
         migrations.RunSQL(
             sql=[
                 (
-                    "UPDATE core_taxonomyterm SET value_es = %s, value_en= %s WHERE value_original = %s AND type= %s",
-                    [value_es, value_en, current_value, type],
+                    """
+                        UPDATE core_taxonomyterm
+                        SET
+                            value_es = %s,
+                            value_original = %s,
+                            value_en = %s
+                        WHERE
+                            value_original = %s AND
+                            type = %s
+                    """,
+                    [value_es, value_en, value_en, current_value, type],
                 )
             ],
         )
