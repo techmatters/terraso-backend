@@ -820,8 +820,6 @@ type DepthInterval {
 }
 
 type DepthDependentSoilDataNode {
-  depthStart: Int!
-  depthEnd: Int!
   texture: SoilIdDepthDependentSoilDataTextureChoices
   rockFragmentVolume: SoilIdDepthDependentSoilDataRockFragmentVolumeChoices
   colorHueSubstep: SoilIdDepthDependentSoilDataColorHueSubstepChoices
@@ -841,6 +839,7 @@ type DepthDependentSoilDataNode {
   soilOrganicMatterTesting: SoilIdDepthDependentSoilDataSoilOrganicMatterTestingChoices
   sodiumAbsorptionRatio: Decimal
   carbonates: SoilIdDepthDependentSoilDataCarbonatesChoices
+  depthInterval: DepthInterval!
 }
 
 """An enumeration."""
@@ -1858,7 +1857,7 @@ type DepthDependentSoilDataUpdateMutationPayload {
 
 input DepthDependentSoilDataUpdateMutationInput {
   siteId: ID!
-  depthStart: Int!
+  depthInterval: DepthIntervalInput!
   depthEnd: Int!
   texture: SoilIdDepthDependentSoilDataTextureChoices
   rockFragmentVolume: SoilIdDepthDependentSoilDataRockFragmentVolumeChoices

@@ -39,6 +39,8 @@ class SoilDataNode(DjangoObjectType):
 
 
 class DepthDependentSoilDataNode(DjangoObjectType):
+    depth_interval = graphene.Field(DepthInterval, required=True)
+
     class Meta:
         model = DepthDependentSoilData
         exclude = [
@@ -48,7 +50,12 @@ class DepthDependentSoilDataNode(DjangoObjectType):
             "created_at",
             "updated_at",
             "soil_data",
+            "depth_start",
+            "depth_end",
         ]
+
+    def resolve_depth_interval(self, info):
+        return DepthInterval(start=self.depth_start, end=self.depth_end)
 
     @classmethod
     def texture_enum(cls):
@@ -150,8 +157,7 @@ class DepthDependentSoilDataUpdateMutation(BaseWriteMutation):
 
     class Input:
         site_id = graphene.ID(required=True)
-        depth_start = graphene.Int(required=True)
-        depth_end = graphene.Int(required=True)
+        depth_interval = graphene.Field(DepthIntervalInput, required=True)
         texture = DepthDependentSoilDataNode.texture_enum()
         rock_fragment_volume = DepthDependentSoilDataNode.rock_fragment_volume_enum()
         color_hue_substep = DepthDependentSoilDataNode.color_hue_substep_enum()
@@ -173,7 +179,7 @@ class DepthDependentSoilDataUpdateMutation(BaseWriteMutation):
         carbonates = DepthDependentSoilDataNode.carbonates_enum()
 
     @classmethod
-    def mutate_and_get_payload(cls, root, info, site_id, depth_start, depth_end, **kwargs):
+    def mutate_and_get_payload(cls, root, info, site_id, depth_interval, **kwargs):
         site = cls.get_or_throw(Site, "id", site_id)
 
         user = info.context.user
@@ -186,7 +192,7 @@ class DepthDependentSoilDataUpdateMutation(BaseWriteMutation):
                 site.soil_data.save()
 
             kwargs["model_instance"], _ = site.soil_data.depth_dependent_data.get_or_create(
-                depth_start=depth_start, depth_end=depth_end
+                depth_start=depth_interval["start"], depth_end=depth_interval["end"]
             )
 
             return super().mutate_and_get_payload(root, info, **kwargs)
