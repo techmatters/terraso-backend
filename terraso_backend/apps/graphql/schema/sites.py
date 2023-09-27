@@ -24,7 +24,13 @@ from graphene_django.filter import TypedFilter
 from apps.audit_logs import api as audit_log_api
 from apps.project_management.models import Project, Site, sites
 
-from .commons import BaseDeleteMutation, BaseWriteMutation, TerrasoConnection
+from .commons import (
+    BaseAuthenticatedMutation,
+    BaseDeleteMutation,
+    BaseMutation,
+    BaseWriteMutation,
+    TerrasoConnection,
+)
 from .constants import MutationTypes
 
 
@@ -47,6 +53,7 @@ class SiteFilter(django_filters.FilterSet):
 
 class SiteNode(DjangoObjectType):
     id = graphene.ID(source="pk", required=True)
+    seen = graphene.Boolean(required=True)
 
     class Meta:
         model = Site
@@ -77,6 +84,12 @@ class SiteNode(DjangoObjectType):
     @classmethod
     def privacy_enum(cls):
         return cls._meta.fields["privacy"].type.of_type()
+
+    def resolve_seen(self, info):
+        user = info.context.user
+        if user.is_anonymous:
+            return True
+        return self.seen_by.filter(id=user.id).exists()
 
 
 class SiteAddMutation(BaseWriteMutation):
@@ -117,6 +130,7 @@ class SiteAddMutation(BaseWriteMutation):
             return result
 
         site = result.site
+        site.mark_seen_by(user)
         metadata = {
             "latitude": kwargs["latitude"],
             "longitude": kwargs["longitude"],
@@ -132,6 +146,20 @@ class SiteAddMutation(BaseWriteMutation):
             client_time=client_time,
         )
         return result
+
+
+class SiteMarkSeenMutation(BaseAuthenticatedMutation):
+    site = graphene.Field(SiteNode, required=True)
+
+    class Input:
+        id = graphene.ID(required=True)
+
+    @classmethod
+    def mutate_and_get_payload(cls, root, info, id):
+        user = info.context.user
+        site = BaseMutation.get_or_throw(Site, "id", id)
+        site.mark_seen_by(user)
+        return SiteMarkSeenMutation(site=site)
 
 
 class SiteUpdateMutation(BaseWriteMutation):

@@ -15,6 +15,7 @@
 import json
 
 import pytest
+import structlog
 from graphene_django.utils.testing import graphql_query
 from mixer.backend.django import mixer
 
@@ -26,11 +27,14 @@ from apps.project_management.models import Project, Site
 pytestmark = pytest.mark.django_db
 
 
+logger = structlog.get_logger(__name__)
+
 CREATE_SITE_QUERY = """
     mutation createSite($input: SiteAddMutationInput!) {
         addSite(input: $input) {
            site {
               id
+              seen
            }
         }
     }
@@ -247,3 +251,34 @@ def test_delete_site_not_allowed(client, site):
     assert json.loads(error_msg)[0]["code"] == "delete_not_allowed"
 
     assert len(Site.objects.filter(id=site.id)) == 1
+
+
+def test_mark_site_seen(client, user):
+    client.force_login(user)
+    response = graphql_query(
+        CREATE_SITE_QUERY,
+        variables={"input": {"name": "site", "latitude": 0, "longitude": 0}},
+        client=client,
+    )
+    site = response.json()["data"]["addSite"]["site"]
+    assert site["seen"] is True
+
+    client.force_login(mixer.blend(User))
+    response = graphql_query(
+        "query site($id: ID!){ site(id: $id) { seen } }",
+        variables={"id": site["id"]},
+        client=client,
+    )
+    assert response.json()["data"]["site"]["seen"] is False
+
+    response = graphql_query(
+        """
+        mutation($input: SiteMarkSeenMutationInput!){
+            markSiteSeen(input: $input) { site { seen } }
+        }
+        """,
+        variables={"input": {"id": site["id"]}},
+        client=client,
+    )
+    logger.info(response.json())
+    assert response.json()["data"]["markSiteSeen"]["site"]["seen"] is True

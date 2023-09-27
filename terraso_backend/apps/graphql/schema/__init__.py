@@ -22,6 +22,7 @@ from apps.project_management.graphql.projects import (
     ProjectArchiveMutation,
     ProjectDeleteMutation,
     ProjectDeleteUserMutation,
+    ProjectMarkSeenMutation,
     ProjectNode,
     ProjectUpdateMutation,
     ProjectUpdateUserRoleMutation,
@@ -67,7 +68,13 @@ from .memberships import (
     MembershipNode,
     MembershipUpdateMutation,
 )
-from .sites import SiteAddMutation, SiteDeleteMutation, SiteNode, SiteUpdateMutation
+from .sites import (
+    SiteAddMutation,
+    SiteDeleteMutation,
+    SiteMarkSeenMutation,
+    SiteNode,
+    SiteUpdateMutation,
+)
 from .story_maps import (
     StoryMapDeleteMutation,
     StoryMapMembershipApproveMutation,
@@ -160,6 +167,7 @@ class Mutations(graphene.ObjectType):
     add_site = SiteAddMutation.Field()
     update_site = SiteUpdateMutation.Field()
     delete_site = SiteDeleteMutation.Field()
+    mark_site_seen = SiteMarkSeenMutation.Field()
     add_project = ProjectAddMutation.Field()
     update_project = ProjectUpdateMutation.Field()
     archive_project = ProjectArchiveMutation.Field()
@@ -167,6 +175,7 @@ class Mutations(graphene.ObjectType):
     add_user_to_project = ProjectAddUserMutation.Field()
     delete_user_from_project = ProjectDeleteUserMutation.Field()
     update_user_role_in_project = ProjectUpdateUserRoleMutation.Field()
+    mark_project_seen = ProjectMarkSeenMutation.Field()
     update_soil_data = SoilDataUpdateMutation.Field()
     update_depth_dependent_soil_data = DepthDependentSoilDataUpdateMutation.Field()
 

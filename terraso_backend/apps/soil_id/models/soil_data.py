@@ -15,9 +15,38 @@
 
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
+from django.forms import ValidationError
 
 from apps.core.models.commons import BaseModel
 from apps.project_management.models.sites import Site
+
+
+def default_depth_intervals():
+    return []
+
+
+def validate_depth_intervals(intervals):
+    if not isinstance(intervals, list):
+        raise ValidationError(f"Depth intervals must be list, got {intervals}")
+    for index, interval in enumerate(intervals):
+        if not isinstance(interval, dict) or len(interval) != 2:
+            raise ValidationError(f"Depth interval must be two element dict, got {interval}")
+        for field in ["start", "end"]:
+            if field not in interval or not isinstance(interval[field], int):
+                raise ValidationError(
+                    f"Depth interval {field} must exist and be integer, got {interval[field]}"
+                )
+        if interval["start"] < 0 or interval["end"] > 200:
+            raise ValidationError(f"Depth interval must be between 0 and 200, got {interval}")
+        if interval["start"] >= interval["end"]:
+            raise ValidationError(f"Depth interval start must be less than end, got {interval}")
+        if index + 1 < len(intervals) and interval["end"] > intervals[index + 1]["start"]:
+            raise ValidationError(
+                f"""
+                Depth interval must end at or before next interval,
+                got {interval} followed by {intervals[index + 1]}
+                """
+            )
 
 
 class SoilData(BaseModel):
@@ -74,4 +103,8 @@ class SoilData(BaseModel):
 
     slope_steepness_degree = models.IntegerField(
         blank=True, null=True, validators=[MinValueValidator(0), MaxValueValidator(90)]
+    )
+
+    depth_intervals = models.JSONField(
+        blank=True, validators=[validate_depth_intervals], default=default_depth_intervals
     )

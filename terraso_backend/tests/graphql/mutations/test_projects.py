@@ -12,19 +12,22 @@ from apps.project_management.models.sites import Site
 
 pytestmark = pytest.mark.django_db
 
-
-def test_create_project(client, user):
-    client.force_login(user)
-    response = graphql_query(
-        """
+CREATE_PROJECT_QUERY = """
     mutation createProject($input: ProjectAddMutationInput!) {
         addProject(input: $input) {
             project {
                 id
+                seen
             }
         }
     }
-    """,
+"""
+
+
+def test_create_project(client, user):
+    client.force_login(user)
+    response = graphql_query(
+        CREATE_PROJECT_QUERY,
         variables={
             "input": {"name": "testProject", "privacy": "PRIVATE", "description": "A test project"}
         },
@@ -397,3 +400,33 @@ def test_update_project_role_user_not_in_project(project, project_user, client):
     response = graphql_query(UPDATE_PROJECT_ROLE_GRAPHQL, input_data=input_data, client=client)
     payload = response.json()
     assert "errors" in payload
+
+
+def test_mark_project_seen(client, user):
+    client.force_login(user)
+    response = graphql_query(
+        CREATE_PROJECT_QUERY,
+        variables={"input": {"name": "project", "privacy": "PUBLIC"}},
+        client=client,
+    )
+    project = response.json()["data"]["addProject"]["project"]
+    assert project["seen"] is True
+
+    client.force_login(mixer.blend(User))
+    response = graphql_query(
+        "query project($id: ID!){ project(id: $id) { seen } }",
+        variables={"id": project["id"]},
+        client=client,
+    )
+    assert response.json()["data"]["project"]["seen"] is False
+
+    response = graphql_query(
+        """
+        mutation($input: ProjectMarkSeenMutationInput!){
+            markProjectSeen(input: $input) { project { seen } }
+        }
+        """,
+        variables={"input": {"id": project["id"]}},
+        client=client,
+    )
+    assert response.json()["data"]["markProjectSeen"]["project"]["seen"] is True

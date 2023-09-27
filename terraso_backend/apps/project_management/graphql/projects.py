@@ -36,7 +36,9 @@ from apps.collaboration.models import Membership
 from apps.core.models import User
 from apps.graphql.exceptions import GraphQLValidationException
 from apps.graphql.schema.commons import (
+    BaseAuthenticatedMutation,
     BaseDeleteMutation,
+    BaseMutation,
     BaseWriteMutation,
     TerrasoConnection,
 )
@@ -112,11 +114,14 @@ class ProjectFilterSet(FilterSet):
 
     class Meta:
         model = Project
-        fields = {"name": ["exact", "icontains"]}
+        fields = {
+            "name": ["exact", "icontains"],
+        }
 
 
 class ProjectNode(DjangoObjectType):
     id = graphene.ID(source="pk", required=True)
+    seen = graphene.Boolean(required=True)
 
     class Meta:
         model = Project
@@ -134,6 +139,12 @@ class ProjectNode(DjangoObjectType):
 
         interfaces = (relay.Node,)
         connection_class = TerrasoConnection
+
+    def resolve_seen(self, info):
+        user = info.context.user
+        if user.is_anonymous:
+            return True
+        return self.seen_by.filter(id=user.id).exists()
 
 
 class ProjectPrivacy(graphene.Enum):
@@ -162,6 +173,7 @@ class ProjectAddMutation(BaseWriteMutation):
             result.project.add_manager(user)
 
         client_time = kwargs.get("client_time", None)
+        result.project.mark_seen_by(user)
         if not client_time:
             client_time = datetime.now()
         action = log_api.CREATE
@@ -410,3 +422,17 @@ class ProjectUpdateUserRoleMutation(BaseWriteMutation):
         membership_updated_signal.send(sender=cls, membership=target_membership, user=requester)
 
         return ProjectUpdateUserRoleMutation(project=project, membership=target_membership)
+
+
+class ProjectMarkSeenMutation(BaseAuthenticatedMutation):
+    project = graphene.Field(ProjectNode, required=True)
+
+    class Input:
+        id = graphene.ID(required=True)
+
+    @classmethod
+    def mutate_and_get_payload(cls, root, info, id):
+        user = info.context.user
+        project = BaseMutation.get_or_throw(Project, "id", id)
+        project.mark_seen_by(user)
+        return ProjectMarkSeenMutation(project=project)

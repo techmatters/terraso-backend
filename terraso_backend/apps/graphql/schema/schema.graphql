@@ -655,6 +655,7 @@ type ProjectNode implements Node {
     orderBy: String
   ): SiteNodeConnection!
   id: ID!
+  seen: Boolean!
 }
 
 type ProjectMembershipListNode implements Node {
@@ -736,6 +737,7 @@ type SiteNode implements Node {
   archived: Boolean!
   soilData: SoilDataNode
   id: ID!
+  seen: Boolean!
 }
 
 """An enumeration."""
@@ -756,6 +758,7 @@ type SoilDataNode {
   slopeSteepnessSelect: SoilIdSoilDataSlopeSteepnessSelectChoices
   slopeSteepnessPercent: Int
   slopeSteepnessDegree: Int
+  depthIntervals: [DepthInterval!]!
   depthDependentData: [DepthDependentSoilDataNode!]!
 }
 
@@ -850,6 +853,11 @@ enum SoilIdSoilDataSlopeSteepnessSelectChoices {
 
   """100%+ (steepest)"""
   STEEPEST
+}
+
+type DepthInterval {
+  start: Int!
+  end: Int!
 }
 
 type DepthDependentSoilDataNode {
@@ -1331,6 +1339,7 @@ type Mutations {
   addSite(input: SiteAddMutationInput!): SiteAddMutationPayload!
   updateSite(input: SiteUpdateMutationInput!): SiteUpdateMutationPayload!
   deleteSite(input: SiteDeleteMutationInput!): SiteDeleteMutationPayload!
+  markSiteSeen(input: SiteMarkSeenMutationInput!): SiteMarkSeenMutationPayload!
   addProject(input: ProjectAddMutationInput!): ProjectAddMutationPayload!
   updateProject(input: ProjectUpdateMutationInput!): ProjectUpdateMutationPayload!
   archiveProject(input: ProjectArchiveMutationInput!): ProjectArchiveMutationPayload!
@@ -1338,6 +1347,7 @@ type Mutations {
   addUserToProject(input: ProjectAddUserMutationInput!): ProjectAddUserMutationPayload!
   deleteUserFromProject(input: ProjectDeleteUserMutationInput!): ProjectDeleteUserMutationPayload!
   updateUserRoleInProject(input: ProjectUpdateUserRoleMutationInput!): ProjectUpdateUserRoleMutationPayload!
+  markProjectSeen(input: ProjectMarkSeenMutationInput!): ProjectMarkSeenMutationPayload!
   updateSoilData(input: SoilDataUpdateMutationInput!): SoilDataUpdateMutationPayload!
   updateDepthDependentSoilData(input: DepthDependentSoilDataUpdateMutationInput!): DepthDependentSoilDataUpdateMutationPayload!
 }
@@ -1781,6 +1791,17 @@ input SiteDeleteMutationInput {
   clientMutationId: String
 }
 
+type SiteMarkSeenMutationPayload {
+  errors: GenericScalar
+  site: SiteNode!
+  clientMutationId: String
+}
+
+input SiteMarkSeenMutationInput {
+  id: ID!
+  clientMutationId: String
+}
+
 type ProjectAddMutationPayload {
   errors: GenericScalar
   project: ProjectNode!
@@ -1878,6 +1899,17 @@ input ProjectUpdateUserRoleMutationInput {
   clientMutationId: String
 }
 
+type ProjectMarkSeenMutationPayload {
+  errors: GenericScalar
+  project: ProjectNode!
+  clientMutationId: String
+}
+
+input ProjectMarkSeenMutationInput {
+  id: ID!
+  clientMutationId: String
+}
+
 type SoilDataUpdateMutationPayload {
   errors: GenericScalar
   soilData: SoilDataNode
@@ -1894,7 +1926,13 @@ input SoilDataUpdateMutationInput {
   slopeSteepnessSelect: SoilIdSoilDataSlopeSteepnessSelectChoices
   slopeSteepnessPercent: Int
   slopeSteepnessDegree: Int
+  depthIntervals: [DepthIntervalInput!]
   clientMutationId: String
+}
+
+input DepthIntervalInput {
+  start: Int!
+  end: Int!
 }
 
 type DepthDependentSoilDataUpdateMutationPayload {
