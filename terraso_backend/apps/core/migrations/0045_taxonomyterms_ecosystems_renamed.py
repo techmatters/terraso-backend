@@ -13,9 +13,16 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see https://www.gnu.org/licenses/.
 
-from django.db import migrations, models
+from django.db import migrations
 
-import apps.core.models.commons
+TERMS_TYPES = [
+    ("ecosystem-type", "ECOSYSTEM_TYPE"),
+    ("language", "LANGUAGE"),
+    ("livelihood", "LIVELIHOOD"),
+    ("commodity", "COMMODITY"),
+    ("organization", "ORGANIZATION"),
+    ("agricultural-production-method", "AGRICULTURAL_PRODUCTION_METHOD"),
+]
 
 TERMS = {
     "ECOSYSTEM_TYPE": [
@@ -26,12 +33,35 @@ TERMS = {
 }
 
 
+def fix_case_term_types(apps, schema_editor):
+    TaxonomyTerm = apps.get_model("core", "TaxonomyTerm")
+    Landscape = apps.get_model("core", "Landscape")
+    for wrong_type, correct_type in TERMS_TYPES:
+        wrong_terms = TaxonomyTerm.objects.filter(type=wrong_type).all()
+        for wrong_term in wrong_terms:
+            try:
+                correct_term = TaxonomyTerm.objects.filter(
+                    type=correct_type, slug=wrong_term.slug
+                ).get()
+            except TaxonomyTerm.DoesNotExist:
+                correct_term = None
+            if not correct_term:
+                wrong_term.type = correct_type
+                wrong_term.save()
+            else:
+                landscapes = Landscape.objects.filter(taxonomy_terms__in=[wrong_term]).all()
+                for landscape in landscapes:
+                    landscape.taxonomy_terms.remove(wrong_term)
+                    landscape.taxonomy_terms.add(correct_term)
+                wrong_term.delete()
+
+
 class Migration(migrations.Migration):
     dependencies = [
         ("core", "0044_notifications"),
     ]
 
-    operations = [
+    operations = [migrations.RunPython(fix_case_term_types)] + [
         migrations.RunSQL(
             sql=[
                 (
