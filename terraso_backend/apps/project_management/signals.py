@@ -19,14 +19,18 @@ from django.dispatch import receiver
 
 from apps.audit_logs import api as audit_log_api
 from apps.audit_logs import services
-from apps.graphql.signals import membership_added_signal, membership_updated_signal
+from apps.graphql.signals import (
+    membership_added_signal,
+    membership_deleted_signal,
+    membership_updated_signal,
+)
 
 audit_logger = services.new_audit_logger()
 
 
 def _handle_membership_log(user, action, membership, client_time):
     try:
-        project = membership.group.project
+        project = membership.membership_list.project
     except Exception:
         # No project for membership, do nothing
         return
@@ -60,3 +64,12 @@ def handle_membership_updated(sender, **kwargs):
     client_time = datetime.now()
 
     _handle_membership_log(user, audit_log_api.CHANGE, membership, client_time)
+
+
+@receiver(membership_deleted_signal)
+def handle_membership_deleted(sender, **kwargs):
+    membership = kwargs["membership"]
+    user = kwargs["user"]
+    client_time = datetime.now()
+
+    _handle_membership_log(user, audit_log_api.DELETE, membership, client_time)

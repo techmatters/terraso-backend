@@ -12,14 +12,18 @@
 #
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see https://www.gnu.org/licenses/.
-import secrets
-
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
-from apps.core.models import Group, User
+from apps.collaboration.models import Membership, MembershipList
+from apps.core.models import User
 from apps.core.models.commons import BaseModel
 from apps.project_management import permission_rules
+from apps.project_management.collaboration_roles import (
+    ROLE_CONTRIBUTOR,
+    ROLE_MANAGER,
+    ROLE_VIEWER,
+)
 
 
 class ProjectSettings(BaseModel):
@@ -28,6 +32,20 @@ class ProjectSettings(BaseModel):
 
     member_can_update_site = models.BooleanField(default=False)
     member_can_add_site_to_project = models.BooleanField(default=False)
+
+
+class ProjectMembership(Membership):
+    """A proxy class created soley for graphene schema reasons"""
+
+    class Meta:
+        proxy = True
+
+
+class ProjectMembershipList(MembershipList):
+    """A proxy class created soley for graphql schema reasons"""
+
+    class Meta:
+        proxy = True
 
 
 class Project(BaseModel):
@@ -42,6 +60,8 @@ class Project(BaseModel):
             "archive": permission_rules.allowed_to_archive_project,
         }
 
+    ROLES = (ROLE_VIEWER, ROLE_CONTRIBUTOR, ROLE_MANAGER)
+
     PRIVATE = "private"
     PUBLIC = "public"
     DEFAULT_PRIVACY_STATUS = PRIVATE
@@ -50,7 +70,7 @@ class Project(BaseModel):
 
     name = models.CharField(max_length=200)
     description = models.CharField(max_length=512, default="", blank=True)
-    group = models.OneToOneField(Group, on_delete=models.CASCADE)
+    membership_list = models.OneToOneField(ProjectMembershipList, on_delete=models.CASCADE)
     privacy = models.CharField(
         max_length=32, choices=PRIVACY_STATUS, default=DEFAULT_PRIVACY_STATUS
     )
@@ -69,8 +89,8 @@ class Project(BaseModel):
     def save(self, *args, **kwargs):
         if not hasattr(self, "settings"):
             self.settings = self.default_settings()
-        if not hasattr(self, "group"):
-            self.group = self.create_default_group(self.name)
+        if not hasattr(self, "membership_list"):
+            self.membership_list = self.create_membership_list()
         return super(Project, self).save(*args, **kwargs)
 
     archived = models.BooleanField(
@@ -78,34 +98,55 @@ class Project(BaseModel):
     )
 
     @staticmethod
-    def create_default_group(name: str):
+    def create_membership_list() -> MembershipList:
         """Creates a default group for a project"""
-        group_name = f"project_group_{name}_{secrets.token_hex(6)}"
-        return Group.objects.create(
-            name=group_name,
-            membership_type=Group.MEMBERSHIP_TYPE_OPEN,
-            enroll_method=Group.ENROLL_METHOD_INVITE,
+        return MembershipList.objects.create(
+            membership_type=MembershipList.MEMBERSHIP_TYPE_OPEN,
+            enroll_method=MembershipList.ENROLL_METHOD_JOIN,
         )
 
     def is_manager(self, user: User) -> bool:
-        return self.managers.filter(id=user.id).exists()
+        return self.manager_memberships.filter(user=user).exists()
+
+    def is_viewer(self, user: User) -> bool:
+        return self.viewer_memberships.filter(user=user).exists()
+
+    def is_contributor(self, user: User) -> bool:
+        return self.contributor_memberships.filter(user=user).exists()
 
     def is_member(self, user: User) -> bool:
-        return self.members.filter(id=user.id).exists()
+        return self.membership_list.is_member(user)
 
     @property
-    def managers(self):
-        return self.group.group_managers
+    def manager_memberships(self):
+        return self.membership_list.memberships.by_role(ROLE_MANAGER)
 
     @property
-    def members(self):
-        return self.group.group_members
+    def viewer_memberships(self):
+        return self.membership_list.memberships.by_role(ROLE_VIEWER)
+
+    @property
+    def contributor_memberships(self):
+        return self.membership_list.memberships.by_role(ROLE_CONTRIBUTOR)
 
     def add_manager(self, user: User):
-        return self.group.add_manager(user)
+        return self.add_user_with_role(user, ROLE_MANAGER)
 
-    def add_member(self, user: User):
-        return self.group.add_member(user)
+    def add_viewer(self, user: User):
+        return self.add_user_with_role(user, ROLE_VIEWER)
+
+    def add_user_with_role(self, user: User, role: str):
+        assert role in self.ROLES
+        return Membership.objects.create(
+            membership_list=self.membership_list,
+            user=user,
+            membership_status=Membership.APPROVED,
+            user_role=role,
+            pending_email=None,
+        )
+
+    def get_membership(self, user: User):
+        return self.membership_list.memberships.filter(user=user).first()
 
     def mark_seen_by(self, user: User):
         self.seen_by.add(user)

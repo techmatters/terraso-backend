@@ -136,9 +136,8 @@ def test_update_site_in_project(client, project, project_manager, site):
     assert log_result.metadata["project_id"] == str(project.id)
 
 
-def test_adding_site_to_project_user_not_manager(client, project, site, user):
-    site_creator = mixer.blend(User)
-    project.add_member(user)
+def test_adding_site_to_project_user_not_manager(client, project, site, project_user):
+    site_creator = project_user
     client.force_login(site_creator)
     response = graphql_query(
         UPDATE_SITE_QUERY,

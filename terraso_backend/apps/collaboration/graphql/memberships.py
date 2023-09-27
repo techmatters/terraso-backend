@@ -19,14 +19,34 @@ import structlog
 from graphene import relay
 from graphene_django import DjangoObjectType
 
-from apps.graphql.schema.commons import TerrasoConnection
-
 from ..models import Membership, MembershipList
+
+# from apps.graphql.schema.commons import TerrasoConnection
+
 
 logger = structlog.get_logger(__name__)
 
 
-class CollaborationMembershipListNode(DjangoObjectType):
+# TODO: trying to import this from apps.graphql.schema.commons causes a circular import
+# Created an issue to move the module to apps.graphql.commons, as that seems simplest
+# https://github.com/techmatters/terraso-backend/issues/820
+class TerrasoConnection(graphene.Connection):
+    class Meta:
+        abstract = True
+
+    total_count = graphene.Int(required=True)
+
+    def resolve_total_count(self, info, **kwargs):
+        queryset = self.iterable
+        return queryset.count()
+
+    @classmethod
+    def __init_subclass_with_meta__(cls, **options):
+        options["strict_types"] = options.pop("strict_types", True)
+        super().__init_subclass_with_meta__(**options)
+
+
+class MembershipListNodeMixin:
     id = graphene.ID(source="pk", required=True)
     account_membership = graphene.Field("apps.collaboration.graphql.CollaborationMembershipNode")
     memberships_count = graphene.Int()
@@ -53,6 +73,11 @@ class CollaborationMembershipListNode(DjangoObjectType):
         return self.memberships.approved_only().count()
 
 
+class CollaborationMembershipListNode(MembershipListNodeMixin, DjangoObjectType):
+    class Meta(MembershipListNodeMixin.Meta):
+        pass
+
+
 class CollaborationMembershipFilterSet(django_filters.FilterSet):
     user__email__not = django_filters.CharFilter(method="filter_user_email_not")
 
@@ -69,7 +94,7 @@ class CollaborationMembershipFilterSet(django_filters.FilterSet):
         return queryset.exclude(user__email=value)
 
 
-class CollaborationMembershipNode(DjangoObjectType):
+class MembershipNodeMixin:
     id = graphene.ID(source="pk", required=True)
 
     class Meta:
@@ -86,3 +111,8 @@ class CollaborationMembershipNode(DjangoObjectType):
             return queryset.none()
 
         return queryset
+
+
+class CollaborationMembershipNode(MembershipNodeMixin, DjangoObjectType):
+    class Meta(MembershipNodeMixin.Meta):
+        pass

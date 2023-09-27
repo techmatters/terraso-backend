@@ -7,7 +7,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
     dependencies = [
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
-        ("project_management", "0014_site_privacy_alter_project_description"),
+        ("project_management", "0018_projectmembership_projectmembershiplist_and_more"),
     ]
 
     operations = [

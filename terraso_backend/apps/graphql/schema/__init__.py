@@ -16,6 +16,17 @@
 import graphene
 from graphene_django.filter import DjangoFilterConnectionField
 
+from apps.project_management.graphql.projects import (
+    ProjectAddMutation,
+    ProjectAddUserMutation,
+    ProjectArchiveMutation,
+    ProjectDeleteMutation,
+    ProjectDeleteUserMutation,
+    ProjectMarkSeenMutation,
+    ProjectNode,
+    ProjectUpdateMutation,
+    ProjectUpdateUserRoleMutation,
+)
 from apps.soil_id.graphql.soil_data import (
     DepthDependentSoilDataUpdateMutation,
     SoilDataUpdateMutation,
@@ -56,14 +67,6 @@ from .memberships import (
     MembershipDeleteMutation,
     MembershipNode,
     MembershipUpdateMutation,
-)
-from .projects import (
-    ProjectAddMutation,
-    ProjectArchiveMutation,
-    ProjectDeleteMutation,
-    ProjectMarkSeenMutation,
-    ProjectNode,
-    ProjectUpdateMutation,
 )
 from .sites import (
     SiteAddMutation,
@@ -169,6 +172,9 @@ class Mutations(graphene.ObjectType):
     update_project = ProjectUpdateMutation.Field()
     archive_project = ProjectArchiveMutation.Field()
     delete_project = ProjectDeleteMutation.Field()
+    add_user_to_project = ProjectAddUserMutation.Field()
+    delete_user_from_project = ProjectDeleteUserMutation.Field()
+    update_user_role_in_project = ProjectUpdateUserRoleMutation.Field()
     mark_project_seen = ProjectMarkSeenMutation.Field()
     update_soil_data = SoilDataUpdateMutation.Field()
     update_depth_dependent_soil_data = DepthDependentSoilDataUpdateMutation.Field()

@@ -1,4 +1,4 @@
-# Copyright © 2021-2023 Technology Matters
+# Copyright © 2023 Technology Matters
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as published
@@ -12,17 +12,7 @@
 #
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see https://www.gnu.org/licenses/.
-# from django.contrib import admin
 
-# Register your models here.
-from django.contrib import admin
-
-from apps.project_management.models import Project, ProjectSettings, Site
-
-admin.site.register(Site)
-admin.site.register(ProjectSettings)
-
-
-@admin.register(Project)
-class ProjectAdmin(admin.ModelAdmin):
-    readonly_fields = ("membership_list", "settings")
+ROLE_MANAGER = "manager"
+ROLE_CONTRIBUTOR = "contributor"
+ROLE_VIEWER = "viewer"

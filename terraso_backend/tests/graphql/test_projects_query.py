@@ -22,8 +22,6 @@ pytestmark = pytest.mark.django_db
 
 def test_query_by_member(client, project, project_user):
     project2 = Project(name="2")
-    project2.group = project2.create_default_group("2")
-    project2.settings = project2.default_settings()
     project2.save()
     query = """
     {
@@ -32,7 +30,7 @@ def test_query_by_member(client, project, project_user):
           node {
             id
             name
-            group {
+            membershipList {
               id
             }
           }
