@@ -315,6 +315,10 @@ class ProjectAddUserMutation(BaseWriteMutation):
             ):
                 raise ValidationError("User cannot add membership to this project")
 
+        if membership := project.get_membership(user):
+            # if user is already a member, don't do anything
+            return ProjectAddUserMutation(project=project, membership=membership)
+
         # add membership
         try:
             _, membership = project.membership_list.save_membership(
