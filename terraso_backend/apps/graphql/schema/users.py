@@ -16,6 +16,7 @@
 import graphene
 import rules
 import structlog
+from django_filters import CharFilter, FilterSet
 from graphene import relay
 from graphene_django import DjangoObjectType
 
@@ -35,8 +36,8 @@ from .constants import MutationTypes
 logger = structlog.get_logger(__name__)
 
 
-class UserNode(DjangoObjectType):
-    id = graphene.ID(source="pk", required=True)
+class UserFilter(FilterSet):
+    user__in_project = CharFilter(method="filter_user_in_project")
 
     class Meta:
         model = User
@@ -46,8 +47,20 @@ class UserNode(DjangoObjectType):
             "last_name": ["icontains"],
         }
         fields = ("email", "first_name", "last_name", "profile_image", "memberships", "preferences")
+
+    def filter_user_in_project(self, queryset, name, value):
+        return queryset.filter(collaboration_memberships__membership_list__project__id=value)
+
+
+class UserNode(DjangoObjectType):
+    id = graphene.ID(source="pk", required=True)
+
+    class Meta:
+        model = User
+        filterset_class = UserFilter
         interfaces = (relay.Node,)
         connection_class = TerrasoConnection
+        fields = ("email", "first_name", "last_name", "profile_image", "memberships", "preferences")
 
 
 class UserPreferenceNode(DjangoObjectType):
