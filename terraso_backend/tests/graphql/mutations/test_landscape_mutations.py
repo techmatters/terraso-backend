@@ -229,13 +229,13 @@ def test_landscapes_update_taxonomy_terms(client_query, managed_landscapes):
             {
                 "language": [
                     {
-                        "type": "language",
+                        "type": "LANGUAGE",
                         "valueOriginal": "an",
                         "valueEn": "Aragonese",
                         "valueEs": "Aragonés",
                     },
                     {
-                        "type": "language",
+                        "type": "LANGUAGE",
                         "valueOriginal": "eo",
                         "valueEn": "Esperanto",
                         "valueEs": "Esperanto",

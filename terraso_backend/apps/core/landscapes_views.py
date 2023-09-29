@@ -70,8 +70,8 @@ class LandscapeExportView(View):
                     "type": term.type,
                     "value": {
                         "original": term.value_original,
-                        "en": term.value_en,
-                        "es": term.value_es,
+                        "eng": term.value_en,
+                        "spa": term.value_es,
                     },
                 }
                 for term in terms

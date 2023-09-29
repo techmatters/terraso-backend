@@ -21,12 +21,12 @@ from .users import User
 
 
 class TaxonomyTerm(SlugModel):
-    TYPE_ECOSYSTEM_TYPE = "ecosystem-type"
-    TYPE_LANGUAGE = "language"
-    TYPE_LIVELIHOOD = "livelihood"
-    TYPE_COMMODITY = "commodity"
-    TYPE_ORGANIZATION = "organization"
-    TYPE_AGRICULTURAL_PRODUCTION_METHOD = "agricultural-production-method"
+    TYPE_ECOSYSTEM_TYPE = "ECOSYSTEM_TYPE"
+    TYPE_LANGUAGE = "LANGUAGE"
+    TYPE_LIVELIHOOD = "LIVELIHOOD"
+    TYPE_COMMODITY = "COMMODITY"
+    TYPE_ORGANIZATION = "ORGANIZATION"
+    TYPE_AGRICULTURAL_PRODUCTION_METHOD = "AGRICULTURAL_PRODUCTION_METHOD"
 
     TYPES = (
         (TYPE_ECOSYSTEM_TYPE, _("Ecosystem Type")),

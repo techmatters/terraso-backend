@@ -127,7 +127,7 @@ def test_get_landscape_json_view_terms(client, landscape):
     landscape.taxonomy_terms.add(
         mixer.blend(
             TaxonomyTerm,
-            type=TaxonomyTerm.TYPE_ECOSYSTEM_TYPE.upper(),
+            type=TaxonomyTerm.TYPE_ECOSYSTEM_TYPE,
             value_original="Test Term",
             value_en="Test Term en",
             value_es="Test Term es",
@@ -143,11 +143,11 @@ def test_get_landscape_json_view_terms(client, landscape):
 
     assert json_response["taxonomyTerms"] == [
         {
-            "type": TaxonomyTerm.TYPE_ECOSYSTEM_TYPE.upper(),
+            "type": TaxonomyTerm.TYPE_ECOSYSTEM_TYPE,
             "value": {
                 "original": "Test Term",
-                "en": "Test Term en",
-                "es": "Test Term es",
+                "eng": "Test Term en",
+                "spa": "Test Term es",
             },
         }
     ]
