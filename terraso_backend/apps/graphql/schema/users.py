@@ -41,12 +41,11 @@ class UserFilter(FilterSet):
 
     class Meta:
         model = User
-        filter_fields = {
+        fields = {
             "email": ["exact", "icontains"],
             "first_name": ["icontains"],
             "last_name": ["icontains"],
         }
-        fields = ("email", "first_name", "last_name", "profile_image", "memberships", "preferences")
 
     def filter_user_in_project(self, queryset, name, value):
         return queryset.filter(collaboration_memberships__membership_list__project__id=value)
