@@ -360,9 +360,9 @@ django-ses==3.5.0 \
     --hash=sha256:3522fe531155eb06bb015b3b36324c059194450633b33f9bd5bc9d1328822fe2 \
     --hash=sha256:dc1644f50608fbf3a64f085a371c61d56d68eba3c5efa69651f13dc3ba05049d
     # via -r requirements/base.in
-django-storages==1.14 \
-    --hash=sha256:11280a883b13812df548f3cfe9c10280afc0d4727c8babdee369a75e71158f16 \
-    --hash=sha256:6c97e5faad829c923a1262206281742c484d76d43b332a196ddcc242b909c551
+django-storages==1.14.1 \
+    --hash=sha256:18cb6c305fbb2f114c11b5b7b647b6271aa251972dcd4a5651b9cee2b0bd3a8a \
+    --hash=sha256:a2c327d67792eec04c7f5f5bb2900b21f426de8a3a811cea85fac7904bdccf36
     # via -r requirements/base.in
 django-structlog==5.3.0 \
     --hash=sha256:078577c91e58cbaf66ecb47ec2b710ce4864b234f474691d29578e75c055ef8b \
