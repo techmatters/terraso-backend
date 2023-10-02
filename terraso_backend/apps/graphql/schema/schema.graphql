@@ -1861,7 +1861,7 @@ input ProjectDeleteMutationInput {
 type ProjectAddUserMutationPayload {
   errors: GenericScalar
   project: ProjectNode!
-  membership: CollaborationMembershipNode!
+  membership: ProjectMembershipNode!
   clientMutationId: String
 }
 
@@ -1875,7 +1875,7 @@ input ProjectAddUserMutationInput {
 type ProjectDeleteUserMutationPayload {
   errors: GenericScalar
   project: ProjectNode!
-  membership: CollaborationMembershipNode!
+  membership: ProjectMembershipNode!
   clientMutationId: String
 }
 
@@ -1888,7 +1888,7 @@ input ProjectDeleteUserMutationInput {
 type ProjectUpdateUserRoleMutationPayload {
   errors: GenericScalar
   project: ProjectNode!
-  membership: CollaborationMembershipNode!
+  membership: ProjectMembershipNode!
   clientMutationId: String
 }
 

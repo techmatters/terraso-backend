@@ -26,9 +26,6 @@ from graphene_django.filter import DjangoFilterConnectionField, TypedFilter
 
 from apps.audit_logs import api as log_api
 from apps.collaboration.graphql.memberships import (
-    CollaborationMembershipNode as MembershipNode,
-)
-from apps.collaboration.graphql.memberships import (
     MembershipListNodeMixin,
     MembershipNodeMixin,
 )
@@ -73,7 +70,7 @@ class ProjectMembershipNode(DjangoObjectType, MembershipNodeMixin):
         match self.user_role:
             case "viewer":
                 return UserRole.viewer
-            case "constributor":
+            case "contributor":
                 return UserRole.contributor
             case "manager":
                 return UserRole.manager
@@ -287,9 +284,9 @@ class ProjectUpdateMutation(BaseWriteMutation):
 
 class ProjectAddUserMutation(BaseWriteMutation):
     project = graphene.Field(ProjectNode, required=True)
-    membership = graphene.Field(MembershipNode, required=True)
+    membership = graphene.Field(ProjectMembershipNode, required=True)
 
-    model_class = Membership
+    model_class = ProjectMembership
 
     class Input:
         project_id = graphene.ID(required=True)
@@ -322,9 +319,10 @@ class ProjectAddUserMutation(BaseWriteMutation):
                 user_role=role.value,
                 membership_status=Membership.APPROVED,
                 validation_func=validate,
+                membership_class=ProjectMembership,
             )
         except ValidationError as e:
-            cls.not_allowed_create(model=Membership, msg=e.message)
+            cls.not_allowed_create(model=cls.model_class, msg=e.message)
 
         membership_added_signal.send(sender=cls, membership=membership, user=request_user)
 
@@ -333,7 +331,7 @@ class ProjectAddUserMutation(BaseWriteMutation):
 
 class ProjectDeleteUserMutation(BaseWriteMutation):
     project = graphene.Field(ProjectNode, required=True)
-    membership = graphene.Field(MembershipNode, required=True)
+    membership = graphene.Field(ProjectMembershipNode, required=True)
 
     model_class = Membership
 
@@ -380,10 +378,10 @@ class ProjectDeleteUserMutation(BaseWriteMutation):
 
 
 class ProjectUpdateUserRoleMutation(BaseWriteMutation):
-    model_class = Membership
+    model_class = ProjectMembership
 
     project = graphene.Field(ProjectNode, required=True)
-    membership = graphene.Field(MembershipNode, required=True)
+    membership = graphene.Field(ProjectMembershipNode, required=True)
 
     class Input:
         project_id = graphene.ID(required=True)

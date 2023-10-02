@@ -54,7 +54,10 @@ class MembershipList(BaseModel):
         default=DEFAULT_MEMERBSHIP_TYPE,
     )
 
-    def save_membership(self, user_email, user_role, membership_status, validation_func):
+    def save_membership(
+        self, user_email, user_role, membership_status, validation_func, membership_class=None
+    ):
+        membership_class = membership_class or Membership
         user = User.objects.filter(email=user_email).first()
         user_exists = user is not None
 
@@ -73,7 +76,7 @@ class MembershipList(BaseModel):
             raise ValidationError("User cannot request membership")
 
         if is_new:
-            membership = Membership(
+            membership = membership_class(
                 membership_list=self,
                 user=user if user_exists else None,
                 pending_email=user_email if not user_exists else None,

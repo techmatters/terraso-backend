@@ -146,7 +146,9 @@ class Project(BaseModel):
         )
 
     def get_membership(self, user: User):
-        return self.membership_list.memberships.filter(user=user).first()
+        return ProjectMembership.objects.filter(
+            membership_list=self.membership_list, user=user
+        ).first()
 
     def mark_seen_by(self, user: User):
         self.seen_by.add(user)
