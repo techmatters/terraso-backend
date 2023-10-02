@@ -351,7 +351,9 @@ class StoryMapMembershipApproveTokenMutation(BaseUnauthenticatedMutation):
                 extra=kwargs,
             )
             raise GraphQLNotAllowedException(
-                model_name=Membership.__name__, operation=MutationTypes.UPDATE
+                model_name=Membership.__name__,
+                operation=MutationTypes.UPDATE,
+                message="permissions_validation",
             )
 
         try:
