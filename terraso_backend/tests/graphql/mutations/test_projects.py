@@ -18,6 +18,9 @@ CREATE_PROJECT_QUERY = """
             project {
                 id
                 seen
+                membershipList {
+                   id
+                }
             }
         }
     }
