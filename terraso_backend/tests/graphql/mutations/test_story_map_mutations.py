@@ -427,10 +427,8 @@ def test_story_map_approve_membership_with_token_for_registered_user(
 def test_story_map_approve_membership_with_token_for_unregistered_user(
     client_query_no_token,
     story_map_user_memberships_not_registered_approve_tokens,
-    story_map_user_memberships_not_registered,
 ):
     token = story_map_user_memberships_not_registered_approve_tokens[0]
-    membership = story_map_user_memberships_not_registered[0]
 
     response = client_query_no_token(
         """
@@ -454,12 +452,10 @@ def test_story_map_approve_membership_with_token_for_unregistered_user(
     )
     json_response = response.json()
 
-    assert json_response["data"]["approveStoryMapMembershipToken"]["errors"] is None
-
-    response_membership = json_response["data"]["approveStoryMapMembershipToken"]["membership"]
-
-    assert response_membership["id"] == str(membership.id)
-    assert response_membership["membershipStatus"] == "APPROVED"
+    assert "errors" in json_response["data"]["approveStoryMapMembershipToken"]
+    error_result = json_response["data"]["approveStoryMapMembershipToken"]["errors"][0]["message"]
+    json_error = json.loads(error_result)
+    assert json_error[0]["code"] == "unauthorized"
 
 
 def test_story_map_approve_membership_with_token_for_registered_user_fails_due_user_mismatch(

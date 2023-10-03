@@ -37,12 +37,7 @@ from apps.story_map.models.story_maps import StoryMap
 from apps.story_map.notifications import send_memberships_invite_email
 from apps.story_map.services import story_map_media_upload_service
 
-from .commons import (
-    BaseAuthenticatedMutation,
-    BaseDeleteMutation,
-    BaseUnauthenticatedMutation,
-    TerrasoConnection,
-)
+from .commons import BaseAuthenticatedMutation, BaseDeleteMutation, TerrasoConnection
 from .constants import MutationTypes
 
 logger = structlog.get_logger(__name__)
@@ -290,7 +285,7 @@ class StoryMapMembershipSaveMutation(BaseAuthenticatedMutation):
         return cls(memberships=[membership["membership"] for membership in memberships])
 
 
-class StoryMapMembershipApproveTokenMutation(BaseUnauthenticatedMutation):
+class StoryMapMembershipApproveTokenMutation(BaseAuthenticatedMutation):
     model_class = Membership
     membership = graphene.Field(CollaborationMembershipNode)
     story_map = graphene.Field(StoryMapNode)
