@@ -16,9 +16,10 @@
 import graphene
 import rules
 import structlog
-from django_filters import CharFilter, FilterSet
+from django_filters import FilterSet
 from graphene import relay
 from graphene_django import DjangoObjectType
+from graphene_django.filter import TypedFilter
 
 from apps.auth.services import JWTService
 from apps.core.models import User, UserPreference
@@ -37,7 +38,7 @@ logger = structlog.get_logger(__name__)
 
 
 class UserFilter(FilterSet):
-    user__in_project = CharFilter(method="filter_user_in_project")
+    project = TypedFilter(field_name="collaboration_memberships__membership_list__project")
 
     class Meta:
         model = User
@@ -46,9 +47,6 @@ class UserFilter(FilterSet):
             "first_name": ["icontains"],
             "last_name": ["icontains"],
         }
-
-    def filter_user_in_project(self, queryset, name, value):
-        return queryset.filter(collaboration_memberships__membership_list__project__id=value)
 
 
 class UserNode(DjangoObjectType):

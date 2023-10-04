@@ -80,7 +80,7 @@ def test_users_query_in_project(client_query, project, project_user):
     response = client_query(
         """
     query userInProject($projectId: String!, $email: String!) {
-        users(user_InProject: $projectId, email: $email) {
+        users(project: $projectId, email: $email) {
           edges {
             node {
               id
