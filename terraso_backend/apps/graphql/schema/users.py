@@ -16,8 +16,10 @@
 import graphene
 import rules
 import structlog
+from django_filters import FilterSet
 from graphene import relay
 from graphene_django import DjangoObjectType
+from graphene_django.filter import TypedFilter
 
 from apps.auth.services import JWTService
 from apps.core.models import User, UserPreference
@@ -35,19 +37,27 @@ from .constants import MutationTypes
 logger = structlog.get_logger(__name__)
 
 
+class UserFilter(FilterSet):
+    project = TypedFilter(field_name="collaboration_memberships__membership_list__project")
+
+    class Meta:
+        model = User
+        fields = {
+            "email": ["exact", "icontains"],
+            "first_name": ["icontains"],
+            "last_name": ["icontains"],
+        }
+
+
 class UserNode(DjangoObjectType):
     id = graphene.ID(source="pk", required=True)
 
     class Meta:
         model = User
-        filter_fields = {
-            "email": ["exact", "icontains"],
-            "first_name": ["icontains"],
-            "last_name": ["icontains"],
-        }
-        fields = ("email", "first_name", "last_name", "profile_image", "memberships", "preferences")
+        filterset_class = UserFilter
         interfaces = (relay.Node,)
         connection_class = TerrasoConnection
+        fields = ("email", "first_name", "last_name", "profile_image", "memberships", "preferences")
 
 
 class UserPreferenceNode(DjangoObjectType):

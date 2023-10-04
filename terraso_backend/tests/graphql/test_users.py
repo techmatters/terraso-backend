@@ -74,3 +74,23 @@ def test_users_query_has_total_count(client_query, users):
     total_count = response.json()["data"]["users"]["totalCount"]
 
     assert total_count == len(users)
+
+
+def test_users_query_in_project(client_query, project, project_user):
+    response = client_query(
+        """
+    query userInProject($projectId: String!, $email: String!) {
+        users(project: $projectId, email: $email) {
+          edges {
+            node {
+              id
+            }
+          }
+      }
+    }
+    """,
+        variables={"projectId": str(project.id), "email": project_user.email},
+    )
+    contents = response.json()
+    assert "errors" not in contents
+    assert contents["data"]["users"]["edges"][0]["node"]["id"] == str(project_user.id)
