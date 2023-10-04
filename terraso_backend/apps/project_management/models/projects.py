@@ -100,7 +100,7 @@ class Project(BaseModel):
     @staticmethod
     def create_membership_list() -> MembershipList:
         """Creates a default group for a project"""
-        return MembershipList.objects.create(
+        return ProjectMembershipList.objects.create(
             membership_type=MembershipList.MEMBERSHIP_TYPE_OPEN,
             enroll_method=MembershipList.ENROLL_METHOD_JOIN,
         )
