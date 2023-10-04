@@ -204,6 +204,7 @@ mutation addUser($input: ProjectAddUserMutationInput!) {
       id
     }
     membership {
+      id
       user {
         id
       }
@@ -268,6 +269,22 @@ def test_add_user_to_project_bad_roles(project, project_manager, client):
     response = graphql_query(ADD_USER_GRAPHQL, input_data=input_data, client=client)
     payload = response.json()
     assert "errors" in payload
+
+
+def test_add_user_project_user_already_member(project, project_manager, project_user, client):
+    client.force_login(project_manager)
+    membership = project.get_membership(project_user)
+    input_data = {
+        "projectId": str(project.id),
+        "userId": str(project_user.id),
+        "role": membership.user_role,
+    }
+    response = graphql_query(ADD_USER_GRAPHQL, client=client, input_data=input_data)
+    payload = response.json()
+    assert "errors" not in payload
+    data = payload["data"]["addUserToProject"]
+    assert data["project"]["id"] == str(project.id)
+    assert data["membership"]["id"] == str(membership.id)
 
 
 DELETE_USER_GRAPHQL = """
