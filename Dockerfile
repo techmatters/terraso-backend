@@ -1,4 +1,4 @@
-FROM python:3.11.4-slim-bullseye
+FROM python:3.12.0-slim-bullseye
 
 RUN adduser --disabled-password terraso
 
