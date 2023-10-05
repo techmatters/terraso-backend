@@ -93,3 +93,36 @@ def test_landscapes_query_with_json_polygon(client_query, landscapes):
 
     for landscape in landscapes:
         assert landscape.area_polygon in landscapes_result
+
+
+def test_landscapes_query_with_membership(client_query, landscapes, landscape_user_memberships):
+    response = client_query(
+        """
+        {landscapes(slug: "%s") {
+          edges {
+            node {
+              name
+              membershipList {
+                memberships {
+                  edges {
+                    node {
+                      user {
+                        email
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }}
+        """
+        % landscapes[0].slug
+    )
+
+    json_response = response.json()
+
+    memberships = json_response["data"]["landscapes"]["edges"][0]["node"]["membershipList"][
+        "memberships"
+    ]["edges"]
+    assert len(memberships) == 2

@@ -72,6 +72,7 @@ class LandscapeNode(DjangoObjectType, SharedResourcesMixin):
             "profile_image",
             "profile_image_description",
             "center_coordinates",
+            "membership_list",
         )
 
         interfaces = (relay.Node,)

@@ -1,0 +1,1 @@
+- Check that only members can see landscape membership list
