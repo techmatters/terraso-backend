@@ -286,6 +286,7 @@ type LandscapeNode implements Node {
   email: String!
   areaScalarM2: Float
   createdBy: UserNode
+  membershipList: CollaborationMembershipListNode
   taxonomyTerms(offset: Int, before: String, after: String, first: Int, last: Int, type: CoreTaxonomyTermTypeChoices, type_In: [CoreTaxonomyTermTypeChoices]): TaxonomyTermNodeConnection!
   population: Int
   partnershipStatus: CoreLandscapePartnershipStatusChoices
@@ -308,6 +309,61 @@ Use of this type is *not recommended* as you lose the benefits of having a defin
 schema (one of the key benefits of GraphQL).
 """
 scalar JSONString
+
+type CollaborationMembershipListNode implements Node {
+  membershipType: CollaborationMembershipListMembershipTypeChoices!
+  memberships(offset: Int, before: String, after: String, first: Int, last: Int, user: ID, user_In: [ID], userRole: String, user_Email_Icontains: String, user_Email_In: [String], membershipStatus: CollaborationMembershipMembershipStatusChoices, user_Email_Not: String): CollaborationMembershipNodeConnection!
+  id: ID!
+  accountMembership: CollaborationMembershipNode
+  membershipsCount: Int
+}
+
+"""An enumeration."""
+enum CollaborationMembershipListMembershipTypeChoices {
+  """Open"""
+  OPEN
+
+  """Closed"""
+  CLOSED
+}
+
+type CollaborationMembershipNodeConnection {
+  """Pagination data for this connection."""
+  pageInfo: PageInfo!
+
+  """Contains the nodes in this connection."""
+  edges: [CollaborationMembershipNodeEdge!]!
+  totalCount: Int!
+}
+
+"""
+A Relay edge containing a `CollaborationMembershipNode` and its cursor.
+"""
+type CollaborationMembershipNodeEdge {
+  """The item at the end of the edge"""
+  node: CollaborationMembershipNode!
+
+  """A cursor for use in pagination"""
+  cursor: String!
+}
+
+type CollaborationMembershipNode implements Node {
+  membershipList: CollaborationMembershipListNode!
+  user: UserNode
+  userRole: String!
+  membershipStatus: CollaborationMembershipMembershipStatusChoices!
+  pendingEmail: String
+  id: ID!
+}
+
+"""An enumeration."""
+enum CollaborationMembershipMembershipStatusChoices {
+  """Approved"""
+  APPROVED
+
+  """Pending"""
+  PENDING
+}
 
 type TaxonomyTermNodeConnection {
   """Pagination data for this connection."""
@@ -596,61 +652,6 @@ type StoryMapNode implements Node {
   isPublished: Boolean!
   publishedAt: DateTime
   membershipList: CollaborationMembershipListNode
-}
-
-type CollaborationMembershipListNode implements Node {
-  membershipType: CollaborationMembershipListMembershipTypeChoices!
-  memberships(offset: Int, before: String, after: String, first: Int, last: Int, user: ID, user_In: [ID], userRole: String, user_Email_Icontains: String, user_Email_In: [String], membershipStatus: CollaborationMembershipMembershipStatusChoices, user_Email_Not: String): CollaborationMembershipNodeConnection!
-  id: ID!
-  accountMembership: CollaborationMembershipNode
-  membershipsCount: Int
-}
-
-"""An enumeration."""
-enum CollaborationMembershipListMembershipTypeChoices {
-  """Open"""
-  OPEN
-
-  """Closed"""
-  CLOSED
-}
-
-type CollaborationMembershipNodeConnection {
-  """Pagination data for this connection."""
-  pageInfo: PageInfo!
-
-  """Contains the nodes in this connection."""
-  edges: [CollaborationMembershipNodeEdge!]!
-  totalCount: Int!
-}
-
-"""
-A Relay edge containing a `CollaborationMembershipNode` and its cursor.
-"""
-type CollaborationMembershipNodeEdge {
-  """The item at the end of the edge"""
-  node: CollaborationMembershipNode!
-
-  """A cursor for use in pagination"""
-  cursor: String!
-}
-
-type CollaborationMembershipNode implements Node {
-  membershipList: CollaborationMembershipListNode!
-  user: UserNode
-  userRole: String!
-  membershipStatus: CollaborationMembershipMembershipStatusChoices!
-  pendingEmail: String
-  id: ID!
-}
-
-"""An enumeration."""
-enum CollaborationMembershipMembershipStatusChoices {
-  """Approved"""
-  APPROVED
-
-  """Pending"""
-  PENDING
 }
 
 type StoryMapNodeConnection {

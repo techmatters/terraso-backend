@@ -24,6 +24,7 @@ from mixer.backend.django import mixer
 from apps.auth.services import JWTService
 from apps.collaboration.models import Membership as CollaborationMembership
 from apps.collaboration.models import MembershipList
+from apps.core import landscape_collaboration_roles
 from apps.core.models import (
     Group,
     GroupAssociation,
@@ -105,6 +106,26 @@ def landscapes():
                 }
             ],
         },
+    )
+
+
+@pytest.fixture
+def landscape_membership_list(landscapes):
+    landscape = landscapes[0]
+    landscape.membership_list = mixer.blend(MembershipList)
+    landscape.save()
+
+    return landscape.membership_list
+
+
+@pytest.fixture
+def landscape_user_memberships(landscape_membership_list, users):
+    return mixer.cycle(2).blend(
+        CollaborationMembership,
+        membership_list=landscape_membership_list,
+        user=(u for u in users),
+        user_role=landscape_collaboration_roles.ROLE_MEMBER,
+        pending_email=None,
     )
 
 

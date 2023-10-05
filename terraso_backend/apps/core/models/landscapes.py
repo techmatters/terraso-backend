@@ -64,6 +64,12 @@ class Landscape(SlugModel, DirtyFieldsMixin):
         related_name="created_landscapes",
     )
     groups = models.ManyToManyField(Group, through="LandscapeGroup")
+    membership_list = models.ForeignKey(
+        "collaboration.MembershipList",
+        on_delete=models.CASCADE,
+        related_name="landscape",
+        null=True,
+    )
 
     area_types = models.JSONField(blank=True, null=True)
     taxonomy_terms = models.ManyToManyField(TaxonomyTerm, blank=True)
