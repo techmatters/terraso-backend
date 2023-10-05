@@ -79,8 +79,9 @@ def allowed_to_approve_story_map_membership(user, obj):
 @rules.predicate
 def allowed_to_approve_story_map_membership_with_token(user, obj):
     membership = obj.get("membership")
-    request_user = user
-    return request_user.id == membership.user.id
+    if not membership.user:
+        return False
+    return user.id == membership.user.id
 
 
 @rules.predicate

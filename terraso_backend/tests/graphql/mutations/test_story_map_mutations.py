@@ -459,7 +459,7 @@ def test_story_map_approve_membership_with_token_for_unregistered_user(
 
 
 def test_story_map_approve_membership_with_token_for_registered_user_fails_due_user_mismatch(
-    client_query, story_map_user_memberships_approve_tokens
+    client_query, story_map_user_memberships_approve_tokens, story_maps
 ):
     token = story_map_user_memberships_approve_tokens[1]
 
@@ -469,6 +469,12 @@ def test_story_map_approve_membership_with_token_for_registered_user_fails_due_u
           $input: StoryMapMembershipApproveTokenMutationInput!
         ){
           approveStoryMapMembershipToken(input: $input) {
+            storyMap {
+              title
+              id
+              createdAt
+              updatedAt
+            }
             membership {
               id
               membershipStatus
@@ -485,7 +491,14 @@ def test_story_map_approve_membership_with_token_for_registered_user_fails_due_u
     )
     json_response = response.json()
 
+    print(json_response)
+
     assert "errors" in json_response["data"]["approveStoryMapMembershipToken"]
     error_result = json_response["data"]["approveStoryMapMembershipToken"]["errors"][0]["message"]
     json_error = json.loads(error_result)
     assert json_error[0]["code"] == "update_not_allowed"
+    assert (
+        json_response["data"]["approveStoryMapMembershipToken"]["storyMap"]["title"]
+        == story_maps[0].title
+    )
+    assert json_response["data"]["approveStoryMapMembershipToken"]["storyMap"]["id"] == ""

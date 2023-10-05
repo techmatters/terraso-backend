@@ -13,6 +13,8 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see https://www.gnu.org/licenses/.
 
+from datetime import datetime
+
 import django_filters
 import graphene
 import rules
@@ -345,10 +347,19 @@ class StoryMapMembershipApproveTokenMutation(BaseAuthenticatedMutation):
                 "Attempt to approve a Membership, but user has no permission",
                 extra=kwargs,
             )
-            raise GraphQLNotAllowedException(
+            error = GraphQLNotAllowedException(
                 model_name=Membership.__name__,
                 operation=MutationTypes.UPDATE,
                 message="permissions_validation",
+            )
+            return cls(
+                errors=[{"message": str(error)}],
+                story_map=StoryMap(
+                    id="",
+                    title=story_map.title,
+                    created_at=datetime.now(),
+                    updated_at=datetime.now(),
+                ),
             )
 
         try:
