@@ -153,5 +153,11 @@ class Project(BaseModel):
     def mark_seen_by(self, user: User):
         self.seen_by.add(user)
 
+    def remove_user(self, user: User):
+        membership = self.get_membership(user)
+        if membership:
+            membership.delete()
+        self.save()
+
     def __str__(self):
         return self.name
