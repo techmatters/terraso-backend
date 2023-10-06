@@ -25,7 +25,7 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
     dependencies = [
-        ("project_management", "0015_project_seen_by_site_seen_by"),
+        ("project_management", "0019_project_seen_by_site_seen_by"),
         ("soil_id", "0004_soildata_depth_intervals"),
     ]
 
@@ -53,7 +53,7 @@ class Migration(migrations.Migration):
                 ),
             ],
             options={
-                "ordering": ["created_at"],
+                "ordering": ["depth_interval_start"],
                 "get_latest_by": "-created_at",
                 "abstract": False,
             },
@@ -145,10 +145,8 @@ class Migration(migrations.Migration):
                         blank=True, validators=[django.core.validators.MaxValueValidator(200)]
                     ),
                 ),
-                ("slope_enabled", models.BooleanField(blank=True, default=False)),
                 ("soil_texture_enabled", models.BooleanField(blank=True, default=False)),
                 ("soil_color_enabled", models.BooleanField(blank=True, default=False)),
-                ("vertical_cracking_enabled", models.BooleanField(blank=True, default=False)),
                 ("carbonates_enabled", models.BooleanField(blank=True, default=False)),
                 ("ph_enabled", models.BooleanField(blank=True, default=False)),
                 (
@@ -158,11 +156,9 @@ class Migration(migrations.Migration):
                 ("electrical_conductivity_enabled", models.BooleanField(blank=True, default=False)),
                 ("sodium_adsorption_ratio_enabled", models.BooleanField(blank=True, default=False)),
                 ("soil_structure_enabled", models.BooleanField(blank=True, default=False)),
-                ("land_use_land_cover_enabled", models.BooleanField(blank=True, default=False)),
-                ("soil_limitations_enabled", models.BooleanField(blank=True, default=False)),
             ],
             options={
-                "ordering": ["created_at"],
+                "ordering": ["depth_interval_start"],
                 "get_latest_by": "-created_at",
                 "abstract": False,
             },
@@ -189,6 +185,10 @@ class Migration(migrations.Migration):
             model_name="depthdependentsoildata",
             old_name="depth_end",
             new_name="depth_interval_end",
+        ),
+        migrations.AlterModelOptions(
+            name="depthdependentsoildata",
+            options={"get_latest_by": "-created_at", "ordering": ["depth_interval_start"]},
         ),
         migrations.RemoveField(
             model_name="soildata",

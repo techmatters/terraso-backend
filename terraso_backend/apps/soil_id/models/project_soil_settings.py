@@ -37,7 +37,7 @@ class ProjectSoilSettings(BaseModel):
 
     depth_interval_preset = models.CharField(
         null=False,
-        default=DepthIntervalPreset.LANDPKS,
+        default=DepthIntervalPreset.LANDPKS.value,
         choices=DepthIntervalPreset.choices,
     )
 
@@ -69,4 +69,5 @@ class ProjectDepthInterval(BaseModel, BaseDepthInterval):
     label = models.CharField(blank=True, max_length=10)
 
     class Meta(BaseModel.Meta):
+        ordering = ["depth_interval_start"]
         constraints = BaseDepthInterval.constraints("project")

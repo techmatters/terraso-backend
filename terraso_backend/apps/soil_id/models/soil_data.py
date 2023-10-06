@@ -114,17 +114,14 @@ class SoilDataDepthInterval(BaseModel, BaseDepthInterval):
     label = models.CharField(blank=True, max_length=10)
 
     class Meta(BaseModel.Meta):
+        ordering = ["depth_interval_start"]
         constraints = BaseDepthInterval.constraints("soil_data")
 
-    slope_enabled = models.BooleanField(blank=True, default=False)
     soil_texture_enabled = models.BooleanField(blank=True, default=False)
     soil_color_enabled = models.BooleanField(blank=True, default=False)
-    vertical_cracking_enabled = models.BooleanField(blank=True, default=False)
     carbonates_enabled = models.BooleanField(blank=True, default=False)
     ph_enabled = models.BooleanField(blank=True, default=False)
     soil_organic_carbon_matter_enabled = models.BooleanField(blank=True, default=False)
     electrical_conductivity_enabled = models.BooleanField(blank=True, default=False)
     sodium_adsorption_ratio_enabled = models.BooleanField(blank=True, default=False)
     soil_structure_enabled = models.BooleanField(blank=True, default=False)
-    land_use_land_cover_enabled = models.BooleanField(blank=True, default=False)
-    soil_limitations_enabled = models.BooleanField(blank=True, default=False)

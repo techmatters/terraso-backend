@@ -859,18 +859,14 @@ enum SoilIdSoilDataSlopeSteepnessSelectChoices {
 
 type SoilDataDepthIntervalNode {
   label: String!
-  slopeEnabled: Boolean!
   soilTextureEnabled: Boolean!
   soilColorEnabled: Boolean!
-  verticalCrackingEnabled: Boolean!
   carbonatesEnabled: Boolean!
   phEnabled: Boolean!
   soilOrganicCarbonMatterEnabled: Boolean!
   electricalConductivityEnabled: Boolean!
   sodiumAdsorptionRatioEnabled: Boolean!
   soilStructureEnabled: Boolean!
-  landUseLandCoverEnabled: Boolean!
-  soilLimitationsEnabled: Boolean!
   site: SiteNode!
   depthInterval: DepthInterval!
 }
@@ -2052,18 +2048,14 @@ input SoilDataUpdateDepthIntervalMutationInput {
   siteId: ID!
   label: String
   depthInterval: DepthIntervalInput!
-  slopeEnabled: Boolean
   soilTextureEnabled: Boolean
   soilColorEnabled: Boolean
-  verticalCrackingEnabled: Boolean
   carbonatesEnabled: Boolean
   phEnabled: Boolean
   soilOrganicCarbonMatterEnabled: Boolean
   electricalConductivityEnabled: Boolean
   sodiumAdsorptionRatioEnabled: Boolean
   soilStructureEnabled: Boolean
-  landUseLandCoverEnabled: Boolean
-  soilLimitationsEnabled: Boolean
   clientMutationId: String
 }
 
@@ -2081,7 +2073,7 @@ input SoilDataDeleteDepthIntervalMutationInput {
 
 type ProjectSoilSettingsUpdateMutationPayload {
   errors: GenericScalar
-  soilSettings: ProjectSoilSettingsNode
+  projectSoilSettings: ProjectSoilSettingsNode
   clientMutationId: String
 }
 
@@ -2109,7 +2101,7 @@ input ProjectSoilSettingsUpdateMutationInput {
 
 type ProjectSoilSettingsUpdateDepthIntervalMutationPayload {
   errors: GenericScalar
-  soilSettings: ProjectSoilSettingsNode
+  projectSoilSettings: ProjectSoilSettingsNode
   clientMutationId: String
 }
 
@@ -2122,7 +2114,7 @@ input ProjectSoilSettingsUpdateDepthIntervalMutationInput {
 
 type ProjectSoilSettingsDeleteDepthIntervalMutationPayload {
   errors: GenericScalar
-  soilSettings: ProjectSoilSettingsNode
+  projectSoilSettings: ProjectSoilSettingsNode
   clientMutationId: String
 }
 

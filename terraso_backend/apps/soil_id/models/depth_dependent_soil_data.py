@@ -27,6 +27,7 @@ class DepthDependentSoilData(BaseModel, BaseDepthInterval):
     )
 
     class Meta(BaseModel.Meta):
+        ordering = ["depth_interval_start"]
         constraints = BaseDepthInterval.constraints("soil_data")
 
     class Texture(models.TextChoices):

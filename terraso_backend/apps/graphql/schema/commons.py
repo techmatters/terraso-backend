@@ -143,6 +143,7 @@ class BaseAuthenticatedMutation(BaseMutation):
         abstract = True
 
     model_class = None
+    result_class = None
 
     @classmethod
     def mutate(cls, root, info, input):
@@ -182,6 +183,7 @@ class BaseWriteMutation(BaseAuthenticatedMutation):
         called both when adding and updating a model. The `kwargs` receives
         a dictionary with all inputs informed.
         """
+
         if "model_instance" in kwargs:
             model_instance = kwargs.pop("model_instance")
         else:
@@ -191,6 +193,9 @@ class BaseWriteMutation(BaseAuthenticatedMutation):
                 model_instance = cls.model_class.objects.get(pk=_id)
             else:
                 model_instance = cls.model_class()
+
+        result_class = cls.result_class or cls.model_class
+        result_instance = kwargs.pop("result_instance", model_instance)
 
         for attr, value in kwargs.items():
             if isinstance(value, enum.Enum):
@@ -233,7 +238,7 @@ class BaseWriteMutation(BaseAuthenticatedMutation):
                 validation_error, model_name=cls.model_class.__name__
             )
 
-        result_kwargs = {from_camel_to_snake_case(cls.model_class.__name__): model_instance}
+        result_kwargs = {from_camel_to_snake_case(result_class.__name__): result_instance}
 
         return cls(**result_kwargs)
 

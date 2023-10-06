@@ -189,23 +189,20 @@ class DepthIntervalInput(graphene.InputObjectType):
 class SoilDataUpdateDepthIntervalMutation(BaseWriteMutation):
     soil_data = graphene.Field(SoilDataNode)
     model_class = SoilDataDepthIntervalNode
+    result_class = SoilData
 
     class Input:
         site_id = graphene.ID(required=True)
         label = graphene.String()
         depth_interval = graphene.Field(DepthIntervalInput, required=True)
-        slope_enabled = graphene.Boolean()
         soil_texture_enabled = graphene.Boolean()
         soil_color_enabled = graphene.Boolean()
-        vertical_cracking_enabled = graphene.Boolean()
         carbonates_enabled = graphene.Boolean()
         ph_enabled = graphene.Boolean()
         soil_organic_carbon_matter_enabled = graphene.Boolean()
         electrical_conductivity_enabled = graphene.Boolean()
         sodium_adsorption_ratio_enabled = graphene.Boolean()
         soil_structure_enabled = graphene.Boolean()
-        land_use_land_cover_enabled = graphene.Boolean()
-        soil_limitations_enabled = graphene.Boolean()
 
     @classmethod
     def mutate_and_get_payload(cls, root, info, site_id, depth_interval, **kwargs):
@@ -225,9 +222,9 @@ class SoilDataUpdateDepthIntervalMutation(BaseWriteMutation):
                 depth_interval_end=depth_interval["end"],
             )
 
-            super().mutate_and_get_payload(root, info, **kwargs)
-
-            return SoilDataUpdateDepthIntervalMutation({"soil_data": site.soil_data})
+            return super().mutate_and_get_payload(
+                root, info, result_instance=site.soil_data, **kwargs
+            )
 
 
 class SoilDataDeleteDepthIntervalMutation(BaseAuthenticatedMutation):
@@ -295,6 +292,7 @@ class SoilDataUpdateMutation(BaseWriteMutation):
 class DepthDependentSoilDataUpdateMutation(BaseWriteMutation):
     soil_data = graphene.Field(SoilDataNode)
     model_class = DepthDependentSoilData
+    result_class = SoilData
 
     class Input:
         site_id = graphene.ID(required=True)
@@ -336,13 +334,13 @@ class DepthDependentSoilDataUpdateMutation(BaseWriteMutation):
                 depth_start=depth_interval["start"], depth_end=depth_interval["end"]
             )
 
-            super().mutate_and_get_payload(root, info, **kwargs)
-
-            return DepthDependentSoilDataUpdateMutation({"soil_data": site.soil_data})
+            return super().mutate_and_get_payload(
+                root, info, result_instance=site.soil_data, **kwargs
+            )
 
 
 class ProjectSoilSettingsUpdateMutation(BaseWriteMutation):
-    soil_settings = graphene.Field(ProjectSoilSettingsNode)
+    project_soil_settings = graphene.Field(ProjectSoilSettingsNode)
     model_class = ProjectSoilSettings
 
     class Input:
@@ -382,8 +380,9 @@ class ProjectSoilSettingsUpdateMutation(BaseWriteMutation):
 
 
 class ProjectSoilSettingsUpdateDepthIntervalMutation(BaseWriteMutation):
-    soil_settings = graphene.Field(ProjectSoilSettingsNode)
+    project_soil_settings = graphene.Field(ProjectSoilSettingsNode)
     model_class = ProjectDepthInterval
+    result_class = ProjectSoilSettings
 
     class Input:
         project_id = graphene.ID(required=True)
@@ -408,14 +407,13 @@ class ProjectSoilSettingsUpdateDepthIntervalMutation(BaseWriteMutation):
                 depth_interval_end=depth_interval["end"],
             )
 
-            super().mutate_and_get_payload(root, info, **kwargs)
-            return ProjectSoilSettingsUpdateDepthIntervalMutation(
-                {"soil_settings": project.soil_settings}
+            return super().mutate_and_get_payload(
+                root, info, result_instance=project.soil_settings, **kwargs
             )
 
 
 class ProjectSoilSettingsDeleteDepthIntervalMutation(BaseAuthenticatedMutation):
-    soil_settings = graphene.Field(ProjectSoilSettingsNode)
+    project_soil_settings = graphene.Field(ProjectSoilSettingsNode)
 
     class Input:
         project_id = graphene.ID(required=True)
