@@ -37,10 +37,18 @@ def test_landscapes_add(client_query):
         """,
         variables={"input": {"name": landscape_name}},
     )
-    landscape_result = response.json()["data"]["addLandscape"]["landscape"]
+    json_response = response.json()
+
+    landscape_result = json_response["data"]["addLandscape"]["landscape"]
 
     assert landscape_result["id"]
     assert landscape_result["name"] == landscape_name
+
+    # Assert user is added as manager
+    landscape = Landscape.objects.get(id=landscape_result["id"])
+    manager_membership = landscape.membership_list.memberships.first()
+    assert manager_membership.user_role == "manager"
+    assert manager_membership.user == landscape.created_by
 
 
 def test_landscapes_add_has_created_by_filled_out(client_query, users):
