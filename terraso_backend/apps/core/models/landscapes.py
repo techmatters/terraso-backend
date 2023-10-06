@@ -16,6 +16,7 @@
 import structlog
 from dirtyfields import DirtyFieldsMixin
 from django.contrib.contenttypes.fields import GenericRelation
+from django.apps import apps
 from django.db import models, transaction
 
 from apps.core import permission_rules as perm_rules
@@ -25,6 +26,7 @@ from apps.core.gis.utils import (
 )
 from apps.core.models.taxonomy_terms import TaxonomyTerm
 
+from ..landscape_collaboration_roles import ROLE_MANAGER
 from .commons import BaseModel, SlugModel, validate_name
 from .groups import Group
 from .shared_resources import SharedResource
@@ -68,7 +70,6 @@ class Landscape(SlugModel, DirtyFieldsMixin):
         "collaboration.MembershipList",
         on_delete=models.CASCADE,
         related_name="landscape",
-        null=True,
     )
 
     area_types = models.JSONField(blank=True, null=True)
@@ -107,6 +108,9 @@ class Landscape(SlugModel, DirtyFieldsMixin):
         _unique_fields = ["name"]
         abstract = False
 
+    def full_clean(self, *args, **kwargs):
+        super().full_clean(*args, **kwargs, exclude=["membership_list"])
+
     def save(self, *args, **kwargs):
         dirty_fields = self.get_dirty_fields()
         if self.area_polygon and "area_polygon" in dirty_fields:
@@ -116,21 +120,23 @@ class Landscape(SlugModel, DirtyFieldsMixin):
             self.center_coordinates = calculate_geojson_centroid(self.area_polygon)
 
         with transaction.atomic():
+            MembershipList = apps.get_model("collaboration", "MembershipList")
+            Membership = apps.get_model("collaboration", "Membership")
             creating = not Landscape.objects.filter(pk=self.pk).exists()
 
-            super().save(*args, **kwargs)
-
             if creating and self.created_by:
-                group = Group(
-                    name="Group {}".format(self.slug),
-                    description="",
-                    created_by=self.created_by,
+                self.membership_list = MembershipList.objects.create(
+                    enroll_method=MembershipList.ENROLL_METHOD_BOTH,
+                    membership_type=MembershipList.MEMBERSHIP_TYPE_OPEN,
                 )
-                group.save()
-                landscape_group = LandscapeGroup(
-                    group=group, landscape=self, is_default_landscape_group=True
+                membership = Membership(
+                    membership_list=self.membership_list,
+                    user=self.created_by,
+                    user_role=ROLE_MANAGER,
                 )
-                landscape_group.save()
+                membership.save()
+
+            super().save(*args, **kwargs)
 
     def delete(self, *args, **kwargs):
         default_group = self.get_default_group()
