@@ -17,7 +17,9 @@ import pytest
 from mixer.backend.django import mixer
 
 from apps.auth.services import JWTService
-from apps.core.models import Group, Landscape, LandscapeGroup, User
+from apps.collaboration.models import Membership as CollaborationMembership
+from apps.core import landscape_collaboration_roles
+from apps.core.models import Landscape, User
 
 
 @pytest.fixture
@@ -33,7 +35,9 @@ def user():
 @pytest.fixture
 def landscape(user):
     landscape = mixer.blend(Landscape)
-    group = mixer.blend(Group)
-    group.add_manager(user)
-    mixer.blend(LandscapeGroup, landscape=landscape, group=group, is_default_landscape_group=True)
+    landscape.membership_list.save_membership(
+        user.email,
+        landscape_collaboration_roles.ROLE_MANAGER,
+        CollaborationMembership.APPROVED,
+    )
     return landscape
