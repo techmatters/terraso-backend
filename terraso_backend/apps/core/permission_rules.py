@@ -120,6 +120,18 @@ def allowed_to_add_membership(user, group):
     return group.can_join or group.is_manager(user)
 
 
+@rules.predicate
+def allowed_to_change_landscape_membership(user, obj):
+    landscape = obj.get("landscape")
+    user_exists = obj.get("user_exists")
+
+    if not user_exists:
+        return False
+
+    return user.is_landscape_manager(landscape.id)
+
+
 rules.add_rule("allowed_group_managers_count", allowed_group_managers_count)
 rules.add_rule("allowed_to_update_preferences", allowed_to_update_preferences)
 rules.add_rule("allowed_to_change_landscape", allowed_to_change_landscape)
+rules.add_rule("allowed_to_change_landscape_membership", allowed_to_change_landscape_membership)

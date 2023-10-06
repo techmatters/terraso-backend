@@ -16,3 +16,5 @@
 
 ROLE_MANAGER = "manager"
 ROLE_MEMBER = "member"
+
+ALL_ROLES = [ROLE_MANAGER, ROLE_MEMBER]
