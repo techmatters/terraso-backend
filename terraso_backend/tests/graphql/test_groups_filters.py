@@ -42,10 +42,9 @@ def test_groups_filter_by_membership_user_ignores_deleted_memberships(client_que
     assert not edges
 
 
-def test_groups_filter_by_with_landscape_association(client_query, users, landscape_groups):
+def test_groups_filter_by_with_landscape_association(client_query, users, landscape_common_group):
     user = users[0]
-    default_group_association, common_group_association = landscape_groups
-    mixer.blend(Membership, user=user, group=default_group_association.group)
+    common_group_association = landscape_common_group
     mixer.blend(Membership, user=user, group=common_group_association.group)
 
     response = client_query(
@@ -66,20 +65,17 @@ def test_groups_filter_by_with_landscape_association(client_query, users, landsc
     edges = response.json()["data"]["groups"]["edges"]
     groups_result = [edge["node"]["slug"] for edge in edges]
 
-    assert len(groups_result) == 2
-    assert default_group_association.group.slug in groups_result
+    assert len(groups_result) == 1
     assert common_group_association.group.slug in groups_result
 
 
 def test_groups_filter_by_with_landscape_association_ignores_deleted_associations(
-    client_query, users, landscape_groups
+    client_query, users, landscape_common_group
 ):
     user = users[0]
-    default_group_association, common_group_association = landscape_groups
-    mixer.blend(Membership, user=user, group=default_group_association.group)
-    mixer.blend(Membership, user=user, group=common_group_association.group)
+    mixer.blend(Membership, user=user, group=landscape_common_group.group)
 
-    default_group_association.delete()
+    landscape_common_group.delete()
 
     response = client_query(
         """
@@ -99,35 +95,7 @@ def test_groups_filter_by_with_landscape_association_ignores_deleted_association
     edges = response.json()["data"]["groups"]["edges"]
     groups_result = [edge["node"]["slug"] for edge in edges]
 
-    assert len(groups_result) == 1
-
-
-def test_groups_filter_by_default_landscape_group(client_query, users, landscape_groups):
-    user = users[0]
-    default_group_association, common_group_association = landscape_groups
-    mixer.blend(Membership, user=user, group=default_group_association.group)
-    mixer.blend(Membership, user=user, group=common_group_association.group)
-
-    response = client_query(
-        """
-        {groups(
-          associatedLandscapes_IsDefaultLandscapeGroup: true,
-          memberships_Email: "%s"
-        ) {
-          edges {
-            node {
-              slug
-            }
-          }
-        }}
-        """
-        % user.email
-    )
-    edges = response.json()["data"]["groups"]["edges"]
-    groups_result = [edge["node"]["slug"] for edge in edges]
-
-    assert len(groups_result) == 1
-    assert default_group_association.group.slug in groups_result
+    assert len(groups_result) == 0
 
 
 def test_groups_filter_by_without_landscape_association(client_query, users):

@@ -242,21 +242,18 @@ def memberships_pending_with_notifications(groups, users_with_group_notification
 
 
 @pytest.fixture
-def landscape_groups(landscapes, groups):
-    first_group, second_group = groups[0], groups[1]
+def landscape_common_group(landscapes, groups):
+    group = groups[1]
     landscape = landscapes[0]
 
-    default_group = mixer.blend(
-        LandscapeGroup, landscape=landscape, group=first_group, is_default_landscape_group=True
-    )
-    common_group = mixer.blend(LandscapeGroup, landscape=landscape, group=second_group)
+    common_group = mixer.blend(LandscapeGroup, landscape=landscape, group=group)
 
-    return [default_group, common_group]
+    return common_group
 
 
 @pytest.fixture
 def make_core_db_records(
-    group_associations, landscapes, landscape_groups, memberships, groups, subgroups, users
+    group_associations, landscapes, landscape_common_group, memberships, groups, subgroups, users
 ):
     return
 

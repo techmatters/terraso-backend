@@ -31,7 +31,7 @@ type Query {
   groups(offset: Int, before: String, after: String, first: Int, last: Int, name: String, name_Icontains: String, name_Istartswith: String, slug: String, slug_Icontains: String, description_Icontains: String, memberships_Email: String, associatedLandscapes_IsDefaultLandscapeGroup: Boolean, associatedLandscapes_Isnull: Boolean, associatedLandscapes_IsPartnership: Boolean): GroupNodeConnection
   landscapes(offset: Int, before: String, after: String, first: Int, last: Int, name_Icontains: String, description_Icontains: String, slug: String, slug_Icontains: String, website_Icontains: String, location_Icontains: String): LandscapeNodeConnection
   users(offset: Int, before: String, after: String, first: Int, last: Int, email: String, email_Icontains: String, email_Iexact: String, firstName_Icontains: String, lastName_Icontains: String, project: String): UserNodeConnection
-  landscapeGroups(offset: Int, before: String, after: String, first: Int, last: Int, landscape: ID, landscape_Slug_Icontains: String, group: ID, group_Slug_Icontains: String, isDefaultLandscapeGroup: Boolean, isPartnership: Boolean): LandscapeGroupNodeConnection
+  landscapeGroups(offset: Int, before: String, after: String, first: Int, last: Int, landscape: ID, landscape_Slug_Icontains: String, group: ID, group_Slug_Icontains: String, isPartnership: Boolean): LandscapeGroupNodeConnection
   memberships(offset: Int, before: String, after: String, first: Int, last: Int, group: ID, group_In: [ID], group_Slug_Icontains: String, group_Slug_In: [String], user: ID, user_In: [ID], userRole: CoreMembershipUserRoleChoices, user_Email_Icontains: String, user_Email_In: [String], membershipStatus: CoreMembershipMembershipStatusChoices): MembershipNodeConnection
   groupAssociations(offset: Int, before: String, after: String, first: Int, last: Int, parentGroup: ID, childGroup: ID, parentGroup_Slug_Icontains: String, childGroup_Slug_Icontains: String): GroupAssociationNodeConnection
   dataEntry(
@@ -107,7 +107,7 @@ type GroupNode implements Node {
   associationsAsParent(offset: Int, before: String, after: String, first: Int, last: Int, parentGroup: ID, childGroup: ID, parentGroup_Slug_Icontains: String, childGroup_Slug_Icontains: String): GroupAssociationNodeConnection!
   associationsAsChild(offset: Int, before: String, after: String, first: Int, last: Int, parentGroup: ID, childGroup: ID, parentGroup_Slug_Icontains: String, childGroup_Slug_Icontains: String): GroupAssociationNodeConnection!
   memberships(offset: Int, before: String, after: String, first: Int, last: Int, group: ID, group_In: [ID], group_Slug_Icontains: String, group_Slug_In: [String], user: ID, user_In: [ID], userRole: CoreMembershipUserRoleChoices, user_Email_Icontains: String, user_Email_In: [String], membershipStatus: CoreMembershipMembershipStatusChoices): MembershipNodeConnection!
-  associatedLandscapes(offset: Int, before: String, after: String, first: Int, last: Int, landscape: ID, landscape_Slug_Icontains: String, group: ID, group_Slug_Icontains: String, isDefaultLandscapeGroup: Boolean, isPartnership: Boolean): LandscapeGroupNodeConnection!
+  associatedLandscapes(offset: Int, before: String, after: String, first: Int, last: Int, landscape: ID, landscape_Slug_Icontains: String, group: ID, group_Slug_Icontains: String, isPartnership: Boolean): LandscapeGroupNodeConnection!
   id: ID!
   sharedResources(offset: Int, before: String, after: String, first: Int, last: Int, source_DataEntry_ResourceType_In: [String]): SharedResourceNodeConnection
   accountMembership: MembershipNode
@@ -270,7 +270,6 @@ type LandscapeGroupNodeEdge {
 type LandscapeGroupNode implements Node {
   landscape: LandscapeNode!
   group: GroupNode!
-  isDefaultLandscapeGroup: Boolean!
   isPartnership: Boolean!
   partnershipYear: Int
   id: ID!
@@ -294,7 +293,7 @@ type LandscapeNode implements Node {
   profileImageDescription: String!
   centerCoordinates: Point
   associatedDevelopmentStrategy(offset: Int, before: String, after: String, first: Int, last: Int): LandscapeDevelopmentStrategyNodeConnection!
-  associatedGroups(offset: Int, before: String, after: String, first: Int, last: Int, landscape: ID, landscape_Slug_Icontains: String, group: ID, group_Slug_Icontains: String, isDefaultLandscapeGroup: Boolean, isPartnership: Boolean): LandscapeGroupNodeConnection!
+  associatedGroups(offset: Int, before: String, after: String, first: Int, last: Int, landscape: ID, landscape_Slug_Icontains: String, group: ID, group_Slug_Icontains: String, isPartnership: Boolean): LandscapeGroupNodeConnection!
   id: ID!
   sharedResources(offset: Int, before: String, after: String, first: Int, last: Int, source_DataEntry_ResourceType_In: [String]): SharedResourceNodeConnection
   areaTypes: [String]

@@ -318,7 +318,7 @@ def test_landscapes_update_group_associations(client_query, managed_landscapes, 
         mutation updateLandscape($input: LandscapeUpdateMutationInput!) {
           updateLandscape(input: $input) {
             landscape {
-              associatedGroups(isDefaultLandscapeGroup: false) {
+              associatedGroups {
                 edges {
                   node {
                     isPartnership
@@ -335,7 +335,8 @@ def test_landscapes_update_group_associations(client_query, managed_landscapes, 
         """,
         variables={"input": new_data},
     )
-    landscape_result = response.json()["data"]["updateLandscape"]["landscape"]
+    json_response = response.json()
+    landscape_result = json_response["data"]["updateLandscape"]["landscape"]
 
     def sortedBy(node):
         return node["node"]["group"]["name"]
