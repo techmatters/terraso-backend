@@ -16,7 +16,9 @@
 import pytest
 from mixer.backend.django import mixer
 
-from apps.core.models import Group, Landscape, LandscapeGroup, User
+from apps.collaboration.models import Membership as CollaborationMembership
+from apps.core import landscape_collaboration_roles
+from apps.core.models import Landscape, User
 
 pytestmark = pytest.mark.django_db
 
@@ -37,23 +39,11 @@ def test_user_string_remove_spaces_from_name():
     assert user_last_name.strip() == user.last_name
 
 
-@pytest.mark.parametrize(
-    "is_default_landscape_group, is_expected_to_be_manager",
-    (
-        (True, True),
-        (False, False),
-    ),
-)
-def test_user_is_landscape_manager(is_default_landscape_group, is_expected_to_be_manager):
+def test_user_is_landscape_manager():
     user = mixer.blend(User)
-    group = mixer.blend(Group)
     landscape = mixer.blend(Landscape)
-    mixer.blend(
-        LandscapeGroup,
-        landscape=landscape,
-        group=group,
-        is_default_landscape_group=is_default_landscape_group,
+    landscape.membership_list.save_membership(
+        user.email, landscape_collaboration_roles.ROLE_MANAGER, CollaborationMembership.APPROVED
     )
-    group.add_manager(user)
 
-    assert user.is_landscape_manager(landscape.id) is is_expected_to_be_manager
+    assert user.is_landscape_manager(landscape.id) is True

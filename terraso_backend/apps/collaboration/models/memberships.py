@@ -54,8 +54,16 @@ class MembershipList(BaseModel):
         default=DEFAULT_MEMERBSHIP_TYPE,
     )
 
+    def default_validation_func(self):
+        return False
+
     def save_membership(
-        self, user_email, user_role, membership_status, validation_func, membership_class=None
+        self,
+        user_email,
+        user_role,
+        membership_status,
+        validation_func=default_validation_func,
+        membership_class=None,
     ):
         membership_class = membership_class or Membership
         user = User.objects.filter(email__iexact=user_email).first()
