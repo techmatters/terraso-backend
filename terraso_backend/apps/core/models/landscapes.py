@@ -129,12 +129,9 @@ class Landscape(SlugModel, DirtyFieldsMixin):
                     enroll_method=MembershipList.ENROLL_METHOD_BOTH,
                     membership_type=MembershipList.MEMBERSHIP_TYPE_OPEN,
                 )
-                membership = Membership(
-                    membership_list=self.membership_list,
-                    user=self.created_by,
-                    user_role=ROLE_MANAGER,
+                self.membership_list.save_membership(
+                    self.created_by.email, ROLE_MANAGER, Membership.APPROVED
                 )
-                membership.save()
 
             super().save(*args, **kwargs)
 

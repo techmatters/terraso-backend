@@ -21,6 +21,8 @@ from django.db import models
 from django.utils.translation import gettext_lazy as _
 from safedelete.models import SOFT_DELETE_CASCADE, SafeDeleteManager, SafeDeleteModel
 
+from .. import landscape_collaboration_roles
+
 NOTIFICATION_KEY_GROUP = "group_notifications"
 NOTIFICATION_KEY_STORY_MAP = "story_map_notifications"
 NOTIFICATION_KEY_LANGUAGE = "language"
@@ -99,10 +101,9 @@ class User(SafeDeleteModel, AbstractUser):
 
     def is_landscape_manager(self, landscape_id):
         return (
-            self.memberships.managers_only()
+            self.collaboration_memberships.by_role(landscape_collaboration_roles.ROLE_MANAGER)
             .filter(
-                group__associated_landscapes__is_default_landscape_group=True,
-                group__associated_landscapes__landscape__pk=landscape_id,
+                membership_list__landscape__pk=landscape_id,
             )
             .exists()
         )

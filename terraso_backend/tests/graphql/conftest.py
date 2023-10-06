@@ -134,13 +134,10 @@ def managed_landscapes(users):
     landscapes = mixer.cycle(2).blend(Landscape)
 
     for i in range(len(landscapes)):
-        group = mixer.blend(Group)
-        group.add_manager(users[i])
-        mixer.blend(
-            LandscapeGroup,
-            landscape=landscapes[i],
-            group=group,
-            is_default_landscape_group=True,
+        landscapes[i].membership_list.save_membership(
+            users[i].email,
+            landscape_collaboration_roles.ROLE_MANAGER,
+            CollaborationMembership.APPROVED,
         )
 
     return landscapes
