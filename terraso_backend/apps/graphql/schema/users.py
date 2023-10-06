@@ -43,7 +43,7 @@ class UserFilter(FilterSet):
     class Meta:
         model = User
         fields = {
-            "email": ["exact", "icontains"],
+            "email": ["exact", "icontains", "iexact"],
             "first_name": ["icontains"],
             "last_name": ["icontains"],
         }
