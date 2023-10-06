@@ -197,6 +197,7 @@ class Migration(migrations.Migration):
         migrations.AddConstraint(
             model_name="depthdependentsoildata",
             constraint=models.UniqueConstraint(
+                condition=models.Q(("deleted_at__isnull", True)),
                 fields=("soil_data", "depth_interval_start", "depth_interval_end"),
                 name="soil_id_depthdependentsoildata_unique_depth_interval",
             ),
@@ -238,6 +239,7 @@ class Migration(migrations.Migration):
         migrations.AddConstraint(
             model_name="soildatadepthinterval",
             constraint=models.UniqueConstraint(
+                condition=models.Q(("deleted_at__isnull", True)),
                 fields=("soil_data", "depth_interval_start", "depth_interval_end"),
                 name="soil_id_soildatadepthinterval_unique_depth_interval",
             ),
@@ -252,6 +254,7 @@ class Migration(migrations.Migration):
         migrations.AddConstraint(
             model_name="projectdepthinterval",
             constraint=models.UniqueConstraint(
+                condition=models.Q(("deleted_at__isnull", True)),
                 fields=("project", "depth_interval_start", "depth_interval_end"),
                 name="soil_id_projectdepthinterval_unique_depth_interval",
             ),

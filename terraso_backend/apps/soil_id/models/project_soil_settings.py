@@ -43,7 +43,7 @@ class ProjectSoilSettings(BaseModel):
 
     def clean(self):
         super().clean()
-        BaseDepthInterval.validate_intervals(list(self.depth_intervals))
+        BaseDepthInterval.validate_intervals(list(self.depth_intervals.all()))
 
     soil_pit_required = models.BooleanField(blank=True, default=False)
     slope_required = models.BooleanField(blank=True, default=False)

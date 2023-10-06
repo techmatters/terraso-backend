@@ -34,6 +34,7 @@ class BaseDepthInterval(models.Model):
         return [
             models.UniqueConstraint(
                 fields=[related_field, "depth_interval_start", "depth_interval_end"],
+                condition=models.Q(deleted_at__isnull=True),
                 name="%(app_label)s_%(class)s_unique_depth_interval",
             ),
             models.CheckConstraint(
@@ -44,7 +45,7 @@ class BaseDepthInterval(models.Model):
 
     @staticmethod
     def validate_intervals(intervals: List[Self]):
-        intervals.sort(key=lambda interval: interval.start)
+        intervals.sort(key=lambda interval: interval.depth_interval_start)
         for index, interval in enumerate(intervals):
             if (
                 index + 1 < len(intervals)

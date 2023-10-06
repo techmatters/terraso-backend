@@ -246,7 +246,7 @@ class SoilDataDeleteDepthIntervalMutation(BaseAuthenticatedMutation):
             cls.not_found()
 
         try:
-            depth_interval, _ = site.soil_data.depth_intervals.get(
+            depth_interval = site.soil_data.depth_intervals.get(
                 depth_interval_start=depth_interval["start"],
                 depth_interval_end=depth_interval["end"],
             )
@@ -255,7 +255,7 @@ class SoilDataDeleteDepthIntervalMutation(BaseAuthenticatedMutation):
 
         depth_interval.delete()
 
-        return SoilDataDeleteDepthIntervalMutation({"soil_data": site.soil_data})
+        return SoilDataDeleteDepthIntervalMutation(soil_data=site.soil_data)
 
 
 class SoilDataUpdateMutation(BaseWriteMutation):
@@ -431,7 +431,7 @@ class ProjectSoilSettingsDeleteDepthIntervalMutation(BaseAuthenticatedMutation):
             cls.not_found()
 
         try:
-            depth_interval, _ = project.soil_settings.depth_intervals.get(
+            depth_interval = project.soil_settings.depth_intervals.get(
                 depth_interval_start=depth_interval["start"],
                 depth_interval_end=depth_interval["end"],
             )
@@ -440,5 +440,5 @@ class ProjectSoilSettingsDeleteDepthIntervalMutation(BaseAuthenticatedMutation):
 
         depth_interval.delete()
         return ProjectSoilSettingsDeleteDepthIntervalMutation(
-            {"soil_setting": project.soil_settings}
+            project_soil_settings=project.soil_settings
         )
