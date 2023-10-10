@@ -70,6 +70,7 @@ class Landscape(SlugModel, DirtyFieldsMixin):
         "collaboration.MembershipList",
         on_delete=models.CASCADE,
         related_name="landscape",
+        null=True,
     )
 
     area_types = models.JSONField(blank=True, null=True)

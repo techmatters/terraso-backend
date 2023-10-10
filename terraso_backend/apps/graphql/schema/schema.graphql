@@ -285,7 +285,7 @@ type LandscapeNode implements Node {
   email: String!
   areaScalarM2: Float
   createdBy: UserNode
-  membershipList: CollaborationMembershipListNode!
+  membershipList: CollaborationMembershipListNode
   taxonomyTerms(offset: Int, before: String, after: String, first: Int, last: Int, type: CoreTaxonomyTermTypeChoices, type_In: [CoreTaxonomyTermTypeChoices]): TaxonomyTermNodeConnection!
   population: Int
   partnershipStatus: CoreLandscapePartnershipStatusChoices
