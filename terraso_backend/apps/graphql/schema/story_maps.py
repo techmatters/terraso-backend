@@ -13,6 +13,8 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see https://www.gnu.org/licenses/.
 
+from datetime import datetime
+
 import django_filters
 import graphene
 import rules
@@ -37,12 +39,7 @@ from apps.story_map.models.story_maps import StoryMap
 from apps.story_map.notifications import send_memberships_invite_email
 from apps.story_map.services import story_map_media_upload_service
 
-from .commons import (
-    BaseAuthenticatedMutation,
-    BaseDeleteMutation,
-    BaseUnauthenticatedMutation,
-    TerrasoConnection,
-)
+from .commons import BaseAuthenticatedMutation, BaseDeleteMutation, TerrasoConnection
 from .constants import MutationTypes
 
 logger = structlog.get_logger(__name__)
@@ -290,7 +287,7 @@ class StoryMapMembershipSaveMutation(BaseAuthenticatedMutation):
         return cls(memberships=[membership["membership"] for membership in memberships])
 
 
-class StoryMapMembershipApproveTokenMutation(BaseUnauthenticatedMutation):
+class StoryMapMembershipApproveTokenMutation(BaseAuthenticatedMutation):
     model_class = Membership
     membership = graphene.Field(CollaborationMembershipNode)
     story_map = graphene.Field(StoryMapNode)
@@ -350,8 +347,19 @@ class StoryMapMembershipApproveTokenMutation(BaseUnauthenticatedMutation):
                 "Attempt to approve a Membership, but user has no permission",
                 extra=kwargs,
             )
-            raise GraphQLNotAllowedException(
-                model_name=Membership.__name__, operation=MutationTypes.UPDATE
+            error = GraphQLNotAllowedException(
+                model_name=Membership.__name__,
+                operation=MutationTypes.UPDATE,
+                message="permissions_validation",
+            )
+            return cls(
+                errors=[{"message": str(error)}],
+                story_map=StoryMap(
+                    id="",
+                    title=story_map.title,
+                    created_at=datetime.now(),
+                    updated_at=datetime.now(),
+                ),
             )
 
         try:
