@@ -119,17 +119,6 @@ def landscape_membership_list(landscapes):
 
 
 @pytest.fixture
-def landscape_user_memberships(landscape_membership_list, users):
-    return mixer.cycle(2).blend(
-        CollaborationMembership,
-        membership_list=landscape_membership_list,
-        user=(u for u in users),
-        user_role=landscape_collaboration_roles.ROLE_MEMBER,
-        pending_email=None,
-    )
-
-
-@pytest.fixture
 def managed_landscapes(users):
     landscapes = mixer.cycle(2).blend(Landscape)
 
@@ -141,6 +130,19 @@ def managed_landscapes(users):
         )
 
     return landscapes
+
+
+@pytest.fixture
+def landscape_user_memberships(managed_landscapes, users):
+    memberships = [
+        landscape.membership_list.save_membership(
+            users[i + 1].email,
+            landscape_collaboration_roles.ROLE_MEMBER,
+            CollaborationMembership.APPROVED,
+        )[1]
+        for i, landscape in enumerate(managed_landscapes)
+    ]
+    return memberships
 
 
 @pytest.fixture
