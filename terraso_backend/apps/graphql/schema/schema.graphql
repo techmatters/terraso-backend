@@ -1691,6 +1691,7 @@ type Mutations {
   updateSiteNote(input: SiteNoteUpdateMutationInput!): SiteNoteUpdateMutationPayload!
   deleteSiteNote(input: SiteNoteDeleteMutationInput!): SiteNoteDeleteMutationPayload!
   saveLandscapeMembership(input: LandscapeMembershipSaveMutationInput!): LandscapeMembershipSaveMutationPayload!
+  deleteLandscapeMembership(input: LandscapeMembershipDeleteMutationInput!): LandscapeMembershipDeleteMutationPayload!
 }
 
 type GroupAddMutationPayload {
@@ -2478,6 +2479,18 @@ type LandscapeMembershipSaveMutationPayload {
 input LandscapeMembershipSaveMutationInput {
   userRole: String!
   userEmails: [String]!
+  landscapeSlug: String!
+  clientMutationId: String
+}
+
+type LandscapeMembershipDeleteMutationPayload {
+  errors: GenericScalar
+  membership: CollaborationMembershipNode
+  clientMutationId: String
+}
+
+input LandscapeMembershipDeleteMutationInput {
+  id: ID!
   landscapeSlug: String!
   clientMutationId: String
 }
