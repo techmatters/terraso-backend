@@ -120,44 +120,39 @@ def test_landscape_membership_add_user_not_found(client_query, managed_landscape
     )
 
 
-# def test_landscape_membership_adding_duplicated_returns_previously_created(
-#   client_query, managed_landscapes
-# ):
-#     landscape = managed_landscapes[0]
-#     membership = landscape.membership_list.memberships.first()
-#     user = membership.user
+def test_landscape_membership_adding_duplicated_returns_existing_membership(
+    client_query, managed_landscapes, landscape_user_memberships
+):
+    landscape = managed_landscapes[0]
+    membership = landscape_user_memberships[0]
 
-#     response = client_query(
-#         """
-#         mutation addMembership($input: LandscapeMembershipSaveMutationInput!){
-#           saveLandscapeMembership(input: $input) {
-#             membership {
-#               id
-#               userRole
-#               user {
-#                 email
-#               }
-#               group {
-#                 slug
-#               }
-#             }
-#           }
-#         }
-#         """,
-#         variables={
-#             "input": {
-#                 "userEmail": user.email,
-#                 "userRole"
-#                 "landscapeSlug": landscape.slug,
-#             }
-#         },
-#     )
-#     membership_response = response.json()["data"]["addMembership"]["membership"]
+    response = client_query(
+        """
+        mutation addMembership($input: LandscapeMembershipSaveMutationInput!){
+          saveLandscapeMembership(input: $input) {
+            memberships {
+              id
+              userRole
+              user {
+                email
+              }
+            }
+          }
+        }
+        """,
+        variables={
+            "input": {
+                "userEmails": [membership.user.email],
+                "userRole": membership.user_role,
+                "landscapeSlug": landscape.slug,
+            }
+        },
+    )
+    membership_response = response.json()["data"]["saveLandscapeMembership"]["memberships"][0]
 
-#     assert membership_response["id"] == str(membership.id)
-#     assert membership_response["userRole"] == membership.user_role.upper()
-#     assert membership_response["user"]["email"] == user.email
-#     assert membership_response["group"]["slug"] == group.slug
+    assert membership_response["id"] == str(membership.id)
+    assert membership_response["userRole"] == membership.user_role
+    assert membership_response["user"]["email"] == membership.user.email
 
 
 def test_landscape_membership_add_manager(client_query, managed_landscapes, users):
@@ -194,140 +189,6 @@ def test_landscape_membership_add_manager(client_query, managed_landscapes, user
     assert membership["user"]["email"] == user.email
     assert membership["userRole"] == landscape_collaboration_roles.ROLE_MANAGER
     assert membership["membershipStatus"] == CollaborationMembership.APPROVED.upper()
-
-
-# def test_landscape_membership_add_manager_closed(client_query, groups_closed, users):
-#     group = groups_closed[0]
-#     user = users[0]
-
-#     response = client_query(
-#         """
-#         mutation addMembership($input: LandscapeMembershipSaveMutationInput!){
-#           saveLandscapeMembership(input: $input) {
-#             membership {
-#               id
-#               userRole
-#               membershipStatus
-#               user {
-#                 email
-#               }
-#               group {
-#                 slug
-#               }
-#             }
-#           }
-#         }
-#         """,
-#         variables={
-#             "input": {
-#                 "userEmail": user.email,
-#                 "groupSlug": group.slug,
-#                 "userRole": Membership.ROLE_MANAGER,
-#             }
-#         },
-#     )
-#     membership = response.json()["data"]["addMembership"]["membership"]
-
-#     assert membership["id"]
-#     assert membership["user"]["email"] == user.email
-#     assert membership["group"]["slug"] == group.slug
-#     assert membership["userRole"] == Membership.ROLE_MANAGER.upper()
-#     assert membership["membershipStatus"] == Membership.PENDING.upper()
-
-
-# @mock.patch("apps.notifications.email.send_mail")
-# def test_landscape_membership_add_member_closed_with_notification(
-#     mocked_send_mail, client_query, groups_closed, users_with_group_notifications
-# ):
-#     group = groups_closed[0]
-#     user = users_with_group_notifications[0]
-#     other_user = users_with_group_notifications[1]
-
-#     group.add_manager(other_user)
-
-#     response = client_query(
-#         """
-#       mutation addMembership($input: LandscapeMembershipSaveMutationInput!){
-#         saveLandscapeMembership(input: $input) {
-#           membership {
-#             id
-#             userRole
-#             membershipStatus
-#             user {
-#               email
-#             }
-#             group {
-#               slug
-#             }
-#           }
-#         }
-#       }
-#       """,
-#         variables={
-#             "input": {
-#                 "userEmail": user.email,
-#                 "groupSlug": group.slug,
-#                 "userRole": Membership.ROLE_MEMBER,
-#             }
-#         },
-#     )
-#     membership = response.json()["data"]["addMembership"]["membership"]
-
-#     mocked_send_mail.assert_called_once()
-#     assert mocked_send_mail.call_args.args[3] == [other_user.name_and_email()]
-
-#     assert membership["id"]
-#     assert membership["user"]["email"] == user.email
-#     assert membership["group"]["slug"] == group.slug
-#     assert membership["userRole"] == Membership.ROLE_MEMBER.upper()
-#     assert membership["membershipStatus"] == Membership.PENDING.upper()
-
-
-# @mock.patch("apps.notifications.email.send_mail")
-# def test_landscape_membership_add_member_closed_without_notification(
-#     mocked_send_mail, client_query, groups_closed, users
-# ):
-#     group = groups_closed[0]
-#     user = users[0]
-#     other_user = users[1]
-
-#     group.add_manager(other_user)
-
-#     response = client_query(
-#         """
-#       mutation addMembership($input: LandscapeMembershipSaveMutationInput!){
-#         saveLandscapeMembership(input: $input) {
-#           membership {
-#             id
-#             userRole
-#             membershipStatus
-#             user {
-#               email
-#             }
-#             group {
-#               slug
-#             }
-#           }
-#         }
-#       }
-#       """,
-#         variables={
-#             "input": {
-#                 "userEmail": user.email,
-#                 "groupSlug": group.slug,
-#                 "userRole": Membership.ROLE_MEMBER,
-#             }
-#         },
-#     )
-#     membership = response.json()["data"]["addMembership"]["membership"]
-
-#     mocked_send_mail.assert_not_called()
-
-#     assert membership["id"]
-#     assert membership["user"]["email"] == user.email
-#     assert membership["group"]["slug"] == group.slug
-#     assert membership["userRole"] == Membership.ROLE_MEMBER.upper()
-#     assert membership["membershipStatus"] == Membership.PENDING.upper()
 
 
 def test_landscape_membership_update(client_query, managed_landscapes, landscape_user_memberships):
@@ -419,35 +280,6 @@ def test_landscape_membership_update_by_non_manager_fail(
     )
 
 
-# def test_landscape_membership_update_by_non_manager_fail(client_query, memberships):
-#     old_membership = memberships[0]
-#     old_membership.user_role = Membership.ROLE_MEMBER
-#     old_membership.save()
-
-#     response = client_query(
-#         """
-#         mutation updateMembership($input: LandscapeMembershipSaveMutationInput!){
-#           updateMembership(input: $input) {
-#             membership {
-#               userRole
-#             }
-#             errors
-#           }
-#         }
-#         """,
-#         variables={
-#             "input": {
-#                 "id": str(old_membership.id),
-#                 "userRole": Membership.ROLE_MANAGER,
-#             }
-#         },
-#     )
-#     response = response.json()
-
-#     assert "errors" in response["data"]["updateMembership"]
-#     assert "update_not_allowed" in response["data"]["updateMembership"]["errors"][0]["message"]
-
-
 def test_landscape_membership_update_not_found(client_query, managed_landscapes):
     response = client_query(
         """
@@ -507,135 +339,114 @@ def test_landscape_membership_delete(client_query, managed_landscapes, landscape
     )
 
 
-# def test_landscape_membership_soft_deleted_can_be_created_again(client_query, memberships):
-#     old_membership = memberships[0]
-#     old_membership.delete()
+def test_landscape_membership_soft_deleted_can_be_created_again(
+    client_query, landscape_user_memberships, managed_landscapes
+):
+    landscape = managed_landscapes[0]
+    old_membership = landscape_user_memberships[0]
+    old_membership.delete()
 
-#     response = client_query(
-#         """
-#         mutation addMembership($input: LandscapeMembershipSaveMutationInput!){
-#           saveLandscapeMembership(input: $input) {
-#             membership {
-#               id
-#               userRole
-#               user {
-#                 email
-#               }
-#               group {
-#                 slug
-#               }
-#             }
-#           }
-#         }
-#         """,
-#         variables={
-#             "input": {
-#                 "userEmail": old_membership.user.email,
-#                 "groupSlug": old_membership.group.slug,
-#             }
-#         },
-#     )
-#     membership = response.json()["data"]["addMembership"]["membership"]
+    assert not landscape.membership_list.memberships.filter(
+        user=old_membership.user, deleted_at=None
+    ).exists()
 
-#     assert membership["id"]
-#     assert membership["user"]["email"] == old_membership.user.email
-#     assert membership["group"]["slug"] == old_membership.group.slug
-#     assert membership["userRole"] == Membership.ROLE_MEMBER.upper()
+    response = client_query(
+        """
+        mutation addMembership($input: LandscapeMembershipSaveMutationInput!){
+          saveLandscapeMembership(input: $input) {
+            memberships {
+              id
+              userRole
+              user {
+                email
+              }
+            }
+          }
+        }
+        """,
+        variables={
+            "input": {
+                "userEmails": [old_membership.user.email],
+                "landscapeSlug": landscape.slug,
+                "userRole": landscape_collaboration_roles.ROLE_MEMBER,
+            }
+        },
+    )
+    membership = response.json()["data"]["saveLandscapeMembership"]["memberships"][0]
 
-
-# def test_landscape_membership_delete_by_group_manager(client_query, memberships, users):
-#     # This test tries to delete memberships[1], from user[1] with user[0] as
-#     # manager from membership group
-#     old_membership = memberships[1]
-#     manager = users[0]
-#     old_membership.group.add_manager(manager)
-
-#     client_query(
-#         """
-#         mutation deleteMembership($input: MembershipDeleteMutationInput!){
-#           deleteMembership(input: $input) {
-#             membership {
-#               user {
-#                 email
-#               },
-#               group {
-#                 slug
-#               }
-#             }
-#           }
-#         }
-#         """,
-#         variables={
-#             "input": {
-#                 "id": str(old_membership.id),
-#             }
-#         },
-#     )
-
-#     assert not Membership.objects.filter(user=old_membership.user, group=old_membership.group)
+    assert membership["id"]
+    assert membership["user"]["email"] == old_membership.user.email
+    assert membership["userRole"] == landscape_collaboration_roles.ROLE_MEMBER
+    assert landscape.membership_list.memberships.filter(
+        user=old_membership.user, deleted_at=None
+    ).exists()
 
 
-# def test_landscape_membership_delete_by_any_other_user(client_query, memberships):
-#     # Client query runs with user[0] from memberships[0]
-#     # This test tries to delete memberships[1], from user[1] with user[0]
-#     old_membership = memberships[1]
+def test_landscape_membership_delete_by_membership_owner(client_query, users, managed_landscapes):
+    landscape = managed_landscapes[0]
+    old_membership = landscape.membership_list.memberships.filter(
+        user=users[0], deleted_at=None
+    ).first()
 
-#     response = client_query(
-#         """
-#         mutation deleteMembership($input: MembershipDeleteMutationInput!){
-#           deleteMembership(input: $input) {
-#             membership {
-#               user {
-#                 email
-#               },
-#               group {
-#                 slug
-#               }
-#             }
-#             errors
-#           }
-#         }
-#         """,
-#         variables={
-#             "input": {
-#                 "id": str(old_membership.id),
-#             }
-#         },
-#     )
+    old_membership.user_role = landscape_collaboration_roles.ROLE_MEMBER
+    old_membership.save()
 
-#     response = response.json()
+    client_query(
+        """
+        mutation deleteMembership($input: LandscapeMembershipDeleteMutationInput!){
+          deleteLandscapeMembership(input: $input) {
+            membership {
+              user {
+                email
+              },
+            }
+          }
+        }
+        """,
+        variables={
+            "input": {
+                "id": str(old_membership.id),
+                "landscapeSlug": landscape.slug,
+            }
+        },
+    )
 
-#     assert "errors" in response["data"]["deleteMembership"]
-#     assert "delete_not_allowed" in response["data"]["deleteMembership"]["errors"][0]["message"]
+    assert not CollaborationMembership.objects.filter(
+        user=old_membership.user, membership_list__landscape=landscape
+    )
 
 
-# def test_landscape_membership_delete_by_last_manager(client_query, memberships, users):
-#     old_membership = memberships[0]
+def test_landscape_membership_delete_by_any_other_user(
+    client_query, landscape_user_memberships, managed_landscapes
+):
+    old_membership = landscape_user_memberships[1]
+    landscape = managed_landscapes[1]
 
-#     response = client_query(
-#         """
-#         mutation deleteMembership($input: MembershipDeleteMutationInput!){
-#           deleteMembership(input: $input) {
-#             membership {
-#               user {
-#                 email
-#               },
-#               group {
-#                 slug
-#               }
-#             }
-#             errors
-#           }
-#         }
-#         """,
-#         variables={
-#             "input": {
-#                 "id": str(old_membership.id),
-#             }
-#         },
-#     )
+    response = client_query(
+        """
+        mutation deleteMembership($input: LandscapeMembershipDeleteMutationInput!){
+          deleteLandscapeMembership(input: $input) {
+            membership {
+              user {
+                email
+              },
+            }
+            errors
+          }
+        }
+        """,
+        variables={
+            "input": {
+                "id": str(old_membership.id),
+                "landscapeSlug": landscape.slug,
+            }
+        },
+    )
 
-#     response = response.json()
+    response = response.json()
 
-#     assert "errors" in response["data"]["deleteMembership"]
-#     assert "delete_not_allowed" in response["data"]["deleteMembership"]["errors"][0]["message"]
+    assert "errors" in response["data"]["deleteLandscapeMembership"]
+    assert (
+        "delete_not_allowed"
+        in response["data"]["deleteLandscapeMembership"]["errors"][0]["message"]
+    )
