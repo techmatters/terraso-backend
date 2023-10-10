@@ -297,7 +297,6 @@ type LandscapeNode implements Node {
   id: ID!
   sharedResources(offset: Int, before: String, after: String, first: Int, last: Int, source_DataEntry_ResourceType_In: [String]): SharedResourceNodeConnection
   areaTypes: [String]
-  defaultGroup: GroupNode
   areaScalarHa: Float
 }
 
