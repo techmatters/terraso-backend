@@ -1,4 +1,5 @@
-- Check that only members can see landscape membership list
-- Need email for landascape membership?
+# TODO
+- migrate data to new landscape membership model
 - Prefetch for landscape directory
-- Remove direct mebership GQL mutations
+- Need logged in user to add landscape membership?
+- Remove direct membership GQL mutations

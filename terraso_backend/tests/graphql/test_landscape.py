@@ -128,3 +128,38 @@ def test_landscapes_query_with_membership(
         "memberships"
     ]["edges"]
     assert len(memberships) == 2
+
+
+def test_landscapes_query_with_membership_no_results_non_member(
+    client_query, managed_landscapes, landscape_user_memberships
+):
+    response = client_query(
+        """
+        {landscapes(slug: "%s") {
+          edges {
+            node {
+              name
+              membershipList {
+                memberships {
+                  edges {
+                    node {
+                      user {
+                        email
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }}
+        """
+        % managed_landscapes[1].slug
+    )
+
+    json_response = response.json()
+
+    memberships = json_response["data"]["landscapes"]["edges"][0]["node"]["membershipList"][
+        "memberships"
+    ]["edges"]
+    assert len(memberships) == 2
