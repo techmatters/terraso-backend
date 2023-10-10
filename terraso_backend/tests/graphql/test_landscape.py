@@ -105,6 +105,7 @@ def test_landscapes_query_with_membership(
             node {
               name
               membershipList {
+                membershipsCount
                 memberships {
                   edges {
                     node {
@@ -124,13 +125,13 @@ def test_landscapes_query_with_membership(
 
     json_response = response.json()
 
-    memberships = json_response["data"]["landscapes"]["edges"][0]["node"]["membershipList"][
-        "memberships"
-    ]["edges"]
+    membership_list = json_response["data"]["landscapes"]["edges"][0]["node"]["membershipList"]
+    memberships = membership_list["memberships"]["edges"]
     assert len(memberships) == 2
+    assert membership_list["membershipsCount"] == 2
 
 
-def test_landscapes_query_with_membership_no_results_non_member(
+def test_landscapes_query_with_membership_for_non_member(
     client_query, managed_landscapes, landscape_user_memberships
 ):
     response = client_query(
@@ -140,6 +141,7 @@ def test_landscapes_query_with_membership_no_results_non_member(
             node {
               name
               membershipList {
+                membershipsCount
                 memberships {
                   edges {
                     node {
@@ -159,7 +161,43 @@ def test_landscapes_query_with_membership_no_results_non_member(
 
     json_response = response.json()
 
-    memberships = json_response["data"]["landscapes"]["edges"][0]["node"]["membershipList"][
-        "memberships"
-    ]["edges"]
+    membership_list = json_response["data"]["landscapes"]["edges"][0]["node"]["membershipList"]
+    memberships = membership_list["memberships"]["edges"]
     assert len(memberships) == 2
+    assert membership_list["membershipsCount"] == 2
+
+
+def test_landscapes_query_with_membership_for_anonymous_user(
+    client_query_no_token, managed_landscapes, landscape_user_memberships
+):
+    response = client_query_no_token(
+        """
+        {landscapes(slug: "%s") {
+          edges {
+            node {
+              name
+              membershipList {
+                membershipsCount
+                memberships {
+                  edges {
+                    node {
+                      user {
+                        email
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }}
+        """
+        % managed_landscapes[1].slug
+    )
+
+    json_response = response.json()
+
+    membership_list = json_response["data"]["landscapes"]["edges"][0]["node"]["membershipList"]
+    memberships = membership_list["memberships"]["edges"]
+    assert len(memberships) == 0
+    assert membership_list["membershipsCount"] == 0

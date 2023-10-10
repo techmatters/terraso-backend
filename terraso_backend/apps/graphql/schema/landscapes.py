@@ -491,5 +491,4 @@ class LandscapeMembershipDeleteMutation(BaseDeleteMutation):
                 model_name=CollaborationMembership.__name__, operation=MutationTypes.DELETE
             )
 
-        print(f"kwargs: {kwargs}")
         return super().mutate_and_get_payload(root, info, **kwargs)
