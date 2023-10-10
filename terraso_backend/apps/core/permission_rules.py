@@ -131,7 +131,19 @@ def allowed_to_change_landscape_membership(user, obj):
     return user.is_landscape_manager(landscape.id)
 
 
+@rules.predicate
+def allowed_to_delete_landscape_membership(user, obj):
+    landscape = obj.get("landscape")
+    membership = obj.get("membership")
+
+    if user.is_landscape_manager(landscape.id):
+        return True
+
+    return membership.user.email == user.email
+
+
 rules.add_rule("allowed_group_managers_count", allowed_group_managers_count)
 rules.add_rule("allowed_to_update_preferences", allowed_to_update_preferences)
 rules.add_rule("allowed_to_change_landscape", allowed_to_change_landscape)
 rules.add_rule("allowed_to_change_landscape_membership", allowed_to_change_landscape_membership)
+rules.add_rule("allowed_to_delete_landscape_membership", allowed_to_delete_landscape_membership)

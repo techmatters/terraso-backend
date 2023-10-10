@@ -23,6 +23,7 @@ from graphene import relay
 from graphene_django import DjangoObjectType
 
 from apps.collaboration.graphql import CollaborationMembershipNode
+from apps.collaboration.models import Membership as CollaborationMembership
 from apps.core import landscape_collaboration_roles
 from apps.core.gis.utils import m2_to_hectares
 from apps.core.models import (
@@ -337,7 +338,7 @@ class LandscapeDeleteMutation(BaseDeleteMutation):
 
 
 class LandscapeMembershipSaveMutation(BaseAuthenticatedMutation):
-    model_class = Membership
+    model_class = CollaborationMembership
     memberships = graphene.Field(graphene.List(CollaborationMembershipNode))
     landscape = graphene.Field(LandscapeNode)
 
@@ -359,7 +360,7 @@ class LandscapeMembershipSaveMutation(BaseAuthenticatedMutation):
                 },
             )
             raise GraphQLNotAllowedException(
-                model_name=Membership.__name__, operation=MutationTypes.UPDATE
+                model_name=CollaborationMembership.__name__, operation=MutationTypes.UPDATE
             )
 
         landscape_slug = kwargs["landscape_slug"]
@@ -398,7 +399,7 @@ class LandscapeMembershipSaveMutation(BaseAuthenticatedMutation):
                     landscape.membership_list.save_membership(
                         user_email=email,
                         user_role=kwargs["user_role"],
-                        membership_status=Membership.APPROVED,
+                        membership_status=CollaborationMembership.APPROVED,
                         validation_func=validate,
                     )
                 ]
@@ -409,33 +410,86 @@ class LandscapeMembershipSaveMutation(BaseAuthenticatedMutation):
                 extra={"error": str(error)},
             )
             raise GraphQLNotAllowedException(
-                model_name=Membership.__name__, operation=MutationTypes.UPDATE
+                model_name=CollaborationMembership.__name__, operation=MutationTypes.UPDATE
             )
         except IntegrityError as exc:
             logger.info(
                 "Attempt to save Landscape Memberships, but it's not unique",
-                extra={"model": Membership.__name__, "integrity_error": exc},
+                extra={"model": CollaborationMembership.__name__, "integrity_error": exc},
             )
 
             validation_error = ValidationError(
                 message={
                     NON_FIELD_ERRORS: ValidationError(
-                        message=f"This {Membership.__name__} already exists",
+                        message=f"This {CollaborationMembership.__name__} already exists",
                         code="unique",
                     )
                 },
             )
             raise GraphQLValidationException.from_validation_error(
-                validation_error, model_name=Membership.__name__
+                validation_error, model_name=CollaborationMembership.__name__
             )
         except Exception as error:
             logger.error(
                 "Attempt to update Story Map Memberships, but there was an error",
                 extra={"error": str(error)},
             )
-            raise GraphQLNotFoundException(model_name=Membership.__name__)
+            raise GraphQLNotFoundException(model_name=CollaborationMembership.__name__)
 
         return cls(
             memberships=[membership["membership"] for membership in memberships],
             landscape=landscape,
         )
+
+
+class LandscapeMembershipDeleteMutation(BaseDeleteMutation):
+    membership = graphene.Field(CollaborationMembershipNode)
+
+    model_class = CollaborationMembership
+
+    class Input:
+        id = graphene.ID(required=True)
+        landscape_slug = graphene.String(required=True)
+
+    @classmethod
+    def mutate_and_get_payload(cls, root, info, **kwargs):
+        user = info.context.user
+        membership_id = kwargs["id"]
+        landscape_slug = kwargs["landscape_slug"]
+
+        try:
+            landscape = Landscape.objects.get(slug=landscape_slug)
+        except Landscape.DoesNotExist:
+            logger.error(
+                "Attempt to delete Landscape Membership, but landscape was not found",
+                extra={"landscape_slug": landscape_slug},
+            )
+            raise GraphQLNotFoundException(model_name=Landscape.__name__)
+
+        try:
+            membership = landscape.membership_list.memberships.get(id=membership_id)
+        except CollaborationMembership.DoesNotExist:
+            logger.error(
+                "Attempt to delete Landscape Membership, but it was not found",
+                extra={"membership_id": membership_id},
+            )
+            raise GraphQLNotFoundException(model_name=CollaborationMembership.__name__)
+
+        if not rules.test_rule(
+            "allowed_to_delete_landscape_membership",
+            user,
+            {
+                "landscape": landscape,
+                "membership": membership,
+            },
+        ):
+            logger.info(
+                "Attempt to delete Landscape Memberships, but user has no permission",
+                extra={"user_id": user.pk, "membership_id": membership_id},
+            )
+            raise GraphQLNotAllowedException(
+                model_name=CollaborationMembership.__name__, operation=MutationTypes.DELETE
+            )
+
+        print(f"kwargs: {kwargs}")
+        return super().mutate_and_get_payload(root, info, **kwargs)
