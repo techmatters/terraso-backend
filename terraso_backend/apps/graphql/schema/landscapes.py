@@ -56,7 +56,6 @@ logger = structlog.get_logger(__name__)
 class LandscapeNode(DjangoObjectType, SharedResourcesMixin):
     id = graphene.ID(source="pk", required=True)
     area_types = graphene.List(graphene.String)
-    default_group = graphene.Field("apps.graphql.schema.groups.GroupNode")
     center_coordinates = graphene.Field(Point)
 
     class Meta:
