@@ -95,7 +95,9 @@ def test_landscapes_query_with_json_polygon(client_query, landscapes):
         assert landscape.area_polygon in landscapes_result
 
 
-def test_landscapes_query_with_membership(client_query, landscapes, landscape_user_memberships):
+def test_landscapes_query_with_membership(
+    client_query, managed_landscapes, landscape_user_memberships
+):
     response = client_query(
         """
         {landscapes(slug: "%s") {
@@ -117,7 +119,7 @@ def test_landscapes_query_with_membership(client_query, landscapes, landscape_us
           }
         }}
         """
-        % landscapes[0].slug
+        % managed_landscapes[0].slug
     )
 
     json_response = response.json()

@@ -330,55 +330,48 @@ def test_landscape_membership_add_manager(client_query, managed_landscapes, user
 #     assert membership["membershipStatus"] == Membership.PENDING.upper()
 
 
-# @mock.patch("apps.notifications.email.send_mail")
-# def test_landscape_membership_update(
-#     mocked_send_mail, client_query, users, memberships_pending_with_notifications
-# ):
-#     user = users[0]
-#     other_manager = users[1]
-#     old_membership = memberships_pending_with_notifications[0]
+def test_landscape_membership_update(client_query, managed_landscapes, landscape_user_memberships):
+    landscape = managed_landscapes[0]
+    old_membership = landscape_user_memberships[0]
 
-#     old_membership.group.add_manager(user)
-#     old_membership.group.add_manager(other_manager)
+    assert old_membership.user_role != landscape_collaboration_roles.ROLE_MANAGER
 
-#     assert old_membership.user_role != Membership.ROLE_MANAGER.upper()
-#     assert old_membership.membership_status != Membership.PENDING.upper()
+    response = client_query(
+        """
+      mutation updateMembership($input: LandscapeMembershipSaveMutationInput!){
+        saveLandscapeMembership(input: $input) {
+          memberships {
+            id
+            userRole
+            membershipStatus
+            user {
+              email
+            }
+          }
+          landscape {
+            slug
+          }
+        }
+      }
+      """,
+        variables={
+            "input": {
+                "landscapeSlug": old_membership.membership_list.landscape.get().slug,
+                "userEmails": [old_membership.user.email],
+                "userRole": landscape_collaboration_roles.ROLE_MANAGER,
+            }
+        },
+    )
+    json_response = response.json()
 
-#     response = client_query(
-#         """
-#       mutation updateMembership($input: MembershipUpdateMutationInput!){
-#         updateMembership(input: $input) {
-#           membership {
-#             id
-#             userRole
-#             membershipStatus
-#             user {
-#               email
-#             }
-#             group {
-#               slug
-#             }
-#           }
-#         }
-#       }
-#       """,
-#         variables={
-#             "input": {
-#                 "id": str(old_membership.id),
-#                 "userRole": Membership.ROLE_MANAGER,
-#                 "membershipStatus": Membership.APPROVED,
-#             }
-#         },
-#     )
-#     membership = response.json()["data"]["updateMembership"]["membership"]
-#     mocked_send_mail.assert_called_once()
-#     assert mocked_send_mail.call_args.args[3] == [old_membership.user.name_and_email()]
+    assert json_response["data"]["saveLandscapeMembership"]["landscape"]["slug"] == landscape.slug
 
-#     assert membership["id"]
-#     assert membership["user"]["email"] == old_membership.user.email
-#     assert membership["group"]["slug"] == old_membership.group.slug
-#     assert membership["userRole"] == Membership.ROLE_MANAGER.upper()
-#     assert membership["membershipStatus"] == Membership.APPROVED.upper()
+    membership = json_response["data"]["saveLandscapeMembership"]["memberships"][0]
+
+    assert membership["id"]
+    assert membership["user"]["email"] == old_membership.user.email
+    assert membership["userRole"] == landscape_collaboration_roles.ROLE_MANAGER
+    assert membership["membershipStatus"] == CollaborationMembership.APPROVED.upper()
 
 
 # def test_landscape_membership_update_role_by_last_manager_fails(client_query, users, memberships):
@@ -391,7 +384,7 @@ def test_landscape_membership_add_manager(client_query, managed_landscapes, user
 
 #     response = client_query(
 #         """
-#         mutation updateMembership($input: MembershipUpdateMutationInput!){
+#         mutation updateMembership($input: LandscapeMembershipSaveMutationInput!){
 #           updateMembership(input: $input) {
 #             membership {
 #               id
@@ -427,7 +420,7 @@ def test_landscape_membership_add_manager(client_query, managed_landscapes, user
 
 #     response = client_query(
 #         """
-#         mutation updateMembership($input: MembershipUpdateMutationInput!){
+#         mutation updateMembership($input: LandscapeMembershipSaveMutationInput!){
 #           updateMembership(input: $input) {
 #             membership {
 #               userRole
@@ -452,7 +445,7 @@ def test_landscape_membership_add_manager(client_query, managed_landscapes, user
 # def test_landscape_membership_update_not_found(client_query, memberships):
 #     response = client_query(
 #         """
-#         mutation updateMembership($input: MembershipUpdateMutationInput!){
+#         mutation updateMembership($input: LandscapeMembershipSaveMutationInput!){
 #           updateMembership(input: $input) {
 #             membership {
 #               userRole
