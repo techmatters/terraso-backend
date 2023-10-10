@@ -491,8 +491,6 @@ def test_story_map_approve_membership_with_token_for_registered_user_fails_due_u
     )
     json_response = response.json()
 
-    print(json_response)
-
     assert "errors" in json_response["data"]["approveStoryMapMembershipToken"]
     error_result = json_response["data"]["approveStoryMapMembershipToken"]["errors"][0]["message"]
     json_error = json.loads(error_result)
