@@ -309,11 +309,24 @@ schema (one of the key benefits of GraphQL).
 scalar JSONString
 
 type CollaborationMembershipListNode implements Node {
+  enrollMethod: CollaborationMembershipListEnrollMethodChoices!
   membershipType: CollaborationMembershipListMembershipTypeChoices!
   memberships(offset: Int, before: String, after: String, first: Int, last: Int, user: ID, user_In: [ID], userRole: String, user_Email_Icontains: String, user_Email_In: [String], membershipStatus: CollaborationMembershipMembershipStatusChoices, user_Email_Not: String): CollaborationMembershipNodeConnection!
   id: ID!
   accountMembership: CollaborationMembershipNode
   membershipsCount: Int
+}
+
+"""An enumeration."""
+enum CollaborationMembershipListEnrollMethodChoices {
+  """Join"""
+  JOIN
+
+  """Invite"""
+  INVITE
+
+  """Both"""
+  BOTH
 }
 
 """An enumeration."""
@@ -700,6 +713,7 @@ type ProjectNode implements Node {
 }
 
 type ProjectMembershipListNode implements Node {
+  enrollMethod: CollaborationMembershipListEnrollMethodChoices!
   membershipType: CollaborationMembershipListMembershipTypeChoices!
   memberships(offset: Int, before: String, after: String, first: Int, last: Int, user: ID, user_In: [ID], userRole: String, user_Email_Icontains: String, user_Email_In: [String], membershipStatus: CollaborationMembershipMembershipStatusChoices, user_Email_Not: String): ProjectMembershipNodeConnection!
   id: ID!
