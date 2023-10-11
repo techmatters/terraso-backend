@@ -53,6 +53,7 @@ class MembershipListNodeMixin:
         fields = (
             "memberships",
             "membership_type",
+            "enroll_method",
         )
         interfaces = (relay.Node,)
         connection_class = TerrasoConnection
