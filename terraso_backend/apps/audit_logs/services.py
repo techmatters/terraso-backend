@@ -2,6 +2,7 @@ import typing
 from datetime import datetime
 from enum import Enum
 
+from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
 from django.core.paginator import Paginator
 from django.db import transaction
@@ -79,7 +80,12 @@ class _AuditLogService:
 
             if client_time is None:
                 client_time = datetime.now()
-            log.client_timestamp = client_time
+            if settings.USE_TZ:
+                from django.utils.timezone import make_aware
+
+                log.client_timestamp = make_aware(client_time)
+            else:
+                log.client_timestamp = client_time
 
             log.metadata = metadata
             log.save()
