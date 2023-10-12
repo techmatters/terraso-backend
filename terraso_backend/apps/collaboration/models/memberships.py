@@ -125,7 +125,7 @@ class MembershipList(BaseModel):
         return self.approved_members.filter(id=user.id).exists()
 
     def is_member(self, user: User) -> bool:
-        return self.members.filter(id=user.id).exists()
+        return self.memberships.filter(user=user).exists()
 
     def get_membership(self, user: User):
         if not user:

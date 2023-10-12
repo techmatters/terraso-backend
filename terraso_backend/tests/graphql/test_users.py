@@ -12,8 +12,11 @@
 #
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see https://www.gnu.org/licenses/.
-
 import pytest
+from graphene_django.utils.testing import graphql_query
+from mixer.backend.django import mixer
+
+from apps.core.models import User
 
 pytestmark = pytest.mark.django_db
 
@@ -84,6 +87,7 @@ USER_IN_PROJECT_QUERY = """
               id
             }
           }
+         totalCount
       }
     }
 """
@@ -98,3 +102,21 @@ def test_users_query_in_project(client_query, project, project_user):
         contents = response.json()
         assert "errors" not in contents
         assert contents["data"]["users"]["edges"][0]["node"]["id"] == str(project_user.id)
+
+
+def test_users_query_in_project_deleted_member(client, project, project_user):
+    user = mixer.blend(User)
+    project.add_viewer(user)
+    assert project.is_member(user)
+    project.remove_user(user)
+    assert not project.is_member(user)
+
+    client.force_login(project_user)
+    response = graphql_query(
+        USER_IN_PROJECT_QUERY,
+        client=client,
+        variables={"projectId": str(project.id), "email": user.email},
+    )
+    contents = response.json()
+    assert "errors" not in contents
+    assert contents["data"]["users"]["totalCount"] == 0
