@@ -280,11 +280,25 @@ def data_entry_other_user(users, groups):
 
 
 @pytest.fixture
-def data_entries(users, groups):
+def group_data_entries(users, groups):
     creator = users[0]
     creator_group = groups[0]
     creator_group.members.add(creator)
     return mixer.cycle(5).blend(DataEntry, created_by=creator, size=100, groups=creator_group)
+
+
+@pytest.fixture
+def landscape_data_entries(users, landscapes, landscape_groups):
+    creator = users[0]
+    creator_landscape = landscapes[0]
+    return mixer.cycle(5).blend(
+        DataEntry, created_by=creator, size=100, landscapes=creator_landscape
+    )
+
+
+@pytest.fixture
+def data_entries(group_data_entries, landscape_data_entries):
+    return group_data_entries + landscape_data_entries
 
 
 @pytest.fixture

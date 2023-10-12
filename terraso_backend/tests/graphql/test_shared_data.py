@@ -31,7 +31,9 @@ def test_data_entries_query(client_query, data_entries):
         """
     )
 
-    edges = response.json()["data"]["dataEntries"]["edges"]
+    json_response = response.json()
+
+    edges = json_response["data"]["dataEntries"]["edges"]
     entries_result = [edge["node"]["name"] for edge in edges]
 
     for data_entry in data_entries:
@@ -206,3 +208,43 @@ def test_data_entries_anonymous_user(client_query_no_token, data_entries):
     entries_result = [edge["node"]["name"] for edge in edges]
 
     assert len(entries_result) == 0
+
+
+@pytest.fixture
+def data_entries_by_owner(request, group_data_entries, landscape_data_entries):
+    owner = request.param
+    if owner == "groups":
+        return (owner, group_data_entries)
+    if owner == "landscapes":
+        return (owner, landscape_data_entries)
+
+
+@pytest.mark.parametrize("data_entries_by_owner", ["groups", "landscapes"], indirect=True)
+def test_data_entries_from_owner_query(client_query, data_entries_by_owner):
+    (owner, data_entries) = data_entries_by_owner
+    response = client_query(
+        """
+        {%s {
+          edges {
+            node {
+              dataEntries {
+                edges {
+                  node {
+                    name
+                  }
+                }
+              }
+            }
+          }
+        }}
+        """
+        % owner
+    )
+
+    json_response = response.json()
+
+    edges = json_response["data"][owner]["edges"][0]["node"]["dataEntries"]["edges"]
+    entries_result = [edge["node"]["name"] for edge in edges]
+
+    for data_entry in data_entries:
+        assert data_entry.name in entries_result

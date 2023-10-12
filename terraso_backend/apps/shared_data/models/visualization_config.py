@@ -16,7 +16,7 @@
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
-from apps.core.models import BaseModel, Group, SlugModel, User
+from apps.core.models import BaseModel, Group, Landscape, SlugModel, User
 from apps.core.models.commons import validate_name
 from apps.shared_data import permission_rules as perm_rules
 
@@ -48,7 +48,12 @@ class VisualizationConfig(SlugModel):
     data_entry = models.ForeignKey(
         DataEntry, on_delete=models.CASCADE, related_name="visualizations"
     )
-    group = models.ForeignKey(Group, on_delete=models.CASCADE, related_name="visualizations")
+    group = models.ForeignKey(
+        Group, on_delete=models.CASCADE, related_name="visualizations", null=True, blank=True
+    )
+    landscape = models.ForeignKey(
+        Landscape, on_delete=models.CASCADE, related_name="visualizations", null=True, blank=True
+    )
 
     field_to_slug = "title"
 

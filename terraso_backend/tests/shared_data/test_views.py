@@ -30,19 +30,27 @@ def upload_url():
 
 
 @pytest.fixture
-def data_entry_payload(group):
+def data_entry_payload(request, group, landscape):
+    type = request.param
     return dict(
         name="Testing Data File",
         description="This is the description of the testing data file",
-        groups=[group.slug],
         data_file=SimpleUploadedFile(
             name="data_file.json",
             content=json.dumps({"key": "value", "keyN": "valueN"}).encode(),
             content_type="application/json",
         ),
+        **(
+            {"groups": [group.slug]}
+            if type == "group"
+            else {"landscapes": [landscape.slug]}
+            if type == "landscape"
+            else {}
+        ),
     )
 
 
+@pytest.mark.parametrize("data_entry_payload", ["group", "landscape"], indirect=True)
 @mock.patch("apps.storage.file_utils.get_file_size")
 def test_create_oversized_data_entry(mock_get_size, logged_client, upload_url, data_entry_payload):
     mock_get_size.return_value = 10000001
@@ -62,6 +70,7 @@ def test_create_oversized_data_entry(mock_get_size, logged_client, upload_url, d
     assert "errors" in response_data
 
 
+@pytest.mark.parametrize("data_entry_payload", ["group", "landscape"], indirect=True)
 def test_create_data_entry_successfully(logged_client, upload_url, data_entry_payload):
     with patch(
         "apps.shared_data.forms.data_entry_upload_service.upload_file"
@@ -79,8 +88,15 @@ def test_create_data_entry_successfully(logged_client, upload_url, data_entry_pa
     assert "id" in response_data
     assert "url" in response_data
     assert response_data["size"]
+    if "landscape" in data_entry_payload:
+        assert "landscapes" in response_data
+        assert "groups" not in response_data
+    if "group" in data_entry_payload:
+        assert "groups" in response_data
+        assert "landscapes" not in response_data
 
 
+@pytest.mark.parametrize("data_entry_payload", ["group", "landscape"], indirect=True)
 def test_create_data_entry_file_type_different_from_extension(
     logged_client, upload_url, data_entry_payload
 ):
@@ -107,6 +123,7 @@ def test_create_data_entry_file_type_different_from_extension(
     assert "errors" in response_data
 
 
+@pytest.mark.parametrize("data_entry_payload", ["group", "landscape"], indirect=True)
 def test_create_data_entry_file_type_csv(logged_client, upload_url, data_entry_payload):
     data_entry_payload["data_file"] = (
         SimpleUploadedFile(
@@ -131,6 +148,7 @@ def test_create_data_entry_file_type_csv(logged_client, upload_url, data_entry_p
     assert response_data["size"]
 
 
+@pytest.mark.parametrize("data_entry_payload", ["group", "landscape"], indirect=True)
 def test_create_data_entry_file_invalid_type(logged_client, upload_url, data_entry_payload):
     data_entry_payload["data_file"] = (
         SimpleUploadedFile(

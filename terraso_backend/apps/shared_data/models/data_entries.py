@@ -18,7 +18,7 @@ from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from safedelete.models import SOFT_DELETE
 
-from apps.core.models import BaseModel, Group, User
+from apps.core.models import BaseModel, Group, Landscape, User
 from apps.shared_data import permission_rules as perm_rules
 from apps.shared_data.services import DataEntryFileStorage
 
@@ -73,6 +73,7 @@ class DataEntry(BaseModel):
     size = models.PositiveBigIntegerField(null=True, blank=True)
 
     groups = models.ManyToManyField(Group, related_name="data_entries")
+    landscapes = models.ManyToManyField(Landscape, related_name="data_entries")
     created_by = models.ForeignKey(User, null=True, on_delete=models.DO_NOTHING)
     file_removed_at = models.DateTimeField(blank=True, null=True)
 
@@ -97,6 +98,16 @@ class DataEntry(BaseModel):
     def signed_url(self):
         storage = DataEntryFileStorage(custom_domain=None)
         return storage.url(self.s3_object_name)
+
+    def is_user_allowed_to_view(self, user):
+        groups_ids = [group.id for group in self.groups.all()]
+        landscape_default_groups_ids = [
+            landscape.get_default_group().id for landscape in self.landscapes.all()
+        ]
+        user_groups_ids = user.memberships.approved_only().values_list("group", flat=True)
+        return any(
+            [group_id in user_groups_ids for group_id in groups_ids + landscape_default_groups_ids]
+        )
 
     def delete_file_on_storage(self):
         if not self.deleted_at:
@@ -123,6 +134,7 @@ class DataEntry(BaseModel):
             size=self.size,
             created_by=str(self.created_by.id),
             groups=[str(group.id) for group in self.groups.all()],
+            landscapes=[str(landscape.id) for landscape in self.landscapes.all()],
         )
 
     def __str__(self):

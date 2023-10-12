@@ -50,7 +50,7 @@ def allowed_to_view_visualization_config(user, visualization_config):
 
 @rules.predicate
 def allowed_to_add_visualization_config(user, data_entry):
-    return user.memberships.approved_only().filter(group__in=data_entry.groups.all()).exists()
+    return data_entry.is_user_allowed_to_view(user)
 
 
 @rules.predicate

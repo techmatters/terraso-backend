@@ -294,6 +294,7 @@ type LandscapeNode implements Node {
   centerCoordinates: Point
   associatedDevelopmentStrategy(offset: Int, before: String, after: String, first: Int, last: Int): LandscapeDevelopmentStrategyNodeConnection!
   associatedGroups(offset: Int, before: String, after: String, first: Int, last: Int, landscape: ID, landscape_Slug_Icontains: String, group: ID, group_Slug_Icontains: String, isDefaultLandscapeGroup: Boolean, isPartnership: Boolean): LandscapeGroupNodeConnection!
+  dataEntries(offset: Int, before: String, after: String, first: Int, last: Int, name_Icontains: String, description_Icontains: String, url_Icontains: String, entryType_In: [SharedDataDataEntryEntryTypeChoices], resourceType_In: [String], groups_Slug: String, groups_Slug_Icontains: String, groups_Id: ID): DataEntryNodeConnection!
   id: ID!
   areaTypes: [String]
   defaultGroup: GroupNode
@@ -433,6 +434,7 @@ type DataEntryNode implements Node {
   """"""
   size: BigInt
   groups(offset: Int, before: String, after: String, first: Int, last: Int, name: String, name_Icontains: String, name_Istartswith: String, slug: String, slug_Icontains: String, description_Icontains: String, memberships_Email: String, associatedLandscapes_IsDefaultLandscapeGroup: Boolean, associatedLandscapes_Isnull: Boolean, associatedLandscapes_IsPartnership: Boolean): GroupNodeConnection!
+  landscapes(offset: Int, before: String, after: String, first: Int, last: Int, name_Icontains: String, description_Icontains: String, slug: String, slug_Icontains: String, website_Icontains: String, location_Icontains: String): LandscapeNodeConnection!
   createdBy: UserNode
   visualizations(offset: Int, before: String, after: String, first: Int, last: Int, slug: String, slug_Icontains: String, dataEntry_Groups_Slug: String, dataEntry_Groups_Slug_Icontains: String, dataEntry_Groups_Id: ID): VisualizationConfigNodeConnection!
   id: ID!
@@ -479,6 +481,24 @@ type GroupNodeEdge {
   cursor: String!
 }
 
+type LandscapeNodeConnection {
+  """Pagination data for this connection."""
+  pageInfo: PageInfo!
+
+  """Contains the nodes in this connection."""
+  edges: [LandscapeNodeEdge!]!
+  totalCount: Int!
+}
+
+"""A Relay edge containing a `LandscapeNode` and its cursor."""
+type LandscapeNodeEdge {
+  """The item at the end of the edge"""
+  node: LandscapeNode!
+
+  """A cursor for use in pagination"""
+  cursor: String!
+}
+
 type VisualizationConfigNodeConnection {
   """Pagination data for this connection."""
   pageInfo: PageInfo!
@@ -506,25 +526,7 @@ type VisualizationConfigNode implements Node {
   createdBy: UserNode
   mapboxTilesetId: String
   dataEntry: DataEntryNode!
-  group: GroupNode!
-}
-
-type LandscapeNodeConnection {
-  """Pagination data for this connection."""
-  pageInfo: PageInfo!
-
-  """Contains the nodes in this connection."""
-  edges: [LandscapeNodeEdge!]!
-  totalCount: Int!
-}
-
-"""A Relay edge containing a `LandscapeNode` and its cursor."""
-type LandscapeNodeEdge {
-  """The item at the end of the edge"""
-  node: LandscapeNode!
-
-  """A cursor for use in pagination"""
-  cursor: String!
+  group: GroupNode
 }
 
 type UserNodeConnection {
@@ -1880,7 +1882,8 @@ type DataEntryAddMutationPayload {
 }
 
 input DataEntryAddMutationInput {
-  groupSlug: String!
+  groupSlug: String
+  landscapeSlug: String
   name: String!
   url: String!
   entryType: String!

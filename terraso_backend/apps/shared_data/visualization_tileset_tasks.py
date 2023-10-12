@@ -58,11 +58,19 @@ def remove_mapbox_tileset(tileset_id):
         )
 
 
+def get_owner_name(visualization):
+    if visualization.group:
+        return visualization.group.name
+    if visualization.landscape:
+        return visualization.landscape.name
+    return ""
+
+
 def create_mapbox_tileset(visualization_id):
     logger.info("Creating mapbox tileset", visualization_id=visualization_id)
     visualization = VisualizationConfig.objects.get(pk=visualization_id)
     data_entry = visualization.data_entry
-    group_entry = visualization.group
+    owner_name = get_owner_name(visualization)
 
     # You cannot update a Mapbox tileset. We have to delete it and create a new one.
     remove_mapbox_tileset(visualization.mapbox_tileset_id)
@@ -143,7 +151,7 @@ def create_mapbox_tileset(visualization_id):
         # Adding the environment to the title allows us to distinguish between environments
         # in the Mapbox studio UI.
         title = f"{settings.ENV} - {visualization.title}"[:64]
-        description = f"{settings.ENV} - {group_entry.name} - {visualization.title}"
+        description = f"{settings.ENV} - {owner_name} - {visualization.title}"
 
         id = str(visualization.id).replace("-", "")
         tileset_id = create_tileset(id, geojson, title, description)

@@ -15,10 +15,11 @@
 
 import graphene
 import structlog
+from django.db.models import Q
 from graphene import relay
 from graphene_django import DjangoObjectType
 
-from apps.core.models import Group, Membership
+from apps.core.models import Group, Landscape, Membership
 from apps.graphql.exceptions import GraphQLNotAllowedException, GraphQLNotFoundException
 from apps.shared_data.models import DataEntry
 
@@ -52,6 +53,7 @@ class DataEntryNode(DjangoObjectType):
             "created_by",
             "created_at",
             "groups",
+            "landscapes",
             "visualizations",
         )
         interfaces = (relay.Node,)
@@ -63,7 +65,14 @@ class DataEntryNode(DjangoObjectType):
         user_groups_ids = Membership.objects.filter(
             user__id=user_pk, membership_status=Membership.APPROVED
         ).values_list("group", flat=True)
-        return queryset.filter(groups__in=user_groups_ids)
+        user_landscape_ids = Landscape.objects.filter(
+            associated_groups__group__memberships__user__id=user_pk,
+            associated_groups__is_default_landscape_group=True,
+        ).values_list("id", flat=True)
+
+        return queryset.filter(
+            Q(groups__in=user_groups_ids) | Q(landscapes__id__in=user_landscape_ids)
+        )
 
     def resolve_url(self, info):
         if self.entry_type == DataEntry.ENTRY_TYPE_FILE:
@@ -77,7 +86,8 @@ class DataEntryAddMutation(BaseWriteMutation):
     model_class = DataEntry
 
     class Input:
-        group_slug = graphene.String(required=True)
+        group_slug = graphene.String()
+        landscape_slug = graphene.String()
         name = graphene.String(required=True)
         url = graphene.String(required=True)
         entry_type = graphene.String(required=True)
@@ -88,10 +98,22 @@ class DataEntryAddMutation(BaseWriteMutation):
     def mutate_and_get_payload(cls, root, info, **kwargs):
         user = info.context.user
 
-        group_slug = kwargs.pop("group_slug")
+        group_slug = kwargs.pop("group_slug") if "group_slug" in kwargs else None
+        landscape_slug = kwargs.pop("landscape_slug") if "landscape_slug" in kwargs else None
+
+        if not group_slug and not landscape_slug:
+            logger.error("Neither group_slug nor landscape_slug provided when adding dataEntry")
+            raise GraphQLNotFoundException(
+                field="group_slug or landscape_slug",
+                model_name=Group.__name__,
+            )
 
         try:
-            group = Group.objects.get(slug=group_slug)
+            group = (
+                Group.objects.get(slug=group_slug)
+                if group_slug
+                else Landscape.objects.get(slug=landscape_slug).get_default_group()
+            )
         except Group.DoesNotExist:
             logger.error(
                 "Group not found when adding dataEntry",

@@ -23,7 +23,7 @@ from django.conf import settings
 from django.core.exceptions import ValidationError
 
 from apps.core.gis.parsers import is_shape_file_zip
-from apps.core.models import Group
+from apps.core.models import Group, Landscape
 
 from .models import DataEntry
 from .services import data_entry_upload_service
@@ -38,7 +38,10 @@ class DataEntryForm(forms.ModelForm):
     resource_type = forms.CharField(max_length=255, required=False)
     size = forms.IntegerField(required=False)
     groups = forms.ModelMultipleChoiceField(
-        required=True, to_field_name="slug", queryset=Group.objects.all()
+        required=False, to_field_name="slug", queryset=Group.objects.all()
+    )
+    landscapes = forms.ModelMultipleChoiceField(
+        required=False, to_field_name="slug", queryset=Landscape.objects.all()
     )
 
     class Meta:
@@ -52,6 +55,7 @@ class DataEntryForm(forms.ModelForm):
             "size",
             "url",
             "groups",
+            "landscapes",
             "created_by",
         )
 
@@ -88,6 +92,14 @@ class DataEntryForm(forms.ModelForm):
     def clean(self):
         data = self.cleaned_data
         data_file = data.get("data_file")
+        groups = data.get("groups")
+        landscapes = data.get("landscapes")
+
+        # Check if either groups or landscapes are provided
+        if not groups and not landscapes:
+            raise ValidationError(
+                "Either groups or landscapes are required", code="invalid_groups_landscapes"
+            )
 
         if data_file:
             file_extension = pathlib.Path(data_file.name).suffix

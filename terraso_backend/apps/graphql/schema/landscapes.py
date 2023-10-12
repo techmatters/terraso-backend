@@ -71,6 +71,7 @@ class LandscapeNode(DjangoObjectType):
             "profile_image",
             "profile_image_description",
             "center_coordinates",
+            "data_entries",
         )
 
         interfaces = (relay.Node,)

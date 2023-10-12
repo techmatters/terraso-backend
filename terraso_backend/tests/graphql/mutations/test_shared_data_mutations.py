@@ -21,16 +21,24 @@ from apps.shared_data.models import DataEntry
 pytestmark = pytest.mark.django_db
 
 
-def test_add_data_entry(client_query, managed_groups):
-    group = managed_groups[0]
-    data = {
+@pytest.fixture
+def input_by_owner(request, managed_groups, managed_landscapes):
+    owner = request.param
+    base_input = {
         "name": "Name",
         "description": "Description",
         "url": "https://example.com",
         "entryType": "link",
         "resourceType": "link",
-        "groupSlug": group.slug,
     }
+    if owner == "group":
+        return {**base_input, "groupSlug": managed_groups[0].slug}
+    if owner == "landscape":
+        return {**base_input, "landscapeSlug": managed_landscapes[0].slug}
+
+
+@pytest.mark.parametrize("input_by_owner", ["group", "landscape"], indirect=True)
+def test_add_data_entry(client_query, input_by_owner):
     response = client_query(
         """
         mutation addDataEntry($input: DataEntryAddMutationInput!) {
@@ -44,12 +52,12 @@ def test_add_data_entry(client_query, managed_groups):
           }
         }
         """,
-        variables={"input": data},
+        variables={"input": input_by_owner},
     )
     result = response.json()["data"]["addDataEntry"]
     assert result["errors"] is None
-    assert result["dataEntry"]["name"] == data["name"]
-    assert result["dataEntry"]["url"] == data["url"]
+    assert result["dataEntry"]["name"] == input_by_owner["name"]
+    assert result["dataEntry"]["url"] == input_by_owner["url"]
 
 
 def test_data_entry_update_by_creator_works(client_query, data_entries):
@@ -192,15 +200,33 @@ def test_data_entry_delete_by_manager_works(client_query, data_entries, users, g
     assert not DataEntry.objects.filter(name=data_entry_result["name"])
 
 
-def test_data_entry_delete_by_manager_fails_due_to_membership_approval_status(
-    client_query, data_entries, users
-):
-    old_data_entry = data_entries[0]
-    old_data_entry.created_by = users[2]
-    old_data_entry.save()
-    group = old_data_entry.groups.first()
+@pytest.fixture
+def data_entry_by_not_manager_by_owner(request, users, landscape_data_entries, group_data_entries):
+    owner = request.param
+
+    (data_entry, group) = (
+        (group_data_entries[0], group_data_entries[0].groups.first())
+        if owner == "group"
+        else (
+            landscape_data_entries[0],
+            landscape_data_entries[0].landscapes.first().get_default_group(),
+        )
+    )
+
+    data_entry.created_by = users[2]
+    data_entry.save()
     group.add_manager(users[0])
     users[0].memberships.filter(group=group).update(membership_status=Membership.PENDING)
+    return data_entry
+
+
+@pytest.mark.parametrize(
+    "data_entry_by_not_manager_by_owner", ["group", "landscape"], indirect=True
+)
+def test_data_entry_delete_by_manager_fails_due_to_membership_approval_status(
+    client_query, data_entry_by_not_manager_by_owner
+):
+    old_data_entry = data_entry_by_not_manager_by_owner
 
     response = client_query(
         """

@@ -17,7 +17,7 @@ import pytest
 from django.conf import settings
 from mixer.backend.django import mixer
 
-from apps.core.models import Group, User
+from apps.core.models import Group, Landscape, User
 from apps.shared_data.models import DataEntry, VisualizationConfig
 
 
@@ -34,6 +34,11 @@ def user_b():
 @pytest.fixture
 def group():
     return mixer.blend(Group)
+
+
+@pytest.fixture
+def landscape():
+    return mixer.blend(Landscape)
 
 
 @pytest.fixture
