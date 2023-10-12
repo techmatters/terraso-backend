@@ -23,13 +23,13 @@ from apps.project_management.models.projects import Project
 pytestmark = pytest.mark.django_db
 
 
-def test_query_site_fields(client, project, user):
+def test_query_site_fields(client, project, project_user):
     sites = [
         Site(
             name="site 1",
             latitude=1.0,
             longitude=-1.0,
-            owner=user,
+            owner=project_user,
             privacy="PRIVATE",
             archived=False,
         ),
@@ -59,7 +59,7 @@ def test_query_site_fields(client, project, user):
       }
     }
     """
-    client.force_login(user)
+    client.force_login(project_user)
 
     for site, response in [(site, graphql_query(query % site.id, client=client)) for site in sites]:
         assert "errors" not in response.json()

@@ -19,30 +19,45 @@ from apps.project_management.models.projects import Project
 
 pytestmark = pytest.mark.django_db
 
-
-def test_query_by_member(client, project, project_user):
-    project2 = Project(name="2")
-    project2.save()
-    query = """
+PROJECT_QUERY = """
     {
-      projects(member: "%s") {
+      projects {
         edges {
           node {
             id
             name
             membershipList {
               id
+              memberships {
+                edges {
+                  node {
+                    id
+                  }
+                }
+              }
             }
           }
         }
+        totalCount
       }
     }
-    """ % (
-        project_user.id,
-    )
+    """
+
+
+def test_query_by_member(client, project, project_user):
+    project2 = Project(name="2")
+    project2.save()
     client.force_login(project_user)
-    response = graphql_query(query, client=client)
+    response = graphql_query(PROJECT_QUERY, client=client)
     assert "errors" not in response.json()
     edges = response.json()["data"]["projects"]["edges"]
     assert len(edges) == 1
     assert edges[0]["node"]["name"] == str(project.name)
+
+
+def test_query_by_non_member(client, project):
+    response = graphql_query(PROJECT_QUERY, client=client)
+    payload = response.json()
+    assert "errors" not in payload
+    assert len(payload["data"]["projects"]["edges"]) == 0
+    assert payload["data"]["projects"]["totalCount"] == 0

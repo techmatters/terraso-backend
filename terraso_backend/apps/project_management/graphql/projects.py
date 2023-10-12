@@ -143,6 +143,12 @@ class ProjectNode(DjangoObjectType):
             return True
         return self.seen_by.filter(id=user.id).exists()
 
+    @classmethod
+    def get_queryset(cls, queryset, info):
+        # limit queries to membership lists of projects to which the user belongs
+        user_pk = getattr(info.context.user, "pk", None)
+        return queryset.filter(membership_list__memberships__user_id=user_pk)
+
 
 class ProjectPrivacy(graphene.Enum):
     PRIVATE = Project.PRIVATE
