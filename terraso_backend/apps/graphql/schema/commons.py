@@ -38,6 +38,14 @@ from .constants import MutationTypes
 logger = structlog.get_logger(__name__)
 
 
+# fields to be excluded from the GraphQL node for models which extend the data
+# model of an existing model rather than being considered entities in their own
+# right. i.e. they have a foreign key to another model and are only queried by
+# their relationship to that model, not by their own ID
+def data_model_excluded_fields():
+    return ["deleted_at", "deleted_by_cascade", "id", "created_at", "updated_at"]
+
+
 # we make TerrasoRelayNode.Field required by default since django's objects.get raises
 # an error if the object is not found, so a nullable return result would be redundant
 class TerrasoRelayNode(relay.Node):
@@ -93,6 +101,10 @@ class BaseMutation(relay.ClientIDMutation):
             return cls(errors=[{"message": str(error)}])
 
     @classmethod
+    def not_found(cls, model=None, field=None, msg=None):
+        raise GraphQLNotFoundException(msg, field=field, model_name=model.__name__)
+
+    @classmethod
     def get_or_throw(cls, model, field_name, id_):
         try:
             return model.objects.get(id=id_)
@@ -139,6 +151,7 @@ class BaseAuthenticatedMutation(BaseMutation):
         abstract = True
 
     model_class = None
+    result_class = None
 
     @classmethod
     def mutate(cls, root, info, input):
@@ -161,6 +174,10 @@ class BaseAuthenticatedMutation(BaseMutation):
     def not_allowed_create(cls, model, msg=None, extra=None):
         raise cls.not_allowed(MutationTypes.CREATE, msg, extra)
 
+    @classmethod
+    def not_found(cls, model=None, field=None, msg=None):
+        raise super().not_found(msg, field=field, model=model or cls.model_class)
+
 
 class BaseWriteMutation(BaseAuthenticatedMutation):
     logger: Optional[audit_log_api.AuditLog] = None
@@ -174,6 +191,7 @@ class BaseWriteMutation(BaseAuthenticatedMutation):
         called both when adding and updating a model. The `kwargs` receives
         a dictionary with all inputs informed.
         """
+
         if "model_instance" in kwargs:
             model_instance = kwargs.pop("model_instance")
         else:
@@ -183,6 +201,9 @@ class BaseWriteMutation(BaseAuthenticatedMutation):
                 model_instance = cls.model_class.objects.get(pk=_id)
             else:
                 model_instance = cls.model_class()
+
+        result_class = cls.result_class or cls.model_class
+        result_instance = kwargs.pop("result_instance", model_instance)
 
         for attr, value in kwargs.items():
             if isinstance(value, enum.Enum):
@@ -225,7 +246,7 @@ class BaseWriteMutation(BaseAuthenticatedMutation):
                 validation_error, model_name=cls.model_class.__name__
             )
 
-        result_kwargs = {from_camel_to_snake_case(cls.model_class.__name__): model_instance}
+        result_kwargs = {from_camel_to_snake_case(result_class.__name__): result_instance}
 
         return cls(**result_kwargs)
 
@@ -244,13 +265,16 @@ class BaseWriteMutation(BaseAuthenticatedMutation):
 class BaseDeleteMutation(BaseAuthenticatedMutation):
     @classmethod
     def mutate_and_get_payload(cls, root, info, **kwargs):
-        _id = kwargs.pop("id", None)
-
-        if not _id:
-            model_instance = None
+        if "model_instance" in kwargs:
+            model_instance = kwargs.pop("model_instance")
         else:
-            model_instance = cls.model_class.objects.get(pk=_id)
-            model_instance.delete()
+            _id = kwargs.pop("id", None)
+
+            if not _id:
+                model_instance = None
+            else:
+                model_instance = cls.model_class.objects.get(pk=_id)
+                model_instance.delete()
 
         result_kwargs = {from_camel_to_snake_case(cls.model_class.__name__): model_instance}
         return cls(**result_kwargs)

@@ -40,6 +40,7 @@ from apps.graphql.schema.commons import (
     TerrasoConnection,
 )
 from apps.graphql.schema.constants import MutationTypes
+from apps.graphql.schema.users import UserNode
 from apps.graphql.signals import (
     membership_added_signal,
     membership_deleted_signal,
@@ -52,6 +53,7 @@ from apps.project_management.models import (
     ProjectMembershipList,
 )
 from apps.project_management.models.sites import Site
+from apps.soil_id.models.project_soil_settings import ProjectSoilSettings
 
 
 class UserRole(graphene.Enum):
@@ -64,6 +66,7 @@ class ProjectMembershipNode(DjangoObjectType, MembershipNodeMixin):
     class Meta(MembershipNodeMixin.Meta):
         model = ProjectMembership
 
+    user = graphene.Field(UserNode, required=True)
     user_role = graphene.Field(UserRole, required=True)
 
     def resolve_user_role(self, info):
@@ -119,6 +122,11 @@ class ProjectFilterSet(FilterSet):
 class ProjectNode(DjangoObjectType):
     id = graphene.ID(source="pk", required=True)
     seen = graphene.Boolean(required=True)
+    soil_settings = graphene.Field(
+        "apps.soil_id.graphql.soil_data.ProjectSoilSettingsNode",
+        required=True,
+        default_value=ProjectSoilSettings(),
+    )
 
     class Meta:
         model = Project

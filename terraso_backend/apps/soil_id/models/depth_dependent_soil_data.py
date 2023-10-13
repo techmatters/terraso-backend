@@ -17,26 +17,18 @@ from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 
 from apps.core.models.commons import BaseModel
+from apps.soil_id.models.depth_interval import BaseDepthInterval
 from apps.soil_id.models.soil_data import SoilData
 
 
-class DepthDependentSoilData(BaseModel):
-    class Meta:
-        constraints = [
-            models.UniqueConstraint(
-                fields=["soil_data", "depth_start", "depth_end"], name="unique_depth_interval"
-            ),
-            models.CheckConstraint(
-                check=models.Q(depth_start__lt=models.F("depth_end")),
-                name="depth_interval_coherence",
-            ),
-        ]
-
+class DepthDependentSoilData(BaseModel, BaseDepthInterval):
     soil_data = models.ForeignKey(
         SoilData, on_delete=models.CASCADE, related_name="depth_dependent_data"
     )
-    depth_start = models.PositiveIntegerField(validators=[MaxValueValidator(200)])
-    depth_end = models.PositiveIntegerField(validators=[MaxValueValidator(200)])
+
+    class Meta(BaseModel.Meta):
+        ordering = ["depth_interval_start"]
+        constraints = BaseDepthInterval.constraints("soil_data")
 
     class Texture(models.TextChoices):
         SAND = "SAND"

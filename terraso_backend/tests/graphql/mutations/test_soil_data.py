@@ -6,6 +6,7 @@ from graphene_django.utils.testing import graphql_query
 from mixer.backend.django import mixer
 
 from apps.core.models import User
+from apps.project_management.models.projects import Project
 from apps.project_management.models.sites import Site
 
 pytestmark = pytest.mark.django_db
@@ -24,10 +25,6 @@ UPDATE_SOIL_DATA_QUERY = """
                 slopeSteepnessSelect
                 slopeSteepnessPercent
                 slopeSteepnessDegree
-                depthIntervals {
-                    start
-                    end
-                }
             }
             errors
         }
@@ -94,7 +91,6 @@ def test_update_soil_data_constraints(client, user, site):
             variables={"input": {"siteId": str(site.id), attr: value}},
             client=client,
         )
-        logger.info(response.json())
         if msg is None:
             assert not hasattr(response.json(), "data") and response.json()["errors"] is not None
         else:
@@ -117,69 +113,116 @@ def test_update_soil_data_not_allowed(client, site):
     assert not hasattr(Site.objects.get(id=site.id), "soil_data")
 
 
+UPDATE_SOIL_DATA_DEPTH_INTERVAL_QUERY = """
+    mutation SoilDataDepthIntervalUpdateMutation(
+        $input: SoilDataUpdateDepthIntervalMutationInput!
+    ) {
+        updateSoilDataDepthInterval(input: $input) {
+            soilData {
+                depthIntervals {
+                    label
+                    depthInterval {
+                        start
+                        end
+                    }
+                }
+            }
+            errors
+        }
+    }
+"""
+
+DELETE_SOIL_DATA_DEPTH_INTERVAL_QUERY = """
+    mutation SoilDataDepthIntervalDeleteMutation(
+        $input: SoilDataDeleteDepthIntervalMutationInput!
+    ) {
+        deleteSoilDataDepthInterval(input: $input) {
+            soilData {
+                depthIntervals {
+                    label
+                    depthInterval {
+                        start
+                        end
+                    }
+                }
+            }
+            errors
+        }
+    }
+"""
+
+
 def test_update_depth_intervals(client, user, site):
     client.force_login(user)
 
+    good_interval = {"label": "good", "depthInterval": {"start": 10, "end": 30}}
     response = graphql_query(
-        UPDATE_SOIL_DATA_QUERY, variables={"input": {"siteId": str(site.id)}}, client=client
-    )
-    assert response.json()["data"]["updateSoilData"]["errors"] is None
-    payload = response.json()["data"]["updateSoilData"]["soilData"]
-    assert payload["depthIntervals"] == []
-
-    good_intervals = [{"start": 0, "end": 10}, {"start": 10, "end": 30}]
-    response = graphql_query(
-        UPDATE_SOIL_DATA_QUERY,
+        UPDATE_SOIL_DATA_DEPTH_INTERVAL_QUERY,
         variables={
             "input": {
                 "siteId": str(site.id),
-                "depthIntervals": good_intervals,
+                **good_interval,
             }
         },
         client=client,
     )
-    assert response.json()["data"]["updateSoilData"]["errors"] is None
-    payload = response.json()["data"]["updateSoilData"]["soilData"]
-    assert payload["depthIntervals"] == good_intervals
+    assert response.json()["data"]["updateSoilDataDepthInterval"]["errors"] is None
+    payload = response.json()["data"]["updateSoilDataDepthInterval"]["soilData"]
+    assert payload["depthIntervals"] == [good_interval]
 
-    bad_intervalses = [
-        [{"start": 0}],
-        [{"end": 10}],
-        [0, 10],
-        [{"start": 0, "middle": 5, "end": 10}],
-        [{"stort": 0, "end": 10}],
-        [{"start": 0, "and": 10}],
+    bad_intervals = [
+        {"start": -1, "end": 10},
+        {"start": 0, "end": 201},
+        {"start": 40, "end": 30},
+        {"start": 29, "end": 31},
+        {"start": 9, "end": 11},
     ]
-    for intervals in bad_intervalses:
+    for interval in bad_intervals:
         response = graphql_query(
-            UPDATE_SOIL_DATA_QUERY,
+            UPDATE_SOIL_DATA_DEPTH_INTERVAL_QUERY,
             variables={
                 "input": {
                     "siteId": str(site.id),
-                    "depthIntervals": intervals,
+                    "depthInterval": interval,
                 }
             },
             client=client,
         )
-        assert response.json()["errors"] is not None
+        assert response.json()["data"]["updateSoilDataDepthInterval"]["errors"] is not None
 
-    bad_intervalses = [
-        [{"start": -1, "end": 10}],
-        [{"start": 0, "end": 201}],
-        [{"start": 0, "end": 10}, {"start": 9, "end": 20}],
+    good_interval2 = {"start": 0, "end": 10}
+    response = graphql_query(
+        UPDATE_SOIL_DATA_DEPTH_INTERVAL_QUERY,
+        variables={
+            "input": {
+                "siteId": str(site.id),
+                "depthInterval": good_interval2,
+            }
+        },
+        client=client,
+    )
+    assert response.json()["data"]["updateSoilDataDepthInterval"]["errors"] is None
+    payload = response.json()["data"]["updateSoilDataDepthInterval"]["soilData"]
+    assert payload["depthIntervals"] == [
+        {"label": "", "depthInterval": good_interval2},
+        good_interval,
     ]
-    for intervals in bad_intervalses:
-        response = graphql_query(
-            UPDATE_SOIL_DATA_QUERY,
-            variables={
-                "input": {
-                    "siteId": str(site.id),
-                    "depthIntervals": intervals,
-                }
-            },
-            client=client,
-        )
-        assert response.json()["data"]["updateSoilData"]["errors"] is not None
+
+    response = graphql_query(
+        DELETE_SOIL_DATA_DEPTH_INTERVAL_QUERY,
+        variables={
+            "input": {
+                "siteId": str(site.id),
+                "depthInterval": good_interval["depthInterval"],
+            }
+        },
+        client=client,
+    )
+    assert response.json()["data"]["deleteSoilDataDepthInterval"]["errors"] is None
+    payload = response.json()["data"]["deleteSoilDataDepthInterval"]["soilData"]
+    assert payload["depthIntervals"] == [
+        {"label": "", "depthInterval": good_interval2},
+    ]
 
 
 UPDATE_DEPTH_DEPENDENT_QUERY = """
@@ -187,28 +230,32 @@ UPDATE_DEPTH_DEPENDENT_QUERY = """
         $input: DepthDependentSoilDataUpdateMutationInput!
     ) {
         updateDepthDependentSoilData(input: $input) {
-            depthDependentSoilData {
-                depthStart
-                depthEnd
-                texture
-                rockFragmentVolume
-                colorHueSubstep
-                colorHue
-                colorValue
-                colorChroma
-                conductivity
-                conductivityTest
-                conductivityUnit
-                structure
-                ph
-                phTestingSolution
-                phTestingMethod
-                soilOrganicCarbon
-                soilOrganicMatter
-                soilOrganicCarbonTesting
-                soilOrganicMatterTesting
-                sodiumAbsorptionRatio
-                carbonates
+            soilData {
+                depthDependentData {
+                    depthInterval {
+                      start
+                      end
+                    }
+                    texture
+                    rockFragmentVolume
+                    colorHueSubstep
+                    colorHue
+                    colorValue
+                    colorChroma
+                    conductivity
+                    conductivityTest
+                    conductivityUnit
+                    structure
+                    ph
+                    phTestingSolution
+                    phTestingMethod
+                    soilOrganicCarbon
+                    soilOrganicMatter
+                    soilOrganicCarbonTesting
+                    soilOrganicMatterTesting
+                    sodiumAbsorptionRatio
+                    carbonates
+                }
             }
             errors
         }
@@ -220,15 +267,17 @@ def test_update_depth_dependent_soil_data(client, user, site):
     client.force_login(user)
     new_data = {
         "siteId": str(site.id),
-        "depthStart": 0,
-        "depthEnd": 10,
+        "depthInterval": {
+            "start": 0,
+            "end": 10,
+        },
         "texture": "CLAY",
         "rockFragmentVolume": "VOLUME_0_1",
         "colorHueSubstep": "SUBSTEP_2_5",
         "colorHue": "R",
         "colorValue": "VALUE_3",
         "colorChroma": "CHROMA_5",
-        "conductivity": "10.0",
+        "conductivity": "10.00",
         "conductivityTest": "SATURATED_PASTE",
         "conductivityUnit": "DECISIEMENS_METER",
         "structure": "LENTICULAR",
@@ -245,32 +294,38 @@ def test_update_depth_dependent_soil_data(client, user, site):
     response = graphql_query(
         UPDATE_DEPTH_DEPENDENT_QUERY, variables={"input": new_data}, client=client
     )
-    payload = response.json()["data"]["updateDepthDependentSoilData"]["depthDependentSoilData"]
     assert response.json()["data"]["updateDepthDependentSoilData"]["errors"] is None
+    payload = response.json()["data"]["updateDepthDependentSoilData"]["soilData"][
+        "depthDependentData"
+    ][0]
     new_data.pop("siteId")
     for attr, value in new_data.items():
         assert payload[attr] == value
-    new_data.pop("depthStart")
-    new_data.pop("depthEnd")
+    new_data.pop("depthInterval")
 
     cleared_data = dict(
-        {k: None for k in new_data.keys()}, siteId=str(site.id), depthStart=0, depthEnd=10
+        {k: None for k in new_data.keys()},
+        siteId=str(site.id),
+        depthInterval={"start": 0, "end": 10},
     )
     response = graphql_query(
         UPDATE_DEPTH_DEPENDENT_QUERY, variables={"input": cleared_data}, client=client
     )
-    payload = response.json()["data"]["updateDepthDependentSoilData"]["depthDependentSoilData"]
     assert response.json()["data"]["updateDepthDependentSoilData"]["errors"] is None
+    payload = response.json()["data"]["updateDepthDependentSoilData"]["soilData"][
+        "depthDependentData"
+    ][0]
     for attr in new_data.keys():
         assert payload[attr] is None
 
-    partial_data = {"siteId": str(site.id), "depthStart": 0, "depthEnd": 10}
+    partial_data = {"siteId": str(site.id), "depthInterval": {"start": 0, "end": 10}}
     response = graphql_query(
         UPDATE_DEPTH_DEPENDENT_QUERY, variables={"input": partial_data}, client=client
     )
-    logger.info(response.json())
-    payload = response.json()["data"]["updateDepthDependentSoilData"]["depthDependentSoilData"]
     assert response.json()["data"]["updateDepthDependentSoilData"]["errors"] is None
+    payload = response.json()["data"]["updateDepthDependentSoilData"]["soilData"][
+        "depthDependentData"
+    ][0]
     for attr in new_data.keys():
         assert payload[attr] is None
 
@@ -310,11 +365,14 @@ def test_update_depth_dependent_soil_data_constraints(client, user, site):
         response = graphql_query(
             UPDATE_DEPTH_DEPENDENT_QUERY,
             variables={
-                "input": {"siteId": str(site.id), "depthStart": 0, "depthEnd": 10, attr: value}
+                "input": {
+                    "siteId": str(site.id),
+                    "depthInterval": {"start": 0, "end": 10},
+                    attr: value,
+                }
             },
             client=client,
         )
-        logger.info(response.json())
         if msg is None:
             assert not hasattr(response.json(), "data") and response.json()["errors"] is not None
         else:
@@ -330,8 +388,7 @@ def test_update_depth_dependent_soil_data_not_allowed(client, site):
     client.force_login(user)
     new_data = {
         "siteId": str(site.id),
-        "depthStart": 0,
-        "depthEnd": 10,
+        "depthInterval": {"start": 0, "end": 10},
         "texture": "CLAY",
     }
     response = graphql_query(
@@ -341,3 +398,195 @@ def test_update_depth_dependent_soil_data_not_allowed(client, site):
     assert json.loads(error_msg)[0]["code"] == "update_not_allowed"
 
     assert not hasattr(Site.objects.get(id=site.id), "soil_data")
+
+
+UPDATE_PROJECT_DEPTH_INTERVAL_QUERY = """
+    mutation ProjectDepthIntervalUpdateMutation(
+        $input: ProjectSoilSettingsUpdateDepthIntervalMutationInput!
+    ) {
+        updateProjectSoilSettingsDepthInterval(input: $input) {
+            projectSoilSettings {
+                depthIntervals {
+                    label
+                    depthInterval {
+                        start
+                        end
+                    }
+                }
+            }
+            errors
+        }
+    }
+"""
+
+DELETE_PROJECT_DEPTH_INTERVAL_QUERY = """
+    mutation ProjectDepthIntervalDeleteMutation(
+        $input: ProjectSoilSettingsDeleteDepthIntervalMutationInput!
+    ) {
+        deleteProjectSoilSettingsDepthInterval(input: $input) {
+            projectSoilSettings {
+                depthIntervals {
+                    label
+                    depthInterval {
+                        start
+                        end
+                    }
+                }
+            }
+            errors
+        }
+    }
+"""
+
+
+def test_update_project_depth_intervals(client, project_manager, project):
+    client.force_login(project_manager)
+
+    good_interval = {"label": "good", "depthInterval": {"start": 10, "end": 30}}
+    response = graphql_query(
+        UPDATE_PROJECT_DEPTH_INTERVAL_QUERY,
+        variables={
+            "input": {
+                "projectId": str(project.id),
+                **good_interval,
+            }
+        },
+        client=client,
+    )
+    assert response.json()["data"]["updateProjectSoilSettingsDepthInterval"]["errors"] is None
+    payload = response.json()["data"]["updateProjectSoilSettingsDepthInterval"][
+        "projectSoilSettings"
+    ]
+    assert payload["depthIntervals"] == [good_interval]
+
+    bad_intervals = [
+        {"start": -1, "end": 10},
+        {"start": 0, "end": 201},
+        {"start": 40, "end": 30},
+        {"start": 29, "end": 31},
+        {"start": 9, "end": 11},
+    ]
+    for interval in bad_intervals:
+        response = graphql_query(
+            UPDATE_PROJECT_DEPTH_INTERVAL_QUERY,
+            variables={
+                "input": {
+                    "projectId": str(project.id),
+                    "depthInterval": interval,
+                }
+            },
+            client=client,
+        )
+        assert (
+            response.json()["data"]["updateProjectSoilSettingsDepthInterval"]["errors"] is not None
+        )
+
+    good_interval2 = {"start": 0, "end": 10}
+    response = graphql_query(
+        UPDATE_PROJECT_DEPTH_INTERVAL_QUERY,
+        variables={
+            "input": {
+                "projectId": str(project.id),
+                "depthInterval": good_interval2,
+            }
+        },
+        client=client,
+    )
+    assert response.json()["data"]["updateProjectSoilSettingsDepthInterval"]["errors"] is None
+    payload = response.json()["data"]["updateProjectSoilSettingsDepthInterval"][
+        "projectSoilSettings"
+    ]
+    assert payload["depthIntervals"] == [
+        {"label": "", "depthInterval": good_interval2},
+        good_interval,
+    ]
+
+    response = graphql_query(
+        DELETE_PROJECT_DEPTH_INTERVAL_QUERY,
+        variables={
+            "input": {
+                "projectId": str(project.id),
+                "depthInterval": good_interval["depthInterval"],
+            }
+        },
+        client=client,
+    )
+    assert response.json()["data"]["deleteProjectSoilSettingsDepthInterval"]["errors"] is None
+    payload = response.json()["data"]["deleteProjectSoilSettingsDepthInterval"][
+        "projectSoilSettings"
+    ]
+    assert payload["depthIntervals"] == [
+        {"label": "", "depthInterval": good_interval2},
+    ]
+
+
+UPDATE_PROJECT_SETTINGS_QUERY = """
+    mutation ProjectSettingsDeleteMutation(
+        $input: ProjectSoilSettingsUpdateMutationInput!
+    ) {
+        updateProjectSoilSettings(input: $input) {
+            projectSoilSettings {
+                measurementUnits
+                depthIntervalPreset
+                soilPitRequired
+                slopeRequired
+                soilTextureRequired
+                soilColorRequired
+                verticalCrackingRequired
+                carbonatesRequired
+                phRequired
+                soilOrganicCarbonMatterRequired
+                electricalConductivityRequired
+                sodiumAdsorptionRatioRequired
+                soilStructureRequired
+                landUseLandCoverRequired
+                soilLimitationsRequired
+                photosRequired
+                notesRequired
+            }
+            errors
+        }
+    }
+"""
+
+
+def test_update_project_soil_settings(client, user, project_manager, project):
+    client.force_login(user)
+
+    new_data = {
+        "projectId": str(project.id),
+        "measurementUnits": "METRIC",
+        "depthIntervalPreset": "NRCS",
+        "soilPitRequired": True,
+        "slopeRequired": False,
+        "soilTextureRequired": True,
+        "soilColorRequired": True,
+        "verticalCrackingRequired": False,
+        "carbonatesRequired": True,
+        "phRequired": True,
+        "soilOrganicCarbonMatterRequired": False,
+        "electricalConductivityRequired": True,
+        "sodiumAdsorptionRatioRequired": True,
+        "soilStructureRequired": True,
+        "landUseLandCoverRequired": False,
+        "soilLimitationsRequired": True,
+        "photosRequired": True,
+        "notesRequired": True,
+    }
+
+    response = graphql_query(
+        UPDATE_PROJECT_SETTINGS_QUERY, variables={"input": new_data}, client=client
+    )
+    error_msg = response.json()["data"]["updateProjectSoilSettings"]["errors"][0]["message"]
+    assert json.loads(error_msg)[0]["code"] == "update_not_allowed"
+    assert not hasattr(Project.objects.get(id=project.id), "soil_settings")
+
+    client.force_login(project_manager)
+
+    response = graphql_query(
+        UPDATE_PROJECT_SETTINGS_QUERY, variables={"input": new_data}, client=client
+    )
+    assert response.json()["data"]["updateProjectSoilSettings"]["errors"] is None
+    payload = response.json()["data"]["updateProjectSoilSettings"]["projectSoilSettings"]
+    new_data.pop("projectId")
+    assert payload == new_data

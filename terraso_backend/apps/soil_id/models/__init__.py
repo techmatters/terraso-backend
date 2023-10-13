@@ -15,6 +15,13 @@
 
 
 from .depth_dependent_soil_data import DepthDependentSoilData
-from .soil_data import SoilData
+from .project_soil_settings import ProjectDepthInterval, ProjectSoilSettings
+from .soil_data import SoilData, SoilDataDepthInterval
 
-__all__ = ["SoilData", "DepthDependentSoilData"]
+__all__ = [
+    "SoilData",
+    "DepthDependentSoilData",
+    "ProjectSoilSettings",
+    "ProjectDepthInterval",
+    "SoilDataDepthInterval",
+]
