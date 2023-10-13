@@ -24,15 +24,14 @@ pytestmark = pytest.mark.django_db
 
 
 @mock.patch("apps.graphql.schema.visualization_config.start_create_mapbox_tileset_task")
-def test_visualization_config_add(
-    mock_create_tileset, client_query, visualization_configs, data_entries
-):
-    group_id = str(visualization_configs[0].group.id)
+def test_visualization_config_add(mock_create_tileset, client_query, groups, data_entries):
+    group_id = str(groups[0].id)
     data_entry_id = str(data_entries[0].id)
     new_data = {
         "title": "Test title",
         "configuration": '{"key": "value"}',
-        "groupId": group_id,
+        "targetId": group_id,
+        "targetType": "group",
         "dataEntryId": data_entry_id,
     }
 
@@ -44,22 +43,27 @@ def test_visualization_config_add(
               slug
               title
               configuration
-              group { id }
               dataEntry { id }
+              owner {
+                ... on GroupNode { id }
+              }
             }
+            errors
           }
         }
         """,
         variables={"input": new_data},
     )
 
-    result = response.json()["data"]["addVisualizationConfig"]["visualizationConfig"]
+    json_response = response.json()
+
+    result = json_response["data"]["addVisualizationConfig"]["visualizationConfig"]
 
     assert result == {
         "slug": "test-title",
         "title": "Test title",
         "configuration": '{"key": "value"}',
-        "group": {"id": group_id},
+        "owner": {"id": group_id},
         "dataEntry": {"id": data_entry_id},
     }
     mock_create_tileset.assert_called_once()
@@ -72,7 +76,8 @@ def test_visualization_config_add_fails_due_uniqueness_check(
     new_data = {
         "title": visualization_configs[0].title,
         "configuration": '{"key": "value"}',
-        "groupId": str(visualization_configs[0].group.id),
+        "targetId": str(visualization_configs[0].owner.id),
+        "targetType": "group",
         "dataEntryId": str(data_entries[0].id),
     }
 

@@ -15,6 +15,38 @@
 
 import rules
 
+from apps.core.models import Group, Landscape
+
+
+def is_target_manager(user, target):
+    if isinstance(target, Group):
+        return user.memberships.managers_only().filter(group=target).exists()
+    if isinstance(target, Landscape):
+        return user.memberships.managers_only().filter(group=target.get_default_group()).exists()
+    return False
+
+
+def is_target_member(user, target):
+    if isinstance(target, Group):
+        return user.memberships.approved_only().filter(group=target).exists()
+    if isinstance(target, Landscape):
+        return user.memberships.approved_only().filter(group=target.get_default_group()).exists()
+    return False
+
+
+def is_user_allowed_to_view_data_entry(data_entry, user):
+    shared_targets = data_entry.shared_targets.all()
+    for shared_target in shared_targets:
+        if is_target_member(user, shared_target.target):
+            return True
+
+
+def is_user_allowed_to_change_data_entry(data_entry, user):
+    shared_targets = data_entry.shared_targets.all()
+    for shared_target in shared_targets:
+        if is_target_manager(user, shared_target.target):
+            return True
+
 
 @rules.predicate
 def allowed_to_change_data_entry(user, data_entry):
@@ -23,34 +55,33 @@ def allowed_to_change_data_entry(user, data_entry):
 
 @rules.predicate
 def allowed_to_delete_data_entry(user, data_entry):
-    return (
-        data_entry.created_by == user
-        or user.memberships.managers_only().filter(group__in=data_entry.groups.all()).exists()
-    )
+    if data_entry.created_by == user:
+        return True
+    shared_targets = data_entry.shared_targets.all()
+    for shared_target in shared_targets:
+        if is_target_manager(user, shared_target.target):
+            return True
+    return False
 
 
 @rules.predicate
-def allowed_to_add_data_entry(user, group):
-    return user.memberships.approved_only().filter(group=group).exists()
+def allowed_to_add_data_entry(user, target):
+    return is_target_manager(user, target)
 
 
 @rules.predicate
 def allowed_to_view_data_entry(user, data_entry):
-    return user.memberships.approved_only().filter(group__in=data_entry.groups.all()).exists()
+    return is_user_allowed_to_view_data_entry(data_entry, user)
 
 
 @rules.predicate
 def allowed_to_view_visualization_config(user, visualization_config):
-    return (
-        user.memberships.approved_only()
-        .filter(group__in=visualization_config.data_entry.groups.all())
-        .exists()
-    )
+    return is_user_allowed_to_view_data_entry(visualization_config.data_entry, user)
 
 
 @rules.predicate
 def allowed_to_add_visualization_config(user, data_entry):
-    return data_entry.is_user_allowed_to_view(user)
+    return is_user_allowed_to_view_data_entry(data_entry, user)
 
 
 @rules.predicate
@@ -60,9 +91,9 @@ def allowed_to_change_visualization_config(user, visualization_config):
 
 @rules.predicate
 def allowed_to_delete_visualization_config(user, visualization_config):
-    return (
-        visualization_config.created_by == user
-        or user.memberships.managers_only()
-        .filter(group__in=visualization_config.data_entry.groups.all())
-        .exists()
-    )
+    if visualization_config.created_by == user:
+        return True
+    return is_user_allowed_to_change_data_entry(visualization_config.data_entry, user)
+
+
+rules.add_rule("allowed_to_add_data_entry", allowed_to_add_data_entry)

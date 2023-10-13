@@ -59,11 +59,7 @@ def remove_mapbox_tileset(tileset_id):
 
 
 def get_owner_name(visualization):
-    if visualization.group:
-        return visualization.group.name
-    if visualization.landscape:
-        return visualization.landscape.name
-    return ""
+    return visualization.owner.name if visualization.owner else "Unknown"
 
 
 def create_mapbox_tileset(visualization_id):

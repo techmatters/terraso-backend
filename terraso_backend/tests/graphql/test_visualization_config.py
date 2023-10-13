@@ -30,8 +30,8 @@ def test_visualization_configs_query(client_query, visualization_configs):
         }}
         """
     )
-
-    edges = response.json()["data"]["visualizationConfigs"]["edges"]
+    json_response = response.json()
+    edges = json_response["data"]["visualizationConfigs"]["edges"]
     entries_result = [edge["node"]["configuration"] for edge in edges]
 
     for visualization_config in visualization_configs:
@@ -80,21 +80,24 @@ def test_visualization_configs_filter_by_group_slug_filters_successfuly(
     visualization_config_a = visualization_configs[0]
     visualization_config_b = visualization_configs[1]
 
-    visualization_config_a.data_entry.groups.add(groups[-1])
-    visualization_config_b.data_entry.groups.add(groups[-1])
+    visualization_config_a.data_entry.shared_targets.create(target=groups[-1])
+    visualization_config_b.data_entry.shared_targets.create(target=groups[-1])
 
     group_filter = groups[-1]
 
     response = client_query(
         """
-        {visualizationConfigs(dataEntry_Groups_Slug_Icontains: "%s") {
+        {visualizationConfigs(
+          dataEntry_SharedTargets_Target_Slug: "%s",
+          dataEntry_SharedTargets_TargetContentType: "%s"
+        ) {
           edges {
             node {
               id
               dataEntry {
-                groups {
-                  edges {
-                    node {
+                sharedTargets {
+                  target {
+                    ... on GroupNode {
                       slug
                     }
                   }
@@ -104,13 +107,13 @@ def test_visualization_configs_filter_by_group_slug_filters_successfuly(
           }
         }}
         """
-        % group_filter.slug
+        % (group_filter.slug, "group")
     )
-
-    edges = response.json()["data"]["visualizationConfigs"]["edges"]
+    json_response = response.json()
+    edges = json_response["data"]["visualizationConfigs"]["edges"]
     visualization_configs_result = [edge["node"]["id"] for edge in edges]
 
-    assert edges[0]["node"]["dataEntry"]["groups"]["edges"][1]["node"]["slug"] == group_filter.slug
+    assert edges[0]["node"]["dataEntry"]["sharedTargets"][1]["target"]["slug"] == group_filter.slug
 
     assert len(visualization_configs_result) == 2
     assert str(visualization_config_a.id) in visualization_configs_result
@@ -123,14 +126,14 @@ def test_visualization_configs_filter_by_group_id_filters_successfuly(
     visualization_config_a = visualization_configs[0]
     visualization_config_b = visualization_configs[1]
 
-    visualization_config_a.data_entry.groups.add(groups[-1])
-    visualization_config_b.data_entry.groups.add(groups[-1])
+    visualization_config_a.data_entry.shared_targets.create(target=groups[-1])
+    visualization_config_b.data_entry.shared_targets.create(target=groups[-1])
 
     group_filter = groups[-1]
 
     response = client_query(
         """
-        {visualizationConfigs(dataEntry_Groups_Id: "%s") {
+        {visualizationConfigs(dataEntry_SharedTargets_TargetObjectId: "%s") {
           edges {
             node {
               id

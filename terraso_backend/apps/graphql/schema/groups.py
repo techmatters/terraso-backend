@@ -63,6 +63,7 @@ class GroupNode(DjangoObjectType):
     id = graphene.ID(source="pk", required=True)
     account_membership = graphene.Field("apps.graphql.schema.memberships.MembershipNode")
     memberships_count = graphene.Int()
+    shared_resources = graphene.List("apps.graphql.schema.shared_resources.SharedResourceNode")
 
     class Meta:
         model = Group
@@ -107,6 +108,9 @@ class GroupNode(DjangoObjectType):
                 return 0
 
         return self.memberships.approved_only().count()
+
+    def resolve_shared_resources(self, info, **kwargs):
+        return self.shared_resources.all()
 
 
 class GroupAddMutation(BaseWriteMutation):

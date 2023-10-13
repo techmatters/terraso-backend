@@ -14,6 +14,7 @@
 # along with this program. If not, see https://www.gnu.org/licenses/.
 from typing import Literal, Union
 
+from django.contrib.contenttypes.fields import GenericRelation
 from django.db import models, transaction
 from django.utils.translation import gettext_lazy as _
 from safedelete.models import SafeDeleteManager
@@ -21,6 +22,7 @@ from safedelete.models import SafeDeleteManager
 from apps.core import permission_rules as perm_rules
 
 from .commons import BaseModel, SlugModel, validate_name
+from .shared_resources import SharedResource
 from .users import User
 
 
@@ -92,6 +94,10 @@ class Group(SlugModel):
         max_length=32,
         choices=MEMBERSHIP_TYPES,
         default=DEFAULT_MEMERBSHIP_TYPE,
+    )
+
+    shared_resources = GenericRelation(
+        SharedResource, content_type_field="target_content_type", object_id_field="target_object_id"
     )
 
     field_to_slug = "name"

@@ -13,13 +13,17 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see https://www.gnu.org/licenses/.
 
+import django_filters
 import graphene
 import structlog
+from django.contrib.contenttypes.models import ContentType
+from django.db import transaction
+from django.db.models import Q
 from graphene import relay
 from graphene_django import DjangoObjectType
 
 from apps.core.gis.mapbox import get_publish_status
-from apps.core.models import Group, Membership
+from apps.core.models import Group, Landscape, Membership
 from apps.graphql.exceptions import GraphQLNotAllowedException
 from apps.shared_data.models.data_entries import DataEntry
 from apps.shared_data.models.visualization_config import VisualizationConfig
@@ -29,22 +33,57 @@ from apps.shared_data.visualization_tileset_tasks import (
 )
 
 from ..exceptions import GraphQLNotFoundException
+from . import GroupNode, LandscapeNode
 from .commons import BaseDeleteMutation, BaseWriteMutation, TerrasoConnection
 from .constants import MutationTypes
 
 logger = structlog.get_logger(__name__)
 
 
-class VisualizationConfigNode(DjangoObjectType):
-    id = graphene.ID(source="pk", required=True)
+class VisualizationConfigFilterSet(django_filters.FilterSet):
+    data_entry__shared_targets__target__slug = django_filters.CharFilter(
+        method="filter_data_entry_shared_targets_target_slug"
+    )
+    data_entry__shared_targets__target_content_type = django_filters.CharFilter(
+        method="filter_data_entry_shared_targets_target_content_type",
+    )
 
     class Meta:
         model = VisualizationConfig
-        filter_fields = {
+        fields = {
             "slug": ["exact", "icontains"],
-            "data_entry__groups__slug": ["exact", "icontains"],
-            "data_entry__groups__id": ["exact"],
+            "data_entry__shared_targets__target_object_id": ["exact"],
         }
+
+    def filter_data_entry_shared_targets_target_slug(self, queryset, name, value):
+        return queryset.filter(
+            Q(data_entry__shared_targets__target_object_id__in=Group.objects.filter(slug=value))
+            | Q(
+                data_entry__shared_targets__target_object_id__in=Landscape.objects.filter(
+                    slug=value
+                )
+            )
+        )
+
+    def filter_data_entry_shared_targets_target_content_type(self, queryset, name, value):
+        return queryset.filter(
+            data_entry__shared_targets__target_content_type=ContentType.objects.get(
+                app_label="core", model=value
+            )
+        ).distinct()
+
+
+class OwnerNode(graphene.Union):
+    class Meta:
+        types = (GroupNode, LandscapeNode)
+
+
+class VisualizationConfigNode(DjangoObjectType):
+    id = graphene.ID(source="pk", required=True)
+    owner = graphene.Field(OwnerNode)
+
+    class Meta:
+        model = VisualizationConfig
         fields = (
             "id",
             "slug",
@@ -53,18 +92,24 @@ class VisualizationConfigNode(DjangoObjectType):
             "created_by",
             "created_at",
             "data_entry",
-            "group",
             "mapbox_tileset_id",
         )
         interfaces = (relay.Node,)
+        filterset_class = VisualizationConfigFilterSet
         connection_class = TerrasoConnection
 
     @classmethod
     def get_queryset(cls, queryset, info):
+        user_pk = getattr(info.context.user, "pk", False)
         user_groups_ids = Membership.objects.filter(
-            user=info.context.user, membership_status=Membership.APPROVED
+            user__id=user_pk, membership_status=Membership.APPROVED
         ).values_list("group", flat=True)
-        return queryset.filter(data_entry__groups__in=user_groups_ids)
+        user_landscape_ids = Landscape.objects.filter(
+            associated_groups__group__memberships__user__id=user_pk,
+            associated_groups__is_default_landscape_group=True,
+        ).values_list("id", flat=True)
+        all_ids = list(user_groups_ids) + list(user_landscape_ids)
+        return queryset.filter(data_entry__shared_targets__target_object_id__in=all_ids)
 
     def resolve_mapbox_tileset_id(self, info):
         if self.mapbox_tileset_id is None:
@@ -89,24 +134,30 @@ class VisualizationConfigAddMutation(BaseWriteMutation):
         title = graphene.String(required=True)
         configuration = graphene.JSONString()
         data_entry_id = graphene.ID(required=True)
-        group_id = graphene.ID(required=True)
+        targetId = graphene.ID(required=True)
+        targetType = graphene.String(required=True)
 
     @classmethod
+    @transaction.atomic
     def mutate_and_get_payload(cls, root, info, **kwargs):
         user = info.context.user
 
+        content_type = ContentType.objects.get(app_label="core", model=kwargs["targetType"])
+        model_class = content_type.model_class()
         try:
-            group_entry = Group.objects.get(id=kwargs["group_id"])
+            target = model_class.objects.get(id=kwargs["targetId"])
         except Group.DoesNotExist:
             logger.error(
-                "Group not found when adding a VisualizationConfig",
-                extra={"group_id": kwargs["group_id"]},
+                "Target not found when adding a VisualizationConfig",
+                extra={
+                    "targetId": kwargs["targetId"],
+                    "targetType": kwargs["targetType"],
+                },
             )
-            raise GraphQLNotFoundException(field="group", model_name=Group.__name__)
+            raise GraphQLNotFoundException(field="target")
 
         try:
             data_entry = DataEntry.objects.get(id=kwargs["data_entry_id"])
-
         except DataEntry.DoesNotExist:
             logger.error(
                 "DataEntry not found when adding a VisualizationConfig",
@@ -124,10 +175,11 @@ class VisualizationConfigAddMutation(BaseWriteMutation):
             )
 
         kwargs["data_entry"] = data_entry
-        kwargs["group"] = group_entry
 
         if not cls.is_update(kwargs):
             kwargs["created_by"] = user
+
+        kwargs["owner"] = target
 
         result = super().mutate_and_get_payload(root, info, **kwargs)
 

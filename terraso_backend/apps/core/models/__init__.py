@@ -17,6 +17,7 @@ from .background_tasks import BackgroundTask
 from .commons import BaseModel, SlugModel
 from .groups import Group, GroupAssociation, Membership
 from .landscapes import Landscape, LandscapeDevelopmentStrategy, LandscapeGroup
+from .shared_resources import SharedResource
 from .taxonomy_terms import TaxonomyTerm
 from .users import User, UserPreference
 
@@ -33,4 +34,5 @@ __all__ = [
     "User",
     "UserPreference",
     "TaxonomyTerm",
+    "SharedResource",
 ]

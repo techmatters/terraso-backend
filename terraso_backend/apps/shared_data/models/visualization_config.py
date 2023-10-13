@@ -13,10 +13,12 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see https://www.gnu.org/licenses/.
 
+from django.contrib.contenttypes.fields import GenericForeignKey
+from django.contrib.contenttypes.models import ContentType
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
-from apps.core.models import BaseModel, Group, Landscape, SlugModel, User
+from apps.core.models import BaseModel, Group, SlugModel, User
 from apps.core.models.commons import validate_name
 from apps.shared_data import permission_rules as perm_rules
 
@@ -51,16 +53,18 @@ class VisualizationConfig(SlugModel):
     group = models.ForeignKey(
         Group, on_delete=models.CASCADE, related_name="visualizations", null=True, blank=True
     )
-    landscape = models.ForeignKey(
-        Landscape, on_delete=models.CASCADE, related_name="visualizations", null=True, blank=True
+    owner = GenericForeignKey("owner_content_type", "owner_object_id")
+    owner_content_type = models.ForeignKey(
+        ContentType, on_delete=models.CASCADE, related_name="owner_content_type"
     )
+    owner_object_id = models.UUIDField()
 
     field_to_slug = "title"
 
     class Meta(BaseModel.Meta):
         constraints = (
             models.UniqueConstraint(
-                fields=("group_id", "slug"),
+                fields=("owner_object_id", "slug"),
                 condition=models.Q(deleted_at__isnull=True),
                 name="shared_data_visualizationconfig_unique_active_slug_by_group",
             ),

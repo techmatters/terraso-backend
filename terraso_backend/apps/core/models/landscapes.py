@@ -15,6 +15,7 @@
 
 import structlog
 from dirtyfields import DirtyFieldsMixin
+from django.contrib.contenttypes.fields import GenericRelation
 from django.db import models, transaction
 
 from apps.core import permission_rules as perm_rules
@@ -26,6 +27,7 @@ from apps.core.models.taxonomy_terms import TaxonomyTerm
 
 from .commons import BaseModel, SlugModel, validate_name
 from .groups import Group
+from .shared_resources import SharedResource
 from .users import User
 
 logger = structlog.get_logger(__name__)
@@ -84,6 +86,10 @@ class Landscape(SlugModel, DirtyFieldsMixin):
     profile_image = models.URLField(blank=True, default="")
     profile_image_description = models.TextField(blank=True, default="")
     center_coordinates = models.JSONField(blank=True, null=True)
+
+    shared_resources = GenericRelation(
+        SharedResource, content_type_field="target_content_type", object_id_field="target_object_id"
+    )
 
     field_to_slug = "name"
 

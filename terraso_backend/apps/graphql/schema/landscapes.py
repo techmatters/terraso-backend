@@ -43,6 +43,7 @@ class LandscapeNode(DjangoObjectType):
     area_types = graphene.List(graphene.String)
     default_group = graphene.Field("apps.graphql.schema.groups.GroupNode")
     center_coordinates = graphene.Field(Point)
+    shared_resources = graphene.List("apps.graphql.schema.shared_resources.SharedResourceNode")
 
     class Meta:
         model = Landscape
@@ -71,7 +72,6 @@ class LandscapeNode(DjangoObjectType):
             "profile_image",
             "profile_image_description",
             "center_coordinates",
-            "data_entries",
         )
 
         interfaces = (relay.Node,)
@@ -138,6 +138,9 @@ class LandscapeNode(DjangoObjectType):
                 return self.default_landscape_groups[0].group
             return None
         return self.get_default_group()
+
+    def resolve_shared_resources(self, info, **kwargs):
+        return self.shared_resources.all()
 
 
 class LandscapeDevelopmentStrategyNode(DjangoObjectType):

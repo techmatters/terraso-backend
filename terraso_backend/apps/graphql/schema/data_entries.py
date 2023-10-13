@@ -13,8 +13,12 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see https://www.gnu.org/licenses/.
 
+import django_filters
 import graphene
+import rules
 import structlog
+from django.contrib.contenttypes.models import ContentType
+from django.db import transaction
 from django.db.models import Q
 from graphene import relay
 from graphene_django import DjangoObjectType
@@ -29,20 +33,45 @@ from .constants import MutationTypes
 logger = structlog.get_logger(__name__)
 
 
-class DataEntryNode(DjangoObjectType):
-    id = graphene.ID(source="pk", required=True)
+class DataEntryFilterSet(django_filters.FilterSet):
+    shared_targets__target__slug = django_filters.CharFilter(
+        method="filter_shared_targets_target_slug"
+    )
+    shared_targets__target_content_type = django_filters.CharFilter(
+        method="filter_shared_targets_target_content_type",
+    )
 
     class Meta:
         model = DataEntry
-        filter_fields = {
+        fields = {
             "name": ["icontains"],
             "description": ["icontains"],
             "url": ["icontains"],
             "entry_type": ["in"],
             "resource_type": ["in"],
-            "groups__slug": ["exact", "icontains"],
-            "groups__id": ["exact"],
+            "shared_targets__target_object_id": ["exact"],
         }
+
+    def filter_shared_targets_target_slug(self, queryset, name, value):
+        return queryset.filter(
+            Q(shared_targets__target_object_id__in=Group.objects.filter(slug=value))
+            | Q(shared_targets__target_object_id__in=Landscape.objects.filter(slug=value))
+        )
+
+    def filter_shared_targets_target_content_type(self, queryset, name, value):
+        return queryset.filter(
+            shared_targets__target_content_type=ContentType.objects.get(
+                app_label="core", model=value
+            )
+        ).distinct()
+
+
+class DataEntryNode(DjangoObjectType):
+    id = graphene.ID(source="pk", required=True)
+    shared_targets = graphene.List("apps.graphql.schema.shared_resources.SharedResourceNode")
+
+    class Meta:
+        model = DataEntry
         fields = (
             "name",
             "description",
@@ -55,8 +84,10 @@ class DataEntryNode(DjangoObjectType):
             "groups",
             "landscapes",
             "visualizations",
+            "shared_targets",
         )
         interfaces = (relay.Node,)
+        filterset_class = DataEntryFilterSet
         connection_class = TerrasoConnection
 
     @classmethod
@@ -71,13 +102,23 @@ class DataEntryNode(DjangoObjectType):
         ).values_list("id", flat=True)
 
         return queryset.filter(
-            Q(groups__in=user_groups_ids) | Q(landscapes__id__in=user_landscape_ids)
+            Q(
+                shared_targets__target_content_type=ContentType.objects.get_for_model(Group),
+                shared_targets__target_object_id__in=user_groups_ids,
+            )
+            | Q(
+                shared_targets__target_content_type=ContentType.objects.get_for_model(Landscape),
+                shared_targets__target_object_id__in=user_landscape_ids,
+            )
         )
 
     def resolve_url(self, info):
         if self.entry_type == DataEntry.ENTRY_TYPE_FILE:
             return self.signed_url
         return self.url
+
+    def resolve_shared_targets(self, info, **kwargs):
+        return self.shared_targets.all()
 
 
 class DataEntryAddMutation(BaseWriteMutation):
@@ -86,8 +127,8 @@ class DataEntryAddMutation(BaseWriteMutation):
     model_class = DataEntry
 
     class Input:
-        group_slug = graphene.String()
-        landscape_slug = graphene.String()
+        target_type = graphene.String(required=True)
+        target_slug = graphene.String(required=True)
         name = graphene.String(required=True)
         url = graphene.String(required=True)
         entry_type = graphene.String(required=True)
@@ -95,36 +136,36 @@ class DataEntryAddMutation(BaseWriteMutation):
         description = graphene.String()
 
     @classmethod
+    @transaction.atomic
     def mutate_and_get_payload(cls, root, info, **kwargs):
         user = info.context.user
 
-        group_slug = kwargs.pop("group_slug") if "group_slug" in kwargs else None
-        landscape_slug = kwargs.pop("landscape_slug") if "landscape_slug" in kwargs else None
+        target_type = kwargs.pop("target_type")
+        target_slug = kwargs.pop("target_slug")
 
-        if not group_slug and not landscape_slug:
-            logger.error("Neither group_slug nor landscape_slug provided when adding dataEntry")
+        if target_type not in ["group", "landscape"]:
+            logger.error("Invalid target_type provided when adding dataEntry")
             raise GraphQLNotFoundException(
-                field="group_slug or landscape_slug",
+                field="target_type",
                 model_name=Group.__name__,
             )
 
-        try:
-            group = (
-                Group.objects.get(slug=group_slug)
-                if group_slug
-                else Landscape.objects.get(slug=landscape_slug).get_default_group()
-            )
-        except Group.DoesNotExist:
-            logger.error(
-                "Group not found when adding dataEntry",
-                extra={"group_slug": group_slug},
-            )
-            raise GraphQLNotFoundException(field="group", model_name=Group.__name__)
+        content_type = ContentType.objects.get(app_label="core", model=target_type)
+        model_class = content_type.model_class()
 
-        if not user.has_perm(DataEntry.get_perm("add"), obj=group.pk):
+        try:
+            target = model_class.objects.get(slug=target_slug)
+        except Exception:
+            logger.error(
+                "Target not found when adding dataEntry",
+                extra={"target_type": target_type, "target_slug": target_slug},
+            )
+            raise GraphQLNotFoundException(field="target")
+
+        if not rules.test_rule("allowed_to_add_data_entry", user, target):
             logger.info(
                 "Attempt to add a DataEntry, but user lacks permission",
-                extra={"user_id": user.pk, "group_id": str(group.pk)},
+                extra={"user_id": user.pk, "target_id": str(target.pk)},
             )
             raise GraphQLNotAllowedException(
                 model_name=DataEntry.__name__, operation=MutationTypes.CREATE
@@ -138,8 +179,9 @@ class DataEntryAddMutation(BaseWriteMutation):
 
         result = super().mutate_and_get_payload(root, info, **kwargs)
 
-        result.data_entry.groups.set([group])
-
+        result.data_entry.shared_targets.create(
+            target=target,
+        )
         return cls(data_entry=result.data_entry)
 
 

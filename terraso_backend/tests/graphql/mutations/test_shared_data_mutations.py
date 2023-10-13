@@ -22,23 +22,21 @@ pytestmark = pytest.mark.django_db
 
 
 @pytest.fixture
-def input_by_owner(request, managed_groups, managed_landscapes):
-    owner = request.param
-    base_input = {
+def input_by_parent(request, managed_groups, managed_landscapes):
+    parent = request.param
+    return {
         "name": "Name",
         "description": "Description",
         "url": "https://example.com",
         "entryType": "link",
         "resourceType": "link",
+        "targetType": "group" if parent == "group" else "landscape",
+        "targetSlug": managed_groups[0].slug if parent == "group" else managed_landscapes[0].slug,
     }
-    if owner == "group":
-        return {**base_input, "groupSlug": managed_groups[0].slug}
-    if owner == "landscape":
-        return {**base_input, "landscapeSlug": managed_landscapes[0].slug}
 
 
-@pytest.mark.parametrize("input_by_owner", ["group", "landscape"], indirect=True)
-def test_add_data_entry(client_query, input_by_owner):
+@pytest.mark.parametrize("input_by_parent", ["group", "landscape"], indirect=True)
+def test_add_data_entry(client_query, input_by_parent):
     response = client_query(
         """
         mutation addDataEntry($input: DataEntryAddMutationInput!) {
@@ -52,12 +50,12 @@ def test_add_data_entry(client_query, input_by_owner):
           }
         }
         """,
-        variables={"input": input_by_owner},
+        variables={"input": input_by_parent},
     )
     result = response.json()["data"]["addDataEntry"]
     assert result["errors"] is None
-    assert result["dataEntry"]["name"] == input_by_owner["name"]
-    assert result["dataEntry"]["url"] == input_by_owner["url"]
+    assert result["dataEntry"]["name"] == input_by_parent["name"]
+    assert result["dataEntry"]["url"] == input_by_parent["url"]
 
 
 def test_data_entry_update_by_creator_works(client_query, data_entries):
@@ -138,7 +136,8 @@ def test_data_entry_delete_by_creator_works(client_query, data_entries):
         variables={"input": {"id": str(old_data_entry.id)}},
     )
 
-    data_entry_result = response.json()["data"]["deleteDataEntry"]["dataEntry"]
+    json_response = response.json()
+    data_entry_result = json_response["data"]["deleteDataEntry"]["dataEntry"]
 
     assert data_entry_result["name"] == old_data_entry.name
     assert not DataEntry.objects.filter(name=data_entry_result["name"])
@@ -178,7 +177,7 @@ def test_data_entry_delete_by_manager_works(client_query, data_entries, users, g
     old_data_entry = data_entries[0]
     old_data_entry.created_by = users[2]
     old_data_entry.save()
-    old_data_entry.groups.first().add_manager(users[0])
+    groups[0].add_manager(users[0])
 
     response = client_query(
         """
@@ -187,6 +186,7 @@ def test_data_entry_delete_by_manager_works(client_query, data_entries, users, g
             dataEntry {
               name
             }
+            errors
           }
         }
 
@@ -194,7 +194,8 @@ def test_data_entry_delete_by_manager_works(client_query, data_entries, users, g
         variables={"input": {"id": str(old_data_entry.id)}},
     )
 
-    data_entry_result = response.json()["data"]["deleteDataEntry"]["dataEntry"]
+    json_response = response.json()
+    data_entry_result = json_response["data"]["deleteDataEntry"]["dataEntry"]
 
     assert data_entry_result["name"] == old_data_entry.name
     assert not DataEntry.objects.filter(name=data_entry_result["name"])
@@ -205,11 +206,11 @@ def data_entry_by_not_manager_by_owner(request, users, landscape_data_entries, g
     owner = request.param
 
     (data_entry, group) = (
-        (group_data_entries[0], group_data_entries[0].groups.first())
+        (group_data_entries[0], group_data_entries[0].shared_targets.first().target)
         if owner == "group"
         else (
             landscape_data_entries[0],
-            landscape_data_entries[0].landscapes.first().get_default_group(),
+            landscape_data_entries[0].shared_targets.first().target.get_default_group(),
         )
     )
 

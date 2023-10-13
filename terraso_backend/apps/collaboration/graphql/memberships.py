@@ -21,9 +21,6 @@ from graphene_django import DjangoObjectType
 
 from ..models import Membership, MembershipList
 
-# from apps.graphql.schema.commons import TerrasoConnection
-
-
 logger = structlog.get_logger(__name__)
 
 
