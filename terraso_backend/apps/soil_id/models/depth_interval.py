@@ -43,6 +43,7 @@ class BaseDepthInterval(models.Model):
             ),
         ]
 
+    # validates that depth intervals do not overlap
     @staticmethod
     def validate_intervals(intervals: List[Self]):
         intervals.sort(key=lambda interval: interval.depth_interval_start)

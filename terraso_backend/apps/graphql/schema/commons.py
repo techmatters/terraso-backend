@@ -38,6 +38,14 @@ from .constants import MutationTypes
 logger = structlog.get_logger(__name__)
 
 
+# fields to be excluded from the GraphQL node for models which extend the data
+# model of an existing model rather than being considered entities in their own
+# right. i.e. they have a foreign key to another model and are only queried by
+# their relationship to that model, not by their own ID
+def data_model_excluded_fields():
+    return ["deleted_at", "deleted_by_cascade", "id", "created_at", "updated_at"]
+
+
 # we make TerrasoRelayNode.Field required by default since django's objects.get raises
 # an error if the object is not found, so a nullable return result would be redundant
 class TerrasoRelayNode(relay.Node):

@@ -41,10 +41,6 @@ class ProjectSoilSettings(BaseModel):
         choices=DepthIntervalPreset.choices,
     )
 
-    def clean(self):
-        super().clean()
-        BaseDepthInterval.validate_intervals(list(self.depth_intervals.all()))
-
     soil_pit_required = models.BooleanField(blank=True, default=False)
     slope_required = models.BooleanField(blank=True, default=False)
     soil_texture_required = models.BooleanField(blank=True, default=False)
@@ -71,3 +67,7 @@ class ProjectDepthInterval(BaseModel, BaseDepthInterval):
     class Meta(BaseModel.Meta):
         ordering = ["depth_interval_start"]
         constraints = BaseDepthInterval.constraints("project")
+
+    def clean(self):
+        super().clean()
+        BaseDepthInterval.validate_intervals(list(self.project.depth_intervals.all()))

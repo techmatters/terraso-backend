@@ -2,7 +2,11 @@ import graphene
 from django.db import transaction
 from graphene_django import DjangoObjectType
 
-from apps.graphql.schema.commons import BaseAuthenticatedMutation, BaseWriteMutation
+from apps.graphql.schema.commons import (
+    BaseAuthenticatedMutation,
+    BaseWriteMutation,
+    data_model_excluded_fields,
+)
 from apps.graphql.schema.constants import MutationTypes
 from apps.graphql.schema.sites import SiteNode
 from apps.project_management.graphql.projects import ProjectNode
@@ -27,12 +31,7 @@ class SoilDataDepthIntervalNode(DjangoObjectType):
 
     class Meta:
         model = SoilDataDepthInterval
-        exclude = [
-            "deleted_at",
-            "deleted_by_cascade",
-            "id",
-            "created_at",
-            "updated_at",
+        exclude = data_model_excluded_fields() + [
             "soil_data",
             "depth_interval_start",
             "depth_interval_end",
@@ -45,7 +44,7 @@ class SoilDataDepthIntervalNode(DjangoObjectType):
 class SoilDataNode(DjangoObjectType):
     class Meta:
         model = SoilData
-        exclude = ["deleted_at", "deleted_by_cascade", "id", "created_at", "updated_at"]
+        exclude = data_model_excluded_fields()
 
     @classmethod
     def down_slope_enum(cls):
@@ -90,12 +89,7 @@ class ProjectDepthIntervalNode(DjangoObjectType):
 
     class Meta:
         model = ProjectDepthInterval
-        exclude = [
-            "deleted_at",
-            "deleted_by_cascade",
-            "id",
-            "created_at",
-            "updated_at",
+        exclude = data_model_excluded_fields() + [
             "depth_interval_start",
             "depth_interval_end",
         ]
@@ -110,12 +104,7 @@ class DepthDependentSoilDataNode(DjangoObjectType):
 
     class Meta:
         model = DepthDependentSoilData
-        exclude = [
-            "deleted_at",
-            "deleted_by_cascade",
-            "id",
-            "created_at",
-            "updated_at",
+        exclude = data_model_excluded_fields() + [
             "soil_data",
             "depth_interval_start",
             "depth_interval_end",
@@ -331,7 +320,8 @@ class DepthDependentSoilDataUpdateMutation(BaseWriteMutation):
                 site.soil_data.save()
 
             kwargs["model_instance"], _ = site.soil_data.depth_dependent_data.get_or_create(
-                depth_start=depth_interval["start"], depth_end=depth_interval["end"]
+                depth_interval_start=depth_interval["start"],
+                depth_interval_end=depth_interval["end"],
             )
 
             return super().mutate_and_get_payload(
