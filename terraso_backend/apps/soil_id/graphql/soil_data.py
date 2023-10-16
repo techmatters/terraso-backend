@@ -61,39 +61,39 @@ class SoilDataNode(DjangoObjectType):
     @classmethod
     def slope_steepness_enum(cls):
         return cls._meta.fields["slope_steepness_select"].type()
-    
+
     @classmethod
     def surface_cracks_enum(cls):
         return cls._meta.fields["surface_cracks_select"].type()
-    
+
     @classmethod
     def surface_salt_enum(cls):
         return cls._meta.fields["surface_salt_select"].type()
-    
+
     @classmethod
     def flooding_enum(cls):
         return cls._meta.fields["flooding_select"].type()
-    
+
     @classmethod
     def lime_requirements_enum(cls):
         return cls._meta.fields["lime_requirements_select"].type()
-    
+
     @classmethod
     def surface_stoniness_enum(cls):
         return cls._meta.fields["surface_stoniness_select"].type()
-    
+
     @classmethod
     def water_table_depth_enum(cls):
         return cls._meta.fields["water_table_depth_select"].type()
-    
+
     @classmethod
     def soil_depth_enum(cls):
         return cls._meta.fields["soil_depth_select"].type()
-    
+
     @classmethod
     def land_cover_enum(cls):
         return cls._meta.fields["land_cover_select"].type()
-    
+
     @classmethod
     def grazing_enum(cls):
         return cls._meta.fields["grazing_select"].type()
