@@ -29,16 +29,17 @@ from apps.shared_data.models import DataEntry
 
 from .commons import BaseDeleteMutation, BaseWriteMutation, TerrasoConnection
 from .constants import MutationTypes
+from .shared_resources_mixin import SharedResourcesMixin
 
 logger = structlog.get_logger(__name__)
 
 
 class DataEntryFilterSet(django_filters.FilterSet):
-    shared_targets__target__slug = django_filters.CharFilter(
-        method="filter_shared_targets_target_slug"
+    shared_resources__target__slug = django_filters.CharFilter(
+        method="filter_shared_resources_target_slug"
     )
-    shared_targets__target_content_type = django_filters.CharFilter(
-        method="filter_shared_targets_target_content_type",
+    shared_resources__target_content_type = django_filters.CharFilter(
+        method="filter_shared_resources_target_content_type",
     )
 
     class Meta:
@@ -49,26 +50,25 @@ class DataEntryFilterSet(django_filters.FilterSet):
             "url": ["icontains"],
             "entry_type": ["in"],
             "resource_type": ["in"],
-            "shared_targets__target_object_id": ["exact"],
+            "shared_resources__target_object_id": ["exact"],
         }
 
-    def filter_shared_targets_target_slug(self, queryset, name, value):
+    def filter_shared_resources_target_slug(self, queryset, name, value):
         return queryset.filter(
-            Q(shared_targets__target_object_id__in=Group.objects.filter(slug=value))
-            | Q(shared_targets__target_object_id__in=Landscape.objects.filter(slug=value))
+            Q(shared_resources__target_object_id__in=Group.objects.filter(slug=value))
+            | Q(shared_resources__target_object_id__in=Landscape.objects.filter(slug=value))
         )
 
-    def filter_shared_targets_target_content_type(self, queryset, name, value):
+    def filter_shared_resources_target_content_type(self, queryset, name, value):
         return queryset.filter(
-            shared_targets__target_content_type=ContentType.objects.get(
+            shared_resources__target_content_type=ContentType.objects.get(
                 app_label="core", model=value
             )
         ).distinct()
 
 
-class DataEntryNode(DjangoObjectType):
+class DataEntryNode(DjangoObjectType, SharedResourcesMixin):
     id = graphene.ID(source="pk", required=True)
-    shared_targets = graphene.List("apps.graphql.schema.shared_resources.SharedResourceNode")
 
     class Meta:
         model = DataEntry
@@ -84,7 +84,7 @@ class DataEntryNode(DjangoObjectType):
             "groups",
             "landscapes",
             "visualizations",
-            "shared_targets",
+            "shared_resources",
         )
         interfaces = (relay.Node,)
         filterset_class = DataEntryFilterSet
@@ -103,12 +103,12 @@ class DataEntryNode(DjangoObjectType):
 
         return queryset.filter(
             Q(
-                shared_targets__target_content_type=ContentType.objects.get_for_model(Group),
-                shared_targets__target_object_id__in=user_groups_ids,
+                shared_resources__target_content_type=ContentType.objects.get_for_model(Group),
+                shared_resources__target_object_id__in=user_groups_ids,
             )
             | Q(
-                shared_targets__target_content_type=ContentType.objects.get_for_model(Landscape),
-                shared_targets__target_object_id__in=user_landscape_ids,
+                shared_resources__target_content_type=ContentType.objects.get_for_model(Landscape),
+                shared_resources__target_object_id__in=user_landscape_ids,
             )
         )
 
@@ -116,9 +116,6 @@ class DataEntryNode(DjangoObjectType):
         if self.entry_type == DataEntry.ENTRY_TYPE_FILE:
             return self.signed_url
         return self.url
-
-    def resolve_shared_targets(self, info, **kwargs):
-        return self.shared_targets.all()
 
 
 class DataEntryAddMutation(BaseWriteMutation):
@@ -179,7 +176,7 @@ class DataEntryAddMutation(BaseWriteMutation):
 
         result = super().mutate_and_get_payload(root, info, **kwargs)
 
-        result.data_entry.shared_targets.create(
+        result.data_entry.shared_resources.create(
             target=target,
         )
         return cls(data_entry=result.data_entry)

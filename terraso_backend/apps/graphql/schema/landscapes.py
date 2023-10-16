@@ -34,16 +34,16 @@ from apps.graphql.exceptions import GraphQLNotAllowedException
 from .commons import BaseDeleteMutation, BaseWriteMutation, TerrasoConnection
 from .constants import MutationTypes
 from .gis import Point
+from .shared_resources_mixin import SharedResourcesMixin
 
 logger = structlog.get_logger(__name__)
 
 
-class LandscapeNode(DjangoObjectType):
+class LandscapeNode(DjangoObjectType, SharedResourcesMixin):
     id = graphene.ID(source="pk", required=True)
     area_types = graphene.List(graphene.String)
     default_group = graphene.Field("apps.graphql.schema.groups.GroupNode")
     center_coordinates = graphene.Field(Point)
-    shared_resources = graphene.List("apps.graphql.schema.shared_resources.SharedResourceNode")
 
     class Meta:
         model = Landscape
@@ -138,9 +138,6 @@ class LandscapeNode(DjangoObjectType):
                 return self.default_landscape_groups[0].group
             return None
         return self.get_default_group()
-
-    def resolve_shared_resources(self, info, **kwargs):
-        return self.shared_resources.all()
 
 
 class LandscapeDevelopmentStrategyNode(DjangoObjectType):

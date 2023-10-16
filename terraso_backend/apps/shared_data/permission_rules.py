@@ -35,16 +35,16 @@ def is_target_member(user, target):
 
 
 def is_user_allowed_to_view_data_entry(data_entry, user):
-    shared_targets = data_entry.shared_targets.all()
-    for shared_target in shared_targets:
-        if is_target_member(user, shared_target.target):
+    shared_resources = data_entry.shared_resources.all()
+    for shared_resource in shared_resources:
+        if is_target_member(user, shared_resource.target):
             return True
 
 
 def is_user_allowed_to_change_data_entry(data_entry, user):
-    shared_targets = data_entry.shared_targets.all()
-    for shared_target in shared_targets:
-        if is_target_manager(user, shared_target.target):
+    shared_resources = data_entry.shared_resources.all()
+    for shared_resource in shared_resources:
+        if is_target_manager(user, shared_resource.target):
             return True
 
 
@@ -57,9 +57,9 @@ def allowed_to_change_data_entry(user, data_entry):
 def allowed_to_delete_data_entry(user, data_entry):
     if data_entry.created_by == user:
         return True
-    shared_targets = data_entry.shared_targets.all()
-    for shared_target in shared_targets:
-        if is_target_manager(user, shared_target.target):
+    shared_resources = data_entry.shared_resources.all()
+    for shared_resource in shared_resources:
+        if is_target_manager(user, shared_resource.target):
             return True
     return False
 

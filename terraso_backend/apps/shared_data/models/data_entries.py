@@ -73,11 +73,12 @@ class DataEntry(BaseModel):
     url = models.URLField()
     size = models.PositiveBigIntegerField(null=True, blank=True)
 
+    # groups deprecated, use shared_resources instead, groups will be removed in the future
     groups = models.ManyToManyField(Group, related_name="data_entries")
     created_by = models.ForeignKey(User, null=True, on_delete=models.DO_NOTHING)
     file_removed_at = models.DateTimeField(blank=True, null=True)
 
-    shared_targets = GenericRelation(
+    shared_resources = GenericRelation(
         SharedResource, content_type_field="source_content_type", object_id_field="source_object_id"
     )
 
@@ -127,8 +128,8 @@ class DataEntry(BaseModel):
             resource_type=self.resource_type,
             size=self.size,
             created_by=str(self.created_by.id),
-            shared_targets=[
-                str(shared_target.target.id) for shared_target in self.shared_targets.all()
+            shared_resources=[
+                str(shared_resource.target.id) for shared_resource in self.shared_resources.all()
             ],
         )
 

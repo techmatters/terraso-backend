@@ -206,11 +206,11 @@ def data_entry_by_not_manager_by_owner(request, users, landscape_data_entries, g
     owner = request.param
 
     (data_entry, group) = (
-        (group_data_entries[0], group_data_entries[0].shared_targets.first().target)
+        (group_data_entries[0], group_data_entries[0].shared_resources.first().target)
         if owner == "group"
         else (
             landscape_data_entries[0],
-            landscape_data_entries[0].shared_targets.first().target.get_default_group(),
+            landscape_data_entries[0].shared_resources.first().target.get_default_group(),
         )
     )
 

@@ -24,6 +24,7 @@ from apps.graphql.exceptions import GraphQLNotAllowedException
 
 from .commons import BaseDeleteMutation, BaseWriteMutation, TerrasoConnection
 from .constants import MutationTypes
+from .shared_resources_mixin import SharedResourcesMixin
 
 logger = structlog.get_logger(__name__)
 
@@ -59,11 +60,10 @@ class GroupFilterSet(django_filters.FilterSet):
         return queryset.filter(**filters).order_by("slug").distinct("slug")
 
 
-class GroupNode(DjangoObjectType):
+class GroupNode(DjangoObjectType, SharedResourcesMixin):
     id = graphene.ID(source="pk", required=True)
     account_membership = graphene.Field("apps.graphql.schema.memberships.MembershipNode")
     memberships_count = graphene.Int()
-    shared_resources = graphene.List("apps.graphql.schema.shared_resources.SharedResourceNode")
 
     class Meta:
         model = Group
@@ -108,9 +108,6 @@ class GroupNode(DjangoObjectType):
                 return 0
 
         return self.memberships.approved_only().count()
-
-    def resolve_shared_resources(self, info, **kwargs):
-        return self.shared_resources.all()
 
 
 class GroupAddMutation(BaseWriteMutation):

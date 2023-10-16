@@ -41,33 +41,33 @@ logger = structlog.get_logger(__name__)
 
 
 class VisualizationConfigFilterSet(django_filters.FilterSet):
-    data_entry__shared_targets__target__slug = django_filters.CharFilter(
-        method="filter_data_entry_shared_targets_target_slug"
+    data_entry__shared_resources__target__slug = django_filters.CharFilter(
+        method="filter_data_entry_shared_resources_target_slug"
     )
-    data_entry__shared_targets__target_content_type = django_filters.CharFilter(
-        method="filter_data_entry_shared_targets_target_content_type",
+    data_entry__shared_resources__target_content_type = django_filters.CharFilter(
+        method="filter_data_entry_shared_resources_target_content_type",
     )
 
     class Meta:
         model = VisualizationConfig
         fields = {
             "slug": ["exact", "icontains"],
-            "data_entry__shared_targets__target_object_id": ["exact"],
+            "data_entry__shared_resources__target_object_id": ["exact"],
         }
 
-    def filter_data_entry_shared_targets_target_slug(self, queryset, name, value):
+    def filter_data_entry_shared_resources_target_slug(self, queryset, name, value):
         return queryset.filter(
-            Q(data_entry__shared_targets__target_object_id__in=Group.objects.filter(slug=value))
+            Q(data_entry__shared_resources__target_object_id__in=Group.objects.filter(slug=value))
             | Q(
-                data_entry__shared_targets__target_object_id__in=Landscape.objects.filter(
+                data_entry__shared_resources__target_object_id__in=Landscape.objects.filter(
                     slug=value
                 )
             )
         )
 
-    def filter_data_entry_shared_targets_target_content_type(self, queryset, name, value):
+    def filter_data_entry_shared_resources_target_content_type(self, queryset, name, value):
         return queryset.filter(
-            data_entry__shared_targets__target_content_type=ContentType.objects.get(
+            data_entry__shared_resources__target_content_type=ContentType.objects.get(
                 app_label="core", model=value
             )
         ).distinct()
@@ -109,7 +109,7 @@ class VisualizationConfigNode(DjangoObjectType):
             associated_groups__is_default_landscape_group=True,
         ).values_list("id", flat=True)
         all_ids = list(user_groups_ids) + list(user_landscape_ids)
-        return queryset.filter(data_entry__shared_targets__target_object_id__in=all_ids)
+        return queryset.filter(data_entry__shared_resources__target_object_id__in=all_ids)
 
     def resolve_mapbox_tileset_id(self, info):
         if self.mapbox_tileset_id is None:

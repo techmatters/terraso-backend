@@ -50,6 +50,7 @@ class VisualizationConfig(SlugModel):
     data_entry = models.ForeignKey(
         DataEntry, on_delete=models.CASCADE, related_name="visualizations"
     )
+    # group deprecated, use owner instead, group will be removed in the future
     group = models.ForeignKey(
         Group, on_delete=models.CASCADE, related_name="visualizations", null=True, blank=True
     )

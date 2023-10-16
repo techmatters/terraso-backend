@@ -49,10 +49,3 @@ class SharedResourceNode(DjangoObjectType):
 
     def resolve_target(self, info, **kwargs):
         return self.target
-
-
-class SharedResourcesMixin:
-    shared_resources = graphene.List(SharedResourceNode)
-
-    def resolve_shared_resources(self, info, **kwargs):
-        return self.shared_resources.all()

@@ -80,14 +80,14 @@ def test_data_entries_filter_by_group_slug_filters_successfuly(client_query, dat
     data_entry_a = data_entries[0]
     data_entry_b = data_entries[1]
 
-    data_entry_a.shared_targets.create(target=groups[-1])
-    data_entry_b.shared_targets.create(target=groups[-1])
+    data_entry_a.shared_resources.create(target=groups[-1])
+    data_entry_b.shared_resources.create(target=groups[-1])
 
     group_filter = groups[-1]
 
     response = client_query(
         """
-        {dataEntries(sharedTargets_Target_Slug: "%s", sharedTargets_TargetContentType: "%s") {
+        {dataEntries(sharedResources_Target_Slug: "%s", sharedResources_TargetContentType: "%s") {
           edges {
             node {
               id
@@ -112,14 +112,14 @@ def test_data_entries_filter_by_group_id_filters_successfuly(client_query, data_
     data_entry_a = data_entries[0]
     data_entry_b = data_entries[1]
 
-    data_entry_a.shared_targets.create(target=groups[-1])
-    data_entry_b.shared_targets.create(target=groups[-1])
+    data_entry_a.shared_resources.create(target=groups[-1])
+    data_entry_b.shared_resources.create(target=groups[-1])
 
     group_filter = groups[-1]
 
     response = client_query(
         """
-        {dataEntries(sharedTargets_TargetObjectId: "%s") {
+        {dataEntries(sharedResources_TargetObjectId: "%s") {
           edges {
             node {
               id
