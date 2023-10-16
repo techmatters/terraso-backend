@@ -136,7 +136,8 @@ class SoilData(BaseModel):
         VERY_DIFFICULT = "VERY_DIFFICULT", "Very difficult to modify with lime"
 
     lime_requirements_select = models.CharField(
-        blank=True, null=True, choices=LimeRequirements.choices)
+        blank=True, null=True, choices=LimeRequirements.choices
+    )
 
     class SurfaceStoniness(models.TextChoices):
         LESS_THAN_01 = "LESS_THAN_01", "< 0.1%"
@@ -147,7 +148,8 @@ class SoilData(BaseModel):
         GREATER_THAN_90 = "GREATER_THAN_90", "> 90%"
 
     surface_stoniness_select = models.CharField(
-        blank=True, null=True, choices=SurfaceStoniness.choices)
+        blank=True, null=True, choices=SurfaceStoniness.choices
+    )
 
     class WaterTableDepth(models.TextChoices):
         NOT_FOUND = "NOT_FOUND", "Not found"
@@ -158,16 +160,21 @@ class SoilData(BaseModel):
         GREATER_THAN_120_CM = "GREATER_THAN_120_CM", "> 120 cm"
 
     water_table_depth_select = models.CharField(
-        blank=True, null=True, choices=WaterTableDepth.choices)
+        blank=True, null=True, choices=WaterTableDepth.choices
+    )
 
     class SoilDepth(models.TextChoices):
         NOT_FOUND = "NOT_FOUND", "Not found"
         TWENTY_CM_OR_LESS = "TWENTY_CM_OR_LESS", "20 cm or less"
         GREATER_THAN_20_LESS_THAN_50_CM = (
-            "GREATER_THAN_20_LESS_THAN_50_CM", "Greater than 20 and less than 50 cm")
+            "GREATER_THAN_20_LESS_THAN_50_CM",
+            "Greater than 20 and less than 50 cm",
+        )
         BETWEEN_50_AND_70_CM = "BETWEEN_50_AND_70_CM", "Between 50 and 70 cm"
         GREATER_THAN_70_LESS_THAN_100_CM = (
-            "GREATER_THAN_70_LESS_THAN_100_CM", "Greater than 70 and less than 100 cm")
+            "GREATER_THAN_70_LESS_THAN_100_CM",
+            "Greater than 70 and less than 100 cm",
+        )
         HUNDRED_CM_OR_GREATER = "HUNDRED_CM_OR_GREATER", "100 cm or greater"
 
     soil_depth_select = models.CharField(blank=True, null=True, choices=SoilDepth.choices)
