@@ -760,6 +760,15 @@ type SoilDataNode {
   slopeSteepnessSelect: SoilIdSoilDataSlopeSteepnessSelectChoices
   slopeSteepnessPercent: Int
   slopeSteepnessDegree: Int
+  surfaceCracksSelect: SoilIdSoilDataSurfaceCracksSelectChoices
+  surfaceSaltSelect: SoilIdSoilDataSurfaceSaltSelectChoices
+  floodingSelect: SoilIdSoilDataFloodingSelectChoices
+  limeRequirementsSelect: SoilIdSoilDataLimeRequirementsSelectChoices
+  surfaceStoninessSelect: SoilIdSoilDataSurfaceStoninessSelectChoices
+  waterTableDepthSelect: SoilIdSoilDataWaterTableDepthSelectChoices
+  soilDepthSelect: SoilIdSoilDataSoilDepthSelectChoices
+  landCoverSelect: SoilIdSoilDataLandCoverSelectChoices
+  grazing: SoilIdSoilDataGrazingChoices
   depthIntervals: [SoilDataDepthIntervalNode!]!
   depthDependentData: [DepthDependentSoilDataNode!]!
 }
@@ -855,6 +864,186 @@ enum SoilIdSoilDataSlopeSteepnessSelectChoices {
 
   """100%+ (steepest)"""
   STEEPEST
+}
+
+"""An enumeration."""
+enum SoilIdSoilDataSurfaceCracksSelectChoices {
+  """No cracking"""
+  NO_CRACKING
+
+  """Surface cracking only"""
+  SURFACE_CRACKING_ONLY
+
+  """Deep vertical cracks"""
+  DEEP_VERTICAL_CRACKS
+}
+
+"""An enumeration."""
+enum SoilIdSoilDataSurfaceSaltSelectChoices {
+  """No salt"""
+  NO_SALT
+
+  """Small, temporary patches"""
+  SMALL_TEMPORARY_PATCHES
+
+  """Yes, most of surface"""
+  MOST_OF_SURFACE
+}
+
+"""An enumeration."""
+enum SoilIdSoilDataFloodingSelectChoices {
+  """None"""
+  NONE
+
+  """Rare to occasional"""
+  RARE
+
+  """Occasional"""
+  OCCASIONAL
+
+  """Frequent"""
+  FREQUENT
+
+  """Very frequent"""
+  VERY_FREQUENT
+}
+
+"""An enumeration."""
+enum SoilIdSoilDataLimeRequirementsSelectChoices {
+  """Little or no lime required"""
+  LITTLE_OR_NO
+
+  """Some amounts of lime required"""
+  SOME
+
+  """High amounts of lime required"""
+  HIGH
+
+  """Very difficult to modify with lime"""
+  VERY_DIFFICULT
+}
+
+"""An enumeration."""
+enum SoilIdSoilDataSurfaceStoninessSelectChoices {
+  """< 0.1%"""
+  LESS_THAN_01
+
+  """0.1 to 3%"""
+  BETWEEN_01_AND_3
+
+  """3 to 15%"""
+  BETWEEN_3_AND_15
+
+  """15 to 50%"""
+  BETWEEN_15_AND_50
+
+  """50 - 90%"""
+  BETWEEN_50_AND_90
+
+  """> 90%"""
+  GREATER_THAN_90
+}
+
+"""An enumeration."""
+enum SoilIdSoilDataWaterTableDepthSelectChoices {
+  """Not found"""
+  NOT_FOUND
+
+  """<30 cm"""
+  LESS_THAN_30_CM
+
+  """30 to 45 cm"""
+  BETWEEN_30_AND_45_CM
+
+  """45 to 75 cm"""
+  BETWEEN_45_AND_75_CM
+
+  """75 to 120 cm"""
+  BETWEEN_75_AND_120_CM
+
+  """> 120 cm"""
+  GREATER_THAN_120_CM
+}
+
+"""An enumeration."""
+enum SoilIdSoilDataSoilDepthSelectChoices {
+  """Not found"""
+  NOT_FOUND
+
+  """20 cm or less"""
+  TWENTY_CM_OR_LESS
+
+  """Greater than 20 and less than 50 cm"""
+  GREATER_THAN_20_LESS_THAN_50_CM
+
+  """Between 50 and 70 cm"""
+  BETWEEN_50_AND_70_CM
+
+  """Greater than 70 and less than 100 cm"""
+  GREATER_THAN_70_LESS_THAN_100_CM
+
+  """100 cm or greater"""
+  HUNDRED_CM_OR_GREATER
+}
+
+"""An enumeration."""
+enum SoilIdSoilDataLandCoverSelectChoices {
+  """Forest"""
+  FOREST
+
+  """Shrubland"""
+  SHRUBLAND
+
+  """Grassland"""
+  GRASSLAND
+
+  """Savanna"""
+  SAVANNA
+
+  """Garden"""
+  GARDEN
+
+  """Cropland"""
+  CROPLAND
+
+  """Village or City"""
+  VILLAGE_OR_CITY
+
+  """Barren, no vegetation or structures"""
+  BARREN
+
+  """Water"""
+  WATER
+}
+
+"""An enumeration."""
+enum SoilIdSoilDataGrazingChoices {
+  """Not Grazed"""
+  NOT_GRAZED
+
+  """Cattle"""
+  CATTLE
+
+  """Horse"""
+  HORSE
+
+  """Goat"""
+  GOAT
+
+  """Sheep"""
+  SHEEP
+
+  """Pig"""
+  PIG
+
+  """Camel"""
+  CAMEL
+
+  """Wildlife (forest, deer)"""
+  WILDLIFE_FOREST
+
+  """Wildlife (grasslands, giraffes, ibex)"""
+  WILDLIFE_GRASSLANDS
 }
 
 type SoilDataDepthIntervalNode {
