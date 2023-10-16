@@ -96,9 +96,13 @@ def test_visualization_configs_filter_by_group_slug_filters_successfuly(
               id
               dataEntry {
                 sharedResources {
-                  target {
-                    ... on GroupNode {
-                      slug
+                  edges {
+                    node {
+                      target {
+                        ... on GroupNode {
+                          slug
+                        }
+                      }
                     }
                   }
                 }
@@ -114,7 +118,8 @@ def test_visualization_configs_filter_by_group_slug_filters_successfuly(
     visualization_configs_result = [edge["node"]["id"] for edge in edges]
 
     assert (
-        edges[0]["node"]["dataEntry"]["sharedResources"][1]["target"]["slug"] == group_filter.slug
+        edges[0]["node"]["dataEntry"]["sharedResources"]["edges"][1]["node"]["target"]["slug"]
+        == group_filter.slug
     )
 
     assert len(visualization_configs_result) == 2

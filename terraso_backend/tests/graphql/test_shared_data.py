@@ -230,9 +230,13 @@ def test_data_entries_from_parent_query(client_query, data_entries_by_parent):
           edges {
             node {
               sharedResources {
-                source {
-                  ... on DataEntryNode {
-                    name
+                edges {
+                  node {
+                    source {
+                      ... on DataEntryNode {
+                        name
+                      }
+                    }
                   }
                 }
               }
@@ -245,8 +249,8 @@ def test_data_entries_from_parent_query(client_query, data_entries_by_parent):
 
     json_response = response.json()
 
-    resources = json_response["data"][parent]["edges"][0]["node"]["sharedResources"]
-    entries_result = [resource["source"]["name"] for resource in resources]
+    resources = json_response["data"][parent]["edges"][0]["node"]["sharedResources"]["edges"]
+    entries_result = [resource["node"]["source"]["name"] for resource in resources]
 
     for data_entry in data_entries:
         assert data_entry.name in entries_result

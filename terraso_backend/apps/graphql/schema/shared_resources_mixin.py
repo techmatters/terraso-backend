@@ -13,11 +13,15 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see https://www.gnu.org/licenses/.
 
-import graphene
+from graphene_django.filter import DjangoFilterConnectionField
+
+
 
 
 class SharedResourcesMixin:
-    shared_resources = graphene.List("apps.graphql.schema.shared_resources.SharedResourceNode")
+    shared_resources = DjangoFilterConnectionField(
+        "apps.graphql.schema.shared_resources.SharedResourceNode",
+    )
 
     def resolve_shared_resources(self, info, **kwargs):
-        return self.shared_resources.all()
+        return self.shared_resources
