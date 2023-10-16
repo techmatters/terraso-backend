@@ -196,7 +196,7 @@ class SoilData(BaseModel):
         WILDLIFE_FOREST = "WILDLIFE_FOREST", "Wildlife (forest, deer)"
         WILDLIFE_GRASSLANDS = "WILDLIFE_GRASSLANDS", "Wildlife (grasslands, giraffes, ibex)"
 
-    grazing = models.CharField(blank=True, null=True, choices=Grazing.choices)
+    grazing_select = models.CharField(blank=True, null=True, choices=Grazing.choices)
 
 
 class SoilDataDepthInterval(BaseModel, BaseDepthInterval):

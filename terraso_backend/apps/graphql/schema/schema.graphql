@@ -768,7 +768,7 @@ type SoilDataNode {
   waterTableDepthSelect: SoilIdSoilDataWaterTableDepthSelectChoices
   soilDepthSelect: SoilIdSoilDataSoilDepthSelectChoices
   landCoverSelect: SoilIdSoilDataLandCoverSelectChoices
-  grazing: SoilIdSoilDataGrazingChoices
+  grazingSelect: SoilIdSoilDataGrazingSelectChoices
   depthIntervals: [SoilDataDepthIntervalNode!]!
   depthDependentData: [DepthDependentSoilDataNode!]!
 }
@@ -1017,7 +1017,7 @@ enum SoilIdSoilDataLandCoverSelectChoices {
 }
 
 """An enumeration."""
-enum SoilIdSoilDataGrazingChoices {
+enum SoilIdSoilDataGrazingSelectChoices {
   """Not Grazed"""
   NOT_GRAZED
 
@@ -2188,6 +2188,15 @@ input SoilDataUpdateMutationInput {
   slopeSteepnessSelect: SoilIdSoilDataSlopeSteepnessSelectChoices
   slopeSteepnessPercent: Int
   slopeSteepnessDegree: Int
+  surfaceCracksSelect: SoilIdSoilDataSurfaceCracksSelectChoices
+  surfaceSaltSelect: SoilIdSoilDataSurfaceSaltSelectChoices
+  floodingSelect: SoilIdSoilDataFloodingSelectChoices
+  limeRequirementsSelect: SoilIdSoilDataLimeRequirementsSelectChoices
+  surfaceStoninessSelect: SoilIdSoilDataSurfaceStoninessSelectChoices
+  waterTableDepthSelect: SoilIdSoilDataWaterTableDepthSelectChoices
+  soilDepthSelect: SoilIdSoilDataSoilDepthSelectChoices
+  landCoverSelect: SoilIdSoilDataLandCoverSelectChoices
+  grazingSelect: SoilIdSoilDataGrazingSelectChoices
   clientMutationId: String
 }
 
