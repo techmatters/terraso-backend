@@ -44,7 +44,7 @@ class Migration(migrations.Migration):
     dependencies = [
         ("contenttypes", "0002_remove_content_type_name"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
-        ("core", "0046_landscapedefaultgroup_alter_group_deleted_at_and_more"),
+        ("core", "0046_shared_resource"),
         ("shared_data", "0010_visualizationconfig_mapbox_tileset_id_status"),
     ]
 

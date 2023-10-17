@@ -67,7 +67,7 @@ class VisualizationConfig(SlugModel):
             models.UniqueConstraint(
                 fields=("owner_object_id", "slug"),
                 condition=models.Q(deleted_at__isnull=True),
-                name="shared_data_visualizationconfig_unique_active_slug_by_group",
+                name="shared_data_visualizationconfig_unique_active_slug_by_owner",
             ),
         )
         verbose_name_plural = "Visualization Configs"
