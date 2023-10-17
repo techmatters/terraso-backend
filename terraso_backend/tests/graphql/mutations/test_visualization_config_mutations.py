@@ -30,8 +30,8 @@ def test_visualization_config_add(mock_create_tileset, client_query, groups, dat
     new_data = {
         "title": "Test title",
         "configuration": '{"key": "value"}',
-        "targetId": group_id,
-        "targetType": "group",
+        "ownerId": group_id,
+        "ownerType": "group",
         "dataEntryId": data_entry_id,
     }
 
@@ -76,8 +76,8 @@ def test_visualization_config_add_fails_due_uniqueness_check(
     new_data = {
         "title": visualization_configs[0].title,
         "configuration": '{"key": "value"}',
-        "targetId": str(visualization_configs[0].owner.id),
-        "targetType": "group",
+        "ownerId": str(visualization_configs[0].owner.id),
+        "ownerType": "group",
         "dataEntryId": str(data_entries[0].id),
     }
 

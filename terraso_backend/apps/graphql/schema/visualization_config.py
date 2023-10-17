@@ -134,18 +134,18 @@ class VisualizationConfigAddMutation(BaseWriteMutation):
         title = graphene.String(required=True)
         configuration = graphene.JSONString()
         data_entry_id = graphene.ID(required=True)
-        targetId = graphene.ID(required=True)
-        targetType = graphene.String(required=True)
+        ownerId = graphene.ID(required=True)
+        ownerType = graphene.String(required=True)
 
     @classmethod
     @transaction.atomic
     def mutate_and_get_payload(cls, root, info, **kwargs):
         user = info.context.user
 
-        content_type = ContentType.objects.get(app_label="core", model=kwargs["targetType"])
+        content_type = ContentType.objects.get(app_label="core", model=kwargs["ownerType"])
         model_class = content_type.model_class()
         try:
-            target = model_class.objects.get(id=kwargs["targetId"])
+            owner = model_class.objects.get(id=kwargs["ownerId"])
         except Group.DoesNotExist:
             logger.error(
                 "Target not found when adding a VisualizationConfig",
@@ -179,7 +179,7 @@ class VisualizationConfigAddMutation(BaseWriteMutation):
         if not cls.is_update(kwargs):
             kwargs["created_by"] = user
 
-        kwargs["owner"] = target
+        kwargs["owner"] = owner
 
         result = super().mutate_and_get_payload(root, info, **kwargs)
 

@@ -1957,8 +1957,8 @@ input VisualizationConfigAddMutationInput {
   title: String!
   configuration: JSONString
   dataEntryId: ID!
-  targetId: ID!
-  targetType: String!
+  ownerId: ID!
+  ownerType: String!
   clientMutationId: String
 }
 
