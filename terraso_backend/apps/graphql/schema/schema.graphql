@@ -461,7 +461,6 @@ type DataEntryNode implements Node {
 
   """"""
   size: BigInt
-  groups(offset: Int, before: String, after: String, first: Int, last: Int, name: String, name_Icontains: String, name_Istartswith: String, slug: String, slug_Icontains: String, description_Icontains: String, memberships_Email: String, associatedLandscapes_IsDefaultLandscapeGroup: Boolean, associatedLandscapes_Isnull: Boolean, associatedLandscapes_IsPartnership: Boolean): GroupNodeConnection!
   createdBy: UserNode
   visualizations(offset: Int, before: String, after: String, first: Int, last: Int, slug: String, slug_Icontains: String, dataEntry_SharedResources_TargetObjectId: UUID, dataEntry_SharedResources_Target_Slug: String, dataEntry_SharedResources_TargetContentType: String): VisualizationConfigNodeConnection!
   id: ID!
@@ -483,24 +482,6 @@ The `BigInt` scalar type represents non-fractional whole numeric values.
 compatible type.
 """
 scalar BigInt
-
-type GroupNodeConnection {
-  """Pagination data for this connection."""
-  pageInfo: PageInfo!
-
-  """Contains the nodes in this connection."""
-  edges: [GroupNodeEdge!]!
-  totalCount: Int!
-}
-
-"""A Relay edge containing a `GroupNode` and its cursor."""
-type GroupNodeEdge {
-  """The item at the end of the edge"""
-  node: GroupNode!
-
-  """A cursor for use in pagination"""
-  cursor: String!
-}
 
 type VisualizationConfigNodeConnection {
   """Pagination data for this connection."""
@@ -543,6 +524,24 @@ type DataEntryNodeConnection {
 type DataEntryNodeEdge {
   """The item at the end of the edge"""
   node: DataEntryNode!
+
+  """A cursor for use in pagination"""
+  cursor: String!
+}
+
+type GroupNodeConnection {
+  """Pagination data for this connection."""
+  pageInfo: PageInfo!
+
+  """Contains the nodes in this connection."""
+  edges: [GroupNodeEdge!]!
+  totalCount: Int!
+}
+
+"""A Relay edge containing a `GroupNode` and its cursor."""
+type GroupNodeEdge {
+  """The item at the end of the edge"""
+  node: GroupNode!
 
   """A cursor for use in pagination"""
   cursor: String!

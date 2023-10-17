@@ -81,8 +81,6 @@ class DataEntryNode(DjangoObjectType, SharedResourcesMixin):
             "size",
             "created_by",
             "created_at",
-            "groups",
-            "landscapes",
             "visualizations",
             "shared_resources",
         )
