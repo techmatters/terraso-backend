@@ -62,6 +62,42 @@ class SoilDataNode(DjangoObjectType):
     def slope_steepness_enum(cls):
         return cls._meta.fields["slope_steepness_select"].type()
 
+    @classmethod
+    def surface_cracks_enum(cls):
+        return cls._meta.fields["surface_cracks_select"].type()
+
+    @classmethod
+    def surface_salt_enum(cls):
+        return cls._meta.fields["surface_salt_select"].type()
+
+    @classmethod
+    def flooding_enum(cls):
+        return cls._meta.fields["flooding_select"].type()
+
+    @classmethod
+    def lime_requirements_enum(cls):
+        return cls._meta.fields["lime_requirements_select"].type()
+
+    @classmethod
+    def surface_stoniness_enum(cls):
+        return cls._meta.fields["surface_stoniness_select"].type()
+
+    @classmethod
+    def water_table_depth_enum(cls):
+        return cls._meta.fields["water_table_depth_select"].type()
+
+    @classmethod
+    def soil_depth_enum(cls):
+        return cls._meta.fields["soil_depth_select"].type()
+
+    @classmethod
+    def land_cover_enum(cls):
+        return cls._meta.fields["land_cover_select"].type()
+
+    @classmethod
+    def grazing_enum(cls):
+        return cls._meta.fields["grazing_select"].type()
+
 
 class ProjectSoilSettingsNode(DjangoObjectType):
     class Meta:
@@ -261,6 +297,15 @@ class SoilDataUpdateMutation(BaseWriteMutation):
         slope_steepness_select = SoilDataNode.slope_steepness_enum()
         slope_steepness_percent = graphene.Int()
         slope_steepness_degree = graphene.Int()
+        surface_cracks_select = SoilDataNode.surface_cracks_enum()
+        surface_salt_select = SoilDataNode.surface_salt_enum()
+        flooding_select = SoilDataNode.flooding_enum()
+        lime_requirements_select = SoilDataNode.lime_requirements_enum()
+        surface_stoniness_select = SoilDataNode.surface_stoniness_enum()
+        water_table_depth_select = SoilDataNode.water_table_depth_enum()
+        soil_depth_select = SoilDataNode.soil_depth_enum()
+        land_cover_select = SoilDataNode.land_cover_enum()
+        grazing_select = SoilDataNode.grazing_enum()
 
     @classmethod
     def mutate_and_get_payload(cls, root, info, site_id, **kwargs):
