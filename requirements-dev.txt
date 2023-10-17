@@ -624,9 +624,9 @@ types-pyyaml==6.0.12.12 \
     --hash=sha256:334373d392fde0fdf95af5c3f1661885fa10c52167b14593eb856289e1855062 \
     --hash=sha256:c05bc6c158facb0676674b7f11fe3960db4f389718e19e62bd2b84d6205cfd24
     # via responses
-urllib3==2.0.6 \
-    --hash=sha256:7a7c7003b000adf9e7ca2a377c9688bbc54ed41b985789ed576570342a375cd2 \
-    --hash=sha256:b19e1a85d206b56d7df1d5e683df4a7725252a964e3993648dd0fb5a1c157564
+urllib3==2.0.7 \
+    --hash=sha256:c97dfde1f7bd43a71c8d2a58e369e9b2bf692d1334ea9f9cae55add7d0dd0f84 \
+    --hash=sha256:fdb6d215c776278489906c2f8916e6e7d4f5a9b602ccbcfdf7f016fc8da0596e
     # via
     #   botocore
     #   requests
