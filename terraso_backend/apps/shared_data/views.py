@@ -19,6 +19,8 @@ from pathlib import Path
 
 import structlog
 from config.settings import DATA_ENTRY_ACCEPTED_EXTENSIONS, MEDIA_UPLOAD_MAX_FILE_SIZE
+from django.contrib.contenttypes.models import ContentType
+from django.db import transaction
 from django.http import JsonResponse
 from django.views.generic.edit import FormView
 
@@ -36,10 +38,64 @@ mimetypes.init()
 
 
 class DataEntryFileUploadView(AuthenticationRequiredMixin, FormView):
+    @transaction.atomic
     def post(self, request, **kwargs):
         form_data = request.POST.copy()
         form_data["created_by"] = str(request.user.id)
         form_data["entry_type"] = DataEntry.ENTRY_TYPE_FILE
+        target_type = form_data.pop("target_type")[0]
+        target_slug = form_data.pop("target_slug")[0]
+        if target_type not in ["group", "landscape"]:
+            logger.error("Invalid target_type provided when adding dataEntry")
+            return JsonResponse(
+                {
+                    "errors": [
+                        {
+                            "message": [
+                                asdict(
+                                    ErrorMessage(
+                                        code="Invalid target_type provided when adding dataEntry",
+                                        context=ErrorContext(
+                                            model="DataEntry", field="target_type"
+                                        ),
+                                    )
+                                )
+                            ]
+                        }
+                    ]
+                },
+                status=400,
+            )
+
+        content_type = ContentType.objects.get(app_label="core", model=target_type)
+        model_class = content_type.model_class()
+
+        try:
+            target = model_class.objects.get(slug=target_slug)
+        except Exception:
+            logger.error(
+                "Target not found when adding dataEntry",
+                extra={"target_type": target_type, "target_slug": target_slug},
+            )
+            return JsonResponse(
+                {
+                    "errors": [
+                        {
+                            "message": [
+                                asdict(
+                                    ErrorMessage(
+                                        code="Target not found when adding dataEntry",
+                                        context=ErrorContext(
+                                            model="DataEntry", field="target_type"
+                                        ),
+                                    )
+                                )
+                            ]
+                        }
+                    ]
+                },
+                status=400,
+            )
 
         if has_multiple_files(request.FILES.getlist("data_file")):
             error_message = ErrorMessage(
@@ -69,6 +125,10 @@ class DataEntryFileUploadView(AuthenticationRequiredMixin, FormView):
             )
 
         data_entry = entry_form.save()
+
+        data_entry.shared_resources.create(
+            target=target,
+        )
 
         return JsonResponse(data_entry.to_dict(), status=201)
 

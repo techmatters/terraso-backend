@@ -20,6 +20,12 @@ from apps.core.models import BaseModel
 
 
 class SharedResource(BaseModel):
+    """
+    This model represents a shared resource.
+    Source represents the resource that is being shared (Example: DataEntry).
+    Target represents the resource that is receiving the shared resource (Example: Lanscape).
+    """
+
     source = GenericForeignKey("source_content_type", "source_object_id")
     source_content_type = models.ForeignKey(
         ContentType, on_delete=models.CASCADE, related_name="source_content_type"

@@ -96,6 +96,7 @@ class DataEntryNode(DjangoObjectType, SharedResourcesMixin):
         ).values_list("group", flat=True)
         user_landscape_ids = Landscape.objects.filter(
             associated_groups__group__memberships__user__id=user_pk,
+            associated_groups__group__memberships__membership_status=Membership.APPROVED,
             associated_groups__is_default_landscape_group=True,
         ).values_list("id", flat=True)
 
