@@ -110,7 +110,7 @@ type GroupNode implements Node {
   associatedLandscapes(offset: Int, before: String, after: String, first: Int, last: Int, landscape: ID, landscape_Slug_Icontains: String, group: ID, group_Slug_Icontains: String, isDefaultLandscapeGroup: Boolean, isPartnership: Boolean): LandscapeGroupNodeConnection!
   dataEntries(offset: Int, before: String, after: String, first: Int, last: Int, name_Icontains: String, description_Icontains: String, url_Icontains: String, entryType_In: [SharedDataDataEntryEntryTypeChoices], resourceType_In: [String], sharedResources_TargetObjectId: UUID, sharedResources_Target_Slug: String, sharedResources_TargetContentType: String): DataEntryNodeConnection!
   id: ID!
-  sharedResources: [SharedResourceNode]
+  sharedResources(offset: Int, before: String, after: String, first: Int, last: Int, source_DataEntry_ResourceType_In: [String]): SharedResourceNodeConnection
   accountMembership: MembershipNode
   membershipsCount: Int
 }
@@ -296,7 +296,7 @@ type LandscapeNode implements Node {
   associatedDevelopmentStrategy(offset: Int, before: String, after: String, first: Int, last: Int): LandscapeDevelopmentStrategyNodeConnection!
   associatedGroups(offset: Int, before: String, after: String, first: Int, last: Int, landscape: ID, landscape_Slug_Icontains: String, group: ID, group_Slug_Icontains: String, isDefaultLandscapeGroup: Boolean, isPartnership: Boolean): LandscapeGroupNodeConnection!
   id: ID!
-  sharedResources: [SharedResourceNode]
+  sharedResources(offset: Int, before: String, after: String, first: Int, last: Int, source_DataEntry_ResourceType_In: [String]): SharedResourceNodeConnection
   areaTypes: [String]
   defaultGroup: GroupNode
   areaScalarHa: Float
@@ -406,6 +406,24 @@ type LandscapeDevelopmentStrategyNode implements Node {
   id: ID!
 }
 
+type SharedResourceNodeConnection {
+  """Pagination data for this connection."""
+  pageInfo: PageInfo!
+
+  """Contains the nodes in this connection."""
+  edges: [SharedResourceNodeEdge!]!
+  totalCount: Int!
+}
+
+"""A Relay edge containing a `SharedResourceNode` and its cursor."""
+type SharedResourceNodeEdge {
+  """The item at the end of the edge"""
+  node: SharedResourceNode!
+
+  """A cursor for use in pagination"""
+  cursor: String!
+}
+
 type SharedResourceNode implements Node {
   id: ID!
   source: SourceNode
@@ -447,7 +465,7 @@ type DataEntryNode implements Node {
   createdBy: UserNode
   visualizations(offset: Int, before: String, after: String, first: Int, last: Int, slug: String, slug_Icontains: String, dataEntry_SharedResources_TargetObjectId: UUID, dataEntry_SharedResources_Target_Slug: String, dataEntry_SharedResources_TargetContentType: String): VisualizationConfigNodeConnection!
   id: ID!
-  sharedResources: [SharedResourceNode]
+  sharedResources(offset: Int, before: String, after: String, first: Int, last: Int, source_DataEntry_ResourceType_In: [String]): SharedResourceNodeConnection
 }
 
 """An enumeration."""

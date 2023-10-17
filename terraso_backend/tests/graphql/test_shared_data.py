@@ -254,3 +254,38 @@ def test_data_entries_from_parent_query(client_query, data_entries_by_parent):
 
     for data_entry in data_entries:
         assert data_entry.name in entries_result
+
+
+@pytest.mark.parametrize("data_entries_by_parent", ["groups", "landscapes"], indirect=True)
+def test_data_entries_from_parent_query_by_resource_field(client_query, data_entries_by_parent):
+    (parent, data_entries) = data_entries_by_parent
+    response = client_query(
+        """
+        {%s {
+          edges {
+            node {
+              sharedResources(source_DataEntry_ResourceType_In: ["csv", "xls"]) {
+                edges {
+                  node {
+                    source {
+                      ... on DataEntryNode {
+                        name
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }}
+        """
+        % parent
+    )
+
+    json_response = response.json()
+
+    resources = json_response["data"][parent]["edges"][0]["node"]["sharedResources"]["edges"]
+    entries_result = [resource["node"]["source"]["name"] for resource in resources]
+
+    for data_entry in data_entries:
+        assert data_entry.name in entries_result

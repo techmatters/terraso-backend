@@ -290,7 +290,7 @@ def group_data_entries(users, groups):
     resources = mixer.cycle(5).blend(
         SharedResource,
         target=creator_group,
-        source=lambda: mixer.blend(DataEntry, created_by=creator, size=100),
+        source=lambda: mixer.blend(DataEntry, created_by=creator, size=100, resource_type="csv"),
     )
     return [resource.source for resource in resources]
 
@@ -302,7 +302,9 @@ def landscape_data_entries(users, landscapes, landscape_groups):
     resources = mixer.cycle(5).blend(
         SharedResource,
         target=creator_landscape,
-        source=lambda: mixer.blend(DataEntry, created_by=creator, size=100),
+        source=lambda: mixer.blend(
+            DataEntry, created_by=creator, size=100, resource_type=(type for type in ("xls", "csv"))
+        ),
     )
     return [resource.source for resource in resources]
 
