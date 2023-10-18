@@ -68,7 +68,7 @@ class Project(BaseModel):
 
     PRIVACY_STATUS = ((PRIVATE, _("Private")), (PUBLIC, _("Public")))
 
-    name = models.CharField(max_length=200)
+    name = models.CharField(max_length=120)
     description = models.CharField(max_length=512, default="", blank=True)
     membership_list = models.OneToOneField(ProjectMembershipList, on_delete=models.CASCADE)
     privacy = models.CharField(
