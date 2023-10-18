@@ -23,7 +23,7 @@ class SharedResource(BaseModel):
     """
     This model represents a shared resource.
     Source represents the resource that is being shared (Example: DataEntry).
-    Target represents the resource that is receiving the shared resource (Example: Lanscape).
+    Target represents the resource that is receiving the shared resource (Example: Landscape).
     """
 
     source = GenericForeignKey("source_content_type", "source_object_id")

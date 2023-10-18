@@ -251,7 +251,9 @@ def data_entry_current_user_file(users, groups):
     resource = mixer.blend(
         SharedResource,
         target=creator_group,
-        source=mixer.blend(DataEntry, created_by=creator, entry_type=DataEntry.ENTRY_TYPE_FILE),
+        source=mixer.blend(
+            DataEntry, slug=None, created_by=creator, size=100, entry_type=DataEntry.ENTRY_TYPE_FILE
+        ),
     )
     return resource.source
 
@@ -264,7 +266,9 @@ def data_entry_current_user_link(users, groups):
     resource = mixer.blend(
         SharedResource,
         target=creator_group,
-        source=mixer.blend(DataEntry, created_by=creator, entry_type=DataEntry.ENTRY_TYPE_LINK),
+        source=mixer.blend(
+            DataEntry, slug=None, created_by=creator, entry_type=DataEntry.ENTRY_TYPE_LINK
+        ),
     )
     return resource.source
 
@@ -277,7 +281,7 @@ def data_entry_other_user(users, groups):
     resource = mixer.blend(
         SharedResource,
         target=creator_group,
-        source=mixer.blend(DataEntry, created_by=creator, size=100),
+        source=mixer.blend(DataEntry, slug=None, created_by=creator, size=100),
     )
     return resource.source
 
@@ -337,16 +341,17 @@ def visualization_configs(users, groups):
     creator = users[0]
     creator_group = groups[1]
     creator_group.members.add(creator)
-    return mixer.cycle(5).blend(
+    visualizations = mixer.cycle(5).blend(
         VisualizationConfig,
         created_by=creator,
         data_entry=lambda: mixer.blend(
             SharedResource,
             target=creator_group,
-            source=lambda: mixer.blend(DataEntry, created_by=creator),
+            source=lambda: mixer.blend(DataEntry, created_by=creator, size=100),
         ).source,
         owner=creator_group,
     )
+    return visualizations
 
 
 @pytest.fixture

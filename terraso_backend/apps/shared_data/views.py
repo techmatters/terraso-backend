@@ -47,24 +47,13 @@ class DataEntryFileUploadView(AuthenticationRequiredMixin, FormView):
         target_slug = form_data.pop("target_slug")[0]
         if target_type not in ["group", "landscape"]:
             logger.error("Invalid target_type provided when adding dataEntry")
-            return JsonResponse(
-                {
-                    "errors": [
-                        {
-                            "message": [
-                                asdict(
-                                    ErrorMessage(
-                                        code="Invalid target_type provided when adding dataEntry",
-                                        context=ErrorContext(
-                                            model="DataEntry", field="target_type"
-                                        ),
-                                    )
-                                )
-                            ]
-                        }
-                    ]
-                },
-                status=400,
+            return get_json_response_error(
+                [
+                    ErrorMessage(
+                        code="Invalid target_type provided when adding dataEntry",
+                        context=ErrorContext(model="DataEntry", field="target_type"),
+                    )
+                ]
             )
 
         content_type = ContentType.objects.get(app_label="core", model=target_type)
@@ -77,24 +66,13 @@ class DataEntryFileUploadView(AuthenticationRequiredMixin, FormView):
                 "Target not found when adding dataEntry",
                 extra={"target_type": target_type, "target_slug": target_slug},
             )
-            return JsonResponse(
-                {
-                    "errors": [
-                        {
-                            "message": [
-                                asdict(
-                                    ErrorMessage(
-                                        code="Target not found when adding dataEntry",
-                                        context=ErrorContext(
-                                            model="DataEntry", field="target_type"
-                                        ),
-                                    )
-                                )
-                            ]
-                        }
-                    ]
-                },
-                status=400,
+            return get_json_response_error(
+                [
+                    ErrorMessage(
+                        code="Target not found when adding dataEntry",
+                        context=ErrorContext(model="DataEntry", field="target_type"),
+                    )
+                ]
             )
 
         if has_multiple_files(request.FILES.getlist("data_file")):
@@ -102,27 +80,25 @@ class DataEntryFileUploadView(AuthenticationRequiredMixin, FormView):
                 code="Uploaded more than one file",
                 context=ErrorContext(model="DataEntry", field="data_file"),
             )
-            return JsonResponse({"errors": [{"message": [asdict(error_message)]}]}, status=400)
+            return get_json_response_error([error_message])
         if is_file_upload_oversized(request.FILES.getlist("data_file"), MEDIA_UPLOAD_MAX_FILE_SIZE):
             error_message = ErrorMessage(
                 code="File size exceeds 10 MB",
                 context=ErrorContext(model="DataEntry", field="data_file"),
             )
-            return JsonResponse({"errors": [{"message": [asdict(error_message)]}]}, status=400)
+            return get_json_response_error([error_message])
         if not is_valid_shared_data_type(request.FILES.getlist("data_file")):
             error_message = ErrorMessage(
                 code="invalid_media_type",
                 context=ErrorContext(model="Shared Data", field="context_type"),
             )
-            return JsonResponse({"errors": [{"message": [asdict(error_message)]}]}, status=400)
+            return get_json_response_error([error_message])
 
         entry_form = DataEntryForm(data=form_data, files=request.FILES)
 
         if not entry_form.is_valid():
             error_messages = get_error_messages(entry_form.errors.as_data())
-            return JsonResponse(
-                {"errors": [{"message": [asdict(e) for e in error_messages]}]}, status=400
-            )
+            return get_json_response_error(error_messages)
 
         data_entry = entry_form.save()
 
@@ -154,3 +130,9 @@ def get_error_messages(validation_errors):
             )
 
     return error_messages
+
+
+def get_json_response_error(error_messages, status=400):
+    return JsonResponse(
+        {"errors": [{"message": [asdict(e) for e in error_messages]}]}, status=status
+    )

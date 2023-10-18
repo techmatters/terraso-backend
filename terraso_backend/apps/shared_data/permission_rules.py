@@ -39,6 +39,7 @@ def is_user_allowed_to_view_data_entry(data_entry, user):
     for shared_resource in shared_resources:
         if is_target_member(user, shared_resource.target):
             return True
+    return False
 
 
 def is_user_allowed_to_change_data_entry(data_entry, user):
@@ -46,6 +47,7 @@ def is_user_allowed_to_change_data_entry(data_entry, user):
     for shared_resource in shared_resources:
         if is_target_manager(user, shared_resource.target):
             return True
+    return False
 
 
 @rules.predicate
