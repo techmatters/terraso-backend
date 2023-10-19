@@ -67,10 +67,11 @@ def test_site_creation(client_query, user):
     assert log_result.metadata == expected_metadata
 
 
-def test_site_creation_in_project(client, project_manager, project):
+@pytest.mark.parametrize("project_user_w_role", ["manager", "contributor"], indirect=True)
+def test_site_creation_in_project(client, project_user_w_role, project):
     kwargs = site_creation_keywords()
     kwargs["projectId"] = str(project.id)
-    client.force_login(project_manager)
+    client.force_login(project_user_w_role)
     response = graphql_query(CREATE_SITE_QUERY, variables={"input": kwargs}, client=client)
     content = json.loads(response.content)
     assert "errors" not in content and "errors" not in content["data"]

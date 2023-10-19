@@ -123,7 +123,7 @@ class SiteAddMutation(BaseWriteMutation):
         if adding_to_project:
             project = cls.get_or_throw(Project, "project_id", kwargs["project_id"])
             if not user.has_perm(Project.get_perm("add_site"), project):
-                raise cls.not_allowed(MutationTypes.ADD)
+                raise cls.not_allowed(MutationTypes.CREATE)
             kwargs["project"] = project
         else:
             kwargs["owner"] = info.context.user

@@ -119,3 +119,10 @@ def project_user(project: Project) -> User:
         membership_status=Membership.APPROVED,
     )
     return user
+
+
+@pytest.fixture
+def project_user_w_role(request, project: Project):
+    user = mixer.blend(User)
+    project.add_user_with_role(user, request.param)
+    return user
