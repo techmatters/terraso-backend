@@ -170,6 +170,8 @@ def test_visualization_configs_returns_only_for_users_groups(
           edges {
             node {
               id
+              title
+              description
             }
           }
         }}
@@ -181,3 +183,5 @@ def test_visualization_configs_returns_only_for_users_groups(
 
     assert len(entries_result) == 1
     assert entries_result[0] == str(visualization_config_current_user.id)
+    assert edges[0]["node"]["title"] == visualization_config_current_user.title
+    assert edges[0]["node"]["description"] == visualization_config_current_user.description

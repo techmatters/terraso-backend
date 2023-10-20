@@ -88,6 +88,7 @@ class VisualizationConfigNode(DjangoObjectType):
             "id",
             "slug",
             "title",
+            "description",
             "configuration",
             "created_by",
             "created_at",
