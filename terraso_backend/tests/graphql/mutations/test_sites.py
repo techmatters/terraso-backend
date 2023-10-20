@@ -18,6 +18,7 @@ import pytest
 import structlog
 from graphene_django.utils.testing import graphql_query
 from mixer.backend.django import mixer
+from tests.utils import match_json
 
 from apps.audit_logs.api import CHANGE, CREATE
 from apps.audit_logs.models import Log
@@ -282,3 +283,40 @@ def test_mark_site_seen(client, user):
     )
     logger.info(response.json())
     assert response.json()["data"]["markSiteSeen"]["site"]["seen"] is True
+
+
+SITE_TRANSFER_MUTATION = """
+mutation transferSites($input: SiteTransferMutationInput!) {
+  transferSites(input: $input) {
+    updated {
+      id
+    }
+    project {
+      id
+    }
+  }
+}
+ """
+
+
+@pytest.fixture
+def linked_site(request, project_manager):
+    site = mixer.blend(Site, owner=project_manager)
+    if request.param:
+        project = mixer.blend(Project)
+        site.add_to_project(project)
+        project.add_manager(project_manager)
+    return site
+
+
+@pytest.mark.parametrize("linked_site", [True, False], indirect=True)
+def test_site_transfer_success(linked_site, client, project, project_manager):
+    input_data = {"siteIds": [str(linked_site.id)], "projectId": str(project.id)}
+    client.force_login(project_manager)
+    response = graphql_query(SITE_TRANSFER_MUTATION, client=client, input_data=input_data)
+    payload = response.json()
+    assert "errors" not in payload
+    assert match_json("*..updated[*].id", payload) == [str(linked_site.id)]
+    assert match_json("*..project.id", payload) == [str(project.id)]
+    linked_site.refresh_from_db()
+    assert linked_site.project == project

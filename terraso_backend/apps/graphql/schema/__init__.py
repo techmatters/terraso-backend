@@ -78,6 +78,7 @@ from .sites import (
     SiteDeleteMutation,
     SiteMarkSeenMutation,
     SiteNode,
+    SiteTransferMutation,
     SiteUpdateMutation,
 )
 from .story_maps import (
@@ -173,6 +174,7 @@ class Mutations(graphene.ObjectType):
     update_site = SiteUpdateMutation.Field()
     delete_site = SiteDeleteMutation.Field()
     mark_site_seen = SiteMarkSeenMutation.Field()
+    transfer_sites = SiteTransferMutation.Field()
     add_project = ProjectAddMutation.Field()
     update_project = ProjectUpdateMutation.Field()
     archive_project = ProjectArchiveMutation.Field()

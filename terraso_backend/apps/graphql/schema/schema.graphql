@@ -1597,6 +1597,7 @@ type Mutations {
   updateSite(input: SiteUpdateMutationInput!): SiteUpdateMutationPayload!
   deleteSite(input: SiteDeleteMutationInput!): SiteDeleteMutationPayload!
   markSiteSeen(input: SiteMarkSeenMutationInput!): SiteMarkSeenMutationPayload!
+  transferSites(input: SiteTransferMutationInput!): SiteTransferMutationPayload!
   addProject(input: ProjectAddMutationInput!): ProjectAddMutationPayload!
   updateProject(input: ProjectUpdateMutationInput!): ProjectUpdateMutationPayload!
   archiveProject(input: ProjectArchiveMutationInput!): ProjectArchiveMutationPayload!
@@ -2061,6 +2062,21 @@ type SiteMarkSeenMutationPayload {
 
 input SiteMarkSeenMutationInput {
   id: ID!
+  clientMutationId: String
+}
+
+type SiteTransferMutationPayload {
+  errors: GenericScalar
+  updated: [SiteNode!]!
+  notFound: [ID!]!
+  badPermissions: [SiteNode!]!
+  project: ProjectNode!
+  clientMutationId: String
+}
+
+input SiteTransferMutationInput {
+  siteIds: [ID!]!
+  projectId: ID!
   clientMutationId: String
 }
 

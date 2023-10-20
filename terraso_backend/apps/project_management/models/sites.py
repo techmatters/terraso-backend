@@ -12,7 +12,7 @@
 #
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see https://www.gnu.org/licenses/.
-from typing import Union
+from typing import Self, Union
 
 from django.db import models
 from django.db.models import Q
@@ -101,6 +101,13 @@ class Site(BaseModel):
 
     def mark_seen_by(self, user: User):
         self.seen_by.add(user)
+
+    @classmethod
+    def bulk_change_project(cls, sites: [Self], project: Project):
+        for site in sites:
+            site.owner = None
+            site.project = project
+        return Site.objects.bulk_update(sites, ["owner", "project"])
 
 
 def filter_only_sites_user_owner_or_member(user: User, queryset):
