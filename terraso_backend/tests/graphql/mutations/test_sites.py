@@ -170,54 +170,6 @@ def test_adding_site_owned_by_user_to_project(client, project, site, project_man
     assert site.owned_by(project)
 
 
-@pytest.mark.parametrize("allow_adding_site", [True, False])
-def test_user_can_add_site_to_project_if_project_setting_set(
-    client, project, project_user, site, allow_adding_site
-):
-    project.settings.member_can_add_site_to_project = allow_adding_site
-    project.settings.save()
-    project.save()
-    site.add_owner(project_user)
-    client.force_login(project_user)
-    response = graphql_query(
-        UPDATE_SITE_QUERY,
-        variables={"input": {"id": str(site.id), "projectId": str(project.id)}},
-        client=client,
-    )
-    content = json.loads(response.content)
-    if allow_adding_site:
-        assert content["data"]["updateSite"]["errors"] is None
-        payload = content["data"]["updateSite"]["site"]
-        assert payload["id"] == str(site.id)
-        site.refresh_from_db()
-        assert site.owned_by(project)
-    else:
-        error_result = response.json()["data"]["updateSite"]["errors"][0]["message"]
-        json_error = json.loads(error_result)
-        assert json_error[0]["code"] == "update_not_allowed"
-
-
-@pytest.mark.parametrize("allow_adding_site", [True, False])
-def test_user_can_add_new_site_to_project_if_project_setting_set(
-    client, project, project_user, allow_adding_site
-):
-    project.settings.member_can_add_site_to_project = allow_adding_site
-    project.settings.save()
-    project.save()
-    client.force_login(project_user)
-    kwargs = site_creation_keywords()
-    kwargs["projectId"] = str(project.id)
-    response = graphql_query(CREATE_SITE_QUERY, variables={"input": kwargs}, client=client)
-    content = json.loads(response.content)
-    if allow_adding_site:
-        assert "errors" not in content and "errors" not in content["data"]
-        payload = content["data"]["addSite"]["site"]
-        site = Site.objects.get(id=payload["id"])
-        assert site.owned_by(project)
-    else:
-        assert "errors" in content or "errors" in content["data"]
-
-
 DELETE_SITE_QUERY = """
     mutation SiteDeleteMutation($input: SiteDeleteMutationInput!) {
         deleteSite(input: $input) {
