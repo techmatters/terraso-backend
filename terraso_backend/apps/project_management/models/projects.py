@@ -27,6 +27,8 @@ from apps.project_management.collaboration_roles import (
 
 
 class ProjectSettings(BaseModel):
+    """NOTE: Theses settings are currently ignored, and might be removed later"""
+
     class Meta(BaseModel.Meta):
         abstract = False
 
