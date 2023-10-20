@@ -13,7 +13,14 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see https://www.gnu.org/licenses/.
 
+import json
+import os
+import tempfile
+from unittest import mock
+
 import pytest
+
+from ..core.gis.test_parsers import KML_CONTENT, KML_GEOJSON
 
 pytestmark = pytest.mark.django_db
 
@@ -289,3 +296,68 @@ def test_data_entries_from_parent_query_by_resource_field(client_query, data_ent
 
     for data_entry in data_entries:
         assert data_entry.name in entries_result
+
+@pytest.fixture
+def kml_file(request):
+    kml_contents, file_extension = request.param
+    # Create a temporary file
+    with tempfile.NamedTemporaryFile(mode="w", suffix=f".{file_extension}", delete=False) as f:
+        # Write the KML content to the file
+        f.write(kml_contents)
+
+    # Return the file path
+    yield f.name
+
+    # Clean up: delete the temporary file
+    os.unlink(f.name)
+
+
+@pytest.mark.parametrize(
+    "kml_file",
+    [
+        (
+            KML_CONTENT,
+            "kml",
+        ),
+    ],
+    indirect=True,
+)
+@mock.patch("apps.shared_data.services.data_entry_upload_service.get_file")
+def test_data_entry_kml_to_geojson(get_file_mock, client_query, data_entry_kml, kml_file):
+    with open(kml_file, "rb") as file:
+        get_file_mock.return_value = file
+        response = client_query(
+            """
+          {dataEntry(id: "%s") {
+            id
+            name
+            geojson
+          }}
+          """
+            % data_entry_kml.id
+        )
+    json_response = response.json()
+    data_entry_result = json_response["data"]["dataEntry"]
+
+    assert data_entry_result["id"] == str(data_entry_kml.id)
+    assert data_entry_result["name"] == data_entry_kml.name
+    assert data_entry_result["geojson"] == json.dumps(KML_GEOJSON)
+
+
+@mock.patch("apps.shared_data.services.data_entry_upload_service.get_file")
+def test_data_entry_avoid_fetching_file_for_not_gis_file(get_file_mock, client_query, data_entries):
+    response = client_query(
+        """
+        {dataEntry(id: "%s") {
+          id
+          name
+          geojson
+        }}
+        """
+        % data_entries[0].id
+    )
+    json_response = response.json()
+    data_entry_result = json_response["data"]["dataEntry"]
+
+    get_file_mock.assert_not_called()
+    assert data_entry_result["geojson"] is None

@@ -464,6 +464,7 @@ type DataEntryNode implements Node {
   visualizations(offset: Int, before: String, after: String, first: Int, last: Int, slug: String, slug_Icontains: String, dataEntry_SharedResources_TargetObjectId: UUID, dataEntry_SharedResources_Target_Slug: String, dataEntry_SharedResources_TargetContentType: String): VisualizationConfigNodeConnection!
   id: ID!
   sharedResources(offset: Int, before: String, after: String, first: Int, last: Int, source_DataEntry_ResourceType_In: [String]): SharedResourceNodeConnection
+  geojson: JSONString
 }
 
 """An enumeration."""

@@ -19,9 +19,12 @@ import uuid
 import zipfile
 
 import geopandas as gpd
+import structlog
 from fiona.drvsupport import supported_drivers
 
 from apps.core.gis.utils import DEFAULT_CRS
+
+logger = structlog.get_logger(__name__)
 
 supported_drivers["KML"] = "rw"
 
@@ -96,3 +99,26 @@ def parse_shapefile(file):
     os.rmdir(tmp_folder)
 
     return json.loads(gdf_transformed.to_json())
+
+
+def parse_file_to_geojson(file):
+    if is_shape_file_extension(file):
+        try:
+            return parse_shapefile(file)
+        except Exception as e:
+            logger.error("Error parsing shapefile", error=e)
+            raise ValueError("invalid_shapefile")
+    elif is_kml_file_extension(file):
+        try:
+            return parse_kml_file(file)
+        except Exception as e:
+            logger.error("Error parsing kml file", error=e)
+            raise ValueError("invalid_kml_file")
+    elif is_kmz_file_extension(file):
+        try:
+            return parse_kmz_file(file)
+        except Exception as e:
+            logger.error("Error parsing kmz file", error=e)
+            raise ValueError("invalid_kmz_file")
+    else:
+        raise ValueError("invalid_file_type")

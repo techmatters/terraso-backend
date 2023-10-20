@@ -319,6 +319,21 @@ def data_entries(group_data_entries, landscape_data_entries):
 
 
 @pytest.fixture
+def data_entry_kml(users, groups):
+    creator = users[0]
+    creator_group = groups[0]
+    creator_group.members.add(creator)
+    return mixer.blend(
+        DataEntry,
+        created_by=creator,
+        size=100,
+        groups=creator_group,
+        entry_type=DataEntry.ENTRY_TYPE_FILE,
+        resource_type="kml",
+    )
+
+
+@pytest.fixture
 def visualization_config_current_user(users, data_entry_current_user_file, groups):
     creator = users[0]
     creator_group = groups[0]
