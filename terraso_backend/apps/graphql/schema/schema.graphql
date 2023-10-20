@@ -436,6 +436,7 @@ type VisualizationConfigNode implements Node {
   createdAt: DateTime!
   slug: String!
   title: String!
+  description: String!
   configuration: JSONString
   createdBy: UserNode
   mapboxTilesetId: String
