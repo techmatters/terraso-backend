@@ -24,9 +24,7 @@ def allowed_to_change_project(user, project):
 
 @rules.predicate
 def allowed_to_add_site_to_project(user, project):
-    return project.is_manager(user) or (
-        project.is_member(user) and project.settings.member_can_add_site_to_project
-    )
+    return project.is_manager(user) or project.is_contributor(user)
 
 
 @rules.predicate
