@@ -134,6 +134,7 @@ class VisualizationConfigAddMutation(BaseWriteMutation):
 
     class Input:
         title = graphene.String(required=True)
+        description = graphene.String()
         configuration = graphene.JSONString()
         data_entry_id = graphene.ID(required=True)
         ownerId = graphene.ID(required=True)
