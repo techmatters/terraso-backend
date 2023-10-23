@@ -23,6 +23,8 @@ from apps.core.models import BaseModel, Group, SharedResource, User
 from apps.shared_data import permission_rules as perm_rules
 from apps.shared_data.services import DataEntryFileStorage
 
+VALID_TARGET_TYPES = ["group", "landscape"]
+
 
 class DataEntry(BaseModel):
     """

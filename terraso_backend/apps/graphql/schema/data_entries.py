@@ -26,6 +26,7 @@ from graphene_django import DjangoObjectType
 from apps.core.models import Group, Landscape, Membership
 from apps.graphql.exceptions import GraphQLNotAllowedException, GraphQLNotFoundException
 from apps.shared_data.models import DataEntry
+from apps.shared_data.models.data_entries import VALID_TARGET_TYPES
 
 from .commons import BaseDeleteMutation, BaseWriteMutation, TerrasoConnection
 from .constants import MutationTypes
@@ -139,7 +140,7 @@ class DataEntryAddMutation(BaseWriteMutation):
         target_type = kwargs.pop("target_type")
         target_slug = kwargs.pop("target_slug")
 
-        if target_type not in ["group", "landscape"]:
+        if target_type not in VALID_TARGET_TYPES:
             logger.error("Invalid target_type provided when adding dataEntry")
             raise GraphQLNotFoundException(
                 field="target_type",
@@ -151,7 +152,7 @@ class DataEntryAddMutation(BaseWriteMutation):
 
         try:
             target = model_class.objects.get(slug=target_slug)
-        except Exception:
+        except model_class.DoesNotExist:
             logger.error(
                 "Target not found when adding dataEntry",
                 extra={"target_type": target_type, "target_slug": target_slug},

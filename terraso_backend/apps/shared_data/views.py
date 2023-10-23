@@ -30,6 +30,7 @@ from apps.storage.file_utils import has_multiple_files, is_file_upload_oversized
 
 from .forms import DataEntryForm
 from .models import DataEntry
+from .models.data_entries import VALID_TARGET_TYPES
 
 logger = structlog.get_logger(__name__)
 
@@ -45,7 +46,7 @@ class DataEntryFileUploadView(AuthenticationRequiredMixin, FormView):
         form_data["entry_type"] = DataEntry.ENTRY_TYPE_FILE
         target_type = form_data.pop("target_type")[0]
         target_slug = form_data.pop("target_slug")[0]
-        if target_type not in ["group", "landscape"]:
+        if target_type not in VALID_TARGET_TYPES:
             logger.error("Invalid target_type provided when adding dataEntry")
             return get_json_response_error(
                 [
