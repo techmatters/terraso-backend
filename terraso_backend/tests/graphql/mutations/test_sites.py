@@ -242,7 +242,12 @@ SITE_TRANSFER_MUTATION = """
 mutation transferSites($input: SiteTransferMutationInput!) {
   transferSites(input: $input) {
     updated {
-      id
+       site {
+         id
+       }
+       oldProject {
+         id
+       }
     }
     badPermissions {
       id
@@ -269,10 +274,12 @@ def linked_site(request, project_manager):
 def test_site_transfer_success(linked_site, client, project, project_manager):
     input_data = {"siteIds": [str(linked_site.id)], "projectId": str(project.id)}
     client.force_login(project_manager)
+    old_projects = [str(linked_site.project.id)] if linked_site.project else []
     response = graphql_query(SITE_TRANSFER_MUTATION, client=client, input_data=input_data)
     payload = response.json()
     assert "errors" not in payload
-    assert match_json("*..updated[*].id", payload) == [str(linked_site.id)]
+    assert match_json("*..updated[*].site.id", payload) == [str(linked_site.id)]
+    assert match_json("*..updated[*].oldProject.id", payload) == old_projects
     assert match_json("*..project.id", payload) == [str(project.id)]
     linked_site.refresh_from_db()
     assert linked_site.project == project
@@ -284,7 +291,8 @@ def test_site_transfer_unlinked_site_user_contributor_success(client, user, site
     client.force_login(user)
     payload = graphql_query(SITE_TRANSFER_MUTATION, client=client, input_data=input_data).json()
     assert "errors" not in payload
-    assert match_json("*..updated[*].id", payload) == [str(site.id)]
+    assert match_json("*..updated[*].site.id", payload) == [str(site.id)]
+    assert match_json("*..updated[*].oldProject.id", payload) == []
     site.refresh_from_db()
     assert site.project.id == project.id
 

@@ -243,8 +243,13 @@ class SiteDeleteMutation(BaseDeleteMutation):
         return super().mutate_and_get_payload(root, info, **kwargs)
 
 
+class TransferredSite(graphene.ObjectType):
+    old_project = graphene.Field(ProjectNode)
+    site = graphene.Field(SiteNode, required=True)
+
+
 class SiteTransferMutation(BaseWriteMutation):
-    updated = graphene.List(graphene.NonNull(SiteNode), required=True)
+    updated = graphene.List(graphene.NonNull(TransferredSite), required=True)
     not_found = graphene.List(graphene.NonNull(graphene.ID), required=True)
     bad_permissions = graphene.List(graphene.NonNull(SiteNode), required=True)
     project = graphene.Field(ProjectNode, required=True)
@@ -270,18 +275,23 @@ class SiteTransferMutation(BaseWriteMutation):
 
         bad_permissions = []
         to_change = []
+        old_projects = []
 
         for site in sites:
             if not (user.has_perm(Site.get_perm("transfer"), (project, site))):
                 bad_permissions.append(site)
             else:
                 to_change.append(site)
+                old_projects.append(site.project)
 
         Site.bulk_change_project(to_change, project)
 
         return SiteTransferMutation(
             project=project,
-            updated=to_change,
+            updated=[
+                TransferredSite(site=site, old_project=project)
+                for site, project in zip(to_change, old_projects)
+            ],
             not_found=unfound_sites,
             bad_permissions=bad_permissions,
         )

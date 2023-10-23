@@ -2067,11 +2067,16 @@ input SiteMarkSeenMutationInput {
 
 type SiteTransferMutationPayload {
   errors: GenericScalar
-  updated: [SiteNode!]!
+  updated: [TransferredSite!]!
   notFound: [ID!]!
   badPermissions: [SiteNode!]!
   project: ProjectNode!
   clientMutationId: String
+}
+
+type TransferredSite {
+  oldProject: ProjectNode
+  site: SiteNode!
 }
 
 input SiteTransferMutationInput {
