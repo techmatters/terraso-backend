@@ -1999,6 +1999,7 @@ type VisualizationConfigAddMutationPayload {
 
 input VisualizationConfigAddMutationInput {
   title: String!
+  description: String
   configuration: JSONString
   dataEntryId: ID!
   ownerId: ID!
