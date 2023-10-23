@@ -32,6 +32,11 @@ def pending_membership_not_registered_mixed_case_email():
     return mixer.blend(Membership, pending_email="TestingTerraso@example.com", user=None)
 
 
+@pytest.fixture
+def pending_membership_not_registered_lowercase_email():
+    return mixer.blend(Membership, pending_email="testingterraso@example.com", user=None)
+
+
 @mock_s3
 def test_signup_signal_membership_update_with_mixed_case_email(
     client, access_tokens_google, pending_membership_not_registered_mixed_case_email, respx_mock
@@ -48,4 +53,23 @@ def test_signup_signal_membership_update_with_mixed_case_email(
     assert response.status_code == 302
 
     membership = Membership.objects.get(id=pending_membership_not_registered_mixed_case_email.id)
+    assert membership.user is not None
+
+
+@mock_s3
+def test_signup_signal_membership_update_with_lowercase_email(
+    client, access_tokens_google, pending_membership_not_registered_lowercase_email, respx_mock
+):
+    membership = Membership.objects.get(id=pending_membership_not_registered_lowercase_email.id)
+    assert membership.user is None
+
+    respx_mock.post(GoogleProvider.GOOGLE_TOKEN_URI).mock(
+        return_value=Response(200, json=access_tokens_google)
+    )
+    url = reverse("terraso_auth:google-callback")
+    response = client.get(url, {"code": "testing-code-google-auth"})
+
+    assert response.status_code == 302
+
+    membership = Membership.objects.get(id=pending_membership_not_registered_lowercase_email.id)
     assert membership.user is not None
