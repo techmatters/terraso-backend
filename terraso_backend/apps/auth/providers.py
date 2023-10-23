@@ -221,15 +221,20 @@ class MicrosoftProvider:
         )
 
     def fetch_auth_tokens(self, authorization_code):
-        client_assertion = self._build_client_secret()
         params = dict(
             client_id=self.CLIENT_ID,
             code=authorization_code,
             grant_type="authorization_code",
             redirect_uri=self.REDIRECT_URI,
-            client_assertion=client_assertion,
-            client_assertion_type="urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
         )
+        if not self.CLIENT_SECRET:
+            params.update(
+                dict(
+                    client_assertion=self._build_client_secret(),
+                    client_assertion_type="urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
+                )
+            )
+
         try:
             resp = httpx.post(self.TOKEN_URI, data=params)
             resp.raise_for_status()

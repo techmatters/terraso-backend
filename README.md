@@ -17,6 +17,8 @@ In the `.env` file
 
 -   set values for `APPLE_CLIENT_ID`, `APPLE_KEY_ID`, `APPLE_TEAM_ID`, `APPLE_PRIVATE_KEY` and based on what you have set up on developer.apple.com > Certificates, Identifiers & Profiles > Keys.
 
+-   set values for `MICROSOFT_CLIENT_ID` and either `MICROSOFT_CLIENT_SECRET` (less secure) or both `MICROSOFT_PRIVATE_KEY` and `MICROSOFT_CERTIFICATE_THUMBPRINT` based on what you have set up on portal.azure.com > App Registrations > [App Name] > Certificates & Secrets
+
 Start building the Docker images (make sure there's `requirements.txt`
 file created before building the images):
 
