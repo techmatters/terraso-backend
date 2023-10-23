@@ -29,6 +29,10 @@ logger = structlog.get_logger(__name__)
 supported_drivers["KML"] = "rw"
 
 
+def is_geojson_file_extension(file):
+    return file.name.endswith(".geojson") or file.name.endswith(".json")
+
+
 def is_shape_file_extension(file):
     return file.name.endswith(".zip")
 
@@ -120,5 +124,11 @@ def parse_file_to_geojson(file):
         except Exception as e:
             logger.error("Error parsing kmz file", error=e)
             raise ValueError("invalid_kmz_file")
+    elif is_geojson_file_extension(file):
+        try:
+            return json.load(file)
+        except Exception as e:
+            logger.error("Error parsing geojson file", error=e)
+            raise ValueError("invalid_geojson_file")
     else:
         raise ValueError("invalid_file_type")
