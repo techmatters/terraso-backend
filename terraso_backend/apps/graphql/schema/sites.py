@@ -249,7 +249,7 @@ class SiteTransferMutation(BaseWriteMutation):
     bad_permissions = graphene.List(graphene.NonNull(SiteNode), required=True)
     project = graphene.Field(ProjectNode, required=True)
 
-    model_class = Project
+    model_class = Site
 
     class Input:
         site_ids = graphene.List(graphene.NonNull(graphene.ID), required=True)
@@ -270,8 +270,9 @@ class SiteTransferMutation(BaseWriteMutation):
 
         bad_permissions = []
         to_change = []
+
         for site in sites:
-            if not user.has_perm(Site.get_perm("change"), site):
+            if not (user.has_perm(Site.get_perm("transfer"), (project, site))):
                 bad_permissions.append(site)
             else:
                 to_change.append(site)

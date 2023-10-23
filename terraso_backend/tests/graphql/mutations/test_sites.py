@@ -170,54 +170,6 @@ def test_adding_site_owned_by_user_to_project(client, project, site, project_man
     assert site.owned_by(project)
 
 
-@pytest.mark.parametrize("allow_adding_site", [True, False])
-def test_user_can_add_site_to_project_if_project_setting_set(
-    client, project, project_user, site, allow_adding_site
-):
-    project.settings.member_can_add_site_to_project = allow_adding_site
-    project.settings.save()
-    project.save()
-    site.add_owner(project_user)
-    client.force_login(project_user)
-    response = graphql_query(
-        UPDATE_SITE_QUERY,
-        variables={"input": {"id": str(site.id), "projectId": str(project.id)}},
-        client=client,
-    )
-    content = json.loads(response.content)
-    if allow_adding_site:
-        assert content["data"]["updateSite"]["errors"] is None
-        payload = content["data"]["updateSite"]["site"]
-        assert payload["id"] == str(site.id)
-        site.refresh_from_db()
-        assert site.owned_by(project)
-    else:
-        error_result = response.json()["data"]["updateSite"]["errors"][0]["message"]
-        json_error = json.loads(error_result)
-        assert json_error[0]["code"] == "update_not_allowed"
-
-
-@pytest.mark.parametrize("allow_adding_site", [True, False])
-def test_user_can_add_new_site_to_project_if_project_setting_set(
-    client, project, project_user, allow_adding_site
-):
-    project.settings.member_can_add_site_to_project = allow_adding_site
-    project.settings.save()
-    project.save()
-    client.force_login(project_user)
-    kwargs = site_creation_keywords()
-    kwargs["projectId"] = str(project.id)
-    response = graphql_query(CREATE_SITE_QUERY, variables={"input": kwargs}, client=client)
-    content = json.loads(response.content)
-    if allow_adding_site:
-        assert "errors" not in content and "errors" not in content["data"]
-        payload = content["data"]["addSite"]["site"]
-        site = Site.objects.get(id=payload["id"])
-        assert site.owned_by(project)
-    else:
-        assert "errors" in content or "errors" in content["data"]
-
-
 DELETE_SITE_QUERY = """
     mutation SiteDeleteMutation($input: SiteDeleteMutationInput!) {
         deleteSite(input: $input) {
@@ -291,6 +243,9 @@ mutation transferSites($input: SiteTransferMutationInput!) {
     updated {
       id
     }
+    badPermissions {
+      id
+    }
     project {
       id
     }
@@ -302,14 +257,14 @@ mutation transferSites($input: SiteTransferMutationInput!) {
 @pytest.fixture
 def linked_site(request, project_manager):
     site = mixer.blend(Site, owner=project_manager)
-    if request.param:
+    if request.param != "linked":
         project = mixer.blend(Project)
         site.add_to_project(project)
-        project.add_manager(project_manager)
+        project.add_user_with_role(project_manager, request.param)
     return site
 
 
-@pytest.mark.parametrize("linked_site", [True, False], indirect=True)
+@pytest.mark.parametrize("linked_site", ["linked", "manager"], indirect=True)
 def test_site_transfer_success(linked_site, client, project, project_manager):
     input_data = {"siteIds": [str(linked_site.id)], "projectId": str(project.id)}
     client.force_login(project_manager)
@@ -320,3 +275,47 @@ def test_site_transfer_success(linked_site, client, project, project_manager):
     assert match_json("*..project.id", payload) == [str(project.id)]
     linked_site.refresh_from_db()
     assert linked_site.project == project
+
+
+def test_site_transfer_unlinked_site_user_contributor_success(client, user, site, project):
+    project.add_user_with_role(user, "contributor")
+    input_data = {"siteIds": [str(site.id)], "projectId": str(project.id)}
+    client.force_login(user)
+    payload = graphql_query(SITE_TRANSFER_MUTATION, client=client, input_data=input_data).json()
+    assert "errors" not in payload
+    assert match_json("*..updated[*].id", payload) == [str(site.id)]
+    site.refresh_from_db()
+    assert site.project.id == project.id
+
+
+def test_site_transfer_unlinked_site_user_viewer_failure(client, user, site, project):
+    project.add_user_with_role(user, "viewer")
+    input_data = {"siteIds": [str(site.id)], "projectId": str(project.id)}
+    client.force_login(user)
+    payload = graphql_query(SITE_TRANSFER_MUTATION, client=client, input_data=input_data).json()
+    assert "errors" in payload
+    site.refresh_from_db()
+    assert site.owner == user
+
+
+@pytest.fixture
+def transfer_site(request, user, site, project):
+    role_a, role_b = request.param
+    project_a = mixer.blend(Project)
+    project_a.add_user_with_role(user, role_a)
+    project.add_user_with_role(user, role_b)
+    site.add_to_project(project_a)
+    return site
+
+
+@pytest.mark.parametrize(
+    "transfer_site", [("contributor", "manager"), ("manager", "contributor")], indirect=True
+)
+def test_site_transfer_between_projects_failure(transfer_site, client, project, user):
+    client.force_login(user)
+    input_data = {"siteIds": [str(transfer_site.id)], "projectId": str(project.id)}
+    payload = graphql_query(SITE_TRANSFER_MUTATION, client=client, input_data=input_data).json()
+    assert match_json("*..badPermissions[*].id", payload) == [str(transfer_site.id)]
+    assert match_json("*..project.id", payload) == [str(project.id)]
+    transfer_site.refresh_from_db()
+    assert transfer_site.project.id != project.id

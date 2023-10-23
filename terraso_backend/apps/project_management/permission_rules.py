@@ -24,20 +24,14 @@ def allowed_to_change_project(user, project):
 
 @rules.predicate
 def allowed_to_add_site_to_project(user, project):
-    return project.is_manager(user) or (
-        project.is_member(user) and project.settings.member_can_add_site_to_project
-    )
+    return project.is_manager(user) or project.is_contributor(user)
 
 
 @rules.predicate
 def allowed_to_update_site(user, site):
     if site.owned_by_user:
         return site.owner == user
-    if site.project.is_manager(user):
-        return True
-    if site.project.is_member(user):
-        return site.project.settings.member_can_update_site
-    return False
+    return site.project.is_manager(user)
 
 
 @rules.predicate
@@ -100,3 +94,17 @@ def allowed_to_change_user_project_role(user, context):
 
 
 rules.add_rule("allowed_to_change_user_project_role", allowed_to_change_user_project_role)
+
+
+@rules.predicate
+def allowed_to_transfer_site_to_project(user, context):
+    project, site = context
+    # contributor can add user-owned site to project
+    if site.owned_by_user:
+        return (
+            project.is_manager(user) or project.is_contributor(user)
+        ) and site.owner.id == user.id
+    return project.is_manager(user) and site.project.is_manager(user)
+
+
+rules.add_rule("allowed_to_transfer_site_to_project", allowed_to_transfer_site_to_project)

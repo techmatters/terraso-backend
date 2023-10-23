@@ -38,6 +38,7 @@ class Site(BaseModel):
         rules_permissions = {
             "change": permission_rules.allowed_to_update_site,
             "delete": permission_rules.allowed_to_delete_site,
+            "transfer": permission_rules.allowed_to_transfer_site_to_project,
         }
 
     name = models.CharField(max_length=200)
