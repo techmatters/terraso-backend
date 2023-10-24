@@ -22,6 +22,7 @@ from graphene_django import DjangoObjectType
 from graphene_django.filter import TypedFilter
 
 from apps.audit_logs import api as audit_log_api
+from apps.project_management.graphql.projects import ProjectNode
 from apps.project_management.models import Project, Site, sites
 from apps.soil_id.models.soil_data import SoilData
 
@@ -240,3 +241,57 @@ class SiteDeleteMutation(BaseDeleteMutation):
             cls.not_allowed(MutationTypes.DELETE)
 
         return super().mutate_and_get_payload(root, info, **kwargs)
+
+
+class TransferredSite(graphene.ObjectType):
+    old_project = graphene.Field(ProjectNode)
+    site = graphene.Field(SiteNode, required=True)
+
+
+class SiteTransferMutation(BaseWriteMutation):
+    updated = graphene.List(graphene.NonNull(TransferredSite), required=True)
+    not_found = graphene.List(graphene.NonNull(graphene.ID), required=True)
+    bad_permissions = graphene.List(graphene.NonNull(SiteNode), required=True)
+    project = graphene.Field(ProjectNode, required=True)
+
+    model_class = Site
+
+    class Input:
+        site_ids = graphene.List(graphene.NonNull(graphene.ID), required=True)
+        project_id = graphene.Field(graphene.ID, required=True)
+
+    @classmethod
+    def mutate_and_get_payload(cls, root, info, **kwargs):
+        user = info.context.user
+
+        project = cls.get_or_throw(Project, "project_id", kwargs["project_id"])
+
+        if not user.has_perm(Project.get_perm("add_site"), project):
+            raise cls.not_allowed(MutationTypes.UPDATE)
+
+        site_ids = kwargs.get("site_ids", [])
+        sites = Site.objects.filter(id__in=site_ids)
+        unfound_sites = set([str(site.id) for site in sites]) - set(site_ids)
+
+        bad_permissions = []
+        to_change = []
+        old_projects = []
+
+        for site in sites:
+            if not (user.has_perm(Site.get_perm("transfer"), (project, site))):
+                bad_permissions.append(site)
+            else:
+                to_change.append(site)
+                old_projects.append(site.project)
+
+        Site.bulk_change_project(to_change, project)
+
+        return SiteTransferMutation(
+            project=project,
+            updated=[
+                TransferredSite(site=site, old_project=project)
+                for site, project in zip(to_change, old_projects)
+            ],
+            not_found=unfound_sites,
+            bad_permissions=bad_permissions,
+        )
