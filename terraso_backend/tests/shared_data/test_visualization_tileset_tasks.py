@@ -64,6 +64,8 @@ def test_create_mapbox_tileset_success(mock_request_post, mock_get_file, visuali
     updated_visualization_config = VisualizationConfig.objects.get(id=visualization_config.id)
     assert updated_visualization_config.mapbox_tileset_id is not None
     assert mock_request_post.call_count == 3
+    # Assert post called with params
+    assert mock_request_post.call_args_list[0][1]["files"] == {}
 
 
 @patch("apps.shared_data.visualization_tileset_tasks.data_entry_upload_service.get_file")
