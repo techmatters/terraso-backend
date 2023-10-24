@@ -23,7 +23,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
     dependencies = [
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
-        ("shared_data", "0010_visualizationconfig_mapbox_tileset_id_status"),
+        ("shared_data", "0013_visualizationconfig_group_null"),
     ]
 
     operations = [
