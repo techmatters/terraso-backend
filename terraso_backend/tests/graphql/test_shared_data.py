@@ -297,6 +297,7 @@ def test_data_entries_from_parent_query_by_resource_field(client_query, data_ent
     for data_entry in data_entries:
         assert data_entry.name in entries_result
 
+
 @pytest.fixture
 def kml_file(request):
     kml_contents, file_extension = request.param
