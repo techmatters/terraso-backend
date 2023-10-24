@@ -7,6 +7,7 @@ import structlog
 from django.conf import settings
 
 from apps.core.gis.mapbox import create_tileset, remove_tileset
+from apps.core.gis.parsers import parse_file_to_geojson
 from apps.shared_data.services import data_entry_upload_service
 
 from .models import VisualizationConfig
@@ -62,6 +63,90 @@ def get_owner_name(visualization):
     return visualization.owner.name if visualization.owner else "Unknown"
 
 
+def _get_geojson_from_dataset(data_entry, visualization):
+    rows = get_rows_from_file(data_entry)
+
+    first_row = rows[0]
+
+    dataset_config = visualization.configuration["datasetConfig"]
+    annotate_config = visualization.configuration["annotateConfig"]
+
+    longitude_column = dataset_config["longitude"]
+    longitude_index = first_row.index(longitude_column)
+
+    latitude_column = dataset_config["latitude"]
+    latitude_index = first_row.index(latitude_column)
+
+    data_points = annotate_config["dataPoints"]
+    data_points_indexes = [
+        {
+            "label": data_point.get("label", data_point["column"]),
+            "index": first_row.index(data_point["column"]),
+        }
+        for data_point in data_points
+    ]
+
+    annotation_title = annotate_config.get("annotationTitle")
+
+    title_index = (
+        first_row.index(annotation_title)
+        if annotation_title and annotation_title in first_row
+        else None
+    )
+
+    features = []
+    for row in rows:
+        fields = [
+            {
+                "label": data_point["label"],
+                "value": row[data_point["index"]],
+            }
+            for data_point in data_points_indexes
+        ]
+
+        properties = {
+            "title": row[title_index] if title_index else None,
+            "fields": json.dumps(fields),
+        }
+
+        try:
+            longitude = float(row[longitude_index])
+            latitude = float(row[latitude_index])
+            feature = {
+                "type": "Feature",
+                "geometry": {
+                    "type": "Point",
+                    "coordinates": [longitude, latitude],
+                },
+                "properties": properties,
+            }
+
+            features.append(feature)
+        except ValueError:
+            continue
+
+    return {
+        "type": "FeatureCollection",
+        "features": features,
+    }
+
+
+def _get_geojson_from_gis(data_entry):
+    file = data_entry_upload_service.get_file(data_entry.s3_object_name, "rt")
+    return parse_file_to_geojson(file)
+
+
+def _get_geojson_from_data_entry(data_entry, visualization):
+    is_dataset = f".{data_entry.resource_type}" in settings.DATA_ENTRY_SPREADSHEET_TYPES.keys()
+    is_gis = f".{data_entry.resource_type}" in settings.DATA_ENTRY_GIS_TYPES.keys()
+
+    if is_dataset:
+        return _get_geojson_from_dataset(data_entry, visualization)
+
+    if is_gis:
+        return _get_geojson_from_gis(data_entry)
+
+
 def create_mapbox_tileset(visualization_id):
     logger.info("Creating mapbox tileset", visualization_id=visualization_id)
     visualization = VisualizationConfig.objects.get(pk=visualization_id)
@@ -72,75 +157,11 @@ def create_mapbox_tileset(visualization_id):
     remove_mapbox_tileset(visualization.mapbox_tileset_id)
 
     try:
-        rows = get_rows_from_file(data_entry)
-
-        first_row = rows[0]
-
-        dataset_config = visualization.configuration["datasetConfig"]
-        annotate_config = visualization.configuration["annotateConfig"]
-
-        longitude_column = dataset_config["longitude"]
-        longitude_index = first_row.index(longitude_column)
-
-        latitude_column = dataset_config["latitude"]
-        latitude_index = first_row.index(latitude_column)
-
-        data_points = annotate_config["dataPoints"]
-        data_points_indexes = [
-            {
-                "label": data_point.get("label", data_point["column"]),
-                "index": first_row.index(data_point["column"]),
-            }
-            for data_point in data_points
-        ]
-
-        annotation_title = annotate_config.get("annotationTitle")
-
-        title_index = (
-            first_row.index(annotation_title)
-            if annotation_title and annotation_title in first_row
-            else None
-        )
-
-        features = []
-        for row in rows:
-            fields = [
-                {
-                    "label": data_point["label"],
-                    "value": row[data_point["index"]],
-                }
-                for data_point in data_points_indexes
-            ]
-
-            properties = {
-                "title": row[title_index] if title_index else None,
-                "fields": json.dumps(fields),
-            }
-
-            try:
-                longitude = float(row[longitude_index])
-                latitude = float(row[latitude_index])
-                feature = {
-                    "type": "Feature",
-                    "geometry": {
-                        "type": "Point",
-                        "coordinates": [longitude, latitude],
-                    },
-                    "properties": properties,
-                }
-
-                features.append(feature)
-            except ValueError:
-                continue
-
-        geojson = {
-            "type": "FeatureCollection",
-            "features": features,
-        }
+        geojson = _get_geojson_from_data_entry(data_entry, visualization)
         logger.info(
             "Geojson generated for mapbox tileset",
             visualization_id=visualization_id,
-            rows=len(rows),
+            features=len(geojson["features"]),
         )
 
         # Include the environment in the title and description when calling the Mapbox API.

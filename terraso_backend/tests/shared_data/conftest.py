@@ -85,3 +85,19 @@ def visualization_config_b(user_b, data_entry):
         data_entry=data_entry,
         created_by=user_b,
     )
+
+
+@pytest.fixture
+def visualization_config_kml(user):
+    return mixer.blend(
+        VisualizationConfig,
+        size=1,
+        data_entry=mixer.blend(
+            DataEntry,
+            size=1,
+            url=f"{settings.DATA_ENTRY_FILE_BASE_URL}/{user.id}/test_data.kml",
+            created_by=user,
+            resource_type="kml",
+        ),
+        created_by=user,
+    )
