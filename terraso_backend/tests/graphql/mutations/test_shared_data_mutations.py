@@ -21,16 +21,22 @@ from apps.shared_data.models import DataEntry
 pytestmark = pytest.mark.django_db
 
 
-def test_add_data_entry(client_query, managed_groups):
-    group = managed_groups[0]
-    data = {
+@pytest.fixture
+def input_by_parent(request, managed_groups, managed_landscapes):
+    parent = request.param
+    return {
         "name": "Name",
         "description": "Description",
         "url": "https://example.com",
         "entryType": "link",
         "resourceType": "link",
-        "groupSlug": group.slug,
+        "targetType": "group" if parent == "group" else "landscape",
+        "targetSlug": managed_groups[0].slug if parent == "group" else managed_landscapes[0].slug,
     }
+
+
+@pytest.mark.parametrize("input_by_parent", ["group", "landscape"], indirect=True)
+def test_add_data_entry(client_query, input_by_parent):
     response = client_query(
         """
         mutation addDataEntry($input: DataEntryAddMutationInput!) {
@@ -44,12 +50,12 @@ def test_add_data_entry(client_query, managed_groups):
           }
         }
         """,
-        variables={"input": data},
+        variables={"input": input_by_parent},
     )
     result = response.json()["data"]["addDataEntry"]
     assert result["errors"] is None
-    assert result["dataEntry"]["name"] == data["name"]
-    assert result["dataEntry"]["url"] == data["url"]
+    assert result["dataEntry"]["name"] == input_by_parent["name"]
+    assert result["dataEntry"]["url"] == input_by_parent["url"]
 
 
 def test_data_entry_update_by_creator_works(client_query, data_entries):
@@ -130,7 +136,8 @@ def test_data_entry_delete_by_creator_works(client_query, data_entries):
         variables={"input": {"id": str(old_data_entry.id)}},
     )
 
-    data_entry_result = response.json()["data"]["deleteDataEntry"]["dataEntry"]
+    json_response = response.json()
+    data_entry_result = json_response["data"]["deleteDataEntry"]["dataEntry"]
 
     assert data_entry_result["name"] == old_data_entry.name
     assert not DataEntry.objects.filter(name=data_entry_result["name"])
@@ -170,7 +177,7 @@ def test_data_entry_delete_by_manager_works(client_query, data_entries, users, g
     old_data_entry = data_entries[0]
     old_data_entry.created_by = users[2]
     old_data_entry.save()
-    old_data_entry.groups.first().add_manager(users[0])
+    groups[0].add_manager(users[0])
 
     response = client_query(
         """
@@ -179,6 +186,7 @@ def test_data_entry_delete_by_manager_works(client_query, data_entries, users, g
             dataEntry {
               name
             }
+            errors
           }
         }
 
@@ -186,21 +194,40 @@ def test_data_entry_delete_by_manager_works(client_query, data_entries, users, g
         variables={"input": {"id": str(old_data_entry.id)}},
     )
 
-    data_entry_result = response.json()["data"]["deleteDataEntry"]["dataEntry"]
+    json_response = response.json()
+    data_entry_result = json_response["data"]["deleteDataEntry"]["dataEntry"]
 
     assert data_entry_result["name"] == old_data_entry.name
     assert not DataEntry.objects.filter(name=data_entry_result["name"])
 
 
-def test_data_entry_delete_by_manager_fails_due_to_membership_approval_status(
-    client_query, data_entries, users
-):
-    old_data_entry = data_entries[0]
-    old_data_entry.created_by = users[2]
-    old_data_entry.save()
-    group = old_data_entry.groups.first()
+@pytest.fixture
+def data_entry_by_not_manager_by_owner(request, users, landscape_data_entries, group_data_entries):
+    owner = request.param
+
+    (data_entry, group) = (
+        (group_data_entries[0], group_data_entries[0].shared_resources.first().target)
+        if owner == "group"
+        else (
+            landscape_data_entries[0],
+            landscape_data_entries[0].shared_resources.first().target.get_default_group(),
+        )
+    )
+
+    data_entry.created_by = users[2]
+    data_entry.save()
     group.add_manager(users[0])
     users[0].memberships.filter(group=group).update(membership_status=Membership.PENDING)
+    return data_entry
+
+
+@pytest.mark.parametrize(
+    "data_entry_by_not_manager_by_owner", ["group", "landscape"], indirect=True
+)
+def test_data_entry_delete_by_manager_fails_due_to_membership_approval_status(
+    client_query, data_entry_by_not_manager_by_owner
+):
+    old_data_entry = data_entry_by_not_manager_by_owner
 
     response = client_query(
         """

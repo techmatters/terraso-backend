@@ -30,6 +30,7 @@ from apps.core.models import (
     Landscape,
     LandscapeGroup,
     Membership,
+    SharedResource,
     TaxonomyTerm,
     User,
     UserPreference,
@@ -247,14 +248,14 @@ def data_entry_current_user_file(users, groups):
     creator = users[0]
     creator_group = groups[0]
     creator_group.members.add(creator)
-    return mixer.blend(
-        DataEntry,
-        slug=None,
-        created_by=creator,
-        size=100,
-        groups=creator_group,
-        entry_type=DataEntry.ENTRY_TYPE_FILE,
+    resource = mixer.blend(
+        SharedResource,
+        target=creator_group,
+        source=mixer.blend(
+            DataEntry, slug=None, created_by=creator, size=100, entry_type=DataEntry.ENTRY_TYPE_FILE
+        ),
     )
+    return resource.source
 
 
 @pytest.fixture
@@ -262,13 +263,14 @@ def data_entry_current_user_link(users, groups):
     creator = users[0]
     creator_group = groups[0]
     creator_group.members.add(creator)
-    return mixer.blend(
-        DataEntry,
-        slug=None,
-        created_by=creator,
-        groups=creator_group,
-        entry_type=DataEntry.ENTRY_TYPE_LINK,
+    resource = mixer.blend(
+        SharedResource,
+        target=creator_group,
+        source=mixer.blend(
+            DataEntry, slug=None, created_by=creator, entry_type=DataEntry.ENTRY_TYPE_LINK
+        ),
     )
+    return resource.source
 
 
 @pytest.fixture
@@ -276,15 +278,44 @@ def data_entry_other_user(users, groups):
     creator = users[1]
     creator_group = groups[1]
     creator_group.members.add(creator)
-    return mixer.blend(DataEntry, slug=None, created_by=creator, size=100, groups=creator_group)
+    resource = mixer.blend(
+        SharedResource,
+        target=creator_group,
+        source=mixer.blend(DataEntry, slug=None, created_by=creator, size=100),
+    )
+    return resource.source
 
 
 @pytest.fixture
-def data_entries(users, groups):
+def group_data_entries(users, groups):
     creator = users[0]
     creator_group = groups[0]
     creator_group.members.add(creator)
-    return mixer.cycle(5).blend(DataEntry, created_by=creator, size=100, groups=creator_group)
+    resources = mixer.cycle(5).blend(
+        SharedResource,
+        target=creator_group,
+        source=lambda: mixer.blend(DataEntry, created_by=creator, size=100, resource_type="csv"),
+    )
+    return [resource.source for resource in resources]
+
+
+@pytest.fixture
+def landscape_data_entries(users, landscapes, landscape_groups):
+    creator = users[0]
+    creator_landscape = landscapes[0]
+    resources = mixer.cycle(5).blend(
+        SharedResource,
+        target=creator_landscape,
+        source=lambda: mixer.blend(
+            DataEntry, created_by=creator, size=100, resource_type=(type for type in ("xls", "csv"))
+        ),
+    )
+    return [resource.source for resource in resources]
+
+
+@pytest.fixture
+def data_entries(group_data_entries, landscape_data_entries):
+    return group_data_entries + landscape_data_entries
 
 
 @pytest.fixture
@@ -314,9 +345,11 @@ def visualization_configs(users, groups):
         VisualizationConfig,
         created_by=creator,
         data_entry=lambda: mixer.blend(
-            DataEntry, created_by=creator, size=100, groups=creator_group
-        ),
-        group=groups[0],
+            SharedResource,
+            target=creator_group,
+            source=lambda: mixer.blend(DataEntry, created_by=creator, size=100),
+        ).source,
+        owner=creator_group,
     )
     return visualizations
 

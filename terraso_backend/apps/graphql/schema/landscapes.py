@@ -34,11 +34,12 @@ from apps.graphql.exceptions import GraphQLNotAllowedException
 from .commons import BaseDeleteMutation, BaseWriteMutation, TerrasoConnection
 from .constants import MutationTypes
 from .gis import Point
+from .shared_resources_mixin import SharedResourcesMixin
 
 logger = structlog.get_logger(__name__)
 
 
-class LandscapeNode(DjangoObjectType):
+class LandscapeNode(DjangoObjectType, SharedResourcesMixin):
     id = graphene.ID(source="pk", required=True)
     area_types = graphene.List(graphene.String)
     default_group = graphene.Field("apps.graphql.schema.groups.GroupNode")

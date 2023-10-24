@@ -38,12 +38,12 @@ type Query {
     """The ID of the object"""
     id: ID!
   ): DataEntryNode!
-  dataEntries(offset: Int, before: String, after: String, first: Int, last: Int, name_Icontains: String, description_Icontains: String, url_Icontains: String, entryType_In: [SharedDataDataEntryEntryTypeChoices], resourceType_In: [String], groups_Slug: String, groups_Slug_Icontains: String, groups_Id: ID): DataEntryNodeConnection
+  dataEntries(offset: Int, before: String, after: String, first: Int, last: Int, name_Icontains: String, description_Icontains: String, url_Icontains: String, entryType_In: [SharedDataDataEntryEntryTypeChoices], resourceType_In: [String], sharedResources_TargetObjectId: UUID, sharedResources_Target_Slug: String, sharedResources_TargetContentType: String): DataEntryNodeConnection
   visualizationConfig(
     """The ID of the object"""
     id: ID!
   ): VisualizationConfigNode!
-  visualizationConfigs(offset: Int, before: String, after: String, first: Int, last: Int, slug: String, slug_Icontains: String, dataEntry_Groups_Slug: String, dataEntry_Groups_Slug_Icontains: String, dataEntry_Groups_Id: ID): VisualizationConfigNodeConnection
+  visualizationConfigs(offset: Int, before: String, after: String, first: Int, last: Int, slug: String, slug_Icontains: String, dataEntry_SharedResources_TargetObjectId: UUID, dataEntry_SharedResources_Target_Slug: String, dataEntry_SharedResources_TargetContentType: String): VisualizationConfigNodeConnection
   taxonomyTerm(
     """The ID of the object"""
     id: ID!
@@ -108,8 +108,9 @@ type GroupNode implements Node {
   associationsAsChild(offset: Int, before: String, after: String, first: Int, last: Int, parentGroup: ID, childGroup: ID, parentGroup_Slug_Icontains: String, childGroup_Slug_Icontains: String): GroupAssociationNodeConnection!
   memberships(offset: Int, before: String, after: String, first: Int, last: Int, group: ID, group_In: [ID], group_Slug_Icontains: String, group_Slug_In: [String], user: ID, user_In: [ID], userRole: CoreMembershipUserRoleChoices, user_Email_Icontains: String, user_Email_In: [String], membershipStatus: CoreMembershipMembershipStatusChoices): MembershipNodeConnection!
   associatedLandscapes(offset: Int, before: String, after: String, first: Int, last: Int, landscape: ID, landscape_Slug_Icontains: String, group: ID, group_Slug_Icontains: String, isDefaultLandscapeGroup: Boolean, isPartnership: Boolean): LandscapeGroupNodeConnection!
-  dataEntries(offset: Int, before: String, after: String, first: Int, last: Int, name_Icontains: String, description_Icontains: String, url_Icontains: String, entryType_In: [SharedDataDataEntryEntryTypeChoices], resourceType_In: [String], groups_Slug: String, groups_Slug_Icontains: String, groups_Id: ID): DataEntryNodeConnection!
+  dataEntries(offset: Int, before: String, after: String, first: Int, last: Int, name_Icontains: String, description_Icontains: String, url_Icontains: String, entryType_In: [SharedDataDataEntryEntryTypeChoices], resourceType_In: [String], sharedResources_TargetObjectId: UUID, sharedResources_Target_Slug: String, sharedResources_TargetContentType: String): DataEntryNodeConnection!
   id: ID!
+  sharedResources(offset: Int, before: String, after: String, first: Int, last: Int, source_DataEntry_ResourceType_In: [String]): SharedResourceNodeConnection
   accountMembership: MembershipNode
   membershipsCount: Int
 }
@@ -295,6 +296,7 @@ type LandscapeNode implements Node {
   associatedDevelopmentStrategy(offset: Int, before: String, after: String, first: Int, last: Int): LandscapeDevelopmentStrategyNodeConnection!
   associatedGroups(offset: Int, before: String, after: String, first: Int, last: Int, landscape: ID, landscape_Slug_Icontains: String, group: ID, group_Slug_Icontains: String, isDefaultLandscapeGroup: Boolean, isPartnership: Boolean): LandscapeGroupNodeConnection!
   id: ID!
+  sharedResources(offset: Int, before: String, after: String, first: Int, last: Int, source_DataEntry_ResourceType_In: [String]): SharedResourceNodeConnection
   areaTypes: [String]
   defaultGroup: GroupNode
   areaScalarHa: Float
@@ -404,23 +406,50 @@ type LandscapeDevelopmentStrategyNode implements Node {
   id: ID!
 }
 
-type DataEntryNodeConnection {
+type SharedResourceNodeConnection {
   """Pagination data for this connection."""
   pageInfo: PageInfo!
 
   """Contains the nodes in this connection."""
-  edges: [DataEntryNodeEdge!]!
+  edges: [SharedResourceNodeEdge!]!
   totalCount: Int!
 }
 
-"""A Relay edge containing a `DataEntryNode` and its cursor."""
-type DataEntryNodeEdge {
+"""A Relay edge containing a `SharedResourceNode` and its cursor."""
+type SharedResourceNodeEdge {
   """The item at the end of the edge"""
-  node: DataEntryNode!
+  node: SharedResourceNode!
 
   """A cursor for use in pagination"""
   cursor: String!
 }
+
+type SharedResourceNode implements Node {
+  id: ID!
+  source: SourceNode
+  target: TargetNode
+}
+
+union SourceNode = VisualizationConfigNode | DataEntryNode
+
+type VisualizationConfigNode implements Node {
+  id: ID!
+  createdAt: DateTime!
+  slug: String!
+  title: String!
+  configuration: JSONString
+  createdBy: UserNode
+  mapboxTilesetId: String
+  dataEntry: DataEntryNode!
+  owner: OwnerNode
+}
+
+"""
+The `DateTime` scalar type represents a DateTime
+value as specified by
+[iso8601](https://en.wikipedia.org/wiki/ISO_8601).
+"""
+scalar DateTime
 
 type DataEntryNode implements Node {
   createdAt: DateTime!
@@ -432,18 +461,11 @@ type DataEntryNode implements Node {
 
   """"""
   size: BigInt
-  groups(offset: Int, before: String, after: String, first: Int, last: Int, name: String, name_Icontains: String, name_Istartswith: String, slug: String, slug_Icontains: String, description_Icontains: String, memberships_Email: String, associatedLandscapes_IsDefaultLandscapeGroup: Boolean, associatedLandscapes_Isnull: Boolean, associatedLandscapes_IsPartnership: Boolean): GroupNodeConnection!
   createdBy: UserNode
-  visualizations(offset: Int, before: String, after: String, first: Int, last: Int, slug: String, slug_Icontains: String, dataEntry_Groups_Slug: String, dataEntry_Groups_Slug_Icontains: String, dataEntry_Groups_Id: ID): VisualizationConfigNodeConnection!
+  visualizations(offset: Int, before: String, after: String, first: Int, last: Int, slug: String, slug_Icontains: String, dataEntry_SharedResources_TargetObjectId: UUID, dataEntry_SharedResources_Target_Slug: String, dataEntry_SharedResources_TargetContentType: String): VisualizationConfigNodeConnection!
   id: ID!
+  sharedResources(offset: Int, before: String, after: String, first: Int, last: Int, source_DataEntry_ResourceType_In: [String]): SharedResourceNodeConnection
 }
-
-"""
-The `DateTime` scalar type represents a DateTime
-value as specified by
-[iso8601](https://en.wikipedia.org/wiki/ISO_8601).
-"""
-scalar DateTime
 
 """An enumeration."""
 enum SharedDataDataEntryEntryTypeChoices {
@@ -460,24 +482,6 @@ The `BigInt` scalar type represents non-fractional whole numeric values.
 compatible type.
 """
 scalar BigInt
-
-type GroupNodeConnection {
-  """Pagination data for this connection."""
-  pageInfo: PageInfo!
-
-  """Contains the nodes in this connection."""
-  edges: [GroupNodeEdge!]!
-  totalCount: Int!
-}
-
-"""A Relay edge containing a `GroupNode` and its cursor."""
-type GroupNodeEdge {
-  """The item at the end of the edge"""
-  node: GroupNode!
-
-  """A cursor for use in pagination"""
-  cursor: String!
-}
 
 type VisualizationConfigNodeConnection {
   """Pagination data for this connection."""
@@ -497,16 +501,50 @@ type VisualizationConfigNodeEdge {
   cursor: String!
 }
 
-type VisualizationConfigNode implements Node {
-  id: ID!
-  createdAt: DateTime!
-  slug: String!
-  title: String!
-  configuration: JSONString
-  createdBy: UserNode
-  mapboxTilesetId: String
-  dataEntry: DataEntryNode!
-  group: GroupNode!
+"""
+Leverages the internal Python implementation of UUID (uuid.UUID) to provide native UUID objects
+in fields, resolvers and input.
+"""
+scalar UUID
+
+union OwnerNode = GroupNode | LandscapeNode
+
+union TargetNode = GroupNode | LandscapeNode
+
+type DataEntryNodeConnection {
+  """Pagination data for this connection."""
+  pageInfo: PageInfo!
+
+  """Contains the nodes in this connection."""
+  edges: [DataEntryNodeEdge!]!
+  totalCount: Int!
+}
+
+"""A Relay edge containing a `DataEntryNode` and its cursor."""
+type DataEntryNodeEdge {
+  """The item at the end of the edge"""
+  node: DataEntryNode!
+
+  """A cursor for use in pagination"""
+  cursor: String!
+}
+
+type GroupNodeConnection {
+  """Pagination data for this connection."""
+  pageInfo: PageInfo!
+
+  """Contains the nodes in this connection."""
+  edges: [GroupNodeEdge!]!
+  totalCount: Int!
+}
+
+"""A Relay edge containing a `GroupNode` and its cursor."""
+type GroupNodeEdge {
+  """The item at the end of the edge"""
+  node: GroupNode!
+
+  """A cursor for use in pagination"""
+  cursor: String!
 }
 
 type LandscapeNodeConnection {
@@ -1550,12 +1588,6 @@ enum AuditLogsLogEventChoices {
 }
 
 """
-Leverages the internal Python implementation of UUID (uuid.UUID) to provide native UUID objects
-in fields, resolvers and input.
-"""
-scalar UUID
-
-"""
 The `GenericScalar` scalar type represents a generic
 GraphQL scalar value that could be:
 String, Boolean, Int, Float, List or Object.
@@ -1880,7 +1912,8 @@ type DataEntryAddMutationPayload {
 }
 
 input DataEntryAddMutationInput {
-  groupSlug: String!
+  targetType: String!
+  targetSlug: String!
   name: String!
   url: String!
   entryType: String!
@@ -1923,7 +1956,8 @@ input VisualizationConfigAddMutationInput {
   title: String!
   configuration: JSONString
   dataEntryId: ID!
-  groupId: ID!
+  ownerId: ID!
+  ownerType: String!
   clientMutationId: String
 }
 

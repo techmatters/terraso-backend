@@ -31,7 +31,9 @@ def test_data_entries_query(client_query, data_entries):
         """
     )
 
-    edges = response.json()["data"]["dataEntries"]["edges"]
+    json_response = response.json()
+
+    edges = json_response["data"]["dataEntries"]["edges"]
     entries_result = [edge["node"]["name"] for edge in edges]
 
     for data_entry in data_entries:
@@ -78,14 +80,14 @@ def test_data_entries_filter_by_group_slug_filters_successfuly(client_query, dat
     data_entry_a = data_entries[0]
     data_entry_b = data_entries[1]
 
-    data_entry_a.groups.add(groups[-1])
-    data_entry_b.groups.add(groups[-1])
+    data_entry_a.shared_resources.create(target=groups[-1])
+    data_entry_b.shared_resources.create(target=groups[-1])
 
     group_filter = groups[-1]
 
     response = client_query(
         """
-        {dataEntries(groups_Slug_Icontains: "%s") {
+        {dataEntries(sharedResources_Target_Slug: "%s", sharedResources_TargetContentType: "%s") {
           edges {
             node {
               id
@@ -93,10 +95,12 @@ def test_data_entries_filter_by_group_slug_filters_successfuly(client_query, dat
           }
         }}
         """
-        % group_filter.slug
+        % (group_filter.slug, "group")
     )
 
-    edges = response.json()["data"]["dataEntries"]["edges"]
+    json_response = response.json()
+
+    edges = json_response["data"]["dataEntries"]["edges"]
     data_entries_result = [edge["node"]["id"] for edge in edges]
 
     assert len(data_entries_result) == 2
@@ -108,14 +112,14 @@ def test_data_entries_filter_by_group_id_filters_successfuly(client_query, data_
     data_entry_a = data_entries[0]
     data_entry_b = data_entries[1]
 
-    data_entry_a.groups.add(groups[-1])
-    data_entry_b.groups.add(groups[-1])
+    data_entry_a.shared_resources.create(target=groups[-1])
+    data_entry_b.shared_resources.create(target=groups[-1])
 
     group_filter = groups[-1]
 
     response = client_query(
         """
-        {dataEntries(groups_Id: "%s") {
+        {dataEntries(sharedResources_TargetObjectId: "%s") {
           edges {
             node {
               id
@@ -206,3 +210,82 @@ def test_data_entries_anonymous_user(client_query_no_token, data_entries):
     entries_result = [edge["node"]["name"] for edge in edges]
 
     assert len(entries_result) == 0
+
+
+@pytest.fixture
+def data_entries_by_parent(request, group_data_entries, landscape_data_entries):
+    parent = request.param
+    if parent == "groups":
+        return (parent, group_data_entries)
+    if parent == "landscapes":
+        return (parent, landscape_data_entries)
+
+
+@pytest.mark.parametrize("data_entries_by_parent", ["groups", "landscapes"], indirect=True)
+def test_data_entries_from_parent_query(client_query, data_entries_by_parent):
+    (parent, data_entries) = data_entries_by_parent
+    response = client_query(
+        """
+        {%s {
+          edges {
+            node {
+              sharedResources {
+                edges {
+                  node {
+                    source {
+                      ... on DataEntryNode {
+                        name
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }}
+        """
+        % parent
+    )
+
+    json_response = response.json()
+
+    resources = json_response["data"][parent]["edges"][0]["node"]["sharedResources"]["edges"]
+    entries_result = [resource["node"]["source"]["name"] for resource in resources]
+
+    for data_entry in data_entries:
+        assert data_entry.name in entries_result
+
+
+@pytest.mark.parametrize("data_entries_by_parent", ["groups", "landscapes"], indirect=True)
+def test_data_entries_from_parent_query_by_resource_field(client_query, data_entries_by_parent):
+    (parent, data_entries) = data_entries_by_parent
+    response = client_query(
+        """
+        {%s {
+          edges {
+            node {
+              sharedResources(source_DataEntry_ResourceType_In: ["csv", "xls"]) {
+                edges {
+                  node {
+                    source {
+                      ... on DataEntryNode {
+                        name
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }}
+        """
+        % parent
+    )
+
+    json_response = response.json()
+
+    resources = json_response["data"][parent]["edges"][0]["node"]["sharedResources"]["edges"]
+    entries_result = [resource["node"]["source"]["name"] for resource in resources]
+
+    for data_entry in data_entries:
+        assert data_entry.name in entries_result
