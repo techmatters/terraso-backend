@@ -30,6 +30,6 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name="visualizationconfig",
             name="description",
-            field=models.TextField(blank=True, default=""),
+            field=models.TextField(blank=True, null=True),
         ),
     ]

@@ -35,7 +35,7 @@ class VisualizationConfig(SlugModel):
     )
 
     title = models.CharField(max_length=128, validators=[validate_name])
-    description = models.TextField(blank=True, default="")
+    description = models.TextField(blank=True, null=True)
     configuration = models.JSONField(blank=True, null=True)
     created_by = models.ForeignKey(
         User,
