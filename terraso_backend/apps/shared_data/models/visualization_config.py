@@ -56,9 +56,13 @@ class VisualizationConfig(SlugModel):
     )
     owner = GenericForeignKey("owner_content_type", "owner_object_id")
     owner_content_type = models.ForeignKey(
-        ContentType, on_delete=models.CASCADE, related_name="owner_content_type"
+        ContentType,
+        on_delete=models.CASCADE,
+        related_name="owner_content_type",
+        null=True,
+        blank=True,
     )
-    owner_object_id = models.UUIDField()
+    owner_object_id = models.UUIDField(null=True, blank=True)
 
     field_to_slug = "title"
 
