@@ -33,10 +33,10 @@ class SiteNote(models.Model):
     content = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    owner = models.ForeignKey(
+    author = models.ForeignKey(
         User,
         null=True,
         blank=True,
         on_delete=models.RESTRICT,
-        verbose_name="owner to which the note belongs",
+        verbose_name="author to which the note belongs",
     )
