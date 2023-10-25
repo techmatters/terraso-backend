@@ -16,19 +16,9 @@
 from django.db import models
 
 from apps.core.models import User
-from apps.core.models.commons import BaseModel
-from apps.project_management import permission_rules
 
 
 class SiteNote(models.Model):
-    class Meta(BaseModel.Meta):
-        abstract = False
-        rules_permissions = {
-            "change": permission_rules.allowed_to_update_site,
-            "delete": permission_rules.allowed_to_delete_site,
-            "transfer": permission_rules.allowed_to_transfer_site_to_project,
-        }
-
     site = models.ForeignKey('sites.Site', on_delete=models.CASCADE, related_name='notes')
     content = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
