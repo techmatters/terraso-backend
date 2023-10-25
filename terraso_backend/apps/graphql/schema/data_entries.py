@@ -19,6 +19,7 @@ import rules
 import structlog
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
+from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.db.models import Q
 from graphene import relay
@@ -127,7 +128,7 @@ class DataEntryNode(DjangoObjectType, SharedResourcesMixin):
         file = data_entry_upload_service.get_file(self.s3_object_name, "rb")
         try:
             return parse_file_to_geojson(file)
-        except ValueError:
+        except ValidationError:
             return None
 
 

@@ -25,6 +25,7 @@ from django.conf import settings
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.sessions.models import Session
 from django.core import management
+from django.core.exceptions import ValidationError
 from django.db import DatabaseError, transaction
 from django.db.transaction import get_connection
 from django.http import (
@@ -51,9 +52,9 @@ class ParseGeoFileView(AuthenticationRequiredMixin, FormView):
 
         try:
             geojson = parse_file_to_geojson(file)
-        except ValueError as error:
+        except ValidationError as error:
             return JsonResponse(
-                {"errors": [{"message": json.dumps([{"code": str(error)}])}]}, status=400
+                {"errors": [{"message": json.dumps([{"code": error.message}])}]}, status=400
             )
 
         return JsonResponse({"geojson": geojson})
