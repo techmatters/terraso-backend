@@ -20,6 +20,7 @@ import zipfile
 
 import geopandas as gpd
 import structlog
+from django.core.exceptions import ValidationError
 from fiona.drvsupport import supported_drivers
 
 from apps.core.gis.utils import DEFAULT_CRS
@@ -111,24 +112,24 @@ def parse_file_to_geojson(file):
             return parse_shapefile(file)
         except Exception as e:
             logger.error("Error parsing shapefile", error=e)
-            raise ValueError("invalid_shapefile")
+            raise ValidationError("invalid_shapefile")
     elif is_kml_file_extension(file):
         try:
             return parse_kml_file(file)
         except Exception as e:
             logger.error("Error parsing kml file", error=e)
-            raise ValueError("invalid_kml_file")
+            raise ValidationError("invalid_kml_file")
     elif is_kmz_file_extension(file):
         try:
             return parse_kmz_file(file)
         except Exception as e:
             logger.error("Error parsing kmz file", error=e)
-            raise ValueError("invalid_kmz_file")
+            raise ValidationError("invalid_kmz_file")
     elif is_geojson_file_extension(file):
         try:
             return json.load(file)
         except Exception as e:
             logger.error("Error parsing geojson file", error=e)
-            raise ValueError("invalid_geojson_file")
+            raise ValidationError("invalid_geojson_file")
     else:
-        raise ValueError("invalid_file_type")
+        raise ValidationError("invalid_file_type")
