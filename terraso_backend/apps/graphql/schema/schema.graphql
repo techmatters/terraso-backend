@@ -777,6 +777,7 @@ type SiteNode implements Node {
   id: ID!
   seen: Boolean!
   soilData: SoilDataNode!
+  notes: [SiteNoteNode]
 }
 
 """An enumeration."""
@@ -1472,6 +1473,15 @@ enum SoilIdDepthDependentSoilDataCarbonatesChoices {
   VIOLENTLY_EFFERVESCENT
 }
 
+type SiteNoteNode implements Node {
+  """The ID of the object"""
+  id: ID!
+  content: String!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  author: UserNode
+}
+
 type ProjectSoilSettingsNode {
   project: ProjectNode!
   measurementUnits: SoilIdProjectSoilSettingsMeasurementUnitsChoices
@@ -1645,6 +1655,9 @@ type Mutations {
   updateProjectSoilSettings(input: ProjectSoilSettingsUpdateMutationInput!): ProjectSoilSettingsUpdateMutationPayload!
   updateProjectSoilSettingsDepthInterval(input: ProjectSoilSettingsUpdateDepthIntervalMutationInput!): ProjectSoilSettingsUpdateDepthIntervalMutationPayload!
   deleteProjectSoilSettingsDepthInterval(input: ProjectSoilSettingsDeleteDepthIntervalMutationInput!): ProjectSoilSettingsDeleteDepthIntervalMutationPayload!
+  addSiteNote(content: String!, siteId: ID!): SiteNoteAddMutation
+  updateSiteNote(content: String!, siteNoteId: ID!): SiteNoteUpdateMutation
+  deleteSiteNote(siteNoteId: ID!): SiteNoteDeleteMutation
 }
 
 type GroupAddMutationPayload {
@@ -2375,4 +2388,16 @@ input ProjectSoilSettingsDeleteDepthIntervalMutationInput {
   projectId: ID!
   depthInterval: DepthIntervalInput!
   clientMutationId: String
+}
+
+type SiteNoteAddMutation {
+  siteNote: SiteNoteNode
+}
+
+type SiteNoteUpdateMutation {
+  siteNote: SiteNoteNode
+}
+
+type SiteNoteDeleteMutation {
+  ok: Boolean
 }

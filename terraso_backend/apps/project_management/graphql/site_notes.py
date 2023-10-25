@@ -15,7 +15,8 @@
 
 import graphene
 from graphene_django import DjangoObjectType
-from apps.project_management.models.sites import Site, SiteNote
+from apps.project_management.models.sites import Site
+from apps.project_management.models.site_notes import SiteNote
 
 
 class SiteNoteNode(DjangoObjectType):
