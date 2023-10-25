@@ -124,7 +124,7 @@ class DataEntryNode(DjangoObjectType, SharedResourcesMixin):
     def resolve_geojson(self, info):
         if f".{self.resource_type}" not in settings.DATA_ENTRY_GIS_TYPES.keys():
             return None
-        file = data_entry_upload_service.get_file(self.s3_object_name, "rt")
+        file = data_entry_upload_service.get_file(self.s3_object_name, "rb")
         try:
             return parse_file_to_geojson(file)
         except ValueError:

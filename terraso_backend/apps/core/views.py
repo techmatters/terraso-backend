@@ -53,7 +53,7 @@ class ParseGeoFileView(AuthenticationRequiredMixin, FormView):
             geojson = parse_file_to_geojson(file)
         except ValueError as error:
             return JsonResponse(
-                {"errors": [{"message": json.dumps([{"code": error.message}])}]}, status=400
+                {"errors": [{"message": json.dumps([{"code": str(error)}])}]}, status=400
             )
 
         return JsonResponse({"geojson": geojson})

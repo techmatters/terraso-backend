@@ -132,7 +132,7 @@ def _get_geojson_from_dataset(data_entry, visualization):
 
 
 def _get_geojson_from_gis(data_entry):
-    file = data_entry_upload_service.get_file(data_entry.s3_object_name, "rt")
+    file = data_entry_upload_service.get_file(data_entry.s3_object_name, "rb")
     return parse_file_to_geojson(file)
 
 

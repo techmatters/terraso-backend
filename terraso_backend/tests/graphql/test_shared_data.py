@@ -16,9 +16,13 @@
 import json
 import os
 import tempfile
+import zipfile
 from unittest import mock
 
+import geopandas as gpd
 import pytest
+
+from apps.core.gis.utils import DEFAULT_CRS
 
 from ..core.gis.test_parsers import KML_CONTENT, KML_GEOJSON
 
@@ -343,6 +347,49 @@ def test_data_entry_kml_to_geojson(get_file_mock, client_query, data_entry_kml, 
     assert data_entry_result["id"] == str(data_entry_kml.id)
     assert data_entry_result["name"] == data_entry_kml.name
     assert data_entry_result["geojson"] == json.dumps(KML_GEOJSON)
+
+
+@mock.patch("apps.shared_data.services.data_entry_upload_service.get_file")
+def test_data_entry_shapefil_to_geojson(get_file_mock, client_query, data_entry_shapefile):
+    gdf = gpd.GeoDataFrame({"geometry": gpd.points_from_xy([0], [0])}, crs=DEFAULT_CRS)
+    with tempfile.TemporaryDirectory() as tmpdir:
+        shapefile_zip = tempfile.NamedTemporaryFile(suffix=".zip")
+        shapefile_path = os.path.join(tmpdir, "test.shp")
+        gdf.to_file(shapefile_path)
+
+        with zipfile.ZipFile(shapefile_zip.name, "w") as zf:
+            for component in ["shp", "shx", "prj"]:
+                zf.write(os.path.join(tmpdir, f"test.{component}"), f"test.{component}")
+
+        with open(shapefile_zip.name, "rb") as file:
+            get_file_mock.return_value = file
+            response = client_query(
+                """
+            {dataEntry(id: "%s") {
+              id
+              name
+              geojson
+            }}
+            """
+                % data_entry_shapefile.id
+            )
+    json_response = response.json()
+    data_entry_result = json_response["data"]["dataEntry"]
+
+    assert data_entry_result["id"] == str(data_entry_shapefile.id)
+    assert data_entry_result["name"] == data_entry_shapefile.name
+    assert json.loads(data_entry_result["geojson"]) == {
+        "type": "FeatureCollection",
+        "features": [
+            {
+                "id": "0",
+                "type": "Feature",
+                "properties": {},
+                "geometry": {"type": "Point", "coordinates": [0.0, 0.0]},
+            }
+        ],
+        "crs": {"type": "name", "properties": {"name": "urn:ogc:def:crs:OGC::CRS84"}},
+    }
 
 
 @mock.patch("apps.shared_data.services.data_entry_upload_service.get_file")
