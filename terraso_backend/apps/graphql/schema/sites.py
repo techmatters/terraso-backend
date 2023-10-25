@@ -17,7 +17,7 @@ from datetime import datetime
 import django_filters
 import graphene
 from django.db import transaction
-from graphene import relay, List
+from graphene import relay
 from graphene_django import DjangoObjectType
 from graphene_django.filter import TypedFilter
 
