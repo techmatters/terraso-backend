@@ -108,7 +108,6 @@ type GroupNode implements Node {
   associationsAsChild(offset: Int, before: String, after: String, first: Int, last: Int, parentGroup: ID, childGroup: ID, parentGroup_Slug_Icontains: String, childGroup_Slug_Icontains: String): GroupAssociationNodeConnection!
   memberships(offset: Int, before: String, after: String, first: Int, last: Int, group: ID, group_In: [ID], group_Slug_Icontains: String, group_Slug_In: [String], user: ID, user_In: [ID], userRole: CoreMembershipUserRoleChoices, user_Email_Icontains: String, user_Email_In: [String], membershipStatus: CoreMembershipMembershipStatusChoices): MembershipNodeConnection!
   associatedLandscapes(offset: Int, before: String, after: String, first: Int, last: Int, landscape: ID, landscape_Slug_Icontains: String, group: ID, group_Slug_Icontains: String, isDefaultLandscapeGroup: Boolean, isPartnership: Boolean): LandscapeGroupNodeConnection!
-  dataEntries(offset: Int, before: String, after: String, first: Int, last: Int, name_Icontains: String, description_Icontains: String, url_Icontains: String, entryType_In: [SharedDataDataEntryEntryTypeChoices], resourceType_In: [String], sharedResources_TargetObjectId: UUID, sharedResources_Target_Slug: String, sharedResources_TargetContentType: String): DataEntryNodeConnection!
   id: ID!
   sharedResources(offset: Int, before: String, after: String, first: Int, last: Int, source_DataEntry_ResourceType_In: [String]): SharedResourceNodeConnection
   accountMembership: MembershipNode
@@ -511,24 +510,6 @@ union OwnerNode = GroupNode | LandscapeNode
 
 union TargetNode = GroupNode | LandscapeNode
 
-type DataEntryNodeConnection {
-  """Pagination data for this connection."""
-  pageInfo: PageInfo!
-
-  """Contains the nodes in this connection."""
-  edges: [DataEntryNodeEdge!]!
-  totalCount: Int!
-}
-
-"""A Relay edge containing a `DataEntryNode` and its cursor."""
-type DataEntryNodeEdge {
-  """The item at the end of the edge"""
-  node: DataEntryNode!
-
-  """A cursor for use in pagination"""
-  cursor: String!
-}
-
 type GroupNodeConnection {
   """Pagination data for this connection."""
   pageInfo: PageInfo!
@@ -578,6 +559,24 @@ type UserNodeConnection {
 type UserNodeEdge {
   """The item at the end of the edge"""
   node: UserNode!
+
+  """A cursor for use in pagination"""
+  cursor: String!
+}
+
+type DataEntryNodeConnection {
+  """Pagination data for this connection."""
+  pageInfo: PageInfo!
+
+  """Contains the nodes in this connection."""
+  edges: [DataEntryNodeEdge!]!
+  totalCount: Int!
+}
+
+"""A Relay edge containing a `DataEntryNode` and its cursor."""
+type DataEntryNodeEdge {
+  """The item at the end of the edge"""
+  node: DataEntryNode!
 
   """A cursor for use in pagination"""
   cursor: String!
