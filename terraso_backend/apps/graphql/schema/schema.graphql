@@ -777,7 +777,6 @@ type SiteNode implements Node {
   id: ID!
   seen: Boolean!
   soilData: SoilDataNode!
-  notes: [SiteNoteNode]
 }
 
 """An enumeration."""
@@ -1471,15 +1470,6 @@ enum SoilIdDepthDependentSoilDataCarbonatesChoices {
 
   """violently effervescent — Bubbles rapidly form a thick foam"""
   VIOLENTLY_EFFERVESCENT
-}
-
-type SiteNoteNode implements Node {
-  """The ID of the object"""
-  id: ID!
-  content: String!
-  createdAt: DateTime!
-  updatedAt: DateTime!
-  author: UserNode
 }
 
 type ProjectSoilSettingsNode {
@@ -2392,6 +2382,15 @@ input ProjectSoilSettingsDeleteDepthIntervalMutationInput {
 
 type SiteNoteAddMutation {
   siteNote: SiteNoteNode
+}
+
+type SiteNoteNode implements Node {
+  """The ID of the object"""
+  id: ID!
+  content: String!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  author: UserNode
 }
 
 type SiteNoteUpdateMutation {
