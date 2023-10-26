@@ -15,8 +15,9 @@
 
 import graphene
 from graphene_django import DjangoObjectType
-from apps.project_management.models.sites import Site
+
 from apps.project_management.models.site_notes import SiteNote
+from apps.project_management.models.sites import Site
 
 
 class SiteNoteNode(DjangoObjectType):
@@ -35,9 +36,6 @@ class SiteNoteAddMutation(graphene.Mutation):
 
     def mutate(self, info, site_id, content):
         user = info.context.user
-        if user.is_anonymous:
-            raise Exception("You must be logged in to add a note")
-
         site = Site.objects.get(pk=site_id)
         site_note = SiteNote.objects.create(site=site, content=content, author=user)
         return SiteNoteAddMutation(site_note=site_note)
@@ -52,9 +50,6 @@ class SiteNoteUpdateMutation(graphene.Mutation):
 
     def mutate(self, info, site_note_id, content):
         user = info.context.user
-        if user.is_anonymous:
-            raise Exception("You must be logged in to update a note")
-
         site_note = SiteNote.objects.get(pk=site_note_id)
         if site_note.author != user:
             raise Exception("You do not have permission to update this note")
@@ -72,9 +67,6 @@ class SiteNoteDeleteMutation(graphene.Mutation):
 
     def mutate(self, info, site_note_id):
         user = info.context.user
-        if user.is_anonymous:
-            raise Exception("You must be logged in to delete a note")
-
         site_note = SiteNote.objects.get(pk=site_note_id)
         if site_note.author != user:
             raise Exception("You do not have permission to delete this note")

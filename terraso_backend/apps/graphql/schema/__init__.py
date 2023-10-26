@@ -27,13 +27,11 @@ from apps.project_management.graphql.projects import (
     ProjectUpdateMutation,
     ProjectUpdateUserRoleMutation,
 )
-
 from apps.project_management.graphql.site_notes import (
     SiteNoteAddMutation,
-    SiteNoteUpdateMutation,
     SiteNoteDeleteMutation,
+    SiteNoteUpdateMutation,
 )
-
 from apps.soil_id.graphql.soil_data import (
     DepthDependentSoilDataUpdateMutation,
     ProjectSoilSettingsDeleteDepthIntervalMutation,

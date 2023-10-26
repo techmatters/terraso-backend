@@ -23,7 +23,6 @@ from graphene_django.filter import TypedFilter
 
 from apps.audit_logs import api as audit_log_api
 from apps.project_management.graphql.projects import ProjectNode
-from apps.project_management.graphql.site_notes import SiteNoteNode
 from apps.project_management.models import Project, Site, sites
 from apps.soil_id.models.soil_data import SoilData
 
@@ -60,7 +59,6 @@ class SiteNode(DjangoObjectType):
     soil_data = graphene.Field(
         "apps.soil_id.graphql.soil_data.SoilDataNode", required=True, default_value=SoilData()
     )
-    notes = graphene.List(SiteNoteNode)
 
     class Meta:
         model = Site
@@ -74,6 +72,7 @@ class SiteNode(DjangoObjectType):
             "owner",
             "privacy",
             "updated_at",
+            "notes",
         )
         filterset_class = SiteFilter
 
@@ -96,9 +95,6 @@ class SiteNode(DjangoObjectType):
         if user.is_anonymous:
             return True
         return self.seen_by.filter(id=user.id).exists()
-
-    def resolve_site_notes(self):
-        return self.notes.all()
 
 
 class SiteAddMutation(BaseWriteMutation):

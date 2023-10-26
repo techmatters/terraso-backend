@@ -1,12 +1,12 @@
 from .projects import Project, ProjectMembership, ProjectMembershipList, ProjectSettings
-from .sites import Site
 from .site_notes import SiteNote
+from .sites import Site
 
 __all__ = [
     "Project",
-    "ProjectSettings",
-    "Site",
     "ProjectMembership",
     "ProjectMembershipList",
+    "ProjectSettings",
+    "Site",
     "SiteNote"
 ]

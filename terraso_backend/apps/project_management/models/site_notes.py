@@ -28,5 +28,5 @@ class SiteNote(models.Model):
         null=True,
         blank=True,
         on_delete=models.RESTRICT,
-        verbose_name="author to which the note belongs",
+        verbose_name="author to whom the note belongs",
     )
