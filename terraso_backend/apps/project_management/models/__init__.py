@@ -8,5 +8,5 @@ __all__ = [
     "ProjectMembershipList",
     "ProjectSettings",
     "Site",
-    "SiteNote"
+    "SiteNote",
 ]

@@ -23,7 +23,7 @@ from apps.project_management.models.sites import Site
 class SiteNoteNode(DjangoObjectType):
     class Meta:
         model = SiteNote
-        fields = '__all__'
+        fields = "__all__"
         interfaces = (graphene.relay.Node,)
 
 
