@@ -676,6 +676,7 @@ type ProjectNode implements Node {
   description: String!
   membershipList: ProjectMembershipListNode!
   privacy: ProjectManagementProjectPrivacyChoices!
+  siteInstructions: String
   archived: Boolean!
   siteSet(
     offset: Int
@@ -2160,6 +2161,7 @@ input ProjectAddMutationInput {
   name: String!
   privacy: ProjectPrivacy!
   description: String
+  siteInstructions: String
   clientMutationId: String
 }
 
@@ -2179,6 +2181,7 @@ input ProjectUpdateMutationInput {
   name: String
   privacy: ProjectPrivacy = null
   description: String
+  siteInstructions: String
   clientMutationId: String
 }
 

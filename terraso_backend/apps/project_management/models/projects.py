@@ -78,6 +78,7 @@ class Project(BaseModel):
     )
 
     seen_by = models.ManyToManyField(User, related_name="+")
+    site_instructions = models.TextField(null=True, blank=True)
 
     @staticmethod
     def default_settings():
