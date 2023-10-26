@@ -31,7 +31,7 @@ supported_drivers["KML"] = "rw"
 
 
 def is_geojson_file_extension(file):
-    return file.name.endswith(".geojson") or file.name.endswith(".json")
+    return file.name.endswith((".geojson", ".json"))
 
 
 def is_shape_file_extension(file):
