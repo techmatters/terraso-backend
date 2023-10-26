@@ -774,6 +774,7 @@ type SiteNode implements Node {
   privacy: ProjectManagementSitePrivacyChoices!
   project: ProjectNode
   archived: Boolean!
+  notes(offset: Int, before: String, after: String, first: Int, last: Int): SiteNoteNodeConnection!
   id: ID!
   seen: Boolean!
   soilData: SoilDataNode!
@@ -786,6 +787,33 @@ enum ProjectManagementSitePrivacyChoices {
 
   """Public"""
   PUBLIC
+}
+
+type SiteNoteNodeConnection {
+  """Pagination data for this connection."""
+  pageInfo: PageInfo!
+
+  """Contains the nodes in this connection."""
+  edges: [SiteNoteNodeEdge]!
+}
+
+"""A Relay edge containing a `SiteNoteNode` and its cursor."""
+type SiteNoteNodeEdge {
+  """The item at the end of the edge"""
+  node: SiteNoteNode
+
+  """A cursor for use in pagination"""
+  cursor: String!
+}
+
+type SiteNoteNode implements Node {
+  """The ID of the object"""
+  id: ID!
+  site: SiteNode!
+  content: String!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  author: UserNode
 }
 
 type SoilDataNode {
@@ -1645,6 +1673,9 @@ type Mutations {
   updateProjectSoilSettings(input: ProjectSoilSettingsUpdateMutationInput!): ProjectSoilSettingsUpdateMutationPayload!
   updateProjectSoilSettingsDepthInterval(input: ProjectSoilSettingsUpdateDepthIntervalMutationInput!): ProjectSoilSettingsUpdateDepthIntervalMutationPayload!
   deleteProjectSoilSettingsDepthInterval(input: ProjectSoilSettingsDeleteDepthIntervalMutationInput!): ProjectSoilSettingsDeleteDepthIntervalMutationPayload!
+  addSiteNote(content: String!, siteId: ID!): SiteNoteAddMutation
+  updateSiteNote(content: String!, siteNoteId: ID!): SiteNoteUpdateMutation
+  deleteSiteNote(siteNoteId: ID!): SiteNoteDeleteMutation
 }
 
 type GroupAddMutationPayload {
@@ -2375,4 +2406,16 @@ input ProjectSoilSettingsDeleteDepthIntervalMutationInput {
   projectId: ID!
   depthInterval: DepthIntervalInput!
   clientMutationId: String
+}
+
+type SiteNoteAddMutation {
+  siteNote: SiteNoteNode
+}
+
+type SiteNoteUpdateMutation {
+  siteNote: SiteNoteNode
+}
+
+type SiteNoteDeleteMutation {
+  ok: Boolean
 }
