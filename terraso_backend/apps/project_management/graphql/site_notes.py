@@ -14,14 +14,12 @@
 # along with this program. If not, see https://www.gnu.org/licenses/.
 
 import graphene
+from django.db import transaction
 from graphene_django import DjangoObjectType
 
+from apps.graphql.schema.commons import BaseDeleteMutation, BaseWriteMutation
 from apps.project_management.models.site_notes import SiteNote
 from apps.project_management.models.sites import Site
-from apps.graphql.schema.commons import (
-    BaseDeleteMutation,
-    BaseWriteMutation,
-)
 
 
 class SiteNoteNode(DjangoObjectType):
@@ -32,48 +30,57 @@ class SiteNoteNode(DjangoObjectType):
 
 
 class SiteNoteAddMutation(BaseWriteMutation):
-    class Arguments:
+    site_note = graphene.Field(SiteNoteNode, required=True)
+
+    class Input:
         site_id = graphene.ID(required=True)
         content = graphene.String(required=True)
 
-    site_note = graphene.Field(lambda: SiteNoteNode)
-
-    def mutate(self, info, site_id, content):
+    @classmethod
+    def mutate_and_get_payload(cls, root, info, **input):
         user = info.context.user
-        site = Site.objects.get(pk=site_id)
-        site_note = SiteNote.objects.create(site=site, content=content, author=user)
+        site = Site.objects.get(pk=input["site_id"])
+        site_note = SiteNote.objects.create(site=site, content=input["content"], author=user)
         return SiteNoteAddMutation(site_note=site_note)
 
 
 class SiteNoteUpdateMutation(BaseWriteMutation):
-    class Arguments:
-        site_note_id = graphene.ID(required=True)
+    site_note = graphene.Field(SiteNoteNode, required=True)
+
+    class Input:
+        id = graphene.ID(required=True)
         content = graphene.String(required=True)
 
-    site_note = graphene.Field(lambda: SiteNoteNode)
-
-    def mutate(self, info, site_note_id, content):
+    @classmethod
+    @transaction.atomic
+    def mutate_and_get_payload(cls, root, info, **kwargs):
         user = info.context.user
-        site_note = SiteNote.objects.get(pk=site_note_id)
-        if site_note.author != user:
-            raise Exception("You do not have permission to update this note")
+        site_note_id = kwargs["id"]
+        site_note = cls.get_or_throw(SiteNote, "id", site_note_id)
 
-        site_note.content = content
+        if site_note.author != user:
+            cls.not_allowed("You do not have permission to update this note")
+
+        site_note.content = kwargs["content"]
         site_note.save()
         return SiteNoteUpdateMutation(site_note=site_note)
 
 
 class SiteNoteDeleteMutation(BaseDeleteMutation):
-    class Arguments:
-        site_note_id = graphene.ID(required=True)
-
     ok = graphene.Boolean()
 
-    def mutate(self, info, site_note_id):
+    class Input:
+        id = graphene.ID(required=True)
+
+    @classmethod
+    @transaction.atomic
+    def mutate_and_get_payload(cls, root, info, **kwargs):
         user = info.context.user
-        site_note = SiteNote.objects.get(pk=site_note_id)
+        site_note_id = kwargs["id"]
+        site_note = cls.get_or_throw(SiteNote, "id", site_note_id)
+
         if site_note.author != user:
-            raise Exception("You do not have permission to delete this note")
+            cls.not_allowed("You do not have permission to delete this note")
 
         site_note.delete()
         return SiteNoteDeleteMutation(ok=True)
