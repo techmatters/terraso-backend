@@ -45,10 +45,9 @@ class SiteNoteAddMutation(BaseWriteMutation):
             site = Site.objects.get(pk=input["site_id"])
         except Site.DoesNotExist:
             return cls(errors={"site_id": ["Site not found"]})
-            
+
         site_note = SiteNote.objects.create(site=site, content=input["content"], author=user)
         return SiteNoteAddMutation(site_note=site_note)
-
 
 
 class SiteNoteUpdateMutation(BaseWriteMutation):
