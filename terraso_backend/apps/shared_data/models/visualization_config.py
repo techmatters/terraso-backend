@@ -18,7 +18,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
-from apps.core.models import BaseModel, Group, SlugModel, User
+from apps.core.models import BaseModel, SlugModel, User
 from apps.core.models.commons import validate_name
 from apps.shared_data import permission_rules as perm_rules
 
@@ -49,10 +49,6 @@ class VisualizationConfig(SlugModel):
     )
     data_entry = models.ForeignKey(
         DataEntry, on_delete=models.CASCADE, related_name="visualizations"
-    )
-    # group deprecated, use owner instead, group will be removed in the future
-    group = models.ForeignKey(
-        Group, on_delete=models.CASCADE, related_name="visualizations", null=True, blank=True
     )
     owner = GenericForeignKey("owner_content_type", "owner_object_id")
     owner_content_type = models.ForeignKey(
