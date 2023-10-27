@@ -18,6 +18,10 @@ from graphene_django import DjangoObjectType
 
 from apps.project_management.models.site_notes import SiteNote
 from apps.project_management.models.sites import Site
+from terraso_backend.apps.graphql.schema.commons import (
+    BaseDeleteMutation,
+    BaseWriteMutation,
+)
 
 
 class SiteNoteNode(DjangoObjectType):
@@ -27,7 +31,7 @@ class SiteNoteNode(DjangoObjectType):
         interfaces = (graphene.relay.Node,)
 
 
-class SiteNoteAddMutation(graphene.Mutation):
+class SiteNoteAddMutation(BaseWriteMutation):
     class Arguments:
         site_id = graphene.ID(required=True)
         content = graphene.String(required=True)
@@ -41,7 +45,7 @@ class SiteNoteAddMutation(graphene.Mutation):
         return SiteNoteAddMutation(site_note=site_note)
 
 
-class SiteNoteUpdateMutation(graphene.Mutation):
+class SiteNoteUpdateMutation(BaseWriteMutation):
     class Arguments:
         site_note_id = graphene.ID(required=True)
         content = graphene.String(required=True)
@@ -59,7 +63,7 @@ class SiteNoteUpdateMutation(graphene.Mutation):
         return SiteNoteUpdateMutation(site_note=site_note)
 
 
-class SiteNoteDeleteMutation(graphene.Mutation):
+class SiteNoteDeleteMutation(BaseDeleteMutation):
     class Arguments:
         site_note_id = graphene.ID(required=True)
 
