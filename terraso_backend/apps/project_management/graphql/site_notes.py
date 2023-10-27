@@ -41,9 +41,14 @@ class SiteNoteAddMutation(BaseWriteMutation):
     @classmethod
     def mutate_and_get_payload(cls, root, info, **input):
         user = info.context.user
-        site = Site.objects.get(pk=input["site_id"])
+        try:
+            site = Site.objects.get(pk=input["site_id"])
+        except Site.DoesNotExist:
+            return cls(errors={"site_id": ["Site not found"]})
+            
         site_note = SiteNote.objects.create(site=site, content=input["content"], author=user)
         return SiteNoteAddMutation(site_note=site_note)
+
 
 
 class SiteNoteUpdateMutation(BaseWriteMutation):
@@ -58,7 +63,7 @@ class SiteNoteUpdateMutation(BaseWriteMutation):
     def mutate_and_get_payload(cls, root, info, **kwargs):
         user = info.context.user
         site_note_id = kwargs["id"]
-        site_note = cls.get_or_throw(SiteNote, "id", site_note_id)
+        site_note = cls.get_node(info, id=site_note_id)
 
         if site_note.author != user:
             cls.not_allowed("You do not have permission to update this note")
@@ -79,7 +84,7 @@ class SiteNoteDeleteMutation(BaseDeleteMutation):
     def mutate_and_get_payload(cls, root, info, **kwargs):
         user = info.context.user
         site_note_id = kwargs["id"]
-        site_note = cls.get_or_throw(SiteNote, "id", site_note_id)
+        site_note = cls.get_node(info, id=site_note_id)
 
         if site_note.author != user:
             cls.not_allowed("You do not have permission to delete this note")
