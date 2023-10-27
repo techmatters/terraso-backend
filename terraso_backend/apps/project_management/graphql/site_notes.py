@@ -18,7 +18,7 @@ from graphene_django import DjangoObjectType
 
 from apps.project_management.models.site_notes import SiteNote
 from apps.project_management.models.sites import Site
-from terraso_backend.apps.graphql.schema.commons import (
+from apps.graphql.schema.commons import (
     BaseDeleteMutation,
     BaseWriteMutation,
 )
