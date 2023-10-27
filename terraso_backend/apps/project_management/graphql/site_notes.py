@@ -23,6 +23,8 @@ from apps.project_management.models.sites import Site
 
 
 class SiteNoteNode(DjangoObjectType):
+    id = graphene.ID(source="pk", required=True)
+
     class Meta:
         model = SiteNote
         fields = "__all__"

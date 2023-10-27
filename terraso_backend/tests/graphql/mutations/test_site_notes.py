@@ -12,6 +12,7 @@
 #
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see https://www.gnu.org/licenses/.
+import base64
 import json
 
 import pytest
@@ -35,15 +36,16 @@ def site_note(user, site):
     return mixer.blend("project_management.SiteNote", author=user, site=site)
 
 
-CREATE_SITE_NOTE_QUERY = """
-mutation createSiteNote($input: SiteNoteAddMutationInput!) {
-  createSiteNote(input: $input) {
+ADD_SITE_NOTE_QUERY = """
+mutation addSiteNote($input: SiteNoteAddMutationInput!) {
+  addSiteNote(input: $input) {
     siteNote {
       id
       content
       author {
         id
-        username
+        firstName
+        lastName
       }
       site {
         id
@@ -55,15 +57,18 @@ mutation createSiteNote($input: SiteNoteAddMutationInput!) {
 """
 
 
-def site_note_creation_data():
-    return {"content": "This is a test note."}
+def site_note_creation_data(site):
+    return {
+        "content": "This is a test note.",
+        "siteId": str(site.id),
+    }
 
 
 def test_site_note_creation(client_query, site, user):
-    kwargs = site_note_creation_data()
-    response = client_query(CREATE_SITE_NOTE_QUERY, variables={"input": kwargs})
+    kwargs = site_note_creation_data(site)
+    response = client_query(ADD_SITE_NOTE_QUERY, variables={"input": kwargs})
     content = json.loads(response.content)
-    assert "errors" not in content
+    assert "errors" not in content, content["errors"]
     id = content["data"]["addSiteNote"]["siteNote"]["id"]
     site_note = SiteNote.objects.get(pk=id)
     assert str(site_note.id) == id
@@ -81,8 +86,8 @@ DELETE_SITE_NOTE_QUERY = """
 """
 
 
-def test_delete_site_note(client, site_note, site_note_author):
-    client.force_login(site_note_author)
+def test_delete_site_note(client, site_note, user):
+    client.force_login(user)
 
     response = graphql_query(
         DELETE_SITE_NOTE_QUERY,
@@ -101,7 +106,8 @@ mutation updateSiteNote($input: SiteNoteUpdateMutationInput!) {
       content
       author {
         id
-        username
+        firstName
+        lastName
       }
       site {
         id
@@ -109,24 +115,24 @@ mutation updateSiteNote($input: SiteNoteUpdateMutationInput!) {
       createdAt
       updatedAt
     }
-    errors {
-      field
-      messages
-    }
+    errors
   }
 }
 """
 
 
-def test_site_note_update(client, site_note):
+def test_site_note_update(client, site_note, user):
+    client.force_login(user)
+
+    variables = {"input": {"id": str(site_note.id), "content": "This is an updated test note."}}
     response = graphql_query(
         UPDATE_SITE_NOTE_QUERY,
-        variables={"input": {"id": str(site_note.id), "content": "This is an updated test note."}},
+        variables=variables,
         client=client,
     )
     content = json.loads(response.content)
-
-    assert "errors" not in content
+    assert "errors" not in content, f"Unexpected errors: {content.get('errors')}"
     site_note.refresh_from_db()
-
-    assert site_note.content == "This is an updated test note."
+    assert (
+        site_note.content == "This is an updated test note."
+    ), "Site note content did not update as expected"

@@ -808,7 +808,6 @@ type SiteNoteNodeEdge {
 }
 
 type SiteNoteNode implements Node {
-  """The ID of the object"""
   id: ID!
   site: SiteNode!
   content: String!
