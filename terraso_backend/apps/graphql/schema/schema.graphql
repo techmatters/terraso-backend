@@ -1674,9 +1674,9 @@ type Mutations {
   updateProjectSoilSettings(input: ProjectSoilSettingsUpdateMutationInput!): ProjectSoilSettingsUpdateMutationPayload!
   updateProjectSoilSettingsDepthInterval(input: ProjectSoilSettingsUpdateDepthIntervalMutationInput!): ProjectSoilSettingsUpdateDepthIntervalMutationPayload!
   deleteProjectSoilSettingsDepthInterval(input: ProjectSoilSettingsDeleteDepthIntervalMutationInput!): ProjectSoilSettingsDeleteDepthIntervalMutationPayload!
-  addSiteNote(content: String!, siteId: ID!): SiteNoteAddMutation
-  updateSiteNote(content: String!, siteNoteId: ID!): SiteNoteUpdateMutation
-  deleteSiteNote(siteNoteId: ID!): SiteNoteDeleteMutation
+  addSiteNote(input: SiteNoteAddMutationInput!): SiteNoteAddMutationPayload!
+  updateSiteNote(input: SiteNoteUpdateMutationInput!): SiteNoteUpdateMutationPayload!
+  deleteSiteNote(input: SiteNoteDeleteMutationInput!): SiteNoteDeleteMutationPayload!
 }
 
 type GroupAddMutationPayload {
@@ -2411,14 +2411,37 @@ input ProjectSoilSettingsDeleteDepthIntervalMutationInput {
   clientMutationId: String
 }
 
-type SiteNoteAddMutation {
-  siteNote: SiteNoteNode
+type SiteNoteAddMutationPayload {
+  errors: GenericScalar
+  siteNote: SiteNoteNode!
+  clientMutationId: String
 }
 
-type SiteNoteUpdateMutation {
-  siteNote: SiteNoteNode
+input SiteNoteAddMutationInput {
+  siteId: ID!
+  content: String!
+  clientMutationId: String
 }
 
-type SiteNoteDeleteMutation {
+type SiteNoteUpdateMutationPayload {
+  errors: GenericScalar
+  siteNote: SiteNoteNode!
+  clientMutationId: String
+}
+
+input SiteNoteUpdateMutationInput {
+  id: ID!
+  content: String!
+  clientMutationId: String
+}
+
+type SiteNoteDeleteMutationPayload {
+  errors: GenericScalar
   ok: Boolean
+  clientMutationId: String
+}
+
+input SiteNoteDeleteMutationInput {
+  id: ID!
+  clientMutationId: String
 }
