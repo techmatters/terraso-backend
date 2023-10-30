@@ -53,7 +53,7 @@ def copy_memberships(apps, schema_editor):
 class Migration(migrations.Migration):
     dependencies = [
         ("collaboration", "0005_change_collaborator_to_editor"),
-        ("core", "0045_taxonomyterms_ecosystems_renamed"),
+        ("core", "0046_shared_resource"),
     ]
 
     operations = [
