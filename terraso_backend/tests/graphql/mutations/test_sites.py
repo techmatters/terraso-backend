@@ -171,6 +171,30 @@ def test_adding_site_owned_by_user_to_project(client, project, site, project_man
     assert site.owned_by(project)
 
 
+def test_removing_site_from_project(client, project, project_site, project_manager):
+    client.force_login(project_manager)
+    response = graphql_query(
+        UPDATE_SITE_QUERY, input_data={"id": str(project_site.id), "projectId": None}, client=client
+    ).json()
+    assert "errors" not in response
+    assert match_json("*..site.project", response) == [None]
+    project_site.refresh_from_db()
+    assert project_site.owner == project_manager
+
+
+def test_not_providing_project_id_does_not_change_project(
+    client, project, project_site, project_manager
+):
+    client.force_login(project_manager)
+    response = graphql_query(
+        UPDATE_SITE_QUERY, input_data={"id": str(project_site.id)}, client=client
+    ).json()
+    assert "errors" not in response
+    assert match_json("*..site.project.id", response) == [str(project.id)]
+    project_site.refresh_from_db()
+    assert project_site.project.id == project.id
+
+
 DELETE_SITE_QUERY = """
     mutation SiteDeleteMutation($input: SiteDeleteMutationInput!) {
         deleteSite(input: $input) {
