@@ -84,12 +84,8 @@ DELETE_SITE_NOTE_QUERY = """
 """
 
 
-def test_delete_site_note(client_query, client, site_note):
-    response = client_query(
-        DELETE_SITE_NOTE_QUERY,
-        variables={"input": {"id": str(site_note.id)}},
-        client=client,
-    )
+def test_delete_site_note(client_query, site_note):
+    response = client_query(DELETE_SITE_NOTE_QUERY, variables={"input": {"id": str(site_note.id)}})
     assert response.json()["data"]["deleteSiteNote"]["errors"] is None
     assert len(SiteNote.objects.filter(id=site_note.id)) == 0
 
@@ -119,11 +115,7 @@ mutation updateSiteNote($input: SiteNoteUpdateMutationInput!) {
 
 def test_site_note_update(client_query, client, site_note):
     variables = {"input": {"id": str(site_note.id), "content": "This is an updated test note."}}
-    response = client_query(
-        UPDATE_SITE_NOTE_QUERY,
-        variables=variables,
-        client=client,
-    )
+    response = client_query(UPDATE_SITE_NOTE_QUERY, variables=variables)
     content = json.loads(response.content)
     assert "errors" not in content, f"Unexpected errors: {content.get('errors')}"
     site_note.refresh_from_db()
