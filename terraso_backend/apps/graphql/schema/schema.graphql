@@ -807,6 +807,8 @@ type SiteNoteNodeEdge {
 }
 
 type SiteNoteNode implements Node {
+  deletedAt: DateTime
+  deletedByCascade: Boolean!
   id: ID!
   site: SiteNode!
   content: String!
