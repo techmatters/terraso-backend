@@ -2499,6 +2499,7 @@ input LandscapeMembershipSaveMutationInput {
 type LandscapeMembershipDeleteMutationPayload {
   errors: GenericScalar
   membership: CollaborationMembershipNode
+  landscape: LandscapeNode
   clientMutationId: String
 }
 

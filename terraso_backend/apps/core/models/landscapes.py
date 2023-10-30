@@ -15,8 +15,8 @@
 
 import structlog
 from dirtyfields import DirtyFieldsMixin
-from django.contrib.contenttypes.fields import GenericRelation
 from django.apps import apps
+from django.contrib.contenttypes.fields import GenericRelation
 from django.db import models, transaction
 
 from apps.core import permission_rules as perm_rules
