@@ -44,9 +44,9 @@ boto3==1.28.71 \
     --hash=sha256:8d1b50127b20b817fdcec3ce6a625c5057b5a722acf1cfa64cf3824ff40b1e75 \
     --hash=sha256:cf54d6da6d348317da896235e9850c7e550dbc18bd5cb16cce1b035e90d0166f
     # via moto
-botocore==1.31.71 \
-    --hash=sha256:223e95e8d44ffd85d6baa5c9fc67b029ff087484d304a4478c4dfe38bd433f3f \
-    --hash=sha256:505cae827536a7400c3faaca8aeefd2e7618134a8644df6b3077fa487fe2b783
+botocore==1.31.73 \
+    --hash=sha256:5334c22d5a3f4643931896137c57b2496fef005b039d87d8740e7a28eb31519d \
+    --hash=sha256:6e9caaa7205e0c0505f4868a4053e96eaf3f4b6bce0368a46970a8efeeacb492
     # via
     #   boto3
     #   moto
