@@ -50,6 +50,11 @@ class ProjectMembershipList(MembershipList):
         proxy = True
 
 
+class MeasurementUnits(models.TextChoices):
+    METRIC = "METRIC"
+    IMPERIAL = "IMPERIAL"
+
+
 class Project(BaseModel):
     class Meta(BaseModel.Meta):
         abstract = False
@@ -78,14 +83,20 @@ class Project(BaseModel):
     )
 
     seen_by = models.ManyToManyField(User, related_name="+")
+    archived = models.BooleanField(
+        default=False,
+    )
+
+    settings = models.OneToOneField(ProjectSettings, on_delete=models.PROTECT)
+    measurement_units = models.CharField(
+        default=MeasurementUnits.METRIC, choices=MeasurementUnits.choices
+    )
 
     @staticmethod
     def default_settings():
         settings = ProjectSettings()
         settings.save()
         return settings
-
-    settings = models.OneToOneField(ProjectSettings, on_delete=models.PROTECT)
 
     # overriding save to ensure we have a group and settings
     def save(self, *args, **kwargs):
@@ -94,10 +105,6 @@ class Project(BaseModel):
         if not hasattr(self, "membership_list"):
             self.membership_list = self.create_membership_list()
         return super(Project, self).save(*args, **kwargs)
-
-    archived = models.BooleanField(
-        default=False,
-    )
 
     @staticmethod
     def create_membership_list() -> MembershipList:
