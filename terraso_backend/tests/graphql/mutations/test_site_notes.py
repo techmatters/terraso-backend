@@ -15,7 +15,6 @@
 import json
 
 import pytest
-from graphene_django.utils.testing import graphql_query
 from mixer.backend.django import mixer
 
 from apps.project_management.models import Site, SiteNote
