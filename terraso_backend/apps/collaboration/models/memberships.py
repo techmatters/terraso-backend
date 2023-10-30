@@ -128,7 +128,7 @@ class MembershipList(BaseModel):
         return User.objects.filter(id__in=approved_memberships_user_ids)
 
     def has_role(self, user: User, role: str) -> bool:
-        return self.memberships.by_role(role).filter(id=user.id).exists()
+        return self.memberships.by_role(role).filter(user=user).exists()
 
     def is_approved_member(self, user: User) -> bool:
         return self.approved_members.filter(id=user.id).exists()
