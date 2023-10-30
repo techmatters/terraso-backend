@@ -675,6 +675,7 @@ type ProjectNode implements Node {
   description: String!
   membershipList: ProjectMembershipListNode!
   privacy: ProjectManagementProjectPrivacyChoices!
+  siteInstructions: String
   archived: Boolean!
   siteSet(
     offset: Int
@@ -773,6 +774,7 @@ type SiteNode implements Node {
   privacy: ProjectManagementSitePrivacyChoices!
   project: ProjectNode
   archived: Boolean!
+  notes(offset: Int, before: String, after: String, first: Int, last: Int): SiteNoteNodeConnection!
   id: ID!
   seen: Boolean!
   soilData: SoilDataNode!
@@ -785,6 +787,34 @@ enum ProjectManagementSitePrivacyChoices {
 
   """Public"""
   PUBLIC
+}
+
+type SiteNoteNodeConnection {
+  """Pagination data for this connection."""
+  pageInfo: PageInfo!
+
+  """Contains the nodes in this connection."""
+  edges: [SiteNoteNodeEdge]!
+}
+
+"""A Relay edge containing a `SiteNoteNode` and its cursor."""
+type SiteNoteNodeEdge {
+  """The item at the end of the edge"""
+  node: SiteNoteNode
+
+  """A cursor for use in pagination"""
+  cursor: String!
+}
+
+type SiteNoteNode implements Node {
+  deletedAt: DateTime
+  deletedByCascade: Boolean!
+  id: ID!
+  site: SiteNode!
+  content: String!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  author: UserNode!
 }
 
 type SoilDataNode {
@@ -1644,6 +1674,9 @@ type Mutations {
   updateProjectSoilSettings(input: ProjectSoilSettingsUpdateMutationInput!): ProjectSoilSettingsUpdateMutationPayload!
   updateProjectSoilSettingsDepthInterval(input: ProjectSoilSettingsUpdateDepthIntervalMutationInput!): ProjectSoilSettingsUpdateDepthIntervalMutationPayload!
   deleteProjectSoilSettingsDepthInterval(input: ProjectSoilSettingsDeleteDepthIntervalMutationInput!): ProjectSoilSettingsDeleteDepthIntervalMutationPayload!
+  addSiteNote(input: SiteNoteAddMutationInput!): SiteNoteAddMutationPayload!
+  updateSiteNote(input: SiteNoteUpdateMutationInput!): SiteNoteUpdateMutationPayload!
+  deleteSiteNote(input: SiteNoteDeleteMutationInput!): SiteNoteDeleteMutationPayload!
 }
 
 type GroupAddMutationPayload {
@@ -2128,6 +2161,7 @@ input ProjectAddMutationInput {
   name: String!
   privacy: ProjectPrivacy!
   description: String
+  siteInstructions: String
   clientMutationId: String
 }
 
@@ -2147,6 +2181,7 @@ input ProjectUpdateMutationInput {
   name: String
   privacy: ProjectPrivacy = null
   description: String
+  siteInstructions: String
   clientMutationId: String
 }
 
@@ -2373,5 +2408,40 @@ type ProjectSoilSettingsDeleteDepthIntervalMutationPayload {
 input ProjectSoilSettingsDeleteDepthIntervalMutationInput {
   projectId: ID!
   depthInterval: DepthIntervalInput!
+  clientMutationId: String
+}
+
+type SiteNoteAddMutationPayload {
+  errors: GenericScalar
+  siteNote: SiteNoteNode!
+  clientMutationId: String
+}
+
+input SiteNoteAddMutationInput {
+  siteId: ID!
+  content: String!
+  clientMutationId: String
+}
+
+type SiteNoteUpdateMutationPayload {
+  errors: GenericScalar
+  siteNote: SiteNoteNode!
+  clientMutationId: String
+}
+
+input SiteNoteUpdateMutationInput {
+  id: ID!
+  content: String!
+  clientMutationId: String
+}
+
+type SiteNoteDeleteMutationPayload {
+  errors: GenericScalar
+  ok: Boolean
+  clientMutationId: String
+}
+
+input SiteNoteDeleteMutationInput {
+  id: ID!
   clientMutationId: String
 }

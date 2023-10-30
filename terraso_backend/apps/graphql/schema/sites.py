@@ -72,6 +72,7 @@ class SiteNode(DjangoObjectType):
             "owner",
             "privacy",
             "updated_at",
+            "notes",
         )
         filterset_class = SiteFilter
 
