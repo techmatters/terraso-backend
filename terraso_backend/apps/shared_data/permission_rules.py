@@ -15,6 +15,7 @@
 
 import rules
 
+from apps.core import landscape_collaboration_roles
 from apps.core.models import Group, Landscape
 
 
@@ -22,7 +23,11 @@ def is_target_manager(user, target):
     if isinstance(target, Group):
         return user.memberships.managers_only().filter(group=target).exists()
     if isinstance(target, Landscape):
-        return user.memberships.managers_only().filter(group=target.get_default_group()).exists()
+        return (
+            target.membership_list.memberships.by_role(landscape_collaboration_roles.ROLE_MANAGER)
+            .filter(user=user)
+            .exists()
+        )
     return False
 
 
@@ -30,7 +35,7 @@ def is_target_member(user, target):
     if isinstance(target, Group):
         return user.memberships.approved_only().filter(group=target).exists()
     if isinstance(target, Landscape):
-        return user.memberships.approved_only().filter(group=target.get_default_group()).exists()
+        return target.membership_list.memberships.approved_only().filter(user=user).exists()
     return False
 
 

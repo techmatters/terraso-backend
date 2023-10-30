@@ -29,7 +29,7 @@ from ..core.gis.test_parsers import KML_CONTENT, KML_GEOJSON
 pytestmark = pytest.mark.django_db
 
 
-def test_data_entries_query(client_query, data_entries):
+def test_data_entries_query(client_query, data_entries, landscape_data_entries_memberships):
     response = client_query(
         """
         {dataEntries {
@@ -69,7 +69,9 @@ def test_data_entry_get_one_by_id(client_query, data_entries):
     assert data_entry_result["name"] == data_entry.name
 
 
-def test_data_entries_query_has_total_count(client_query, data_entries):
+def test_data_entries_query_has_total_count(
+    client_query, data_entries, landscape_data_entries_memberships
+):
     response = client_query(
         """
         {dataEntries {

@@ -16,6 +16,7 @@
 from datetime import timedelta
 
 import pytest
+from django.contrib.contenttypes.models import ContentType
 from django.utils import timezone
 from freezegun import freeze_time
 from graphene_django.utils.testing import graphql_query
@@ -317,7 +318,7 @@ def group_data_entries(users, groups):
 
 
 @pytest.fixture
-def landscape_data_entries(users, landscapes, landscape_groups):
+def landscape_data_entries(users, landscapes):
     creator = users[0]
     creator_landscape = landscapes[0]
     resources = mixer.cycle(5).blend(
@@ -328,6 +329,21 @@ def landscape_data_entries(users, landscapes, landscape_groups):
         ),
     )
     return [resource.source for resource in resources]
+
+
+@pytest.fixture
+def landscape_data_entries_memberships(users, landscape_data_entries):
+    user = users[0]
+    for data_entry in landscape_data_entries:
+        shared_resource = data_entry.shared_resources.first()
+        if shared_resource.target_content_type == ContentType.objects.get(
+            app_label="core", model="landscape"
+        ):
+            shared_resource.target.membership_list.save_membership(
+                user_email=user.email,
+                user_role=landscape_collaboration_roles.ROLE_MEMBER,
+                membership_status=CollaborationMembership.APPROVED,
+            )
 
 
 @pytest.fixture
