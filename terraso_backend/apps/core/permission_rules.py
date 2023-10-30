@@ -15,6 +15,8 @@
 
 import rules
 
+from apps.core import landscape_collaboration_roles
+
 
 @rules.predicate
 def allowed_to_change_group(user, group_id):
@@ -99,6 +101,26 @@ def allowed_group_managers_count(user, membership_id):
 
 
 @rules.predicate
+def allowed_landscape_managers_count(user, obj):
+    membership = obj.get("membership")
+    landscape = obj.get("landscape")
+
+    is_user_manager = landscape.membership_list.has_role(
+        user, landscape_collaboration_roles.ROLE_MANAGER
+    )
+    managers_count = landscape.membership_list.memberships.by_role(
+        landscape_collaboration_roles.ROLE_MANAGER
+    ).count()
+    is_own_membership = user.collaboration_memberships.filter(pk=membership.id).exists()
+
+    # User is the last manager and a Group cannot have no managers
+    if managers_count == 1 and is_user_manager and is_own_membership:
+        return False
+
+    return True
+
+
+@rules.predicate
 def allowed_to_update_preferences(user, user_preferences):
     return user_preferences.user.id == user.id
 
@@ -147,3 +169,4 @@ rules.add_rule("allowed_to_update_preferences", allowed_to_update_preferences)
 rules.add_rule("allowed_to_change_landscape", allowed_to_change_landscape)
 rules.add_rule("allowed_to_change_landscape_membership", allowed_to_change_landscape_membership)
 rules.add_rule("allowed_to_delete_landscape_membership", allowed_to_delete_landscape_membership)
+rules.add_rule("allowed_landscape_managers_count", allowed_landscape_managers_count)

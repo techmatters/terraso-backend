@@ -491,5 +491,23 @@ class LandscapeMembershipDeleteMutation(BaseDeleteMutation):
                 model_name=CollaborationMembership.__name__, operation=MutationTypes.DELETE
             )
 
+        if not rules.test_rule(
+            "allowed_landscape_managers_count",
+            user,
+            {
+                "landscape": landscape,
+                "membership": membership,
+            },
+        ):
+            logger.info(
+                "Attempt to update a Membership, but manager's count doesn't allow",
+                extra={"user_id": user.pk, "membership_id": membership_id},
+            )
+            raise GraphQLNotAllowedException(
+                model_name=Membership.__name__,
+                operation=MutationTypes.DELETE,
+                message="manager_count",
+            )
+
         result = super().mutate_and_get_payload(root, info, **kwargs)
-        return cls(membership=result, landscape=landscape)
+        return cls(membership=result.membership, landscape=landscape)

@@ -450,3 +450,40 @@ def test_landscape_membership_delete_by_any_other_user(
         "delete_not_allowed"
         in response["data"]["deleteLandscapeMembership"]["errors"][0]["message"]
     )
+
+
+def test_landscape_membership_delete_by_last_manager(client_query, managed_landscapes, users):
+    landscape = managed_landscapes[0]
+    manager_membership = landscape.membership_list.memberships.by_role(
+        landscape_collaboration_roles.ROLE_MANAGER,
+    ).first()
+
+    response = client_query(
+        """
+        mutation deleteMembership($input: LandscapeMembershipDeleteMutationInput!){
+          deleteLandscapeMembership(input: $input) {
+            membership {
+              user {
+                email
+              },
+            }
+            errors
+          }
+        }
+        """,
+        variables={
+            "input": {
+                "id": str(manager_membership.id),
+                "landscapeSlug": landscape.slug,
+            }
+        },
+    )
+
+    response = response.json()
+
+    assert "errors" in response["data"]["deleteLandscapeMembership"]
+    assert (
+        "delete_not_allowed"
+        in response["data"]["deleteLandscapeMembership"]["errors"][0]["message"]
+    )
+    assert "manager_count" in response["data"]["deleteLandscapeMembership"]["errors"][0]["message"]
