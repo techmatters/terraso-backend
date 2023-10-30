@@ -20,12 +20,12 @@ from apps.core.models.commons import BaseModel
 from apps.project_management import permission_rules
 
 
-class SiteNote(models.Model):
+class SiteNote(BaseModel):
     class Meta(BaseModel.Meta):
         abstract = False
         rules_permissions = {
-           "update": permission_rules.allowed_to_update_site_note,
-           "delete": permission_rules.allowed_to_delete_site_note,
+            "update": permission_rules.allowed_to_update_site_note,
+            "delete": permission_rules.allowed_to_delete_site_note,
         }
 
     site = models.ForeignKey("Site", on_delete=models.CASCADE, related_name="notes")
@@ -39,3 +39,6 @@ class SiteNote(models.Model):
         on_delete=models.RESTRICT,
         verbose_name="author of the note",
     )
+
+    def is_author(self, user: User) -> bool:
+        return self.author == user

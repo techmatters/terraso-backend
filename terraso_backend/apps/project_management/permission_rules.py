@@ -124,4 +124,5 @@ rules.add_rule("allowed_to_update_site_note", allowed_to_update_site_note)
 def allowed_to_delete_site_note(user, site_note):
     return allowed_to_update_site_note(user, site_note)
 
+
 rules.add_rule("allowed_to_delete_site_note", allowed_to_delete_site_note)
