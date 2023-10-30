@@ -16,9 +16,15 @@
 from django.db import models
 
 from apps.core.models import User
+from apps.core.models.commons import BaseModel
+from apps.project_management import permission_rules
 
 
 class SiteNote(models.Model):
+    class Meta(BaseModel.Meta):
+        abstract = False
+
+
     site = models.ForeignKey("Site", on_delete=models.CASCADE, related_name="notes")
     content = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
@@ -28,5 +34,5 @@ class SiteNote(models.Model):
         null=False,
         blank=False,
         on_delete=models.RESTRICT,
-        verbose_name="author to whom the note belongs",
+        verbose_name="author of the note",
     )

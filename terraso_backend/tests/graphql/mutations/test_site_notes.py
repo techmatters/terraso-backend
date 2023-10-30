@@ -85,10 +85,8 @@ DELETE_SITE_NOTE_QUERY = """
 """
 
 
-def test_delete_site_note(client, site_note, user):
-    client.force_login(user)
-
-    response = graphql_query(
+def test_delete_site_note(client_query, site_note):
+    response = client_query(
         DELETE_SITE_NOTE_QUERY,
         variables={"input": {"id": str(site_note.id)}},
         client=client,
