@@ -52,6 +52,7 @@ class GroupAdmin(admin.ModelAdmin):
 @admin.register(Landscape)
 class LandscapeAdmin(admin.ModelAdmin):
     list_display = ("name", "slug", "location", "website", "created_at")
+    raw_id_fields = ("membership_list",)
 
     readonly_fields = ("default_group",)
 
