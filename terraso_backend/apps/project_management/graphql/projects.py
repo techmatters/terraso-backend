@@ -141,6 +141,7 @@ class ProjectNode(DjangoObjectType):
             "archived",
             "membership_list",
             "measurement_units",
+            "site_instructions",
         )
 
         interfaces = (relay.Node,)
@@ -180,6 +181,7 @@ class ProjectAddMutation(BaseWriteMutation):
         privacy = graphene.Field(ProjectPrivacy, required=True)
         description = graphene.String()
         measurement_units = graphene.Field(MeasurementUnits, required=True)
+        site_instructions = graphene.String()
 
     @classmethod
     def mutate_and_get_payload(cls, root, info, **kwargs):
@@ -276,6 +278,7 @@ class ProjectUpdateMutation(BaseWriteMutation):
         privacy = graphene.Field(ProjectPrivacy)
         description = graphene.String()
         measurement_units = graphene.Field(MeasurementUnits)
+        site_instructions = graphene.String()
 
     @classmethod
     @transaction.atomic

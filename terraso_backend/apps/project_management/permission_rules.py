@@ -108,3 +108,21 @@ def allowed_to_transfer_site_to_project(user, context):
 
 
 rules.add_rule("allowed_to_transfer_site_to_project", allowed_to_transfer_site_to_project)
+
+
+@rules.predicate
+def allowed_to_update_site_note(user, site_note):
+    if site_note.site.owned_by_user:
+        return site_note.site.owner == user
+    return site_note.is_author(user)
+
+
+rules.add_rule("allowed_to_update_site_note", allowed_to_update_site_note)
+
+
+@rules.predicate
+def allowed_to_delete_site_note(user, site_note):
+    return allowed_to_update_site_note(user, site_note)
+
+
+rules.add_rule("allowed_to_delete_site_note", allowed_to_delete_site_note)

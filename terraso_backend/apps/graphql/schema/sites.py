@@ -72,6 +72,7 @@ class SiteNode(DjangoObjectType):
             "owner",
             "privacy",
             "updated_at",
+            "notes",
         )
         filterset_class = SiteFilter
 
@@ -192,13 +193,17 @@ class SiteUpdateMutation(BaseWriteMutation):
             kwargs["privacy"] = kwargs["privacy"].value
 
         result = super().mutate_and_get_payload(root, info, **kwargs)
-        if not project_id:
+        if project_id is False:
+            # no project id included
             return result
         site = result.site
-        project = Project.objects.get(id=project_id)
-        if not user.has_perm(Project.get_perm("add_site"), project):
-            raise cls.not_allowed(MutationTypes.UPDATE)
-        site.add_to_project(project)
+        if project_id is not None:
+            project = Project.objects.get(id=project_id)
+            if not user.has_perm(Project.get_perm("add_site"), project):
+                raise cls.not_allowed(MutationTypes.UPDATE)
+            site.add_to_project(project)
+        else:
+            site.add_owner(user)
 
         client_time = kwargs.get("client_time", None)
         if not client_time:

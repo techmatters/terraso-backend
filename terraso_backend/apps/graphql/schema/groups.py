@@ -79,7 +79,6 @@ class GroupNode(DjangoObjectType, SharedResourcesMixin):
             "associations_as_parent",
             "associations_as_child",
             "associated_landscapes",
-            "data_entries",
         )
         filterset_class = GroupFilterSet
         interfaces = (relay.Node,)

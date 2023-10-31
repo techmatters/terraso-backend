@@ -91,6 +91,7 @@ class Project(BaseModel):
     measurement_units = models.CharField(
         default=MeasurementUnits.METRIC, choices=MeasurementUnits.choices
     )
+    site_instructions = models.TextField(null=True, blank=True)
 
     @staticmethod
     def default_settings():

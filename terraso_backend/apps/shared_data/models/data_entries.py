@@ -19,7 +19,7 @@ from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from safedelete.models import SOFT_DELETE
 
-from apps.core.models import BaseModel, Group, SharedResource, User
+from apps.core.models import BaseModel, SharedResource, User
 from apps.shared_data import permission_rules as perm_rules
 from apps.shared_data.services import DataEntryFileStorage
 
@@ -75,8 +75,6 @@ class DataEntry(BaseModel):
     url = models.URLField()
     size = models.PositiveBigIntegerField(null=True, blank=True)
 
-    # groups deprecated, use shared_resources instead, groups will be removed in the future
-    groups = models.ManyToManyField(Group, related_name="data_entries")
     created_by = models.ForeignKey(User, null=True, on_delete=models.DO_NOTHING)
     file_removed_at = models.DateTimeField(blank=True, null=True)
 

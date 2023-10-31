@@ -110,6 +110,11 @@ def project_with_sites(project: Project) -> Project:
 
 
 @pytest.fixture
+def project_site(project: Project) -> Site:
+    return mixer.blend(Site, project=project)
+
+
+@pytest.fixture
 def project_user(project: Project) -> User:
     user = mixer.blend(User)
     Membership.objects.create(
