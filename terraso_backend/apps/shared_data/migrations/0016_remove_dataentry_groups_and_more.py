@@ -22,7 +22,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
     dependencies = [
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
-        ("shared_data", "0014_visualizationconfig_owner_null"),
+        ("shared_data", "0015_dataentry_groups_move_data"),
     ]
 
     operations = [

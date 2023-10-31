@@ -26,36 +26,6 @@ from django.db import migrations, models
 import apps.core.models.commons
 
 
-def data_entries_to_shared_resources(apps, schema_editor):
-    ContentType = apps.get_model("contenttypes", "ContentType")
-    LandscapeGroup = apps.get_model("core", "LandscapeGroup")
-    SharedResource = apps.get_model("core", "SharedResource")
-    DataEntry = apps.get_model("shared_data", "DataEntry")
-    data_entries = DataEntry.objects.all()
-    for data_entry in data_entries:
-        groups = data_entry.groups.all()
-        for group in groups:
-            landscape_group = LandscapeGroup.objects.filter(
-                group=group, is_default_landscape_group=True
-            ).first()
-            if landscape_group is None:
-                SharedResource.objects.create(
-                    source_content_type=ContentType.objects.get_for_model(data_entry),
-                    source_object_id=data_entry.id,
-                    target_content_type=ContentType.objects.get_for_model(group),
-                    target_object_id=group.id,
-                )
-            else:
-                SharedResource.objects.create(
-                    source_content_type=ContentType.objects.get_for_model(data_entry),
-                    source_object_id=data_entry.id,
-                    target_content_type=ContentType.objects.get_for_model(
-                        landscape_group.landscape
-                    ),
-                    target_object_id=landscape_group.landscape.id,
-                )
-
-
 class Migration(migrations.Migration):
     dependencies = [
         ("contenttypes", "0002_remove_content_type_name"),
@@ -102,5 +72,4 @@ class Migration(migrations.Migration):
             },
             bases=(rules.contrib.models.RulesModelMixin, models.Model),
         ),
-        migrations.RunPython(data_entries_to_shared_resources),
     ]
