@@ -19,7 +19,7 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
     dependencies = [
-        ("project_management", "0020_alter_project_name"),
+        ("project_management", "0021_project_site_instructions_sitenote.py"),
     ]
 
     operations = [
