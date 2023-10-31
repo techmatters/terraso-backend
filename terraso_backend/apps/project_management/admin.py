@@ -19,10 +19,15 @@ from django.contrib import admin
 
 from apps.project_management.models import Project, ProjectSettings, Site
 
-admin.site.register(Site)
 admin.site.register(ProjectSettings)
 
 
 @admin.register(Project)
 class ProjectAdmin(admin.ModelAdmin):
     readonly_fields = ("membership_list", "settings")
+    list_display = ("name", "created_at")
+
+
+@admin.register(Site)
+class SiteAdmin(admin.ModelAdmin):
+    list_display = ("name", "owner", "created_at")
