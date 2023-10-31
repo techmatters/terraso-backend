@@ -145,12 +145,23 @@ def allowed_to_add_membership(user, group):
 @rules.predicate
 def allowed_to_change_landscape_membership(user, obj):
     landscape = obj.get("landscape")
+    user_role = obj.get("user_role")
     user_exists = obj.get("user_exists")
+    user_email = obj.get("user_email")
+    is_landscape_manager = user.is_landscape_manager(landscape.id)
+    own_membership = user_email == user.email
 
     if not user_exists:
         return False
 
-    return user.is_landscape_manager(landscape.id)
+    if (
+        not is_landscape_manager
+        and own_membership
+        and user_role == landscape_collaboration_roles.ROLE_MEMBER
+    ):
+        return True
+
+    return is_landscape_manager
 
 
 @rules.predicate
