@@ -17,7 +17,11 @@ import graphene
 from django.db import transaction
 from graphene_django import DjangoObjectType
 
-from apps.graphql.schema.commons import BaseDeleteMutation, BaseWriteMutation
+from apps.graphql.schema.commons import (
+    BaseDeleteMutation,
+    BaseWriteMutation,
+    TerrasoConnection,
+)
 from apps.project_management.models.site_notes import SiteNote
 from apps.project_management.models.sites import Site
 
@@ -29,6 +33,8 @@ class SiteNoteNode(DjangoObjectType):
         model = SiteNote
         fields = "__all__"
         interfaces = (graphene.relay.Node,)
+
+        connection_class = TerrasoConnection
 
 
 class SiteNoteAddMutation(BaseWriteMutation):
