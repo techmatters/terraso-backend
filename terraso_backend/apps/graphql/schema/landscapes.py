@@ -66,6 +66,7 @@ class LandscapeNode(DjangoObjectType, SharedResourcesMixin):
             "slug": ["exact", "icontains"],
             "website": ["icontains"],
             "location": ["icontains"],
+            "membership_list__memberships__user__email": ["exact"],
         }
         fields = (
             "name",
