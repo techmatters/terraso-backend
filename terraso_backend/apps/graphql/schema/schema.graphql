@@ -794,13 +794,14 @@ type SiteNoteNodeConnection {
   pageInfo: PageInfo!
 
   """Contains the nodes in this connection."""
-  edges: [SiteNoteNodeEdge]!
+  edges: [SiteNoteNodeEdge!]!
+  totalCount: Int!
 }
 
 """A Relay edge containing a `SiteNoteNode` and its cursor."""
 type SiteNoteNodeEdge {
   """The item at the end of the edge"""
-  node: SiteNoteNode
+  node: SiteNoteNode!
 
   """A cursor for use in pagination"""
   cursor: String!
