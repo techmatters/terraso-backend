@@ -18,6 +18,15 @@ from django.db import migrations
 
 
 def data_entries_to_shared_resources(apps, schema_editor):
+    connection = schema_editor.connection
+
+    # Check if the relation (table) exists in the database
+    cursor = connection.cursor()
+    cursor.execute("SELECT to_regclass('public.shared_data_dataentry_groups');")
+    relation = cursor.fetchone()
+    if not (relation and relation[0]):
+        return
+
     ContentType = apps.get_model("contenttypes", "ContentType")
     LandscapeGroup = apps.get_model("core", "LandscapeGroup")
     SharedResource = apps.get_model("core", "SharedResource")
