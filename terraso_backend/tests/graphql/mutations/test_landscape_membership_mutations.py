@@ -113,6 +113,7 @@ def test_landscape_membership_add_user_not_found(client_query, managed_landscape
         },
     )
     response = response.json()
+    print(response)
 
     assert "errors" in response["data"]["saveLandscapeMembership"]
     assert (
@@ -157,7 +158,7 @@ def test_landscape_membership_adding_duplicated_returns_existing_membership(
 
 def test_landscape_membership_add_manager(client_query, managed_landscapes, users):
     landscape = managed_landscapes[0]
-    user = users[0]
+    user = users[3]
 
     response = client_query(
         """
@@ -188,6 +189,73 @@ def test_landscape_membership_add_manager(client_query, managed_landscapes, user
     assert membership["id"]
     assert membership["user"]["email"] == user.email
     assert membership["userRole"] == landscape_collaboration_roles.ROLE_MANAGER
+    assert membership["membershipStatus"] == CollaborationMembership.APPROVED.upper()
+
+
+def test_landscape_membership_add_manager_fail(client_query, managed_landscapes, users):
+    landscape = managed_landscapes[1]
+    user = users[3]
+
+    response = client_query(
+        """
+        mutation addMembership($input: LandscapeMembershipSaveMutationInput!){
+          saveLandscapeMembership(input: $input) {
+            memberships {
+              id
+            }
+            errors
+          }
+        }
+        """,
+        variables={
+            "input": {
+                "userEmails": [user.email],
+                "landscapeSlug": landscape.slug,
+                "userRole": landscape_collaboration_roles.ROLE_MANAGER,
+            }
+        },
+    )
+    response = response.json()
+
+    assert "errors" in response["data"]["saveLandscapeMembership"]
+    assert (
+        "update_not_allowed" in response["data"]["saveLandscapeMembership"]["errors"][0]["message"]
+    )
+
+
+def test_landscape_membership_join(client_query, managed_landscapes, users):
+    landscape = managed_landscapes[1]
+    user = users[0]
+
+    response = client_query(
+        """
+        mutation addMembership($input: LandscapeMembershipSaveMutationInput!){
+          saveLandscapeMembership(input: $input) {
+            memberships {
+              id
+              userRole
+              membershipStatus
+              user {
+                email
+              }
+            }
+          }
+        }
+        """,
+        variables={
+            "input": {
+                "userEmails": [user.email],
+                "landscapeSlug": landscape.slug,
+                "userRole": landscape_collaboration_roles.ROLE_MEMBER,
+            }
+        },
+    )
+    json_response = response.json()
+    membership = json_response["data"]["saveLandscapeMembership"]["memberships"][0]
+
+    assert membership["id"]
+    assert membership["user"]["email"] == user.email
+    assert membership["userRole"] == landscape_collaboration_roles.ROLE_MEMBER
     assert membership["membershipStatus"] == CollaborationMembership.APPROVED.upper()
 
 

@@ -80,6 +80,7 @@ class MembershipList(BaseModel):
                 "membership_status": membership_status,
                 "current_membership": membership,
                 "user_exists": user_exists,
+                "user_email": user_email,
             }
         ):
             raise ValidationError("User cannot request membership")
