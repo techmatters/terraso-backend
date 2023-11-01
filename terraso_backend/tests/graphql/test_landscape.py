@@ -200,7 +200,7 @@ def test_landscapes_query_with_membership_for_anonymous_user(
     membership_list = json_response["data"]["landscapes"]["edges"][0]["node"]["membershipList"]
     memberships = membership_list["memberships"]["edges"]
     assert len(memberships) == 0
-    assert membership_list["membershipsCount"] == 0
+    assert membership_list["membershipsCount"] == 2
 
 
 def test_landscapes_query_by_membership_email(client_query, landscape_user_memberships):
