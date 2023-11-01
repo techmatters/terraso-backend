@@ -31,9 +31,6 @@ logger = structlog.get_logger(__name__)
 
 class GroupFilterSet(django_filters.FilterSet):
     memberships__email = django_filters.CharFilter(method="filter_memberships_email")
-    associated_landscapes__is_default_landscape_group = django_filters.BooleanFilter(
-        method="filter_associated_landscapes"
-    )
     associated_landscapes__isnull = django_filters.BooleanFilter(
         method="filter_associated_landscapes"
     )
@@ -83,6 +80,12 @@ class GroupNode(DjangoObjectType, SharedResourcesMixin):
         filterset_class = GroupFilterSet
         interfaces = (relay.Node,)
         connection_class = TerrasoConnection
+
+    @classmethod
+    def get_queryset(cls, queryset, info):
+        return queryset.exclude(
+            associated_landscapes__is_default_landscape_group=True,
+        )
 
     def resolve_account_membership(self, info):
         user = info.context.user

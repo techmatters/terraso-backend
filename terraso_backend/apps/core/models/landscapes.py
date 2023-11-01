@@ -137,34 +137,14 @@ class Landscape(SlugModel, DirtyFieldsMixin):
             super().save(*args, **kwargs)
 
     def delete(self, *args, **kwargs):
-        default_group = self.get_default_group()
+        membership_list = self.membership_list
 
         with transaction.atomic():
             ret = super().delete(*args, **kwargs)
-            # default group should be deleted as well
-            if default_group is not None:
-                default_group.delete()
+            if membership_list is not None:
+                membership_list.delete()
 
         return ret
-
-    def get_default_group(self):
-        """
-        A default Group in a Landscape is that Group where any
-        individual (associated or not with other Groups) is added when
-        associating directly with a Landscape.
-        """
-        try:
-            # associated_groups is the related_name defined on
-            # LandscapeGroup relationship with Landscape. It returns a
-            # queryset of LandscapeGroup
-            landscape_group = self.associated_groups.get(is_default_landscape_group=True)
-        except LandscapeGroup.DoesNotExist:
-            logger.error(
-                "Landscape has no default group, but it must have", extra={"landscape_id": self.pk}
-            )
-            return None
-
-        return landscape_group.group
 
     def __str__(self):
         return self.name
