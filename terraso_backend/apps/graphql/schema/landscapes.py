@@ -132,6 +132,7 @@ class LandscapeNode(DjangoObjectType, SharedResourcesMixin):
                     )
                 )
                 .all()
+                .distinct()
             )
         except Exception as e:
             logger.exception("Error prefetching Landscape data", error=e)
