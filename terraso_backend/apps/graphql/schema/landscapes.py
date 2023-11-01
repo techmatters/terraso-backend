@@ -24,6 +24,7 @@ from graphene_django import DjangoObjectType
 
 from apps.collaboration.graphql import CollaborationMembershipNode
 from apps.collaboration.models import Membership as CollaborationMembership
+from apps.collaboration.models import MembershipList
 from apps.core import landscape_collaboration_roles
 from apps.core.gis.utils import m2_to_hectares
 from apps.core.models import (
@@ -99,19 +100,19 @@ class LandscapeNode(DjangoObjectType, SharedResourcesMixin):
         is_anonymous = info.context.user.is_anonymous
 
         try:
-            # Prefetch default landscape group, account membership and count of members
-            group_queryset = (
-                Group.objects.prefetch_related(
+            # Prefetch account membership and count of members
+            membership_list_queryset = (
+                MembershipList.objects.prefetch_related(
                     Prefetch(
                         "memberships",
                         to_attr="account_memberships",
-                        queryset=Membership.objects.filter(
+                        queryset=CollaborationMembership.objects.filter(
                             user=info.context.user,
                         ),
                     ),
                 )
                 if not is_anonymous
-                else Group.objects.all()
+                else MembershipList.objects.all()
             ).annotate(
                 memberships_count=Count(
                     "memberships__user",
@@ -120,20 +121,14 @@ class LandscapeNode(DjangoObjectType, SharedResourcesMixin):
                     & Q(memberships__membership_status=Membership.APPROVED),
                 )
             )
-            landscape_group_queryset = LandscapeGroup.objects.prefetch_related(
-                Prefetch(
-                    "group",
-                    queryset=group_queryset,
-                ),
-            ).filter(is_default_landscape_group=True)
+
             # Fetch all fields from Landscape, except for area_polygon
             result = (
                 queryset.defer("area_polygon")
                 .prefetch_related(
                     Prefetch(
-                        "associated_groups",
-                        to_attr="default_landscape_groups",
-                        queryset=landscape_group_queryset,
+                        "membership_list",
+                        queryset=membership_list_queryset,
                     )
                 )
                 .all()
@@ -146,13 +141,6 @@ class LandscapeNode(DjangoObjectType, SharedResourcesMixin):
     def resolve_area_scalar_ha(self, info):
         area = self.area_scalar_m2
         return None if area is None else round(m2_to_hectares(area), 3)
-
-    def resolve_default_group(self, info):
-        if hasattr(self, "default_landscape_groups"):
-            if len(self.default_landscape_groups) > 0:
-                return self.default_landscape_groups[0].group
-            return None
-        return self.get_default_group()
 
 
 class LandscapeDevelopmentStrategyNode(DjangoObjectType):
