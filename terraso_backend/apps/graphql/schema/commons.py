@@ -261,6 +261,22 @@ class BaseWriteMutation(BaseAuthenticatedMutation):
             cls.logger = audit_log_services.new_audit_logger()
         return cls.logger
 
+    @staticmethod
+    def remove_null_fields(kwargs, options=[str]):
+        """It seems like for some fields, if the frontend does not pass an argument, the
+        key in kwargs will not be set. If they explicitly pass a null GraphQL value,
+        Graphene will pass the value of None to the resolver. However it seems like for
+        some fields, the value will be passed None, even if it is not included in the
+        input arguments. This is not always desired, so this function was created as a
+        utility method. Should try and figure out what is really happening here at some
+        point."""
+        if not options:
+            options = kwargs.keys()
+        for key in options:
+            if key in kwargs and not kwargs[key]:
+                del kwargs[key]
+        return kwargs
+
 
 class BaseDeleteMutation(BaseAuthenticatedMutation):
     @classmethod

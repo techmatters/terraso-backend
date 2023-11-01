@@ -675,8 +675,9 @@ type ProjectNode implements Node {
   description: String!
   membershipList: ProjectMembershipListNode!
   privacy: ProjectManagementProjectPrivacyChoices!
-  siteInstructions: String
   archived: Boolean!
+  measurementUnits: ProjectManagementProjectMeasurementUnitsChoices!
+  siteInstructions: String
   siteSet(
     offset: Int
     before: String
@@ -745,6 +746,15 @@ enum ProjectManagementProjectPrivacyChoices {
 
   """Public"""
   PUBLIC
+}
+
+"""An enumeration."""
+enum ProjectManagementProjectMeasurementUnitsChoices {
+  """Metric"""
+  METRIC
+
+  """Imperial"""
+  IMPERIAL
 }
 
 type SiteNodeConnection {
@@ -2162,6 +2172,7 @@ input ProjectAddMutationInput {
   name: String!
   privacy: ProjectPrivacy!
   description: String
+  measurementUnits: MeasurementUnits!
   siteInstructions: String
   clientMutationId: String
 }
@@ -2169,6 +2180,11 @@ input ProjectAddMutationInput {
 enum ProjectPrivacy {
   PRIVATE
   PUBLIC
+}
+
+enum MeasurementUnits {
+  METRIC
+  IMPERIAL
 }
 
 type ProjectUpdateMutationPayload {
@@ -2182,6 +2198,7 @@ input ProjectUpdateMutationInput {
   name: String
   privacy: ProjectPrivacy = null
   description: String
+  measurementUnits: MeasurementUnits = null
   siteInstructions: String
   clientMutationId: String
 }

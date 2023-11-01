@@ -1,3 +1,18 @@
+# Copyright © 2023 Technology Matters
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as published
+# by the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program. If not, see https://www.gnu.org/licenses/.
+
 import json
 
 import pytest
@@ -32,7 +47,12 @@ def test_create_project(client, user):
     response = graphql_query(
         CREATE_PROJECT_QUERY,
         variables={
-            "input": {"name": "testProject", "privacy": "PRIVATE", "description": "A test project"}
+            "input": {
+                "name": "testProject",
+                "privacy": "PRIVATE",
+                "description": "A test project",
+                "measurementUnits": "METRIC",
+            }
         },
         client=client,
     )
@@ -426,7 +446,9 @@ def test_mark_project_seen(client, user):
     client.force_login(user)
     response = graphql_query(
         CREATE_PROJECT_QUERY,
-        variables={"input": {"name": "project", "privacy": "PUBLIC"}},
+        variables={
+            "input": {"name": "project", "privacy": "PUBLIC", "measurementUnits": "IMPERIAL"}
+        },
         client=client,
     )
     project = response.json()["data"]["addProject"]["project"]

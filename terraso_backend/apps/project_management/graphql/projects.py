@@ -140,6 +140,7 @@ class ProjectNode(DjangoObjectType):
             "site_set",
             "archived",
             "membership_list",
+            "measurement_units",
             "site_instructions",
         )
 
@@ -164,6 +165,11 @@ class ProjectPrivacy(graphene.Enum):
     PUBLIC = Project.PUBLIC
 
 
+class MeasurementUnits(graphene.Enum):
+    METRIC = "METRIC"
+    IMPERIAL = "IMPERIAL"
+
+
 class ProjectAddMutation(BaseWriteMutation):
     skip_field_validation = ["membership_list", "settings"]
     project = graphene.Field(ProjectNode, required=True)
@@ -174,6 +180,7 @@ class ProjectAddMutation(BaseWriteMutation):
         name = graphene.String(required=True)
         privacy = graphene.Field(ProjectPrivacy, required=True)
         description = graphene.String()
+        measurement_units = graphene.Field(MeasurementUnits, required=True)
         site_instructions = graphene.String()
 
     @classmethod
@@ -270,6 +277,7 @@ class ProjectUpdateMutation(BaseWriteMutation):
         name = graphene.String()
         privacy = graphene.Field(ProjectPrivacy)
         description = graphene.String()
+        measurement_units = graphene.Field(MeasurementUnits)
         site_instructions = graphene.String()
 
     @classmethod
@@ -279,6 +287,7 @@ class ProjectUpdateMutation(BaseWriteMutation):
         user = info.context.user
         project_id = kwargs["id"]
         project = cls.get_or_throw(Project, "id", project_id)
+        cls.remove_null_fields(kwargs, ["privacy", "measurement_units"])
         if not user.has_perm(Project.get_perm("change"), project):
             cls.not_allowed()
         kwargs["privacy"] = kwargs["privacy"].value
