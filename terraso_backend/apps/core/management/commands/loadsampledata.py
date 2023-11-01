@@ -13,6 +13,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see https://www.gnu.org/licenses/.
 
+from apps.collaboration.models import MembershipList
 from apps.core.models import Group, Landscape, LandscapeGroup
 
 from ._base_airtable import BaseAirtableCommand
@@ -47,13 +48,8 @@ class Command(BaseAirtableCommand):
                 name=landscape_name, defaults=model_data
             )
 
-            # Creates Landscape default group
-            default_group, _ = Group.objects.update_or_create(name=f"{landscape_name} Group")
-            landscape_group, _ = LandscapeGroup.objects.update_or_create(
-                landscape=landscape,
-                group=default_group,
-                defaults={"is_default_landscape_group": True},
-            )
+            # Creates Landscape membership list
+            membership_list, _ = MembershipList.objects.update_or_create(landscape=landscape)
 
             # Creates Partnership group
             partnership_name = landscape_data.get("Landscape Partnership Name")

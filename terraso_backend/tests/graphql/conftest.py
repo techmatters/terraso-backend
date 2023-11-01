@@ -249,7 +249,9 @@ def landscape_common_group(landscapes, groups):
     group = groups[1]
     landscape = landscapes[0]
 
-    common_group = mixer.blend(LandscapeGroup, landscape=landscape, group=group)
+    common_group = mixer.blend(
+        LandscapeGroup, landscape=landscape, group=group, is_default_landscape_group=False
+    )
 
     return common_group
 
