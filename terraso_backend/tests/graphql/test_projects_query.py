@@ -14,7 +14,10 @@
 # along with this program. If not, see https://www.gnu.org/licenses/.
 import pytest
 from graphene_django.utils.testing import graphql_query
+from mixer.backend.django import mixer
+from tests.utils import match_json
 
+from apps.core.models import User
 from apps.project_management.models.projects import Project
 
 pytestmark = pytest.mark.django_db
@@ -61,3 +64,14 @@ def test_query_by_non_member(client, project):
     assert "errors" not in payload
     assert len(payload["data"]["projects"]["edges"]) == 0
     assert payload["data"]["projects"]["totalCount"] == 0
+
+
+def test_query_with_deleted_member(client, project):
+    user = mixer.blend(User)
+    project.add_manager(user)
+    project.remove_user(user)
+    project.add_viewer(user)
+    client.force_login(user)
+    payload = graphql_query(PROJECT_QUERY, client=client).json()
+    assert "errors" not in payload
+    assert len(match_json("data.projects.edges[*]", payload)) == 1
