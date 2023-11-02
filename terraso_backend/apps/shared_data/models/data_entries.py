@@ -47,9 +47,6 @@ class DataEntry(BaseModel):
         the 'technical' type of the resource, usually the mime type
     url: str
         the URL where the resource can be accessed
-
-    groups: ManyToManyField(Group)
-        Groups where the resource is linked to (shared)
     created_by: User
         User who created the resource
     """
