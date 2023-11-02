@@ -66,7 +66,7 @@ def test_query_by_non_member(client, project):
     assert payload["data"]["projects"]["totalCount"] == 0
 
 
-def test_query_with_deleted_member(client, project):
+def test_project_query_with_deleted_member(client, project):
     user = mixer.blend(User)
     project.add_manager(user)
     project.remove_user(user)
@@ -75,3 +75,13 @@ def test_query_with_deleted_member(client, project):
     payload = graphql_query(PROJECT_QUERY, client=client).json()
     assert "errors" not in payload
     assert len(match_json("data.projects.edges[*]", payload)) == 1
+
+
+def test_project_query_with_deleted_member_not_in_project(client, project):
+    user = mixer.blend(User)
+    project.add_manager(user)
+    project.remove_user(user)
+    client.force_login(user)
+    payload = graphql_query(PROJECT_QUERY, client=client).json()
+    assert "errors" not in payload
+    assert len(match_json("data.projects.edges[*]", payload)) == 0
