@@ -335,8 +335,8 @@ class TokenExchangeService:
 
     @staticmethod
     def _verify_payload(token, signing_key, client_id):
-        if "alg" not in signing_key._jwk_data:
-            raise TokenExchangeException("alg header missing in mobile JWT token")
+        if "kty" not in signing_key._jwk_data:
+            raise TokenExchangeException("kty header missing in mobile JWT token")
         algorithms = [signing_key._jwk_data.get("alg", "RS256")]
         return jwt.decode(token, signing_key.key, algorithms=algorithms, audience=client_id)
 

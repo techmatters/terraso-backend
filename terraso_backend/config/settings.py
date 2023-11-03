@@ -393,6 +393,14 @@ JWT_EXCHANGE_PROVIDERS: dict[str, JWTProvider] = {
         url="https://www.googleapis.com/oauth2/v3/certs",
         client_id=config("GOOGLE_IOS_CLIENT_ID", default=""),
     ),
+    "microsoft": dict(
+        url="https://login.microsoftonline.com/common/discovery/v2.0/keys",
+        client_id=config("MICROSOFT_CLIENT_ID", default=""),
+    ),
+    "apple": dict(
+        url="https://appleid.apple.com/auth/keys",
+        client_id=config("APPLE_CLIENT_ID", default=""),
+    ),
 }
 
 
