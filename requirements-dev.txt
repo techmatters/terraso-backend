@@ -583,9 +583,9 @@ requests==2.31.0 \
     # via
     #   moto
     #   responses
-responses==0.23.3 \
-    --hash=sha256:205029e1cb334c21cb4ec64fc7599be48b859a0fd381a42443cdd600bfe8b16a \
-    --hash=sha256:e6fbcf5d82172fecc0aa1860fd91e58cbfd96cee5e96da5b63fa6eb3caa10dd3
+responses==0.24.0 \
+    --hash=sha256:060be153c270c06fa4d22c1ef8865fdef43902eb595204deeef736cddb62d353 \
+    --hash=sha256:3df82f7d4dcd3e5f61498181aadb4381f291da25c7506c47fe8cb68ce29203e7
     # via moto
 respx==0.20.2 \
     --hash=sha256:07cf4108b1c88b82010f67d3c831dae33a375c7b436e54d87737c7f9f99be643 \
