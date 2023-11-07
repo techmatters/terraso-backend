@@ -460,7 +460,7 @@ class LandscapeMembershipDeleteMutation(BaseDeleteMutation):
             membership = landscape.membership_list.memberships.get(id=membership_id)
         except CollaborationMembership.DoesNotExist:
             logger.error(
-                "Attempt to delete Landscape Membership, but it was not found",
+                "Attempt to delete Landscape Membership, but membership was not found",
                 extra={"membership_id": membership_id},
             )
             raise GraphQLNotFoundException(model_name=CollaborationMembership.__name__)
