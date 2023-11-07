@@ -63,7 +63,7 @@ class MembershipListNodeMixin:
         if user.is_anonymous:
             return None
         if hasattr(self, "account_memberships"):
-            if len(self.account_memberships) > 0:
+            if len(self.account_memberships):
                 return self.account_memberships[0]
             return None
         return self.memberships.filter(user=user).first()
