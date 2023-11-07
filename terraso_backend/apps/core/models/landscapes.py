@@ -24,9 +24,9 @@ from apps.core.gis.utils import (
     calculate_geojson_centroid,
     calculate_geojson_feature_area,
 )
+from apps.core.landscape_collaboration_roles import ROLE_MANAGER
 from apps.core.models.taxonomy_terms import TaxonomyTerm
 
-from ..landscape_collaboration_roles import ROLE_MANAGER
 from .commons import BaseModel, SlugModel, validate_name
 from .groups import Group
 from .shared_resources import SharedResource

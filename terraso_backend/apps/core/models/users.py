@@ -21,7 +21,7 @@ from django.db import models
 from django.utils.translation import gettext_lazy as _
 from safedelete.models import SOFT_DELETE_CASCADE, SafeDeleteManager, SafeDeleteModel
 
-from .. import landscape_collaboration_roles
+from apps.core import landscape_collaboration_roles
 
 NOTIFICATION_KEY_GROUP = "group_notifications"
 NOTIFICATION_KEY_STORY_MAP = "story_map_notifications"
