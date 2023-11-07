@@ -490,7 +490,7 @@ class LandscapeMembershipDeleteMutation(BaseDeleteMutation):
             },
         ):
             logger.info(
-                "Attempt to update a Membership, but manager's count doesn't allow",
+                "Attempt to update a Membership, but cannot remove last manager",
                 extra={"user_id": user.pk, "membership_id": membership_id},
             )
             raise GraphQLNotAllowedException(
