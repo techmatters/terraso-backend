@@ -99,19 +99,6 @@ class VisualizationConfigNode(DjangoObjectType):
         filterset_class = VisualizationConfigFilterSet
         connection_class = TerrasoConnection
 
-    def resolve_mapbox_tileset_id(self, info):
-        if self.mapbox_tileset_id is None:
-            return None
-        if self.mapbox_tileset_status == VisualizationConfig.MAPBOX_TILESET_READY:
-            return self.mapbox_tileset_id
-
-        # Check if tileset ready to be published and update status
-        published = get_publish_status(self.mapbox_tileset_id)
-        if published:
-            self.mapbox_tileset_status = VisualizationConfig.MAPBOX_TILESET_READY
-            self.save()
-            return self.mapbox_tileset_id
-
     @classmethod
     def get_queryset(cls, queryset, info):
         if info.field_name != "visualizationConfigs":
@@ -135,6 +122,19 @@ class VisualizationConfigNode(DjangoObjectType):
             Q(data_entry__shared_resources__target_object_id__in=user_groups_ids)
             | Q(data_entry__shared_resources__target_object_id__in=user_landscape_ids)
         )
+
+    def resolve_mapbox_tileset_id(self, info):
+        if self.mapbox_tileset_id is None:
+            return None
+        if self.mapbox_tileset_status == VisualizationConfig.MAPBOX_TILESET_READY:
+            return self.mapbox_tileset_id
+
+        # Check if tileset ready to be published and update status
+        published = get_publish_status(self.mapbox_tileset_id)
+        if published:
+            self.mapbox_tileset_status = VisualizationConfig.MAPBOX_TILESET_READY
+            self.save()
+            return self.mapbox_tileset_id
 
 
 class VisualizationConfigAddMutation(BaseWriteMutation):
