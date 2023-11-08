@@ -107,7 +107,6 @@ from .users import (
 from .visualization_config import (
     VisualizationConfigAddMutation,
     VisualizationConfigDeleteMutation,
-    VisualizationConfigNode,
     VisualizationConfigUpdateMutation,
 )
 
@@ -129,8 +128,6 @@ class Query(graphene.ObjectType):
     group_associations = DjangoFilterConnectionField(GroupAssociationNode)
     data_entry = TerrasoRelayNode.Field(DataEntryNode)
     data_entries = DjangoFilterConnectionField(DataEntryNode)
-    visualization_config = TerrasoRelayNode.Field(VisualizationConfigNode)
-    visualization_configs = DjangoFilterConnectionField(VisualizationConfigNode)
     taxonomy_term = TerrasoRelayNode.Field(TaxonomyTermNode)
     taxonomy_terms = DjangoFilterConnectionField(TaxonomyTermNode)
     story_map = TerrasoRelayNode.Field(StoryMapNode)

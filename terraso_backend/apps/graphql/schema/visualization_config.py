@@ -23,7 +23,7 @@ from graphene import relay
 from graphene_django import DjangoObjectType
 
 from apps.core.gis.mapbox import get_publish_status
-from apps.core.models import Group, Landscape, Membership
+from apps.core.models import Group, Landscape
 from apps.graphql.exceptions import GraphQLNotAllowedException
 from apps.shared_data.models.data_entries import DataEntry
 from apps.shared_data.models.visualization_config import VisualizationConfig
@@ -98,20 +98,6 @@ class VisualizationConfigNode(DjangoObjectType):
         interfaces = (relay.Node,)
         filterset_class = VisualizationConfigFilterSet
         connection_class = TerrasoConnection
-
-    @classmethod
-    def get_queryset(cls, queryset, info):
-        user_pk = getattr(info.context.user, "pk", False)
-        user_groups_ids = Membership.objects.filter(
-            user__id=user_pk, membership_status=Membership.APPROVED
-        ).values_list("group", flat=True)
-        user_landscape_ids = Landscape.objects.filter(
-            associated_groups__group__memberships__user__id=user_pk,
-            associated_groups__group__memberships__membership_status=Membership.APPROVED,
-            associated_groups__is_default_landscape_group=True,
-        ).values_list("id", flat=True)
-        all_ids = list(user_groups_ids) + list(user_landscape_ids)
-        return queryset.filter(data_entry__shared_resources__target_object_id__in=all_ids)
 
     def resolve_mapbox_tileset_id(self, info):
         if self.mapbox_tileset_id is None:
