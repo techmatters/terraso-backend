@@ -18,12 +18,12 @@ import graphene
 import structlog
 from django.contrib.contenttypes.models import ContentType
 from django.db import transaction
-from django.db.models import Q
+from django.db.models import Q, Subquery
 from graphene import relay
 from graphene_django import DjangoObjectType
 
 from apps.core.gis.mapbox import get_publish_status
-from apps.core.models import Group, Landscape
+from apps.core.models import Group, Landscape, Membership
 from apps.graphql.exceptions import GraphQLNotAllowedException
 from apps.shared_data.models.data_entries import DataEntry
 from apps.shared_data.models.visualization_config import VisualizationConfig
@@ -111,6 +111,30 @@ class VisualizationConfigNode(DjangoObjectType):
             self.mapbox_tileset_status = VisualizationConfig.MAPBOX_TILESET_READY
             self.save()
             return self.mapbox_tileset_id
+
+    @classmethod
+    def get_queryset(cls, queryset, info):
+        if info.field_name != "visualizationConfigs":
+            return queryset
+
+        user_pk = getattr(info.context.user, "pk", False)
+
+        user_groups_ids = Subquery(
+            Group.objects.filter(
+                memberships__user__id=user_pk, memberships__membership_status=Membership.APPROVED
+            ).values("id")
+        )
+        user_landscape_ids = Subquery(
+            Landscape.objects.filter(
+                associated_groups__group__memberships__user__id=user_pk,
+                associated_groups__group__memberships__membership_status=Membership.APPROVED,
+                associated_groups__is_default_landscape_group=True,
+            ).values("id")
+        )
+        return queryset.filter(
+            Q(data_entry__shared_resources__target_object_id__in=user_groups_ids)
+            | Q(data_entry__shared_resources__target_object_id__in=user_landscape_ids)
+        )
 
 
 class VisualizationConfigAddMutation(BaseWriteMutation):

@@ -160,7 +160,7 @@ def test_visualization_configs_filter_by_group_id_filters_successfuly(
 
 
 def test_visualization_configs_returns_only_for_users_groups(
-    client_query, visualization_config_current_user
+    client_query, visualization_config_current_user, visualization_config_other_user
 ):
     # It's being done a request for all configurations, but only the configurations
     # from logged user's group is expected to return.
@@ -178,7 +178,8 @@ def test_visualization_configs_returns_only_for_users_groups(
         """
     )
 
-    edges = response.json()["data"]["visualizationConfigs"]["edges"]
+    json_response = response.json()
+    edges = json_response["data"]["visualizationConfigs"]["edges"]
     entries_result = [edge["node"]["id"] for edge in edges]
 
     assert len(entries_result) == 1

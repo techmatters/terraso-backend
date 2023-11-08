@@ -14,11 +14,10 @@
 # along with this program. If not, see https://www.gnu.org/licenses/.
 
 import django_filters
-from django.db.models import Prefetch
 from graphene_django.filter import DjangoFilterConnectionField
 
 from apps.core.models import SharedResource
-from apps.shared_data.models import DataEntry, VisualizationConfig
+from apps.shared_data.models import DataEntry
 
 
 class MultipleChoiceField(django_filters.fields.MultipleChoiceField):
@@ -50,22 +49,8 @@ class SharedResourcesMixin:
         "apps.graphql.schema.shared_resources.SharedResourceNode",
         filterset_class=SharedResourceFilterSet,
     )
-    data_entries = DjangoFilterConnectionField(
-        "apps.graphql.schema.data_entries.DataEntryNode",
-    )
 
     def resolve_shared_resources(self, info, **kwargs):
         return self.shared_resources.prefetch_related(
             "source",
         )
-
-    def resolve_data_entries(self, info, **kwargs):
-        return DataEntry.objects.prefetch_related(
-            Prefetch(
-                "visualizations",
-                queryset=VisualizationConfig.objects.defer("configuration")
-                .prefetch_related("created_by")
-                .filter(data_entry__shared_resources__target_object_id=self.pk),
-            ),
-            "created_by",
-        ).filter(shared_resources__target_object_id=self.pk)
