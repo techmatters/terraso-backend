@@ -14,16 +14,22 @@
 # along with this program. If not, see https://www.gnu.org/licenses/.
 
 import io
+import json
+import os
+import tempfile
 from unittest.mock import patch
 
 import pytest
 import requests
 
+from apps.core.gis.mapbox import get_line_delimited_geojson
 from apps.shared_data.models import VisualizationConfig
 from apps.shared_data.visualization_tileset_tasks import (
     create_mapbox_tileset,
     remove_mapbox_tileset,
 )
+
+from ..core.gis.test_parsers import KML_CONTENT, KML_GEOJSON
 
 pytestmark = pytest.mark.django_db
 
@@ -37,7 +43,9 @@ def create_mock_response(response):
 
 @patch("apps.shared_data.visualization_tileset_tasks.data_entry_upload_service.get_file")
 @patch("apps.core.gis.mapbox.requests.post")
-def test_create_mapbox_tileset_success(mock_request_post, mock_get_file, visualization_config):
+def test_create_mapbox_tileset_dataset_success(
+    mock_request_post, mock_get_file, visualization_config
+):
     visualization_config.configuration = {
         "datasetConfig": {
             "longitude": "lng",
@@ -53,7 +61,9 @@ def test_create_mapbox_tileset_success(mock_request_post, mock_get_file, visuali
         },
     }
     visualization_config.save()
-    mock_get_file.return_value = io.StringIO("lat,lng,col1\nval1,val2,val3")
+    mock_get_file.return_value = io.StringIO(
+        "lat,lng,col1\n-78.48306234911033,-0.1805502450716432,val3"
+    )
     mock_responses = [
         {"status_code": 200, "json_data": {"id": "tileset-id-1"}},
         {"status_code": 200, "json_data": {}},
@@ -64,6 +74,63 @@ def test_create_mapbox_tileset_success(mock_request_post, mock_get_file, visuali
     updated_visualization_config = VisualizationConfig.objects.get(id=visualization_config.id)
     assert updated_visualization_config.mapbox_tileset_id is not None
     assert mock_request_post.call_count == 3
+
+    assert json.loads(mock_request_post.call_args_list[0][1]["files"][0][1][1]) == {
+        "type": "Feature",
+        "geometry": {"type": "Point", "coordinates": [-0.1805502450716432, -78.48306234911033]},
+        "properties": {
+            "title": None,
+            "fields": '[{"label": "label", "value": "val3"}]',
+        },
+    }
+
+    assert (
+        mock_request_post.call_args_list[1][1]["json"]["name"]
+        == f"development - {visualization_config.title}"[:64]
+    )
+
+
+@pytest.fixture
+def kml_file():
+    kml_contents = KML_CONTENT
+    file_extension = "kml"
+    with tempfile.NamedTemporaryFile(mode="w", suffix=f".{file_extension}", delete=False) as f:
+        f.write(kml_contents)
+
+    yield f.name
+
+    os.unlink(f.name)
+
+
+@patch("apps.shared_data.services.data_entry_upload_service.get_file")
+@patch("apps.core.gis.mapbox.requests.post")
+def test_create_mapbox_tileset_gis_dataentry_success(
+    mock_request_post, mock_get_file, visualization_config_kml, kml_file
+):
+    with open(kml_file, "rb") as file:
+        mock_get_file.return_value = file
+        mock_responses = [
+            {"status_code": 200, "json_data": {"id": "tileset-id-1"}},
+            {"status_code": 200, "json_data": {}},
+            {"status_code": 200, "json_data": {}},
+        ]
+        mock_request_post.side_effect = [
+            create_mock_response(response) for response in mock_responses
+        ]
+        create_mapbox_tileset(visualization_config_kml.id)
+
+    updated_visualization_config = VisualizationConfig.objects.get(id=visualization_config_kml.id)
+    assert updated_visualization_config.mapbox_tileset_id is not None
+    assert mock_request_post.call_count == 3
+
+    assert mock_request_post.call_args_list[0][1]["files"][0][1][1] == get_line_delimited_geojson(
+        KML_GEOJSON
+    )
+
+    assert (
+        mock_request_post.call_args_list[1][1]["json"]["name"]
+        == f"development - {visualization_config_kml.title}"[:64]
+    )
 
 
 @patch("apps.shared_data.visualization_tileset_tasks.data_entry_upload_service.get_file")

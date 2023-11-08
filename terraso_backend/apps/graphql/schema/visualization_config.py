@@ -88,6 +88,7 @@ class VisualizationConfigNode(DjangoObjectType):
             "id",
             "slug",
             "title",
+            "description",
             "configuration",
             "created_by",
             "created_at",
@@ -133,6 +134,7 @@ class VisualizationConfigAddMutation(BaseWriteMutation):
 
     class Input:
         title = graphene.String(required=True)
+        description = graphene.String()
         configuration = graphene.JSONString()
         data_entry_id = graphene.ID(required=True)
         ownerId = graphene.ID(required=True)

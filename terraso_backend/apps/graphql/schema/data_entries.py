@@ -17,16 +17,20 @@ import django_filters
 import graphene
 import rules
 import structlog
+from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
+from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.db.models import Q
 from graphene import relay
 from graphene_django import DjangoObjectType
 
+from apps.core.gis.parsers import parse_file_to_geojson
 from apps.core.models import Group, Landscape, Membership
 from apps.graphql.exceptions import GraphQLNotAllowedException, GraphQLNotFoundException
 from apps.shared_data.models import DataEntry
 from apps.shared_data.models.data_entries import VALID_TARGET_TYPES
+from apps.shared_data.services import data_entry_upload_service
 
 from .commons import BaseDeleteMutation, BaseWriteMutation, TerrasoConnection
 from .constants import MutationTypes
@@ -70,6 +74,7 @@ class DataEntryFilterSet(django_filters.FilterSet):
 
 class DataEntryNode(DjangoObjectType, SharedResourcesMixin):
     id = graphene.ID(source="pk", required=True)
+    geojson = graphene.JSONString()
 
     class Meta:
         model = DataEntry
@@ -116,6 +121,15 @@ class DataEntryNode(DjangoObjectType, SharedResourcesMixin):
         if self.entry_type == DataEntry.ENTRY_TYPE_FILE:
             return self.signed_url
         return self.url
+
+    def resolve_geojson(self, info):
+        if f".{self.resource_type}" not in settings.DATA_ENTRY_GIS_TYPES.keys():
+            return None
+        file = data_entry_upload_service.get_file(self.s3_object_name, "rb")
+        try:
+            return parse_file_to_geojson(file)
+        except ValidationError:
+            return None
 
 
 class DataEntryAddMutation(BaseWriteMutation):

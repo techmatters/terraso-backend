@@ -84,11 +84,15 @@ def get_publish_status(id):
     return len(response_json) > 0
 
 
+def get_line_delimited_geojson(geojson):
+    return "\n".join([json.dumps(feature) for feature in geojson["features"]])
+
+
 def _post_tileset_source(geojson, id):
-    line_delimited_geojson = "\n".join([json.dumps(feature) for feature in geojson["features"]])
+    line_delimited_geojson = get_line_delimited_geojson(geojson)
 
     url = f"{API_URL}/tilesets/v1/sources/{USERNAME}/{id}?access_token={TOKEN}"
-    multipart_data = [("file", ("test.ndjson", line_delimited_geojson, "text/plain"))]
+    multipart_data = [("file", ("input.ndjson", line_delimited_geojson, "text/plain"))]
 
     response = requests.post(url, files=multipart_data)
     response_json = response.json()

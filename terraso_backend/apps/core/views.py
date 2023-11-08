@@ -25,6 +25,7 @@ from django.conf import settings
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.sessions.models import Session
 from django.core import management
+from django.core.exceptions import ValidationError
 from django.db import DatabaseError, transaction
 from django.db.transaction import get_connection
 from django.http import (
@@ -37,14 +38,7 @@ from django.views import View
 from django.views.generic.edit import FormView
 
 from apps.auth.mixins import AuthenticationRequiredMixin
-from apps.core.gis.parsers import (
-    is_kml_file_extension,
-    is_kmz_file_extension,
-    is_shape_file_extension,
-    parse_kml_file,
-    parse_kmz_file,
-    parse_shapefile,
-)
+from apps.core.gis.parsers import parse_file_to_geojson
 from apps.core.models import BackgroundTask, Group, Landscape, User
 
 logger = structlog.get_logger(__name__)
@@ -56,37 +50,11 @@ class ParseGeoFileView(AuthenticationRequiredMixin, FormView):
     def post(self, request, **kwargs):
         file = request.FILES.get("file")
 
-        geojson = None
-        if is_shape_file_extension(file):
-            try:
-                geojson = parse_shapefile(file)
-            except Exception as e:
-                logger.exception(f"Error when parsing shapefile. File name: {file.name}", error=e)
-                return JsonResponse(
-                    {"errors": [{"message": json.dumps([{"code": "invalid_shapefile"}])}]},
-                    status=400,
-                )
-        elif is_kml_file_extension(file):
-            try:
-                geojson = parse_kml_file(file)
-            except Exception as e:
-                logger.exception(f"Error when parsing KML file. File name: {file.name}", error=e)
-                return JsonResponse(
-                    {"errors": [{"message": json.dumps([{"code": "invalid_kml_file"}])}]},
-                    status=400,
-                )
-        elif is_kmz_file_extension(file):
-            try:
-                geojson = parse_kmz_file(file)
-            except Exception as e:
-                logger.exception(f"Error when parsing KMZ file. File name: {file.name}", error=e)
-                return JsonResponse(
-                    {"errors": [{"message": json.dumps([{"code": "invalid_kmz_file"}])}]},
-                    status=400,
-                )
-        else:
+        try:
+            geojson = parse_file_to_geojson(file)
+        except ValidationError as error:
             return JsonResponse(
-                {"error": f"File type not supported. File type: {file.content_type}"}, status=400
+                {"errors": [{"message": json.dumps([{"code": error.message}])}]}, status=400
             )
 
         return JsonResponse({"geojson": geojson})
