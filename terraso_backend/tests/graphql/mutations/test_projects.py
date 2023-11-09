@@ -185,13 +185,25 @@ def test_update_project_user_is_manager(project, client, project_manager):
     assert content["data"]["updateProject"]["project"]["privacy"] == "PRIVATE"
 
 
-def test_update_project_audit_log(project, client, project_manager):
+@pytest.mark.parametrize(
+    "metadata",
+    [
+        {
+            "name": "test_name",
+            "privacy": "PRIVATE",
+            "description": "A test project",
+        },
+        {
+            "name": "test_name",
+            "description": "A test project",
+        },
+    ],
+)
+def test_update_project_audit_log(metadata, project, client, project_manager):
     input = {
         "id": str(project.id),
-        "name": "test_name",
-        "privacy": "PRIVATE",
-        "description": "A test project",
     }
+    input.update(metadata)
     client.force_login(project_manager)
 
     response = graphql_query(UPDATE_PROJECT_GRAPHQL, input_data=input, client=client)
@@ -204,7 +216,9 @@ def test_update_project_audit_log(project, client, project_manager):
     assert log_result.event == CHANGE.value
     assert log_result.user_human_readable == project_manager.full_name()
     assert log_result.resource_object == project
-    expected_metadata = {"name": "test_name", "privacy": "private", "description": "A test project"}
+    expected_metadata = metadata
+    if "privacy" in expected_metadata:
+        expected_metadata["privacy"] = expected_metadata["privacy"].lower()
     assert log_result.metadata == expected_metadata
 
 
