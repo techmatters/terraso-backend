@@ -101,6 +101,9 @@ class VisualizationConfigNode(DjangoObjectType):
 
     @classmethod
     def get_queryset(cls, queryset, info):
+        # Only filter for user memberships if the field is not visualizationConfigs
+        # This is because the user can be requesting a visualizations from a parent
+        # node, that should be handling the filtering
         if info.field_name != "visualizationConfigs":
             return queryset
 
