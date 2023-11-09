@@ -21,14 +21,14 @@ from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ValidationError
 from django.db import transaction
-from django.db.models import Q
+from django.db.models import Prefetch, Q, Subquery
 from graphene import relay
 from graphene_django import DjangoObjectType
 
 from apps.core.gis.parsers import parse_file_to_geojson
 from apps.core.models import Group, Landscape, Membership
 from apps.graphql.exceptions import GraphQLNotAllowedException, GraphQLNotFoundException
-from apps.shared_data.models import DataEntry
+from apps.shared_data.models import DataEntry, VisualizationConfig
 from apps.shared_data.models.data_entries import VALID_TARGET_TYPES
 from apps.shared_data.services import data_entry_upload_service
 
@@ -97,24 +97,30 @@ class DataEntryNode(DjangoObjectType, SharedResourcesMixin):
     @classmethod
     def get_queryset(cls, queryset, info):
         user_pk = getattr(info.context.user, "pk", False)
-        user_groups_ids = Membership.objects.filter(
-            user__id=user_pk, membership_status=Membership.APPROVED
-        ).values_list("group", flat=True)
-        user_landscape_ids = Landscape.objects.filter(
-            associated_groups__group__memberships__user__id=user_pk,
-            associated_groups__group__memberships__membership_status=Membership.APPROVED,
-            associated_groups__is_default_landscape_group=True,
-        ).values_list("id", flat=True)
+        user_groups_ids = Subquery(
+            Group.objects.filter(
+                memberships__user__id=user_pk, memberships__membership_status=Membership.APPROVED
+            ).values("id")
+        )
+        user_landscape_ids = Subquery(
+            Landscape.objects.filter(
+                associated_groups__group__memberships__user__id=user_pk,
+                associated_groups__group__memberships__membership_status=Membership.APPROVED,
+                associated_groups__is_default_landscape_group=True,
+            ).values("id")
+        )
 
-        return queryset.filter(
-            Q(
-                shared_resources__target_content_type=ContentType.objects.get_for_model(Group),
-                shared_resources__target_object_id__in=user_groups_ids,
-            )
-            | Q(
-                shared_resources__target_content_type=ContentType.objects.get_for_model(Landscape),
-                shared_resources__target_object_id__in=user_landscape_ids,
-            )
+        return queryset.prefetch_related(
+            Prefetch(
+                "visualizations",
+                queryset=VisualizationConfig.objects.defer("configuration").prefetch_related(
+                    "created_by"
+                ),
+            ),
+            "created_by",
+        ).filter(
+            Q(shared_resources__target_object_id__in=user_groups_ids)
+            | Q(shared_resources__target_object_id__in=user_landscape_ids)
         )
 
     def resolve_url(self, info):

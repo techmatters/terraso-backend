@@ -19,8 +19,10 @@ from graphene_django import DjangoObjectType
 
 from apps.core.models import SharedResource
 
-from . import DataEntryNode, GroupNode, LandscapeNode, VisualizationConfigNode
+from . import GroupNode, LandscapeNode
 from .commons import TerrasoConnection
+from .data_entries import DataEntryNode
+from .visualization_config import VisualizationConfigNode
 
 
 class SourceNode(graphene.Union):

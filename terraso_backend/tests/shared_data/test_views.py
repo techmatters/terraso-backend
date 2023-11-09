@@ -76,7 +76,6 @@ def test_create_data_entry_successfully(
 
         response = logged_client.post(upload_url, data_entry_payload)
         response_data = response.json()
-        print(response_data)
         assert response.status_code == 201
 
         mocked_upload_service.assert_called_once()

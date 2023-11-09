@@ -25,6 +25,8 @@ from apps.shared_data.services import DataEntryFileStorage
 
 VALID_TARGET_TYPES = ["group", "landscape"]
 
+data_entry_file_storage = DataEntryFileStorage(custom_domain=None)
+
 
 class DataEntry(BaseModel):
     """
@@ -98,8 +100,7 @@ class DataEntry(BaseModel):
 
     @property
     def signed_url(self):
-        storage = DataEntryFileStorage(custom_domain=None)
-        return storage.url(self.s3_object_name)
+        return data_entry_file_storage.url(self.s3_object_name)
 
     def delete_file_on_storage(self):
         if not self.deleted_at:
