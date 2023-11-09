@@ -290,13 +290,15 @@ class ProjectUpdateMutation(BaseWriteMutation):
         cls.remove_null_fields(kwargs, ["privacy", "measurement_units"])
         if not user.has_perm(Project.get_perm("change"), project):
             cls.not_allowed()
-        kwargs["privacy"] = kwargs["privacy"].value
 
         metadata = {
             "name": kwargs["name"],
-            "privacy": kwargs["privacy"],
             "description": kwargs["description"] if "description" in kwargs else None,
         }
+
+        if privacy := kwargs.get("privacy"):
+            metadata["privacy"] = privacy.value
+
         logger.log(
             user=user,
             action=log_api.CHANGE,
