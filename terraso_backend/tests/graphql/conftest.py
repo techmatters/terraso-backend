@@ -25,7 +25,7 @@ from mixer.backend.django import mixer
 from apps.auth.services import JWTService
 from apps.collaboration.models import Membership as CollaborationMembership
 from apps.collaboration.models import MembershipList
-from apps.core import landscape_collaboration_roles
+from apps.core import group_collaboration_roles, landscape_collaboration_roles
 from apps.core.models import (
     Group,
     GroupAssociation,
@@ -213,12 +213,12 @@ def group_associations(groups, subgroups):
 
 
 @pytest.fixture
-def memberships(groups, users):
+def group_manager_memberships(groups, users):
     return mixer.cycle(5).blend(
-        Membership,
-        group=(g for g in groups),
+        CollaborationMembership,
+        membership_list=(g.membership_list for g in groups),
         user=(u for u in users),
-        user_role=Membership.ROLE_MANAGER,
+        user_role=group_collaboration_roles.ROLE_MANAGER,
     )
 
 
@@ -267,7 +267,9 @@ def make_core_db_records(
 def data_entry_current_user_file(users, groups):
     creator = users[0]
     creator_group = groups[0]
-    creator_group.members.add(creator)
+    creator_group.membership_list.save_membership(
+        creator.email, group_collaboration_roles.ROLE_MEMBER, CollaborationMembership.APPROVED
+    )
     resource = mixer.blend(
         SharedResource,
         target=creator_group,
@@ -282,7 +284,9 @@ def data_entry_current_user_file(users, groups):
 def data_entry_current_user_link(users, groups):
     creator = users[0]
     creator_group = groups[0]
-    creator_group.members.add(creator)
+    creator_group.membership_list.save_membership(
+        creator.email, group_collaboration_roles.ROLE_MEMBER, CollaborationMembership.APPROVED
+    )
     resource = mixer.blend(
         SharedResource,
         target=creator_group,
@@ -297,7 +301,9 @@ def data_entry_current_user_link(users, groups):
 def data_entry_other_user(users, groups):
     creator = users[1]
     creator_group = groups[1]
-    creator_group.members.add(creator)
+    creator_group.membership_list.save_membership(
+        creator.email, group_collaboration_roles.ROLE_MEMBER, CollaborationMembership.APPROVED
+    )
     resource = mixer.blend(
         SharedResource,
         target=creator_group,
@@ -310,7 +316,9 @@ def data_entry_other_user(users, groups):
 def group_data_entries(users, groups):
     creator = users[0]
     creator_group = groups[0]
-    creator_group.members.add(creator)
+    creator_group.membership_list.save_membership(
+        creator.email, group_collaboration_roles.ROLE_MEMBER, CollaborationMembership.APPROVED
+    )
     resources = mixer.cycle(5).blend(
         SharedResource,
         target=creator_group,
@@ -357,7 +365,9 @@ def data_entries(group_data_entries, landscape_data_entries):
 def data_entry_kml(users, groups):
     creator = users[0]
     creator_group = groups[0]
-    creator_group.members.add(creator)
+    creator_group.membership_list.save_membership(
+        creator.email, group_collaboration_roles.ROLE_MEMBER, CollaborationMembership.APPROVED
+    )
     return mixer.blend(
         DataEntry,
         created_by=creator,
@@ -372,7 +382,9 @@ def data_entry_kml(users, groups):
 def data_entry_shapefile(users, groups):
     creator = users[0]
     creator_group = groups[0]
-    creator_group.members.add(creator)
+    creator_group.membership_list.save_membership(
+        creator.email, group_collaboration_roles.ROLE_MEMBER, CollaborationMembership.APPROVED
+    )
     return mixer.blend(
         DataEntry,
         created_by=creator,
@@ -387,7 +399,9 @@ def data_entry_shapefile(users, groups):
 def visualization_config_current_user(users, data_entry_current_user_file, groups):
     creator = users[0]
     creator_group = groups[0]
-    creator_group.members.add(creator)
+    creator_group.membership_list.save_membership(
+        creator.email, group_collaboration_roles.ROLE_MEMBER, CollaborationMembership.APPROVED
+    )
     return mixer.blend(
         VisualizationConfig, created_by=creator, data_entry=data_entry_current_user_file
     )
@@ -397,7 +411,9 @@ def visualization_config_current_user(users, data_entry_current_user_file, group
 def visualization_config_other_user(users, data_entry_other_user, groups):
     creator = users[1]
     creator_group = groups[1]
-    creator_group.members.add(creator)
+    creator_group.membership_list.save_membership(
+        creator.email, group_collaboration_roles.ROLE_MEMBER, CollaborationMembership.APPROVED
+    )
     return mixer.blend(VisualizationConfig, created_by=creator, data_entry=data_entry_other_user)
 
 
@@ -405,7 +421,9 @@ def visualization_config_other_user(users, data_entry_other_user, groups):
 def visualization_configs(users, groups):
     creator = users[0]
     creator_group = groups[1]
-    creator_group.members.add(creator)
+    creator_group.membership_list.save_membership(
+        creator.email, group_collaboration_roles.ROLE_MEMBER, CollaborationMembership.APPROVED
+    )
     visualizations = mixer.cycle(5).blend(
         VisualizationConfig,
         created_by=creator,

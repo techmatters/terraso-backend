@@ -16,7 +16,9 @@
 import pytest
 from mixer.backend.django import mixer
 
-from apps.core.models import Group, Membership, User
+from apps.collaboration.models import Membership as CollaborationMembership
+from apps.core import group_collaboration_roles
+from apps.core.models import Group, User
 
 pytestmark = pytest.mark.django_db
 
@@ -25,23 +27,30 @@ def test_membership_is_created_when_group_member_added():
     group = mixer.blend(Group, name="This is My Name", slug=None)
     users = mixer.cycle(3).blend(User)
 
-    group.members.add(*users)
+    for user in users:
+        group.membership_list.save_membership(
+            user.email, group_collaboration_roles.ROLE_MEMBER, CollaborationMembership.APPROVED
+        )
 
-    assert group.members.count() == 3
-    assert Membership.objects.count() == 3
+    assert group.membership_list.members.count() == 3
+    assert CollaborationMembership.objects.count() == 3
 
 
 def test_membership_is_deleted_when_user_is_deleted():
     user = mixer.blend(User)
     group = mixer.blend(Group)
 
-    group.members.add(user)
+    group.membership_list.save_membership(
+        user.email, group_collaboration_roles.ROLE_MEMBER, CollaborationMembership.APPROVED
+    )
 
-    membership = Membership.objects.get(user=user, group=group)
+    membership = CollaborationMembership.objects.get(user=user, membership_list__group=group)
 
     assert membership
 
     user.delete()
 
     assert not User.objects.filter(id=user.id).exists()
-    assert not Membership.objects.filter(user=user, group=group).exists()
+    assert not CollaborationMembership.objects.filter(
+        user=user, membership_list__group=group
+    ).exists()

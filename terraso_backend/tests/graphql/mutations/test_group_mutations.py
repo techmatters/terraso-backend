@@ -31,17 +31,46 @@ def test_groups_add(client_query):
             group {
               id
               name
-              membershipType
+              membershipList {
+                membershipType
+              }
             }
           }
         }
         """,
         variables={"input": {"name": group_name}},
     )
-    group_result = response.json()["data"]["addGroup"]["group"]
+    json_response = response.json()
+    group_result = json_response["data"]["addGroup"]["group"]
 
     assert group_result["id"]
-    assert group_result["membershipType"] == "OPEN"
+    assert group_result["membershipList"]["membershipType"] == "OPEN"
+    assert group_result["name"] == group_name
+
+
+def test_groups_add_closed(client_query):
+    group_name = "Testing Group"
+    response = client_query(
+        """
+        mutation addGroup($input: GroupAddMutationInput!){
+          addGroup(input: $input) {
+            group {
+              id
+              name
+              membershipList {
+                membershipType
+              }
+            }
+          }
+        }
+        """,
+        variables={"input": {"name": group_name, "membershipType": "CLOSED"}},
+    )
+    json_response = response.json()
+    group_result = json_response["data"]["addGroup"]["group"]
+
+    assert group_result["id"]
+    assert group_result["membershipList"]["membershipType"] == "CLOSED"
     assert group_result["name"] == group_name
 
 
@@ -165,7 +194,9 @@ def test_groups_update_by_manager_works(client_query, groups, users):
               description
               website
               email
-              membershipType
+              membershipList {
+                membershipType
+              }
             }
             errors
           }
@@ -175,7 +206,14 @@ def test_groups_update_by_manager_works(client_query, groups, users):
     )
     group_result = response.json()["data"]["updateGroup"]["group"]
 
-    assert group_result == new_data
+    assert group_result == {
+        "id": str(old_group.id),
+        "name": new_data["name"],
+        "description": new_data["description"],
+        "website": new_data["website"],
+        "email": new_data["email"],
+        "membershipList": {"membershipType": "CLOSED"},
+    }
 
 
 def test_groups_update_by_member_fails_due_permission_check(client_query, groups):

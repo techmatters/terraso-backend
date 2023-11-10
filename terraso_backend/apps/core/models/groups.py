@@ -14,11 +14,13 @@
 # along with this program. If not, see https://www.gnu.org/licenses/.
 from typing import Literal, Union
 
+from django.apps import apps
 from django.contrib.contenttypes.fields import GenericRelation
 from django.db import models, transaction
 from django.utils.translation import gettext_lazy as _
 from safedelete.models import SafeDeleteManager
 
+from apps.core import group_collaboration_roles
 from apps.core import permission_rules as perm_rules
 
 from .commons import BaseModel, SlugModel, validate_name
@@ -88,12 +90,21 @@ class Group(SlugModel):
         through_fields=("parent_group", "child_group"),
         symmetrical=False,
     )
-    members = models.ManyToManyField(User, through="Membership")
 
-    membership_type = models.CharField(
-        max_length=32,
-        choices=MEMBERSHIP_TYPES,
-        default=DEFAULT_MEMERBSHIP_TYPE,
+    # Deprecated memberships fields
+    # members = models.ManyToManyField(User, through="Membership")
+    # membership_type = models.CharField(
+    #     max_length=32,
+    #     choices=MEMBERSHIP_TYPES,
+    #     default=DEFAULT_MEMERBSHIP_TYPE,
+    # )
+    # End of deprecated fields
+
+    membership_list = models.ForeignKey(
+        "collaboration.MembershipList",
+        on_delete=models.CASCADE,
+        related_name="group",
+        null=True,
     )
 
     shared_resources = GenericRelation(
@@ -109,19 +120,27 @@ class Group(SlugModel):
         }
         _unique_fields = ["name"]
 
+    def full_clean(self, *args, **kwargs):
+        super().full_clean(*args, **kwargs, exclude=["membership_list"])
+
     def save(self, *args, **kwargs):
         with transaction.atomic():
+            MembershipList = apps.get_model("collaboration", "MembershipList")
+            Membership = apps.get_model("collaboration", "Membership")
             creating = not Group.objects.filter(pk=self.pk).exists()
 
-            super().save(*args, **kwargs)
-
             if creating and self.created_by:
-                membership = Membership(
-                    group=self,
-                    user=self.created_by,
-                    user_role=Membership.ROLE_MANAGER,
+                self.membership_list = MembershipList.objects.create(
+                    enroll_method=MembershipList.ENROLL_METHOD_BOTH,
+                    membership_type=MembershipList.MEMBERSHIP_TYPE_OPEN,
                 )
-                membership.save()
+                self.membership_list.save_membership(
+                    self.created_by.email,
+                    group_collaboration_roles.ROLE_MANAGER,
+                    Membership.APPROVED,
+                )
+
+            super().save(*args, **kwargs)
 
     def add_manager(self, user):
         self._add_user(user, role=Membership.ROLE_MANAGER)
@@ -162,12 +181,6 @@ class Group(SlugModel):
 
     def __str__(self):
         return self.name
-
-    @classmethod
-    def get_membership_type_from_text(cls, membership_type):
-        if membership_type and membership_type.lower() == cls.MEMBERSHIP_TYPE_CLOSED:
-            return cls.MEMBERSHIP_TYPE_CLOSED
-        return cls.MEMBERSHIP_TYPE_OPEN
 
 
 class GroupAssociation(BaseModel):

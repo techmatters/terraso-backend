@@ -113,7 +113,6 @@ def test_landscape_membership_add_user_not_found(client_query, managed_landscape
         },
     )
     response = response.json()
-    print(response)
 
     assert "errors" in response["data"]["saveLandscapeMembership"]
     assert (

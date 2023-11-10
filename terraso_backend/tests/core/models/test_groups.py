@@ -17,6 +17,8 @@ import pytest
 from django.core.exceptions import ValidationError
 from mixer.backend.django import mixer
 
+from apps.collaboration.models import Membership as CollaborationMembership
+from apps.core import group_collaboration_roles
 from apps.core.models.groups import Group, GroupAssociation, Membership
 from apps.core.models.users import User
 
@@ -142,6 +144,8 @@ def test_group_creator_becomes_manager():
     user = mixer.blend(User)
     group = mixer.blend(Group, created_by=user)
 
-    manager_membership = Membership.objects.get(group=group, user=user)
+    manager_membership = CollaborationMembership.objects.get(
+        membership_list__group=group, user=user
+    )
 
-    assert manager_membership.user_role == Membership.ROLE_MANAGER
+    assert manager_membership.user_role == group_collaboration_roles.ROLE_MANAGER

@@ -112,7 +112,8 @@ class VisualizationConfigNode(DjangoObjectType):
 
         user_groups_ids = Subquery(
             Group.objects.filter(
-                memberships__user__id=user_pk, memberships__membership_status=Membership.APPROVED
+                membership_list__memberships__user__id=user_pk,
+                membership_list__memberships__membership_status=Membership.APPROVED,
             ).values("id")
         )
         user_landscape_ids = Subquery(

@@ -20,10 +20,6 @@ type Query {
     """The ID of the object"""
     id: ID!
   ): LandscapeGroupNode!
-  membership(
-    """The ID of the object"""
-    id: ID!
-  ): MembershipNode!
   groupAssociation(
     """The ID of the object"""
     id: ID!
@@ -32,7 +28,6 @@ type Query {
   landscapes(offset: Int, before: String, after: String, first: Int, last: Int, name_Icontains: String, description_Icontains: String, slug: String, slug_Icontains: String, website_Icontains: String, location_Icontains: String, membershipList_Memberships_User_Email: String): LandscapeNodeConnection
   users(offset: Int, before: String, after: String, first: Int, last: Int, email: String, email_Icontains: String, email_Iexact: String, firstName_Icontains: String, lastName_Icontains: String, project: String): UserNodeConnection
   landscapeGroups(offset: Int, before: String, after: String, first: Int, last: Int, landscape: ID, landscape_Slug_Icontains: String, group: ID, group_Slug_Icontains: String, isPartnership: Boolean): LandscapeGroupNodeConnection
-  memberships(offset: Int, before: String, after: String, first: Int, last: Int, group: ID, group_In: [ID], group_Slug_Icontains: String, group_Slug_In: [String], user: ID, user_In: [ID], userRole: CoreMembershipUserRoleChoices, user_Email_Icontains: String, user_Email_In: [String], membershipStatus: CoreMembershipMembershipStatusChoices): MembershipNodeConnection
   groupAssociations(offset: Int, before: String, after: String, first: Int, last: Int, parentGroup: ID, childGroup: ID, parentGroup_Slug_Icontains: String, childGroup_Slug_Icontains: String): GroupAssociationNodeConnection
   dataEntry(
     """The ID of the object"""
@@ -103,15 +98,12 @@ type GroupNode implements Node {
   website: String!
   email: String!
   createdBy: UserNode
-  membershipType: CoreGroupMembershipTypeChoices!
+  membershipList: CollaborationMembershipListNode
   associationsAsParent(offset: Int, before: String, after: String, first: Int, last: Int, parentGroup: ID, childGroup: ID, parentGroup_Slug_Icontains: String, childGroup_Slug_Icontains: String): GroupAssociationNodeConnection!
   associationsAsChild(offset: Int, before: String, after: String, first: Int, last: Int, parentGroup: ID, childGroup: ID, parentGroup_Slug_Icontains: String, childGroup_Slug_Icontains: String): GroupAssociationNodeConnection!
-  memberships(offset: Int, before: String, after: String, first: Int, last: Int, group: ID, group_In: [ID], group_Slug_Icontains: String, group_Slug_In: [String], user: ID, user_In: [ID], userRole: CoreMembershipUserRoleChoices, user_Email_Icontains: String, user_Email_In: [String], membershipStatus: CoreMembershipMembershipStatusChoices): MembershipNodeConnection!
   associatedLandscapes(offset: Int, before: String, after: String, first: Int, last: Int, landscape: ID, landscape_Slug_Icontains: String, group: ID, group_Slug_Icontains: String, isPartnership: Boolean): LandscapeGroupNodeConnection!
   id: ID!
   sharedResources(offset: Int, before: String, after: String, first: Int, last: Int, source_DataEntry_ResourceType_In: [String]): SharedResourceNodeConnection
-  accountMembership: MembershipNode
-  membershipsCount: Int
 }
 
 """An object with an ID"""
@@ -126,7 +118,6 @@ type UserNode implements Node {
   email: String!
   profileImage: String!
   preferences(offset: Int, before: String, after: String, first: Int, last: Int): UserPreferenceNodeConnection!
-  memberships(offset: Int, before: String, after: String, first: Int, last: Int, group: ID, group_In: [ID], group_Slug_Icontains: String, group_Slug_In: [String], user: ID, user_In: [ID], userRole: CoreMembershipUserRoleChoices, user_Email_Icontains: String, user_Email_In: [String], membershipStatus: CoreMembershipMembershipStatusChoices): MembershipNodeConnection!
   id: ID!
 }
 
@@ -172,57 +163,72 @@ type UserPreferenceNode implements Node {
   id: ID!
 }
 
-type MembershipNodeConnection {
-  """Pagination data for this connection."""
-  pageInfo: PageInfo!
-
-  """Contains the nodes in this connection."""
-  edges: [MembershipNodeEdge!]!
-  totalCount: Int!
-}
-
-"""A Relay edge containing a `MembershipNode` and its cursor."""
-type MembershipNodeEdge {
-  """The item at the end of the edge"""
-  node: MembershipNode!
-
-  """A cursor for use in pagination"""
-  cursor: String!
-}
-
-type MembershipNode implements Node {
-  group: GroupNode!
-  user: UserNode!
-  userRole: CoreMembershipUserRoleChoices!
-  membershipStatus: CoreMembershipMembershipStatusChoices!
+type CollaborationMembershipListNode implements Node {
+  enrollMethod: CollaborationMembershipListEnrollMethodChoices!
+  membershipType: CollaborationMembershipListMembershipTypeChoices!
+  memberships(offset: Int, before: String, after: String, first: Int, last: Int, user: ID, user_In: [ID], userRole: String, user_Email_Icontains: String, user_Email_In: [String], membershipStatus: CollaborationMembershipMembershipStatusChoices, user_Email_Not: String): CollaborationMembershipNodeConnection!
   id: ID!
+  accountMembership: CollaborationMembershipNode
+  membershipsCount: Int
 }
 
 """An enumeration."""
-enum CoreMembershipUserRoleChoices {
-  """Manager"""
-  MANAGER
+enum CollaborationMembershipListEnrollMethodChoices {
+  """Join"""
+  JOIN
 
-  """Member"""
-  MEMBER
+  """Invite"""
+  INVITE
+
+  """Both"""
+  BOTH
 }
 
 """An enumeration."""
-enum CoreMembershipMembershipStatusChoices {
-  """Approved"""
-  APPROVED
-
-  """Pending"""
-  PENDING
-}
-
-"""An enumeration."""
-enum CoreGroupMembershipTypeChoices {
+enum CollaborationMembershipListMembershipTypeChoices {
   """Open"""
   OPEN
 
   """Closed"""
   CLOSED
+}
+
+type CollaborationMembershipNodeConnection {
+  """Pagination data for this connection."""
+  pageInfo: PageInfo!
+
+  """Contains the nodes in this connection."""
+  edges: [CollaborationMembershipNodeEdge!]!
+  totalCount: Int!
+}
+
+"""
+A Relay edge containing a `CollaborationMembershipNode` and its cursor.
+"""
+type CollaborationMembershipNodeEdge {
+  """The item at the end of the edge"""
+  node: CollaborationMembershipNode!
+
+  """A cursor for use in pagination"""
+  cursor: String!
+}
+
+type CollaborationMembershipNode implements Node {
+  membershipList: CollaborationMembershipListNode!
+  user: UserNode
+  userRole: String!
+  membershipStatus: CollaborationMembershipMembershipStatusChoices!
+  pendingEmail: String
+  id: ID!
+}
+
+"""An enumeration."""
+enum CollaborationMembershipMembershipStatusChoices {
+  """Approved"""
+  APPROVED
+
+  """Pending"""
+  PENDING
 }
 
 type GroupAssociationNodeConnection {
@@ -307,74 +313,6 @@ Use of this type is *not recommended* as you lose the benefits of having a defin
 schema (one of the key benefits of GraphQL).
 """
 scalar JSONString
-
-type CollaborationMembershipListNode implements Node {
-  enrollMethod: CollaborationMembershipListEnrollMethodChoices!
-  membershipType: CollaborationMembershipListMembershipTypeChoices!
-  memberships(offset: Int, before: String, after: String, first: Int, last: Int, user: ID, user_In: [ID], userRole: String, user_Email_Icontains: String, user_Email_In: [String], membershipStatus: CollaborationMembershipMembershipStatusChoices, user_Email_Not: String): CollaborationMembershipNodeConnection!
-  id: ID!
-  accountMembership: CollaborationMembershipNode
-  membershipsCount: Int
-}
-
-"""An enumeration."""
-enum CollaborationMembershipListEnrollMethodChoices {
-  """Join"""
-  JOIN
-
-  """Invite"""
-  INVITE
-
-  """Both"""
-  BOTH
-}
-
-"""An enumeration."""
-enum CollaborationMembershipListMembershipTypeChoices {
-  """Open"""
-  OPEN
-
-  """Closed"""
-  CLOSED
-}
-
-type CollaborationMembershipNodeConnection {
-  """Pagination data for this connection."""
-  pageInfo: PageInfo!
-
-  """Contains the nodes in this connection."""
-  edges: [CollaborationMembershipNodeEdge!]!
-  totalCount: Int!
-}
-
-"""
-A Relay edge containing a `CollaborationMembershipNode` and its cursor.
-"""
-type CollaborationMembershipNodeEdge {
-  """The item at the end of the edge"""
-  node: CollaborationMembershipNode!
-
-  """A cursor for use in pagination"""
-  cursor: String!
-}
-
-type CollaborationMembershipNode implements Node {
-  membershipList: CollaborationMembershipListNode!
-  user: UserNode
-  userRole: String!
-  membershipStatus: CollaborationMembershipMembershipStatusChoices!
-  pendingEmail: String
-  id: ID!
-}
-
-"""An enumeration."""
-enum CollaborationMembershipMembershipStatusChoices {
-  """Approved"""
-  APPROVED
-
-  """Pending"""
-  PENDING
-}
 
 type TaxonomyTermNodeConnection {
   """Pagination data for this connection."""
@@ -1655,17 +1593,14 @@ type Mutations {
   addUser(input: UserAddMutationInput!): UserAddMutationPayload!
   addLandscapeGroup(input: LandscapeGroupAddMutationInput!): LandscapeGroupAddMutationPayload!
   addGroupAssociation(input: GroupAssociationAddMutationInput!): GroupAssociationAddMutationPayload!
-  addMembership(input: MembershipAddMutationInput!): MembershipAddMutationPayload!
   updateGroup(input: GroupUpdateMutationInput!): GroupUpdateMutationPayload!
   updateLandscape(input: LandscapeUpdateMutationInput!): LandscapeUpdateMutationPayload!
-  updateMembership(input: MembershipUpdateMutationInput!): MembershipUpdateMutationPayload!
   updateUser(input: UserUpdateMutationInput!): UserUpdateMutationPayload!
   deleteGroup(input: GroupDeleteMutationInput!): GroupDeleteMutationPayload!
   deleteLandscape(input: LandscapeDeleteMutationInput!): LandscapeDeleteMutationPayload!
   deleteUser(input: UserDeleteMutationInput!): UserDeleteMutationPayload!
   deleteLandscapeGroup(input: LandscapeGroupDeleteMutationInput!): LandscapeGroupDeleteMutationPayload!
   deleteGroupAssociation(input: GroupAssociationDeleteMutationInput!): GroupAssociationDeleteMutationPayload!
-  deleteMembership(input: MembershipDeleteMutationInput!): MembershipDeleteMutationPayload!
   updateUserPreference(input: UserPreferenceUpdateInput!): UserPreferenceUpdatePayload!
   deleteUserPreference(input: UserPreferenceDeleteInput!): UserPreferenceDeletePayload!
   unsubscribeUser(input: UserUnsubscribeUpdateInput!): UserUnsubscribeUpdatePayload!
@@ -1781,19 +1716,6 @@ input GroupAssociationAddMutationInput {
   clientMutationId: String
 }
 
-type MembershipAddMutationPayload {
-  errors: GenericScalar
-  membership: MembershipNode
-  clientMutationId: String
-}
-
-input MembershipAddMutationInput {
-  userEmail: String!
-  groupSlug: String!
-  userRole: String
-  clientMutationId: String
-}
-
 type GroupUpdateMutationPayload {
   errors: GenericScalar
   group: GroupNode
@@ -1832,19 +1754,6 @@ input LandscapeUpdateMutationInput {
   developmentStrategy: JSONString
   profileImage: String
   profileImageDescription: String
-  clientMutationId: String
-}
-
-type MembershipUpdateMutationPayload {
-  errors: GenericScalar
-  membership: MembershipNode
-  clientMutationId: String
-}
-
-input MembershipUpdateMutationInput {
-  id: ID!
-  userRole: String
-  membershipStatus: String
   clientMutationId: String
 }
 
@@ -1914,17 +1823,6 @@ type GroupAssociationDeleteMutationPayload {
 }
 
 input GroupAssociationDeleteMutationInput {
-  id: ID
-  clientMutationId: String
-}
-
-type MembershipDeleteMutationPayload {
-  errors: GenericScalar
-  membership: MembershipNode
-  clientMutationId: String
-}
-
-input MembershipDeleteMutationInput {
   id: ID
   clientMutationId: String
 }

@@ -358,7 +358,7 @@ class LandscapeMembershipSaveMutation(BaseAuthenticatedMutation):
             landscape = Landscape.objects.get(slug=landscape_slug)
         except Exception as error:
             logger.error(
-                "Attempt to save Story Map Memberships, but story map was not found",
+                "Attempt to save Landscape Memberships, but landscape was not found",
                 extra={
                     "landscape_slug": landscape_slug,
                     "error": error,
