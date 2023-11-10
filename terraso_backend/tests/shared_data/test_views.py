@@ -48,7 +48,7 @@ def data_entry_payload(request, group, landscape):
 @pytest.mark.parametrize("data_entry_payload", ["group", "landscape"], indirect=True)
 @mock.patch("apps.storage.file_utils.get_file_size")
 def test_create_oversized_data_entry(mock_get_size, logged_client, upload_url, data_entry_payload):
-    mock_get_size.return_value = 10000001
+    mock_get_size.return_value = 50000001
     with patch(
         "apps.shared_data.forms.data_entry_upload_service.upload_file"
     ) as mocked_upload_service:
