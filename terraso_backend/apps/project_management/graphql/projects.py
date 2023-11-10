@@ -295,7 +295,7 @@ class ProjectUpdateMutation(BaseWriteMutation):
             cls.not_allowed()
 
         metadata = {
-            "name": kwargs["name"],
+            "name": kwargs.get("name"),
             "description": kwargs["description"] if "description" in kwargs else None,
         }
 
