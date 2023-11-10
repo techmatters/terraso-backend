@@ -51,4 +51,6 @@ class SharedResourcesMixin:
     )
 
     def resolve_shared_resources(self, info, **kwargs):
-        return self.shared_resources
+        return self.shared_resources.prefetch_related(
+            "source",
+        )

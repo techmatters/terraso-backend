@@ -18,7 +18,7 @@ import graphene
 import structlog
 from django.contrib.contenttypes.models import ContentType
 from django.db import transaction
-from django.db.models import Q
+from django.db.models import Q, Subquery
 from graphene import relay
 from graphene_django import DjangoObjectType
 
@@ -101,17 +101,30 @@ class VisualizationConfigNode(DjangoObjectType):
 
     @classmethod
     def get_queryset(cls, queryset, info):
+        # Only filter for user memberships if the field is not visualizationConfigs
+        # This is because the user can be requesting a visualizations from a parent
+        # node, that should be handling the filtering
+        if info.field_name != "visualizationConfigs":
+            return queryset
+
         user_pk = getattr(info.context.user, "pk", False)
-        user_groups_ids = Membership.objects.filter(
-            user__id=user_pk, membership_status=Membership.APPROVED
-        ).values_list("group", flat=True)
-        user_landscape_ids = Landscape.objects.filter(
-            associated_groups__group__memberships__user__id=user_pk,
-            associated_groups__group__memberships__membership_status=Membership.APPROVED,
-            associated_groups__is_default_landscape_group=True,
-        ).values_list("id", flat=True)
-        all_ids = list(user_groups_ids) + list(user_landscape_ids)
-        return queryset.filter(data_entry__shared_resources__target_object_id__in=all_ids)
+
+        user_groups_ids = Subquery(
+            Group.objects.filter(
+                memberships__user__id=user_pk, memberships__membership_status=Membership.APPROVED
+            ).values("id")
+        )
+        user_landscape_ids = Subquery(
+            Landscape.objects.filter(
+                associated_groups__group__memberships__user__id=user_pk,
+                associated_groups__group__memberships__membership_status=Membership.APPROVED,
+                associated_groups__is_default_landscape_group=True,
+            ).values("id")
+        )
+        return queryset.filter(
+            Q(data_entry__shared_resources__target_object_id__in=user_groups_ids)
+            | Q(data_entry__shared_resources__target_object_id__in=user_landscape_ids)
+        )
 
     def resolve_mapbox_tileset_id(self, info):
         if self.mapbox_tileset_id is None:
