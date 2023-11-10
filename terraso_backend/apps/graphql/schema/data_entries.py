@@ -25,8 +25,8 @@ from django.db.models import Prefetch, Q, Subquery
 from graphene import relay
 from graphene_django import DjangoObjectType
 
-from apps.core.gis.parsers import parse_file_to_geojson
 from apps.collaboration.models import Membership as CollaborationMembership
+from apps.core.gis.parsers import parse_file_to_geojson
 from apps.core.models import Group, Landscape, Membership
 from apps.graphql.exceptions import GraphQLNotAllowedException, GraphQLNotFoundException
 from apps.shared_data.models import DataEntry, VisualizationConfig
