@@ -162,7 +162,7 @@ def test_update_oversized_media_upload(mock_get_size, logged_client, users):
             }
         ),
     }
-    mock_get_size.return_value = 10000001
+    mock_get_size.return_value = 50000001
     with patch(
         "apps.story_map.views.story_map_media_upload_service.upload_file_get_path"
     ) as mocked_upload_service:
