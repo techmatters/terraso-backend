@@ -15,13 +15,17 @@
 
 import rules
 
-from apps.core import landscape_collaboration_roles
+from apps.core import group_collaboration_roles, landscape_collaboration_roles
 from apps.core.models import Group, Landscape
 
 
 def is_target_manager(user, target):
     if isinstance(target, Group):
-        return user.memberships.managers_only().filter(group=target).exists()
+        return (
+            target.membership_list.memberships.by_role(group_collaboration_roles.ROLE_MANAGER)
+            .filter(user=user)
+            .exists()
+        )
     if isinstance(target, Landscape):
         return (
             target.membership_list.memberships.by_role(landscape_collaboration_roles.ROLE_MANAGER)

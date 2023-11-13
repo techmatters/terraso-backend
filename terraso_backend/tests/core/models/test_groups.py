@@ -19,7 +19,7 @@ from mixer.backend.django import mixer
 
 from apps.collaboration.models import Membership as CollaborationMembership
 from apps.core import group_collaboration_roles
-from apps.core.models.groups import Group, GroupAssociation, Membership
+from apps.core.models.groups import Group, GroupAssociation
 from apps.core.models.users import User
 
 pytestmark = pytest.mark.django_db
@@ -87,8 +87,10 @@ def test_group_add_manager():
 
     group.add_manager(user)
 
-    assert Membership.objects.filter(
-        user=user, group=group, user_role=Membership.ROLE_MANAGER
+    assert CollaborationMembership.objects.filter(
+        user=user,
+        membership_list=group.membership_list,
+        user_role=group_collaboration_roles.ROLE_MANAGER,
     ).exists()
 
 
@@ -96,17 +98,22 @@ def test_group_add_manager_updates_previous_membership():
     group = mixer.blend(Group)
     user = mixer.blend(User)
     old_membership = mixer.blend(
-        Membership, user=user, group=group, user_role=Membership.ROLE_MEMBER
+        CollaborationMembership,
+        user=user,
+        membership_list=group.membership_list,
+        user_role=group_collaboration_roles.ROLE_MEMBER,
     )
 
     group.add_manager(user)
 
-    updated_membership = Membership.objects.get(
-        user=user, group=group, user_role=Membership.ROLE_MANAGER
+    updated_membership = CollaborationMembership.objects.get(
+        user=user,
+        membership_list=group.membership_list,
+        user_role=group_collaboration_roles.ROLE_MANAGER,
     )
 
     assert old_membership.id == updated_membership.id
-    assert updated_membership.user_role == Membership.ROLE_MANAGER
+    assert updated_membership.user_role == group_collaboration_roles.ROLE_MANAGER
 
 
 def test_group_can_have_group_associations():

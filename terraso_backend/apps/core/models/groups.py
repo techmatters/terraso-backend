@@ -18,7 +18,6 @@ from django.apps import apps
 from django.contrib.contenttypes.fields import GenericRelation
 from django.db import models, transaction
 from django.utils.translation import gettext_lazy as _
-from safedelete.models import SafeDeleteManager
 
 from apps.core import group_collaboration_roles
 from apps.core import permission_rules as perm_rules
@@ -153,11 +152,20 @@ class Group(SlugModel):
         user: User,
         role: Union[Literal["manager"], Literal["member"]],
     ):
-        self.memberships.update_or_create(group=self, user=user, defaults={"user_role": role})
+        CollaborationMembership = apps.get_model("collaboration", "Membership")
+        self.membership_list.save_membership(
+            user.email,
+            role,
+            CollaborationMembership.APPROVED,
+        )
 
     @property
     def group_managers(self):
-        manager_memberships = models.Subquery(self.memberships.managers_only().values("user_id"))
+        manager_memberships = models.Subquery(
+            self.membership_list.memberships.by_role(group_collaboration_roles.ROLE_MANAGER).values(
+                "user_id"
+            )
+        )
         return User.objects.filter(id__in=manager_memberships)
 
     @property
@@ -213,14 +221,6 @@ class GroupAssociation(BaseModel):
         )
 
 
-class MembershipObjectsManager(SafeDeleteManager):
-    def managers_only(self):
-        return self.filter(user_role=Membership.ROLE_MANAGER, membership_status=Membership.APPROVED)
-
-    def approved_only(self):
-        return self.filter(membership_status=Membership.APPROVED)
-
-
 class Membership(BaseModel):
     """
     This model represents the association between a User and a Group on
@@ -253,8 +253,6 @@ class Membership(BaseModel):
 
     membership_status = models.CharField(max_length=64, choices=APPROVAL_STATUS, default=APPROVED)
 
-    objects = MembershipObjectsManager()
-
     class Meta:
         constraints = (
             models.UniqueConstraint(
@@ -263,11 +261,6 @@ class Membership(BaseModel):
                 name="unique_active_membership",
             ),
         )
-        rules_permissions = {
-            "add": perm_rules.allowed_to_add_membership,
-            "delete": perm_rules.allowed_to_delete_membership,
-            "change": perm_rules.allowed_to_change_membership,
-        }
 
     @classmethod
     def get_user_role_from_text(cls, user_role):

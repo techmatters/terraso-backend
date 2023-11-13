@@ -148,12 +148,34 @@ def landscape_user_memberships(managed_landscapes, users):
 
 @pytest.fixture
 def groups():
-    return mixer.cycle(5).blend(Group, membership_status=Group.MEMBERSHIP_TYPE_OPEN)
+    return mixer.cycle(5).blend(
+        Group,
+        membership_list=mixer.blend(
+            MembershipList, membership_type=MembershipList.MEMBERSHIP_TYPE_OPEN
+        ),
+    )
 
 
 @pytest.fixture
 def groups_closed():
-    return mixer.cycle(2).blend(Group, membership_type=Group.MEMBERSHIP_TYPE_CLOSED)
+    return mixer.cycle(2).blend(
+        Group,
+        membership_list=mixer.blend(
+            MembershipList, membership_type=MembershipList.MEMBERSHIP_TYPE_CLOSED
+        ),
+    )
+
+
+@pytest.fixture
+def groups_closed_managers(groups_closed, users):
+    return [
+        group.membership_list.save_membership(
+            users[i].email,
+            group_collaboration_roles.ROLE_MANAGER,
+            CollaborationMembership.APPROVED,
+        )[1]
+        for i, group in enumerate(groups_closed)
+    ]
 
 
 @pytest.fixture
@@ -258,7 +280,7 @@ def landscape_common_group(landscapes, groups):
 
 @pytest.fixture
 def make_core_db_records(
-    group_associations, landscapes, landscape_common_group, memberships, groups, subgroups, users
+    group_associations, landscapes, landscape_common_group, groups, subgroups, users
 ):
     return
 

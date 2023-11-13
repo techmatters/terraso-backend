@@ -32,6 +32,7 @@ from apps.graphql.exceptions import (
     GraphQLNotFoundException,
     GraphQLValidationException,
 )
+from apps.notifications.email import EmailNotification
 
 from .commons import (
     BaseAuthenticatedMutation,
@@ -243,7 +244,7 @@ class GroupMembershipSaveMutation(BaseAuthenticatedMutation):
 
         if kwargs["user_role"] not in group_collaboration_roles.ALL_ROLES:
             logger.info(
-                "Attempt to save Landscape Memberships, but user role is not valid",
+                "Attempt to save Group Memberships, but user role is not valid",
                 extra={
                     "user_role": kwargs["user_role"],
                 },
@@ -277,6 +278,10 @@ class GroupMembershipSaveMutation(BaseAuthenticatedMutation):
             ):
                 raise ValidationError("User cannot request membership")
 
+        is_closed_group = (
+            group.membership_list.membership_type == MembershipList.MEMBERSHIP_TYPE_CLOSED
+        )
+
         try:
             memberships = [
                 {
@@ -288,14 +293,16 @@ class GroupMembershipSaveMutation(BaseAuthenticatedMutation):
                     group.membership_list.save_membership(
                         user_email=email,
                         user_role=kwargs["user_role"],
-                        membership_status=CollaborationMembership.APPROVED,
+                        membership_status=CollaborationMembership.PENDING
+                        if is_closed_group
+                        else CollaborationMembership.APPROVED,
                         validation_func=validate,
                     )
                 ]
             ]
         except ValidationError as error:
             logger.error(
-                "Attempt to save Landscape Memberships, but user is not allowed",
+                "Attempt to save Group Memberships, but user is not allowed",
                 extra={"error": str(error)},
             )
             raise GraphQLNotAllowedException(
@@ -303,7 +310,7 @@ class GroupMembershipSaveMutation(BaseAuthenticatedMutation):
             )
         except IntegrityError as exc:
             logger.info(
-                "Attempt to save Landscape Memberships, but it's not unique",
+                "Attempt to save Group Memberships, but it's not unique",
                 extra={"model": CollaborationMembership.__name__, "integrity_error": exc},
             )
 
@@ -324,6 +331,11 @@ class GroupMembershipSaveMutation(BaseAuthenticatedMutation):
                 extra={"error": str(error)},
             )
             raise GraphQLNotFoundException(model_name=CollaborationMembership.__name__)
+
+        if group.membership_list.membership_type == MembershipList.MEMBERSHIP_TYPE_CLOSED:
+            for membership in memberships:
+                if not membership["was_approved"]:
+                    EmailNotification.send_membership_request(membership["membership"].user, group)
 
         return cls(
             memberships=[membership["membership"] for membership in memberships],
@@ -351,7 +363,7 @@ class GroupMembershipDeleteMutation(BaseDeleteMutation):
             group = Group.objects.get(slug=group_slug)
         except Group.DoesNotExist:
             logger.error(
-                "Attempt to delete Landscape Membership, but landscape was not found",
+                "Attempt to delete Group Membership, but group was not found",
                 extra={"group_slug": group_slug},
             )
             raise GraphQLNotFoundException(model_name=Group.__name__)
@@ -360,7 +372,7 @@ class GroupMembershipDeleteMutation(BaseDeleteMutation):
             membership = group.membership_list.memberships.get(id=membership_id)
         except CollaborationMembership.DoesNotExist:
             logger.error(
-                "Attempt to delete Landscape Membership, but membership was not found",
+                "Attempt to delete Group Membership, but membership was not found",
                 extra={"membership_id": membership_id},
             )
             raise GraphQLNotFoundException(model_name=CollaborationMembership.__name__)
@@ -374,7 +386,7 @@ class GroupMembershipDeleteMutation(BaseDeleteMutation):
             },
         ):
             logger.info(
-                "Attempt to delete Landscape Memberships, but user lacks permission",
+                "Attempt to delete Group Memberships, but user lacks permission",
                 extra={"user_id": user.pk, "membership_id": membership_id},
             )
             raise GraphQLNotAllowedException(

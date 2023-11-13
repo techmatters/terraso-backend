@@ -15,7 +15,7 @@
 
 import rules
 
-from apps.core import landscape_collaboration_roles
+from apps.core import group_collaboration_roles, landscape_collaboration_roles
 
 
 @rules.predicate
@@ -63,35 +63,15 @@ def allowed_to_delete_landscape_group(user, landscape_group):
 
 
 @rules.predicate
-def allowed_to_change_membership(user, membership_group_id):
-    return user.is_group_manager(membership_group_id)
-
-
-@rules.predicate
-def allowed_to_delete_membership(user, membership_id):
-    from apps.core.models import Membership
-
-    # Users are deleting their own membership
-    if user.memberships.filter(pk=membership_id).exists():
-        return True
-
-    membership = Membership.objects.get(pk=membership_id)
-
-    # Group Managers can delete any Membership in their Groups
-    if user.is_group_manager(membership.group.id):
-        return True
-
-    return False
-
-
-@rules.predicate
 def allowed_group_managers_count(user, membership_id):
     from apps.core.models import Membership
 
     membership = Membership.objects.get(pk=membership_id)
     is_user_manager = user.is_group_manager(membership.group.id)
-    managers_count = membership.group.memberships.managers_only().count()
-    is_own_membership = user.memberships.filter(pk=membership_id).exists()
+    managers_count = membership.membership_list.memberships.by_role(
+        group_collaboration_roles.ROLE_MANAGER
+    ).count()
+    is_own_membership = user.collaboration_memberships.filter(pk=membership_id).exists()
 
     # User is the last manager and a Group cannot have no managers
     if managers_count == 1 and is_user_manager and is_own_membership:
@@ -138,11 +118,6 @@ def allowed_to_update_site(user, site):
 
 
 @rules.predicate
-def allowed_to_add_membership(user, group):
-    return group.can_join or group.is_manager(user)
-
-
-@rules.predicate
 def allowed_to_change_landscape_membership(user, obj):
     landscape = obj.get("landscape")
     user_role = obj.get("user_role")
@@ -165,6 +140,24 @@ def allowed_to_change_landscape_membership(user, obj):
 
 
 @rules.predicate
+def allowed_to_change_group_membership(user, obj):
+    group = obj.get("group")
+    user_role = obj.get("user_role")
+    user_exists = obj.get("user_exists")
+    user_email = obj.get("user_email")
+    is_manager = user.is_group_manager(group.id)
+    own_membership = user_email == user.email
+
+    if not user_exists:
+        return False
+
+    if not is_manager and own_membership and user_role == group_collaboration_roles.ROLE_MEMBER:
+        return True
+
+    return is_manager
+
+
+@rules.predicate
 def allowed_to_delete_landscape_membership(user, obj):
     landscape = obj.get("landscape")
     membership = obj.get("membership")
@@ -181,3 +174,4 @@ rules.add_rule("allowed_to_change_landscape", allowed_to_change_landscape)
 rules.add_rule("allowed_to_change_landscape_membership", allowed_to_change_landscape_membership)
 rules.add_rule("allowed_to_delete_landscape_membership", allowed_to_delete_landscape_membership)
 rules.add_rule("allowed_landscape_managers_count", allowed_landscape_managers_count)
+rules.add_rule("allowed_to_change_group_membership", allowed_to_change_group_membership)
