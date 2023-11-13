@@ -77,7 +77,6 @@ def test_group_membership_add_group_not_found(client_query, users):
               user {
                 email
               }
-              
             }
             group {
               slug
@@ -113,7 +112,6 @@ def test_group_membership_add_user_not_found(client_query, groups):
               user {
                 email
               }
-              
             }
             group {
               slug
@@ -231,7 +229,6 @@ def test_group_membership_add_manager_closed(
               user {
                 email
               }
-              
             }
           }
         }
