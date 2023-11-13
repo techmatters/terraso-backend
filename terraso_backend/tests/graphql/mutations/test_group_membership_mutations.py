@@ -497,7 +497,7 @@ def test_group_membership_delete(client_query, users, groups):
     mixer.blend(
         CollaborationMembership,
         user=manager,
-        group=group,
+        membership_list=group.membership_list,
         user_role=group_collaboration_roles.ROLE_MANAGER,
     )
 

@@ -16,7 +16,6 @@
 from datetime import timedelta
 
 import pytest
-from django.contrib.contenttypes.models import ContentType
 from django.utils import timezone
 from freezegun import freeze_time
 from graphene_django.utils.testing import graphql_query
@@ -31,7 +30,6 @@ from apps.core.models import (
     GroupAssociation,
     Landscape,
     LandscapeGroup,
-    Membership,
     SharedResource,
     TaxonomyTerm,
     User,
@@ -245,24 +243,13 @@ def group_manager_memberships(groups, users):
 
 
 @pytest.fixture
-def memberships_pending(groups, users):
-    return mixer.cycle(5).blend(
-        Membership,
-        group=(g for g in groups),
-        user=(u for u in users),
-        user_role=Membership.ROLE_MEMBER,
-        membership_status=Membership.PENDING,
-    )
-
-
-@pytest.fixture
 def memberships_pending_with_notifications(groups, users_with_group_notifications):
     return mixer.cycle(5).blend(
-        Membership,
-        group=(g for g in groups),
+        CollaborationMembership,
+        membership_list=(g.membership_list for g in groups),
         user=(u for u in users_with_group_notifications),
-        user_role=Membership.ROLE_MEMBER,
-        membership_status=Membership.PENDING,
+        user_role=group_collaboration_roles.ROLE_MEMBER,
+        membership_status=CollaborationMembership.PENDING,
     )
 
 
@@ -286,9 +273,9 @@ def make_core_db_records(
 
 
 @pytest.fixture
-def data_entry_current_user_file(users, groups):
+def data_entry_current_user_file(users):
     creator = users[0]
-    creator_group = groups[0]
+    creator_group = mixer.blend(Group)
     creator_group.membership_list.save_membership(
         creator.email, group_collaboration_roles.ROLE_MEMBER, CollaborationMembership.APPROVED
     )
@@ -303,9 +290,9 @@ def data_entry_current_user_file(users, groups):
 
 
 @pytest.fixture
-def data_entry_current_user_link(users, groups):
+def data_entry_current_user_link(users):
     creator = users[0]
-    creator_group = groups[0]
+    creator_group = mixer.blend(Group)
     creator_group.membership_list.save_membership(
         creator.email, group_collaboration_roles.ROLE_MEMBER, CollaborationMembership.APPROVED
     )
@@ -320,9 +307,9 @@ def data_entry_current_user_link(users, groups):
 
 
 @pytest.fixture
-def data_entry_other_user(users, groups):
+def data_entry_other_user(users):
     creator = users[1]
-    creator_group = groups[1]
+    creator_group = mixer.blend(Group)
     creator_group.membership_list.save_membership(
         creator.email, group_collaboration_roles.ROLE_MEMBER, CollaborationMembership.APPROVED
     )
@@ -338,9 +325,6 @@ def data_entry_other_user(users, groups):
 def group_data_entries(users, groups):
     creator = users[0]
     creator_group = groups[0]
-    creator_group.membership_list.save_membership(
-        creator.email, group_collaboration_roles.ROLE_MEMBER, CollaborationMembership.APPROVED
-    )
     resources = mixer.cycle(5).blend(
         SharedResource,
         target=creator_group,
@@ -364,23 +348,20 @@ def landscape_data_entries(users, landscapes):
 
 
 @pytest.fixture
-def landscape_data_entries_memberships(users, landscape_data_entries):
-    user = users[0]
-    for data_entry in landscape_data_entries:
-        shared_resource = data_entry.shared_resources.first()
-        if shared_resource.target_content_type == ContentType.objects.get(
-            app_label="core", model="landscape"
-        ):
-            shared_resource.target.membership_list.save_membership(
-                user_email=user.email,
-                user_role=landscape_collaboration_roles.ROLE_MEMBER,
-                membership_status=CollaborationMembership.APPROVED,
-            )
+def data_entries(group_data_entries, landscape_data_entries):
+    return group_data_entries + landscape_data_entries
 
 
 @pytest.fixture
-def data_entries(group_data_entries, landscape_data_entries):
-    return group_data_entries + landscape_data_entries
+def data_entries_memberships(users, data_entries):
+    user = users[0]
+    for data_entry in data_entries:
+        shared_resource = data_entry.shared_resources.first()
+        shared_resource.target.membership_list.save_membership(
+            user_email=user.email,
+            user_role=landscape_collaboration_roles.ROLE_MEMBER,
+            membership_status=CollaborationMembership.APPROVED,
+        )
 
 
 @pytest.fixture

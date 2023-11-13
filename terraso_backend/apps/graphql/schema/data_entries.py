@@ -111,17 +111,21 @@ class DataEntryNode(DjangoObjectType, SharedResourcesMixin):
             ).values("id")
         )
 
-        return queryset.prefetch_related(
-            Prefetch(
-                "visualizations",
-                queryset=VisualizationConfig.objects.defer("configuration").prefetch_related(
-                    "created_by"
+        return (
+            queryset.prefetch_related(
+                Prefetch(
+                    "visualizations",
+                    queryset=VisualizationConfig.objects.defer("configuration").prefetch_related(
+                        "created_by"
+                    ),
                 ),
-            ),
-            "created_by",
-        ).filter(
-            Q(shared_resources__target_object_id__in=user_groups_ids)
-            | Q(shared_resources__target_object_id__in=user_landscape_ids)
+                "created_by",
+            )
+            .filter(
+                Q(shared_resources__target_object_id__in=user_groups_ids)
+                | Q(shared_resources__target_object_id__in=user_landscape_ids)
+            )
+            .distinct()
         )
 
     def resolve_url(self, info):

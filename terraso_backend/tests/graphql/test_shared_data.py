@@ -22,6 +22,8 @@ from unittest import mock
 import geopandas as gpd
 import pytest
 
+from apps.collaboration.models import Membership as CollaborationMembership
+from apps.core import group_collaboration_roles
 from apps.core.gis.utils import DEFAULT_CRS
 
 from ..core.gis.test_parsers import KML_CONTENT, KML_GEOJSON
@@ -29,7 +31,7 @@ from ..core.gis.test_parsers import KML_CONTENT, KML_GEOJSON
 pytestmark = pytest.mark.django_db
 
 
-def test_data_entries_query(client_query, data_entries, landscape_data_entries_memberships):
+def test_data_entries_query(client_query, data_entries, data_entries_memberships):
     response = client_query(
         """
         {dataEntries {
@@ -69,9 +71,7 @@ def test_data_entry_get_one_by_id(client_query, data_entries):
     assert data_entry_result["name"] == data_entry.name
 
 
-def test_data_entries_query_has_total_count(
-    client_query, data_entries, landscape_data_entries_memberships
-):
+def test_data_entries_query_has_total_count(client_query, data_entries, data_entries_memberships):
     response = client_query(
         """
         {dataEntries {
@@ -89,7 +89,9 @@ def test_data_entries_query_has_total_count(
     assert total_count == len(data_entries)
 
 
-def test_data_entries_filter_by_group_slug_filters_successfuly(client_query, data_entries, groups):
+def test_data_entries_filter_by_group_slug_filters_successfuly(
+    client_query, data_entries, groups, users
+):
     data_entry_a = data_entries[0]
     data_entry_b = data_entries[1]
 
@@ -97,6 +99,10 @@ def test_data_entries_filter_by_group_slug_filters_successfuly(client_query, dat
     data_entry_b.shared_resources.create(target=groups[-1])
 
     group_filter = groups[-1]
+
+    group_filter.membership_list.save_membership(
+        users[0].email, group_collaboration_roles.ROLE_MEMBER, CollaborationMembership.APPROVED
+    )
 
     response = client_query(
         """
@@ -121,7 +127,9 @@ def test_data_entries_filter_by_group_slug_filters_successfuly(client_query, dat
     assert str(data_entry_b.id) in data_entries_result
 
 
-def test_data_entries_filter_by_group_id_filters_successfuly(client_query, data_entries, groups):
+def test_data_entries_filter_by_group_id_filters_successfuly(
+    client_query, data_entries, groups, users
+):
     data_entry_a = data_entries[0]
     data_entry_b = data_entries[1]
 
@@ -129,6 +137,10 @@ def test_data_entries_filter_by_group_id_filters_successfuly(client_query, data_
     data_entry_b.shared_resources.create(target=groups[-1])
 
     group_filter = groups[-1]
+
+    group_filter.membership_list.save_membership(
+        users[0].email, group_collaboration_roles.ROLE_MEMBER, CollaborationMembership.APPROVED
+    )
 
     response = client_query(
         """
@@ -152,7 +164,7 @@ def test_data_entries_filter_by_group_id_filters_successfuly(client_query, data_
 
 
 def test_data_entries_returns_only_for_users_groups(
-    client_query, data_entry_current_user_file, data_entry_other_user
+    client_query, data_entry_current_user_file, data_entry_other_user, groups
 ):
     # It's being done a request for all data entries, but only the data entries
     # from logged user's group is expected to return.

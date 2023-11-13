@@ -16,7 +16,6 @@
 import pytest
 
 from apps.collaboration.models import Membership as CollaborationMembership
-from apps.core.models import Group, Landscape, Membership
 from apps.shared_data.models import DataEntry
 
 pytestmark = pytest.mark.django_db
@@ -217,13 +216,9 @@ def data_entry_by_not_manager_by_owner(request, users, landscape_data_entries, g
 
     data_entry.created_by = users[2]
     data_entry.save()
-    if isinstance(target, Group):
-        target.add_manager(users[0])
-        users[0].memberships.filter(group=target).update(membership_status=Membership.PENDING)
-    if isinstance(target, Landscape):
-        target.membership_list.memberships.filter(user=users[0]).update(
-            membership_status=CollaborationMembership.PENDING
-        )
+    target.membership_list.memberships.filter(user=users[0]).update(
+        membership_status=CollaborationMembership.PENDING
+    )
     return data_entry
 
 
