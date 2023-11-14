@@ -63,15 +63,17 @@ def allowed_to_delete_landscape_group(user, landscape_group):
 
 
 @rules.predicate
-def allowed_group_managers_count(user, membership_id):
-    from apps.core.models import Membership
+def allowed_group_managers_count(user, obj):
+    membership = obj.get("membership")
+    group = obj.get("group")
 
-    membership = Membership.objects.get(pk=membership_id)
-    is_user_manager = user.is_group_manager(membership.group.id)
+    is_user_manager = group.membership_list.has_role(
+        user, landscape_collaboration_roles.ROLE_MANAGER
+    )
     managers_count = membership.membership_list.memberships.by_role(
         group_collaboration_roles.ROLE_MANAGER
     ).count()
-    is_own_membership = user.collaboration_memberships.filter(pk=membership_id).exists()
+    is_own_membership = user.collaboration_memberships.filter(pk=membership.id).exists()
 
     # User is the last manager and a Group cannot have no managers
     if managers_count == 1 and is_user_manager and is_own_membership:
@@ -93,7 +95,7 @@ def allowed_landscape_managers_count(user, obj):
     ).count()
     is_own_membership = user.collaboration_memberships.filter(pk=membership.id).exists()
 
-    # User is the last manager and a Group cannot have no managers
+    # User is the last manager and a Landscape cannot have no managers
     if managers_count == 1 and is_user_manager and is_own_membership:
         return False
 
@@ -183,6 +185,17 @@ def allowed_to_delete_landscape_membership(user, obj):
     return membership.user.email == user.email
 
 
+@rules.predicate
+def allowed_to_delete_group_membership(user, obj):
+    group = obj.get("group")
+    membership = obj.get("membership")
+
+    if user.is_group_manager(group.id):
+        return True
+
+    return membership.user.email == user.email
+
+
 rules.add_rule("allowed_group_managers_count", allowed_group_managers_count)
 rules.add_rule("allowed_to_update_preferences", allowed_to_update_preferences)
 rules.add_rule("allowed_to_change_landscape", allowed_to_change_landscape)
@@ -190,3 +203,4 @@ rules.add_rule("allowed_to_change_landscape_membership", allowed_to_change_lands
 rules.add_rule("allowed_to_delete_landscape_membership", allowed_to_delete_landscape_membership)
 rules.add_rule("allowed_landscape_managers_count", allowed_landscape_managers_count)
 rules.add_rule("allowed_to_change_group_membership", allowed_to_change_group_membership)
+rules.add_rule("allowed_to_delete_group_membership", allowed_to_delete_group_membership)

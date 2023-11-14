@@ -537,179 +537,197 @@ def test_group_membership_update_not_found(client_query, group_manager_membershi
     assert "update_not_allowed" in response["data"]["saveGroupMembership"]["errors"][0]["message"]
 
 
-# def test_group_membership_delete(client_query, users, groups):
-#     member = users[0]
-#     manager = users[1]
-#     group = groups[0]
+def test_group_membership_delete(client_query, users, groups):
+    member = users[0]
+    manager = users[1]
+    group = groups[0]
 
-#     old_membership = mixer.blend(
-#         CollaborationMembership, user=member, membership_list=group.membership_list
-#     )
-#     mixer.blend(
-#         CollaborationMembership,
-#         user=manager,
-#         membership_list=group.membership_list,
-#         user_role=group_collaboration_roles.ROLE_MANAGER,
-#     )
+    old_membership = mixer.blend(
+        CollaborationMembership, user=member, membership_list=group.membership_list
+    )
+    mixer.blend(
+        CollaborationMembership,
+        user=manager,
+        membership_list=group.membership_list,
+        user_role=group_collaboration_roles.ROLE_MANAGER,
+    )
 
-#     client_query(
-#         """
-#         mutation deleteMembership($input: MembershipDeleteMutationInput!){
-#           deleteMembership(input: $input) {
-#             membership {
-#               user {
-#                 email
-#               },
-#               group {
-#                 slug
-#               }
-#             }
-#           }
-#         }
-#         """,
-#         variables={
-#             "input": {
-#                 "id": str(old_membership.id),
-#             }
-#         },
-#     )
+    client_query(
+        """
+        mutation deleteMembership($input: GroupMembershipDeleteMutationInput!){
+          deleteGroupMembership(input: $input) {
+            membership {
+              user {
+                email
+              },
+              
+            }
+              group {
+                slug
+              }
+          }
+        }
+        """,
+        variables={
+            "input": {
+                "id": str(old_membership.id),
+                "groupSlug": group.slug,
+            }
+        },
+    )
 
-#     assert not CollaborationMembership.objects.filter(
-#         user=old_membership.user, membership_list=old_membership.group.membership_list
-#     )
-
-
-# def test_group_membership_soft_deleted_can_be_created_again(client_query, memberships):
-#     old_membership = memberships[0]
-#     old_membership.delete()
-
-#     response = client_query(
-#         """
-#         mutation addMembership($input: GroupMembershipSaveMutationInput!){
-#           saveGroupMembership(input: $input) {
-#             membership {
-#               id
-#               userRole
-#               user {
-#                 email
-#               }
-#               group {
-#                 slug
-#               }
-#             }
-#           }
-#         }
-#         """,
-#         variables={
-#             "input": {
-#                 "userEmail": old_membership.user.email,
-#                 "groupSlug": old_membership.group.slug,
-#             }
-#         },
-#     )
-#     membership = response.json()["data"]["saveGroupMembership"]["membership"]
-
-#     assert membership["id"]
-#     assert membership["user"]["email"] == old_membership.user.email
-#     assert membership["group"]["slug"] == old_membership.group.slug
-#     assert membership["userRole"] == group_collaboration_roles.ROLE_MEMBER
+    assert not CollaborationMembership.objects.filter(
+        user=old_membership.user, membership_list=old_membership.membership_list
+    )
 
 
-# def test_group_membership_delete_by_group_manager(client_query, memberships, users):
-#     # This test tries to delete memberships[1], from user[1] with user[0] as
-#     # manager from membership group
-#     old_membership = memberships[1]
-#     manager = users[0]
-#     old_membership.group.add_manager(manager)
+def test_group_membership_soft_deleted_can_be_created_again(
+    client_query, group_manager_memberships, groups
+):
+    group = groups[0]
+    old_membership = group_manager_memberships[0]
+    old_membership.delete()
 
-#     client_query(
-#         """
-#         mutation deleteMembership($input: MembershipDeleteMutationInput!){
-#           deleteMembership(input: $input) {
-#             membership {
-#               user {
-#                 email
-#               },
-#               group {
-#                 slug
-#               }
-#             }
-#           }
-#         }
-#         """,
-#         variables={
-#             "input": {
-#                 "id": str(old_membership.id),
-#             }
-#         },
-#     )
+    response = client_query(
+        """
+        mutation addMembership($input: GroupMembershipSaveMutationInput!){
+          saveGroupMembership(input: $input) {
+            memberships {
+              id
+              userRole
+              user {
+                email
+              }
+            }
+            errors
+          }
+        }
+        """,
+        variables={
+            "input": {
+                "userEmails": [old_membership.user.email],
+                "groupSlug": group.slug,
+            }
+        },
+    )
+    membership = response.json()["data"]["saveGroupMembership"]["memberships"][0]
 
-#     assert not CollaborationMembership.objects.filter(
-#         user=old_membership.user, membership_list=old_membership.group.membership_list
-#     )
-
-
-# def test_group_membership_delete_by_any_other_user(client_query, memberships):
-#     # Client query runs with user[0] from memberships[0]
-#     # This test tries to delete memberships[1], from user[1] with user[0]
-#     old_membership = memberships[1]
-
-#     response = client_query(
-#         """
-#         mutation deleteMembership($input: MembershipDeleteMutationInput!){
-#           deleteMembership(input: $input) {
-#             membership {
-#               user {
-#                 email
-#               },
-#               group {
-#                 slug
-#               }
-#             }
-#             errors
-#           }
-#         }
-#         """,
-#         variables={
-#             "input": {
-#                 "id": str(old_membership.id),
-#             }
-#         },
-#     )
-
-#     response = response.json()
-
-#     assert "errors" in response["data"]["deleteMembership"]
-#     assert "delete_not_allowed" in response["data"]["deleteMembership"]["errors"][0]["message"]
+    assert membership["id"]
+    assert membership["user"]["email"] == old_membership.user.email
+    assert membership["userRole"] == group_collaboration_roles.ROLE_MEMBER
 
 
-# def test_group_membership_delete_by_last_manager(client_query, memberships, users):
-#     old_membership = memberships[0]
+def test_group_membership_delete_by_group_manager(
+    client_query, group_manager_memberships, users, groups
+):
+    # This test tries to delete memberships[1], from user[1] with user[0] as
+    # manager from membership group
+    group = groups[0]
+    old_membership = group_manager_memberships[1]
+    manager = users[0]
+    group.add_manager(manager)
 
-#     response = client_query(
-#         """
-#         mutation deleteMembership($input: MembershipDeleteMutationInput!){
-#           deleteMembership(input: $input) {
-#             membership {
-#               user {
-#                 email
-#               },
-#               group {
-#                 slug
-#               }
-#             }
-#             errors
-#           }
-#         }
-#         """,
-#         variables={
-#             "input": {
-#                 "id": str(old_membership.id),
-#             }
-#         },
-#     )
+    client_query(
+        """
+        mutation deleteMembership($input: GroupMembershipDeleteMutationInput!){
+          deleteGroupMembership(input: $input) {
+            membership {
+              user {
+                email
+              },
+            }
+          }
+        }
+        """,
+        variables={
+            "input": {
+                "id": str(old_membership.id),
+                "groupSlug": group.slug,
+            }
+        },
+    )
 
-#     response = response.json()
+    assert not CollaborationMembership.objects.filter(
+        user=old_membership.user, membership_list=old_membership.membership_list
+    )
 
-#     assert "errors" in response["data"]["deleteMembership"]
-#     assert "delete_not_allowed" in response["data"]["deleteMembership"]["errors"][0]["message"]
+
+def test_group_membership_delete_by_any_other_user(
+    client_query, group_manager_memberships, groups, users
+):
+    # Client query runs with user[0] from memberships[0]
+    # This test tries to delete memberships[1], from user[1] with user[0]
+    group = groups[0]
+    old_membership = group_manager_memberships[1]
+    request_user = users[0]
+
+    manager_membership = group_manager_memberships[0]
+    manager_membership.user_role = group_collaboration_roles.ROLE_MEMBER
+    manager_membership.save()
+
+    assert old_membership.user != request_user
+
+    response = client_query(
+        """
+        mutation deleteMembership($input: GroupMembershipDeleteMutationInput!){
+          deleteGroupMembership(input: $input) {
+            membership {
+              user {
+                email
+              },
+            }
+            errors
+          }
+        }
+        """,
+        variables={
+            "input": {
+                "id": str(old_membership.id),
+                "groupSlug": group.slug,
+            }
+        },
+    )
+
+    response = response.json()
+
+    assert "errors" in response["data"]["deleteGroupMembership"]
+    assert "delete_not_allowed" in response["data"]["deleteGroupMembership"]["errors"][0]["message"]
+
+
+def test_group_membership_delete_by_last_manager(
+    client_query, group_manager_memberships, users, groups
+):
+    group = groups[0]
+    old_membership = group_manager_memberships[1]
+
+    manager_membership = group_manager_memberships[0]
+
+    assert old_membership.membership_list == manager_membership.membership_list
+
+    manager_membership.delete()
+
+    response = client_query(
+        """
+        mutation deleteMembership($input: GroupMembershipDeleteMutationInput!){
+          deleteGroupMembership(input: $input) {
+            membership {
+              user {
+                email
+              },
+            }
+            errors
+          }
+        }
+        """,
+        variables={
+            "input": {
+                "id": str(old_membership.id),
+                "groupSlug": group.slug,
+            }
+        },
+    )
+
+    response = response.json()
+
+    assert "errors" in response["data"]["deleteGroupMembership"]
+    assert "delete_not_allowed" in response["data"]["deleteGroupMembership"]["errors"][0]["message"]
