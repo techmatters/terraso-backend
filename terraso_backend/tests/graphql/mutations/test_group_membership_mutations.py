@@ -394,18 +394,12 @@ def test_group_membership_update(
 
 def test_group_membership_approve_by_member_fails(client_query, users, groups_closed):
     user = users[0]
-    # other_manager = users[1]
-    # old_membership = memberships_pending_with_notifications[0]
 
     groups_closed[0].membership_list.save_membership(
         user_email=user.email,
         user_role=group_collaboration_roles.ROLE_MEMBER,
         membership_status=CollaborationMembership.PENDING,
     )
-    # groups_closed[0].add_manager(other_manager)
-
-    # assert old_membership.user_role != group_collaboration_roles.ROLE_MANAGER
-    # assert old_membership.membership_status != CollaborationMembership.PENDING.upper()
 
     response = client_query(
         """
