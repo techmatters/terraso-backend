@@ -235,7 +235,7 @@ class StoryMapMembershipSaveMutation(BaseAuthenticatedMutation):
             memberships = [
                 {
                     "membership": result[1],
-                    "was_approved": result[0],
+                    "context": result[0],
                 }
                 for email in kwargs["user_emails"]
                 for result in [
@@ -280,7 +280,9 @@ class StoryMapMembershipSaveMutation(BaseAuthenticatedMutation):
             raise GraphQLNotFoundException(model_name=Membership.__name__)
 
         pending_memberships = [
-            membership["membership"] for membership in memberships if not membership["was_approved"]
+            membership["membership"]
+            for membership in memberships
+            if not membership["context"]["is_membership_approved"]
         ]
         send_memberships_invite_email(user, pending_memberships, story_map)
 

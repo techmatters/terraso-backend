@@ -233,20 +233,25 @@ class GroupMembershipSaveMutation(BaseAuthenticatedMutation):
     group = graphene.Field(GroupNode)
 
     class Input:
-        user_role = graphene.String(required=True)
+        user_role = graphene.String()
         user_emails = graphene.List(graphene.String, required=True)
         group_slug = graphene.String(required=True)
+        membership_status = graphene.String()
 
     @classmethod
     @transaction.atomic
     def mutate_and_get_payload(cls, root, info, **kwargs):
         user = info.context.user
 
-        if kwargs["user_role"] not in group_collaboration_roles.ALL_ROLES:
+        user_role = (
+            kwargs["user_role"] if "user_role" in kwargs else group_collaboration_roles.ROLE_MEMBER
+        )
+
+        if user_role not in group_collaboration_roles.ALL_ROLES:
             logger.info(
                 "Attempt to save Group Memberships, but user role is not valid",
                 extra={
-                    "user_role": kwargs["user_role"],
+                    "user_role": user_role,
                 },
             )
             raise GraphQLNotAllowedException(
@@ -282,20 +287,26 @@ class GroupMembershipSaveMutation(BaseAuthenticatedMutation):
             group.membership_list.membership_type == MembershipList.MEMBERSHIP_TYPE_CLOSED
         )
 
+        membership_status = (
+            CollaborationMembership.APPROVED
+            if not is_closed_group
+            else kwargs["membership_status"]
+            if "membership_status" in kwargs
+            else CollaborationMembership.PENDING
+        )
+
         try:
-            memberships = [
+            memberships_save_result = [
                 {
                     "membership": result[1],
-                    "was_approved": result[0],
+                    "context": result[0],
                 }
                 for email in kwargs["user_emails"]
                 for result in [
                     group.membership_list.save_membership(
                         user_email=email,
-                        user_role=kwargs["user_role"],
-                        membership_status=CollaborationMembership.PENDING
-                        if is_closed_group
-                        else CollaborationMembership.APPROVED,
+                        user_role=user_role,
+                        membership_status=membership_status,
                         validation_func=validate,
                     )
                 ]
@@ -333,12 +344,18 @@ class GroupMembershipSaveMutation(BaseAuthenticatedMutation):
             raise GraphQLNotFoundException(model_name=CollaborationMembership.__name__)
 
         if group.membership_list.membership_type == MembershipList.MEMBERSHIP_TYPE_CLOSED:
-            for membership in memberships:
-                if not membership["was_approved"]:
-                    EmailNotification.send_membership_request(membership["membership"].user, group)
+            for membership_result in memberships_save_result:
+                context = membership_result["context"]
+                membership = membership_result["membership"]
+                if context["is_new"]:
+                    EmailNotification.send_membership_request(membership.user, group)
+                if context["is_membership_approved"]:
+                    EmailNotification.send_membership_approval(membership.user, group)
 
         return cls(
-            memberships=[membership["membership"] for membership in memberships],
+            memberships=[
+                membership_result["membership"] for membership_result in memberships_save_result
+            ],
             group=group,
         )
 

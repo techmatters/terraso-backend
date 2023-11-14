@@ -2417,9 +2417,10 @@ type GroupMembershipSaveMutationPayload {
 }
 
 input GroupMembershipSaveMutationInput {
-  userRole: String!
+  userRole: String
   userEmails: [String]!
   groupSlug: String!
+  membershipStatus: String
   clientMutationId: String
 }
 

@@ -36,11 +36,7 @@ def is_target_manager(user, target):
 
 
 def is_target_member(user, target):
-    if isinstance(target, Group):
-        return user.memberships.approved_only().filter(group=target).exists()
-    if isinstance(target, Landscape):
-        return target.membership_list.memberships.approved_only().filter(user=user).exists()
-    return False
+    return target.membership_list.memberships.approved_only().filter(user=user).exists()
 
 
 def is_user_allowed_to_view_data_entry(data_entry, user):

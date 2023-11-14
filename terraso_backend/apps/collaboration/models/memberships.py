@@ -107,7 +107,11 @@ class MembershipList(BaseModel):
         )
 
         membership.save()
-        return is_membership_approved, membership
+        context = {
+            "is_new": is_new,
+            "is_membership_approved": is_membership_approved,
+        }
+        return context, membership
 
     def approve_membership(self, membership_id):
         membership = self.memberships.filter(id=membership_id).first()

@@ -142,10 +142,10 @@ class Group(SlugModel):
             super().save(*args, **kwargs)
 
     def add_manager(self, user):
-        self._add_user(user, role=Membership.ROLE_MANAGER)
+        self._add_user(user, role=group_collaboration_roles.ROLE_MANAGER)
 
     def add_member(self, user):
-        self._add_user(user, role=Membership.ROLE_MEMBER)
+        self._add_user(user, role=group_collaboration_roles.ROLE_MEMBER)
 
     def _add_user(
         self,

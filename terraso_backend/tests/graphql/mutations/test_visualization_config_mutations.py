@@ -24,7 +24,9 @@ pytestmark = pytest.mark.django_db
 
 
 @mock.patch("apps.graphql.schema.visualization_config.start_create_mapbox_tileset_task")
-def test_visualization_config_add(mock_create_tileset, client_query, groups, data_entries):
+def test_visualization_config_add(
+    mock_create_tileset, client_query, groups, data_entries, data_entries_memberships
+):
     group_id = str(groups[0].id)
     data_entry_id = str(data_entries[0].id)
     new_data = {

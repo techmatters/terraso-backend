@@ -141,17 +141,32 @@ def allowed_to_change_landscape_membership(user, obj):
 
 @rules.predicate
 def allowed_to_change_group_membership(user, obj):
+    from apps.collaboration.models import Membership as CollaborationMembership
+
     group = obj.get("group")
     user_role = obj.get("user_role")
     user_exists = obj.get("user_exists")
     user_email = obj.get("user_email")
+    current_membership = obj.get("current_membership")
+    new_membership_status = obj.get("membership_status")
+
     is_manager = user.is_group_manager(group.id)
-    own_membership = user_email == user.email
+    is_user_membership = user_email == user.email
+    is_approving = (
+        current_membership
+        and current_membership.membership_status == CollaborationMembership.PENDING
+        and new_membership_status == CollaborationMembership.APPROVED
+    )
 
     if not user_exists:
         return False
 
-    if not is_manager and own_membership and user_role == group_collaboration_roles.ROLE_MEMBER:
+    if (
+        not is_manager
+        and is_user_membership
+        and user_role == group_collaboration_roles.ROLE_MEMBER
+        and not is_approving
+    ):
         return True
 
     return is_manager

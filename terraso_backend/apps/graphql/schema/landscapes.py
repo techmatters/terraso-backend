@@ -381,7 +381,7 @@ class LandscapeMembershipSaveMutation(BaseAuthenticatedMutation):
             memberships = [
                 {
                     "membership": result[1],
-                    "was_approved": result[0],
+                    "context": result[0],
                 }
                 for email in kwargs["user_emails"]
                 for result in [
