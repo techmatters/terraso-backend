@@ -58,10 +58,12 @@ from .group_associations import (
 from .groups import (
     GroupAddMutation,
     GroupDeleteMutation,
-    GroupMembershipDeleteMutation,
-    GroupMembershipSaveMutation,
     GroupNode,
     GroupUpdateMutation,
+)
+from .groups_memberships import (
+    GroupMembershipDeleteMutation,
+    GroupMembershipSaveMutation,
 )
 from .landscape_groups import (
     LandscapeGroupAddMutation,
@@ -71,10 +73,12 @@ from .landscape_groups import (
 from .landscapes import (
     LandscapeAddMutation,
     LandscapeDeleteMutation,
-    LandscapeMembershipDeleteMutation,
-    LandscapeMembershipSaveMutation,
     LandscapeNode,
     LandscapeUpdateMutation,
+)
+from .landscapes_memberships import (
+    LandscapeMembershipDeleteMutation,
+    LandscapeMembershipSaveMutation,
 )
 from .sites import (
     SiteAddMutation,
