@@ -169,19 +169,6 @@ class Group(SlugModel):
             Membership.APPROVED,
         )
 
-    @property
-    def group_managers(self):
-        manager_memberships = models.Subquery(
-            self.membership_list.memberships.by_role(group_collaboration_roles.ROLE_MANAGER).values(
-                "user_id"
-            )
-        )
-        return User.objects.filter(id__in=manager_memberships)
-
-    @property
-    def can_join(self):
-        return self.enroll_method in (self.ENROLL_METHOD_JOIN, self.ENROLL_METHOD_BOTH)
-
     def __str__(self):
         return self.name
 
