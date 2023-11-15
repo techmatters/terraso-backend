@@ -94,7 +94,8 @@ class Group(SlugModel):
     membership_type = models.CharField(
         max_length=32,
         choices=MEMBERSHIP_TYPES,
-        default=DEFAULT_MEMERBSHIP_TYPE,
+        null=True,
+        blank=True,
     )
     # End of deprecated fields
 
