@@ -179,21 +179,6 @@ class Group(SlugModel):
         return User.objects.filter(id__in=manager_memberships)
 
     @property
-    def group_members(self):
-        member_memberships = models.Subquery(
-            self.memberships.approved_only()
-            .filter(user_role=Membership.ROLE_MEMBER)
-            .values("user_id")
-        )
-        return User.objects.filter(id__in=member_memberships)
-
-    def is_manager(self, user: User) -> bool:
-        return self.group_managers.filter(id=user.id).exists()
-
-    def is_member(self, user: User) -> bool:
-        return self.group_members.filter(id=user.id).exists()
-
-    @property
     def can_join(self):
         return self.enroll_method in (self.ENROLL_METHOD_JOIN, self.ENROLL_METHOD_BOTH)
 

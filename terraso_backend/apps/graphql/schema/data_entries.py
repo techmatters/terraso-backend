@@ -27,7 +27,7 @@ from graphene_django import DjangoObjectType
 
 from apps.collaboration.models import Membership as CollaborationMembership
 from apps.core.gis.parsers import parse_file_to_geojson
-from apps.core.models import Group, Landscape, Membership
+from apps.core.models import Group, Landscape
 from apps.graphql.exceptions import GraphQLNotAllowedException, GraphQLNotFoundException
 from apps.shared_data.models import DataEntry, VisualizationConfig
 from apps.shared_data.models.data_entries import VALID_TARGET_TYPES
@@ -101,7 +101,7 @@ class DataEntryNode(DjangoObjectType, SharedResourcesMixin):
         user_groups_ids = Subquery(
             Group.objects.filter(
                 membership_list__memberships__user__id=user_pk,
-                membership_list__memberships__membership_status=Membership.APPROVED,
+                membership_list__memberships__membership_status=CollaborationMembership.APPROVED,
             ).values("id")
         )
         user_landscape_ids = Subquery(

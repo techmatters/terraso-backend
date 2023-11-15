@@ -20,21 +20,15 @@ from .models import (
     Landscape,
     LandscapeDevelopmentStrategy,
     LandscapeGroup,
-    Membership,
     TaxonomyTerm,
     User,
     UserPreference,
 )
 
 
-class MembershipInline(admin.TabularInline):
-    model = Membership
-
-
 @admin.register(Group)
 class GroupAdmin(admin.ModelAdmin):
     list_display = ("name", "slug", "website", "created_at")
-    inlines = [MembershipInline]
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
@@ -61,11 +55,6 @@ class LandscapeDefaultGroup(Group):
 @admin.register(LandscapeGroup)
 class LandscapeGroupAdmin(admin.ModelAdmin):
     list_display = ("landscape", "group")
-
-
-@admin.register(Membership)
-class MembershipAdmin(admin.ModelAdmin):
-    list_display = ("user", "group", "user_role", "membership_status", "created_at")
 
 
 class UserPreferenceInline(admin.TabularInline):

@@ -32,7 +32,6 @@ from apps.core.models import (
     Landscape,
     LandscapeDevelopmentStrategy,
     LandscapeGroup,
-    Membership,
     TaxonomyTerm,
 )
 from apps.graphql.exceptions import (
@@ -118,7 +117,7 @@ class LandscapeNode(DjangoObjectType, SharedResourcesMixin):
                     "memberships__user",
                     distinct=True,
                     filter=Q(memberships__deleted_at__isnull=True)
-                    & Q(memberships__membership_status=Membership.APPROVED),
+                    & Q(memberships__membership_status=CollaborationMembership.APPROVED),
                 )
             )
 
@@ -494,7 +493,7 @@ class LandscapeMembershipDeleteMutation(BaseDeleteMutation):
                 extra={"user_id": user.pk, "membership_id": membership_id},
             )
             raise GraphQLNotAllowedException(
-                model_name=Membership.__name__,
+                model_name=CollaborationMembership.__name__,
                 operation=MutationTypes.DELETE,
                 message="manager_count",
             )

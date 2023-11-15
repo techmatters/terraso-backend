@@ -17,7 +17,7 @@ import pytest
 from mixer.backend.django import mixer
 
 from apps.collaboration.models import Membership as CollaborationMembership
-from apps.core.models import Group, Membership
+from apps.core.models import Group
 
 pytestmark = pytest.mark.django_db
 
@@ -80,7 +80,11 @@ def test_groups_filter_by_with_landscape_association_ignores_deleted_association
     client_query, users, landscape_common_group
 ):
     user = users[0]
-    mixer.blend(Membership, user=user, group=landscape_common_group.group)
+    mixer.blend(
+        CollaborationMembership,
+        user=user,
+        membership_list=landscape_common_group.group.membership_list,
+    )
 
     landscape_common_group.delete()
 

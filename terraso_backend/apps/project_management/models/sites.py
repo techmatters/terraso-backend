@@ -18,7 +18,8 @@ from django.db import models
 from django.db.models import Q
 from django.utils.translation import gettext_lazy as _
 
-from apps.core.models import Membership, User
+from apps.collaboration.models import Membership as CollaborationMembership
+from apps.core.models import User
 from apps.core.models.commons import BaseModel
 from apps.project_management import permission_rules
 
@@ -112,10 +113,9 @@ class Site(BaseModel):
 
 
 def filter_only_sites_user_owner_or_member(user: User, queryset):
-    return queryset.filter(
-        Q(owner=user)
-        | Q(
-            project__membership_list__memberships__user=user,
-            project__membership_list__memberships__membership_status=Membership.APPROVED,
-        )
+    is_owner = Q(owner=user)
+    is_approved_member = Q(
+        project__membership_list__memberships__user=user,
+        project__membership_list__memberships__membership_status=CollaborationMembership.APPROVED,
     )
+    return queryset.filter(is_owner | is_approved_member)

@@ -24,7 +24,7 @@ from graphene_django import DjangoObjectType
 
 from apps.collaboration.models import Membership as CollaborationMembership
 from apps.core.gis.mapbox import get_publish_status
-from apps.core.models import Group, Landscape, Membership
+from apps.core.models import Group, Landscape
 from apps.graphql.exceptions import GraphQLNotAllowedException
 from apps.shared_data.models.data_entries import DataEntry
 from apps.shared_data.models.visualization_config import VisualizationConfig
@@ -113,7 +113,7 @@ class VisualizationConfigNode(DjangoObjectType):
         user_groups_ids = Subquery(
             Group.objects.filter(
                 membership_list__memberships__user__id=user_pk,
-                membership_list__memberships__membership_status=Membership.APPROVED,
+                membership_list__memberships__membership_status=CollaborationMembership.APPROVED,
             ).values("id")
         )
         user_landscape_ids = Subquery(
