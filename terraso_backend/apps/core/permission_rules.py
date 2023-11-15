@@ -18,6 +18,20 @@ import rules
 from apps.core import group_collaboration_roles, landscape_collaboration_roles
 
 
+def get_manager_role(entity):
+    from apps.core.models import Group, Landscape
+
+    if isinstance(entity, Group):
+        return group_collaboration_roles.ROLE_MANAGER
+    if isinstance(entity, Landscape):
+        return landscape_collaboration_roles.ROLE_MANAGER
+
+
+def is_entity_manager(user, entity):
+    manager_role = get_manager_role(entity)
+    return entity.membership_list.memberships.by_role(manager_role).filter(user=user).exists()
+
+
 @rules.predicate
 def allowed_to_change_group(user, group_id):
     return user.is_group_manager(group_id)
@@ -62,24 +76,21 @@ def allowed_to_delete_landscape_group(user, landscape_group):
     )
 
 
+def validate_managers_count(user, membership, entity):
+    manager_role = get_manager_role(entity)
+    is_manager = entity.membership_list.has_role(user, manager_role)
+    managers_count = entity.membership_list.memberships.by_role(manager_role).count()
+    is_own_membership = user.collaboration_memberships.filter(pk=membership.id).exists()
+
+    return not (managers_count == 1 and is_manager and is_own_membership)
+
+
 @rules.predicate
 def allowed_group_managers_count(user, obj):
     membership = obj.get("membership")
     group = obj.get("group")
 
-    is_user_manager = group.membership_list.has_role(
-        user, landscape_collaboration_roles.ROLE_MANAGER
-    )
-    managers_count = membership.membership_list.memberships.by_role(
-        group_collaboration_roles.ROLE_MANAGER
-    ).count()
-    is_own_membership = user.collaboration_memberships.filter(pk=membership.id).exists()
-
-    # User is the last manager and a Group cannot have no managers
-    if managers_count == 1 and is_user_manager and is_own_membership:
-        return False
-
-    return True
+    return validate_managers_count(user, membership, entity=group)
 
 
 @rules.predicate
@@ -87,19 +98,7 @@ def allowed_landscape_managers_count(user, obj):
     membership = obj.get("membership")
     landscape = obj.get("landscape")
 
-    is_user_manager = landscape.membership_list.has_role(
-        user, landscape_collaboration_roles.ROLE_MANAGER
-    )
-    managers_count = landscape.membership_list.memberships.by_role(
-        landscape_collaboration_roles.ROLE_MANAGER
-    ).count()
-    is_own_membership = user.collaboration_memberships.filter(pk=membership.id).exists()
-
-    # User is the last manager and a Landscape cannot have no managers
-    if managers_count == 1 and is_user_manager and is_own_membership:
-        return False
-
-    return True
+    return validate_managers_count(user, membership, entity=landscape)
 
 
 @rules.predicate
@@ -119,26 +118,30 @@ def allowed_to_update_site(user, site):
     return site.owner == user
 
 
-@rules.predicate
-def allowed_to_change_landscape_membership(user, obj):
-    landscape = obj.get("landscape")
+def validate_change_membership(user, entity, obj):
     user_role = obj.get("user_role")
     user_exists = obj.get("user_exists")
     user_email = obj.get("user_email")
-    is_landscape_manager = user.is_landscape_manager(landscape.id)
+
+    manager_role = get_manager_role(entity)
+    is_manager = entity.membership_list.has_role(user, manager_role)
+
     own_membership = user_email == user.email
 
     if not user_exists:
         return False
 
-    if (
-        not is_landscape_manager
-        and own_membership
-        and user_role == landscape_collaboration_roles.ROLE_MEMBER
-    ):
+    if not is_manager and own_membership and user_role != manager_role:
         return True
 
-    return is_landscape_manager
+    return is_manager
+
+
+@rules.predicate
+def allowed_to_change_landscape_membership(user, obj):
+    landscape = obj.get("landscape")
+
+    return validate_change_membership(user, landscape, obj)
 
 
 @rules.predicate
@@ -146,32 +149,31 @@ def allowed_to_change_group_membership(user, obj):
     from apps.collaboration.models import Membership as CollaborationMembership
 
     group = obj.get("group")
-    user_role = obj.get("user_role")
-    user_exists = obj.get("user_exists")
-    user_email = obj.get("user_email")
     current_membership = obj.get("current_membership")
     new_membership_status = obj.get("membership_status")
+    manager_role = get_manager_role(group)
+    is_manager = group.membership_list.has_role(user, manager_role)
 
-    is_manager = user.is_group_manager(group.id)
-    is_user_membership = user_email == user.email
     is_approving = (
         current_membership
         and current_membership.membership_status == CollaborationMembership.PENDING
         and new_membership_status == CollaborationMembership.APPROVED
     )
 
-    if not user_exists:
+    if is_approving and not is_manager:
         return False
 
-    if (
-        not is_manager
-        and is_user_membership
-        and user_role == group_collaboration_roles.ROLE_MEMBER
-        and not is_approving
-    ):
+    return validate_change_membership(user, group, obj)
+
+
+def validate_delete_membership(user, entity, membership):
+    manager_role = get_manager_role(entity)
+    is_manager = entity.membership_list.has_role(user, manager_role)
+
+    if is_manager:
         return True
 
-    return is_manager
+    return membership.user.email == user.email
 
 
 @rules.predicate
@@ -179,10 +181,7 @@ def allowed_to_delete_landscape_membership(user, obj):
     landscape = obj.get("landscape")
     membership = obj.get("membership")
 
-    if user.is_landscape_manager(landscape.id):
-        return True
-
-    return membership.user.email == user.email
+    return validate_delete_membership(user, landscape, membership)
 
 
 @rules.predicate
@@ -190,10 +189,7 @@ def allowed_to_delete_group_membership(user, obj):
     group = obj.get("group")
     membership = obj.get("membership")
 
-    if user.is_group_manager(group.id):
-        return True
-
-    return membership.user.email == user.email
+    return validate_delete_membership(user, group, membership)
 
 
 rules.add_rule("allowed_group_managers_count", allowed_group_managers_count)

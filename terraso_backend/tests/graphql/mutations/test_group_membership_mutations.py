@@ -560,11 +560,7 @@ def test_group_membership_delete(client_query, users, groups):
               user {
                 email
               },
-              
             }
-              group {
-                slug
-              }
           }
         }
         """,
