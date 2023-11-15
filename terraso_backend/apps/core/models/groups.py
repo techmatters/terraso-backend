@@ -90,12 +90,12 @@ class Group(SlugModel):
     )
 
     # Deprecated memberships fields
-    # members = models.ManyToManyField(User, through="Membership")
-    # membership_type = models.CharField(
-    #     max_length=32,
-    #     choices=MEMBERSHIP_TYPES,
-    #     default=DEFAULT_MEMERBSHIP_TYPE,
-    # )
+    members = models.ManyToManyField(User, through="Membership")
+    membership_type = models.CharField(
+        max_length=32,
+        choices=MEMBERSHIP_TYPES,
+        default=DEFAULT_MEMERBSHIP_TYPE,
+    )
     # End of deprecated fields
 
     membership_list = models.ForeignKey(
