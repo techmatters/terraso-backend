@@ -140,6 +140,16 @@ class Group(SlugModel):
 
             super().save(*args, **kwargs)
 
+    def delete(self, *args, **kwargs):
+        membership_list = self.membership_list
+
+        with transaction.atomic():
+            ret = super().delete(*args, **kwargs)
+            if membership_list is not None:
+                membership_list.delete()
+
+        return ret
+
     def add_manager(self, user):
         self._add_user(user, role=group_collaboration_roles.ROLE_MANAGER)
 
