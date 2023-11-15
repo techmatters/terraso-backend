@@ -14,7 +14,6 @@
 # along with this program. If not, see https://www.gnu.org/licenses/.
 from typing import Literal, Union
 
-from django.apps import apps
 from django.contrib.contenttypes.fields import GenericRelation
 from django.db import models, transaction
 from django.utils.translation import gettext_lazy as _
@@ -124,8 +123,8 @@ class Group(SlugModel):
 
     def save(self, *args, **kwargs):
         with transaction.atomic():
-            MembershipList = apps.get_model("collaboration", "MembershipList")
-            Membership = apps.get_model("collaboration", "Membership")
+            from apps.collaboration.models import Membership, MembershipList
+
             creating = not Group.objects.filter(pk=self.pk).exists()
 
             if creating and self.created_by:
@@ -152,11 +151,12 @@ class Group(SlugModel):
         user: User,
         role: Union[Literal["manager"], Literal["member"]],
     ):
-        CollaborationMembership = apps.get_model("collaboration", "Membership")
+        from apps.collaboration.models import Membership
+
         self.membership_list.save_membership(
             user.email,
             role,
-            CollaborationMembership.APPROVED,
+            Membership.APPROVED,
         )
 
     @property

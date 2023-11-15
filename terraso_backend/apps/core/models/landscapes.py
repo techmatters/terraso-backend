@@ -15,7 +15,6 @@
 
 import structlog
 from dirtyfields import DirtyFieldsMixin
-from django.apps import apps
 from django.contrib.contenttypes.fields import GenericRelation
 from django.db import models, transaction
 
@@ -121,8 +120,8 @@ class Landscape(SlugModel, DirtyFieldsMixin):
             self.center_coordinates = calculate_geojson_centroid(self.area_polygon)
 
         with transaction.atomic():
-            MembershipList = apps.get_model("collaboration", "MembershipList")
-            Membership = apps.get_model("collaboration", "Membership")
+            from apps.collaboration.models import Membership, MembershipList
+
             creating = not Landscape.objects.filter(pk=self.pk).exists()
 
             if creating and self.created_by:
