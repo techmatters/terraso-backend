@@ -16,29 +16,26 @@
 import graphene
 import rules
 import structlog
-from django.core.exceptions import NON_FIELD_ERRORS, ValidationError
-from django.db import IntegrityError, transaction
 
-from apps.collaboration.graphql import CollaborationMembershipNode
+from apps.collaboration.graphql import (
+    BaseMembershipSaveMutation,
+    CollaborationMembershipNode,
+)
 from apps.collaboration.models import Membership as CollaborationMembership
 from apps.collaboration.models import MembershipList
 from apps.core import group_collaboration_roles
 from apps.core.models import Group
-from apps.graphql.exceptions import (
-    GraphQLNotAllowedException,
-    GraphQLNotFoundException,
-    GraphQLValidationException,
-)
+from apps.graphql.exceptions import GraphQLNotAllowedException, GraphQLNotFoundException
 from apps.graphql.schema.groups import GroupNode
 from apps.notifications.email import EmailNotification
 
-from .commons import BaseAuthenticatedMutation, BaseDeleteMutation
+from .commons import BaseDeleteMutation
 from .constants import MutationTypes
 
 logger = structlog.get_logger(__name__)
 
 
-class GroupMembershipSaveMutation(BaseAuthenticatedMutation):
+class GroupMembershipSaveMutation(BaseMembershipSaveMutation):
     model_class = CollaborationMembership
     memberships = graphene.Field(graphene.List(CollaborationMembershipNode))
     group = graphene.Field(GroupNode)
@@ -50,7 +47,6 @@ class GroupMembershipSaveMutation(BaseAuthenticatedMutation):
         membership_status = graphene.String()
 
     @classmethod
-    @transaction.atomic
     def mutate_and_get_payload(cls, root, info, **kwargs):
         user = info.context.user
 
@@ -58,16 +54,7 @@ class GroupMembershipSaveMutation(BaseAuthenticatedMutation):
             kwargs["user_role"] if "user_role" in kwargs else group_collaboration_roles.ROLE_MEMBER
         )
 
-        if user_role not in group_collaboration_roles.ALL_ROLES:
-            logger.info(
-                "Attempt to save Group Memberships, but user role is not valid",
-                extra={
-                    "user_role": user_role,
-                },
-            )
-            raise GraphQLNotAllowedException(
-                model_name=CollaborationMembership.__name__, operation=MutationTypes.UPDATE
-            )
+        cls.validate_role(user_role, group_collaboration_roles.ALL_ROLES)
 
         group_slug = kwargs["group_slug"]
 
@@ -83,17 +70,6 @@ class GroupMembershipSaveMutation(BaseAuthenticatedMutation):
             )
             raise GraphQLNotFoundException(model_name=Group.__name__)
 
-        def validate(context):
-            if not rules.test_rule(
-                "allowed_to_change_group_membership",
-                user,
-                {
-                    "group": group,
-                    **context,
-                },
-            ):
-                raise ValidationError("User cannot request membership")
-
         is_closed_group = (
             group.membership_list.membership_type == MembershipList.MEMBERSHIP_TYPE_CLOSED
         )
@@ -106,53 +82,17 @@ class GroupMembershipSaveMutation(BaseAuthenticatedMutation):
             else CollaborationMembership.PENDING
         )
 
-        try:
-            memberships_save_result = [
-                {
-                    "membership": result[1],
-                    "context": result[0],
-                }
-                for email in kwargs["user_emails"]
-                for result in [
-                    group.membership_list.save_membership(
-                        user_email=email,
-                        user_role=user_role,
-                        membership_status=membership_status,
-                        validation_func=validate,
-                    )
-                ]
-            ]
-        except ValidationError as error:
-            logger.error(
-                "Attempt to save Group Memberships, but user is not allowed",
-                extra={"error": str(error)},
-            )
-            raise GraphQLNotAllowedException(
-                model_name=CollaborationMembership.__name__, operation=MutationTypes.UPDATE
-            )
-        except IntegrityError as exc:
-            logger.info(
-                "Attempt to save Group Memberships, but it's not unique",
-                extra={"model": CollaborationMembership.__name__, "integrity_error": exc},
-            )
-
-            validation_error = ValidationError(
-                message={
-                    NON_FIELD_ERRORS: ValidationError(
-                        message=f"This {CollaborationMembership.__name__} already exists",
-                        code="unique",
-                    )
-                },
-            )
-            raise GraphQLValidationException.from_validation_error(
-                validation_error, model_name=CollaborationMembership.__name__
-            )
-        except Exception as error:
-            logger.error(
-                "Attempt to update Story Map Memberships, but there was an error",
-                extra={"error": str(error)},
-            )
-            raise GraphQLNotFoundException(model_name=CollaborationMembership.__name__)
+        memberships_save_result = cls.save_memberships(
+            user=user,
+            validation_rule="allowed_to_change_group_membership",
+            validation_context={"group": group},
+            membership_list=group.membership_list,
+            kwargs={
+                **kwargs,
+                "user_role": user_role,
+                "membership_status": membership_status,
+            },
+        )
 
         if group.membership_list.membership_type == MembershipList.MEMBERSHIP_TYPE_CLOSED:
             for membership_result in memberships_save_result:

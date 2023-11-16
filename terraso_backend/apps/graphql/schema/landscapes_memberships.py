@@ -16,27 +16,25 @@
 import graphene
 import rules
 import structlog
-from django.core.exceptions import NON_FIELD_ERRORS, ValidationError
-from django.db import IntegrityError, transaction
+from django.db import transaction
 
-from apps.collaboration.graphql import CollaborationMembershipNode
+from apps.collaboration.graphql import (
+    BaseMembershipSaveMutation,
+    CollaborationMembershipNode,
+)
 from apps.collaboration.models import Membership as CollaborationMembership
 from apps.core import landscape_collaboration_roles
 from apps.core.models import Landscape
-from apps.graphql.exceptions import (
-    GraphQLNotAllowedException,
-    GraphQLNotFoundException,
-    GraphQLValidationException,
-)
+from apps.graphql.exceptions import GraphQLNotAllowedException, GraphQLNotFoundException
 from apps.graphql.schema.landscapes import LandscapeNode
 
-from .commons import BaseAuthenticatedMutation, BaseDeleteMutation
+from .commons import BaseDeleteMutation
 from .constants import MutationTypes
 
 logger = structlog.get_logger(__name__)
 
 
-class LandscapeMembershipSaveMutation(BaseAuthenticatedMutation):
+class LandscapeMembershipSaveMutation(BaseMembershipSaveMutation):
     model_class = CollaborationMembership
     memberships = graphene.Field(graphene.List(CollaborationMembershipNode))
     landscape = graphene.Field(LandscapeNode)
@@ -51,16 +49,7 @@ class LandscapeMembershipSaveMutation(BaseAuthenticatedMutation):
     def mutate_and_get_payload(cls, root, info, **kwargs):
         user = info.context.user
 
-        if kwargs["user_role"] not in landscape_collaboration_roles.ALL_ROLES:
-            logger.info(
-                "Attempt to save Landscape Memberships, but user role is not valid",
-                extra={
-                    "user_role": kwargs["user_role"],
-                },
-            )
-            raise GraphQLNotAllowedException(
-                model_name=CollaborationMembership.__name__, operation=MutationTypes.UPDATE
-            )
+        cls.validate_role(kwargs["user_role"], landscape_collaboration_roles.ALL_ROLES)
 
         landscape_slug = kwargs["landscape_slug"]
 
@@ -76,64 +65,16 @@ class LandscapeMembershipSaveMutation(BaseAuthenticatedMutation):
             )
             raise GraphQLNotFoundException(model_name=Landscape.__name__)
 
-        def validate(context):
-            if not rules.test_rule(
-                "allowed_to_change_landscape_membership",
-                user,
-                {
-                    "landscape": landscape,
-                    **context,
-                },
-            ):
-                raise ValidationError("User cannot request membership")
-
-        try:
-            memberships = [
-                {
-                    "membership": result[1],
-                    "context": result[0],
-                }
-                for email in kwargs["user_emails"]
-                for result in [
-                    landscape.membership_list.save_membership(
-                        user_email=email,
-                        user_role=kwargs["user_role"],
-                        membership_status=CollaborationMembership.APPROVED,
-                        validation_func=validate,
-                    )
-                ]
-            ]
-        except ValidationError as error:
-            logger.error(
-                "Attempt to save Landscape Memberships, but user is not allowed",
-                extra={"error": str(error)},
-            )
-            raise GraphQLNotAllowedException(
-                model_name=CollaborationMembership.__name__, operation=MutationTypes.UPDATE
-            )
-        except IntegrityError as exc:
-            logger.info(
-                "Attempt to save Landscape Memberships, but it's not unique",
-                extra={"model": CollaborationMembership.__name__, "integrity_error": exc},
-            )
-
-            validation_error = ValidationError(
-                message={
-                    NON_FIELD_ERRORS: ValidationError(
-                        message=f"This {CollaborationMembership.__name__} already exists",
-                        code="unique",
-                    )
-                },
-            )
-            raise GraphQLValidationException.from_validation_error(
-                validation_error, model_name=CollaborationMembership.__name__
-            )
-        except Exception as error:
-            logger.error(
-                "Attempt to update Story Map Memberships, but there was an error",
-                extra={"error": str(error)},
-            )
-            raise GraphQLNotFoundException(model_name=CollaborationMembership.__name__)
+        memberships = cls.save_memberships(
+            user=user,
+            validation_rule="allowed_to_change_landscape_membership",
+            validation_context={"landscape": landscape},
+            membership_list=landscape.membership_list,
+            kwargs={
+                **kwargs,
+                "membership_status": CollaborationMembership.APPROVED,
+            },
+        )
 
         return cls(
             memberships=[membership["membership"] for membership in memberships],

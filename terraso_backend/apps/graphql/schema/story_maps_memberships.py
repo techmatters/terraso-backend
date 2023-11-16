@@ -18,18 +18,16 @@ from datetime import datetime
 import graphene
 import rules
 import structlog
-from django.core.exceptions import NON_FIELD_ERRORS, ValidationError
-from django.db import IntegrityError, transaction
+from django.db import transaction
 
 from apps.auth.services import JWTService
-from apps.collaboration.graphql import CollaborationMembershipNode
+from apps.collaboration.graphql import (
+    BaseMembershipSaveMutation,
+    CollaborationMembershipNode,
+)
 from apps.collaboration.models import Membership, MembershipList
 from apps.core.models import User
-from apps.graphql.exceptions import (
-    GraphQLNotAllowedException,
-    GraphQLNotFoundException,
-    GraphQLValidationException,
-)
+from apps.graphql.exceptions import GraphQLNotAllowedException, GraphQLNotFoundException
 from apps.graphql.schema.story_maps import StoryMapNode
 from apps.story_map.collaboration_roles import ROLE_EDITOR
 from apps.story_map.models.story_maps import StoryMap
@@ -41,7 +39,7 @@ from .constants import MutationTypes
 logger = structlog.get_logger(__name__)
 
 
-class StoryMapMembershipSaveMutation(BaseAuthenticatedMutation):
+class StoryMapMembershipSaveMutation(BaseMembershipSaveMutation):
     model_class = Membership
     memberships = graphene.Field(graphene.List(CollaborationMembershipNode))
 
@@ -56,16 +54,7 @@ class StoryMapMembershipSaveMutation(BaseAuthenticatedMutation):
     def mutate_and_get_payload(cls, root, info, **kwargs):
         user = info.context.user
 
-        if kwargs["user_role"] != ROLE_EDITOR:
-            logger.info(
-                "Attempt to save Story Map Memberships, but user role is not editor",
-                extra={
-                    "user_role": kwargs["user_role"],
-                },
-            )
-            raise GraphQLNotAllowedException(
-                model_name=Membership.__name__, operation=MutationTypes.UPDATE
-            )
+        cls.validate_role(kwargs["user_role"], [ROLE_EDITOR])
 
         story_map_id = kwargs["story_map_id"]
         story_map_slug = kwargs["story_map_slug"]
@@ -92,65 +81,19 @@ class StoryMapMembershipSaveMutation(BaseAuthenticatedMutation):
 
         user_membership = story_map.membership_list.memberships.filter(user=user).first()
 
-        def validate(context):
-            if not rules.test_rule(
-                "allowed_to_change_story_map_membership",
-                user,
-                {
-                    "story_map": story_map,
-                    "requestor_membership": user_membership,
-                    **context,
-                },
-            ):
-                raise ValidationError("User cannot request membership")
-
-        try:
-            memberships = [
-                {
-                    "membership": result[1],
-                    "context": result[0],
-                }
-                for email in kwargs["user_emails"]
-                for result in [
-                    story_map.membership_list.save_membership(
-                        user_email=email,
-                        user_role=kwargs["user_role"],
-                        membership_status=Membership.PENDING,
-                        validation_func=validate,
-                    )
-                ]
-            ]
-        except ValidationError as error:
-            logger.error(
-                "Attempt to save Story Map Memberships, but user is not allowed",
-                extra={"error": str(error)},
-            )
-            raise GraphQLNotAllowedException(
-                model_name=Membership.__name__, operation=MutationTypes.UPDATE
-            )
-        except IntegrityError as exc:
-            logger.info(
-                "Attempt to mutate an model, but it's not unique",
-                extra={"model": Membership.__name__, "integrity_error": exc},
-            )
-
-            validation_error = ValidationError(
-                message={
-                    NON_FIELD_ERRORS: ValidationError(
-                        message=f"This {Membership.__name__} already exists",
-                        code="unique",
-                    )
-                },
-            )
-            raise GraphQLValidationException.from_validation_error(
-                validation_error, model_name=Membership.__name__
-            )
-        except Exception as error:
-            logger.error(
-                "Attempt to update Story Map Memberships, but there was an error",
-                extra={"error": str(error)},
-            )
-            raise GraphQLNotFoundException(model_name=Membership.__name__)
+        memberships = cls.save_memberships(
+            user=user,
+            validation_rule="allowed_to_change_story_map_membership",
+            validation_context={
+                "story_map": story_map,
+                "requestor_membership": user_membership,
+            },
+            membership_list=story_map.membership_list,
+            kwargs={
+                **kwargs,
+                "membership_status": Membership.PENDING,
+            },
+        )
 
         pending_memberships = [
             membership["membership"]
