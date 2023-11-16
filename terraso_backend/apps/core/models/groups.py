@@ -68,10 +68,6 @@ class Group(SlugModel):
     website = models.URLField(max_length=500, blank=True, default="")
     email = models.EmailField(blank=True, default="")
 
-    enroll_method = models.CharField(
-        max_length=10, choices=ENROLL_METHODS, default=DEFAULT_ENROLL_METHOD_TYPE
-    )
-
     created_by = models.ForeignKey(
         User,
         blank=True,
@@ -90,6 +86,13 @@ class Group(SlugModel):
     )
 
     # Deprecated memberships fields
+    enroll_method = models.CharField(
+        max_length=10,
+        choices=ENROLL_METHODS,
+        default=DEFAULT_ENROLL_METHOD_TYPE,
+        null=True,
+        blank=True,
+    )
     members = models.ManyToManyField(User, through="Membership")
     membership_type = models.CharField(
         max_length=32,
