@@ -23,6 +23,7 @@ from apps.core.gis.utils import (
     calculate_geojson_centroid,
     calculate_geojson_feature_area,
 )
+from apps.core.landscape_collaboration_roles import ROLE_MANAGER
 from apps.core.models.taxonomy_terms import TaxonomyTerm
 
 from .commons import BaseModel, SlugModel, validate_name
@@ -64,6 +65,12 @@ class Landscape(SlugModel, DirtyFieldsMixin):
         related_name="created_landscapes",
     )
     groups = models.ManyToManyField(Group, through="LandscapeGroup")
+    membership_list = models.ForeignKey(
+        "collaboration.MembershipList",
+        on_delete=models.CASCADE,
+        related_name="landscape",
+        null=True,
+    )
 
     area_types = models.JSONField(blank=True, null=True)
     taxonomy_terms = models.ManyToManyField(TaxonomyTerm, blank=True)
@@ -101,6 +108,9 @@ class Landscape(SlugModel, DirtyFieldsMixin):
         _unique_fields = ["name"]
         abstract = False
 
+    def full_clean(self, *args, **kwargs):
+        super().full_clean(*args, **kwargs, exclude=["membership_list"])
+
     def save(self, *args, **kwargs):
         dirty_fields = self.get_dirty_fields()
         if self.area_polygon and "area_polygon" in dirty_fields:
@@ -110,51 +120,30 @@ class Landscape(SlugModel, DirtyFieldsMixin):
             self.center_coordinates = calculate_geojson_centroid(self.area_polygon)
 
         with transaction.atomic():
+            from apps.collaboration.models import Membership, MembershipList
+
             creating = not Landscape.objects.filter(pk=self.pk).exists()
+
+            if creating and self.created_by:
+                self.membership_list = MembershipList.objects.create(
+                    enroll_method=MembershipList.ENROLL_METHOD_BOTH,
+                    membership_type=MembershipList.MEMBERSHIP_TYPE_OPEN,
+                )
+                self.membership_list.save_membership(
+                    self.created_by.email, ROLE_MANAGER, Membership.APPROVED
+                )
 
             super().save(*args, **kwargs)
 
-            if creating and self.created_by:
-                group = Group(
-                    name="Group {}".format(self.slug),
-                    description="",
-                    created_by=self.created_by,
-                )
-                group.save()
-                landscape_group = LandscapeGroup(
-                    group=group, landscape=self, is_default_landscape_group=True
-                )
-                landscape_group.save()
-
     def delete(self, *args, **kwargs):
-        default_group = self.get_default_group()
+        membership_list = self.membership_list
 
         with transaction.atomic():
             ret = super().delete(*args, **kwargs)
-            # default group should be deleted as well
-            if default_group is not None:
-                default_group.delete()
+            if membership_list is not None:
+                membership_list.delete()
 
         return ret
-
-    def get_default_group(self):
-        """
-        A default Group in a Landscape is that Group where any
-        individual (associated or not with other Groups) is added when
-        associating directly with a Landscape.
-        """
-        try:
-            # associated_groups is the related_name defined on
-            # LandscapeGroup relationship with Landscape. It returns a
-            # queryset of LandscapeGroup
-            landscape_group = self.associated_groups.get(is_default_landscape_group=True)
-        except LandscapeGroup.DoesNotExist:
-            logger.error(
-                "Landscape has no default group, but it must have", extra={"landscape_id": self.pk}
-            )
-            return None
-
-        return landscape_group.group
 
     def __str__(self):
         return self.name

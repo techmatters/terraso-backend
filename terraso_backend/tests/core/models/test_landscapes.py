@@ -20,7 +20,8 @@ import pytest
 from django.core.exceptions import ValidationError
 from mixer.backend.django import mixer
 
-from apps.core.models.groups import Group, Membership
+from apps.core import landscape_collaboration_roles
+from apps.core.models.groups import Group
 from apps.core.models.landscapes import Landscape, LandscapeGroup
 from apps.core.models.users import User
 
@@ -94,32 +95,12 @@ def test_landscape_groups_creation_explicitly():
     assert group.associated_landscapes.count() == 1
 
 
-def test_landscape_get_default_group():
-    landscape = mixer.blend(Landscape)
-    groups = mixer.cycle(3).blend(Group)
-    default_group = groups.pop()
-
-    LandscapeGroup.objects.create(
-        landscape=landscape, group=default_group, is_default_landscape_group=True
-    )
-    landscape.groups.add(*groups)
-
-    assert landscape.get_default_group() == default_group
-
-
-def test_landscape_get_default_group_without_group_returns_none():
-    landscape = mixer.blend(Landscape)
-
-    assert landscape.get_default_group() is None
-
-
 def test_landscape_creator_becomes_manager():
     user = mixer.blend(User)
     landscape = mixer.blend(Landscape, created_by=user)
+    manager_membership = landscape.membership_list.memberships.get(user=user)
 
-    manager_membership = Membership.objects.get(group=landscape.get_default_group(), user=user)
-
-    assert manager_membership.user_role == Membership.ROLE_MANAGER
+    assert manager_membership.user_role == landscape_collaboration_roles.ROLE_MANAGER
 
 
 def test_landscape_area_calculated(unit_polygon):
