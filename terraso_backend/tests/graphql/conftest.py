@@ -113,16 +113,26 @@ def managed_landscapes(users):
     landscapes = mixer.cycle(2).blend(Landscape)
 
     for i in range(len(landscapes)):
-        group = mixer.blend(Group)
-        group.add_manager(users[i])
-        mixer.blend(
-            LandscapeGroup,
-            landscape=landscapes[i],
-            group=group,
-            is_default_landscape_group=True,
+        landscapes[i].membership_list.save_membership(
+            users[i].email,
+            landscape_collaboration_roles.ROLE_MANAGER,
+            CollaborationMembership.APPROVED,
         )
 
     return landscapes
+
+
+@pytest.fixture
+def landscape_user_memberships(managed_landscapes, users):
+    memberships = [
+        landscape.membership_list.save_membership(
+            users[i + 1].email,
+            landscape_collaboration_roles.ROLE_MEMBER,
+            CollaborationMembership.APPROVED,
+        )[1]
+        for i, landscape in enumerate(managed_landscapes)
+    ]
+    return memberships
 
 
 @pytest.fixture
