@@ -29,7 +29,6 @@ from apps.core.models import (
     GroupAssociation,
     Landscape,
     LandscapeGroup,
-    Membership,
     SharedResource,
     TaxonomyTerm,
     User,
