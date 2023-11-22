@@ -86,13 +86,12 @@ from .sites import (
     SiteTransferMutation,
     SiteUpdateMutation,
 )
-from .story_maps import (
-    StoryMapDeleteMutation,
+from .story_maps import StoryMapDeleteMutation, StoryMapNode
+from .story_maps_memberships import (
     StoryMapMembershipApproveMutation,
     StoryMapMembershipApproveTokenMutation,
     StoryMapMembershipDeleteMutation,
     StoryMapMembershipSaveMutation,
-    StoryMapNode,
 )
 from .taxnomy_terms import TaxonomyTermNode
 from .users import (
