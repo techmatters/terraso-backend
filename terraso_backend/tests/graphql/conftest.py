@@ -24,6 +24,7 @@ from mixer.backend.django import mixer
 from apps.auth.services import JWTService
 from apps.collaboration.models import Membership as CollaborationMembership
 from apps.collaboration.models import MembershipList
+from apps.core import group_collaboration_roles, landscape_collaboration_roles
 from apps.core.models import (
     Group,
     GroupAssociation,
@@ -126,12 +127,34 @@ def managed_landscapes(users):
 
 @pytest.fixture
 def groups():
-    return mixer.cycle(5).blend(Group, membership_status=Group.MEMBERSHIP_TYPE_OPEN)
+    return mixer.cycle(5).blend(
+        Group,
+        membership_list=mixer.blend(
+            MembershipList, membership_type=MembershipList.MEMBERSHIP_TYPE_OPEN
+        ),
+    )
 
 
 @pytest.fixture
 def groups_closed():
-    return mixer.cycle(2).blend(Group, membership_type=Group.MEMBERSHIP_TYPE_CLOSED)
+    return mixer.cycle(2).blend(
+        Group,
+        membership_list=mixer.blend(
+            MembershipList, membership_type=MembershipList.MEMBERSHIP_TYPE_CLOSED
+        ),
+    )
+
+
+@pytest.fixture
+def groups_closed_managers(groups_closed, users):
+    return [
+        group.membership_list.save_membership(
+            users[i].email,
+            group_collaboration_roles.ROLE_MANAGER,
+            CollaborationMembership.APPROVED,
+        )[1]
+        for i, group in enumerate(groups_closed)
+    ]
 
 
 @pytest.fixture
@@ -191,34 +214,23 @@ def group_associations(groups, subgroups):
 
 
 @pytest.fixture
-def memberships(groups, users):
+def group_manager_memberships(groups, users):
     return mixer.cycle(5).blend(
-        Membership,
-        group=(g for g in groups),
+        CollaborationMembership,
+        membership_list=(g.membership_list for g in groups),
         user=(u for u in users),
-        user_role=Membership.ROLE_MANAGER,
-    )
-
-
-@pytest.fixture
-def memberships_pending(groups, users):
-    return mixer.cycle(5).blend(
-        Membership,
-        group=(g for g in groups),
-        user=(u for u in users),
-        user_role=Membership.ROLE_MEMBER,
-        membership_status=Membership.PENDING,
+        user_role=group_collaboration_roles.ROLE_MANAGER,
     )
 
 
 @pytest.fixture
 def memberships_pending_with_notifications(groups, users_with_group_notifications):
     return mixer.cycle(5).blend(
-        Membership,
-        group=(g for g in groups),
+        CollaborationMembership,
+        membership_list=(g.membership_list for g in groups),
         user=(u for u in users_with_group_notifications),
-        user_role=Membership.ROLE_MEMBER,
-        membership_status=Membership.PENDING,
+        user_role=group_collaboration_roles.ROLE_MEMBER,
+        membership_status=CollaborationMembership.PENDING,
     )
 
 
