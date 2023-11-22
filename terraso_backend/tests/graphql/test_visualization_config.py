@@ -15,6 +15,9 @@
 
 import pytest
 
+from apps.collaboration.models import Membership as CollaborationMembership
+from apps.core import group_collaboration_roles
+
 pytestmark = pytest.mark.django_db
 
 
@@ -128,7 +131,7 @@ def test_visualization_configs_filter_by_group_slug_filters_successfuly(
 
 
 def test_visualization_configs_filter_by_group_id_filters_successfuly(
-    client_query, visualization_configs, groups
+    client_query, visualization_configs, groups, users
 ):
     visualization_config_a = visualization_configs[0]
     visualization_config_b = visualization_configs[1]
@@ -137,6 +140,9 @@ def test_visualization_configs_filter_by_group_id_filters_successfuly(
     visualization_config_b.data_entry.shared_resources.create(target=groups[-1])
 
     group_filter = groups[-1]
+    group_filter.membership_list.save_membership(
+        users[0].email, group_collaboration_roles.ROLE_MEMBER, CollaborationMembership.APPROVED
+    )
 
     response = client_query(
         """
