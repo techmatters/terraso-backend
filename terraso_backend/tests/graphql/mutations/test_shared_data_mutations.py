@@ -248,3 +248,34 @@ def test_data_entry_delete_by_manager_fails_due_to_membership_approval_status(
 
     assert "errors" in response["data"]["deleteDataEntry"]
     assert "delete_not_allowed" in response["data"]["deleteDataEntry"]["errors"][0]["message"]
+
+
+def test_data_entry_delete_not_showing_in_query(
+    client_query, landscape_data_entries, users, landscapes
+):
+    old_data_entry = landscape_data_entries[0]
+
+    assert landscapes[0].shared_resources.filter(source_object_id=old_data_entry.id).exists()
+
+    response = client_query(
+        """
+        mutation deleteDataEntry($input: DataEntryDeleteMutationInput!){
+          deleteDataEntry(input: $input) {
+            dataEntry {
+              name
+            }
+            errors
+          }
+        }
+
+        """,
+        variables={"input": {"id": str(old_data_entry.id)}},
+    )
+
+    json_response = response.json()
+    data_entry_result = json_response["data"]["deleteDataEntry"]["dataEntry"]
+
+    assert data_entry_result["name"] == old_data_entry.name
+    assert not DataEntry.objects.filter(name=data_entry_result["name"])
+
+    assert not landscapes[0].shared_resources.filter(source_object_id=old_data_entry.id).exists()
