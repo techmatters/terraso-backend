@@ -140,8 +140,27 @@ def allowed_to_change_landscape_membership(user, obj):
 
 
 @rules.predicate
-def allowed_to_add_membership(user, group):
-    return group.can_join or group.is_manager(user)
+def allowed_to_change_group_membership(user, obj):
+    from apps.collaboration.models import Membership as CollaborationMembership
+
+    group = obj.get("group")
+    current_membership = obj.get("current_membership")
+    new_membership_status = obj.get("membership_status")
+    manager_role = get_manager_role(group)
+    is_manager = group.membership_list.has_role(user, manager_role)
+
+    is_approving = (
+        current_membership
+        and current_membership.membership_status == CollaborationMembership.PENDING
+        and new_membership_status == CollaborationMembership.APPROVED
+    )
+
+    if is_approving and not is_manager:
+        return False
+
+    return validate_change_membership(user, group, obj)
+
+
 def validate_delete_membership(user, entity, membership):
     manager_role = get_manager_role(entity)
     is_manager = entity.membership_list.has_role(user, manager_role)
@@ -160,6 +179,12 @@ def allowed_to_delete_landscape_membership(user, obj):
     return validate_delete_membership(user, landscape, membership)
 
 
+@rules.predicate
+def allowed_to_delete_group_membership(user, obj):
+    group = obj.get("group")
+    membership = obj.get("membership")
+
+    return validate_delete_membership(user, group, membership)
 
 
 rules.add_rule("allowed_group_managers_count", allowed_group_managers_count)
@@ -168,3 +193,5 @@ rules.add_rule("allowed_to_change_landscape", allowed_to_change_landscape)
 rules.add_rule("allowed_to_change_landscape_membership", allowed_to_change_landscape_membership)
 rules.add_rule("allowed_to_delete_landscape_membership", allowed_to_delete_landscape_membership)
 rules.add_rule("allowed_landscape_managers_count", allowed_landscape_managers_count)
+rules.add_rule("allowed_to_change_group_membership", allowed_to_change_group_membership)
+rules.add_rule("allowed_to_delete_group_membership", allowed_to_delete_group_membership)

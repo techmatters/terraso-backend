@@ -61,6 +61,10 @@ from .groups import (
     GroupNode,
     GroupUpdateMutation,
 )
+from .groups_memberships import (
+    GroupMembershipDeleteMutation,
+    GroupMembershipSaveMutation,
+)
 from .landscape_groups import (
     LandscapeGroupAddMutation,
     LandscapeGroupDeleteMutation,
@@ -196,6 +200,8 @@ class Mutations(graphene.ObjectType):
     delete_site_note = SiteNoteDeleteMutation.Field()
     save_landscape_membership = LandscapeMembershipSaveMutation.Field()
     delete_landscape_membership = LandscapeMembershipDeleteMutation.Field()
+    save_group_membership = GroupMembershipSaveMutation.Field()
+    delete_group_membership = GroupMembershipDeleteMutation.Field()
 
 
 schema = graphene.Schema(query=Query, mutation=Mutations)
