@@ -138,7 +138,7 @@ class StoryMapMembershipApproveTokenMutation(BaseAuthenticatedMutation):
 
         if not user and membership.pending_email is None:
             logger.error(
-                "Attempt to approve a Membership, but user was not found",
+                "Attempt to approve a Story Map Membership, but user was not found",
                 extra=kwargs,
             )
             raise GraphQLNotFoundException(model_name=User.__name__)
