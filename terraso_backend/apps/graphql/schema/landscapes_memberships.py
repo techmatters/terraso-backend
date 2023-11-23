@@ -57,7 +57,7 @@ class LandscapeMembershipSaveMutation(BaseMembershipSaveMutation):
             landscape = Landscape.objects.get(slug=landscape_slug)
         except Exception as error:
             logger.error(
-                "Attempt to save Landscape Memberships, but landscape was not found",
+                "Attempt to save Landscape Membership, but landscape was not found",
                 extra={
                     "landscape_slug": landscape_slug,
                     "error": error,
