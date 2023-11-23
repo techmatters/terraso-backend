@@ -60,7 +60,7 @@ class GroupMembershipSaveMutation(BaseMembershipSaveMutation):
             group = Group.objects.get(slug=group_slug)
         except Exception as error:
             logger.error(
-                "Attempt to save Story Map Memberships, but story map was not found",
+                "Attempt to save Group Membership, but story map was not found",
                 extra={
                     "group_slug": group_slug,
                     "error": error,
