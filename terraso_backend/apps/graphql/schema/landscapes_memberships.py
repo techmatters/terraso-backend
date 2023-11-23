@@ -125,7 +125,7 @@ class LandscapeMembershipDeleteMutation(BaseDeleteMutation):
             },
         ):
             logger.info(
-                "Attempt to delete Landscape Memberships, but user lacks permission",
+                "Attempt to delete Landscape Membership, but user lacks permission",
                 extra={"user_id": user.pk, "membership_id": membership_id},
             )
             raise GraphQLNotAllowedException(
