@@ -293,7 +293,7 @@ class StoryMapMembershipDeleteMutation(BaseDeleteMutation):
             story_map = StoryMap.objects.get(slug=story_map_slug, story_map_id=story_map_id)
         except StoryMap.DoesNotExist:
             logger.error(
-                "Attempt to delete Story Map Memberships, but story map was not found",
+                "Attempt to delete Story Map Membership, but story map was not found",
                 extra={"story_map_id": story_map_id, "story_map_slug": story_map_slug},
             )
             raise GraphQLNotFoundException(model_name=StoryMap.__name__)
