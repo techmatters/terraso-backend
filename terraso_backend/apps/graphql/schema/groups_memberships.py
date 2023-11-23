@@ -152,7 +152,7 @@ class GroupMembershipDeleteMutation(BaseDeleteMutation):
             },
         ):
             logger.info(
-                "Attempt to delete Group Memberships, but user lacks permission",
+                "Attempt to delete Group Membership, but user lacks permission",
                 extra={"user_id": user.pk, "membership_id": membership_id},
             )
             raise GraphQLNotAllowedException(
