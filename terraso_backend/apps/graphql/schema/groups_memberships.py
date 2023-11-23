@@ -168,7 +168,7 @@ class GroupMembershipDeleteMutation(BaseDeleteMutation):
             },
         ):
             logger.info(
-                "Attempt to update a Membership, but cannot remove last manager",
+                "Attempt to update a Group Membership, but cannot remove last manager",
                 extra={"user_id": user.pk, "membership_id": membership_id},
             )
             raise GraphQLNotAllowedException(
