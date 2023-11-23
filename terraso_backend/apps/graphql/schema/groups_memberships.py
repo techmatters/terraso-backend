@@ -50,9 +50,7 @@ class GroupMembershipSaveMutation(BaseMembershipSaveMutation):
     def mutate_and_get_payload(cls, root, info, **kwargs):
         user = info.context.user
 
-        user_role = (
-            kwargs["user_role"] if "user_role" in kwargs else group_collaboration_roles.ROLE_MEMBER
-        )
+        user_role = kwargs.get("user_role", group_collaboration_roles.ROLE_MEMBER)
 
         cls.validate_role(user_role, group_collaboration_roles.ALL_ROLES)
 
