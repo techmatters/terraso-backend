@@ -251,7 +251,7 @@ class StoryMapMembershipApproveMutation(BaseAuthenticatedMutation):
             },
         ):
             logger.info(
-                "Attempt to approve a Membership, but user has no permission",
+                "Attempt to approve a Story Map Membership, but user has no permission",
                 extra=kwargs,
             )
             raise GraphQLNotAllowedException(
