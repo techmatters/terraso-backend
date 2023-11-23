@@ -22,6 +22,7 @@ from django.db import IntegrityError
 from graphene import relay
 from graphene_django import DjangoObjectType
 
+from apps.collaboration.models import Membership, MembershipList
 from apps.graphql.exceptions import (
     GraphQLNotAllowedException,
     GraphQLNotFoundException,
@@ -29,8 +30,6 @@ from apps.graphql.exceptions import (
 )
 from apps.graphql.schema.commons import BaseAuthenticatedMutation
 from apps.graphql.schema.constants import MutationTypes
-
-from ..models import Membership, MembershipList
 
 logger = structlog.get_logger(__name__)
 

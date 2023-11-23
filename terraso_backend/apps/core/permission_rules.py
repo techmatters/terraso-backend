@@ -72,6 +72,18 @@ def allowed_to_delete_landscape_group(user, landscape_group):
 
 
 def validate_managers_count(user, membership, entity):
+    """
+    Validates if the count of managers in an entity is valid after a user's membership change.
+    The count of managers is valid if there is at least one manager left after the change.
+
+    Parameters:
+    user (User): The user whose membership is being changed.
+    membership (Membership): The membership object that is being changed.
+    entity (Entity): The entity (group or landscape) in which the membership change is happening.
+
+    Returns:
+    bool: True if the count of managers is valid after the membership change, False otherwise.
+    """
     manager_role = get_manager_role(entity)
     is_manager = entity.membership_list.has_role(user, manager_role)
     managers_count = entity.membership_list.memberships.by_role(manager_role).count()
@@ -114,6 +126,21 @@ def allowed_to_update_site(user, site):
 
 
 def validate_change_membership(user, entity, obj):
+    """
+    Validates if a user is allowed to change the membership of an entity.
+
+    Parameters:
+    user (User): The user attempting to change the membership.
+    entity (Entity): The entity whose membership is being changed (group or landscape).
+    obj (dict): A dictionary containing details about the membership change.
+                 It should contain the following keys:
+                 - "user_role": The role the user will have after the change.
+                 - "user_exists": A boolean indicating if the user is already registered.
+                 - "user_email": The email of the user whose membership is being changed.
+
+    Returns:
+    bool: True if the user is allowed to change the membership, False otherwise.
+    """
     user_role = obj.get("user_role")
     user_exists = obj.get("user_exists")
     user_email = obj.get("user_email")
