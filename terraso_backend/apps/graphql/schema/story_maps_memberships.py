@@ -218,7 +218,7 @@ class StoryMapMembershipApproveMutation(BaseAuthenticatedMutation):
             membership = Membership.objects.get(id=membership_id)
         except Exception as error:
             logger.error(
-                "Attempt to approve Membership, but it was not found",
+                "Attempt to approve Story Map Membership, but it was not found",
                 extra={"membership_id": membership_id, "error": error},
             )
             raise GraphQLNotFoundException(model_name=Membership.__name__)
