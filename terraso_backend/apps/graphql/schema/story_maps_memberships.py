@@ -225,7 +225,7 @@ class StoryMapMembershipApproveMutation(BaseAuthenticatedMutation):
 
         if membership.user != user:
             logger.error(
-                "Attempt to approve Membership, but user does not match",
+                "Attempt to approve Story Map Membership, but user does not match",
                 extra={"membership_id": membership_id, "user_id": user.pk},
             )
             raise GraphQLNotAllowedException(
