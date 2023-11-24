@@ -227,6 +227,7 @@ class ProjectDeleteMutation(BaseDeleteMutation):
     @classmethod
     @transaction.atomic
     def mutate_and_get_payload(cls, root, info, **kwargs):
+        logger = cls.get_logger()
         user = info.context.user
         project_id = kwargs["id"]
         project = cls.get_or_throw(Project, "id", project_id)
@@ -242,6 +243,17 @@ class ProjectDeleteMutation(BaseDeleteMutation):
                 site.project = transfer_project
             Site.objects.bulk_update(project_sites, ["project"])
         result = super().mutate_and_get_payload(root, info, **kwargs)
+
+        logger.log(
+            user=user,
+            action=log_api.DELETE,
+            resource=result.project,
+            client_time=datetime.now(),
+            metadata={
+                "name": project.name,
+                "privacy": project.privacy,
+            },
+        )
         return result
 
 
