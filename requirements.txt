@@ -17,6 +17,7 @@ asgiref==3.7.2 \
     --hash=sha256:9e0ce3aa93a819ba5b45120216b23878cf6e8525eb3848653452b4192b92afed
     # via
     #   django
+    #   django-cors-headers
     #   django-structlog
 attrs==23.1.0 \
     --hash=sha256:1f28b4522cdc2fb4256ac1a020c78acf9cba2c6b461ccd2c126f3aa8e8335d04 \
@@ -25,9 +26,9 @@ attrs==23.1.0 \
     #   cattrs
     #   ddtrace
     #   fiona
-boto3==1.29.3 \
-    --hash=sha256:85123ba6ccef12f8230bcd85bf730d3c4218e08e3cc4baaa0b3eae094703e77d \
-    --hash=sha256:d038b19cbe29d488133351ee6eb36ee11a0934df8bcbc0892bbeb2c544a327a4
+boto3==1.29.7 \
+    --hash=sha256:1eb4c548118b5fc5e018dee956fd33e6fb249cd1f2def85f1bba816aef4d9f3e \
+    --hash=sha256:96e9890ebe7cd823b5f4976dd676e112c000c6528c28e20a2f274590589dd18b
     # via
     #   -r requirements/base.in
     #   django-ses
@@ -346,9 +347,9 @@ django-filter==23.4 \
     --hash=sha256:526954f18bd7d6423f232a9a7974f58fbc6863908b9fc160de075e01adcc2a5f \
     --hash=sha256:bed070b38359dce7d2dbe057b165d59773057986356cb809ded983b36c77a976
     # via -r requirements/base.in
-django-ipware==5.0.2 \
-    --hash=sha256:838b7aede77734603bd32ebd08ad7957304266580b646f8cbe982c4833b71c84 \
-    --hash=sha256:ab3ab7645e674df682c1146a5bddfa5151b1b7be7be9210872c3156bd836aad4
+django-ipware==6.0.0 \
+    --hash=sha256:5595aa3819d6c82c2a09a307dfe58f3d40bff3e098c2e8508118195ac3270465 \
+    --hash=sha256:c656805c824449b5171e6f851f6369000fe204ec03ac9977110a9b0aff4825b6
     # via django-structlog
 django-naomi==0.8 \
     --hash=sha256:145b7bd54443a7062cc2b48c5572c526641c01233f697a7e8be96e1c11a082da \
@@ -637,6 +638,10 @@ python-dateutil==2.8.2 \
     # via
     #   botocore
     #   pandas
+python-ipware==2.0.0 \
+    --hash=sha256:802858aa13308d572876d1883edae0eae380fe70a51fdefcb46c8a2099240862 \
+    --hash=sha256:a52757123c718342f74b16ab2d9d4a531888d69d10b8197c073164635df0a13b
+    # via django-ipware
 python-magic==0.4.27 \
     --hash=sha256:c1ba14b08e4a5f5c31a302b7721239695b2f0f058d125bd5ce1ee36b9d9d3c3b \
     --hash=sha256:c212960ad306f700aa0d01e5d7a325d20548ff97eb9920dcd29513174f0294d3
@@ -655,9 +660,9 @@ rules==3.3 \
     --hash=sha256:12c8bbab5f54560e68528fcca7abc0e162c35ac882e3cc0daed40ac49c963070 \
     --hash=sha256:bf7bea8b724b73c36a622714c1b3557620c187a2ee05321a2ac8ab7472dc4464
     # via -r requirements/base.in
-s3transfer==0.7.0 \
-    --hash=sha256:10d6923c6359175f264811ef4bf6161a3156ce8e350e705396a7557d6293c33a \
-    --hash=sha256:fd3889a66f5fe17299fe75b82eae6cf722554edca744ca5d5fe308b104883d2e
+s3transfer==0.8.0 \
+    --hash=sha256:baa479dc2e63e5c2ed51611b4d46cdf0295e2070d8d0b86b22f335ee5b954986 \
+    --hash=sha256:e8d6bd52ffd99841e3a57b34370a54841f12d3aab072af862cdcc50955288002
     # via boto3
 shapely==2.0.2 \
     --hash=sha256:03e63a99dfe6bd3beb8d5f41ec2086585bb969991d603f9aeac335ad396a06d4 \
