@@ -5,13 +5,17 @@
 
 version: 2
 updates:
-  - package-ecosystem: "pip" # See documentation for possible values
-    directory: "/" # Location of package manifests
+  - package-ecosystem: "pip"
+    directory: "/"
     schedule:
       interval: "weekly"
-    open-pull-requests-limit: 15
+    open-pull-requests-limit: 20
+    allow:
+      - dependency-type: all
 
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
       interval: "weekly"
+    allow:
+      - dependency-type: all

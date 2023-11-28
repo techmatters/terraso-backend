@@ -179,8 +179,18 @@ class BaseAuthenticatedMutation(BaseMutation):
         raise super().not_found(msg, field=field, model=model or cls.model_class)
 
 
-class BaseWriteMutation(BaseAuthenticatedMutation):
+class LoggerMixin:
     logger: Optional[audit_log_api.AuditLog] = None
+
+    @classmethod
+    def get_logger(cls):
+        """Returns the logger instance."""
+        if not cls.logger:
+            cls.logger = audit_log_services.new_audit_logger()
+        return cls.logger
+
+
+class BaseWriteMutation(BaseAuthenticatedMutation, LoggerMixin):
     skip_field_validation: Optional[str] = None
 
     @classmethod
@@ -254,13 +264,6 @@ class BaseWriteMutation(BaseAuthenticatedMutation):
     def is_update(cls, data):
         return "id" in data
 
-    @classmethod
-    def get_logger(cls):
-        """Returns the logger instance."""
-        if not cls.logger:
-            cls.logger = audit_log_services.new_audit_logger()
-        return cls.logger
-
     @staticmethod
     def remove_null_fields(kwargs, options=[str]):
         """It seems like for some fields, if the frontend does not pass an argument, the
@@ -278,7 +281,7 @@ class BaseWriteMutation(BaseAuthenticatedMutation):
         return kwargs
 
 
-class BaseDeleteMutation(BaseAuthenticatedMutation):
+class BaseDeleteMutation(BaseAuthenticatedMutation, LoggerMixin):
     @classmethod
     def mutate_and_get_payload(cls, root, info, **kwargs):
         if "model_instance" in kwargs:

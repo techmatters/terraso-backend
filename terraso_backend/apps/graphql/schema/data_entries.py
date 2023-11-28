@@ -238,9 +238,10 @@ class DataEntryDeleteMutation(BaseDeleteMutation):
         id = graphene.ID()
 
     @classmethod
+    @transaction.atomic
     def mutate_and_get_payload(cls, root, info, **kwargs):
         user = info.context.user
-        data_entry = DataEntry.objects.get(pk=kwargs["id"])
+        data_entry = DataEntry.all_objects.get(pk=kwargs["id"])
 
         if not user.has_perm(DataEntry.get_perm("delete"), obj=data_entry):
             logger.info(
@@ -250,4 +251,8 @@ class DataEntryDeleteMutation(BaseDeleteMutation):
             raise GraphQLNotAllowedException(
                 model_name=DataEntry.__name__, operation=MutationTypes.DELETE
             )
-        return super().mutate_and_get_payload(root, info, **kwargs)
+
+        data_entry.shared_resources.all().delete()
+        data_entry.delete()
+
+        return cls(data_entry=data_entry)

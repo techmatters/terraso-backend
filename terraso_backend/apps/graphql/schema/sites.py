@@ -239,13 +239,23 @@ class SiteDeleteMutation(BaseDeleteMutation):
     @classmethod
     @transaction.atomic
     def mutate_and_get_payload(cls, root, info, **kwargs):
+        log = cls.get_logger()
         user = info.context.user
         site_id = kwargs["id"]
         site = cls.get_or_throw(Site, "id", site_id)
         if not user.has_perm(Site.get_perm("delete"), site):
             cls.not_allowed(MutationTypes.DELETE)
 
-        return super().mutate_and_get_payload(root, info, **kwargs)
+        result = super().mutate_and_get_payload(root, info, **kwargs)
+        metadata = {"project_id": str(site.project.id)} if site.project else {}
+        log.log(
+            user=user,
+            action=audit_log_api.DELETE,
+            resource=site,
+            metadata=metadata,
+            client_time=datetime.now(),
+        )
+        return result
 
 
 class TransferredSite(graphene.ObjectType):
@@ -267,6 +277,7 @@ class SiteTransferMutation(BaseWriteMutation):
 
     @classmethod
     def mutate_and_get_payload(cls, root, info, **kwargs):
+        log = cls.get_logger()
         user = info.context.user
 
         project = cls.get_or_throw(Project, "project_id", kwargs["project_id"])
@@ -290,6 +301,17 @@ class SiteTransferMutation(BaseWriteMutation):
                 old_projects.append(site.project)
 
         Site.bulk_change_project(to_change, project)
+
+        log.log(
+            user=user,
+            action=audit_log_api.CHANGE,
+            resource=project,
+            metadata={
+                "project_id": str(project.id),
+                "transfered_sites": [str(site.id) for site in to_change],
+            },
+            client_time=datetime.now(),
+        )
 
         return SiteTransferMutation(
             project=project,
