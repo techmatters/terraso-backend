@@ -28,6 +28,7 @@ from apps.core.gis.utils import DEFAULT_CRS
 logger = structlog.get_logger(__name__)
 
 supported_drivers["KML"] = "rw"
+supported_drivers["GPX"] = "rw"
 
 
 def is_geojson_file_extension(file):
@@ -54,6 +55,10 @@ def is_kml_file_extension(file):
 
 def is_kmz_file_extension(file):
     return file.name.endswith(".kmz")
+
+
+def is_gpx_file_extension(file):
+    return file.name.endswith(".gpx")
 
 
 def parse_kml_file(file):
@@ -106,6 +111,11 @@ def parse_shapefile(file):
     return json.loads(gdf_transformed.to_json())
 
 
+def parse_gpx_file(file):
+    gdf = gpd.read_file(file, driver="GPX")
+    return json.loads(gdf.to_json())
+
+
 def parse_file_to_geojson(file):
     if is_shape_file_extension(file):
         try:
@@ -131,5 +141,11 @@ def parse_file_to_geojson(file):
         except Exception as e:
             logger.error("Error parsing geojson file", error=e)
             raise ValidationError("invalid_geojson_file")
+    elif is_gpx_file_extension(file):
+        try:
+            return parse_gpx_file(file)
+        except Exception as e:
+            logger.error("Error parsing gpx file", error=e)
+            raise ValidationError("invalid_gpx_file")
     else:
         raise ValidationError("invalid_file_type")

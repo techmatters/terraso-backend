@@ -101,3 +101,19 @@ def visualization_config_kml(user):
         ),
         created_by=user,
     )
+
+
+@pytest.fixture
+def visualization_config_gpx(user):
+    return mixer.blend(
+        VisualizationConfig,
+        size=1,
+        data_entry=mixer.blend(
+            DataEntry,
+            size=1,
+            url=f"{settings.DATA_ENTRY_FILE_BASE_URL}/{user.id}/test_data.gpx",
+            created_by=user,
+            resource_type="gpx",
+        ),
+        created_by=user,
+    )
