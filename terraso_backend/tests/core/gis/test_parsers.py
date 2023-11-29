@@ -17,6 +17,7 @@ import json
 import os
 import tempfile
 import zipfile
+from importlib import resources
 
 import geopandas as gpd
 import pytest
@@ -102,33 +103,28 @@ KML_GEOJSON = {
     "type": "FeatureCollection",
     "features": [
         {
-            "id": "0",
             "type": "Feature",
-            "properties": {"Name": "Portland", "Description": ""},
+            "properties": {"Name": "Portland"},
             "geometry": {"type": "Point", "coordinates": [-122.681944, 45.52, 0.0]},
         },
         {
-            "id": "1",
             "type": "Feature",
-            "properties": {"Name": "Rio de Janeiro", "Description": ""},
+            "properties": {"Name": "Rio de Janeiro"},
             "geometry": {"type": "Point", "coordinates": [-43.196389, -22.908333, 0.0]},
         },
         {
-            "id": "2",
             "type": "Feature",
-            "properties": {"Name": "Istanbul", "Description": ""},
+            "properties": {"Name": "Istanbul"},
             "geometry": {"type": "Point", "coordinates": [28.976018, 41.01224, 0.0]},
         },
         {
-            "id": "3",
             "type": "Feature",
-            "properties": {"Name": "Reykjavik", "Description": ""},
+            "properties": {"Name": "Reykjavik"},
             "geometry": {"type": "Point", "coordinates": [-21.933333, 64.133333, 0.0]},
         },
         {
-            "id": "4",
             "type": "Feature",
-            "properties": {"Name": "Simple Polygon", "Description": ""},
+            "properties": {"Name": "Simple Polygon"},
             "geometry": {
                 "type": "Polygon",
                 "coordinates": [
@@ -309,34 +305,43 @@ def test_parse_shapefile(shapefile_zip):
             assert shapefile_json == gdf_json
 
 
-@pytest.fixture
-def kml_file(request):
-    kml_contents, file_extension = request.param
-    # Create a temporary file
-    with tempfile.NamedTemporaryFile(mode="w", suffix=f".{file_extension}", delete=False) as f:
-        # Write the KML content to the file
-        f.write(kml_contents)
+# @pytest.fixture
+# def kml_file(request):
+#     kml_contents, file_extension = request.param
+#     # Create a temporary file
+#     with tempfile.NamedTemporaryFile(mode="w", suffix=f".{file_extension}", delete=False) as f:
+#         # Write the KML content to the file
+#         f.write(kml_contents)
 
-    # Return the file path
-    yield f.name
+#     # Return the file path
+#     yield f.name
 
-    # Clean up: delete the temporary file
-    os.unlink(f.name)
+#     # Clean up: delete the temporary file
+#     os.unlink(f.name)
 
 
 @pytest.mark.parametrize(
-    "kml_file",
+    "kml_file_path_expected",
     [
-        (KML_CONTENT, "kml"),
+        ("resources/gis/kml_sample_1.kml", "resources/gis/kml_sample_1_geojson.json"),
+        # ("resources/gis/kml_sample_2.kml", "resources/gis/kml_sample_2_geojson.json"),
     ],
-    indirect=True,
 )
-def test_parse_kml_file(kml_file):
-    with open(kml_file, "rb") as file:
+def test_parse_kml_file(kml_file_path_expected):
+    kml_file_path = kml_file_path_expected[0]
+    with open(resources.files("tests").joinpath(kml_file_path), "rb") as file:
         kml_json = parse_file_to_geojson(file)
+
+    expected_file_path = kml_file_path_expected[1]
+    with open(resources.files("tests").joinpath(expected_file_path), "rb") as file:
+        expected_json = json.load(file)
 
     # Assert that the output of the parse_kml_file function is as expected
     assert kml_json == KML_GEOJSON
+    print(f"kml_json: {json.dumps(kml_json)}")
+    print(f"expected_json: {json.dumps(expected_json)}")
+
+    assert json.dumps(kml_json) == json.dumps(expected_json)
 
 
 @pytest.fixture

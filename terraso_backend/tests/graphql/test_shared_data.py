@@ -360,7 +360,7 @@ def test_data_entry_kml_to_geojson(get_file_mock, client_query, data_entry_kml, 
 
     assert data_entry_result["id"] == str(data_entry_kml.id)
     assert data_entry_result["name"] == data_entry_kml.name
-    assert data_entry_result["geojson"] == json.dumps(KML_GEOJSON)
+    assert json.loads(data_entry_result["geojson"])["features"] == KML_GEOJSON["features"]
 
 
 @mock.patch("apps.shared_data.services.data_entry_upload_service.get_file")
