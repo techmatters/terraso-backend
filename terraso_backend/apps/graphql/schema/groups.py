@@ -110,7 +110,7 @@ class GroupAddMutation(BaseWriteMutation):
         if not cls.is_update(kwargs):
             kwargs["created_by"] = user
 
-        membership_type = kwargs.pop("membership_type") if "membership_type" in kwargs else None
+        membership_type = kwargs.pop("membership_type", None)
 
         result = super().mutate_and_get_payload(root, info, **kwargs)
 
