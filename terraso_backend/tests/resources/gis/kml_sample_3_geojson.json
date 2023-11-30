@@ -1,0 +1,41 @@
+{
+	"type": "FeatureCollection",
+	"features": [
+			{
+					"type": "Feature",
+					"properties": {"Name": "Portland"},
+					"geometry": {"type": "Point", "coordinates": [-122.681944, 45.52, 0.0]}
+			},
+			{
+					"type": "Feature",
+					"properties": {"Name": "Rio de Janeiro"},
+					"geometry": {"type": "Point", "coordinates": [-43.196389, -22.908333, 0.0]}
+			},
+			{
+					"type": "Feature",
+					"properties": {"Name": "Istanbul"},
+					"geometry": {"type": "Point", "coordinates": [28.976018, 41.01224, 0.0]}
+			},
+			{
+					"type": "Feature",
+					"properties": {"Name": "Reykjavik"},
+					"geometry": {"type": "Point", "coordinates": [-21.933333, 64.133333, 0.0]}
+			},
+			{
+					"type": "Feature",
+					"properties": {"Name": "Simple Polygon"},
+					"geometry": {
+							"type": "Polygon",
+							"coordinates": [
+									[
+											[-122.681944, 45.52, 0.0],
+											[-43.196389, -22.908333, 0.0],
+											[28.976018, 41.01224, 0.0],
+											[-21.933333, 64.133333, 0.0],
+											[-122.681944, 45.52, 0.0]
+									]
+							]
+					}
+			}
+	]
+}

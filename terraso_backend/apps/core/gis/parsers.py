@@ -13,12 +13,12 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see https://www.gnu.org/licenses/.
 
-import io
 import json
 import os
 import uuid
 import zipfile
 
+import fiona
 import geopandas as gpd
 import pandas as pd
 import structlog
@@ -30,9 +30,8 @@ from apps.core.gis.utils import DEFAULT_CRS
 
 logger = structlog.get_logger(__name__)
 
-supported_drivers["KML"] = "rw"
-supported_drivers["GPX"] = "rw"
 supported_drivers["LIBKML"] = "rw"
+supported_drivers["GPX"] = "rw"
 
 IGNORE_KML_PROPS = [
     "tessellate",
@@ -74,22 +73,23 @@ def is_gpx_file_extension(file):
     return file.name.endswith(".gpx")
 
 
+def _get_kml_gdf(file_buffer):
+    layers = fiona.listlayers(file_buffer)
+
+    if len(layers) == 1:
+        file_buffer.seek(0)
+        return gpd.read_file(file_buffer, driver="LIBKML")
+
+    combined_gdf = gpd.GeoDataFrame()
+    for layer in layers:
+        file_buffer.seek(0)
+        gdf = gpd.read_file(file_buffer, driver="LIBKML", layer=layer)
+        combined_gdf = pd.concat([combined_gdf, gdf], ignore_index=True)
+    return combined_gdf
+
+
 def parse_kml_file(file_buffer):
-    kml_drivers = ["LIBKML", "KML"]
-    # gdf_kml = gpd.read_file(file, driver="KML")
-    # Try all KML drivers and use the one that gathers the most data
-    gdf = None
-    for driver in kml_drivers:
-        try:
-            file_buffer.seek(0)
-
-            with io.BytesIO(file_buffer.read()) as memfile:
-                new_gdf = gpd.read_file(memfile, driver=driver)
-                if gdf is None or len(new_gdf) > len(gdf):
-                    gdf = new_gdf
-
-        except Exception as e:
-            logger.exception("Error parsing kml file", error=e)
+    gdf = _get_kml_gdf(file_buffer)
 
     def row_to_dict(row):
         row_dict = row.to_dict()
