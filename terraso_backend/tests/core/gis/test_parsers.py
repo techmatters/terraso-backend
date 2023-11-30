@@ -336,11 +336,6 @@ def test_parse_kml_file(kml_file_path_expected):
     with open(resources.files("tests").joinpath(expected_file_path), "rb") as file:
         expected_json = json.load(file)
 
-    # Assert that the output of the parse_kml_file function is as expected
-    assert kml_json == KML_GEOJSON
-    print(f"kml_json: {json.dumps(kml_json)}")
-    print(f"expected_json: {json.dumps(expected_json)}")
-
     assert json.dumps(kml_json) == json.dumps(expected_json)
 
 

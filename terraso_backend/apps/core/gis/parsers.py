@@ -13,6 +13,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see https://www.gnu.org/licenses/.
 
+import io
 import json
 import os
 import uuid
@@ -73,17 +74,20 @@ def is_gpx_file_extension(file):
     return file.name.endswith(".gpx")
 
 
-def parse_kml_file(file):
-    kml_drivers = ["KML", "LIBKML"]
+def parse_kml_file(file_buffer):
+    kml_drivers = ["LIBKML", "KML"]
     # gdf_kml = gpd.read_file(file, driver="KML")
     # Try all KML drivers and use the one that gathers the most data
     gdf = None
     for driver in kml_drivers:
         try:
-            new_gdf = gpd.read_file(file, driver=driver)
-            if gdf is None or len(new_gdf) > len(gdf):
-                gdf = new_gdf
-            break
+            file_buffer.seek(0)
+
+            with io.BytesIO(file_buffer.read()) as memfile:
+                new_gdf = gpd.read_file(memfile, driver=driver)
+                if gdf is None or len(new_gdf) > len(gdf):
+                    gdf = new_gdf
+
         except Exception as e:
             logger.exception("Error parsing kml file", error=e)
 
