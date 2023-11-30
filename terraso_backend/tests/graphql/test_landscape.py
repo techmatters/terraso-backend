@@ -93,3 +93,146 @@ def test_landscapes_query_with_json_polygon(client_query, landscapes):
 
     for landscape in landscapes:
         assert landscape.area_polygon in landscapes_result
+
+
+def test_landscapes_query_with_membership(
+    client_query, managed_landscapes, landscape_user_memberships
+):
+    response = client_query(
+        """
+        {landscapes(slug: "%s") {
+          edges {
+            node {
+              name
+              membershipList {
+                membershipsCount
+                memberships {
+                  edges {
+                    node {
+                      user {
+                        email
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }}
+        """
+        % managed_landscapes[0].slug
+    )
+
+    json_response = response.json()
+
+    membership_list = json_response["data"]["landscapes"]["edges"][0]["node"]["membershipList"]
+    memberships = membership_list["memberships"]["edges"]
+    assert len(memberships) == 2
+    assert membership_list["membershipsCount"] == 2
+
+
+def test_landscapes_query_with_membership_for_non_member(
+    client_query, managed_landscapes, landscape_user_memberships
+):
+    response = client_query(
+        """
+        {landscapes(slug: "%s") {
+          edges {
+            node {
+              name
+              membershipList {
+                membershipsCount
+                memberships {
+                  edges {
+                    node {
+                      user {
+                        email
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }}
+        """
+        % managed_landscapes[1].slug
+    )
+
+    json_response = response.json()
+
+    membership_list = json_response["data"]["landscapes"]["edges"][0]["node"]["membershipList"]
+    memberships = membership_list["memberships"]["edges"]
+    assert len(memberships) == 2
+    assert membership_list["membershipsCount"] == 2
+
+
+def test_landscapes_query_with_membership_for_anonymous_user(
+    client_query_no_token, managed_landscapes, landscape_user_memberships
+):
+    response = client_query_no_token(
+        """
+        {landscapes(slug: "%s") {
+          edges {
+            node {
+              name
+              membershipList {
+                membershipsCount
+                memberships {
+                  edges {
+                    node {
+                      user {
+                        email
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }}
+        """
+        % managed_landscapes[1].slug
+    )
+
+    json_response = response.json()
+
+    membership_list = json_response["data"]["landscapes"]["edges"][0]["node"]["membershipList"]
+    memberships = membership_list["memberships"]["edges"]
+    assert len(memberships) == 0
+    assert membership_list["membershipsCount"] == 2
+
+
+def test_landscapes_query_by_membership_email(client_query, landscape_user_memberships):
+    membership = landscape_user_memberships[0]
+    response = client_query(
+        """
+        {landscapes(membershipList_Memberships_User_Email: "%s") {
+          edges {
+            node {
+              name
+              membershipList {
+                membershipsCount
+                memberships {
+                  edges {
+                    node {
+                      user {
+                        email
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }}
+        """
+        % membership.user.email
+    )
+
+    json_response = response.json()
+
+    membership_list = json_response["data"]["landscapes"]["edges"][0]["node"]["membershipList"]
+    memberships = membership_list["memberships"]["edges"]
+    assert len(memberships) == 2
+    assert membership_list["membershipsCount"] == 2

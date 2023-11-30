@@ -25,8 +25,9 @@ from django.db.models import Prefetch, Q, Subquery
 from graphene import relay
 from graphene_django import DjangoObjectType
 
+from apps.collaboration.models import Membership as CollaborationMembership
 from apps.core.gis.parsers import parse_file_to_geojson
-from apps.core.models import Group, Landscape, Membership
+from apps.core.models import Group, Landscape
 from apps.graphql.exceptions import GraphQLNotAllowedException, GraphQLNotFoundException
 from apps.shared_data.models import DataEntry, VisualizationConfig
 from apps.shared_data.models.data_entries import VALID_TARGET_TYPES
@@ -99,28 +100,32 @@ class DataEntryNode(DjangoObjectType, SharedResourcesMixin):
         user_pk = getattr(info.context.user, "pk", False)
         user_groups_ids = Subquery(
             Group.objects.filter(
-                memberships__user__id=user_pk, memberships__membership_status=Membership.APPROVED
+                membership_list__memberships__user__id=user_pk,
+                membership_list__memberships__membership_status=CollaborationMembership.APPROVED,
             ).values("id")
         )
         user_landscape_ids = Subquery(
             Landscape.objects.filter(
-                associated_groups__group__memberships__user__id=user_pk,
-                associated_groups__group__memberships__membership_status=Membership.APPROVED,
-                associated_groups__is_default_landscape_group=True,
+                membership_list__memberships__user__id=user_pk,
+                membership_list__memberships__membership_status=CollaborationMembership.APPROVED,
             ).values("id")
         )
 
-        return queryset.prefetch_related(
-            Prefetch(
-                "visualizations",
-                queryset=VisualizationConfig.objects.defer("configuration").prefetch_related(
-                    "created_by"
+        return (
+            queryset.prefetch_related(
+                Prefetch(
+                    "visualizations",
+                    queryset=VisualizationConfig.objects.defer("configuration").prefetch_related(
+                        "created_by"
+                    ),
                 ),
-            ),
-            "created_by",
-        ).filter(
-            Q(shared_resources__target_object_id__in=user_groups_ids)
-            | Q(shared_resources__target_object_id__in=user_landscape_ids)
+                "created_by",
+            )
+            .filter(
+                Q(shared_resources__target_object_id__in=user_groups_ids)
+                | Q(shared_resources__target_object_id__in=user_landscape_ids)
+            )
+            .distinct()
         )
 
     def resolve_url(self, info):

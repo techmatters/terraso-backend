@@ -18,6 +18,8 @@ import uuid
 import pytest
 from mixer.backend.django import mixer
 
+from apps.collaboration.models import Membership as CollaborationMembership
+from apps.core import landscape_collaboration_roles
 from apps.core.models import Group, LandscapeGroup
 
 pytestmark = pytest.mark.django_db
@@ -39,7 +41,6 @@ def test_landscape_groups_add_by_landscape_manager(client_query, managed_landsca
               group {
                 name
               }
-              isDefaultLandscapeGroup
             }
           }
         }
@@ -56,7 +57,6 @@ def test_landscape_groups_add_by_landscape_manager(client_query, managed_landsca
     assert landscape_group["id"]
     assert landscape_group["landscape"]["name"] == landscape.name
     assert landscape_group["group"]["name"] == group.name
-    assert not landscape_group["isDefaultLandscapeGroup"]
 
 
 def test_landscape_groups_add_by_non_landscape_manager_not_allowed(
@@ -77,7 +77,6 @@ def test_landscape_groups_add_by_non_landscape_manager_not_allowed(
               group {
                 name
               }
-              isDefaultLandscapeGroup
             }
             errors
           }
@@ -96,11 +95,12 @@ def test_landscape_groups_add_by_non_landscape_manager_not_allowed(
     assert "create_not_allowed" in response["data"]["addLandscapeGroup"]["errors"][0]["message"]
 
 
-def test_landscape_groups_add_duplicated(client_query, users, landscape_groups):
+def test_landscape_groups_add_duplicated(client_query, users, landscape_common_group):
     user = users[0]
-    landscape = landscape_groups[0].landscape
-    group = landscape_groups[0].group
-    group.add_manager(user)
+    landscape = landscape_common_group.landscape
+    landscape.membership_list.save_membership(
+        user.email, landscape_collaboration_roles.ROLE_MANAGER, CollaborationMembership.APPROVED
+    )
 
     response = client_query(
         """
@@ -114,7 +114,6 @@ def test_landscape_groups_add_duplicated(client_query, users, landscape_groups):
               group {
                 name
               }
-              isDefaultLandscapeGroup
             }
             errors
           }
@@ -123,7 +122,7 @@ def test_landscape_groups_add_duplicated(client_query, users, landscape_groups):
         variables={
             "input": {
                 "landscapeSlug": landscape.slug,
-                "groupSlug": group.slug,
+                "groupSlug": landscape_common_group.group.slug,
             }
         },
     )
@@ -147,7 +146,6 @@ def test_landscape_groups_add_landscape_not_found(client_query, groups):
               group {
                 name
               }
-              isDefaultLandscapeGroup
             }
             errors
           }
@@ -181,7 +179,6 @@ def test_landscape_groups_add_group_not_found(client_query, managed_landscapes):
               group {
                 name
               }
-              isDefaultLandscapeGroup
             }
             errors
           }
@@ -200,9 +197,9 @@ def test_landscape_groups_add_group_not_found(client_query, managed_landscapes):
     assert "not_found" in response["data"]["addLandscapeGroup"]["errors"][0]["message"]
 
 
-def test_landscape_groups_delete_by_group_manager(client_query, users, landscape_groups):
+def test_landscape_groups_delete_by_group_manager(client_query, users, landscape_common_group):
     user = users[0]
-    _, old_landscape_group = landscape_groups
+    old_landscape_group = landscape_common_group
     old_landscape_group.group.add_manager(user)
 
     response = client_query(
@@ -252,8 +249,10 @@ def test_landscape_groups_delete_by_landscape_manager(client_query, users, manag
     )
 
 
-def test_landscape_groups_delete_by_non_managers_not_allowed(client_query, users, landscape_groups):
-    _, old_landscape_group = landscape_groups
+def test_landscape_groups_delete_by_non_managers_not_allowed(
+    client_query, users, landscape_common_group
+):
+    old_landscape_group = landscape_common_group
 
     response = client_query(
         """

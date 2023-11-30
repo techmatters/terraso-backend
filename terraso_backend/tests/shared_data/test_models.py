@@ -16,6 +16,8 @@
 import pytest
 from django.db import models
 
+from apps.collaboration.models import Membership as CollaborationMembership
+from apps.core import group_collaboration_roles
 from apps.core.models import User
 from apps.shared_data.models import DataEntry, VisualizationConfig
 
@@ -62,14 +64,19 @@ def test_data_entry_cannot_be_deleted_by_non_creator_or_manager(user, user_b, da
 
 
 def test_data_entry_can_be_viewed_by_group_members(user, user_b, group, data_entry):
-    group.members.add(user, user_b)
+    for user in [user, user_b]:
+        group.membership_list.save_membership(
+            user.email, group_collaboration_roles.ROLE_MEMBER, CollaborationMembership.APPROVED
+        )
     data_entry.shared_resources.create(target=group)
 
     assert user_b.has_perm(DataEntry.get_perm("view"), obj=data_entry)
 
 
 def test_data_entry_cannot_be_viewed_by_non_group_members(user, user_b, group, data_entry):
-    group.members.add(user)
+    group.membership_list.save_membership(
+        user.email, group_collaboration_roles.ROLE_MEMBER, CollaborationMembership.APPROVED
+    )
     data_entry.shared_resources.create(target=group)
 
     assert not user_b.has_perm(DataEntry.get_perm("view"), obj=data_entry)
@@ -110,7 +117,10 @@ def test_visualization_config_can_be_deleted_by_group_manager(user_b, group, vis
 def test_visualization_config_can_be_viewed_by_group_members(
     user, user_b, group, visualization_config
 ):
-    group.members.add(user, user_b)
+    for user in [user, user_b]:
+        group.membership_list.save_membership(
+            user.email, group_collaboration_roles.ROLE_MEMBER, CollaborationMembership.APPROVED
+        )
     visualization_config.data_entry.shared_resources.create(target=group)
 
     assert user_b.has_perm(VisualizationConfig.get_perm("view"), obj=visualization_config)
@@ -120,7 +130,9 @@ def test_visualization_config_can_be_viewed_by_group_members(
 def test_visualization_config_cannot_be_viewed_by_non_group_members(
     user, user_b, group, visualization_config
 ):
-    group.members.add(user)
+    group.membership_list.save_membership(
+        user.email, group_collaboration_roles.ROLE_MEMBER, CollaborationMembership.APPROVED
+    )
     visualization_config.data_entry.shared_resources.create(target=group)
 
     assert not user_b.has_perm(VisualizationConfig.get_perm("view"), obj=visualization_config)

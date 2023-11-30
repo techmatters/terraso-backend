@@ -15,11 +15,21 @@
 
 import django_filters
 import graphene
+import rules
 import structlog
+from django.core.exceptions import NON_FIELD_ERRORS, ValidationError
+from django.db import IntegrityError
 from graphene import relay
 from graphene_django import DjangoObjectType
 
-from ..models import Membership, MembershipList
+from apps.collaboration.models import Membership, MembershipList
+from apps.graphql.exceptions import (
+    GraphQLNotAllowedException,
+    GraphQLNotFoundException,
+    GraphQLValidationException,
+)
+from apps.graphql.schema.commons import BaseAuthenticatedMutation
+from apps.graphql.schema.constants import MutationTypes
 
 logger = structlog.get_logger(__name__)
 
@@ -53,6 +63,7 @@ class MembershipListNodeMixin:
         fields = (
             "memberships",
             "membership_type",
+            "enroll_method",
         )
         interfaces = (relay.Node,)
         connection_class = TerrasoConnection
@@ -61,9 +72,15 @@ class MembershipListNodeMixin:
         user = info.context.user
         if user.is_anonymous:
             return None
+        if hasattr(self, "account_memberships"):
+            if len(self.account_memberships):
+                return self.account_memberships[0]
+            return None
         return self.memberships.filter(user=user).first()
 
     def resolve_memberships_count(self, info):
+        if hasattr(self, "memberships_count"):
+            return self.memberships_count
         user = info.context.user
         if user.is_anonymous:
             return 0
@@ -113,3 +130,80 @@ class MembershipNodeMixin:
 class CollaborationMembershipNode(MembershipNodeMixin, DjangoObjectType):
     class Meta(MembershipNodeMixin.Meta):
         pass
+
+
+class BaseMembershipSaveMutation(BaseAuthenticatedMutation):
+    @classmethod
+    def validate_role(cls, role, accepted_roles):
+        if role not in accepted_roles:
+            logger.info(
+                "Attempt to save Memberships, but user role is not valid",
+                extra={
+                    "user_role": role,
+                    "accepted_roles": accepted_roles,
+                },
+            )
+            raise GraphQLNotAllowedException(
+                model_name=Membership.__name__, operation=MutationTypes.UPDATE
+            )
+
+    @classmethod
+    def save_memberships(cls, user, validation_rule, validation_context, membership_list, kwargs):
+        def validate(context):
+            if not rules.test_rule(
+                validation_rule,
+                user,
+                {
+                    **context,
+                    **validation_context,
+                },
+            ):
+                raise ValidationError("User cannot request membership")
+
+        try:
+            return [
+                {
+                    "membership": result[1],
+                    "context": result[0],
+                }
+                for email in kwargs["user_emails"]
+                for result in [
+                    membership_list.save_membership(
+                        user_email=email,
+                        user_role=kwargs["user_role"],
+                        membership_status=kwargs["membership_status"],
+                        validation_func=validate,
+                    )
+                ]
+            ]
+        except ValidationError as error:
+            logger.error(
+                "Attempt to save Memberships, but user is not allowed",
+                extra={"error": str(error)},
+            )
+            raise GraphQLNotAllowedException(
+                model_name=Membership.__name__, operation=MutationTypes.UPDATE
+            )
+        except IntegrityError as exc:
+            logger.info(
+                "Attempt to save Memberships, but it's not unique",
+                extra={"model": Membership.__name__, "integrity_error": exc},
+            )
+
+            validation_error = ValidationError(
+                message={
+                    NON_FIELD_ERRORS: ValidationError(
+                        message=f"This {Membership.__name__} already exists",
+                        code="unique",
+                    )
+                },
+            )
+            raise GraphQLValidationException.from_validation_error(
+                validation_error, model_name=Membership.__name__
+            )
+        except Exception as error:
+            logger.error(
+                "Attempt to update Memberships, but there was an error",
+                extra={"error": str(error)},
+            )
+            raise GraphQLNotFoundException(model_name=Membership.__name__)

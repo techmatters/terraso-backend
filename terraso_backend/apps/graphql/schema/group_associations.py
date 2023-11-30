@@ -16,6 +16,7 @@
 import graphene
 import structlog
 from django.core.exceptions import ValidationError
+from django.db.models import Q
 from graphene import relay
 from graphene_django import DjangoObjectType
 
@@ -46,6 +47,13 @@ class GroupAssociationNode(DjangoObjectType):
         fields = ("parent_group", "child_group")
         interfaces = (relay.Node,)
         connection_class = TerrasoConnection
+
+    @classmethod
+    def get_queryset(cls, queryset, info):
+        return queryset.exclude(
+            Q(parent_group__associated_landscapes__is_default_landscape_group=True)
+            | Q(child_group__associated_landscapes__is_default_landscape_group=True)
+        )
 
 
 class GroupAssociationAddMutation(BaseAuthenticatedMutation):
