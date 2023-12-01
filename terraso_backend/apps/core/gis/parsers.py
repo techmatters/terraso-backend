@@ -30,6 +30,7 @@ from apps.core.gis.utils import DEFAULT_CRS
 
 logger = structlog.get_logger(__name__)
 
+supported_drivers["KML"] = "rw"
 supported_drivers["LIBKML"] = "rw"
 supported_drivers["GPX"] = "rw"
 
