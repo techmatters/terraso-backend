@@ -32,13 +32,7 @@ class GroupAdmin(admin.ModelAdmin):
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
-        landscape_group_ids = [
-            values[0]
-            for values in LandscapeGroup.objects.filter(
-                is_default_landscape_group=True
-            ).values_list("group__id")
-        ]
-        return qs.exclude(id__in=landscape_group_ids)
+        return qs.exclude(associated_landscapes__is_default_landscape_group=True)
 
 
 @admin.register(Landscape)

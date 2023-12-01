@@ -73,7 +73,7 @@ def allowed_to_delete_data_entry(user, data_entry):
 
 @rules.predicate
 def allowed_to_add_data_entry(user, target):
-    return is_target_manager(user, target)
+    return is_target_member(user, target)
 
 
 @rules.predicate

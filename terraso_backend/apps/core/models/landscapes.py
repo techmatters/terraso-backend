@@ -109,7 +109,8 @@ class Landscape(SlugModel, DirtyFieldsMixin):
         abstract = False
 
     def full_clean(self, *args, **kwargs):
-        super().full_clean(*args, **kwargs, exclude=["membership_list"])
+        exclude = kwargs.pop("exclude", [])
+        super().full_clean(*args, **kwargs, exclude=["membership_list", *exclude])
 
     def save(self, *args, **kwargs):
         dirty_fields = self.get_dirty_fields()
