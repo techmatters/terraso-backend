@@ -123,7 +123,8 @@ class Group(SlugModel):
         _unique_fields = ["name"]
 
     def full_clean(self, *args, **kwargs):
-        super().full_clean(*args, **kwargs, exclude=["membership_list"])
+        exclude = kwargs.pop("exclude", [])
+        super().full_clean(*args, **kwargs, exclude=["membership_list", *exclude])
 
     def save(self, *args, **kwargs):
         with transaction.atomic():
