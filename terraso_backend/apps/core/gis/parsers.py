@@ -90,6 +90,9 @@ def _get_kml_gdf(file_buffer):
 
 
 def parse_kml_file(file_buffer):
+    print("Geopandas version:", gpd.__version__)
+    print("Fiona version:", fiona.__version__)
+    print("GDAL version (from Fiona):", fiona.get_gdal_release_name())
     gdf = _get_kml_gdf(file_buffer)
 
     def row_to_dict(row):
