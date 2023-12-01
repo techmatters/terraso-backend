@@ -17,7 +17,7 @@ RUN apt-get update && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Verify GDAL installation and driver support
-RUN ogrinfo --formats | grep LIBKML
+RUN ogrinfo --formats | grep KML
 
 WORKDIR /app
 
