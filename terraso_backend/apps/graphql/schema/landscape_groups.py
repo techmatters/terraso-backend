@@ -53,6 +53,10 @@ class LandscapeGroupNode(DjangoObjectType):
         interfaces = (relay.Node,)
         connection_class = TerrasoConnection
 
+    @classmethod
+    def get_queryset(cls, queryset, info):
+        return queryset.exclude(is_default_landscape_group=True)
+
 
 class LandscapeGroupAddMutation(BaseAuthenticatedMutation):
     landscape_group = graphene.Field(LandscapeGroupNode)
