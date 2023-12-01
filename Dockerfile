@@ -16,6 +16,9 @@ RUN apt-get update && \
     ./aws/install && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
 
+# Verify GDAL installation and driver support
+RUN ogrinfo --formats | grep LIBKML
+
 WORKDIR /app
 
 COPY --chown=terraso:terraso requirements.txt /app
