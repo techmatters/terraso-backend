@@ -39,6 +39,7 @@ class Site(BaseModel):
             "change": permission_rules.allowed_to_update_site,
             "delete": permission_rules.allowed_to_delete_site,
             "transfer": permission_rules.allowed_to_transfer_site_to_project,
+            "update_depth_interval": permission_rules.allowed_to_update_depth_interval,
         }
 
     name = models.CharField(max_length=200)
