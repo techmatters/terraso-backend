@@ -6,6 +6,7 @@ ENV PATH /home/terraso/.local/bin:$PATH
 # see https://github.com/aws/aws-cli/tags for list of versions
 ENV AWS_CLI_VERSION 2.8.12
 ENV GDAL_VERSION 3.2.2
+ENV GDAL_DATA /usr/share/gdal/3.2
 
 RUN apt-get update && \
     apt-get install -q -y --no-install-recommends \
