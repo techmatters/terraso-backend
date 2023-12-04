@@ -49,6 +49,9 @@ jobs:
           cp .env.sample .env
           make build DC_ENV=ci
 
+      - name: Install GDAL
+        run: pip install GDAL==3.2.2
+
       - name: Run tests using built Docker image
         run: |
           make test-ci DC_ENV=ci
