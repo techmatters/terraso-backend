@@ -19,6 +19,7 @@ RUN apt-get update && \
 # Verify GDAL installation and driver support
 RUN ogrinfo --formats | grep KML
 RUN gdalinfo --version || echo 'GDAL is not installed'
+RUN echo "GDAL_VERSION is set to ${GDAL_VERSION}"
 
 WORKDIR /app
 
