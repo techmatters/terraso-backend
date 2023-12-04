@@ -13,14 +13,8 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see https://www.gnu.org/licenses/.
 
-from .memberships import (
-    BaseMembershipSaveMutation,
-    CollaborationMembershipListNode,
-    CollaborationMembershipNode,
-)
 
-__all__ = [
-    "CollaborationMembershipNode",
-    "CollaborationMembershipListNode",
-    "BaseMembershipSaveMutation",
-]
+ROLE_MANAGER = "manager"
+ROLE_MEMBER = "member"
+
+ALL_ROLES = [ROLE_MANAGER, ROLE_MEMBER]

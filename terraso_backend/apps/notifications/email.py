@@ -24,6 +24,7 @@ from django.utils import translation
 from django.utils.translation import gettext_lazy as _
 
 from apps.auth.services import JWTService
+from apps.core import group_collaboration_roles
 
 TRACKING_PARAMETERS = {"utm_source": "notification", "utm_medium": "email"}
 
@@ -64,7 +65,9 @@ class EmailNotification:
 
         managerList = [
             membership.user
-            for membership in group.memberships.managers_only()
+            for membership in group.membership_list.memberships.by_role(
+                group_collaboration_roles.ROLE_MANAGER
+            )
             if membership.user.group_notifications_enabled()
         ]
 

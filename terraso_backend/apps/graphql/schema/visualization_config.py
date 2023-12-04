@@ -22,8 +22,9 @@ from django.db.models import Q, Subquery
 from graphene import relay
 from graphene_django import DjangoObjectType
 
+from apps.collaboration.models import Membership as CollaborationMembership
 from apps.core.gis.mapbox import get_publish_status
-from apps.core.models import Group, Landscape, Membership
+from apps.core.models import Group, Landscape
 from apps.graphql.exceptions import GraphQLNotAllowedException
 from apps.shared_data.models.data_entries import DataEntry
 from apps.shared_data.models.visualization_config import VisualizationConfig
@@ -111,20 +112,20 @@ class VisualizationConfigNode(DjangoObjectType):
 
         user_groups_ids = Subquery(
             Group.objects.filter(
-                memberships__user__id=user_pk, memberships__membership_status=Membership.APPROVED
+                membership_list__memberships__user__id=user_pk,
+                membership_list__memberships__membership_status=CollaborationMembership.APPROVED,
             ).values("id")
         )
         user_landscape_ids = Subquery(
             Landscape.objects.filter(
-                associated_groups__group__memberships__user__id=user_pk,
-                associated_groups__group__memberships__membership_status=Membership.APPROVED,
-                associated_groups__is_default_landscape_group=True,
+                membership_list__memberships__user__id=user_pk,
+                membership_list__memberships__membership_status=CollaborationMembership.APPROVED,
             ).values("id")
         )
         return queryset.filter(
             Q(data_entry__shared_resources__target_object_id__in=user_groups_ids)
             | Q(data_entry__shared_resources__target_object_id__in=user_landscape_ids)
-        )
+        ).distinct()
 
     def resolve_mapbox_tileset_id(self, info):
         if self.mapbox_tileset_id is None:

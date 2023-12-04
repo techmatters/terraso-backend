@@ -61,6 +61,10 @@ from .groups import (
     GroupNode,
     GroupUpdateMutation,
 )
+from .groups_memberships import (
+    GroupMembershipDeleteMutation,
+    GroupMembershipSaveMutation,
+)
 from .landscape_groups import (
     LandscapeGroupAddMutation,
     LandscapeGroupDeleteMutation,
@@ -72,11 +76,9 @@ from .landscapes import (
     LandscapeNode,
     LandscapeUpdateMutation,
 )
-from .memberships import (
-    MembershipAddMutation,
-    MembershipDeleteMutation,
-    MembershipNode,
-    MembershipUpdateMutation,
+from .landscapes_memberships import (
+    LandscapeMembershipDeleteMutation,
+    LandscapeMembershipSaveMutation,
 )
 from .sites import (
     SiteAddMutation,
@@ -86,13 +88,12 @@ from .sites import (
     SiteTransferMutation,
     SiteUpdateMutation,
 )
-from .story_maps import (
-    StoryMapDeleteMutation,
+from .story_maps import StoryMapDeleteMutation, StoryMapNode
+from .story_maps_memberships import (
     StoryMapMembershipApproveMutation,
     StoryMapMembershipApproveTokenMutation,
     StoryMapMembershipDeleteMutation,
     StoryMapMembershipSaveMutation,
-    StoryMapNode,
 )
 from .taxnomy_terms import TaxonomyTermNode
 from .users import (
@@ -118,14 +119,12 @@ class Query(graphene.ObjectType):
     landscape_group = TerrasoRelayNode.Field(LandscapeNode)
     user = TerrasoRelayNode.Field(UserNode)
     landscape_group = TerrasoRelayNode.Field(LandscapeGroupNode)
-    membership = TerrasoRelayNode.Field(MembershipNode)
     group_association = TerrasoRelayNode.Field(GroupAssociationNode)
     groups = DjangoFilterConnectionField(GroupNode)
     landscapes = DjangoFilterConnectionField(LandscapeNode)
     landscape_groups = DjangoFilterConnectionField(LandscapeGroupNode)
     users = DjangoFilterConnectionField(UserNode)
     landscape_groups = DjangoFilterConnectionField(LandscapeGroupNode)
-    memberships = DjangoFilterConnectionField(MembershipNode)
     group_associations = DjangoFilterConnectionField(GroupAssociationNode)
     data_entry = TerrasoRelayNode.Field(DataEntryNode)
     data_entries = DjangoFilterConnectionField(DataEntryNode)
@@ -150,17 +149,14 @@ class Mutations(graphene.ObjectType):
     add_user = UserAddMutation.Field()
     add_landscape_group = LandscapeGroupAddMutation.Field()
     add_group_association = GroupAssociationAddMutation.Field()
-    add_membership = MembershipAddMutation.Field()
     update_group = GroupUpdateMutation.Field()
     update_landscape = LandscapeUpdateMutation.Field()
-    update_membership = MembershipUpdateMutation.Field()
     update_user = UserUpdateMutation.Field()
     delete_group = GroupDeleteMutation.Field()
     delete_landscape = LandscapeDeleteMutation.Field()
     delete_user = UserDeleteMutation.Field()
     delete_landscape_group = LandscapeGroupDeleteMutation.Field()
     delete_group_association = GroupAssociationDeleteMutation.Field()
-    delete_membership = MembershipDeleteMutation.Field()
     update_user_preference = UserPreferenceUpdate.Field()
     delete_user_preference = UserPreferenceDelete.Field()
     unsubscribe_user = UserUnsubscribeUpdate.Field()
@@ -202,6 +198,10 @@ class Mutations(graphene.ObjectType):
     add_site_note = SiteNoteAddMutation.Field()
     update_site_note = SiteNoteUpdateMutation.Field()
     delete_site_note = SiteNoteDeleteMutation.Field()
+    save_landscape_membership = LandscapeMembershipSaveMutation.Field()
+    delete_landscape_membership = LandscapeMembershipDeleteMutation.Field()
+    save_group_membership = GroupMembershipSaveMutation.Field()
+    delete_group_membership = GroupMembershipDeleteMutation.Field()
 
 
 schema = graphene.Schema(query=Query, mutation=Mutations)

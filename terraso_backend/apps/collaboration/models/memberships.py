@@ -54,8 +54,16 @@ class MembershipList(BaseModel):
         default=DEFAULT_MEMERBSHIP_TYPE,
     )
 
+    def default_validation_func(self):
+        return False
+
     def save_membership(
-        self, user_email, user_role, membership_status, validation_func, membership_class=None
+        self,
+        user_email,
+        user_role,
+        membership_status,
+        validation_func=default_validation_func,
+        membership_class=None,
     ):
         membership_class = membership_class or Membership
         user = User.objects.filter(email__iexact=user_email).first()
@@ -71,6 +79,8 @@ class MembershipList(BaseModel):
                 "user_role": user_role,
                 "membership_status": membership_status,
                 "current_membership": membership,
+                "user_exists": user_exists,
+                "user_email": user_email,
             }
         ):
             raise ValidationError("User cannot request membership")
@@ -97,7 +107,11 @@ class MembershipList(BaseModel):
         )
 
         membership.save()
-        return is_membership_approved, membership
+        context = {
+            "is_new": is_new,
+            "is_membership_approved": is_membership_approved,
+        }
+        return context, membership
 
     def approve_membership(self, membership_id):
         membership = self.memberships.filter(id=membership_id).first()
@@ -119,7 +133,7 @@ class MembershipList(BaseModel):
         return User.objects.filter(id__in=approved_memberships_user_ids)
 
     def has_role(self, user: User, role: str) -> bool:
-        return self.memberships.by_role(role).filter(id=user.id).exists()
+        return self.memberships.by_role(role).filter(user=user).exists()
 
     def is_approved_member(self, user: User) -> bool:
         return self.approved_members.filter(id=user.id).exists()

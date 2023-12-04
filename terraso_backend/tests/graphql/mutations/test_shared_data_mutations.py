@@ -15,7 +15,7 @@
 
 import pytest
 
-from apps.core.models import Membership
+from apps.collaboration.models import Membership as CollaborationMembership
 from apps.shared_data.models import DataEntry
 
 pytestmark = pytest.mark.django_db
@@ -205,19 +205,20 @@ def test_data_entry_delete_by_manager_works(client_query, data_entries, users, g
 def data_entry_by_not_manager_by_owner(request, users, landscape_data_entries, group_data_entries):
     owner = request.param
 
-    (data_entry, group) = (
+    (data_entry, target) = (
         (group_data_entries[0], group_data_entries[0].shared_resources.first().target)
         if owner == "group"
         else (
             landscape_data_entries[0],
-            landscape_data_entries[0].shared_resources.first().target.get_default_group(),
+            landscape_data_entries[0].shared_resources.first().target,
         )
     )
 
     data_entry.created_by = users[2]
     data_entry.save()
-    group.add_manager(users[0])
-    users[0].memberships.filter(group=group).update(membership_status=Membership.PENDING)
+    target.membership_list.memberships.filter(user=users[0]).update(
+        membership_status=CollaborationMembership.PENDING
+    )
     return data_entry
 
 

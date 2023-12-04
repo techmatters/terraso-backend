@@ -56,7 +56,9 @@ def test_post_user_profile_image(mock_s3, client, access_token):
         assert response.status_code == 200
 
 
-def test_create_data_entry_successfully(logged_client, landscape_profile_image_payload):
+def test_create_landscape_profile_image_successfully(
+    logged_client, landscape_profile_image_payload
+):
     url = reverse("terraso_storage:landscape-profile-image")
     with patch(
         "apps.storage.forms.profile_image_upload_service.upload_file"

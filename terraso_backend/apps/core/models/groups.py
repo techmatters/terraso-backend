@@ -17,8 +17,8 @@ from typing import Literal, Union
 from django.contrib.contenttypes.fields import GenericRelation
 from django.db import models, transaction
 from django.utils.translation import gettext_lazy as _
-from safedelete.models import SafeDeleteManager
 
+from apps.core import group_collaboration_roles
 from apps.core import permission_rules as perm_rules
 
 from .commons import BaseModel, SlugModel, validate_name
@@ -68,10 +68,6 @@ class Group(SlugModel):
     website = models.URLField(max_length=500, blank=True, default="")
     email = models.EmailField(blank=True, default="")
 
-    enroll_method = models.CharField(
-        max_length=10, choices=ENROLL_METHODS, default=DEFAULT_ENROLL_METHOD_TYPE
-    )
-
     created_by = models.ForeignKey(
         User,
         blank=True,
@@ -88,12 +84,29 @@ class Group(SlugModel):
         through_fields=("parent_group", "child_group"),
         symmetrical=False,
     )
-    members = models.ManyToManyField(User, through="Membership")
 
+    # Deprecated memberships fields
+    enroll_method = models.CharField(
+        max_length=10,
+        choices=ENROLL_METHODS,
+        default=DEFAULT_ENROLL_METHOD_TYPE,
+        null=True,
+        blank=True,
+    )
+    members = models.ManyToManyField(User, through="Membership")
     membership_type = models.CharField(
         max_length=32,
         choices=MEMBERSHIP_TYPES,
-        default=DEFAULT_MEMERBSHIP_TYPE,
+        null=True,
+        blank=True,
+    )
+    # End of deprecated fields
+
+    membership_list = models.ForeignKey(
+        "collaboration.MembershipList",
+        on_delete=models.CASCADE,
+        related_name="group",
+        null=True,
     )
 
     shared_resources = GenericRelation(
@@ -109,65 +122,60 @@ class Group(SlugModel):
         }
         _unique_fields = ["name"]
 
+    def full_clean(self, *args, **kwargs):
+        exclude = kwargs.pop("exclude", [])
+        super().full_clean(*args, **kwargs, exclude=["membership_list", *exclude])
+
     def save(self, *args, **kwargs):
         with transaction.atomic():
+            from apps.collaboration.models import Membership, MembershipList
+
             creating = not Group.objects.filter(pk=self.pk).exists()
+
+            if creating and self.created_by:
+                self.membership_list = MembershipList.objects.create(
+                    enroll_method=MembershipList.ENROLL_METHOD_BOTH,
+                    membership_type=MembershipList.MEMBERSHIP_TYPE_OPEN,
+                )
+                self.membership_list.save_membership(
+                    self.created_by.email,
+                    group_collaboration_roles.ROLE_MANAGER,
+                    Membership.APPROVED,
+                )
 
             super().save(*args, **kwargs)
 
-            if creating and self.created_by:
-                membership = Membership(
-                    group=self,
-                    user=self.created_by,
-                    user_role=Membership.ROLE_MANAGER,
-                )
-                membership.save()
+    def delete(self, *args, **kwargs):
+        membership_list = self.membership_list
+
+        with transaction.atomic():
+            ret = super().delete(*args, **kwargs)
+            if membership_list is not None:
+                membership_list.delete()
+
+        return ret
 
     def add_manager(self, user):
-        self._add_user(user, role=Membership.ROLE_MANAGER)
+        self._add_user(user, role=group_collaboration_roles.ROLE_MANAGER)
 
     def add_member(self, user):
-        self._add_user(user, role=Membership.ROLE_MEMBER)
+        self._add_user(user, role=group_collaboration_roles.ROLE_MEMBER)
 
     def _add_user(
         self,
         user: User,
         role: Union[Literal["manager"], Literal["member"]],
     ):
-        self.memberships.update_or_create(group=self, user=user, defaults={"user_role": role})
+        from apps.collaboration.models import Membership
 
-    @property
-    def group_managers(self):
-        manager_memberships = models.Subquery(self.memberships.managers_only().values("user_id"))
-        return User.objects.filter(id__in=manager_memberships)
-
-    @property
-    def group_members(self):
-        member_memberships = models.Subquery(
-            self.memberships.approved_only()
-            .filter(user_role=Membership.ROLE_MEMBER)
-            .values("user_id")
+        self.membership_list.save_membership(
+            user.email,
+            role,
+            Membership.APPROVED,
         )
-        return User.objects.filter(id__in=member_memberships)
-
-    def is_manager(self, user: User) -> bool:
-        return self.group_managers.filter(id=user.id).exists()
-
-    def is_member(self, user: User) -> bool:
-        return self.group_members.filter(id=user.id).exists()
-
-    @property
-    def can_join(self):
-        return self.enroll_method in (self.ENROLL_METHOD_JOIN, self.ENROLL_METHOD_BOTH)
 
     def __str__(self):
         return self.name
-
-    @classmethod
-    def get_membership_type_from_text(cls, membership_type):
-        if membership_type and membership_type.lower() == cls.MEMBERSHIP_TYPE_CLOSED:
-            return cls.MEMBERSHIP_TYPE_CLOSED
-        return cls.MEMBERSHIP_TYPE_OPEN
 
 
 class GroupAssociation(BaseModel):
@@ -198,14 +206,6 @@ class GroupAssociation(BaseModel):
                 name="unique_group_association",
             ),
         )
-
-
-class MembershipObjectsManager(SafeDeleteManager):
-    def managers_only(self):
-        return self.filter(user_role=Membership.ROLE_MANAGER, membership_status=Membership.APPROVED)
-
-    def approved_only(self):
-        return self.filter(membership_status=Membership.APPROVED)
 
 
 class Membership(BaseModel):
@@ -240,8 +240,6 @@ class Membership(BaseModel):
 
     membership_status = models.CharField(max_length=64, choices=APPROVAL_STATUS, default=APPROVED)
 
-    objects = MembershipObjectsManager()
-
     class Meta:
         constraints = (
             models.UniqueConstraint(
@@ -250,11 +248,6 @@ class Membership(BaseModel):
                 name="unique_active_membership",
             ),
         )
-        rules_permissions = {
-            "add": perm_rules.allowed_to_add_membership,
-            "delete": perm_rules.allowed_to_delete_membership,
-            "change": perm_rules.allowed_to_change_membership,
-        }
 
     @classmethod
     def get_user_role_from_text(cls, user_role):

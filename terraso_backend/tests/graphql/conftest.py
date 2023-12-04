@@ -24,12 +24,12 @@ from mixer.backend.django import mixer
 from apps.auth.services import JWTService
 from apps.collaboration.models import Membership as CollaborationMembership
 from apps.collaboration.models import MembershipList
+from apps.core import group_collaboration_roles, landscape_collaboration_roles
 from apps.core.models import (
     Group,
     GroupAssociation,
     Landscape,
     LandscapeGroup,
-    Membership,
     SharedResource,
     TaxonomyTerm,
     User,
@@ -113,26 +113,58 @@ def managed_landscapes(users):
     landscapes = mixer.cycle(2).blend(Landscape)
 
     for i in range(len(landscapes)):
-        group = mixer.blend(Group)
-        group.add_manager(users[i])
-        mixer.blend(
-            LandscapeGroup,
-            landscape=landscapes[i],
-            group=group,
-            is_default_landscape_group=True,
+        landscapes[i].membership_list.save_membership(
+            users[i].email,
+            landscape_collaboration_roles.ROLE_MANAGER,
+            CollaborationMembership.APPROVED,
         )
 
     return landscapes
 
 
 @pytest.fixture
+def landscape_user_memberships(managed_landscapes, users):
+    memberships = [
+        landscape.membership_list.save_membership(
+            users[i + 1].email,
+            landscape_collaboration_roles.ROLE_MEMBER,
+            CollaborationMembership.APPROVED,
+        )[1]
+        for i, landscape in enumerate(managed_landscapes)
+    ]
+    return memberships
+
+
+@pytest.fixture
 def groups():
-    return mixer.cycle(5).blend(Group, membership_status=Group.MEMBERSHIP_TYPE_OPEN)
+    return mixer.cycle(5).blend(
+        Group,
+        membership_list=mixer.blend(
+            MembershipList, membership_type=MembershipList.MEMBERSHIP_TYPE_OPEN
+        ),
+    )
 
 
 @pytest.fixture
 def groups_closed():
-    return mixer.cycle(2).blend(Group, membership_type=Group.MEMBERSHIP_TYPE_CLOSED)
+    return mixer.cycle(2).blend(
+        Group,
+        membership_list=mixer.blend(
+            MembershipList, membership_type=MembershipList.MEMBERSHIP_TYPE_CLOSED
+        ),
+    )
+
+
+@pytest.fixture
+def groups_closed_managers(groups_closed, users):
+    return [
+        group.membership_list.save_membership(
+            users[i].email,
+            group_collaboration_roles.ROLE_MANAGER,
+            CollaborationMembership.APPROVED,
+        )[1]
+        for i, group in enumerate(groups_closed)
+    ]
 
 
 @pytest.fixture
@@ -192,62 +224,52 @@ def group_associations(groups, subgroups):
 
 
 @pytest.fixture
-def memberships(groups, users):
+def group_manager_memberships(groups, users):
     return mixer.cycle(5).blend(
-        Membership,
-        group=(g for g in groups),
+        CollaborationMembership,
+        membership_list=(g.membership_list for g in groups),
         user=(u for u in users),
-        user_role=Membership.ROLE_MANAGER,
-    )
-
-
-@pytest.fixture
-def memberships_pending(groups, users):
-    return mixer.cycle(5).blend(
-        Membership,
-        group=(g for g in groups),
-        user=(u for u in users),
-        user_role=Membership.ROLE_MEMBER,
-        membership_status=Membership.PENDING,
+        user_role=group_collaboration_roles.ROLE_MANAGER,
     )
 
 
 @pytest.fixture
 def memberships_pending_with_notifications(groups, users_with_group_notifications):
     return mixer.cycle(5).blend(
-        Membership,
-        group=(g for g in groups),
+        CollaborationMembership,
+        membership_list=(g.membership_list for g in groups),
         user=(u for u in users_with_group_notifications),
-        user_role=Membership.ROLE_MEMBER,
-        membership_status=Membership.PENDING,
+        user_role=group_collaboration_roles.ROLE_MEMBER,
+        membership_status=CollaborationMembership.PENDING,
     )
 
 
 @pytest.fixture
-def landscape_groups(landscapes, groups):
-    first_group, second_group = groups[0], groups[1]
+def landscape_common_group(landscapes, groups):
+    group = groups[1]
     landscape = landscapes[0]
 
-    default_group = mixer.blend(
-        LandscapeGroup, landscape=landscape, group=first_group, is_default_landscape_group=True
+    common_group = mixer.blend(
+        LandscapeGroup, landscape=landscape, group=group, is_default_landscape_group=False
     )
-    common_group = mixer.blend(LandscapeGroup, landscape=landscape, group=second_group)
 
-    return [default_group, common_group]
+    return common_group
 
 
 @pytest.fixture
 def make_core_db_records(
-    group_associations, landscapes, landscape_groups, memberships, groups, subgroups, users
+    group_associations, landscapes, landscape_common_group, groups, subgroups, users
 ):
     return
 
 
 @pytest.fixture
-def data_entry_current_user_file(users, groups):
+def data_entry_current_user_file(users):
     creator = users[0]
-    creator_group = groups[0]
-    creator_group.members.add(creator)
+    creator_group = mixer.blend(Group)
+    creator_group.membership_list.save_membership(
+        creator.email, group_collaboration_roles.ROLE_MEMBER, CollaborationMembership.APPROVED
+    )
     resource = mixer.blend(
         SharedResource,
         target=creator_group,
@@ -259,10 +281,12 @@ def data_entry_current_user_file(users, groups):
 
 
 @pytest.fixture
-def data_entry_current_user_link(users, groups):
+def data_entry_current_user_link(users):
     creator = users[0]
-    creator_group = groups[0]
-    creator_group.members.add(creator)
+    creator_group = mixer.blend(Group)
+    creator_group.membership_list.save_membership(
+        creator.email, group_collaboration_roles.ROLE_MEMBER, CollaborationMembership.APPROVED
+    )
     resource = mixer.blend(
         SharedResource,
         target=creator_group,
@@ -274,10 +298,12 @@ def data_entry_current_user_link(users, groups):
 
 
 @pytest.fixture
-def data_entry_other_user(users, groups):
+def data_entry_other_user(users):
     creator = users[1]
-    creator_group = groups[1]
-    creator_group.members.add(creator)
+    creator_group = mixer.blend(Group)
+    creator_group.membership_list.save_membership(
+        creator.email, group_collaboration_roles.ROLE_MEMBER, CollaborationMembership.APPROVED
+    )
     resource = mixer.blend(
         SharedResource,
         target=creator_group,
@@ -290,7 +316,6 @@ def data_entry_other_user(users, groups):
 def group_data_entries(users, groups):
     creator = users[0]
     creator_group = groups[0]
-    creator_group.members.add(creator)
     resources = mixer.cycle(5).blend(
         SharedResource,
         target=creator_group,
@@ -300,7 +325,7 @@ def group_data_entries(users, groups):
 
 
 @pytest.fixture
-def landscape_data_entries(users, landscapes, landscape_groups):
+def landscape_data_entries(users, landscapes):
     creator = users[0]
     creator_landscape = landscapes[0]
     resources = mixer.cycle(5).blend(
@@ -319,10 +344,24 @@ def data_entries(group_data_entries, landscape_data_entries):
 
 
 @pytest.fixture
+def data_entries_memberships(users, data_entries):
+    user = users[0]
+    for data_entry in data_entries:
+        shared_resource = data_entry.shared_resources.first()
+        shared_resource.target.membership_list.save_membership(
+            user_email=user.email,
+            user_role=landscape_collaboration_roles.ROLE_MEMBER,
+            membership_status=CollaborationMembership.APPROVED,
+        )
+
+
+@pytest.fixture
 def data_entry_kml(users, groups):
     creator = users[0]
     creator_group = groups[0]
-    creator_group.members.add(creator)
+    creator_group.membership_list.save_membership(
+        creator.email, group_collaboration_roles.ROLE_MEMBER, CollaborationMembership.APPROVED
+    )
     return mixer.blend(
         DataEntry,
         created_by=creator,
@@ -352,7 +391,9 @@ def data_entry_gpx(users, groups):
 def data_entry_shapefile(users, groups):
     creator = users[0]
     creator_group = groups[0]
-    creator_group.members.add(creator)
+    creator_group.membership_list.save_membership(
+        creator.email, group_collaboration_roles.ROLE_MEMBER, CollaborationMembership.APPROVED
+    )
     return mixer.blend(
         DataEntry,
         created_by=creator,
@@ -367,7 +408,9 @@ def data_entry_shapefile(users, groups):
 def visualization_config_current_user(users, data_entry_current_user_file, groups):
     creator = users[0]
     creator_group = groups[0]
-    creator_group.members.add(creator)
+    creator_group.membership_list.save_membership(
+        creator.email, group_collaboration_roles.ROLE_MEMBER, CollaborationMembership.APPROVED
+    )
     return mixer.blend(
         VisualizationConfig, created_by=creator, data_entry=data_entry_current_user_file
     )
@@ -377,7 +420,9 @@ def visualization_config_current_user(users, data_entry_current_user_file, group
 def visualization_config_other_user(users, data_entry_other_user, groups):
     creator = users[1]
     creator_group = groups[1]
-    creator_group.members.add(creator)
+    creator_group.membership_list.save_membership(
+        creator.email, group_collaboration_roles.ROLE_MEMBER, CollaborationMembership.APPROVED
+    )
     return mixer.blend(VisualizationConfig, created_by=creator, data_entry=data_entry_other_user)
 
 
@@ -385,7 +430,9 @@ def visualization_config_other_user(users, data_entry_other_user, groups):
 def visualization_configs(users, groups):
     creator = users[0]
     creator_group = groups[1]
-    creator_group.members.add(creator)
+    creator_group.membership_list.save_membership(
+        creator.email, group_collaboration_roles.ROLE_MEMBER, CollaborationMembership.APPROVED
+    )
     visualizations = mixer.cycle(5).blend(
         VisualizationConfig,
         created_by=creator,

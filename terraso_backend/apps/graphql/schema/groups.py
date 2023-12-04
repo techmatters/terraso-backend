@@ -16,9 +16,11 @@
 import django_filters
 import graphene
 import structlog
+from django.db import transaction
 from graphene import relay
 from graphene_django import DjangoObjectType
 
+from apps.collaboration.models import MembershipList
 from apps.core.models import Group
 from apps.graphql.exceptions import GraphQLNotAllowedException
 
@@ -31,9 +33,6 @@ logger = structlog.get_logger(__name__)
 
 class GroupFilterSet(django_filters.FilterSet):
     memberships__email = django_filters.CharFilter(method="filter_memberships_email")
-    associated_landscapes__is_default_landscape_group = django_filters.BooleanFilter(
-        method="filter_associated_landscapes"
-    )
     associated_landscapes__isnull = django_filters.BooleanFilter(
         method="filter_associated_landscapes"
     )
@@ -50,7 +49,10 @@ class GroupFilterSet(django_filters.FilterSet):
         }
 
     def filter_memberships_email(self, queryset, name, value):
-        return queryset.filter(memberships__user__email=value, memberships__deleted_at__isnull=True)
+        return queryset.filter(
+            membership_list__memberships__user__email=value,
+            membership_list__memberships__deleted_at__isnull=True,
+        )
 
     def filter_associated_landscapes(self, queryset, name, value):
         filters = {"associated_landscapes__deleted_at__isnull": True}
@@ -62,8 +64,6 @@ class GroupFilterSet(django_filters.FilterSet):
 
 class GroupNode(DjangoObjectType, SharedResourcesMixin):
     id = graphene.ID(source="pk", required=True)
-    account_membership = graphene.Field("apps.graphql.schema.memberships.MembershipNode")
-    memberships_count = graphene.Int()
 
     class Meta:
         model = Group
@@ -74,8 +74,7 @@ class GroupNode(DjangoObjectType, SharedResourcesMixin):
             "website",
             "email",
             "created_by",
-            "memberships",
-            "membership_type",
+            "membership_list",
             "associations_as_parent",
             "associations_as_child",
             "associated_landscapes",
@@ -84,29 +83,11 @@ class GroupNode(DjangoObjectType, SharedResourcesMixin):
         interfaces = (relay.Node,)
         connection_class = TerrasoConnection
 
-    def resolve_account_membership(self, info):
-        user = info.context.user
-        if user.is_anonymous:
-            return None
-        if hasattr(self, "account_memberships"):
-            if len(self.account_memberships) > 0:
-                return self.account_memberships[0]
-            return None
-        return self.memberships.filter(user=user).first()
-
-    def resolve_memberships_count(self, info):
-        if hasattr(self, "memberships_count"):
-            return self.memberships_count
-
-        # Nonmembers cannot see the number of members of a closed group
-        if self.membership_type == Group.MEMBERSHIP_TYPE_CLOSED:
-            is_member = (
-                self.memberships.approved_only().filter(user__id=info.context.user.pk).exists()
-            )
-            if not is_member:
-                return 0
-
-        return self.memberships.approved_only().count()
+    @classmethod
+    def get_queryset(cls, queryset, info):
+        return queryset.exclude(
+            associated_landscapes__is_default_landscape_group=True,
+        )
 
 
 class GroupAddMutation(BaseWriteMutation):
@@ -122,18 +103,26 @@ class GroupAddMutation(BaseWriteMutation):
         membership_type = graphene.String()
 
     @classmethod
+    @transaction.atomic
     def mutate_and_get_payload(cls, root, info, **kwargs):
         user = info.context.user
 
         if not cls.is_update(kwargs):
             kwargs["created_by"] = user
 
-        if "membership_type" in kwargs:
-            kwargs["membership_type"] = Group.get_membership_type_from_text(
-                kwargs["membership_type"]
-            )
+        membership_type = kwargs.pop("membership_type", None)
 
-        return super().mutate_and_get_payload(root, info, **kwargs)
+        result = super().mutate_and_get_payload(root, info, **kwargs)
+
+        group = result.group
+
+        if membership_type:
+            group.membership_list.membership_type = MembershipList.get_membership_type_from_text(
+                membership_type
+            )
+            group.membership_list.save()
+
+        return cls(group=group)
 
 
 class GroupUpdateMutation(BaseWriteMutation):
@@ -150,6 +139,7 @@ class GroupUpdateMutation(BaseWriteMutation):
         membership_type = graphene.String()
 
     @classmethod
+    @transaction.atomic
     def mutate_and_get_payload(cls, root, info, **kwargs):
         user = info.context.user
         group_id = kwargs["id"]
@@ -163,12 +153,19 @@ class GroupUpdateMutation(BaseWriteMutation):
                 model_name=Group.__name__, operation=MutationTypes.UPDATE
             )
 
-        if "membership_type" in kwargs:
-            kwargs["membership_type"] = Group.get_membership_type_from_text(
-                kwargs["membership_type"]
-            )
+        membership_type = kwargs.pop("membership_type") if "membership_type" in kwargs else None
 
-        return super().mutate_and_get_payload(root, info, **kwargs)
+        result = super().mutate_and_get_payload(root, info, **kwargs)
+
+        group = result.group
+
+        if membership_type:
+            group.membership_list.membership_type = MembershipList.get_membership_type_from_text(
+                membership_type
+            )
+            group.membership_list.save()
+
+        return cls(group=group)
 
 
 class GroupDeleteMutation(BaseDeleteMutation):

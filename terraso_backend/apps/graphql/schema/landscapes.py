@@ -20,13 +20,14 @@ from django.db.models import Count, Prefetch, Q
 from graphene import relay
 from graphene_django import DjangoObjectType
 
+from apps.collaboration.models import Membership as CollaborationMembership
+from apps.collaboration.models import MembershipList
 from apps.core.gis.utils import m2_to_hectares
 from apps.core.models import (
     Group,
     Landscape,
     LandscapeDevelopmentStrategy,
     LandscapeGroup,
-    Membership,
     TaxonomyTerm,
 )
 from apps.graphql.exceptions import GraphQLNotAllowedException
@@ -42,7 +43,6 @@ logger = structlog.get_logger(__name__)
 class LandscapeNode(DjangoObjectType, SharedResourcesMixin):
     id = graphene.ID(source="pk", required=True)
     area_types = graphene.List(graphene.String)
-    default_group = graphene.Field("apps.graphql.schema.groups.GroupNode")
     center_coordinates = graphene.Field(Point)
 
     class Meta:
@@ -53,6 +53,7 @@ class LandscapeNode(DjangoObjectType, SharedResourcesMixin):
             "slug": ["exact", "icontains"],
             "website": ["icontains"],
             "location": ["icontains"],
+            "membership_list__memberships__user__email": ["exact"],
         }
         fields = (
             "name",
@@ -72,6 +73,7 @@ class LandscapeNode(DjangoObjectType, SharedResourcesMixin):
             "profile_image",
             "profile_image_description",
             "center_coordinates",
+            "membership_list",
         )
 
         interfaces = (relay.Node,)
@@ -84,44 +86,39 @@ class LandscapeNode(DjangoObjectType, SharedResourcesMixin):
         is_anonymous = info.context.user.is_anonymous
 
         try:
-            # Prefetch default landscape group, account membership and count of members
-            group_queryset = (
-                Group.objects.prefetch_related(
+            # Prefetch account membership and count of members
+            membership_list_queryset = (
+                MembershipList.objects.prefetch_related(
                     Prefetch(
                         "memberships",
                         to_attr="account_memberships",
-                        queryset=Membership.objects.filter(
+                        queryset=CollaborationMembership.objects.filter(
                             user=info.context.user,
                         ),
                     ),
                 )
                 if not is_anonymous
-                else Group.objects.all()
+                else MembershipList.objects.all()
             ).annotate(
                 memberships_count=Count(
                     "memberships__user",
                     distinct=True,
                     filter=Q(memberships__deleted_at__isnull=True)
-                    & Q(memberships__membership_status=Membership.APPROVED),
+                    & Q(memberships__membership_status=CollaborationMembership.APPROVED),
                 )
             )
-            landscape_group_queryset = LandscapeGroup.objects.prefetch_related(
-                Prefetch(
-                    "group",
-                    queryset=group_queryset,
-                ),
-            ).filter(is_default_landscape_group=True)
+
             # Fetch all fields from Landscape, except for area_polygon
             result = (
                 queryset.defer("area_polygon")
                 .prefetch_related(
                     Prefetch(
-                        "associated_groups",
-                        to_attr="default_landscape_groups",
-                        queryset=landscape_group_queryset,
+                        "membership_list",
+                        queryset=membership_list_queryset,
                     )
                 )
                 .all()
+                .distinct()
             )
         except Exception as e:
             logger.exception("Error prefetching Landscape data", error=e)
@@ -131,13 +128,6 @@ class LandscapeNode(DjangoObjectType, SharedResourcesMixin):
     def resolve_area_scalar_ha(self, info):
         area = self.area_scalar_m2
         return None if area is None else round(m2_to_hectares(area), 3)
-
-    def resolve_default_group(self, info):
-        if hasattr(self, "default_landscape_groups"):
-            if len(self.default_landscape_groups) > 0:
-                return self.default_landscape_groups[0].group
-            return None
-        return self.get_default_group()
 
 
 class LandscapeDevelopmentStrategyNode(DjangoObjectType):

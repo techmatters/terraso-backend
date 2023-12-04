@@ -42,18 +42,20 @@ class LandscapeGroupNode(DjangoObjectType):
             "landscape__slug": ["icontains"],
             "group": ["exact"],
             "group__slug": ["icontains"],
-            "is_default_landscape_group": ["exact"],
             "is_partnership": ["exact"],
         }
         fields = (
             "landscape",
             "group",
-            "is_default_landscape_group",
             "is_partnership",
             "partnership_year",
         )
         interfaces = (relay.Node,)
         connection_class = TerrasoConnection
+
+    @classmethod
+    def get_queryset(cls, queryset, info):
+        return queryset.exclude(is_default_landscape_group=True)
 
 
 class LandscapeGroupAddMutation(BaseAuthenticatedMutation):
