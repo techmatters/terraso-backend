@@ -49,9 +49,6 @@ jobs:
           cp .env.sample .env
           make build DC_ENV=ci
 
-      - name: Check GDAL version
-        run: gdalinfo --version
-
       - name: Run tests using built Docker image
         run: |
           make test-ci DC_ENV=ci
