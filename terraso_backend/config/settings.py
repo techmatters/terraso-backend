@@ -17,6 +17,7 @@ import os
 from typing import TypedDict
 
 import django
+import sentry_sdk
 import structlog
 from dj_database_url import parse as parse_db_url
 from django.utils.encoding import force_str
@@ -416,3 +417,14 @@ JWT_EXCHANGE_PROVIDERS: dict[str, JWTProvider] = {
 MAPBOX_API_URL = config("MAPBOX_API_URL", default="https://api.mapbox.com")
 MAPBOX_USERNAME = config("MAPBOX_USERNAME", default="")
 MAPBOX_ACCESS_TOKEN = config("MAPBOX_ACCESS_TOKEN", default="")
+
+sentry_sdk.init(
+    dsn="https://b32e6c8aee5ecfd88a9b405302792a2f@o4506299756642304.ingest.sentry.io/4506345139601408",  # noqa: E501
+    # Set traces_sample_rate to 1.0 to capture 100%
+    # of transactions for performance monitoring.
+    traces_sample_rate=1.0,
+    # Set profiles_sample_rate to 1.0 to profile 100%
+    # of sampled transactions.
+    # We recommend adjusting this value in production.
+    profiles_sample_rate=1.0,
+)
