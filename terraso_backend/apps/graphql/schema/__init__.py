@@ -39,6 +39,7 @@ from apps.soil_id.graphql.soil_data import (
     ProjectSoilSettingsUpdateMutation,
     SoilDataDeleteDepthIntervalMutation,
     SoilDataUpdateDepthIntervalMutation,
+    SoilDataUpdateDepthPresetMutation,
     SoilDataUpdateMutation,
 )
 
@@ -188,6 +189,7 @@ class Mutations(graphene.ObjectType):
     update_depth_dependent_soil_data = DepthDependentSoilDataUpdateMutation.Field()
     update_soil_data_depth_interval = SoilDataUpdateDepthIntervalMutation.Field()
     delete_soil_data_depth_interval = SoilDataDeleteDepthIntervalMutation.Field()
+    update_soil_data_depth_preset = SoilDataUpdateDepthPresetMutation.Field()
     update_project_soil_settings = ProjectSoilSettingsUpdateMutation.Field()
     update_project_soil_settings_depth_interval = (
         ProjectSoilSettingsUpdateDepthIntervalMutation.Field()

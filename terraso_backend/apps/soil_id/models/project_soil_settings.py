@@ -20,6 +20,32 @@ from apps.project_management.models.projects import Project
 from apps.soil_id.models.depth_interval import BaseDepthInterval
 
 
+class DepthIntervalPreset(models.TextChoices):
+    LANDPKS = "LANDPKS"
+    NRCS = "NRCS"
+    NONE = "NONE"
+    CUSTOM = "CUSTOM"
+
+
+LandPKSPresets = [
+    dict(depth_interval_start=0, depth_interval_end=10, label="0-10 cm"),
+    dict(depth_interval_start=10, depth_interval_end=20, label="10-20 cm"),
+    dict(depth_interval_start=20, depth_interval_end=50, label="20-50 cm"),
+    dict(depth_interval_start=50, depth_interval_end=70, label="50-70 cm"),
+    dict(depth_interval_start=70, depth_interval_end=100, label="70-100 cm"),
+    dict(depth_interval_start=100, depth_interval_end=200, label="100-200 cm"),
+]
+
+NRCSPresets = [
+    dict(depth_interval_start=0, depth_interval_end=5, label="0-5 cm"),
+    dict(depth_interval_start=5, depth_interval_end=15, label="5-15 cm"),
+    dict(depth_interval_start=15, depth_interval_end=30, label="15-30 cm"),
+    dict(depth_interval_start=30, depth_interval_end=60, label="30-60 cm"),
+    dict(depth_interval_start=60, depth_interval_end=100, label="60-100 cm"),
+    dict(depth_interval_start=100, depth_interval_end=200, label="100-200 cm"),
+]
+
+
 class ProjectSoilSettings(BaseModel):
     project = models.OneToOneField(Project, on_delete=models.CASCADE, related_name="soil_settings")
 
@@ -28,12 +54,6 @@ class ProjectSoilSettings(BaseModel):
         METRIC = "METRIC"
 
     measurement_units = models.CharField(blank=True, null=True, choices=MeasurementUnit.choices)
-
-    class DepthIntervalPreset(models.TextChoices):
-        LANDPKS = "LANDPKS"
-        NRCS = "NRCS"
-        NONE = "NONE"
-        CUSTOM = "CUSTOM"
 
     depth_interval_preset = models.CharField(
         null=False,
