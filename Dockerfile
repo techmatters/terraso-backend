@@ -7,6 +7,7 @@ ENV PATH /home/terraso/.local/bin:$PATH
 ENV AWS_CLI_VERSION 2.8.12
 ENV GDAL_LIBRARY_PATH /usr/local/lib/libgdal.so
 ENV LD_LIBRARY_PATH /usr/local/lib
+ENV GDAL_CONFIG /usr/bin/gdal-config
 
 RUN apt-get update && \
     apt-get install -q -y --no-install-recommends \
