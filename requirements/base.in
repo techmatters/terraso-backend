@@ -19,6 +19,7 @@ pyjwt[crypto]
 pyproj
 python-magic
 rules
+sentry-sdk[django]
 shapely
 pandas
 openpyxl
