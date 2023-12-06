@@ -25,6 +25,7 @@ RUN apt-get update && \
 RUN ogrinfo --formats | grep KML
 RUN gdalinfo --version || echo 'GDAL is not installed'
 RUN gdal-config --version || echo 'GDAL is not installed'
+RUN fio --gdal-version || echo 'GDAL is not installed'
 RUN echo "GDAL_VERSION is set to ${GDAL_VERSION}"
 
 WORKDIR /app
