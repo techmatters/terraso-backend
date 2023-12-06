@@ -15,8 +15,7 @@
 
 import io
 import json
-import os
-import tempfile
+from importlib import resources
 from unittest.mock import patch
 
 import pytest
@@ -29,7 +28,7 @@ from apps.shared_data.visualization_tileset_tasks import (
     remove_mapbox_tileset,
 )
 
-from ..core.gis.test_parsers import KML_CONTENT, KML_GEOJSON
+from ..core.gis.test_parsers import KML_TEST_FILES
 
 pytestmark = pytest.mark.django_db
 
@@ -90,24 +89,22 @@ def test_create_mapbox_tileset_dataset_success(
     )
 
 
-@pytest.fixture
-def kml_file():
-    kml_contents = KML_CONTENT
-    file_extension = "kml"
-    with tempfile.NamedTemporaryFile(mode="w", suffix=f".{file_extension}", delete=False) as f:
-        f.write(kml_contents)
-
-    yield f.name
-
-    os.unlink(f.name)
-
-
+@pytest.mark.parametrize(
+    "kml_file_path_expected",
+    KML_TEST_FILES,
+)
 @patch("apps.shared_data.services.data_entry_upload_service.get_file")
 @patch("apps.core.gis.mapbox.requests.post")
 def test_create_mapbox_tileset_gis_dataentry_success(
-    mock_request_post, mock_get_file, visualization_config_kml, kml_file
+    mock_request_post, mock_get_file, visualization_config_kml, kml_file_path_expected
 ):
-    with open(kml_file, "rb") as file:
+    kml_file_path = kml_file_path_expected[0]
+
+    expected_file_path = kml_file_path_expected[1]
+    with open(resources.files("tests").joinpath(expected_file_path), "rb") as file:
+        expected_json = json.load(file)
+
+    with open(resources.files("tests").joinpath(kml_file_path), "rb") as file:
         mock_get_file.return_value = file
         mock_responses = [
             {"status_code": 200, "json_data": {"id": "tileset-id-1"}},
@@ -124,7 +121,7 @@ def test_create_mapbox_tileset_gis_dataentry_success(
     assert mock_request_post.call_count == 3
 
     assert mock_request_post.call_args_list[0][1]["files"][0][1][1] == get_line_delimited_geojson(
-        KML_GEOJSON
+        expected_json
     )
 
     assert (

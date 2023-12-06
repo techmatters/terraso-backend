@@ -17,6 +17,7 @@ import json
 import os
 import tempfile
 import zipfile
+from importlib import resources
 from unittest import mock
 
 import geopandas as gpd
@@ -26,7 +27,7 @@ from apps.collaboration.models import Membership as CollaborationMembership
 from apps.core import group_collaboration_roles
 from apps.core.gis.utils import DEFAULT_CRS
 
-from ..core.gis.test_parsers import KML_CONTENT, KML_GEOJSON
+from ..core.gis.test_parsers import KML_TEST_FILES
 
 pytestmark = pytest.mark.django_db
 
@@ -316,34 +317,19 @@ def test_data_entries_from_parent_query_by_resource_field(client_query, data_ent
         assert data_entry.name in entries_result
 
 
-@pytest.fixture
-def kml_file(request):
-    kml_contents, file_extension = request.param
-    # Create a temporary file
-    with tempfile.NamedTemporaryFile(mode="w", suffix=f".{file_extension}", delete=False) as f:
-        # Write the KML content to the file
-        f.write(kml_contents)
-
-    # Return the file path
-    yield f.name
-
-    # Clean up: delete the temporary file
-    os.unlink(f.name)
-
-
 @pytest.mark.parametrize(
-    "kml_file",
-    [
-        (
-            KML_CONTENT,
-            "kml",
-        ),
-    ],
-    indirect=True,
+    "kml_file_path_expected",
+    KML_TEST_FILES,
 )
 @mock.patch("apps.shared_data.services.data_entry_upload_service.get_file")
-def test_data_entry_kml_to_geojson(get_file_mock, client_query, data_entry_kml, kml_file):
-    with open(kml_file, "rb") as file:
+def test_data_entry_kml_to_geojson(
+    get_file_mock, client_query, data_entry_kml, kml_file_path_expected
+):
+    expected_file_path = kml_file_path_expected[1]
+    with open(resources.files("tests").joinpath(expected_file_path), "rb") as file:
+        expected_json = json.load(file)
+    kml_file_path = kml_file_path_expected[0]
+    with open(resources.files("tests").joinpath(kml_file_path), "rb") as file:
         get_file_mock.return_value = file
         response = client_query(
             """
@@ -360,7 +346,7 @@ def test_data_entry_kml_to_geojson(get_file_mock, client_query, data_entry_kml, 
 
     assert data_entry_result["id"] == str(data_entry_kml.id)
     assert data_entry_result["name"] == data_entry_kml.name
-    assert data_entry_result["geojson"] == json.dumps(KML_GEOJSON)
+    assert json.loads(data_entry_result["geojson"])["features"] == expected_json["features"]
 
 
 @mock.patch("apps.shared_data.services.data_entry_upload_service.get_file")
