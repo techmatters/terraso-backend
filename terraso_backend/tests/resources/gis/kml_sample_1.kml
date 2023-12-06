@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://www.opengis.net/kml/2.2" xmlns:gx="http://www.google.com/kml/ext/2.2" xmlns:kml="http://www.opengis.net/kml/2.2" xmlns:atom="http://www.w3.org/2005/Atom">
+<Document>
+	<name>Raw Track.kml</name>
+	<Style id="style1">
+		<IconStyle>
+			<Icon>
+				<href>https://duweis.com/apps/mapplus/marker/track-0.png</href>
+			</Icon>
+		</IconStyle>
+		<LineStyle>
+			<color>ff007aff</color>
+			<width>4</width>
+		</LineStyle>
+	</Style>
+	<Placemark>
+		<name>2023/10/18</name>
+		<description><![CDATA[<style>
+table{border-collapse:collapse; margin:5 5 10 0px;}
+table td{border: 1px solid #e0e0e0; padding:5px;}
+table .head {font-weight: bold; background-color:#f9f8f8;}
+table .light {background-color: #f9f8f8;}
+table .dark {background-color: #f3f2f2;}
+.datatablebox table {max-width=600px; margin:5 5 5 0px;}
+</style>
+<div id="com.miocool.mapplus.subtitle">
+297&nbsp;m,&nbsp;12&nbsp;min
+</div>
+<br/>
+<div id="mapplus-base-properties" class="datatablebox">
+<table>
+  <tr style="background-color: #f9f8f8;">
+    <td><b>Distance</b></td>
+    <td>297&nbsp;m</td>
+  </tr>
+  <tr style="background-color: #f3f2f2;">
+    <td><b>Start</b></td>
+    <td>18&nbsp;October&nbsp;2023&nbsp;at&nbsp;13:08:28&nbsp;GMT+2</td>
+  </tr>
+  <tr style="background-color: #f9f8f8;">
+    <td><b>Stop</b></td>
+    <td>18&nbsp;October&nbsp;2023&nbsp;at&nbsp;13:20:52&nbsp;GMT+2</td>
+  </tr>
+  <tr style="background-color: #f3f2f2;">
+    <td><b>Duration</b></td>
+    <td>12&nbsp;minutes</td>
+  </tr>
+  <tr style="background-color: #f9f8f8;">
+    <td><b>Avg.&nbsp;Speed</b></td>
+    <td>1,4&nbsp;kmph</td>
+  </tr>
+  <tr style="background-color: #f3f2f2;">
+    <td><b>Elev.&nbsp;Max</b></td>
+    <td>159&nbsp;m</td>
+  </tr>
+  <tr style="background-color: #f9f8f8;">
+    <td><b>Elev.&nbsp;Min</b></td>
+    <td>151&nbsp;m</td>
+  </tr>
+  <tr style="background-color: #f3f2f2;">
+    <td><b>Elev.&nbsp;Gain</b></td>
+    <td>5,32&nbsp;m</td>
+  </tr>
+  <tr style="background-color: #f9f8f8;">
+    <td><b>Elev.&nbsp;Loss</b></td>
+    <td>-4,93&nbsp;m</td>
+  </tr>
+  <tr style="background-color: #f3f2f2;">
+    <td><b>Points</b></td>
+    <td>29</td>
+  </tr>
+</table>
+</div>
+<br/>
+<div id="com.miocool.mapplus.recorder" style="color:#b7b7b7;font-size:11px;line-height:30px">
+Recorded By <a href="https://itunes.apple.com/us/app/id438868200?mt=8">Map Plus</a><br/>
+
+</div>]]></description>
+		<styleUrl>#style1</styleUrl>
+		<gx:Track>
+			<when>2023-10-18T11:08:28Z</when>
+			<when>2023-10-18T11:08:38Z</when>
+			<when>2023-10-18T11:08:48Z</when>
+			<when>2023-10-18T11:09:03Z</when>
+			<when>2023-10-18T11:09:14Z</when>
+			<when>2023-10-18T11:09:28Z</when>
+			<when>2023-10-18T11:09:42Z</when>
+			<when>2023-10-18T11:09:55Z</when>
+			<when>2023-10-18T11:10:16Z</when>
+			<when>2023-10-18T11:10:34Z</when>
+			<when>2023-10-18T11:10:46Z</when>
+			<when>2023-10-18T11:11:03Z</when>
+			<when>2023-10-18T11:11:29Z</when>
+			<when>2023-10-18T11:12:03Z</when>
+			<when>2023-10-18T11:12:42Z</when>
+			<when>2023-10-18T11:15:35Z</when>
+			<when>2023-10-18T11:16:02Z</when>
+			<when>2023-10-18T11:16:18Z</when>
+			<when>2023-10-18T11:17:28Z</when>
+			<when>2023-10-18T11:17:44Z</when>
+			<when>2023-10-18T11:17:55Z</when>
+			<when>2023-10-18T11:18:07Z</when>
+			<when>2023-10-18T11:18:18Z</when>
+			<when>2023-10-18T11:18:29Z</when>
+			<when>2023-10-18T11:18:42Z</when>
+			<when>2023-10-18T11:18:52Z</when>
+			<when>2023-10-18T11:20:31Z</when>
+			<when>2023-10-18T11:20:43Z</when>
+			<when>2023-10-18T11:20:52Z</when>
+			<gx:coord>22.59663677 -33.98605253 155.633652</gx:coord>
+			<gx:coord>22.5966076 -33.98595971 154.259445</gx:coord>
+			<gx:coord>22.59660618 -33.98586526 152.609299</gx:coord>
+			<gx:coord>22.59650336 -33.98580228 153.185974</gx:coord>
+			<gx:coord>22.59639406 -33.98576777 153.788025</gx:coord>
+			<gx:coord>22.59627639 -33.9857417 155.774704</gx:coord>
+			<gx:coord>22.59618089 -33.98568352 156.403198</gx:coord>
+			<gx:coord>22.59610081 -33.98561315 157.046158</gx:coord>
+			<gx:coord>22.59603216 -33.98553925 156.952423</gx:coord>
+			<gx:coord>22.59592388 -33.98548113 157.632202</gx:coord>
+			<gx:coord>22.5958389 -33.98541891 158.116058</gx:coord>
+			<gx:coord>22.59580311 -33.98532135 157.234528</gx:coord>
+			<gx:coord>22.59571012 -33.98525727 158.816055</gx:coord>
+			<gx:coord>22.59584222 -33.98529332 156.142609</gx:coord>
+			<gx:coord>22.59595874 -33.98529793 153.434128</gx:coord>
+			<gx:coord>22.59600202 -33.9853111 153.49176</gx:coord>
+			<gx:coord>22.59609239 -33.98536789 153.464493</gx:coord>
+			<gx:coord>22.59614266 -33.98545746 153.648254</gx:coord>
+			<gx:coord>22.59627174 -33.98553563 152.890488</gx:coord>
+			<gx:coord>22.59637918 -33.98557102 151.717392</gx:coord>
+			<gx:coord>22.59646774 -33.98563175 150.707565</gx:coord>
+			<gx:coord>22.59654701 -33.98569996 150.843887</gx:coord>
+			<gx:coord>22.59662362 -33.98577448 150.770142</gx:coord>
+			<gx:coord>22.59669836 -33.98584456 151.435516</gx:coord>
+			<gx:coord>22.5968001 -33.98590725 151.944595</gx:coord>
+			<gx:coord>22.59682657 -33.98600427 152.788086</gx:coord>
+			<gx:coord>22.59671285 -33.98607463 154.425354</gx:coord>
+			<gx:coord>22.59671103 -33.986171 156.02887</gx:coord>
+			<gx:coord>22.59671103 -33.986171 156.02887</gx:coord>
+		</gx:Track>
+	</Placemark>
+</Document>
+</kml>

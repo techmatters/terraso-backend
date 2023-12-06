@@ -18,17 +18,30 @@ import os
 import uuid
 import zipfile
 
+import fiona
 import geopandas as gpd
+import pandas as pd
 import structlog
 from django.core.exceptions import ValidationError
 from fiona.drvsupport import supported_drivers
+from shapely.geometry import mapping
 
 from apps.core.gis.utils import DEFAULT_CRS
 
 logger = structlog.get_logger(__name__)
 
 supported_drivers["KML"] = "rw"
+supported_drivers["LIBKML"] = "rw"
 supported_drivers["GPX"] = "rw"
+
+IGNORE_KML_PROPS = [
+    "tessellate",
+    "extrude",
+    "begin",
+    "end",
+    "visibility",
+    "geometry",
+]
 
 
 def is_geojson_file_extension(file):
@@ -61,9 +74,50 @@ def is_gpx_file_extension(file):
     return file.name.endswith(".gpx")
 
 
-def parse_kml_file(file):
-    gdf = gpd.read_file(file, driver="KML")
-    return json.loads(gdf.to_json())
+def _get_kml_gdf(file_buffer):
+    layers = fiona.listlayers(file_buffer)
+
+    if len(layers) == 1:
+        file_buffer.seek(0)
+        return gpd.read_file(file_buffer, driver="LIBKML")
+
+    combined_gdf = gpd.GeoDataFrame()
+    for layer in layers:
+        file_buffer.seek(0)
+        gdf = gpd.read_file(file_buffer, driver="LIBKML", layer=layer)
+        combined_gdf = pd.concat([combined_gdf, gdf], ignore_index=True)
+    return combined_gdf
+
+
+def parse_kml_file(file_buffer):
+    gdf = _get_kml_gdf(file_buffer)
+
+    def row_to_dict(row):
+        row_dict = row.to_dict()
+        for key, value in row_dict.items():
+            if pd.isna(value):  # Explicit check for NaN and NaT values
+                row_dict[key] = None  # Convert NaN or NaT to None
+            if isinstance(value, pd.Timestamp):
+                row_dict[key] = value.isoformat()  # Convert Timestamp to ISO format string
+        return row_dict
+
+    records = [row_to_dict(row) for _, row in gdf.iterrows()]
+
+    geojson = {
+        "type": "FeatureCollection",
+        "features": [
+            {
+                "type": "Feature",
+                "properties": {
+                    k: v for k, v in record.items() if k not in IGNORE_KML_PROPS and v is not None
+                },
+                "geometry": mapping(record["geometry"]) if record["geometry"] is not None else None,
+            }
+            for record in records
+        ],
+    }
+
+    return geojson
 
 
 def parse_kmz_file(file):
@@ -76,13 +130,13 @@ def parse_kmz_file(file):
 
         kml_file = zip.extract(kml_filenames[0], tmp_folder)
 
-    gdf = gpd.read_file(kml_file, driver="KML")
+    geojson = parse_kml_file(kml_file)
 
     # Delete extracted files
     os.remove(os.path.join(tmp_folder, kml_filenames[0]))
     os.rmdir(tmp_folder)
 
-    return json.loads(gdf.to_json())
+    return geojson
 
 
 def parse_shapefile(file):
@@ -121,25 +175,25 @@ def parse_file_to_geojson(file):
         try:
             return parse_shapefile(file)
         except Exception as e:
-            logger.error("Error parsing shapefile", error=e)
+            logger.exception("Error parsing shapefile", error=e)
             raise ValidationError("invalid_shapefile")
     elif is_kml_file_extension(file):
         try:
             return parse_kml_file(file)
         except Exception as e:
-            logger.error("Error parsing kml file", error=e)
+            logger.exception("Error parsing kml file", error=e)
             raise ValidationError("invalid_kml_file")
     elif is_kmz_file_extension(file):
         try:
             return parse_kmz_file(file)
         except Exception as e:
-            logger.error("Error parsing kmz file", error=e)
+            logger.exception("Error parsing kmz file", error=e)
             raise ValidationError("invalid_kmz_file")
     elif is_geojson_file_extension(file):
         try:
             return json.load(file)
         except Exception as e:
-            logger.error("Error parsing geojson file", error=e)
+            logger.exception("Error parsing geojson file", error=e)
             raise ValidationError("invalid_geojson_file")
     elif is_gpx_file_extension(file):
         try:

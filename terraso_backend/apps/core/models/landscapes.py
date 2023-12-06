@@ -159,6 +159,9 @@ class LandscapeDevelopmentStrategy(BaseModel):
         Landscape, on_delete=models.CASCADE, related_name="associated_development_strategy"
     )
 
+    class Meta:
+        verbose_name_plural = "Landscape development strategies"
+
 
 class LandscapeGroup(BaseModel):
     """

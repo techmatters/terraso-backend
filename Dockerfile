@@ -10,7 +10,7 @@ RUN apt-get update && \
     apt-get install -q -y --no-install-recommends \
                      build-essential libpq-dev dnsutils libmagic-dev mailcap \
                      gettext software-properties-common \
-                     libgdal-dev gdal-bin unzip curl && \
+                     libkml-dev libgdal-dev gdal-bin unzip curl && \
     curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip" && \
     unzip awscliv2.zip && \
     ./aws/install && \
