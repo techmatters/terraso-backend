@@ -22,12 +22,6 @@ RUN apt-get update && \
     ./aws/install && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
 
-RUN ogrinfo --formats | grep KML
-RUN gdalinfo --version || echo 'GDAL is not installed'
-RUN gdal-config --version || echo 'GDAL is not installed'
-RUN fio --gdal-version || echo 'GDAL is not installed'
-RUN echo "GDAL_VERSION is set to ${GDAL_VERSION}"
-
 WORKDIR /app
 
 # Create and activate a virtual environment
@@ -38,6 +32,12 @@ COPY --chown=terraso:terraso requirements.txt /app
 COPY --chown=terraso:terraso Makefile /app
 
 RUN pip install --upgrade pip && make install
+
+RUN ogrinfo --formats | grep KML
+RUN gdalinfo --version || echo 'GDAL is not installed'
+RUN gdal-config --version || echo 'GDAL is not installed'
+RUN fio --gdal-version || echo 'GDAL is not installed'
+RUN echo "GDAL_VERSION is set to ${GDAL_VERSION}"
 
 USER terraso
 
