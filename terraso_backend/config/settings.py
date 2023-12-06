@@ -419,7 +419,7 @@ MAPBOX_USERNAME = config("MAPBOX_USERNAME", default="")
 MAPBOX_ACCESS_TOKEN = config("MAPBOX_ACCESS_TOKEN", default="")
 
 sentry_sdk.init(
-    dsn="https://b32e6c8aee5ecfd88a9b405302792a2f@o4506299756642304.ingest.sentry.io/4506345139601408",  # noqa: E501
+    dsn=config("SENTRY_DSN", default=""),
     # Set traces_sample_rate to 1.0 to capture 100%
     # of transactions for performance monitoring.
     traces_sample_rate=1.0,
