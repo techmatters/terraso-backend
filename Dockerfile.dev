@@ -1,3 +1,7 @@
 FROM techmatters/terraso_backend
 
+USER root
+
 RUN make install-dev
+
+USER terraso

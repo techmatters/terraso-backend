@@ -22,3 +22,4 @@ rules
 shapely
 pandas
 openpyxl
+setuptools==69.0.2

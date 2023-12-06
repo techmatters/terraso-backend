@@ -9,6 +9,8 @@ ENV GDAL_LIBRARY_PATH /usr/local/lib/libgdal.so
 ENV LD_LIBRARY_PATH /usr/local/lib
 ENV GDAL_CONFIG /usr/bin/gdal-config
 ENV GDAL_DATA /usr/share/gdal
+ENV CPLUS_INCLUDE_PATH /usr/include/gdal
+ENV C_INCLUDE_PATH /usr/include/gdal
 
 RUN apt-get update && \
     apt-get install -q -y --no-install-recommends \
@@ -27,12 +29,16 @@ RUN echo "GDAL_VERSION is set to ${GDAL_VERSION}"
 
 WORKDIR /app
 
+# Create and activate a virtual environment
+RUN python -m venv /home/terraso/venv
+ENV PATH="/home/terraso/venv/bin:$PATH"
+
 COPY --chown=terraso:terraso requirements.txt /app
 COPY --chown=terraso:terraso Makefile /app
 
-USER terraso
-
 RUN pip install --upgrade pip && make install
+
+USER terraso
 
 COPY --chown=terraso:terraso . /app
 
