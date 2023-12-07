@@ -420,6 +420,7 @@ MAPBOX_ACCESS_TOKEN = config("MAPBOX_ACCESS_TOKEN", default="")
 
 sentry_sdk.init(
     dsn=config("SENTRY_DSN", default=""),
+    environment=config("ENV", default="development"),
     # Set traces_sample_rate to 1.0 to capture 100%
     # of transactions for performance monitoring.
     traces_sample_rate=1.0,
