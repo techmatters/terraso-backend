@@ -10,9 +10,12 @@ django-safedelete
 django-ses
 django-storages
 django-structlog
+fiona --no-binary fiona
 geopandas
 graphene-django
 httpx
+openpyxl
+pandas
 prettyconf
 psycopg2
 pyjwt[crypto]
@@ -21,6 +24,3 @@ python-magic
 rules
 sentry-sdk[django]
 shapely
-pandas
-openpyxl
-fiona --no-binary fiona
