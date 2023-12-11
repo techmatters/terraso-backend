@@ -379,9 +379,9 @@ django-structlog==6.0.1 \
     --hash=sha256:75ec2385b817d10fffaccc4f4280193ae364b6839f4dda1f6639b3f0c13435ea \
     --hash=sha256:ce52d54b952a7a56c185141409f618e0aa6775653e4c947213bca3e7911dd5f0
     # via -r requirements/base.in
-envier==0.4.0 \
-    --hash=sha256:7b91af0f16ea3e56d91ec082f038987e81b441fc19c657a8b8afe0909740a706 \
-    --hash=sha256:e68dcd1ed67d8b6313883e27dff3e701b7fba944d2ed4b7f53d0cc2e12364a82
+envier==0.5.0 \
+    --hash=sha256:5fed6099ee5d7ad4cf664f8bb99d1281d4ab5fadeec8f40ba9458610938293be \
+    --hash=sha256:f35ca8605f0c70c2c0367133af9dc1ef16710021dbd0e28c1b0a83070db06768
     # via ddtrace
 et-xmlfile==1.1.0 \
     --hash=sha256:8eb9e2bc2f8c97e37a2dc85a09ecdcdec9d8a396530a6d5a33b30b9a92da0c5c \
