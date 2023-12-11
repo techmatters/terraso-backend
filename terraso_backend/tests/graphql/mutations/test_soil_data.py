@@ -4,6 +4,7 @@ import pytest
 import structlog
 from graphene_django.utils.testing import graphql_query
 from mixer.backend.django import mixer
+from tests.utils import to_snake_case
 
 from apps.core.models import User
 from apps.project_management.models.projects import Project
@@ -223,6 +224,53 @@ def test_update_depth_intervals(client, user, site):
     assert payload["depthIntervals"] == [
         {"label": "", "depthInterval": good_interval2},
     ]
+
+
+def sample_depth_interval_update(site_id, start, end):
+    return dict(
+        siteId=str(site_id),
+        label="New Label",
+        depthInterval={"start": start, "end": end},
+        soilTextureEnabled=True,
+        soilColorEnabled=False,
+        carbonatesEnabled=True,
+        phEnabled=True,
+        soilOrganicCarbonMatterEnabled=False,
+        electricalConductivityEnabled=False,
+        sodiumAdsorptionRatioEnabled=False,
+        soilStructureEnabled=True,
+    )
+
+
+def test_update_soil_data_depth_interval_update_all(
+    client, site_with_depth_intervals, project_manager
+):
+    first_interval = site_with_depth_intervals.soil_data.depth_intervals.first()
+    new_data = sample_depth_interval_update(
+        site_with_depth_intervals.id,
+        first_interval.depth_interval_start,
+        first_interval.depth_interval_end,
+    )
+    new_data["applyToAll"] = True
+
+    client.force_login(project_manager)
+    response = graphql_query(
+        UPDATE_SOIL_DATA_DEPTH_INTERVAL_QUERY, variables={"input": new_data}, client=client
+    ).json()
+    assert "errors" not in response
+
+    # test depth intervals have been updated
+    site_with_depth_intervals.refresh_from_db()
+    for interval in site_with_depth_intervals.soil_data.depth_intervals.all():
+        for key, value in new_data.items():
+            key = to_snake_case(key)
+            if key in ("site_id", "depth_interval", "apply_to_all"):
+                continue
+            if key == "label" and interval.id != first_interval.id:
+                assert interval.label != new_data["label"]
+                continue
+            interval_val = getattr(interval, key)
+            assert interval_val == value
 
 
 UPDATE_DEPTH_DEPENDENT_QUERY = """
