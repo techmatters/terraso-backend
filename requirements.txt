@@ -351,9 +351,9 @@ django-filter==23.5 \
     --hash=sha256:67583aa43b91fe8c49f74a832d95f4d8442be628fd4c6d65e9f811f5153a4e5c \
     --hash=sha256:99122a201d83860aef4fe77758b69dda913e874cc5e0eaa50a86b0b18d708400
     # via -r requirements/base.in
-django-ipware==5.0.2 \
-    --hash=sha256:838b7aede77734603bd32ebd08ad7957304266580b646f8cbe982c4833b71c84 \
-    --hash=sha256:ab3ab7645e674df682c1146a5bddfa5151b1b7be7be9210872c3156bd836aad4
+django-ipware==6.0.2 \
+    --hash=sha256:27bd87e44199e139c2bf8e6e1017b5fd56213e3feb6a531525e4a460c250ee9e \
+    --hash=sha256:33b7597fda57864478711cab14506b862d8fc7918a95632a4cba3277c22d3a24
     # via django-structlog
 django-naomi==0.8 \
     --hash=sha256:145b7bd54443a7062cc2b48c5572c526641c01233f697a7e8be96e1c11a082da \
