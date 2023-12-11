@@ -14,6 +14,8 @@ from apps.project_management.models.projects import Project
 from apps.project_management.models.sites import Site
 from apps.soil_id.models.depth_dependent_soil_data import DepthDependentSoilData
 from apps.soil_id.models.project_soil_settings import (
+    LandPKSPresets,
+    NRCSPresets,
     ProjectDepthInterval,
     ProjectSoilSettings,
 )
@@ -97,6 +99,10 @@ class SoilDataNode(DjangoObjectType):
     @classmethod
     def grazing_enum(cls):
         return cls._meta.fields["grazing_select"].type()
+
+    @classmethod
+    def depth_interval_preset_enum(cls):
+        return cls._meta.fields["depth_interval_preset"].type()
 
 
 class ProjectSoilSettingsNode(DjangoObjectType):
@@ -492,3 +498,46 @@ class ProjectSoilSettingsDeleteDepthIntervalMutation(BaseAuthenticatedMutation):
         return ProjectSoilSettingsDeleteDepthIntervalMutation(
             project_soil_settings=project.soil_settings
         )
+
+
+class SoilDataUpdateDepthPresetMutation(BaseAuthenticatedMutation):
+    site = graphene.Field(SiteNode, required=True)
+    intervals = graphene.List(graphene.NonNull(SoilDataDepthIntervalNode), required=True)
+
+    class Input:
+        site_id = graphene.ID(required=True)
+        preset = SoilDataNode.depth_interval_preset_enum()
+
+    @classmethod
+    @transaction.atomic
+    def mutate_and_get_payload(cls, root, info, site_id, preset, **kwargs):
+        site = cls.get_or_throw(Site, "site_id", site_id)
+        user = info.context.user
+        if not user.has_perm(Site.get_perm("update_depth_interval"), site):
+            raise cls.not_allowed(MutationTypes.UPDATE)
+        if not site.soil_data:
+            site.soil_data = SoilData()
+
+        existing_intervals = SoilDataDepthInterval.objects.filter(soil_data=site.soil_data)
+
+        if site.soil_data.depth_interval_preset == preset.value:
+            return cls(site=site, intervals=existing_intervals)
+
+        # remove existing intervals
+        existing_intervals.delete()
+
+        # insert new intervals
+        match preset.value:
+            case "LANDPKS":
+                preset_values = LandPKSPresets
+            case "NRCS":
+                preset_values = NRCSPresets
+            case "CUSTOM" | "NONE":
+                preset_values = []
+
+        new_intervals = [
+            SoilDataDepthInterval(soil_data=site.soil_data, **kwargs) for kwargs in preset_values
+        ]
+        SoilDataDepthInterval.objects.bulk_create(new_intervals)
+
+        return cls(site=site, intervals=new_intervals)

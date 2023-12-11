@@ -126,3 +126,13 @@ def allowed_to_delete_site_note(user, site_note):
 
 
 rules.add_rule("allowed_to_delete_site_note", allowed_to_delete_site_note)
+
+
+@rules.predicate
+def allowed_to_update_depth_interval(user, site):
+    if site.owner:
+        return site.owner.id == user.id
+    return site.project.is_manager(user)
+
+
+rules.add_rule("allowed_to_update_depth_interval", allowed_to_update_depth_interval)

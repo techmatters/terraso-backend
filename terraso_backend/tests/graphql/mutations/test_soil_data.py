@@ -9,6 +9,7 @@ from tests.utils import to_snake_case
 from apps.core.models import User
 from apps.project_management.models.projects import Project
 from apps.project_management.models.sites import Site
+from apps.soil_id.models.soil_data import SoilData
 
 pytestmark = pytest.mark.django_db
 
@@ -638,3 +639,96 @@ def test_update_project_soil_settings(client, user, project_manager, project):
     payload = response.json()["data"]["updateProjectSoilSettings"]["projectSoilSettings"]
     new_data.pop("projectId")
     assert payload == new_data
+
+
+UPDATE_SOIL_DEPTH_PRESET_GRAPHQL = """
+mutation updateSoilPreset($input: SoilDataUpdateDepthPresetMutationInput!) {
+  updateSoilDataDepthPreset(input: $input) {
+    intervals {
+      label
+      depthInterval {
+        start
+        end
+      }
+    }
+  }
+}
+"""
+
+
+@pytest.fixture
+def permissions_data(request):
+    user = mixer.blend(User)
+    project = mixer.blend(Project)
+    site = mixer.blend(Site, project=project)
+    mixer.blend(SoilData, site=site)
+    allowed = False
+    match request.param:
+        case "project_manager":
+            project.add_manager(user)
+            allowed = True
+        case "owner":
+            site.add_owner(user)
+            allowed = True
+        case "project_viewer":
+            project.add_viewer(user)
+    return allowed, user, site
+
+
+def make_intervals(definition):
+    return {
+        "intervals": [
+            dict(label=label, depthInterval=dict(start=start, end=end))
+            for start, end, label in definition
+        ]
+    }
+
+
+LandPKSIntervalDefaults = make_intervals(
+    [
+        (0, 10, "0-10 cm"),
+        (10, 20, "10-20 cm"),
+        (20, 50, "20-50 cm"),
+        (50, 70, "50-70 cm"),
+        (70, 100, "70-100 cm"),
+        (100, 200, "100-200 cm"),
+    ]
+)
+
+NRCSIntervalDefaults = make_intervals(
+    [
+        (0, 5, "0-5 cm"),
+        (5, 15, "5-15 cm"),
+        (15, 30, "15-30 cm"),
+        (30, 60, "30-60 cm"),
+        (60, 100, "60-100 cm"),
+        (100, 200, "100-200 cm"),
+    ]
+)
+
+
+@pytest.mark.parametrize(
+    "preset,expected",
+    [
+        ("LANDPKS", LandPKSIntervalDefaults),
+        ("NRCS", NRCSIntervalDefaults),
+        ("CUSTOM", {"intervals": []}),
+    ],
+)
+@pytest.mark.parametrize(
+    "permissions_data",
+    ["project_manager", "project_viewer", "owner", "unassociated"],
+    indirect=True,
+)
+def test_change_soil_depth_preset(client, permissions_data, preset, expected):
+    allowed, user, site = permissions_data
+    input_ = dict(siteId=str(site.id), preset=preset)
+    client.force_login(user)
+    payload = graphql_query(
+        UPDATE_SOIL_DEPTH_PRESET_GRAPHQL, input_data=input_, client=client
+    ).json()
+    if not allowed:
+        assert "errors" in payload
+    else:
+        assert "errors" not in payload
+        assert payload["data"]["updateSoilDataDepthPreset"] == expected
