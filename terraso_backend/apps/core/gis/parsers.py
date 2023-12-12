@@ -157,10 +157,11 @@ def parse_shapefile(file):
     gdf_transformed = gdf.to_crs(crs=DEFAULT_CRS)
 
     # Delete extracted files
-    os.remove(os.path.join(tmp_folder, shp_filenames[0]))
-    os.remove(os.path.join(tmp_folder, shx_filenames[0]))
-    os.remove(os.path.join(tmp_folder, prj_filenames[0]))
-    os.rmdir(tmp_folder)
+    for root, dirs, files in os.walk(tmp_folder, topdown=False):
+        for name in files:
+            os.remove(os.path.join(root, name))
+        for name in dirs:
+            os.rmdir(os.path.join(root, name))
 
     return json.loads(gdf_transformed.to_json())
 
