@@ -238,7 +238,9 @@ class SoilDataUpdateDepthIntervalMutation(BaseWriteMutation):
         apply_to_all = graphene.Boolean()
 
     @classmethod
-    def mutate_and_get_payload(cls, root, info, site_id, depth_interval, apply_to_all, **kwargs):
+    def mutate_and_get_payload(
+        cls, root, info, site_id, depth_interval, apply_to_all=False, **kwargs
+    ):
         site = cls.get_or_throw(Site, "id", site_id)
 
         user = info.context.user
