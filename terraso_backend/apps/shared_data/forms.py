@@ -33,7 +33,9 @@ logger = structlog.get_logger(__name__)
 
 class DataEntryForm(forms.ModelForm):
     data_file = forms.FileField()
-    url = forms.URLField(required=False)
+    # TODO: Remove assume_scheme='https' when Django 6.0 is released.
+    # At that point, https will be the default.
+    url = forms.URLField(required=False, assume_scheme="https")
     resource_type = forms.CharField(max_length=255, required=False)
     size = forms.IntegerField(required=False)
 
