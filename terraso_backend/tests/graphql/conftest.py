@@ -36,7 +36,9 @@ from apps.core.models import (
     UserPreference,
 )
 from apps.core.models.users import NOTIFICATION_KEY_GROUP, NOTIFICATION_KEY_STORY_MAP
+from apps.project_management.models import Site
 from apps.shared_data.models import DataEntry, VisualizationConfig
+from apps.soil_id.models import SoilData, SoilDataDepthInterval
 from apps.story_map.models import StoryMap
 
 pytestmark = pytest.mark.django_db
@@ -533,3 +535,18 @@ def story_map_user_memberships_not_registered_approve_tokens(
 @pytest.fixture
 def audit_log_user():
     return mixer.blend(User)
+
+
+@pytest.fixture
+def site_with_depth_intervals(project):
+    site = mixer.blend(Site, project=project)
+    soil_data = mixer.blend(SoilData, site=site)
+    for start in range(0, 20, 5):
+        end = start + 5
+        mixer.blend(
+            SoilDataDepthInterval,
+            soil_data=soil_data,
+            depth_interval_start=start,
+            depth_interval_end=end,
+        )
+    return site

@@ -235,8 +235,12 @@ class SoilDataUpdateDepthIntervalMutation(BaseWriteMutation):
         sodium_adsorption_ratio_enabled = graphene.Boolean()
         soil_structure_enabled = graphene.Boolean()
 
+        apply_to_all = graphene.Boolean()
+
     @classmethod
-    def mutate_and_get_payload(cls, root, info, site_id, depth_interval, **kwargs):
+    def mutate_and_get_payload(
+        cls, root, info, site_id, depth_interval, apply_to_all=False, **kwargs
+    ):
         site = cls.get_or_throw(Site, "id", site_id)
 
         user = info.context.user
@@ -253,9 +257,22 @@ class SoilDataUpdateDepthIntervalMutation(BaseWriteMutation):
                 depth_interval_end=depth_interval["end"],
             )
 
-            return super().mutate_and_get_payload(
+            result = super().mutate_and_get_payload(
                 root, info, result_instance=site.soil_data, **kwargs
             )
+
+            if apply_to_all:
+                intervals = site.soil_data.depth_intervals.exclude(
+                    id=kwargs["model_instance"].id
+                ).all()
+                kwargs.pop("model_instance")
+                kwargs.pop("label")  # label shouldn't be applied to other intervals
+                for interval in intervals:
+                    for key, value in kwargs.items():
+                        setattr(interval, key, value)
+                SoilDataDepthInterval.objects.bulk_update(intervals, kwargs.keys())
+
+            return result
 
 
 class SoilDataDeleteDepthIntervalMutation(BaseAuthenticatedMutation):
