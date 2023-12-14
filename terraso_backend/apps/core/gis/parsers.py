@@ -15,6 +15,7 @@
 
 import json
 import os
+import shutil
 import uuid
 import zipfile
 
@@ -157,11 +158,7 @@ def parse_shapefile(file):
     gdf_transformed = gdf.to_crs(crs=DEFAULT_CRS)
 
     # Delete extracted files
-    for root, dirs, files in os.walk(tmp_folder, topdown=False):
-        for name in files:
-            os.remove(os.path.join(root, name))
-        for name in dirs:
-            os.rmdir(os.path.join(root, name))
+    shutil.rmtree(tmp_folder)
 
     return json.loads(gdf_transformed.to_json())
 
