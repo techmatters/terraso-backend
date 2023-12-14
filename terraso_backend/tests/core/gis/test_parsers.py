@@ -16,19 +16,20 @@
 import json
 import os
 import tempfile
-import zipfile
 from importlib import resources
 
-import geopandas as gpd
 import pytest
 
 from apps.core.gis.parsers import parse_file_to_geojson
-from apps.core.gis.utils import DEFAULT_CRS
 
 KML_TEST_FILES = [
     ("resources/gis/kml_sample_1.kml", "resources/gis/kml_sample_1_geojson.json"),
     ("resources/gis/kml_sample_2.kml", "resources/gis/kml_sample_2_geojson.json"),
     ("resources/gis/kml_sample_3.kml", "resources/gis/kml_sample_3_geojson.json"),
+]
+SHAPEFILE_TEST_FILES = [
+    ("resources/gis/shapefile_sample_1.zip", "resources/gis/shapefile_sample_1_geojson.json"),
+    ("resources/gis/shapefile_sample_2.zip", "resources/gis/shapefile_sample_2_geojson.json"),
 ]
 
 GPX_CONTENT = """<?xml version="1.0" standalone="yes"?>
@@ -188,41 +189,21 @@ GPX_GEOJSON = {
 }
 
 
-@pytest.fixture
-def shapefile_zip(request):
-    shp, shx, prj = request.param
-    zip_file = tempfile.NamedTemporaryFile(suffix=".zip")
-    return zip_file
-
-
 @pytest.mark.parametrize(
-    "shapefile_zip",
-    [
-        (b"<shapefile component 1>", b"<shapefile component 2>", b"<shapefile component 3>"),
-        (b"<shapefile component 4>", b"<shapefile component 5>", b"<shapefile component 6>"),
-    ],
-    indirect=True,
+    "file_path_expected",
+    SHAPEFILE_TEST_FILES,
 )
-def test_parse_shapefile(shapefile_zip):
-    # Create a GeoDataFrame with a single point
-    gdf = gpd.GeoDataFrame({"geometry": gpd.points_from_xy([0], [0])}, crs=DEFAULT_CRS)
+def test_parse_shapefile(file_path_expected):
+    file_path = file_path_expected[0]
+    with open(resources.files("tests").joinpath(file_path), "rb") as file:
+        shapefile_json = parse_file_to_geojson(file)
 
-    # Convert the GeoDataFrame to a Shapefile
-    with tempfile.TemporaryDirectory() as tmpdir:
-        shapefile_path = os.path.join(tmpdir, "test.shp")
-        gdf.to_file(shapefile_path)
+    expected_file_path = file_path_expected[1]
+    with open(resources.files("tests").joinpath(expected_file_path), "rb") as file:
+        expected_json = json.load(file)
 
-        # Zip the Shapefile components
-        with zipfile.ZipFile(shapefile_zip.name, "w") as zf:
-            for component in ["shp", "shx", "prj"]:
-                zf.write(os.path.join(tmpdir, f"test.{component}"), f"test.{component}")
-
-        with open(shapefile_zip.name, "rb") as file:
-            shapefile_json = parse_file_to_geojson(file)
-
-            # Verify that the parsed Shapefile is equivalent to the original GeoDataFrame
-            gdf_json = json.loads(gdf.to_json())
-            assert shapefile_json == gdf_json
+    print(f"shapefile_json: {shapefile_json}")
+    assert json.dumps(shapefile_json) == json.dumps(expected_json)
 
 
 @pytest.mark.parametrize(
