@@ -185,15 +185,19 @@ class ProjectAddMutation(BaseWriteMutation):
         description = graphene.String()
         measurement_units = graphene.Field(MeasurementUnits, required=True)
         site_instructions = graphene.String()
+        create_soil_settings = graphene.Boolean()
 
     @classmethod
-    def mutate_and_get_payload(cls, root, info, **kwargs):
+    def mutate_and_get_payload(cls, root, info, create_soil_settings=True, **kwargs):
         logger = cls.get_logger()
         user = info.context.user
         with transaction.atomic():
             kwargs["privacy"] = kwargs["privacy"].value
             result = super().mutate_and_get_payload(root, info, **kwargs)
             result.project.add_manager(user)
+
+            if create_soil_settings:
+                ProjectSoilSettings.objects.create(project=result.project)
 
         client_time = kwargs.get("client_time", None)
         result.project.mark_seen_by(user)
