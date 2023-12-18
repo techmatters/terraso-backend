@@ -588,9 +588,9 @@ mixer==7.2.2 \
     --hash=sha256:8089b8e2d00288c77e622936198f5dd03c8ac1603a1530a4f870dc213363b2ae \
     --hash=sha256:9b3f1a261b56d8f2394f39955f83adbc7ff3ab4bb1065ebfec19a10d3e8501e0
     # via -r requirements/dev.in
-moto==4.2.11 \
-    --hash=sha256:2da62d52eaa765dfe2762c920f0a88a58f3a09e04581c91db967d92faec848f1 \
-    --hash=sha256:58c12ab9ee69b6a5d1cddf83611ba4071508f07894317c57844b3ae6dc5bcd38
+moto==4.2.12 \
+    --hash=sha256:7c4d37f47becb4a0526b64df54484e988c10fde26861fc3b5c065bc78800cb59 \
+    --hash=sha256:bdcad46e066a55b7d308a786e5dca863b3cba04c6239c6974135a48d1198b3ab
     # via -r requirements/dev.in
 multidict==6.0.4 \
     --hash=sha256:01a3a55bd90018c9c080fbb0b9f4891db37d148a0a18722b42f94694f8b6d4c9 \
