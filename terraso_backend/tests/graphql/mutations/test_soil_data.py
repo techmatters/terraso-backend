@@ -9,7 +9,12 @@ from tests.utils import to_snake_case
 from apps.core.models import User
 from apps.project_management.models.projects import Project
 from apps.project_management.models.sites import Site
-from apps.soil_id.models.soil_data import SoilData
+from apps.soil_id.models import (
+    LandPKSIntervalDefaults,
+    NRCSIntervalDefaults,
+    ProjectSoilSettings,
+    SoilData,
+)
 
 pytestmark = pytest.mark.django_db
 
@@ -491,6 +496,10 @@ DELETE_PROJECT_DEPTH_INTERVAL_QUERY = """
 def test_update_project_depth_intervals(client, project_manager, project):
     client.force_login(project_manager)
 
+    # make sure there is no overlap by settings depth interval preset
+    project.soil_settings = ProjectSoilSettings(depth_interval_preset="NONE")
+    project.soil_settings.save()
+
     good_interval = {"label": "good", "depthInterval": {"start": 10, "end": 30}}
     response = graphql_query(
         UPDATE_PROJECT_DEPTH_INTERVAL_QUERY,
@@ -592,11 +601,28 @@ UPDATE_PROJECT_SETTINGS_QUERY = """
                 soilLimitationsRequired
                 photosRequired
                 notesRequired
+                depthIntervals {
+                    depthInterval {
+                        start
+                        end
+                    }
+                }
             }
             errors
         }
     }
 """
+
+
+def make_intervals(defs):
+    return [
+        dict(
+            depthInterval=dict(
+                start=interval["depth_interval_start"], end=interval["depth_interval_end"]
+            )
+        )
+        for interval in defs
+    ]
 
 
 def test_update_project_soil_settings(client, user, project_manager, project):
@@ -637,6 +663,8 @@ def test_update_project_soil_settings(client, user, project_manager, project):
     )
     assert response.json()["data"]["updateProjectSoilSettings"]["errors"] is None
     payload = response.json()["data"]["updateProjectSoilSettings"]["projectSoilSettings"]
+    intervals = payload.pop("depthIntervals")
+    assert intervals == make_intervals(NRCSIntervalDefaults)
     new_data.pop("projectId")
     assert payload == new_data
 
@@ -645,7 +673,6 @@ UPDATE_SOIL_DEPTH_PRESET_GRAPHQL = """
 mutation updateSoilPreset($input: SoilDataUpdateDepthPresetMutationInput!) {
   updateSoilDataDepthPreset(input: $input) {
     intervals {
-      label
       depthInterval {
         start
         end
@@ -675,43 +702,11 @@ def permissions_data(request):
     return allowed, user, site
 
 
-def make_intervals(definition):
-    return {
-        "intervals": [
-            dict(label=label, depthInterval=dict(start=start, end=end))
-            for start, end, label in definition
-        ]
-    }
-
-
-LandPKSIntervalDefaults = make_intervals(
-    [
-        (0, 10, "0-10 cm"),
-        (10, 20, "10-20 cm"),
-        (20, 50, "20-50 cm"),
-        (50, 70, "50-70 cm"),
-        (70, 100, "70-100 cm"),
-        (100, 200, "100-200 cm"),
-    ]
-)
-
-NRCSIntervalDefaults = make_intervals(
-    [
-        (0, 5, "0-5 cm"),
-        (5, 15, "5-15 cm"),
-        (15, 30, "15-30 cm"),
-        (30, 60, "30-60 cm"),
-        (60, 100, "60-100 cm"),
-        (100, 200, "100-200 cm"),
-    ]
-)
-
-
 @pytest.mark.parametrize(
     "preset,expected",
     [
-        ("LANDPKS", LandPKSIntervalDefaults),
-        ("NRCS", NRCSIntervalDefaults),
+        ("LANDPKS", {"intervals": make_intervals(LandPKSIntervalDefaults)}),
+        ("NRCS", {"intervals": make_intervals(NRCSIntervalDefaults)}),
         ("CUSTOM", {"intervals": []}),
     ],
 )

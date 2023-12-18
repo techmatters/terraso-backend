@@ -20,7 +20,6 @@ from django.forms import ValidationError
 from apps.core.models.commons import BaseModel
 from apps.project_management.models.sites import Site
 from apps.soil_id.models.depth_interval import BaseDepthInterval
-from apps.soil_id.models.project_soil_settings import DepthIntervalPreset
 
 
 def default_depth_intervals():
@@ -205,8 +204,14 @@ class SoilData(BaseModel):
         WILDLIFE_GRASSLANDS = "WILDLIFE_GRASSLANDS", "Wildlife (grasslands, giraffes, ibex)"
 
     grazing_select = models.CharField(blank=True, null=True, choices=Grazing.choices)
+
+    class SoilDataDepthIntervalPreset(models.TextChoices):
+        LANDPKS = "LANDPKS"
+        NRCS = "NRCS"
+        CUSTOM = "CUSTOM"
+
     depth_interval_preset = models.CharField(
-        choices=DepthIntervalPreset.choices, blank=True, null=True
+        choices=SoilDataDepthIntervalPreset.choices, blank=True, null=True
     )
 
 

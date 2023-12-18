@@ -226,3 +226,7 @@ class DepthDependentSoilData(BaseModel, BaseDepthInterval):
         )
 
     carbonates = models.CharField(blank=True, null=True, choices=CarbonateResponse.choices)
+
+    @classmethod
+    def delete_in_project(cls, project_id):
+        return cls.objects.filter(soil_data__site__project__id=project_id).delete()
