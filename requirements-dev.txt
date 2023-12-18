@@ -122,13 +122,13 @@ black==23.12.0 \
     --hash=sha256:ead25c273adfad1095a8ad32afdb8304933efba56e3c1d31b0fee4143a1e424a \
     --hash=sha256:fdf6f23c83078a6c8da2442f4d4eeb19c28ac2a6416da7671b72f0295c4a697b
     # via -r requirements/dev.in
-boto3==1.33.13 \
-    --hash=sha256:0e966b8a475ecb06cc0846304454b8da2473d4c8198a45dfb2c5304871986883 \
-    --hash=sha256:5f278b95fb2b32f3d09d950759a05664357ba35d81107bab1537c4ddd212cd8c
+boto3==1.34.2 \
+    --hash=sha256:970fd9f9f522eb48f3cd5574e927b369279ebf5bcf0f2fae5ed9cc6306e58558 \
+    --hash=sha256:aad3f305fe3cd4f2bba545c9580cd460c366af56a8aabb6094528dd32317f8d2
     # via moto
-botocore==1.33.13 \
-    --hash=sha256:aeadccf4b7c674c7d47e713ef34671b834bc3e89723ef96d994409c9f54666e6 \
-    --hash=sha256:fb577f4cb175605527458b04571451db1bd1a2036976b626206036acd4496617
+botocore==1.34.2 \
+    --hash=sha256:655b1ea2a5d7b989a0eb6006c16137f785bc7334f31378115668c4be5d4b00eb \
+    --hash=sha256:8a9f4ad438ba814b9b7a22b24de3004f8aa232e7ae86e0087aea4d7792dc3a2a
     # via
     #   boto3
     #   moto
@@ -837,9 +837,9 @@ respx==0.20.2 \
     --hash=sha256:07cf4108b1c88b82010f67d3c831dae33a375c7b436e54d87737c7f9f99be643 \
     --hash=sha256:ab8e1cf6da28a5b2dd883ea617f8130f77f676736e6e9e4a25817ad116a172c9
     # via -r requirements/dev.in
-s3transfer==0.8.2 \
-    --hash=sha256:368ac6876a9e9ed91f6bc86581e319be08188dc60d50e0d56308ed5765446283 \
-    --hash=sha256:c9e56cbe88b28d8e197cf841f1f0c130f246595e77ae5b5a05b69fe7cb83de76
+s3transfer==0.9.0 \
+    --hash=sha256:01d4d2c35a016db8cb14f9a4d5e84c1f8c96e7ffc211422555eed45c11fa7eb1 \
+    --hash=sha256:9e1b186ec8bb5907a1e82b51237091889a9973a2bb799a924bcd9f301ff79d3d
     # via boto3
 six==1.16.0 \
     --hash=sha256:1e61c37477a1626458e36f7b1d82aa5c9b094fa4802892072e49de9c60c4c926 \

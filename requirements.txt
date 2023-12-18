@@ -28,15 +28,15 @@ attrs==23.1.0 \
     #   cattrs
     #   ddtrace
     #   fiona
-boto3==1.33.13 \
-    --hash=sha256:0e966b8a475ecb06cc0846304454b8da2473d4c8198a45dfb2c5304871986883 \
-    --hash=sha256:5f278b95fb2b32f3d09d950759a05664357ba35d81107bab1537c4ddd212cd8c
+boto3==1.34.2 \
+    --hash=sha256:970fd9f9f522eb48f3cd5574e927b369279ebf5bcf0f2fae5ed9cc6306e58558 \
+    --hash=sha256:aad3f305fe3cd4f2bba545c9580cd460c366af56a8aabb6094528dd32317f8d2
     # via
     #   -r requirements/base.in
     #   django-ses
-botocore==1.33.13 \
-    --hash=sha256:aeadccf4b7c674c7d47e713ef34671b834bc3e89723ef96d994409c9f54666e6 \
-    --hash=sha256:fb577f4cb175605527458b04571451db1bd1a2036976b626206036acd4496617
+botocore==1.34.2 \
+    --hash=sha256:655b1ea2a5d7b989a0eb6006c16137f785bc7334f31378115668c4be5d4b00eb \
+    --hash=sha256:8a9f4ad438ba814b9b7a22b24de3004f8aa232e7ae86e0087aea4d7792dc3a2a
     # via
     #   boto3
     #   s3transfer
@@ -351,9 +351,9 @@ django-filter==23.5 \
     --hash=sha256:67583aa43b91fe8c49f74a832d95f4d8442be628fd4c6d65e9f811f5153a4e5c \
     --hash=sha256:99122a201d83860aef4fe77758b69dda913e874cc5e0eaa50a86b0b18d708400
     # via -r requirements/base.in
-django-ipware==5.0.2 \
-    --hash=sha256:838b7aede77734603bd32ebd08ad7957304266580b646f8cbe982c4833b71c84 \
-    --hash=sha256:ab3ab7645e674df682c1146a5bddfa5151b1b7be7be9210872c3156bd836aad4
+django-ipware==6.0.3 \
+    --hash=sha256:0f682dd4f3afef7909bb3dd396949c355982539bd4392d4e9df0b0b31604484d \
+    --hash=sha256:e54b6050af037406f05327890e742f99451dce96951223dea9cdd824e95859b6
     # via django-structlog
 django-naomi==0.8 \
     --hash=sha256:145b7bd54443a7062cc2b48c5572c526641c01233f697a7e8be96e1c11a082da \
@@ -375,9 +375,9 @@ django-storages==1.14.2 \
     --hash=sha256:1db759346b52ada6c2efd9f23d8241ecf518813eb31db9e2589207174f58f6ad \
     --hash=sha256:51b36af28cc5813b98d5f3dfe7459af638d84428c8df4a03990c7d74d1bea4e5
     # via -r requirements/base.in
-django-structlog==6.0.1 \
-    --hash=sha256:75ec2385b817d10fffaccc4f4280193ae364b6839f4dda1f6639b3f0c13435ea \
-    --hash=sha256:ce52d54b952a7a56c185141409f618e0aa6775653e4c947213bca3e7911dd5f0
+django-structlog==7.0.0 \
+    --hash=sha256:14c393d35224c1ce5e9d5890a177067afbb9be089bb053e5d3c9b970b071900a \
+    --hash=sha256:64ad349b17089799f96ed2ac3cf44a045105e8e1453e7113485f9e0c6d8af7b8
     # via -r requirements/base.in
 envier==0.5.0 \
     --hash=sha256:5fed6099ee5d7ad4cf664f8bb99d1281d4ab5fadeec8f40ba9458610938293be \
@@ -621,6 +621,10 @@ python-dateutil==2.8.2 \
     # via
     #   botocore
     #   pandas
+python-ipware==2.0.1 \
+    --hash=sha256:1992920ef553165dfa35e6ea5a90762f64f3b943cc22ee6b4ec02e2c86d31178 \
+    --hash=sha256:9ba4805152ebb85ad5b53797185cd1ce6231e1db60155834f326c8cd61e8af34
+    # via django-ipware
 python-magic==0.4.27 \
     --hash=sha256:c1ba14b08e4a5f5c31a302b7721239695b2f0f058d125bd5ce1ee36b9d9d3c3b \
     --hash=sha256:c212960ad306f700aa0d01e5d7a325d20548ff97eb9920dcd29513174f0294d3
@@ -639,13 +643,13 @@ rules==3.3 \
     --hash=sha256:12c8bbab5f54560e68528fcca7abc0e162c35ac882e3cc0daed40ac49c963070 \
     --hash=sha256:bf7bea8b724b73c36a622714c1b3557620c187a2ee05321a2ac8ab7472dc4464
     # via -r requirements/base.in
-s3transfer==0.8.2 \
-    --hash=sha256:368ac6876a9e9ed91f6bc86581e319be08188dc60d50e0d56308ed5765446283 \
-    --hash=sha256:c9e56cbe88b28d8e197cf841f1f0c130f246595e77ae5b5a05b69fe7cb83de76
+s3transfer==0.9.0 \
+    --hash=sha256:01d4d2c35a016db8cb14f9a4d5e84c1f8c96e7ffc211422555eed45c11fa7eb1 \
+    --hash=sha256:9e1b186ec8bb5907a1e82b51237091889a9973a2bb799a924bcd9f301ff79d3d
     # via boto3
-sentry-sdk[django]==1.39.0 \
-    --hash=sha256:67f62238af273eebd6432f85116dc6cd5422d4bc02df886514e8139e755f48e4 \
-    --hash=sha256:9d3644b7c36a2c290f0d3275cba250202773f37545ef9097c8bcf561c6f5cdea
+sentry-sdk[django]==1.39.1 \
+    --hash=sha256:320a55cdf9da9097a0bead239c35b7e61f53660ef9878861824fd6d9b2eaf3b5 \
+    --hash=sha256:81b5b9ffdd1a374e9eb0c053b5d2012155db9cbe76393a8585677b753bd5fdc1
     # via -r requirements/base.in
 shapely==2.0.2 \
     --hash=sha256:03e63a99dfe6bd3beb8d5f41ec2086585bb969991d603f9aeac335ad396a06d4 \
