@@ -4,7 +4,7 @@ import pytest
 import structlog
 from graphene_django.utils.testing import graphql_query
 from mixer.backend.django import mixer
-from tests.utils import to_snake_case
+from tests.utils import match_json, to_snake_case
 
 from apps.core.models import User
 from apps.project_management.models.projects import Project
@@ -667,6 +667,28 @@ def test_update_project_soil_settings(client, user, project_manager, project):
     assert intervals == make_intervals(NRCSIntervalDefaults)
     new_data.pop("projectId")
     assert payload == new_data
+
+
+def test_update_project_depth_interval_preset_no_change(
+    client, project, project_manager, site_with_soil_data
+):
+    original_depth_interval_preset = project.soil_settings.depth_interval_preset
+    input_data = {
+        "projectId": str(project.id),
+        "depthIntervalPreset": original_depth_interval_preset,
+    }
+    client.force_login(project_manager)
+    response = graphql_query(UPDATE_PROJECT_SETTINGS_QUERY, input_data=input_data, client=client)
+    payload = response.json()
+    assert "errors" not in payload
+    intervals = match_json("*..depthIntervals", payload)
+    assert intervals[0] == make_intervals(LandPKSIntervalDefaults)
+    # make sure soil data was not deleted
+    project.refresh_from_db()
+    assert project.soil_settings.depth_interval_preset == original_depth_interval_preset
+    site_with_soil_data.refresh_from_db()
+    assert len(project.soil_settings.depth_intervals.all()) > 0
+    assert len(site_with_soil_data.soil_data.depth_dependent_data.all()) > 0
 
 
 UPDATE_SOIL_DEPTH_PRESET_GRAPHQL = """

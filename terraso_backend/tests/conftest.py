@@ -26,6 +26,7 @@ from apps.collaboration.models import Membership
 from apps.core.gis.utils import DEFAULT_CRS
 from apps.core.models import User
 from apps.project_management.models import Project, Site
+from apps.soil_id.models import DepthDependentSoilData, ProjectSoilSettings, SoilData
 
 pytestmark = pytest.mark.django_db
 
@@ -131,3 +132,16 @@ def project_user_w_role(request, project: Project):
     user = mixer.blend(User)
     project.add_user_with_role(user, request.param)
     return user
+
+
+@pytest.fixture
+def site_with_soil_data(request, project_manager: User, project: Project, project_site: Site):
+    ProjectSoilSettings.objects.create(project=project)
+    SoilData.objects.create(site=project_site)
+    for interval in project.soil_settings.depth_intervals.all():
+        DepthDependentSoilData.objects.create(
+            soil_data=project_site.soil_data,
+            depth_interval_start=interval.depth_interval_start,
+            depth_interval_end=interval.depth_interval_end,
+        )
+    return project_site
