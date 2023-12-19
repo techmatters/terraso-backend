@@ -87,7 +87,7 @@ class ProjectSoilSettings(BaseModel, DirtyFieldsMixin):
                 # delete project intervals...
                 ProjectDepthInterval.objects.filter(project=self).delete()
                 # delete related soil data
-                DepthDependentSoilData.delete_in_project(self.id)
+                DepthDependentSoilData.delete_in_project(self.project.id)
                 # create new intervals
                 self.apply_preset()
         return result
