@@ -62,6 +62,7 @@ def test_create_project(client, user):
     project = Project.objects.get(pk=id)
     assert list([mb.user for mb in project.manager_memberships.all()]) == [user]
     assert project.description == "A test project"
+    assert project.soil_settings is not None
 
     logs = Log.objects.all()
     assert len(logs) == 1

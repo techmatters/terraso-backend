@@ -2109,6 +2109,7 @@ input ProjectAddMutationInput {
   description: String
   measurementUnits: MeasurementUnits!
   siteInstructions: String
+  createSoilSettings: Boolean
   clientMutationId: String
 }
 
