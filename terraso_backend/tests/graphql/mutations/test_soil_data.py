@@ -497,7 +497,7 @@ def test_update_project_depth_intervals(client, project_manager, project):
     client.force_login(project_manager)
 
     # make sure there is no overlap by settings depth interval preset
-    project.soil_settings = ProjectSoilSettings(depth_interval_preset="NONE")
+    project.soil_settings = ProjectSoilSettings(depth_interval_preset="CUSTOM")
     project.soil_settings.save()
 
     good_interval = {"label": "good", "depthInterval": {"start": 10, "end": 30}}
@@ -576,6 +576,21 @@ def test_update_project_depth_intervals(client, project_manager, project):
     assert payload["depthIntervals"] == [
         {"label": "", "depthInterval": good_interval2},
     ]
+
+
+@pytest.mark.parametrize("preset", ["LANDPKS", "NRCS", "NONE"])
+def test_updating_project_interval_not_allowed_with_preset(
+    preset, client, project, project_manager
+):
+    ProjectSoilSettings.objects.create(project=project, depth_interval_preset=preset)
+    input_data = {"projectId": str(project.id), "depthInterval": {"start": 0, "end": 1}}
+    client.force_login(project_manager)
+    response = graphql_query(
+        UPDATE_PROJECT_DEPTH_INTERVAL_QUERY, input_data=input_data, client=client
+    ).json()
+    errors = match_json("*..errors[0]", response)
+    assert errors
+    assert "update_not_allowed" in errors[0]["message"]
 
 
 UPDATE_PROJECT_SETTINGS_QUERY = """

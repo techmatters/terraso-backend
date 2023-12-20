@@ -18,6 +18,7 @@ from django.db import models, transaction
 
 from apps.core.models.commons import BaseModel
 from apps.project_management.models.projects import Project
+from apps.soil_id import permission_rules
 from apps.soil_id.models.depth_dependent_soil_data import DepthDependentSoilData
 from apps.soil_id.models.depth_interval import BaseDepthInterval
 
@@ -49,6 +50,12 @@ NRCSIntervalDefaults = [
 
 
 class ProjectSoilSettings(BaseModel, DirtyFieldsMixin):
+    class Meta(BaseModel.Meta):
+        abstract = False
+        rules_permissions = {
+            "change_project_depth_interval": permission_rules.allowed_to_change_depth_interval
+        }
+
     project = models.OneToOneField(Project, on_delete=models.CASCADE, related_name="soil_settings")
 
     class MeasurementUnit(models.TextChoices):
@@ -78,6 +85,10 @@ class ProjectSoilSettings(BaseModel, DirtyFieldsMixin):
     soil_limitations_required = models.BooleanField(blank=True, default=False)
     photos_required = models.BooleanField(blank=True, default=False)
     notes_required = models.BooleanField(blank=True, default=False)
+
+    @property
+    def is_custom_preset(self):
+        return self.depth_interval_preset == DepthIntervalPreset.CUSTOM
 
     def save(self, *args, **kwargs):
         dirty_fields = self.get_dirty_fields()

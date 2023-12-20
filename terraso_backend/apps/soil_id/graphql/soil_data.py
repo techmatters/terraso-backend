@@ -452,7 +452,9 @@ class ProjectSoilSettingsUpdateDepthIntervalMutation(BaseWriteMutation):
         project = cls.get_or_throw(Project, "id", project_id)
 
         user = info.context.user
-        if not user.has_perm(Project.get_perm("change"), project):
+        if not user.has_perm(Project.get_perm("change"), project) or not user.has_perm(
+            ProjectSoilSettings.get_perm("change_project_depth_interval"), project.soil_settings
+        ):
             raise cls.not_allowed(MutationTypes.UPDATE)
 
         with transaction.atomic():
