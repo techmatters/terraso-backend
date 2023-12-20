@@ -669,7 +669,7 @@ def test_update_project_soil_settings(client, user, project_manager, project):
     assert payload == new_data
 
 
-@pytest.mark.parametrize("depth_interval_preset", ["LANDPKS", "NRCS"])
+@pytest.mark.parametrize("depth_interval_preset", ["LANDPKS", "NRCS", "CUSTOM"])
 def test_update_project_depth_interval_preset_depth_dependent_data(
     depth_interval_preset, client, project, project_manager, site_with_soil_data
 ):
@@ -684,14 +684,19 @@ def test_update_project_depth_interval_preset_depth_dependent_data(
     assert "errors" not in payload
     intervals = match_json("*..depthIntervals", payload)
     expected_intervals = make_intervals(
-        {"LANDPKS": LandPKSIntervalDefaults, "NRCS": NRCSIntervalDefaults}[depth_interval_preset]
+        {"LANDPKS": LandPKSIntervalDefaults, "NRCS": NRCSIntervalDefaults, "CUSTOM": []}[
+            depth_interval_preset
+        ]
     )
     assert intervals[0] == expected_intervals
     # make sure soil data was handled correctly
     project.refresh_from_db()
     assert project.soil_settings.depth_interval_preset == depth_interval_preset
     site_with_soil_data.refresh_from_db()
-    assert project.soil_settings.depth_intervals.exists()
+    if depth_interval_preset == "CUSTOM":
+        assert not project.soil_settings.depth_intervals.exists()
+    else:
+        assert project.soil_settings.depth_intervals.exists()
     if original_preset == depth_interval_preset:
         assert site_with_soil_data.soil_data.depth_dependent_data.exists()
     else:
