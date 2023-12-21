@@ -5,7 +5,7 @@ platform.
 
 ## Requirements
 
-- Docker: Version 24.0.2
+- Docker: version 24 or better
 
 ## Running locally with Docker
 
