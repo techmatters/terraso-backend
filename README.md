@@ -3,6 +3,10 @@
 Terraso backend is a Django project that powers the backend of the Terraso
 platform.
 
+## Requirements
+
+- Docker: version 24 or better
+
 ## Running locally with Docker
 
 Set up your environment file
