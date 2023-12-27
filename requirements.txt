@@ -25,15 +25,15 @@ attrs==23.1.0 \
     --hash=sha256:1f28b4522cdc2fb4256ac1a020c78acf9cba2c6b461ccd2c126f3aa8e8335d04 \
     --hash=sha256:6279836d581513a26f1bf235f9acd333bc9115683f14f7e8fae46c98fc50e015
     # via fiona
-boto3==1.34.4 \
-    --hash=sha256:1e836fe33da2684db29317911d9958389094ca5098cc253dbaed8e4aa146b153 \
-    --hash=sha256:a866277fc38b121ac5dab0eec38b6ae6e3a59bbf6f67ed9a9822332d9e5e785f
+boto3==1.34.8 \
+    --hash=sha256:9b5136832118c3edd580d92d0529d62300ec8ecced0a0572e985e67b360770e4 \
+    --hash=sha256:d6d254a467f6859f445de9ddb6bcbdd3d688f7e08b8dbe45ddd30367ec113722
     # via
     #   -r requirements/base.in
     #   django-ses
-botocore==1.34.7 \
-    --hash=sha256:85164e924965c850fb02b1edcbef03f61413aff5f0064e660992b8b76c996d0c \
-    --hash=sha256:b145a52b7d1fd4e072bcd692369d4cb77f971651bb0dc2bf38e2b4f9d62973e6
+botocore==1.34.8 \
+    --hash=sha256:02a4026d713a2af1e33a77abd95ef83115efd3ea7bd01a2cffef35fef89acfe1 \
+    --hash=sha256:75bedd4130978a5b6068ef36c1f9e3616f57696b736143c3f19d995cd842007a
     # via
     #   boto3
     #   s3transfer
@@ -296,9 +296,9 @@ django-storages==1.14.2 \
     --hash=sha256:1db759346b52ada6c2efd9f23d8241ecf518813eb31db9e2589207174f58f6ad \
     --hash=sha256:51b36af28cc5813b98d5f3dfe7459af638d84428c8df4a03990c7d74d1bea4e5
     # via -r requirements/base.in
-django-structlog==7.0.0 \
-    --hash=sha256:14c393d35224c1ce5e9d5890a177067afbb9be089bb053e5d3c9b970b071900a \
-    --hash=sha256:64ad349b17089799f96ed2ac3cf44a045105e8e1453e7113485f9e0c6d8af7b8
+django-structlog==7.1.0 \
+    --hash=sha256:2139c94d13b800c5c1088ace438e12ca9bfe88182790f5776c58891e8cecc61c \
+    --hash=sha256:64d81553c97683f7c012744ef5c6dc515b58e2d7a658b7552ecb3879ac46f1a9
     # via -r requirements/base.in
 et-xmlfile==1.1.0 \
     --hash=sha256:8eb9e2bc2f8c97e37a2dc85a09ecdcdec9d8a396530a6d5a33b30b9a92da0c5c \
@@ -363,8 +363,8 @@ jmespath==1.0.1 \
     # via
     #   boto3
     #   botocore
-jwcrypto==1.5.0 \
-    --hash=sha256:2c1dc51cf8e38ddf324795dfe9426dee9dd46caf47f535ccbc18781fba810b8d
+jwcrypto==1.5.1 \
+    --hash=sha256:48bb9bf433777136253579e52b75ffe0f9a4a721d133d01f45a0b91ed5f4f1ae
     # via django-oauth-toolkit
 numpy==1.26.2 \
     --hash=sha256:06fa1ed84aa60ea6ef9f91ba57b5ed963c3729534e6e54055fc151fad0423f0a \
@@ -537,9 +537,9 @@ rules==3.3 \
     --hash=sha256:12c8bbab5f54560e68528fcca7abc0e162c35ac882e3cc0daed40ac49c963070 \
     --hash=sha256:bf7bea8b724b73c36a622714c1b3557620c187a2ee05321a2ac8ab7472dc4464
     # via -r requirements/base.in
-s3transfer==0.9.0 \
-    --hash=sha256:01d4d2c35a016db8cb14f9a4d5e84c1f8c96e7ffc211422555eed45c11fa7eb1 \
-    --hash=sha256:9e1b186ec8bb5907a1e82b51237091889a9973a2bb799a924bcd9f301ff79d3d
+s3transfer==0.10.0 \
+    --hash=sha256:3cdb40f5cfa6966e812209d0994f2a4709b561c88e90cf00c2696d2df4e56b2e \
+    --hash=sha256:d0c8bbf672d5eebbe4e57945e23b972d963f07d82f661cabf678a5c88831595b
     # via boto3
 sentry-sdk[django]==1.39.1 \
     --hash=sha256:320a55cdf9da9097a0bead239c35b7e61f53660ef9878861824fd6d9b2eaf3b5 \
