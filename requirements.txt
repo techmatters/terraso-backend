@@ -31,9 +31,9 @@ boto3==1.34.8 \
     # via
     #   -r requirements/base.in
     #   django-ses
-botocore==1.34.8 \
-    --hash=sha256:02a4026d713a2af1e33a77abd95ef83115efd3ea7bd01a2cffef35fef89acfe1 \
-    --hash=sha256:75bedd4130978a5b6068ef36c1f9e3616f57696b736143c3f19d995cd842007a
+botocore==1.34.11 \
+    --hash=sha256:1ff1398b6ea670e1c01ac67a33af3da854f8e700d3528289c04f319c330d8250 \
+    --hash=sha256:51905c3d623c60df5dc5794387de7caf886d350180a01a3dfa762e903edb45a9
     # via
     #   boto3
     #   s3transfer
