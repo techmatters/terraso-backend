@@ -679,7 +679,7 @@ def test_update_project_soil_settings(client, user, project_manager, project):
     assert response.json()["data"]["updateProjectSoilSettings"]["errors"] is None
     payload = response.json()["data"]["updateProjectSoilSettings"]["projectSoilSettings"]
     intervals = payload.pop("depthIntervals")
-    assert intervals == make_intervals(NRCSIntervalDefaults)
+    assert intervals == []
     new_data.pop("projectId")
     assert payload == new_data
 
@@ -694,24 +694,19 @@ def test_update_project_depth_interval_preset_depth_dependent_data(
         "depthIntervalPreset": depth_interval_preset,
     }
     client.force_login(project_manager)
+    assert site_with_soil_data.soil_data.depth_dependent_data.exists()
     response = graphql_query(UPDATE_PROJECT_SETTINGS_QUERY, input_data=input_data, client=client)
     payload = response.json()
     assert "errors" not in payload
     intervals = match_json("*..depthIntervals", payload)
-    expected_intervals = make_intervals(
-        {"LANDPKS": LandPKSIntervalDefaults, "NRCS": NRCSIntervalDefaults, "CUSTOM": []}[
-            depth_interval_preset
-        ]
-    )
+    expected_intervals = []
     assert intervals[0] == expected_intervals
     # make sure soil data was handled correctly
     project.refresh_from_db()
     assert project.soil_settings.depth_interval_preset == depth_interval_preset
     site_with_soil_data.refresh_from_db()
-    if depth_interval_preset == "CUSTOM":
-        assert not project.soil_settings.depth_intervals.exists()
-    else:
-        assert project.soil_settings.depth_intervals.exists()
+    assert not project.soil_settings.depth_intervals.exists()
+
     if original_preset == depth_interval_preset:
         assert site_with_soil_data.soil_data.depth_dependent_data.exists()
     else:

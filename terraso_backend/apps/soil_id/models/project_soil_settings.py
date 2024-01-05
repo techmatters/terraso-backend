@@ -94,25 +94,15 @@ class ProjectSoilSettings(BaseModel, DirtyFieldsMixin):
         dirty_fields = self.get_dirty_fields()
         with transaction.atomic():
             result = super().save(*args, **kwargs)
-            if "depth_interval_preset" in dirty_fields or not self.id:
-                # delete project intervals...
+            if (
+                "depth_interval_preset" in dirty_fields
+                and dirty_fields.get("depth_interval_preset") != self.depth_interval_preset
+            ):
+                # delete project intervals
                 ProjectDepthInterval.objects.filter(project=self).delete()
                 # delete related soil data
                 DepthDependentSoilData.delete_in_project(self.project.id)
-                # create new intervals
-                self.apply_preset()
         return result
-
-    def apply_preset(self):
-        match self.depth_interval_preset:
-            case DepthIntervalPreset.LANDPKS.value:
-                self.make_intervals(LandPKSIntervalDefaults)
-            case DepthIntervalPreset.NRCS.value:
-                self.make_intervals(NRCSIntervalDefaults)
-
-    def make_intervals(self, presets):
-        intervals = [ProjectDepthInterval(project=self, **kwargs) for kwargs in presets]
-        return ProjectDepthInterval.objects.bulk_create(intervals)
 
 
 class ProjectDepthInterval(BaseModel, BaseDepthInterval):
