@@ -14,6 +14,7 @@
 # along with this program. If not, see https://www.gnu.org/licenses/.
 
 import graphene
+from django.conf import settings
 from graphene import relay
 from graphene_django import DjangoObjectType
 
@@ -39,10 +40,11 @@ class SharedResourceNode(DjangoObjectType):
     id = graphene.ID(source="pk", required=True)
     source = graphene.Field(SourceNode)
     target = graphene.Field(TargetNode)
+    share_url = graphene.String()
 
     class Meta:
         model = SharedResource
-        fields = ["id"]
+        fields = ["id", "share_access"]
         interfaces = (relay.Node,)
         connection_class = TerrasoConnection
 
@@ -51,3 +53,6 @@ class SharedResourceNode(DjangoObjectType):
 
     def resolve_target(self, info, **kwargs):
         return self.target
+
+    def resolve_share_url(self, info, **kwargs):
+        return f"{settings.API_ENDPOINT}/shared-data/download/{self.share_uuid}"

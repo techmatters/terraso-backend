@@ -404,6 +404,8 @@ def test_data_entries_from_parent_query_by_resource_field(
                         name
                       }
                     }
+                    shareUrl
+                    shareAccess
                   }
                 }
               }
@@ -417,10 +419,23 @@ def test_data_entries_from_parent_query_by_resource_field(
     json_response = response.json()
 
     resources = json_response["data"][parent]["edges"][0]["node"]["sharedResources"]["edges"]
-    entries_result = [resource["node"]["source"]["name"] for resource in resources]
+    entries_result = [
+        {
+            "name": resource["node"]["source"]["name"],
+            "share_url": resource["node"]["shareUrl"],
+            "share_access": resource["node"]["shareAccess"],
+        }
+        for resource in resources
+    ]
 
     for data_entry in data_entries:
-        assert data_entry.name in entries_result
+        share_uuid = data_entry.shared_resources.all()[0].share_uuid
+        share_url = f"http://127.0.0.1:8000/shared-data/download/{share_uuid}"
+        assert {
+            "name": data_entry.name,
+            "share_url": share_url,
+            "share_access": data_entry.shared_resources.all()[0].share_access.upper(),
+        } in entries_result
 
 
 @pytest.mark.parametrize(

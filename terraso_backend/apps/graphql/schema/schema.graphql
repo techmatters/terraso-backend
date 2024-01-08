@@ -430,8 +430,22 @@ type SharedResourceNodeEdge {
 
 type SharedResourceNode implements Node {
   id: ID!
+  shareAccess: CoreSharedResourceShareAccessChoices!
   source: SourceNode
   target: TargetNode
+  shareUrl: String
+}
+
+"""An enumeration."""
+enum CoreSharedResourceShareAccessChoices {
+  """No share access"""
+  NO
+
+  """Anyone with the link"""
+  ALL
+
+  """Only tagert members"""
+  TARGET_MEMBERS
 }
 
 union SourceNode = VisualizationConfigNode | DataEntryNode
