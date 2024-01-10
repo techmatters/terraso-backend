@@ -128,6 +128,50 @@ def test_data_entries_filter_by_group_slug_filters_successfuly(
     assert str(data_entry_b.id) in data_entries_result
 
 
+def test_data_entries_filter_by_closed_group_slug_filters_successfuly(
+    client_query, data_entries, groups_closed, users
+):
+    data_entry_a = data_entries[0]
+    data_entry_b = data_entries[1]
+
+    data_entry_a.shared_resources.all().delete()
+    data_entry_b.shared_resources.all().delete()
+
+    data_entry_a.shared_resources.create(target=groups_closed[-1])
+    data_entry_b.shared_resources.create(target=groups_closed[-1])
+
+    group_filter = groups_closed[-1]
+
+    group_filter.membership_list.save_membership(
+        users[0].email, group_collaboration_roles.ROLE_MEMBER, CollaborationMembership.APPROVED
+    )
+
+    shared_resources = data_entry_a.shared_resources.all()
+    print(shared_resources)
+
+    response = client_query(
+        """
+        {dataEntries(sharedResources_Target_Slug: "%s", sharedResources_TargetContentType: "%s") {
+          edges {
+            node {
+              id
+            }
+          }
+        }}
+        """
+        % (group_filter.slug, "group")
+    )
+
+    json_response = response.json()
+
+    edges = json_response["data"]["dataEntries"]["edges"]
+    data_entries_result = [edge["node"]["id"] for edge in edges]
+
+    assert len(data_entries_result) == 2
+    assert str(data_entry_a.id) in data_entries_result
+    assert str(data_entry_b.id) in data_entries_result
+
+
 def test_data_entries_filter_by_group_id_filters_successfuly(
     client_query, data_entries, groups, users
 ):
