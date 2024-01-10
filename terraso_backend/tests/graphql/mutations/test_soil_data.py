@@ -10,6 +10,7 @@ from apps.core.models import User
 from apps.project_management.models.projects import Project
 from apps.project_management.models.sites import Site
 from apps.soil_id.models import (
+    DepthIntervalPreset,
     LandPKSIntervalDefaults,
     NRCSIntervalDefaults,
     ProjectSoilSettings,
@@ -497,7 +498,7 @@ def test_update_project_depth_intervals(client, project_manager, project):
     client.force_login(project_manager)
 
     # make sure there is no overlap by settings depth interval preset
-    project.soil_settings = ProjectSoilSettings(depth_interval_preset="CUSTOM")
+    project.soil_settings = ProjectSoilSettings(depth_interval_preset=DepthIntervalPreset.CUSTOM)
     project.soil_settings.save()
 
     good_interval = {"label": "good", "depthInterval": {"start": 10, "end": 30}}
