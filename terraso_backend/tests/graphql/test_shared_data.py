@@ -292,8 +292,15 @@ def data_entries_by_parent(request, group_data_entries, landscape_data_entries):
 
 
 @pytest.mark.parametrize("data_entries_by_parent", ["groups", "landscapes"], indirect=True)
-def test_data_entries_from_parent_query(client_query, data_entries_by_parent):
+def test_data_entries_from_parent_query(client_query, data_entries_by_parent, users):
     (parent, data_entries) = data_entries_by_parent
+
+    shared_resources = data_entries[0].shared_resources.all()
+    parent_entity = shared_resources[0].target
+    parent_entity.membership_list.save_membership(
+        users[0].email, group_collaboration_roles.ROLE_MEMBER, CollaborationMembership.APPROVED
+    )
+
     response = client_query(
         """
         {%s {
@@ -326,9 +333,64 @@ def test_data_entries_from_parent_query(client_query, data_entries_by_parent):
         assert data_entry.name in entries_result
 
 
+def test_data_entries_empty_from_closed_group_query(client_query, groups_closed, data_entries):
+    group = groups_closed[-1]
+    data_entry_a = data_entries[0]
+    data_entry_b = data_entries[1]
+
+    data_entry_a.shared_resources.all().delete()
+    data_entry_b.shared_resources.all().delete()
+
+    data_entry_a.shared_resources.create(target=group)
+    data_entry_b.shared_resources.create(target=group)
+
+    memberships = group.membership_list.memberships.all()
+
+    print(memberships)
+
+    response = client_query(
+        """
+        {groups(slug: "%s") {
+          edges {
+            node {
+              sharedResources {
+                edges {
+                  node {
+                    source {
+                      ... on DataEntryNode {
+                        name
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }}
+        """
+        % group.slug
+    )
+
+    json_response = response.json()
+
+    sharedResources = json_response["data"]["groups"]["edges"][0]["node"]["sharedResources"][
+        "edges"
+    ]
+    assert sharedResources == []
+
+
 @pytest.mark.parametrize("data_entries_by_parent", ["groups", "landscapes"], indirect=True)
-def test_data_entries_from_parent_query_by_resource_field(client_query, data_entries_by_parent):
+def test_data_entries_from_parent_query_by_resource_field(
+    client_query, data_entries_by_parent, users
+):
     (parent, data_entries) = data_entries_by_parent
+
+    shared_resources = data_entries[0].shared_resources.all()
+    parent_entity = shared_resources[0].target
+    parent_entity.membership_list.save_membership(
+        users[0].email, group_collaboration_roles.ROLE_MEMBER, CollaborationMembership.APPROVED
+    )
+
     response = client_query(
         """
         {%s {
