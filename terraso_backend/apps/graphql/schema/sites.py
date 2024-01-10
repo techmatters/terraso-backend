@@ -24,7 +24,7 @@ from graphene_django.filter import TypedFilter
 from apps.audit_logs import api as audit_log_api
 from apps.project_management.graphql.projects import ProjectNode
 from apps.project_management.models import Project, Site, sites
-from apps.soil_id.models.soil_data import SoilData
+from apps.soil_id.models import SoilData
 
 from .commons import (
     BaseAuthenticatedMutation,
@@ -221,6 +221,8 @@ class SiteUpdateMutation(BaseWriteMutation):
                 continue
             metadata[key] = value
         if project_id:
+            if hasattr(project, "soil_settings"):
+                project.convert_site_intervals_to_preset(sites=[site])
             metadata["project_id"] = str(project.id)
 
         log.log(
@@ -307,6 +309,9 @@ class SiteTransferMutation(BaseWriteMutation):
                 old_projects.append(site.project)
 
         Site.bulk_change_project(to_change, project)
+        # update site depth intervals where necessary
+        if hasattr(project, "soil_settings"):
+            project.soil_settings.convert_site_intervals_to_preset(sites=to_change)
 
         log.log(
             user=user,
