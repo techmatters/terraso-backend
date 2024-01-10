@@ -1086,9 +1086,6 @@ enum SoilIdSoilDataDepthIntervalPresetChoices {
   """Nrcs"""
   NRCS
 
-  """None"""
-  NONE
-
   """Custom"""
   CUSTOM
 }

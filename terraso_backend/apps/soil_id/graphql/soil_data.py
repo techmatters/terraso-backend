@@ -14,8 +14,8 @@ from apps.project_management.models.projects import Project
 from apps.project_management.models.sites import Site
 from apps.soil_id.models.depth_dependent_soil_data import DepthDependentSoilData
 from apps.soil_id.models.project_soil_settings import (
-    LandPKSPresets,
-    NRCSPresets,
+    LandPKSIntervalDefaults,
+    NRCSIntervalDefaults,
     ProjectDepthInterval,
     ProjectSoilSettings,
 )
@@ -452,7 +452,9 @@ class ProjectSoilSettingsUpdateDepthIntervalMutation(BaseWriteMutation):
         project = cls.get_or_throw(Project, "id", project_id)
 
         user = info.context.user
-        if not user.has_perm(Project.get_perm("change"), project):
+        if not user.has_perm(Project.get_perm("change"), project) or not user.has_perm(
+            ProjectSoilSettings.get_perm("change_project_depth_interval"), project.soil_settings
+        ):
             raise cls.not_allowed(MutationTypes.UPDATE)
 
         with transaction.atomic():
@@ -531,9 +533,9 @@ class SoilDataUpdateDepthPresetMutation(BaseAuthenticatedMutation):
         # insert new intervals
         match preset.value:
             case "LANDPKS":
-                preset_values = LandPKSPresets
+                preset_values = LandPKSIntervalDefaults
             case "NRCS":
-                preset_values = NRCSPresets
+                preset_values = NRCSIntervalDefaults
             case "CUSTOM" | "NONE":
                 preset_values = []
 

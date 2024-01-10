@@ -1,4 +1,4 @@
-# Copyright © 2021-2023 Technology Matters
+# Copyright © 2024 Technology Matters
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as published
@@ -13,24 +13,11 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see https://www.gnu.org/licenses/.
 
+import rules
 
-from .depth_dependent_soil_data import DepthDependentSoilData
-from .project_soil_settings import (
-    DepthIntervalPreset,
-    LandPKSIntervalDefaults,
-    NRCSIntervalDefaults,
-    ProjectDepthInterval,
-    ProjectSoilSettings,
-)
-from .soil_data import SoilData, SoilDataDepthInterval
 
-__all__ = [
-    "SoilData",
-    "DepthDependentSoilData",
-    "ProjectSoilSettings",
-    "ProjectDepthInterval",
-    "SoilDataDepthInterval",
-    "LandPKSIntervalDefaults",
-    "NRCSIntervalDefaults",
-    "DepthIntervalPreset",
-]
+@rules.predicate
+def allowed_to_change_depth_interval(user, soil_settings):
+    if not soil_settings:
+        return False
+    return soil_settings.is_custom_preset

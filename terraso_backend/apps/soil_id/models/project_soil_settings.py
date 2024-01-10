@@ -13,10 +13,13 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see https://www.gnu.org/licenses/.
 
-from django.db import models
+from dirtyfields import DirtyFieldsMixin
+from django.db import models, transaction
 
 from apps.core.models.commons import BaseModel
 from apps.project_management.models.projects import Project
+from apps.soil_id import permission_rules
+from apps.soil_id.models.depth_dependent_soil_data import DepthDependentSoilData
 from apps.soil_id.models.depth_interval import BaseDepthInterval
 
 
@@ -27,26 +30,32 @@ class DepthIntervalPreset(models.TextChoices):
     CUSTOM = "CUSTOM"
 
 
-LandPKSPresets = [
-    dict(depth_interval_start=0, depth_interval_end=10, label="0-10 cm"),
-    dict(depth_interval_start=10, depth_interval_end=20, label="10-20 cm"),
-    dict(depth_interval_start=20, depth_interval_end=50, label="20-50 cm"),
-    dict(depth_interval_start=50, depth_interval_end=70, label="50-70 cm"),
-    dict(depth_interval_start=70, depth_interval_end=100, label="70-100 cm"),
-    dict(depth_interval_start=100, depth_interval_end=200, label="100-200 cm"),
+LandPKSIntervalDefaults = [
+    dict(depth_interval_start=0, depth_interval_end=10),
+    dict(depth_interval_start=10, depth_interval_end=20),
+    dict(depth_interval_start=20, depth_interval_end=50),
+    dict(depth_interval_start=50, depth_interval_end=70),
+    dict(depth_interval_start=70, depth_interval_end=100),
+    dict(depth_interval_start=100, depth_interval_end=200),
 ]
 
-NRCSPresets = [
-    dict(depth_interval_start=0, depth_interval_end=5, label="0-5 cm"),
-    dict(depth_interval_start=5, depth_interval_end=15, label="5-15 cm"),
-    dict(depth_interval_start=15, depth_interval_end=30, label="15-30 cm"),
-    dict(depth_interval_start=30, depth_interval_end=60, label="30-60 cm"),
-    dict(depth_interval_start=60, depth_interval_end=100, label="60-100 cm"),
-    dict(depth_interval_start=100, depth_interval_end=200, label="100-200 cm"),
+NRCSIntervalDefaults = [
+    dict(depth_interval_start=0, depth_interval_end=5),
+    dict(depth_interval_start=5, depth_interval_end=15),
+    dict(depth_interval_start=15, depth_interval_end=30),
+    dict(depth_interval_start=30, depth_interval_end=60),
+    dict(depth_interval_start=60, depth_interval_end=100),
+    dict(depth_interval_start=100, depth_interval_end=200),
 ]
 
 
-class ProjectSoilSettings(BaseModel):
+class ProjectSoilSettings(BaseModel, DirtyFieldsMixin):
+    class Meta(BaseModel.Meta):
+        abstract = False
+        rules_permissions = {
+            "change_project_depth_interval": permission_rules.allowed_to_change_depth_interval
+        }
+
     project = models.OneToOneField(Project, on_delete=models.CASCADE, related_name="soil_settings")
 
     class MeasurementUnit(models.TextChoices):
@@ -76,6 +85,24 @@ class ProjectSoilSettings(BaseModel):
     soil_limitations_required = models.BooleanField(blank=True, default=False)
     photos_required = models.BooleanField(blank=True, default=False)
     notes_required = models.BooleanField(blank=True, default=False)
+
+    @property
+    def is_custom_preset(self):
+        return self.depth_interval_preset == DepthIntervalPreset.CUSTOM
+
+    def save(self, *args, **kwargs):
+        dirty_fields = self.get_dirty_fields()
+        with transaction.atomic():
+            result = super().save(*args, **kwargs)
+            if (
+                "depth_interval_preset" in dirty_fields
+                and dirty_fields.get("depth_interval_preset") != self.depth_interval_preset
+            ):
+                # delete project intervals
+                ProjectDepthInterval.objects.filter(project=self).delete()
+                # delete related soil data
+                DepthDependentSoilData.delete_in_project(self.project.id)
+        return result
 
 
 class ProjectDepthInterval(BaseModel, BaseDepthInterval):

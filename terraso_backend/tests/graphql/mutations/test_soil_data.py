@@ -4,12 +4,18 @@ import pytest
 import structlog
 from graphene_django.utils.testing import graphql_query
 from mixer.backend.django import mixer
-from tests.utils import to_snake_case
+from tests.utils import match_json, to_snake_case
 
 from apps.core.models import User
 from apps.project_management.models.projects import Project
 from apps.project_management.models.sites import Site
-from apps.soil_id.models.soil_data import SoilData
+from apps.soil_id.models import (
+    DepthIntervalPreset,
+    LandPKSIntervalDefaults,
+    NRCSIntervalDefaults,
+    ProjectSoilSettings,
+    SoilData,
+)
 
 pytestmark = pytest.mark.django_db
 
@@ -491,6 +497,10 @@ DELETE_PROJECT_DEPTH_INTERVAL_QUERY = """
 def test_update_project_depth_intervals(client, project_manager, project):
     client.force_login(project_manager)
 
+    # make sure there is no overlap by settings depth interval preset
+    project.soil_settings = ProjectSoilSettings(depth_interval_preset=DepthIntervalPreset.CUSTOM)
+    project.soil_settings.save()
+
     good_interval = {"label": "good", "depthInterval": {"start": 10, "end": 30}}
     response = graphql_query(
         UPDATE_PROJECT_DEPTH_INTERVAL_QUERY,
@@ -569,6 +579,21 @@ def test_update_project_depth_intervals(client, project_manager, project):
     ]
 
 
+@pytest.mark.parametrize("preset", ["LANDPKS", "NRCS", "NONE"])
+def test_updating_project_interval_not_allowed_with_preset(
+    preset, client, project, project_manager
+):
+    ProjectSoilSettings.objects.create(project=project, depth_interval_preset=preset)
+    input_data = {"projectId": str(project.id), "depthInterval": {"start": 0, "end": 1}}
+    client.force_login(project_manager)
+    response = graphql_query(
+        UPDATE_PROJECT_DEPTH_INTERVAL_QUERY, input_data=input_data, client=client
+    ).json()
+    errors = match_json("*..errors[0]", response)
+    assert errors
+    assert "update_not_allowed" in errors[0]["message"]
+
+
 UPDATE_PROJECT_SETTINGS_QUERY = """
     mutation ProjectSettingsDeleteMutation(
         $input: ProjectSoilSettingsUpdateMutationInput!
@@ -592,11 +617,28 @@ UPDATE_PROJECT_SETTINGS_QUERY = """
                 soilLimitationsRequired
                 photosRequired
                 notesRequired
+                depthIntervals {
+                    depthInterval {
+                        start
+                        end
+                    }
+                }
             }
             errors
         }
     }
 """
+
+
+def make_intervals(defs):
+    return [
+        dict(
+            depthInterval=dict(
+                start=interval["depth_interval_start"], end=interval["depth_interval_end"]
+            )
+        )
+        for interval in defs
+    ]
 
 
 def test_update_project_soil_settings(client, user, project_manager, project):
@@ -637,15 +679,45 @@ def test_update_project_soil_settings(client, user, project_manager, project):
     )
     assert response.json()["data"]["updateProjectSoilSettings"]["errors"] is None
     payload = response.json()["data"]["updateProjectSoilSettings"]["projectSoilSettings"]
+    intervals = payload.pop("depthIntervals")
+    assert intervals == []
     new_data.pop("projectId")
     assert payload == new_data
+
+
+@pytest.mark.parametrize("depth_interval_preset", ["LANDPKS", "NRCS", "CUSTOM"])
+def test_update_project_depth_interval_preset_depth_dependent_data(
+    depth_interval_preset, client, project, project_manager, site_with_soil_data
+):
+    original_preset = project.soil_settings.depth_interval_preset
+    input_data = {
+        "projectId": str(project.id),
+        "depthIntervalPreset": depth_interval_preset,
+    }
+    client.force_login(project_manager)
+    assert site_with_soil_data.soil_data.depth_dependent_data.exists()
+    response = graphql_query(UPDATE_PROJECT_SETTINGS_QUERY, input_data=input_data, client=client)
+    payload = response.json()
+    assert "errors" not in payload
+    intervals = match_json("*..depthIntervals", payload)
+    expected_intervals = []
+    assert intervals[0] == expected_intervals
+    # make sure soil data was handled correctly
+    project.refresh_from_db()
+    assert project.soil_settings.depth_interval_preset == depth_interval_preset
+    site_with_soil_data.refresh_from_db()
+    assert not project.soil_settings.depth_intervals.exists()
+
+    if original_preset == depth_interval_preset:
+        assert site_with_soil_data.soil_data.depth_dependent_data.exists()
+    else:
+        assert not site_with_soil_data.soil_data.depth_dependent_data.exists()
 
 
 UPDATE_SOIL_DEPTH_PRESET_GRAPHQL = """
 mutation updateSoilPreset($input: SoilDataUpdateDepthPresetMutationInput!) {
   updateSoilDataDepthPreset(input: $input) {
     intervals {
-      label
       depthInterval {
         start
         end
@@ -675,43 +747,11 @@ def permissions_data(request):
     return allowed, user, site
 
 
-def make_intervals(definition):
-    return {
-        "intervals": [
-            dict(label=label, depthInterval=dict(start=start, end=end))
-            for start, end, label in definition
-        ]
-    }
-
-
-LandPKSIntervalDefaults = make_intervals(
-    [
-        (0, 10, "0-10 cm"),
-        (10, 20, "10-20 cm"),
-        (20, 50, "20-50 cm"),
-        (50, 70, "50-70 cm"),
-        (70, 100, "70-100 cm"),
-        (100, 200, "100-200 cm"),
-    ]
-)
-
-NRCSIntervalDefaults = make_intervals(
-    [
-        (0, 5, "0-5 cm"),
-        (5, 15, "5-15 cm"),
-        (15, 30, "15-30 cm"),
-        (30, 60, "30-60 cm"),
-        (60, 100, "60-100 cm"),
-        (100, 200, "100-200 cm"),
-    ]
-)
-
-
 @pytest.mark.parametrize(
     "preset,expected",
     [
-        ("LANDPKS", LandPKSIntervalDefaults),
-        ("NRCS", NRCSIntervalDefaults),
+        ("LANDPKS", {"intervals": make_intervals(LandPKSIntervalDefaults)}),
+        ("NRCS", {"intervals": make_intervals(NRCSIntervalDefaults)}),
         ("CUSTOM", {"intervals": []}),
     ],
 )
