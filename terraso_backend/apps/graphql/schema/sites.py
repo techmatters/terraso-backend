@@ -134,6 +134,12 @@ class SiteAddMutation(BaseWriteMutation):
         if result.errors:
             return result
 
+        if adding_to_project:
+            if hasattr(project, "soil_settings"):
+                project.soil_settings.convert_site_intervals_to_preset(
+                    new_preset=None, sites=[result.site]
+                )
+
         site = result.site
         site.mark_seen_by(user)
         metadata = {

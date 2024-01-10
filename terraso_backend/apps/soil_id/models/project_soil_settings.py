@@ -12,15 +12,17 @@
 #
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see https://www.gnu.org/licenses/.
+from typing import Optional
 
 from dirtyfields import DirtyFieldsMixin
 from django.db import models, transaction
 
 from apps.core.models.commons import BaseModel
-from apps.project_management.models.projects import Project
+from apps.project_management.models import Project, Site
 from apps.soil_id import permission_rules
 from apps.soil_id.models.depth_dependent_soil_data import DepthDependentSoilData
 from apps.soil_id.models.depth_interval import BaseDepthInterval
+from apps.soil_id.models.soil_data import SoilDataDepthInterval
 
 
 class DepthIntervalPreset(models.TextChoices):
@@ -90,19 +92,60 @@ class ProjectSoilSettings(BaseModel, DirtyFieldsMixin):
     def is_custom_preset(self):
         return self.depth_interval_preset == DepthIntervalPreset.CUSTOM
 
+    @property
+    def methods(self):
+        field_names = [
+            field.name.removesuffix("_enabled")
+            for field in SoilDataDepthInterval._meta.fields
+            if field.name.endswith("_enabled")
+        ]
+        return {
+            field_name + "_enabled": getattr(self, field_name + "_required")
+            for field_name in field_names
+        }
+
     def save(self, *args, **kwargs):
         dirty_fields = self.get_dirty_fields()
         with transaction.atomic():
             result = super().save(*args, **kwargs)
             if (
                 "depth_interval_preset" in dirty_fields
-                and dirty_fields.get("depth_interval_preset") != self.depth_interval_preset
+                and (new_preset := dirty_fields.get("depth_interval_preset"))
+                != self.depth_interval_preset
             ):
                 # delete project intervals
                 ProjectDepthInterval.objects.filter(project=self).delete()
                 # delete related soil data
                 DepthDependentSoilData.delete_in_project(self.project.id)
+                # create site intervals
+                self.convert_site_intervals_to_preset(new_preset)
         return result
+
+    def convert_site_intervals_to_preset(
+        self, new_preset: Optional[DepthIntervalPreset] = None, sites: Optional[list[Site]] = None
+    ):
+        if not sites:
+            sites = Site.objects.filter(project=self.project, soil_data__isnull=False)
+        intervals = SoilDataDepthInterval.objects.filter(soil_data__site__in=sites)
+
+        intervals.delete()
+        # create new site intervals
+        options = {
+            DepthIntervalPreset.LANDPKS: LandPKSIntervalDefaults,
+            DepthIntervalPreset.NRCS: NRCSIntervalDefaults,
+        }
+        interval_bounds = options.get(new_preset)
+        if interval_bounds:
+            intervals = []
+            for site in sites:
+                if not hasattr(site, "soil_data"):
+                    # Not going to create an interval if soil_data doesn't exist
+                    continue
+                interval_objects = [
+                    SoilDataDepthInterval(soil_data=site.soil_data, **interval, **self.methods)
+                    for interval in interval_bounds
+                ]
+            return SoilDataDepthInterval.objects.bulk_create(interval_objects)
 
 
 class ProjectDepthInterval(BaseModel, BaseDepthInterval):
