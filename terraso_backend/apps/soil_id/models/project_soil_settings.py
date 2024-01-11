@@ -134,7 +134,8 @@ class ProjectSoilSettings(BaseModel, DirtyFieldsMixin):
             DepthIntervalPreset.LANDPKS: LandPKSIntervalDefaults,
             DepthIntervalPreset.NRCS: NRCSIntervalDefaults,
         }
-        interval_bounds = options.get(new_preset)
+        preset = new_preset or self.depth_interval_preset
+        interval_bounds = options.get(preset)
         if interval_bounds:
             intervals = []
             for site in sites:

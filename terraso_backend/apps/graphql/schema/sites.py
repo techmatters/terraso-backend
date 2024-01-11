@@ -222,8 +222,8 @@ class SiteUpdateMutation(BaseWriteMutation):
             metadata[key] = value
         if project_id:
             if hasattr(project, "soil_settings"):
-                project.convert_site_intervals_to_preset(sites=[site])
-            metadata["project_id"] = str(project.id)
+                project.soil_settings.convert_site_intervals_to_preset(sites=[site])
+                metadata["project_id"] = str(project.id)
 
         log.log(
             user=user,

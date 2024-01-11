@@ -18,12 +18,13 @@ import pytest
 import structlog
 from graphene_django.utils.testing import graphql_query
 from mixer.backend.django import mixer
-from tests.utils import match_json
+from tests.utils import match_json, site_intervals_matches_project_preset
 
 from apps.audit_logs.api import CHANGE, CREATE, DELETE
 from apps.audit_logs.models import Log
 from apps.core.models import User
 from apps.project_management.models import Project, Site
+from apps.soil_id.models import DepthIntervalPreset
 
 pytestmark = pytest.mark.django_db
 
@@ -106,12 +107,17 @@ UPDATE_SITE_QUERY = """
 """
 
 
-def test_update_site_in_project(client, project, project_manager, site):
+@pytest.mark.parametrize("site_with_soil_data_or_not", [False, True], indirect=True)
+def test_update_site_in_project(client, project, project_manager, site_with_soil_data_or_not):
     original_project = mixer.blend(Project)
     original_project.add_manager(project_manager)
+    has_soil_data, site = site_with_soil_data_or_not
     site.add_to_project(project)
 
     client.force_login(project_manager)
+    if has_soil_data:
+        project.soil_settings.depth_interval_preset = DepthIntervalPreset.NRCS
+        project.save()
     response = graphql_query(
         UPDATE_SITE_QUERY,
         variables={
@@ -136,6 +142,10 @@ def test_update_site_in_project(client, project, project_manager, site):
     assert log_result.event == CHANGE.value
     assert log_result.resource_object == site
     assert log_result.metadata["project_id"] == str(project.id)
+
+    if has_soil_data:
+        # test that the soil intervals match the new project's preset
+        assert site_intervals_matches_project_preset(site)
 
 
 def test_adding_site_to_project_user_not_manager(client, project, site, project_user):

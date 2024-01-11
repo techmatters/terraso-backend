@@ -150,3 +150,19 @@ def site_with_soil_data(request, project_manager: User, project: Project, projec
             depth_interval_end=interval["depth_interval_end"],
         )
     return project_site
+
+
+@pytest.fixture
+def site_with_soil_data_or_not(request, project_site, site_with_soil_data):
+    """This fixture is for indirect parametrization, when we want to test with both a
+    site that has soil data, and one that does not.
+
+    Usage:
+
+    @pytest.mark.parametrize("site_with_soil_data_or_not", [False, True], indirect=True)
+    def test_sites(site_with_soil_data_or_not):
+        ...
+    """
+    if not request:
+        return (False, project_site)
+    return (True, site_with_soil_data)
