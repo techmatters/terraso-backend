@@ -18,7 +18,11 @@ import pytest
 import structlog
 from graphene_django.utils.testing import graphql_query
 from mixer.backend.django import mixer
-from tests.utils import match_json, site_intervals_matches_project_preset
+from tests.utils import (
+    add_soil_data_to_site,
+    match_json,
+    site_intervals_match_project_preset,
+)
 
 from apps.audit_logs.api import CHANGE, CREATE, DELETE
 from apps.audit_logs.models import Log
@@ -97,7 +101,7 @@ def test_site_creation_in_project(client, project_user_w_role, project):
     assert log_result.metadata["latitude"] == expected_metadata["latitude"]
     assert log_result.metadata["longitude"] == expected_metadata["longitude"]
 
-    assert site_intervals_matches_project_preset(site)
+    assert site_intervals_match_project_preset(site)
 
 
 UPDATE_SITE_QUERY = """
@@ -154,7 +158,7 @@ def test_update_site_in_project(client, project, project_manager, site_with_soil
 
     if has_soil_data:
         # test that the soil intervals match the new project's preset
-        assert site_intervals_matches_project_preset(site)
+        assert site_intervals_match_project_preset(site)
 
 
 def test_adding_site_to_project_user_not_manager(client, project, site, project_user):
@@ -340,7 +344,14 @@ def test_delete_linked_site(client, linked_site, project_manager):
 
 
 @pytest.mark.parametrize("linked_site", ["linked", "manager"], indirect=True)
-def test_site_transfer_success(linked_site, client, project, project_manager):
+@pytest.mark.parametrize("has_project_data", [True, False])
+def test_site_transfer_success(linked_site, has_project_data, client, project, project_manager):
+    if has_project_data:
+        ProjectSoilSettings.objects.create(
+            project=project, depth_interval_preset=DepthIntervalPreset.NRCS
+        )
+        if getattr(linked_site, "project", None):
+            add_soil_data_to_site(linked_site, preset=DepthIntervalPreset.LANDPKS)
     input_data = {"siteIds": [str(linked_site.id)], "projectId": str(project.id)}
     client.force_login(project_manager)
     old_projects = [str(linked_site.project.id)] if linked_site.project else []
@@ -360,6 +371,9 @@ def test_site_transfer_success(linked_site, client, project, project_manager):
     assert log_result.resource_object == project
     assert log_result.metadata["project_id"] == str(project.id)
     assert log_result.metadata["transfered_sites"] == [str(linked_site.id)]
+
+    if has_project_data and getattr(linked_site, "project", None):
+        assert site_intervals_match_project_preset(linked_site)
 
 
 def test_site_transfer_unlinked_site_user_contributor_success(client, user, site, project):

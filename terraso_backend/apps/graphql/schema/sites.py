@@ -233,7 +233,6 @@ class SiteUpdateMutation(BaseWriteMutation):
             if hasattr(site, "soil_data"):
                 # Delete existing intervals if removed from project
                 site.soil_data.remove_from_project()
-                # pass
 
         log.log(
             user=user,
