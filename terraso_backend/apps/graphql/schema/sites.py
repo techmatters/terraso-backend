@@ -190,6 +190,7 @@ class SiteUpdateMutation(BaseWriteMutation):
         project_id = graphene.ID()
 
     @classmethod
+    @transaction.atomic
     def mutate_and_get_payload(cls, root, info, **kwargs):
         log = cls.get_logger()
         user = info.context.user
@@ -224,9 +225,15 @@ class SiteUpdateMutation(BaseWriteMutation):
                 continue
             metadata[key] = value
         if project_id:
-            if hasattr(project, "soil_settings"):
-                project.soil_settings.convert_site_intervals_to_preset(sites=[site])
+            if hasattr(project, "soil_settings") and hasattr(site, "soil_data"):
+                if project_id is not None:
+                    project.soil_settings.convert_site_intervals_to_preset(sites=[site])
                 metadata["project_id"] = str(project.id)
+        else:
+            if hasattr(site, "soil_data"):
+                # Delete existing intervals if removed from project
+                site.soil_data.remove_from_project()
+                # pass
 
         log.log(
             user=user,

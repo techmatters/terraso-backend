@@ -141,7 +141,7 @@ def project_user_w_role(request, project: Project):
 
 @pytest.fixture
 def site_with_soil_data(request, project_manager: User, project: Project, project_site: Site):
-    ProjectSoilSettings.objects.create(project=project)
+    project_soil_settings = ProjectSoilSettings.objects.create(project=project)
     SoilData.objects.create(site=project_site)
     for interval in LandPKSIntervalDefaults:
         DepthDependentSoilData.objects.create(
@@ -149,6 +149,9 @@ def site_with_soil_data(request, project_manager: User, project: Project, projec
             depth_interval_start=interval["depth_interval_start"],
             depth_interval_end=interval["depth_interval_end"],
         )
+    project_soil_settings.convert_site_intervals_to_preset(
+        new_preset=project_soil_settings.depth_interval_preset, sites=[project_site]
+    )
     return project_site
 
 

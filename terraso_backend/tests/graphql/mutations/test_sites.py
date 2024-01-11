@@ -24,7 +24,11 @@ from apps.audit_logs.api import CHANGE, CREATE, DELETE
 from apps.audit_logs.models import Log
 from apps.core.models import User
 from apps.project_management.models import Project, Site
-from apps.soil_id.models import DepthIntervalPreset, ProjectSoilSettings
+from apps.soil_id.models import (
+    DepthIntervalPreset,
+    ProjectSoilSettings,
+    SoilDataDepthInterval,
+)
 
 pytestmark = pytest.mark.django_db
 
@@ -186,7 +190,11 @@ def test_adding_site_owned_by_user_to_project(client, project, site, project_man
     assert site.owned_by(project)
 
 
-def test_removing_site_from_project(client, project, project_site, project_manager):
+@pytest.mark.parametrize("site_with_soil_data_or_not", [False, True], indirect=True)
+def test_removing_site_from_project(site_with_soil_data_or_not, client, project, project_manager):
+    has_soil_data, project_site = site_with_soil_data_or_not
+    if has_soil_data:
+        assert SoilDataDepthInterval.objects.filter(soil_data=project_site.soil_data).exists()
     client.force_login(project_manager)
     response = graphql_query(
         UPDATE_SITE_QUERY, input_data={"id": str(project_site.id), "projectId": None}, client=client
@@ -195,6 +203,8 @@ def test_removing_site_from_project(client, project, project_site, project_manag
     assert match_json("*..site.project", response) == [None]
     project_site.refresh_from_db()
     assert project_site.owner == project_manager
+    if has_soil_data:
+        assert not SoilDataDepthInterval.objects.filter(soil_data=project_site.soil_data).exists()
 
 
 def test_not_providing_project_id_does_not_change_project(
