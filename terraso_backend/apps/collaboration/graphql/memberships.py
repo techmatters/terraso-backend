@@ -86,6 +86,20 @@ class MembershipListNodeMixin:
             return 0
         return self.memberships.approved_only().count()
 
+    def resolve_memberships(self, info, **args):
+        if self.membership_type == MembershipList.MEMBERSHIP_TYPE_OPEN:
+            return self.memberships
+        if hasattr(self, "account_memberships"):
+            if len(self.account_memberships):
+                return self.memberships
+            return self.memberships.none()
+        user = info.context.user
+        is_member = self.is_member(user)
+
+        if not is_member:
+            return self.memberships.none()
+        return self.memberships
+
 
 class CollaborationMembershipListNode(MembershipListNodeMixin, DjangoObjectType):
     class Meta(MembershipListNodeMixin.Meta):

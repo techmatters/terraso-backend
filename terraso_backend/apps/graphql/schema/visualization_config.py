@@ -112,12 +112,14 @@ class VisualizationConfigNode(DjangoObjectType):
 
         user_groups_ids = Subquery(
             Group.objects.filter(
+                membership_list__memberships__deleted_at__isnull=True,
                 membership_list__memberships__user__id=user_pk,
                 membership_list__memberships__membership_status=CollaborationMembership.APPROVED,
             ).values("id")
         )
         user_landscape_ids = Subquery(
             Landscape.objects.filter(
+                membership_list__memberships__deleted_at__isnull=True,
                 membership_list__memberships__user__id=user_pk,
                 membership_list__memberships__membership_status=CollaborationMembership.APPROVED,
             ).values("id")
