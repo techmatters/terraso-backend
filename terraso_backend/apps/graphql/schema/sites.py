@@ -108,9 +108,10 @@ class SiteAddMutation(BaseWriteMutation):
         longitude = graphene.Float(required=True)
         privacy = SiteNode.privacy_enum()
         project_id = graphene.ID()
+        create_soil_data = graphene.Boolean()
 
     @classmethod
-    def mutate_and_get_payload(cls, root, info, **kwargs):
+    def mutate_and_get_payload(cls, root, info, create_soil_data=True, **kwargs):
         log = cls.get_logger()
         user = info.context.user
 
@@ -134,11 +135,13 @@ class SiteAddMutation(BaseWriteMutation):
         if result.errors:
             return result
 
-        if adding_to_project:
-            if hasattr(project, "soil_settings"):
-                project.soil_settings.convert_site_intervals_to_preset(
-                    new_preset=None, sites=[result.site]
-                )
+        if create_soil_data:
+            SoilData.objects.create(site=result.site)
+            if adding_to_project:
+                if hasattr(project, "soil_settings"):
+                    project.soil_settings.convert_site_intervals_to_preset(
+                        new_preset=None, sites=[result.site]
+                    )
 
         site = result.site
         site.mark_seen_by(user)

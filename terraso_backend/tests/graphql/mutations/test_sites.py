@@ -24,7 +24,7 @@ from apps.audit_logs.api import CHANGE, CREATE, DELETE
 from apps.audit_logs.models import Log
 from apps.core.models import User
 from apps.project_management.models import Project, Site
-from apps.soil_id.models import DepthIntervalPreset
+from apps.soil_id.models import DepthIntervalPreset, ProjectSoilSettings
 
 pytestmark = pytest.mark.django_db
 
@@ -71,6 +71,9 @@ def test_site_creation(client_query, user):
 
 @pytest.mark.parametrize("project_user_w_role", ["manager", "contributor"], indirect=True)
 def test_site_creation_in_project(client, project_user_w_role, project):
+    project.soil_settings = ProjectSoilSettings()
+    project.soil_settings.depth_interval_preset = DepthIntervalPreset.LANDPKS
+    project.soil_settings.save()
     kwargs = site_creation_keywords()
     kwargs["projectId"] = str(project.id)
     client.force_login(project_user_w_role)
@@ -89,6 +92,8 @@ def test_site_creation_in_project(client, project_user_w_role, project):
     assert log_result.metadata["name"] == expected_metadata["name"]
     assert log_result.metadata["latitude"] == expected_metadata["latitude"]
     assert log_result.metadata["longitude"] == expected_metadata["longitude"]
+
+    assert site_intervals_matches_project_preset(site)
 
 
 UPDATE_SITE_QUERY = """

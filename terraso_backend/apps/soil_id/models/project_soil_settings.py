@@ -146,7 +146,8 @@ class ProjectSoilSettings(BaseModel, DirtyFieldsMixin):
                     SoilDataDepthInterval(soil_data=site.soil_data, **interval, **self.methods)
                     for interval in interval_bounds
                 ]
-            return SoilDataDepthInterval.objects.bulk_create(interval_objects)
+                intervals.extend(interval_objects)
+            return SoilDataDepthInterval.objects.bulk_create(intervals)
 
 
 class ProjectDepthInterval(BaseModel, BaseDepthInterval):

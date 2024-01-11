@@ -2033,6 +2033,7 @@ input SiteAddMutationInput {
   longitude: Float!
   privacy: ProjectManagementSitePrivacyChoices
   projectId: ID
+  createSoilData: Boolean
   clientMutationId: String
 }
 
