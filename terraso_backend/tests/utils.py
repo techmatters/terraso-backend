@@ -29,7 +29,7 @@ def site_intervals_match_project_preset(site):
         or not hasattr(site, "project")
         or not hasattr(site.project, "soil_settings")
     ):
-        return (False, "Missing soil id")
+        assert False, "Missing soil id"
     match site.project.soil_settings.depth_interval_preset:
         case DepthIntervalPreset.LANDPKS:
             intervals = LandPKSIntervalDefaults
