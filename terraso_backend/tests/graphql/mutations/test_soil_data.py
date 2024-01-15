@@ -15,6 +15,7 @@ from apps.soil_id.models import (
     NRCSIntervalDefaults,
     ProjectSoilSettings,
     SoilData,
+    SoilDataDepthInterval,
 )
 
 pytestmark = pytest.mark.django_db
@@ -278,6 +279,40 @@ def test_update_soil_data_depth_interval_update_all(
                 continue
             interval_val = getattr(interval, key)
             assert interval_val == value
+
+
+def test_update_soil_data_depth_interval_new_bounds(client, project_manager, project_site):
+    # create existing depth interval
+    soil_data = mixer.blend(SoilData, site=project_site)
+    original_start = 1
+    original_end = 10
+    new_start = original_start + 1
+    new_end = original_end - 1
+    interval = mixer.blend(
+        SoilDataDepthInterval,
+        soil_data=soil_data,
+        depth_interval_start=original_start,
+        depth_interval_end=original_end,
+    )
+    # now try and update the bounds
+    client.force_login(project_manager)
+    response = graphql_query(
+        UPDATE_SOIL_DATA_DEPTH_INTERVAL_QUERY,
+        input_data={
+            "siteId": str(project_site.id),
+            "depthInterval": {"start": original_start, "end": original_end},
+            "newDepthInterval": {"start": new_start, "end": new_end},
+        },
+        client=client,
+    ).json()
+    # check response
+    assert match_json("*..errors", response) == [None]
+    new_interval = match_json("*..depthInterval", response)[0]
+    assert new_interval["start"] == new_start
+    assert new_interval["end"] == new_end
+    interval.refresh_from_db()
+    assert interval.depth_interval_start == new_start
+    assert interval.depth_interval_end == new_end
 
 
 UPDATE_DEPTH_DEPENDENT_QUERY = """

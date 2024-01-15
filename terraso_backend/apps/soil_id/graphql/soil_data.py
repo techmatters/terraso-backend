@@ -235,11 +235,20 @@ class SoilDataUpdateDepthIntervalMutation(BaseWriteMutation):
         sodium_adsorption_ratio_enabled = graphene.Boolean()
         soil_structure_enabled = graphene.Boolean()
 
+        new_depth_interval = graphene.Field(DepthIntervalInput)
+
         apply_to_all = graphene.Boolean()
 
     @classmethod
     def mutate_and_get_payload(
-        cls, root, info, site_id, depth_interval, apply_to_all=False, **kwargs
+        cls,
+        root,
+        info,
+        site_id,
+        depth_interval,
+        new_depth_interval=None,
+        apply_to_all=False,
+        **kwargs,
     ):
         site = cls.get_or_throw(Site, "id", site_id)
 
@@ -257,6 +266,10 @@ class SoilDataUpdateDepthIntervalMutation(BaseWriteMutation):
                 depth_interval_end=depth_interval["end"],
             )
 
+            if new_depth_interval:
+                kwargs["depth_interval_start"] = new_depth_interval["start"]
+                kwargs["depth_interval_end"] = new_depth_interval["end"]
+
             result = super().mutate_and_get_payload(
                 root, info, result_instance=site.soil_data, **kwargs
             )
@@ -265,8 +278,13 @@ class SoilDataUpdateDepthIntervalMutation(BaseWriteMutation):
                 intervals = site.soil_data.depth_intervals.exclude(
                     id=kwargs["model_instance"].id
                 ).all()
-                kwargs.pop("model_instance")
-                kwargs.pop("label")  # label shouldn't be applied to other intervals
+                for key in [
+                    "model_instance",
+                    "label",
+                    "depth_interval_start",
+                    "depth_interval_end",
+                ]:
+                    kwargs.pop(key, None)
                 for interval in intervals:
                     for key, value in kwargs.items():
                         setattr(interval, key, value)
