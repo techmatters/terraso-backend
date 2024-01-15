@@ -31,6 +31,7 @@ from apps.project_management.models import Project, Site
 from apps.soil_id.models import (
     DepthIntervalPreset,
     ProjectSoilSettings,
+    SoilData,
     SoilDataDepthInterval,
 )
 
@@ -350,6 +351,7 @@ def test_site_transfer_success(linked_site, has_project_data, client, project, p
         ProjectSoilSettings.objects.create(
             project=project, depth_interval_preset=DepthIntervalPreset.NRCS
         )
+        SoilData.objects.create(site=linked_site)
         if getattr(linked_site, "project", None):
             add_soil_data_to_site(linked_site, preset=DepthIntervalPreset.LANDPKS)
     input_data = {"siteIds": [str(linked_site.id)], "projectId": str(project.id)}

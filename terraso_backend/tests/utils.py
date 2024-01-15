@@ -56,7 +56,8 @@ def add_soil_data_to_site(site, preset=DepthIntervalPreset.LANDPKS):
     project_soil_settings = ProjectSoilSettings.objects.create(
         project=site.project, depth_interval_preset=preset
     )
-    SoilData.objects.create(site=site)
+    if not getattr(site, "soil_data", None):
+        SoilData.objects.create(site=site)
     for interval in LandPKSIntervalDefaults:
         DepthDependentSoilData.objects.create(
             soil_data=site.soil_data,
