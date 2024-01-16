@@ -21,6 +21,14 @@ from django.conf import settings
 from django.db import migrations, models
 
 
+def fill_shared_uuid(apps, schema_editor):
+    SharedResource = apps.get_model("core", "SharedResource")
+    shared_resources = SharedResource.objects.all()
+    for shared_resource in shared_resources:
+        shared_resource.share_uuid = uuid.uuid4()
+    SharedResource.objects.bulk_update(shared_resources, ["share_uuid"])
+
+
 class Migration(migrations.Migration):
     dependencies = [
         ("core", "0048_group_membership_list"),
@@ -46,6 +54,7 @@ class Migration(migrations.Migration):
             field=models.UUIDField(default=uuid.uuid4),
             preserve_default=False,
         ),
+        migrations.RunPython(fill_shared_uuid),
         migrations.AddConstraint(
             model_name="sharedresource",
             constraint=models.UniqueConstraint(
