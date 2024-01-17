@@ -110,15 +110,14 @@ class ProjectSoilSettings(BaseModel, DirtyFieldsMixin):
             result = super().save(*args, **kwargs)
             if (
                 "depth_interval_preset" in dirty_fields
-                and (new_preset := dirty_fields.get("depth_interval_preset"))
-                != self.depth_interval_preset
+                and dirty_fields.get("depth_interval_preset") != self.depth_interval_preset
             ):
                 # delete project intervals
                 ProjectDepthInterval.objects.filter(project=self).delete()
                 # delete related soil data
                 DepthDependentSoilData.delete_in_project(self.project.id)
                 # create site intervals
-                self.convert_site_intervals_to_preset(new_preset)
+                self.convert_site_intervals_to_preset()
         return result
 
     def convert_site_intervals_to_preset(
