@@ -485,9 +485,24 @@ class ProjectSoilSettingsUpdateDepthIntervalMutation(BaseWriteMutation):
                 depth_interval_end=depth_interval["end"],
             )
 
-            return super().mutate_and_get_payload(
+            result = super().mutate_and_get_payload(
                 root, info, result_instance=project.soil_settings, **kwargs
             )
+
+            # create respective site-level depth intervals
+            site_intervals = [
+                SoilDataDepthInterval(
+                    depth_interval_start=depth_interval["start"],
+                    depth_interval_end=depth_interval["end"],
+                    label=kwargs.get("label"),
+                    soil_data=soil_data,
+                )
+                for soil_data in SoilData.objects.filter(site__project=project)
+            ]
+
+            SoilDataDepthInterval.objects.bulk_create(site_intervals)
+
+            return result
 
 
 class ProjectSoilSettingsDeleteDepthIntervalMutation(BaseAuthenticatedMutation):
@@ -509,14 +524,22 @@ class ProjectSoilSettingsDeleteDepthIntervalMutation(BaseAuthenticatedMutation):
             cls.not_found()
 
         try:
-            depth_interval = project.soil_settings.depth_intervals.get(
+            project_depth_interval = project.soil_settings.depth_intervals.get(
                 depth_interval_start=depth_interval["start"],
                 depth_interval_end=depth_interval["end"],
             )
         except ProjectDepthInterval.DoesNotExist:
             cls.not_found()
 
-        depth_interval.delete()
+        project_depth_interval.delete()
+
+        # need to delete site level intervals as well
+        SoilDataDepthInterval.objects.filter(
+            depth_interval_start=depth_interval["start"],
+            depth_interval_end=depth_interval["end"],
+            soil_data__site__project=project,
+        ).delete()
+
         return ProjectSoilSettingsDeleteDepthIntervalMutation(
             project_soil_settings=project.soil_settings
         )
@@ -541,6 +564,13 @@ class SoilDataUpdateDepthPresetMutation(BaseAuthenticatedMutation):
             site.soil_data = SoilData()
 
         existing_intervals = SoilDataDepthInterval.objects.filter(soil_data=site.soil_data)
+
+        if (
+            getattr(site, "project", None)
+            and getattr(site.project, "soil_settings", None)
+            and site.project.soil_settings.depth_interval_preset != "NONE"
+        ):
+            raise cls.not_allowed(MutationTypes.UPDATE)
 
         if site.soil_data.depth_interval_preset == preset.value:
             return cls(site=site, intervals=existing_intervals)

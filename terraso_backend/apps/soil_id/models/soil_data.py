@@ -234,7 +234,9 @@ class SoilDataDepthInterval(BaseModel, BaseDepthInterval):
 
     def clean(self):
         super().clean()
-        BaseDepthInterval.validate_intervals(list(self.soil_data.depth_intervals.all()))
+        BaseDepthInterval.validate_intervals(
+            list(self.soil_data.depth_intervals.exclude(id=self.id).all())
+        )
 
     soil_texture_enabled = models.BooleanField(blank=True, default=False)
     soil_color_enabled = models.BooleanField(blank=True, default=False)
