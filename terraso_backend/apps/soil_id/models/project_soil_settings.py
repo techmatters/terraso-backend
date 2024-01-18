@@ -12,13 +12,11 @@
 #
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see https://www.gnu.org/licenses/.
-from typing import Optional
-
 from dirtyfields import DirtyFieldsMixin
 from django.db import models, transaction
 
 from apps.core.models.commons import BaseModel
-from apps.project_management.models import Project, Site
+from apps.project_management.models import Project
 from apps.soil_id import permission_rules
 from apps.soil_id.models.depth_dependent_soil_data import DepthDependentSoilData
 from apps.soil_id.models.depth_interval import BaseDepthInterval
@@ -112,41 +110,9 @@ class ProjectSoilSettings(BaseModel, DirtyFieldsMixin):
                 "depth_interval_preset" in dirty_fields
                 and dirty_fields.get("depth_interval_preset") != self.depth_interval_preset
             ):
-                # delete project intervals
-                ProjectDepthInterval.objects.filter(project=self).delete()
                 # delete related soil data
                 DepthDependentSoilData.delete_in_project(self.project.id)
-                # create site intervals
-                self.convert_site_intervals_to_preset()
         return result
-
-    def convert_site_intervals_to_preset(
-        self, new_preset: Optional[DepthIntervalPreset] = None, sites: Optional[list[Site]] = None
-    ):
-        if not sites:
-            sites = Site.objects.filter(project=self.project, soil_data__isnull=False)
-        intervals = SoilDataDepthInterval.objects.filter(soil_data__site__in=sites)
-
-        intervals.delete()
-        # create new site intervals
-        options = {
-            DepthIntervalPreset.LANDPKS: LandPKSIntervalDefaults,
-            DepthIntervalPreset.NRCS: NRCSIntervalDefaults,
-        }
-        preset = new_preset or self.depth_interval_preset
-        interval_bounds = options.get(preset)
-        if interval_bounds:
-            intervals = []
-            for site in sites:
-                if not hasattr(site, "soil_data"):
-                    # Not going to create an interval if soil_data doesn't exist
-                    continue
-                interval_objects = [
-                    SoilDataDepthInterval(soil_data=site.soil_data, **interval, **self.methods)
-                    for interval in interval_bounds
-                ]
-                intervals.extend(interval_objects)
-            return SoilDataDepthInterval.objects.bulk_create(intervals)
 
 
 class ProjectDepthInterval(BaseModel, BaseDepthInterval):

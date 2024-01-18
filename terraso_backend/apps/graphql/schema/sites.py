@@ -137,11 +137,6 @@ class SiteAddMutation(BaseWriteMutation):
 
         if create_soil_data:
             SoilData.objects.create(site=result.site)
-            if adding_to_project:
-                if hasattr(project, "soil_settings"):
-                    project.soil_settings.convert_site_intervals_to_preset(
-                        new_preset=None, sites=[result.site]
-                    )
 
         site = result.site
         site.mark_seen_by(user)
@@ -227,8 +222,7 @@ class SiteUpdateMutation(BaseWriteMutation):
         if project_id:
             if hasattr(project, "soil_settings") and hasattr(site, "soil_data"):
                 if project_id is not None:
-                    project.soil_settings.convert_site_intervals_to_preset(sites=[site])
-                metadata["project_id"] = str(project.id)
+                    metadata["project_id"] = str(project.id)
         else:
             if hasattr(site, "soil_data"):
                 # Delete existing intervals if removed from project

@@ -1645,7 +1645,6 @@ type Mutations {
   updateDepthDependentSoilData(input: DepthDependentSoilDataUpdateMutationInput!): DepthDependentSoilDataUpdateMutationPayload!
   updateSoilDataDepthInterval(input: SoilDataUpdateDepthIntervalMutationInput!): SoilDataUpdateDepthIntervalMutationPayload!
   deleteSoilDataDepthInterval(input: SoilDataDeleteDepthIntervalMutationInput!): SoilDataDeleteDepthIntervalMutationPayload!
-  updateSoilDataDepthPreset(input: SoilDataUpdateDepthPresetMutationInput!): SoilDataUpdateDepthPresetMutationPayload!
   updateProjectSoilSettings(input: ProjectSoilSettingsUpdateMutationInput!): ProjectSoilSettingsUpdateMutationPayload!
   updateProjectSoilSettingsDepthInterval(input: ProjectSoilSettingsUpdateDepthIntervalMutationInput!): ProjectSoilSettingsUpdateDepthIntervalMutationPayload!
   deleteProjectSoilSettingsDepthInterval(input: ProjectSoilSettingsDeleteDepthIntervalMutationInput!): ProjectSoilSettingsDeleteDepthIntervalMutationPayload!
@@ -2238,6 +2237,7 @@ input SoilDataUpdateMutationInput {
   soilDepthSelect: SoilIdSoilDataSoilDepthSelectChoices
   landCoverSelect: SoilIdSoilDataLandCoverSelectChoices
   grazingSelect: SoilIdSoilDataGrazingSelectChoices
+  depthIntervalPreset: SoilIdSoilDataDepthIntervalPresetChoices
   clientMutationId: String
 }
 
@@ -2295,8 +2295,6 @@ input SoilDataUpdateDepthIntervalMutationInput {
   electricalConductivityEnabled: Boolean
   sodiumAdsorptionRatioEnabled: Boolean
   soilStructureEnabled: Boolean
-  newDepthInterval: DepthIntervalInput = null
-  applyToAll: Boolean
   clientMutationId: String
 }
 
@@ -2309,19 +2307,6 @@ type SoilDataDeleteDepthIntervalMutationPayload {
 input SoilDataDeleteDepthIntervalMutationInput {
   siteId: ID!
   depthInterval: DepthIntervalInput!
-  clientMutationId: String
-}
-
-type SoilDataUpdateDepthPresetMutationPayload {
-  errors: GenericScalar
-  site: SiteNode!
-  intervals: [SoilDataDepthIntervalNode!]!
-  clientMutationId: String
-}
-
-input SoilDataUpdateDepthPresetMutationInput {
-  siteId: ID!
-  preset: SoilIdSoilDataDepthIntervalPresetChoices
   clientMutationId: String
 }
 

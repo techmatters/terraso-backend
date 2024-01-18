@@ -4,19 +4,12 @@ import pytest
 import structlog
 from graphene_django.utils.testing import graphql_query
 from mixer.backend.django import mixer
-from tests.utils import match_json, to_snake_case
+from tests.utils import match_json
 
 from apps.core.models import User
 from apps.project_management.models.projects import Project
 from apps.project_management.models.sites import Site
-from apps.soil_id.models import (
-    DepthIntervalPreset,
-    LandPKSIntervalDefaults,
-    NRCSIntervalDefaults,
-    ProjectSoilSettings,
-    SoilData,
-    SoilDataDepthInterval,
-)
+from apps.soil_id.models import DepthIntervalPreset, ProjectSoilSettings, SoilData
 
 pytestmark = pytest.mark.django_db
 
@@ -248,71 +241,6 @@ def sample_depth_interval_update(site_id, start, end):
         sodiumAdsorptionRatioEnabled=False,
         soilStructureEnabled=True,
     )
-
-
-def test_update_soil_data_depth_interval_update_all(
-    client, site_with_depth_intervals, project_manager
-):
-    first_interval = site_with_depth_intervals.soil_data.depth_intervals.first()
-    new_data = sample_depth_interval_update(
-        site_with_depth_intervals.id,
-        first_interval.depth_interval_start,
-        first_interval.depth_interval_end,
-    )
-    new_data["applyToAll"] = True
-
-    client.force_login(project_manager)
-    response = graphql_query(
-        UPDATE_SOIL_DATA_DEPTH_INTERVAL_QUERY, variables={"input": new_data}, client=client
-    ).json()
-    assert "errors" not in response
-
-    # test depth intervals have been updated
-    site_with_depth_intervals.refresh_from_db()
-    for interval in site_with_depth_intervals.soil_data.depth_intervals.all():
-        for key, value in new_data.items():
-            key = to_snake_case(key)
-            if key in ("site_id", "depth_interval", "apply_to_all"):
-                continue
-            if key == "label" and interval.id != first_interval.id:
-                assert interval.label != new_data["label"]
-                continue
-            interval_val = getattr(interval, key)
-            assert interval_val == value
-
-
-def test_update_soil_data_depth_interval_new_bounds(client, project_manager, project_site):
-    # create existing depth interval
-    soil_data = mixer.blend(SoilData, site=project_site)
-    original_start = 1
-    original_end = 10
-    new_start = original_start + 1
-    new_end = original_end - 1
-    interval = mixer.blend(
-        SoilDataDepthInterval,
-        soil_data=soil_data,
-        depth_interval_start=original_start,
-        depth_interval_end=original_end,
-    )
-    # now try and update the bounds
-    client.force_login(project_manager)
-    response = graphql_query(
-        UPDATE_SOIL_DATA_DEPTH_INTERVAL_QUERY,
-        input_data={
-            "siteId": str(project_site.id),
-            "depthInterval": {"start": original_start, "end": original_end},
-            "newDepthInterval": {"start": new_start, "end": new_end},
-        },
-        client=client,
-    ).json()
-    # check response
-    assert match_json("*..errors", response) == [None]
-    new_interval = match_json("*..depthInterval", response)[0]
-    assert new_interval["start"] == new_start
-    assert new_interval["end"] == new_end
-    interval.refresh_from_db()
-    assert interval.depth_interval_start == new_start
-    assert interval.depth_interval_end == new_end
 
 
 UPDATE_DEPTH_DEPENDENT_QUERY = """
@@ -780,30 +708,3 @@ def permissions_data(request):
         case "project_viewer":
             project.add_viewer(user)
     return allowed, user, site
-
-
-@pytest.mark.parametrize(
-    "preset,expected",
-    [
-        ("LANDPKS", {"intervals": make_intervals(LandPKSIntervalDefaults)}),
-        ("NRCS", {"intervals": make_intervals(NRCSIntervalDefaults)}),
-        ("CUSTOM", {"intervals": []}),
-    ],
-)
-@pytest.mark.parametrize(
-    "permissions_data",
-    ["project_manager", "project_viewer", "owner", "unassociated"],
-    indirect=True,
-)
-def test_change_soil_depth_preset(client, permissions_data, preset, expected):
-    allowed, user, site = permissions_data
-    input_ = dict(siteId=str(site.id), preset=preset)
-    client.force_login(user)
-    payload = graphql_query(
-        UPDATE_SOIL_DEPTH_PRESET_GRAPHQL, input_data=input_, client=client
-    ).json()
-    if not allowed:
-        assert "errors" in payload
-    else:
-        assert "errors" not in payload
-        assert payload["data"]["updateSoilDataDepthPreset"] == expected

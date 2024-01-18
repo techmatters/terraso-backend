@@ -18,22 +18,12 @@ import pytest
 import structlog
 from graphene_django.utils.testing import graphql_query
 from mixer.backend.django import mixer
-from tests.utils import (
-    add_soil_data_to_site,
-    match_json,
-    site_intervals_match_project_preset,
-)
+from tests.utils import match_json
 
 from apps.audit_logs.api import CHANGE, CREATE, DELETE
 from apps.audit_logs.models import Log
 from apps.core.models import User
 from apps.project_management.models import Project, Site
-from apps.soil_id.models import (
-    DepthIntervalPreset,
-    ProjectSoilSettings,
-    SoilData,
-    SoilDataDepthInterval,
-)
 
 pytestmark = pytest.mark.django_db
 
@@ -80,9 +70,6 @@ def test_site_creation(client_query, user):
 
 @pytest.mark.parametrize("project_user_w_role", ["manager", "contributor"], indirect=True)
 def test_site_creation_in_project(client, project_user_w_role, project):
-    project.soil_settings = ProjectSoilSettings()
-    project.soil_settings.depth_interval_preset = DepthIntervalPreset.LANDPKS
-    project.soil_settings.save()
     kwargs = site_creation_keywords()
     kwargs["projectId"] = str(project.id)
     client.force_login(project_user_w_role)
@@ -102,8 +89,6 @@ def test_site_creation_in_project(client, project_user_w_role, project):
     assert log_result.metadata["latitude"] == expected_metadata["latitude"]
     assert log_result.metadata["longitude"] == expected_metadata["longitude"]
 
-    assert site_intervals_match_project_preset(site)
-
 
 UPDATE_SITE_QUERY = """
     mutation SiteUpdateMutation($input: SiteUpdateMutationInput!) {
@@ -121,7 +106,6 @@ UPDATE_SITE_QUERY = """
 """
 
 
-@pytest.mark.parametrize("site_with_soil_data_or_not", [False, True], indirect=True)
 def test_update_site_in_project(client, project, project_manager, site_with_soil_data_or_not):
     original_project = mixer.blend(Project)
     original_project.add_manager(project_manager)
@@ -129,9 +113,6 @@ def test_update_site_in_project(client, project, project_manager, site_with_soil
     site.add_to_project(project)
 
     client.force_login(project_manager)
-    if has_soil_data:
-        project.soil_settings.depth_interval_preset = DepthIntervalPreset.NRCS
-        project.save()
     response = graphql_query(
         UPDATE_SITE_QUERY,
         variables={
@@ -156,10 +137,6 @@ def test_update_site_in_project(client, project, project_manager, site_with_soil
     assert log_result.event == CHANGE.value
     assert log_result.resource_object == site
     assert log_result.metadata["project_id"] == str(project.id)
-
-    if has_soil_data:
-        # test that the soil intervals match the new project's preset
-        assert site_intervals_match_project_preset(site)
 
 
 def test_adding_site_to_project_user_not_manager(client, project, site, project_user):
@@ -195,11 +172,7 @@ def test_adding_site_owned_by_user_to_project(client, project, site, project_man
     assert site.owned_by(project)
 
 
-@pytest.mark.parametrize("site_with_soil_data_or_not", [False, True], indirect=True)
-def test_removing_site_from_project(site_with_soil_data_or_not, client, project, project_manager):
-    has_soil_data, project_site = site_with_soil_data_or_not
-    if has_soil_data:
-        assert SoilDataDepthInterval.objects.filter(soil_data=project_site.soil_data).exists()
+def test_removing_site_from_project(client, project_site, project, project_manager):
     client.force_login(project_manager)
     response = graphql_query(
         UPDATE_SITE_QUERY, input_data={"id": str(project_site.id), "projectId": None}, client=client
@@ -208,8 +181,6 @@ def test_removing_site_from_project(site_with_soil_data_or_not, client, project,
     assert match_json("*..site.project", response) == [None]
     project_site.refresh_from_db()
     assert project_site.owner == project_manager
-    if has_soil_data:
-        assert not SoilDataDepthInterval.objects.filter(soil_data=project_site.soil_data).exists()
 
 
 def test_not_providing_project_id_does_not_change_project(
@@ -345,15 +316,7 @@ def test_delete_linked_site(client, linked_site, project_manager):
 
 
 @pytest.mark.parametrize("linked_site", ["linked", "manager"], indirect=True)
-@pytest.mark.parametrize("has_project_data", [True, False])
-def test_site_transfer_success(linked_site, has_project_data, client, project, project_manager):
-    if has_project_data:
-        ProjectSoilSettings.objects.create(
-            project=project, depth_interval_preset=DepthIntervalPreset.NRCS
-        )
-        SoilData.objects.create(site=linked_site)
-        if getattr(linked_site, "project", None):
-            add_soil_data_to_site(linked_site, preset=DepthIntervalPreset.LANDPKS)
+def test_site_transfer_success(linked_site, client, project, project_manager):
     input_data = {"siteIds": [str(linked_site.id)], "projectId": str(project.id)}
     client.force_login(project_manager)
     old_projects = [str(linked_site.project.id)] if linked_site.project else []
@@ -373,9 +336,6 @@ def test_site_transfer_success(linked_site, has_project_data, client, project, p
     assert log_result.resource_object == project
     assert log_result.metadata["project_id"] == str(project.id)
     assert log_result.metadata["transfered_sites"] == [str(linked_site.id)]
-
-    if has_project_data and getattr(linked_site, "project", None):
-        assert site_intervals_match_project_preset(linked_site)
 
 
 def test_site_transfer_unlinked_site_user_contributor_success(client, user, site, project):
