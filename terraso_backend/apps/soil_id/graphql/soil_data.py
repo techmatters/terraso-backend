@@ -355,6 +355,7 @@ class DepthDependentSoilDataUpdateMutation(BaseWriteMutation):
         site_id = graphene.ID(required=True)
         depth_interval = graphene.Field(DepthIntervalInput, required=True)
         texture = DepthDependentSoilDataNode.texture_enum()
+        clay_percent = graphene.Int()
         rock_fragment_volume = DepthDependentSoilDataNode.rock_fragment_volume_enum()
         color_hue_substep = DepthDependentSoilDataNode.color_hue_substep_enum()
         color_hue = DepthDependentSoilDataNode.color_hue_enum()

@@ -46,6 +46,10 @@ class DepthDependentSoilData(BaseModel, BaseDepthInterval):
 
     texture = models.CharField(blank=True, null=True, choices=Texture.choices)
 
+    clay_percent = models.IntegerField(
+        blank=True, null=True, validators=[MinValueValidator(0), MaxValueValidator(100)]
+    )
+
     class RockFragmentVolume(models.TextChoices):
         VOLUME_0_1 = "VOLUME_0_1", "0 — 1%"
         VOLUME_1_15 = "VOLUME_1_15", "1 — 15%"
