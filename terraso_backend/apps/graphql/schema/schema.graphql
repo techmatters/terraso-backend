@@ -2295,6 +2295,7 @@ input SoilDataUpdateDepthIntervalMutationInput {
   electricalConductivityEnabled: Boolean
   sodiumAdsorptionRatioEnabled: Boolean
   soilStructureEnabled: Boolean
+  applyToIntervals: [DepthIntervalInput!] = null
   clientMutationId: String
 }
 

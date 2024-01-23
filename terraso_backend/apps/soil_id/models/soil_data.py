@@ -232,6 +232,10 @@ class SoilDataDepthInterval(BaseModel, BaseDepthInterval):
         ordering = ["depth_interval_start"]
         constraints = BaseDepthInterval.constraints("soil_data")
 
+    @classmethod
+    def soil_inputs(cls):
+        return [field.name for field in cls._meta.fields if field.name.endswith("_enabled")]
+
     def clean(self):
         super().clean()
         BaseDepthInterval.validate_intervals(list(self.soil_data.depth_intervals.all()))

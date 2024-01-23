@@ -9,7 +9,12 @@ from tests.utils import match_json
 from apps.core.models import User
 from apps.project_management.models.projects import Project
 from apps.project_management.models.sites import Site
-from apps.soil_id.models import DepthIntervalPreset, ProjectSoilSettings, SoilData
+from apps.soil_id.models import (
+    DepthIntervalPreset,
+    ProjectSoilSettings,
+    SoilData,
+    SoilDataDepthInterval,
+)
 
 pytestmark = pytest.mark.django_db
 
@@ -127,6 +132,7 @@ UPDATE_SOIL_DATA_DEPTH_INTERVAL_QUERY = """
                         start
                         end
                     }
+                    soilTextureEnabled
                 }
             }
             errors
@@ -708,3 +714,36 @@ def permissions_data(request):
         case "project_viewer":
             project.add_viewer(user)
     return allowed, user, site
+
+
+def test_apply_to_all(client, project_site, project_manager):
+    # create necessary prereqs
+    soil_data = SoilData.objects.create(site=project_site, depth_interval_preset="CUSTOM")
+    mixer.blend(ProjectSoilSettings, project=project_site.project, depth_interval_preset="NONE")
+    existing_interval = SoilDataDepthInterval.objects.create(
+        soil_data=soil_data, depth_interval_start=5, depth_interval_end=6
+    )
+
+    apply_all_intervals = [{"start": 1, "end": 5}, {"start": 6, "end": 7}]
+    client.force_login(project_manager)
+    response = graphql_query(
+        UPDATE_SOIL_DATA_DEPTH_INTERVAL_QUERY,
+        input_data={
+            "siteId": str(project_site.id),
+            "depthInterval": {
+                "start": existing_interval.depth_interval_start,
+                "end": existing_interval.depth_interval_end,
+            },
+            "applyToIntervals": apply_all_intervals,
+            "soilTextureEnabled": True,
+        },
+        client=client,
+    ).json()
+    assert match_json("*..errors", response) == [None]
+    intervals = match_json("*..depthIntervals", response)[0]
+    assert len(intervals) == 3
+    for interval in intervals:
+        assert interval["soilTextureEnabled"]
+    db_intervals = SoilDataDepthInterval.objects.filter(soil_data=project_site.soil_data).all()
+    for interval in db_intervals:
+        assert interval.soil_texture_enabled

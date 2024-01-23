@@ -232,6 +232,7 @@ class SoilDataUpdateDepthIntervalMutation(BaseWriteMutation):
         electrical_conductivity_enabled = graphene.Boolean()
         sodium_adsorption_ratio_enabled = graphene.Boolean()
         soil_structure_enabled = graphene.Boolean()
+        apply_to_intervals = graphene.Field(graphene.List(graphene.NonNull(DepthIntervalInput)))
 
     @classmethod
     def mutate_and_get_payload(
@@ -240,6 +241,7 @@ class SoilDataUpdateDepthIntervalMutation(BaseWriteMutation):
         info,
         site_id,
         depth_interval,
+        apply_to_intervals=None,
         **kwargs,
     ):
         site = cls.get_or_throw(Site, "id", site_id)
@@ -258,9 +260,24 @@ class SoilDataUpdateDepthIntervalMutation(BaseWriteMutation):
                 depth_interval_end=depth_interval["end"],
             )
 
-            return super().mutate_and_get_payload(
+            result = super().mutate_and_get_payload(
                 root, info, result_instance=site.soil_data, **kwargs
             )
+            if apply_to_intervals:
+                for key in ("label", "model_instance"):
+                    kwargs.pop(key, "")
+                # TODO: Would be better to do bulk create, but can't get that to work:
+                # "there is no unique or exclusion constraint matching the ON CONFLICT
+                # specification"
+                for interval in apply_to_intervals:
+                    SoilDataDepthInterval.objects.update_or_create(
+                        soil_data=site.soil_data,
+                        depth_interval_start=interval.start,
+                        depth_interval_end=interval.end,
+                        **kwargs,
+                    )
+
+        return result
 
 
 class SoilDataDeleteDepthIntervalMutation(BaseAuthenticatedMutation):
