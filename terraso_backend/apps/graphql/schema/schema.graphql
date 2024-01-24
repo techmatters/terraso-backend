@@ -1111,6 +1111,7 @@ type DepthInterval {
 
 type DepthDependentSoilDataNode {
   texture: SoilIdDepthDependentSoilDataTextureChoices
+  clayPercent: Int
   rockFragmentVolume: SoilIdDepthDependentSoilDataRockFragmentVolumeChoices
   colorHueSubstep: SoilIdDepthDependentSoilDataColorHueSubstepChoices
   colorHue: SoilIdDepthDependentSoilDataColorHueChoices
@@ -2250,6 +2251,7 @@ input DepthDependentSoilDataUpdateMutationInput {
   siteId: ID!
   depthInterval: DepthIntervalInput!
   texture: SoilIdDepthDependentSoilDataTextureChoices
+  clayPercent: Int
   rockFragmentVolume: SoilIdDepthDependentSoilDataRockFragmentVolumeChoices
   colorHueSubstep: SoilIdDepthDependentSoilDataColorHueSubstepChoices
   colorHue: SoilIdDepthDependentSoilDataColorHueChoices
