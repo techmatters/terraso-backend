@@ -14,16 +14,22 @@
 # along with this program. If not, see https://www.gnu.org/licenses/.
 
 import graphene
+import rules
+import structlog
 from django.conf import settings
 from graphene import relay
 from graphene_django import DjangoObjectType
 
 from apps.core.models import SharedResource
+from apps.graphql.exceptions import GraphQLNotAllowedException, GraphQLNotFoundException
 
 from . import GroupNode, LandscapeNode
-from .commons import TerrasoConnection
+from .commons import BaseWriteMutation, TerrasoConnection
+from .constants import MutationTypes
 from .data_entries import DataEntryNode
 from .visualization_config import VisualizationConfigNode
+
+logger = structlog.get_logger(__name__)
 
 
 class SourceNode(graphene.Union):
@@ -56,3 +62,37 @@ class SharedResourceNode(DjangoObjectType):
 
     def resolve_share_url(self, info, **kwargs):
         return f"{settings.API_ENDPOINT}/shared-data/download/{self.share_uuid}"
+
+
+class SharedResourceUpdateMutation(BaseWriteMutation):
+    shared_resource = graphene.Field(SharedResourceNode)
+
+    model_class = SharedResource
+
+    class Input:
+        id = graphene.ID(required=True)
+        share_access = graphene.String(required=True)
+
+    @classmethod
+    def mutate_and_get_payload(cls, root, info, **kwargs):
+        user = info.context.user
+
+        try:
+            shared_resource = SharedResource.objects.get(pk=kwargs["id"])
+        except SharedResource.DoesNotExist:
+            logger.error(
+                "SharedResource not found",
+                extra={"shared_resource_id": kwargs["id"]},
+            )
+            raise GraphQLNotFoundException(field="id", model_name=SharedResource.__name__)
+
+        if not rules.test_rule("allowed_to_change_shared_resource", user, shared_resource):
+            logger.info(
+                "Attempt to update a SharedResource, but user lacks permission",
+                extra={"user_id": user.pk, "shared_resource_id": str(shared_resource.pk)},
+            )
+            raise GraphQLNotAllowedException(
+                model_name=SharedResource.__name__, operation=MutationTypes.UPDATE
+            )
+        kwargs["share_access"] = SharedResource.get_share_access_from_text(kwargs["share_access"])
+        return super().mutate_and_get_payload(root, info, **kwargs)

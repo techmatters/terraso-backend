@@ -1690,6 +1690,7 @@ type Mutations {
   deleteLandscapeMembership(input: LandscapeMembershipDeleteMutationInput!): LandscapeMembershipDeleteMutationPayload!
   saveGroupMembership(input: GroupMembershipSaveMutationInput!): GroupMembershipSaveMutationPayload!
   deleteGroupMembership(input: GroupMembershipDeleteMutationInput!): GroupMembershipDeleteMutationPayload!
+  updateSharedResource(input: SharedResourceUpdateMutationInput!): SharedResourceUpdateMutationPayload!
 }
 
 type GroupAddMutationPayload {
@@ -2489,5 +2490,17 @@ type GroupMembershipDeleteMutationPayload {
 input GroupMembershipDeleteMutationInput {
   id: ID!
   groupSlug: String!
+  clientMutationId: String
+}
+
+type SharedResourceUpdateMutationPayload {
+  errors: GenericScalar
+  sharedResource: SharedResourceNode
+  clientMutationId: String
+}
+
+input SharedResourceUpdateMutationInput {
+  id: ID!
+  shareAccess: String!
   clientMutationId: String
 }

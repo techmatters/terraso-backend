@@ -80,6 +80,7 @@ from .landscapes_memberships import (
     LandscapeMembershipDeleteMutation,
     LandscapeMembershipSaveMutation,
 )
+from .shared_resources import SharedResourceUpdateMutation
 from .sites import (
     SiteAddMutation,
     SiteDeleteMutation,
@@ -202,6 +203,7 @@ class Mutations(graphene.ObjectType):
     delete_landscape_membership = LandscapeMembershipDeleteMutation.Field()
     save_group_membership = GroupMembershipSaveMutation.Field()
     delete_group_membership = GroupMembershipDeleteMutation.Field()
+    update_shared_resource = SharedResourceUpdateMutation.Field()
 
 
 schema = graphene.Schema(query=Query, mutation=Mutations)

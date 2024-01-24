@@ -66,3 +66,14 @@ class SharedResource(BaseModel):
                 name="unique_share_uuid",
             ),
         )
+
+    @classmethod
+    def get_share_access_from_text(cls, share_access):
+        if not share_access:
+            return cls.SHARE_ACCESS_NO
+        lowered = share_access.lower()
+        if lowered == cls.SHARE_ACCESS_ALL:
+            return cls.SHARE_ACCESS_ALL
+        if lowered == cls.SHARE_ACCESS_TARGET_MEMBERS:
+            return cls.SHARE_ACCESS_TARGET_MEMBERS
+        return cls.SHARE_ACCESS_NO

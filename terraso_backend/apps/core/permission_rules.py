@@ -214,6 +214,22 @@ def allowed_to_delete_group_membership(user, obj):
     return validate_delete_membership(user, group, membership)
 
 
+@rules.predicate
+def allowed_to_change_shared_resource(user, shared_resource):
+    from apps.shared_data.permission_rules import is_target_manager
+
+    target = shared_resource.target
+    source = shared_resource.source
+
+    if source.created_by == user:
+        return True
+
+    if is_target_manager(user, target):
+        return True
+
+    return False
+
+
 rules.add_rule("allowed_group_managers_count", allowed_group_managers_count)
 rules.add_rule("allowed_to_update_preferences", allowed_to_update_preferences)
 rules.add_rule("allowed_to_change_landscape", allowed_to_change_landscape)
@@ -222,3 +238,4 @@ rules.add_rule("allowed_to_delete_landscape_membership", allowed_to_delete_lands
 rules.add_rule("allowed_landscape_managers_count", allowed_landscape_managers_count)
 rules.add_rule("allowed_to_change_group_membership", allowed_to_change_group_membership)
 rules.add_rule("allowed_to_delete_group_membership", allowed_to_delete_group_membership)
+rules.add_rule("allowed_to_change_shared_resource", allowed_to_change_shared_resource)
