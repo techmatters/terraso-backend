@@ -14,9 +14,11 @@
 # along with this program. If not, see https://www.gnu.org/licenses/.
 
 import django_filters
+from django.db.models import Q, Subquery
 from graphene_django.filter import DjangoFilterConnectionField
 
-from apps.core.models import SharedResource
+from apps.collaboration.models import Membership as CollaborationMembership
+from apps.core.models import Group, Landscape, SharedResource
 from apps.shared_data.models import DataEntry
 
 
@@ -51,6 +53,23 @@ class SharedResourcesMixin:
     )
 
     def resolve_shared_resources(self, info, **kwargs):
-        return self.shared_resources.prefetch_related(
+        user_pk = getattr(info.context.user, "pk", False)
+        user_groups_ids = Subquery(
+            Group.objects.filter(
+                membership_list__memberships__deleted_at__isnull=True,
+                membership_list__memberships__user__id=user_pk,
+                membership_list__memberships__membership_status=CollaborationMembership.APPROVED,
+            ).values("id")
+        )
+        user_landscape_ids = Subquery(
+            Landscape.objects.filter(
+                membership_list__memberships__deleted_at__isnull=True,
+                membership_list__memberships__user__id=user_pk,
+                membership_list__memberships__membership_status=CollaborationMembership.APPROVED,
+            ).values("id")
+        )
+        return self.shared_resources.filter(
+            Q(target_object_id__in=user_groups_ids) | Q(target_object_id__in=user_landscape_ids)
+        ).prefetch_related(
             "source",
         )

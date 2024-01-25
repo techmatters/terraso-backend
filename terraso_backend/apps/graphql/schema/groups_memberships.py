@@ -88,7 +88,9 @@ class GroupMembershipSaveMutation(BaseMembershipSaveMutation):
             kwargs={
                 **kwargs,
                 "user_role": user_role,
-                "membership_status": membership_status,
+                "membership_status": CollaborationMembership.get_membership_status_from_text(
+                    membership_status
+                ),
             },
         )
 
