@@ -312,9 +312,6 @@ class SiteTransferMutation(BaseWriteMutation):
                 old_projects.append(site.project)
 
         Site.bulk_change_project(to_change, project)
-        # update site depth intervals where necessary
-        if hasattr(project, "soil_settings"):
-            project.soil_settings.convert_site_intervals_to_preset(sites=to_change)
 
         log.log(
             user=user,
