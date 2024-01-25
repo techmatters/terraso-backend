@@ -217,7 +217,7 @@ class SoilData(BaseModel):
     def remove_from_project(self):
         SoilDataDepthInterval.objects.filter(soil_data=self).delete()
         # Default is to set the site interval to custom for now
-        # At some point, user will be able to set a default preset
+        # TODO: At some point, user will be able to set a default preset
         self.depth_interval_preset = self.SoilDataDepthIntervalPreset.CUSTOM
         self.save()
 

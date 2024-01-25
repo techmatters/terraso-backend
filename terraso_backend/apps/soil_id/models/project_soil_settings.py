@@ -96,7 +96,7 @@ class ProjectSoilSettings(BaseModel):
             if field.name.endswith("_enabled")
         ]
         return {
-            field_name + "_enabled": getattr(self, field_name + "_required")
+            f"{field_name}_enabled": getattr(self, f"{field_name}_required")
             for field_name in field_names
         }
 
