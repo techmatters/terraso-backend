@@ -270,12 +270,16 @@ class SoilDataUpdateDepthIntervalMutation(BaseWriteMutation):
                 # "there is no unique or exclusion constraint matching the ON CONFLICT
                 # specification"
                 for interval in apply_to_intervals:
-                    SoilDataDepthInterval.objects.update_or_create(
+                    soil_interval, _ = SoilDataDepthInterval.objects.get_or_create(
                         soil_data=site.soil_data,
                         depth_interval_start=interval.start,
                         depth_interval_end=interval.end,
-                        **kwargs,
                     )
+                    for key, value in kwargs.items():
+                        setattr(soil_interval, key, value)
+                    soil_interval.save()
+
+                result.soil_data.refresh_from_db()
 
         return result
 
@@ -349,7 +353,14 @@ class SoilDataUpdateMutation(BaseWriteMutation):
 
         kwargs["model_instance"] = site.soil_data
 
-        return super().mutate_and_get_payload(root, info, **kwargs)
+        with transaction.atomic():
+            if (
+                "depth_interval_preset" in kwargs
+                and kwargs["depth_interval_preset"] != site.soil_data.depth_interval_preset
+            ):
+                site.soil_data.depth_intervals.all().delete()
+            result = super().mutate_and_get_payload(root, info, **kwargs)
+        return result
 
 
 class DepthDependentSoilDataUpdateMutation(BaseWriteMutation):
@@ -440,7 +451,13 @@ class ProjectSoilSettingsUpdateMutation(BaseWriteMutation):
 
         kwargs["model_instance"] = project.soil_settings
 
-        return super().mutate_and_get_payload(root, info, **kwargs)
+        with transaction.atomic():
+            if (
+                "depth_interval_preset" in kwargs
+                and kwargs["depth_interval_preset"] != project.soil_settings.depth_interval_preset
+            ):
+                SoilDataDepthInterval.objects.filter(soil_data__site__project=project).delete()
+            return super().mutate_and_get_payload(root, info, **kwargs)
 
 
 class ProjectSoilSettingsUpdateDepthIntervalMutation(BaseWriteMutation):

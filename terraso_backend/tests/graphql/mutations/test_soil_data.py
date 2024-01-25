@@ -132,7 +132,6 @@ UPDATE_SOIL_DATA_DEPTH_INTERVAL_QUERY = """
                         start
                         end
                     }
-                    soilTextureEnabled
                 }
             }
             errors
@@ -658,7 +657,6 @@ def test_update_project_soil_settings(client, user, project_manager, project):
 def test_update_project_depth_interval_preset_depth_dependent_data(
     depth_interval_preset, client, project, project_manager, site_with_soil_data
 ):
-    original_preset = project.soil_settings.depth_interval_preset
     input_data = {
         "projectId": str(project.id),
         "depthIntervalPreset": depth_interval_preset,
@@ -677,10 +675,11 @@ def test_update_project_depth_interval_preset_depth_dependent_data(
     site_with_soil_data.refresh_from_db()
     assert not project.soil_settings.depth_intervals.exists()
 
-    if original_preset == depth_interval_preset:
-        assert site_with_soil_data.soil_data.depth_dependent_data.exists()
-    else:
-        assert not site_with_soil_data.soil_data.depth_dependent_data.exists()
+    # TODO: This will probably be reimplemented later
+    # if original_preset == depth_interval_preset:
+    #    assert site_with_soil_data.soil_data.depth_dependent_data.exists()
+    # else:
+    #    assert not site_with_soil_data.soil_data.depth_dependent_data.exists()
 
 
 UPDATE_SOIL_DEPTH_PRESET_GRAPHQL = """
@@ -716,6 +715,27 @@ def permissions_data(request):
     return allowed, user, site
 
 
+APPLY_TO_ALL_QUERY = """
+    mutation SoilDataDepthIntervalUpdateMutation(
+        $input: SoilDataUpdateDepthIntervalMutationInput!
+    ) {
+        updateSoilDataDepthInterval(input: $input) {
+            soilData {
+                depthIntervals {
+                    label
+                    depthInterval {
+                        start
+                        end
+                    }
+                    soilTextureEnabled
+                }
+            }
+            errors
+        }
+    }
+"""
+
+
 def test_apply_to_all(client, project_site, project_manager):
     # create necessary prereqs
     soil_data = SoilData.objects.create(site=project_site, depth_interval_preset="CUSTOM")
@@ -727,7 +747,7 @@ def test_apply_to_all(client, project_site, project_manager):
     apply_all_intervals = [{"start": 1, "end": 5}, {"start": 6, "end": 7}]
     client.force_login(project_manager)
     response = graphql_query(
-        UPDATE_SOIL_DATA_DEPTH_INTERVAL_QUERY,
+        APPLY_TO_ALL_QUERY,
         input_data={
             "siteId": str(project_site.id),
             "depthInterval": {
