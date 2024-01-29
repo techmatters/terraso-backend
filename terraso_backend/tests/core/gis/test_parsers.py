@@ -202,7 +202,6 @@ def test_parse_shapefile(file_path_expected):
     with open(resources.files("tests").joinpath(expected_file_path), "rb") as file:
         expected_json = json.load(file)
 
-    print(f"shapefile_json: {shapefile_json}")
     assert json.dumps(shapefile_json) == json.dumps(expected_json)
 
 

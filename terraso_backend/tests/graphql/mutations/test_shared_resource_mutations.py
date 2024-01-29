@@ -40,7 +40,6 @@ def test_shared_resource_update_by_source_works(client_query, data_entries):
         variables={"input": new_data},
     )
     json_result = response.json()
-    print(json_result)
     result = json_result["data"]["updateSharedResource"]["sharedResource"]
 
     assert result == new_data

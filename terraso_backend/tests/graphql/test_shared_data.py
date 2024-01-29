@@ -147,9 +147,6 @@ def test_data_entries_filter_by_closed_group_slug_filters_successfuly(
         users[0].email, group_collaboration_roles.ROLE_MEMBER, CollaborationMembership.APPROVED
     )
 
-    shared_resources = data_entry_a.shared_resources.all()
-    print(shared_resources)
-
     response = client_query(
         """
         {dataEntries(sharedResources_Target_Slug: "%s", sharedResources_TargetContentType: "%s") {
@@ -344,10 +341,6 @@ def test_data_entries_empty_from_closed_group_query(client_query, groups_closed,
 
     data_entry_a.shared_resources.create(target=group)
     data_entry_b.shared_resources.create(target=group)
-
-    memberships = group.membership_list.memberships.all()
-
-    print(memberships)
 
     response = client_query(
         """
