@@ -77,13 +77,15 @@ class LandscapeExportView(View):
                 for term in terms
             ],
             "organizationsInvolved": {"stakeholders": stakeholders},
-            "developmentStrategy": {
-                "objectives": development_strategy.objectives,
-                "problemSituation": development_strategy.problem_situtation,
-                "interventionStrategy": development_strategy.intervention_strategy,
-                "opportunities": development_strategy.opportunities,
-            }
-            if development_strategy
-            else None,
+            "developmentStrategy": (
+                {
+                    "objectives": development_strategy.objectives,
+                    "problemSituation": development_strategy.problem_situtation,
+                    "interventionStrategy": development_strategy.intervention_strategy,
+                    "opportunities": development_strategy.opportunities,
+                }
+                if development_strategy
+                else None
+            ),
             "lastUpdated": last_updated,
         }
