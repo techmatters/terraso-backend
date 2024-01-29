@@ -17,15 +17,18 @@ import mimetypes
 from dataclasses import asdict
 from pathlib import Path
 
+import rules
 import structlog
 from config.settings import DATA_ENTRY_ACCEPTED_EXTENSIONS, MEDIA_UPLOAD_MAX_FILE_SIZE
 from django.contrib.contenttypes.models import ContentType
 from django.db import transaction
-from django.http import JsonResponse
+from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
+from django.views import View
 from django.views.generic.edit import FormView
 
 from apps.auth.mixins import AuthenticationRequiredMixin
 from apps.core.exceptions import ErrorContext, ErrorMessage
+from apps.core.models import SharedResource
 from apps.storage.file_utils import has_multiple_files, is_file_upload_oversized
 
 from .forms import DataEntryForm
@@ -36,6 +39,39 @@ logger = structlog.get_logger(__name__)
 
 
 mimetypes.init()
+
+
+class DataEntryFileDownloadView(View):
+    def get(self, request, shared_resource_uuid, *args, **kwargs):
+        shared_resource = SharedResource.objects.filter(share_uuid=shared_resource_uuid).first()
+
+        if shared_resource is None:
+            return HttpResponse("Not Found", status=404)
+
+        not_shared = shared_resource.share_access == SharedResource.SHARE_ACCESS_NO
+        needs_authentication = (
+            shared_resource.share_access != SharedResource.SHARE_ACCESS_ALL
+            and not request.user.is_authenticated
+        )
+
+        if not_shared or needs_authentication:
+            return HttpResponse("Not Found", status=404)
+
+        source = shared_resource.source
+
+        if not isinstance(source, DataEntry) or source.entry_type != DataEntry.ENTRY_TYPE_FILE:
+            # Only support download for data entries files
+            return HttpResponse("Not Found", status=404)
+
+        if not rules.test_rule(
+            "allowed_to_download_data_entry_file", request.user, shared_resource
+        ):
+            return HttpResponse("Not Found", status=404)
+
+        signed_url = source.signed_url
+
+        # Redirect to the presigned URL
+        return HttpResponseRedirect(signed_url)
 
 
 class DataEntryFileUploadView(AuthenticationRequiredMixin, FormView):

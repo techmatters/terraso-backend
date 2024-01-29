@@ -22,6 +22,7 @@ from unittest import mock
 
 import geopandas as gpd
 import pytest
+from django.conf import settings
 
 from apps.collaboration.models import Membership as CollaborationMembership
 from apps.core import group_collaboration_roles
@@ -430,7 +431,7 @@ def test_data_entries_from_parent_query_by_resource_field(
 
     for data_entry in data_entries:
         share_uuid = data_entry.shared_resources.all()[0].share_uuid
-        share_url = f"http://127.0.0.1:8000/shared-data/download/{share_uuid}"
+        share_url = f"{settings.API_ENDPOINT}/shared-data/download/{share_uuid}"
         assert {
             "name": data_entry.name,
             "share_url": share_url,

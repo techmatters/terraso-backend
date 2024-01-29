@@ -16,10 +16,15 @@
 from django.urls import path
 from django.views.decorators.csrf import csrf_exempt
 
-from .views import DataEntryFileUploadView
+from .views import DataEntryFileDownloadView, DataEntryFileUploadView
 
 app_name = "apps.shared_data"
 
 urlpatterns = [
     path("upload/", csrf_exempt(DataEntryFileUploadView.as_view()), name="upload"),
+    path(
+        "download/<str:shared_resource_uuid>",
+        csrf_exempt(DataEntryFileDownloadView.as_view()),
+        name="download",
+    ),
 ]
