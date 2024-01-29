@@ -75,9 +75,11 @@ class GroupMembershipSaveMutation(BaseMembershipSaveMutation):
         membership_status = (
             CollaborationMembership.APPROVED
             if not is_closed_group
-            else kwargs["membership_status"]
-            if "membership_status" in kwargs
-            else CollaborationMembership.PENDING
+            else (
+                kwargs["membership_status"]
+                if "membership_status" in kwargs
+                else CollaborationMembership.PENDING
+            )
         )
 
         memberships_save_result = cls.save_memberships(
