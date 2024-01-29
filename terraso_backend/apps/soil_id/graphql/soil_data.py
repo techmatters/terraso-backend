@@ -14,8 +14,6 @@ from apps.project_management.models.projects import Project
 from apps.project_management.models.sites import Site
 from apps.soil_id.models.depth_dependent_soil_data import DepthDependentSoilData
 from apps.soil_id.models.project_soil_settings import (
-    LandPKSIntervalDefaults,
-    NRCSIntervalDefaults,
     ProjectDepthInterval,
     ProjectSoilSettings,
 )
@@ -234,12 +232,17 @@ class SoilDataUpdateDepthIntervalMutation(BaseWriteMutation):
         electrical_conductivity_enabled = graphene.Boolean()
         sodium_adsorption_ratio_enabled = graphene.Boolean()
         soil_structure_enabled = graphene.Boolean()
-
-        apply_to_all = graphene.Boolean()
+        apply_to_intervals = graphene.Field(graphene.List(graphene.NonNull(DepthIntervalInput)))
 
     @classmethod
     def mutate_and_get_payload(
-        cls, root, info, site_id, depth_interval, apply_to_all=False, **kwargs
+        cls,
+        root,
+        info,
+        site_id,
+        depth_interval,
+        apply_to_intervals=None,
+        **kwargs,
     ):
         site = cls.get_or_throw(Site, "id", site_id)
 
@@ -260,19 +263,25 @@ class SoilDataUpdateDepthIntervalMutation(BaseWriteMutation):
             result = super().mutate_and_get_payload(
                 root, info, result_instance=site.soil_data, **kwargs
             )
-
-            if apply_to_all:
-                intervals = site.soil_data.depth_intervals.exclude(
-                    id=kwargs["model_instance"].id
-                ).all()
-                kwargs.pop("model_instance")
-                kwargs.pop("label")  # label shouldn't be applied to other intervals
-                for interval in intervals:
+            if apply_to_intervals:
+                for key in ("label", "model_instance"):
+                    kwargs.pop(key, "")
+                # TODO: Would be better to do bulk create, but can't get that to work:
+                # "there is no unique or exclusion constraint matching the ON CONFLICT
+                # specification"
+                for interval in apply_to_intervals:
+                    soil_interval, _ = SoilDataDepthInterval.objects.get_or_create(
+                        soil_data=site.soil_data,
+                        depth_interval_start=interval.start,
+                        depth_interval_end=interval.end,
+                    )
                     for key, value in kwargs.items():
-                        setattr(interval, key, value)
-                SoilDataDepthInterval.objects.bulk_update(intervals, kwargs.keys())
+                        setattr(soil_interval, key, value)
+                    soil_interval.save()
 
-            return result
+                result.soil_data.refresh_from_db()
+
+        return result
 
 
 class SoilDataDeleteDepthIntervalMutation(BaseAuthenticatedMutation):
@@ -329,6 +338,7 @@ class SoilDataUpdateMutation(BaseWriteMutation):
         soil_depth_select = SoilDataNode.soil_depth_enum()
         land_cover_select = SoilDataNode.land_cover_enum()
         grazing_select = SoilDataNode.grazing_enum()
+        depth_interval_preset = SoilDataNode.depth_interval_preset_enum()
 
     @classmethod
     def mutate_and_get_payload(cls, root, info, site_id, **kwargs):
@@ -343,7 +353,14 @@ class SoilDataUpdateMutation(BaseWriteMutation):
 
         kwargs["model_instance"] = site.soil_data
 
-        return super().mutate_and_get_payload(root, info, **kwargs)
+        with transaction.atomic():
+            if (
+                "depth_interval_preset" in kwargs
+                and kwargs["depth_interval_preset"] != site.soil_data.depth_interval_preset
+            ):
+                site.soil_data.depth_intervals.all().delete()
+            result = super().mutate_and_get_payload(root, info, **kwargs)
+        return result
 
 
 class DepthDependentSoilDataUpdateMutation(BaseWriteMutation):
@@ -435,7 +452,13 @@ class ProjectSoilSettingsUpdateMutation(BaseWriteMutation):
 
         kwargs["model_instance"] = project.soil_settings
 
-        return super().mutate_and_get_payload(root, info, **kwargs)
+        with transaction.atomic():
+            if (
+                "depth_interval_preset" in kwargs
+                and kwargs["depth_interval_preset"] != project.soil_settings.depth_interval_preset
+            ):
+                SoilDataDepthInterval.objects.filter(soil_data__site__project=project).delete()
+            return super().mutate_and_get_payload(root, info, **kwargs)
 
 
 class ProjectSoilSettingsUpdateDepthIntervalMutation(BaseWriteMutation):
@@ -468,9 +491,11 @@ class ProjectSoilSettingsUpdateDepthIntervalMutation(BaseWriteMutation):
                 depth_interval_end=depth_interval["end"],
             )
 
-            return super().mutate_and_get_payload(
+            result = super().mutate_and_get_payload(
                 root, info, result_instance=project.soil_settings, **kwargs
             )
+
+            return result
 
 
 class ProjectSoilSettingsDeleteDepthIntervalMutation(BaseAuthenticatedMutation):
@@ -492,57 +517,15 @@ class ProjectSoilSettingsDeleteDepthIntervalMutation(BaseAuthenticatedMutation):
             cls.not_found()
 
         try:
-            depth_interval = project.soil_settings.depth_intervals.get(
+            project_depth_interval = project.soil_settings.depth_intervals.get(
                 depth_interval_start=depth_interval["start"],
                 depth_interval_end=depth_interval["end"],
             )
         except ProjectDepthInterval.DoesNotExist:
             cls.not_found()
 
-        depth_interval.delete()
+        project_depth_interval.delete()
+
         return ProjectSoilSettingsDeleteDepthIntervalMutation(
             project_soil_settings=project.soil_settings
         )
-
-
-class SoilDataUpdateDepthPresetMutation(BaseAuthenticatedMutation):
-    site = graphene.Field(SiteNode, required=True)
-    intervals = graphene.List(graphene.NonNull(SoilDataDepthIntervalNode), required=True)
-
-    class Input:
-        site_id = graphene.ID(required=True)
-        preset = SoilDataNode.depth_interval_preset_enum()
-
-    @classmethod
-    @transaction.atomic
-    def mutate_and_get_payload(cls, root, info, site_id, preset, **kwargs):
-        site = cls.get_or_throw(Site, "site_id", site_id)
-        user = info.context.user
-        if not user.has_perm(Site.get_perm("update_depth_interval"), site):
-            raise cls.not_allowed(MutationTypes.UPDATE)
-        if not site.soil_data:
-            site.soil_data = SoilData()
-
-        existing_intervals = SoilDataDepthInterval.objects.filter(soil_data=site.soil_data)
-
-        if site.soil_data.depth_interval_preset == preset.value:
-            return cls(site=site, intervals=existing_intervals)
-
-        # remove existing intervals
-        existing_intervals.delete()
-
-        # insert new intervals
-        match preset.value:
-            case "LANDPKS":
-                preset_values = LandPKSIntervalDefaults
-            case "NRCS":
-                preset_values = NRCSIntervalDefaults
-            case "CUSTOM" | "NONE":
-                preset_values = []
-
-        new_intervals = [
-            SoilDataDepthInterval(soil_data=site.soil_data, **kwargs) for kwargs in preset_values
-        ]
-        SoilDataDepthInterval.objects.bulk_create(new_intervals)
-
-        return cls(site=site, intervals=new_intervals)

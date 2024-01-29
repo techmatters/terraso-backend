@@ -214,6 +214,13 @@ class SoilData(BaseModel):
         choices=SoilDataDepthIntervalPreset.choices, blank=True, null=True
     )
 
+    def remove_from_project(self):
+        SoilDataDepthInterval.objects.filter(soil_data=self).delete()
+        # Default is to set the site interval to custom for now
+        # TODO: At some point, user will be able to set a default preset
+        self.depth_interval_preset = self.SoilDataDepthIntervalPreset.CUSTOM
+        self.save()
+
 
 class SoilDataDepthInterval(BaseModel, BaseDepthInterval):
     soil_data = models.ForeignKey(
@@ -224,6 +231,10 @@ class SoilDataDepthInterval(BaseModel, BaseDepthInterval):
     class Meta(BaseModel.Meta):
         ordering = ["depth_interval_start"]
         constraints = BaseDepthInterval.constraints("soil_data")
+
+    @classmethod
+    def soil_inputs(cls):
+        return [field.name for field in cls._meta.fields if field.name.endswith("_enabled")]
 
     def clean(self):
         super().clean()

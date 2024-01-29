@@ -106,9 +106,10 @@ UPDATE_SITE_QUERY = """
 """
 
 
-def test_update_site_in_project(client, project, project_manager, site):
+def test_update_site_in_project(client, project, project_manager, site_with_soil_data_or_not):
     original_project = mixer.blend(Project)
     original_project.add_manager(project_manager)
+    has_soil_data, site = site_with_soil_data_or_not
     site.add_to_project(project)
 
     client.force_login(project_manager)
@@ -171,7 +172,7 @@ def test_adding_site_owned_by_user_to_project(client, project, site, project_man
     assert site.owned_by(project)
 
 
-def test_removing_site_from_project(client, project, project_site, project_manager):
+def test_removing_site_from_project(client, project_site, project, project_manager):
     client.force_login(project_manager)
     response = graphql_query(
         UPDATE_SITE_QUERY, input_data={"id": str(project_site.id), "projectId": None}, client=client

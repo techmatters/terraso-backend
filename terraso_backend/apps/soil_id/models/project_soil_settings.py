@@ -12,15 +12,13 @@
 #
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see https://www.gnu.org/licenses/.
-
-from dirtyfields import DirtyFieldsMixin
-from django.db import models, transaction
+from django.db import models
 
 from apps.core.models.commons import BaseModel
-from apps.project_management.models.projects import Project
+from apps.project_management.models import Project
 from apps.soil_id import permission_rules
-from apps.soil_id.models.depth_dependent_soil_data import DepthDependentSoilData
 from apps.soil_id.models.depth_interval import BaseDepthInterval
+from apps.soil_id.models.soil_data import SoilDataDepthInterval
 
 
 class DepthIntervalPreset(models.TextChoices):
@@ -49,7 +47,7 @@ NRCSIntervalDefaults = [
 ]
 
 
-class ProjectSoilSettings(BaseModel, DirtyFieldsMixin):
+class ProjectSoilSettings(BaseModel):
     class Meta(BaseModel.Meta):
         abstract = False
         rules_permissions = {
@@ -90,19 +88,17 @@ class ProjectSoilSettings(BaseModel, DirtyFieldsMixin):
     def is_custom_preset(self):
         return self.depth_interval_preset == DepthIntervalPreset.CUSTOM
 
-    def save(self, *args, **kwargs):
-        dirty_fields = self.get_dirty_fields()
-        with transaction.atomic():
-            result = super().save(*args, **kwargs)
-            if (
-                "depth_interval_preset" in dirty_fields
-                and dirty_fields.get("depth_interval_preset") != self.depth_interval_preset
-            ):
-                # delete project intervals
-                ProjectDepthInterval.objects.filter(project=self).delete()
-                # delete related soil data
-                DepthDependentSoilData.delete_in_project(self.project.id)
-        return result
+    @property
+    def methods(self):
+        field_names = [
+            field.name.removesuffix("_enabled")
+            for field in SoilDataDepthInterval._meta.fields
+            if field.name.endswith("_enabled")
+        ]
+        return {
+            f"{field_name}_enabled": getattr(self, f"{field_name}_required")
+            for field_name in field_names
+        }
 
 
 class ProjectDepthInterval(BaseModel, BaseDepthInterval):

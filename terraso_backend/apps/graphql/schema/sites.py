@@ -24,7 +24,7 @@ from graphene_django.filter import TypedFilter
 from apps.audit_logs import api as audit_log_api
 from apps.project_management.graphql.projects import ProjectNode
 from apps.project_management.models import Project, Site, sites
-from apps.soil_id.models.soil_data import SoilData
+from apps.soil_id.models import SoilData
 
 from .commons import (
     BaseAuthenticatedMutation,
@@ -108,9 +108,10 @@ class SiteAddMutation(BaseWriteMutation):
         longitude = graphene.Float(required=True)
         privacy = SiteNode.privacy_enum()
         project_id = graphene.ID()
+        create_soil_data = graphene.Boolean()
 
     @classmethod
-    def mutate_and_get_payload(cls, root, info, **kwargs):
+    def mutate_and_get_payload(cls, root, info, create_soil_data=True, **kwargs):
         log = cls.get_logger()
         user = info.context.user
 
@@ -133,6 +134,9 @@ class SiteAddMutation(BaseWriteMutation):
         result = super().mutate_and_get_payload(root, info, **kwargs)
         if result.errors:
             return result
+
+        if create_soil_data:
+            SoilData.objects.create(site=result.site)
 
         site = result.site
         site.mark_seen_by(user)
@@ -181,6 +185,7 @@ class SiteUpdateMutation(BaseWriteMutation):
         project_id = graphene.ID()
 
     @classmethod
+    @transaction.atomic
     def mutate_and_get_payload(cls, root, info, **kwargs):
         log = cls.get_logger()
         user = info.context.user
@@ -215,7 +220,13 @@ class SiteUpdateMutation(BaseWriteMutation):
                 continue
             metadata[key] = value
         if project_id:
-            metadata["project_id"] = str(project.id)
+            if hasattr(project, "soil_settings") and hasattr(site, "soil_data"):
+                if project_id is not None:
+                    metadata["project_id"] = str(project.id)
+        else:
+            if hasattr(site, "soil_data"):
+                # Delete existing intervals if removed from project
+                site.soil_data.remove_from_project()
 
         log.log(
             user=user,

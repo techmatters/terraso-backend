@@ -20,18 +20,13 @@ import pytest
 from django.test.client import Client
 from mixer.backend.django import mixer
 from pyproj import CRS, Transformer
+from tests.utils import add_soil_data_to_site
 
 from apps.auth.services import JWTService
 from apps.collaboration.models import Membership
 from apps.core.gis.utils import DEFAULT_CRS
 from apps.core.models import User
 from apps.project_management.models import Project, Site
-from apps.soil_id.models import (
-    DepthDependentSoilData,
-    LandPKSIntervalDefaults,
-    ProjectSoilSettings,
-    SoilData,
-)
 
 pytestmark = pytest.mark.django_db
 
@@ -141,12 +136,21 @@ def project_user_w_role(request, project: Project):
 
 @pytest.fixture
 def site_with_soil_data(request, project_manager: User, project: Project, project_site: Site):
-    ProjectSoilSettings.objects.create(project=project)
-    SoilData.objects.create(site=project_site)
-    for interval in LandPKSIntervalDefaults:
-        DepthDependentSoilData.objects.create(
-            soil_data=project_site.soil_data,
-            depth_interval_start=interval["depth_interval_start"],
-            depth_interval_end=interval["depth_interval_end"],
-        )
+    add_soil_data_to_site(project_site)
     return project_site
+
+
+@pytest.fixture
+def site_with_soil_data_or_not(request, project_site, site_with_soil_data):
+    """This fixture is for indirect parametrization, when we want to test with both a
+    site that has soil data, and one that does not.
+
+    Usage:
+
+    @pytest.mark.parametrize("site_with_soil_data_or_not", [False, True], indirect=True)
+    def test_sites(site_with_soil_data_or_not):
+        ...
+    """
+    if not request:
+        return (False, project_site)
+    return (True, site_with_soil_data)
