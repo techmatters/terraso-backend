@@ -169,7 +169,7 @@ def test_create_data_entry_file_invalid_type(logged_client, upload_url, data_ent
 
 @mock.patch("apps.shared_data.models.data_entries.data_entry_file_storage.url")
 def test_download_data_entry_file_shared_all(
-    get_url_mock, logged_client, shared_resource_data_entry_shared_all
+    get_url_mock, not_logged_client, shared_resource_data_entry_shared_all
 ):
     redirect_url = "https://example.org/s3_file.json"
     get_url_mock.return_value = redirect_url
@@ -177,7 +177,7 @@ def test_download_data_entry_file_shared_all(
         "shared_data:download",
         kwargs={"shared_resource_uuid": shared_resource_data_entry_shared_all.share_uuid},
     )
-    response = logged_client.get(url)
+    response = not_logged_client.get(url)
 
     assert response.status_code == 302
     assert response.url == redirect_url

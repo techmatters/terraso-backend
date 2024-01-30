@@ -16,6 +16,8 @@
 from django.urls import path
 from django.views.decorators.csrf import csrf_exempt
 
+from apps.auth.middleware import auth_optional
+
 from .views import DataEntryFileDownloadView, DataEntryFileUploadView
 
 app_name = "apps.shared_data"
@@ -24,7 +26,7 @@ urlpatterns = [
     path("upload/", csrf_exempt(DataEntryFileUploadView.as_view()), name="upload"),
     path(
         "download/<str:shared_resource_uuid>",
-        csrf_exempt(DataEntryFileDownloadView.as_view()),
+        csrf_exempt(auth_optional(DataEntryFileDownloadView.as_view())),
         name="download",
     ),
 ]
