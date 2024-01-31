@@ -17,10 +17,12 @@ import graphene
 import rules
 import structlog
 from django.conf import settings
+from django.db.models import Q, Subquery
 from graphene import relay
 from graphene_django import DjangoObjectType
 
-from apps.core.models import SharedResource
+from apps.collaboration.models import Membership as CollaborationMembership
+from apps.core.models import Group, Landscape, SharedResource
 from apps.graphql.exceptions import GraphQLNotAllowedException, GraphQLNotFoundException
 
 from . import GroupNode, LandscapeNode
@@ -62,6 +64,44 @@ class SharedResourceNode(DjangoObjectType):
 
     def resolve_share_url(self, info, **kwargs):
         return f"{settings.API_ENDPOINT}/shared-data/download/{self.share_uuid}"
+
+
+class SharedResourceRelayNode:
+    @classmethod
+    def Field(cls):
+        return graphene.Field(SharedResourceNode, share_uuid=graphene.String(required=True))
+
+
+def resolve_shared_resource(root, info, share_uuid=None):
+    if not share_uuid:
+        return None
+
+    user_pk = getattr(info.context.user, "pk", False)
+    user_groups_ids = Subquery(
+        Group.objects.filter(
+            membership_list__memberships__deleted_at__isnull=True,
+            membership_list__memberships__user__id=user_pk,
+            membership_list__memberships__membership_status=CollaborationMembership.APPROVED,
+        ).values("id")
+    )
+    user_landscape_ids = Subquery(
+        Landscape.objects.filter(
+            membership_list__memberships__deleted_at__isnull=True,
+            membership_list__memberships__user__id=user_pk,
+            membership_list__memberships__membership_status=CollaborationMembership.APPROVED,
+        ).values("id")
+    )
+
+    share_access_no = Q(share_access=SharedResource.SHARE_ACCESS_NO)
+    share_access_all = Q(share_access=SharedResource.SHARE_ACCESS_ALL)
+    share_access_members = Q(
+        Q(share_access=SharedResource.SHARE_ACCESS_TARGET_MEMBERS)
+        & Q(Q(target_object_id__in=user_groups_ids) | Q(target_object_id__in=user_landscape_ids))
+    )
+
+    return SharedResource.objects.filter(
+        Q(share_uuid=share_uuid) & ~share_access_no & Q(share_access_all | share_access_members)
+    ).first()
 
 
 class SharedResourceUpdateMutation(BaseWriteMutation):
