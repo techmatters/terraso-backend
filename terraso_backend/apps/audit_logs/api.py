@@ -44,5 +44,4 @@ class AuditLog(Protocol):
         resource: object,
         metadata: KeyValue,
         client_time: datetime,
-    ) -> None:
-        ...
+    ) -> None: ...
