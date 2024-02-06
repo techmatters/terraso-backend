@@ -89,6 +89,7 @@ type Query {
     """Ordering"""
     orderBy: String
   ): AuditLogNodeConnection
+  sharedResource(shareUuid: String!): SharedResourceNode
 }
 
 type GroupNode implements Node {
