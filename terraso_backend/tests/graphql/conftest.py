@@ -13,6 +13,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see https://www.gnu.org/licenses/.
 
+import uuid
 from datetime import timedelta
 
 import pytest
@@ -321,6 +322,7 @@ def group_data_entries(users, groups):
     resources = mixer.cycle(5).blend(
         SharedResource,
         target=creator_group,
+        share_uuid=lambda: uuid.uuid4(),
         source=lambda: mixer.blend(DataEntry, created_by=creator, size=100, resource_type="csv"),
     )
     return [resource.source for resource in resources]
