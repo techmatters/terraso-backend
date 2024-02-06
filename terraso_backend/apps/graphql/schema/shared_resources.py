@@ -48,11 +48,12 @@ class SharedResourceNode(DjangoObjectType):
     id = graphene.ID(source="pk", required=True)
     source = graphene.Field(SourceNode)
     target = graphene.Field(TargetNode)
+    download_url = graphene.String()
     share_url = graphene.String()
 
     class Meta:
         model = SharedResource
-        fields = ["id", "share_access"]
+        fields = ["id", "share_access", "share_uuid"]
         interfaces = (relay.Node,)
         connection_class = TerrasoConnection
 
@@ -62,8 +63,15 @@ class SharedResourceNode(DjangoObjectType):
     def resolve_target(self, info, **kwargs):
         return self.target
 
-    def resolve_share_url(self, info, **kwargs):
+    def resolve_download_url(self, info, **kwargs):
         return f"{settings.API_ENDPOINT}/shared-data/download/{self.share_uuid}"
+
+    def resolve_share_url(self, info, **kwargs):
+        target = self.target
+        entity = "groups" if isinstance(target, Group) else "landscapes"
+        slug = target.slug
+        share_uuid = self.share_uuid
+        return f"{settings.WEB_CLIENT_URL}/{entity}/{slug}/shared-resource/download/{share_uuid}"
 
 
 class SharedResourceRelayNode:

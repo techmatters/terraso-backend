@@ -399,6 +399,7 @@ def test_data_entries_from_parent_query_by_resource_field(
                       }
                     }
                     shareUrl
+                    downloadUrl
                     shareAccess
                   }
                 }
@@ -417,16 +418,21 @@ def test_data_entries_from_parent_query_by_resource_field(
         {
             "name": resource["node"]["source"]["name"],
             "share_url": resource["node"]["shareUrl"],
+            "download_url": resource["node"]["downloadUrl"],
             "share_access": resource["node"]["shareAccess"],
         }
         for resource in resources
     ]
 
     for data_entry in data_entries:
-        share_uuid = data_entry.shared_resources.all()[0].share_uuid
-        share_url = f"{settings.API_ENDPOINT}/shared-data/download/{share_uuid}"
+        uuid = data_entry.shared_resources.all()[0].share_uuid
+        download_url = f"{settings.API_ENDPOINT}/shared-data/download/{uuid}"
+        slug = parent_entity.slug
+        share_url = f"{settings.WEB_CLIENT_URL}/{parent}/{slug}/shared-resource/download/{uuid}"
+
         assert {
             "name": data_entry.name,
+            "download_url": download_url,
             "share_url": share_url,
             "share_access": data_entry.shared_resources.all()[0].share_access.upper(),
         } in entries_result

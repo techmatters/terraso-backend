@@ -431,11 +431,19 @@ type SharedResourceNodeEdge {
 
 type SharedResourceNode implements Node {
   id: ID!
+  shareUuid: UUID!
   shareAccess: CoreSharedResourceShareAccessChoices!
   source: SourceNode
   target: TargetNode
+  downloadUrl: String
   shareUrl: String
 }
+
+"""
+Leverages the internal Python implementation of UUID (uuid.UUID) to provide native UUID objects
+in fields, resolvers and input.
+"""
+scalar UUID
 
 """An enumeration."""
 enum CoreSharedResourceShareAccessChoices {
@@ -521,12 +529,6 @@ type VisualizationConfigNodeEdge {
   """A cursor for use in pagination"""
   cursor: String!
 }
-
-"""
-Leverages the internal Python implementation of UUID (uuid.UUID) to provide native UUID objects
-in fields, resolvers and input.
-"""
-scalar UUID
 
 union OwnerNode = GroupNode | LandscapeNode
 
