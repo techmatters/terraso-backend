@@ -453,7 +453,7 @@ enum CoreSharedResourceShareAccessChoices {
   """Anyone with the link"""
   ALL
 
-  """Only tagert members"""
+  """Only target members"""
   TARGET_MEMBERS
 }
 
