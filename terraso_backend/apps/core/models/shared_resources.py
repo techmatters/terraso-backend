@@ -37,7 +37,7 @@ class SharedResource(BaseModel):
     SHARE_ACCESS_TYPES = (
         (SHARE_ACCESS_NO, _("No share access")),
         (SHARE_ACCESS_ALL, _("Anyone with the link")),
-        (SHARE_ACCESS_TARGET_MEMBERS, _("Only tagert members")),
+        (SHARE_ACCESS_TARGET_MEMBERS, _("Only target members")),
     )
 
     source = GenericForeignKey("source_content_type", "source_object_id")
