@@ -106,6 +106,18 @@ class DepthDependentSoilData(BaseModel, BaseDepthInterval):
 
     color_chroma = models.CharField(blank=True, null=True, choices=ColorChroma.choices)
 
+    class ColorPhotoSoilCondition(models.TextChoices):
+       MOIST = "MOIST"
+       DRY = "DRY" 
+
+    color_photo_soil_condition = models.CharField(blank=True, null=True, choices = ColorPhotoSoilCondition)
+    
+    class ColorPhotoLightingCondition(models.TextChoices):
+       EVEN = "EVEN"
+       UNEVEN = "UNEVEN" 
+
+    color_photo_lighting_condition = models.CharField(blank=True, null=True, choices = ColorPhotoLightingCondition)
+
     conductivity = models.DecimalField(
         blank=True, null=True, max_digits=100, decimal_places=2, validators=[MinValueValidator(0)]
     )

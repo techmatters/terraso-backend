@@ -193,6 +193,14 @@ class DepthDependentSoilDataNode(DjangoObjectType):
         return cls._meta.fields["color_chroma"].type()
 
     @classmethod
+    def color_photo_soil_condition_enum(cls):
+        return cls._meta.fields["color_photo_soil_condition"].type()
+
+    @classmethod
+    def color_photo_lighting_condition_enum(cls):
+        return cls._meta.fields["color_photo_lighting_condition"].type()
+
+    @classmethod
     def conductivity_test_enum(cls):
         return cls._meta.fields["conductivity_test"].type()
 
@@ -393,6 +401,10 @@ class DepthDependentSoilDataUpdateMutation(BaseWriteMutation):
         color_hue = DepthDependentSoilDataNode.color_hue_enum()
         color_value = DepthDependentSoilDataNode.color_value_enum()
         color_chroma = DepthDependentSoilDataNode.color_chroma_enum()
+        color_photo_soil_condition = DepthDependentSoilDataNode.color_photo_soil_condition_enum()
+        color_photo_lighting_condition = (
+            DepthDependentSoilDataNode.color_photo_lighting_condition_enum()
+        )
         conductivity = graphene.Decimal()
         conductivity_test = DepthDependentSoilDataNode.conductivity_test_enum()
         conductivity_unit = DepthDependentSoilDataNode.conductivity_unit_enum()
