@@ -18,7 +18,7 @@ from unittest import mock
 import pytest
 from httpx import Response
 from mixer.backend.django import mixer
-from moto import mock_s3
+from moto import mock_aws
 
 from apps.auth.providers import AppleProvider, GoogleProvider
 from apps.auth.services import AccountService
@@ -35,7 +35,7 @@ def user():
     )
 
 
-@mock_s3
+@mock_aws
 @mock.patch("urllib.request.urlopen", mock.mock_open(read_data="file content"))
 @mock.patch("apps.storage.services.ProfileImageService.upload_url")
 def test_sign_up_with_google_creates_user(mock_upload, respx_mock, access_tokens_google):
@@ -66,7 +66,7 @@ def test_sign_in_with_google_doesnt_update_user_names(respx_mock, access_tokens_
     assert user_result.first_name == user.first_name
 
 
-@mock_s3
+@mock_aws
 def test_sign_up_with_apple_creates_user(respx_mock, access_tokens_apple):
     respx_mock.post(AppleProvider.TOKEN_URI).mock(
         return_value=Response(200, json=access_tokens_apple)

@@ -20,7 +20,7 @@ import pytest
 from django.core.files.base import ContentFile
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.urls import reverse
-from moto import mock_s3
+from moto import mock_aws
 
 from apps.storage.s3 import ProfileImageStorage
 
@@ -40,9 +40,9 @@ def landscape_profile_image_payload(landscape):
     )
 
 
-@mock_s3
+@mock_aws
 @mock.patch("botocore.client.BaseClient._make_api_call")
-def test_post_user_profile_image(mock_s3, client, access_token):
+def test_post_user_profile_image(mock_aws, client, access_token):
     url = reverse("terraso_storage:user-profile-image")
 
     # We need to mock the exists method, otherwise the mocked s3 (moto) will
@@ -52,7 +52,7 @@ def test_post_user_profile_image(mock_s3, client, access_token):
             url, {"file": ContentFile("test")}, HTTP_AUTHORIZATION=f"Bearer {access_token}"
         )
 
-        mock_s3.assert_called_once()
+        mock_aws.assert_called_once()
         assert response.status_code == 200
 
 

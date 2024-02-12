@@ -17,7 +17,7 @@ import pytest
 from django.urls import reverse
 from httpx import Response
 from mixer.backend.django import mixer
-from moto import mock_s3
+from moto import mock_aws
 
 from apps.auth.providers import GoogleProvider
 from apps.collaboration.models import Membership
@@ -52,7 +52,7 @@ def pending_membership_not_registered_lowercase_email():
     return mixer.blend(Membership, pending_email="testingterraso@example.com", user=None)
 
 
-@mock_s3
+@mock_aws
 def test_signup_signal_membership_update_with_mixed_case_email(
     client, access_tokens_google, pending_membership_not_registered_mixed_case_email, respx_mock
 ):
@@ -71,7 +71,7 @@ def test_signup_signal_membership_update_with_mixed_case_email(
     assert membership.user is not None
 
 
-@mock_s3
+@mock_aws
 def test_signup_signal_membership_update_with_lowercase_email(
     client, access_tokens_google, pending_membership_not_registered_lowercase_email, respx_mock
 ):
