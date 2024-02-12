@@ -372,8 +372,8 @@ jmespath==1.0.1 \
     # via
     #   boto3
     #   botocore
-jwcrypto==1.5.1 \
-    --hash=sha256:48bb9bf433777136253579e52b75ffe0f9a4a721d133d01f45a0b91ed5f4f1ae
+jwcrypto==1.5.3 \
+    --hash=sha256:3af84bb6ed78fb29325308d4eca55e2842f1583010cb6c09207375a4ecea151f
     # via django-oauth-toolkit
 numpy==1.26.3 \
     --hash=sha256:02f98011ba4ab17f46f80f7f8f1c291ee7d855fcef0a5a98db80767a468c85cd \
