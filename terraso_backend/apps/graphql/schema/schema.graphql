@@ -1117,6 +1117,8 @@ type DepthDependentSoilDataNode {
   colorHue: SoilIdDepthDependentSoilDataColorHueChoices
   colorValue: SoilIdDepthDependentSoilDataColorValueChoices
   colorChroma: SoilIdDepthDependentSoilDataColorChromaChoices
+  colorPhotoSoilCondition: SoilIdDepthDependentSoilDataColorPhotoSoilConditionChoices
+  colorPhotoLightingCondition: SoilIdDepthDependentSoilDataColorPhotoLightingConditionChoices
   conductivity: Decimal
   conductivityTest: SoilIdDepthDependentSoilDataConductivityTestChoices
   conductivityUnit: SoilIdDepthDependentSoilDataConductivityUnitChoices
@@ -1288,6 +1290,24 @@ enum SoilIdDepthDependentSoilDataColorChromaChoices {
 
   """8"""
   CHROMA_8
+}
+
+"""An enumeration."""
+enum SoilIdDepthDependentSoilDataColorPhotoSoilConditionChoices {
+  """Moist"""
+  MOIST
+
+  """Dry"""
+  DRY
+}
+
+"""An enumeration."""
+enum SoilIdDepthDependentSoilDataColorPhotoLightingConditionChoices {
+  """Even"""
+  EVEN
+
+  """Uneven"""
+  UNEVEN
 }
 
 """The `Decimal` scalar type represents a python Decimal."""
@@ -2258,6 +2278,8 @@ input DepthDependentSoilDataUpdateMutationInput {
   colorHue: SoilIdDepthDependentSoilDataColorHueChoices
   colorValue: SoilIdDepthDependentSoilDataColorValueChoices
   colorChroma: SoilIdDepthDependentSoilDataColorChromaChoices
+  colorPhotoSoilCondition: SoilIdDepthDependentSoilDataColorPhotoSoilConditionChoices
+  colorPhotoLightingCondition: SoilIdDepthDependentSoilDataColorPhotoLightingConditionChoices
   conductivity: Decimal
   conductivityTest: SoilIdDepthDependentSoilDataConductivityTestChoices
   conductivityUnit: SoilIdDepthDependentSoilDataConductivityUnitChoices
