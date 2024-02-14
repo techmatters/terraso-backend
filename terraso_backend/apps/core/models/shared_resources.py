@@ -29,13 +29,13 @@ class SharedResource(BaseModel):
     Target represents the resource that is receiving the shared resource (Example: Landscape).
     """
 
-    SHARE_ACCESS_NO = "no"
+    SHARE_ACCESS_NONE = "no"
     SHARE_ACCESS_ALL = "all"
     SHARE_ACCESS_TARGET_MEMBERS = "target_members"
-    DEFAULT_SHARE_ACCESS = SHARE_ACCESS_NO
+    DEFAULT_SHARE_ACCESS = SHARE_ACCESS_NONE
 
     SHARE_ACCESS_TYPES = (
-        (SHARE_ACCESS_NO, _("No share access")),
+        (SHARE_ACCESS_NONE, _("No share access")),
         (SHARE_ACCESS_ALL, _("Anyone with the link")),
         (SHARE_ACCESS_TARGET_MEMBERS, _("Only target members")),
     )
@@ -70,10 +70,10 @@ class SharedResource(BaseModel):
     @classmethod
     def get_share_access_from_text(cls, share_access):
         if not share_access:
-            return cls.SHARE_ACCESS_NO
+            return cls.SHARE_ACCESS_NONE
         lowered = share_access.lower()
         if lowered == cls.SHARE_ACCESS_ALL:
             return cls.SHARE_ACCESS_ALL
         if lowered == cls.SHARE_ACCESS_TARGET_MEMBERS:
             return cls.SHARE_ACCESS_TARGET_MEMBERS
-        return cls.SHARE_ACCESS_NO
+        return cls.SHARE_ACCESS_NONE

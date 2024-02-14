@@ -48,7 +48,7 @@ class DataEntryFileDownloadView(View):
         if shared_resource is None:
             return HttpResponse("Not Found", status=404)
 
-        not_shared = shared_resource.share_access == SharedResource.SHARE_ACCESS_NO
+        not_shared = shared_resource.share_access == SharedResource.SHARE_ACCESS_NONE
         needs_authentication = (
             shared_resource.share_access != SharedResource.SHARE_ACCESS_ALL
             and not request.user.is_authenticated

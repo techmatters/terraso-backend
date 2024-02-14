@@ -27,7 +27,7 @@ def test_shared_resource_access_no(client_query, data_entries):
     data_entry = data_entries[0]
     shared_resource = data_entry.shared_resources.all()[0]
 
-    shared_resource.share_access = SharedResource.SHARE_ACCESS_NO
+    shared_resource.share_access = SharedResource.SHARE_ACCESS_NONE
     shared_resource.save()
 
     response = client_query(

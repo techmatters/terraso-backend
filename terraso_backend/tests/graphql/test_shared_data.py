@@ -428,7 +428,7 @@ def test_data_entries_from_parent_query_by_resource_field(
         uuid = data_entry.shared_resources.all()[0].share_uuid
         download_url = f"{settings.API_ENDPOINT}/shared-data/download/{uuid}"
         slug = parent_entity.slug
-        share_url = f"{settings.WEB_CLIENT_URL}/{parent}/{slug}/shared-resource/download/{uuid}"
+        share_url = f"{settings.WEB_CLIENT_URL}/{parent}/{slug}/download/{uuid}"
 
         assert {
             "name": data_entry.name,

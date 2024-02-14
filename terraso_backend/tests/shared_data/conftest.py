@@ -178,7 +178,7 @@ def shared_resource_data_entry_shared_no_access(users):
     creator = users[0]
     return mixer.blend(
         SharedResource,
-        share_access=SharedResource.SHARE_ACCESS_NO,
+        share_access=SharedResource.SHARE_ACCESS_NONE,
         share_uuid=uuid.uuid4(),
         target=mixer.blend(Group),
         source=mixer.blend(

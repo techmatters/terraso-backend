@@ -68,10 +68,18 @@ class SharedResourceNode(DjangoObjectType):
 
     def resolve_share_url(self, info, **kwargs):
         target = self.target
-        entity = "groups" if isinstance(target, Group) else "landscapes"
+        entity = (
+            "groups"
+            if isinstance(target, Group)
+            else "landscapes"
+            if isinstance(target, Landscape)
+            else None
+        )
+        if not entity:
+            return None
         slug = target.slug
         share_uuid = self.share_uuid
-        return f"{settings.WEB_CLIENT_URL}/{entity}/{slug}/shared-resource/download/{share_uuid}"
+        return f"{settings.WEB_CLIENT_URL}/{entity}/{slug}/download/{share_uuid}"
 
 
 class SharedResourceRelayNode:
@@ -100,7 +108,7 @@ def resolve_shared_resource(root, info, share_uuid=None):
         ).values("id")
     )
 
-    share_access_no = Q(share_access=SharedResource.SHARE_ACCESS_NO)
+    share_access_none = Q(share_access=SharedResource.SHARE_ACCESS_NONE)
     share_access_all = Q(share_access=SharedResource.SHARE_ACCESS_ALL)
     share_access_members = Q(
         Q(share_access=SharedResource.SHARE_ACCESS_TARGET_MEMBERS)
@@ -108,7 +116,7 @@ def resolve_shared_resource(root, info, share_uuid=None):
     )
 
     return SharedResource.objects.filter(
-        Q(share_uuid=share_uuid) & ~share_access_no & Q(share_access_all | share_access_members)
+        Q(share_uuid=share_uuid) & ~share_access_none & Q(share_access_all | share_access_members)
     ).first()
 
 
