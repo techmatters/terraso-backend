@@ -47,7 +47,7 @@ def logged_client(access_token):
 
 
 @pytest.fixture
-def not_logged_client(access_token):
+def not_logged_in_client(access_token):
     return Client()
 
 
