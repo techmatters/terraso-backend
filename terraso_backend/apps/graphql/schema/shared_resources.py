@@ -71,9 +71,7 @@ class SharedResourceNode(DjangoObjectType):
         entity = (
             "groups"
             if isinstance(target, Group)
-            else "landscapes"
-            if isinstance(target, Landscape)
-            else None
+            else "landscapes" if isinstance(target, Landscape) else None
         )
         if not entity:
             return None
