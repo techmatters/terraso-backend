@@ -215,18 +215,3 @@ def test_download_data_entry_file_shared_target_members_fail(
     response = logged_client.get(url)
 
     assert response.status_code == 404
-
-
-@mock.patch("apps.shared_data.models.data_entries.data_entry_file_storage.url")
-def test_download_data_entry_file_shared_no_fail(
-    get_url_mock, logged_client, shared_resource_data_entry_shared_no_access
-):
-    redirect_url = "https://example.org/s3_file.json"
-    get_url_mock.return_value = redirect_url
-    url = reverse(
-        "shared_data:download",
-        kwargs={"shared_resource_uuid": shared_resource_data_entry_shared_no_access.share_uuid},
-    )
-    response = logged_client.get(url)
-
-    assert response.status_code == 404

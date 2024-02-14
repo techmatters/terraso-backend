@@ -107,9 +107,6 @@ def allowed_to_delete_visualization_config(user, visualization_config):
 def allowed_to_download_data_entry_file(user, shared_resource):
     target = shared_resource.target
 
-    if shared_resource.share_access == SharedResource.SHARE_ACCESS_NONE:
-        return False
-
     if shared_resource.share_access == SharedResource.SHARE_ACCESS_ALL:
         return True
 

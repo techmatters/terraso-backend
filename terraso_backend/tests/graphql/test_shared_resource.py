@@ -23,29 +23,6 @@ from apps.core.models import SharedResource
 pytestmark = pytest.mark.django_db
 
 
-def test_shared_resource_access_no(client_query, data_entries):
-    data_entry = data_entries[0]
-    shared_resource = data_entry.shared_resources.all()[0]
-
-    shared_resource.share_access = SharedResource.SHARE_ACCESS_NONE
-    shared_resource.save()
-
-    response = client_query(
-        """
-        {sharedResource(shareUuid: "%s") {
-          shareAccess
-        }}
-        """
-        % shared_resource.share_uuid
-    )
-
-    json_response = response.json()
-
-    result = json_response["data"]["sharedResource"]
-
-    assert result is None
-
-
 def test_shared_resource_access_all(client_query, data_entries):
     data_entry = data_entries[0]
     shared_resource = data_entry.shared_resources.all()[0]

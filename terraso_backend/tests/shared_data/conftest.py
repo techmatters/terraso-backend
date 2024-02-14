@@ -171,17 +171,3 @@ def shared_resource_data_entry_shared_target_members_user_1(users):
             DataEntry, slug=None, created_by=creator, size=100, entry_type=DataEntry.ENTRY_TYPE_FILE
         ),
     )
-
-
-@pytest.fixture
-def shared_resource_data_entry_shared_no_access(users):
-    creator = users[0]
-    return mixer.blend(
-        SharedResource,
-        share_access=SharedResource.SHARE_ACCESS_NONE,
-        share_uuid=uuid.uuid4(),
-        target=mixer.blend(Group),
-        source=mixer.blend(
-            DataEntry, slug=None, created_by=creator, size=100, entry_type=DataEntry.ENTRY_TYPE_FILE
-        ),
-    )

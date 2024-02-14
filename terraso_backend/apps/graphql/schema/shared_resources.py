@@ -108,7 +108,6 @@ def resolve_shared_resource(root, info, share_uuid=None):
         ).values("id")
     )
 
-    share_access_none = Q(share_access=SharedResource.SHARE_ACCESS_NONE)
     share_access_all = Q(share_access=SharedResource.SHARE_ACCESS_ALL)
     share_access_members = Q(
         Q(share_access=SharedResource.SHARE_ACCESS_TARGET_MEMBERS)
@@ -116,7 +115,7 @@ def resolve_shared_resource(root, info, share_uuid=None):
     )
 
     return SharedResource.objects.filter(
-        Q(share_uuid=share_uuid) & ~share_access_none & Q(share_access_all | share_access_members)
+        Q(share_uuid=share_uuid) & Q(share_access_all | share_access_members)
     ).first()
 
 
