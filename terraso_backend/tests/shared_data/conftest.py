@@ -138,7 +138,7 @@ def shared_resource_data_entry_shared_all(users):
 
 
 @pytest.fixture
-def shared_resource_data_entry_shared_target_members(users):
+def shared_resource_data_entry_shared_members(users):
     creator = users[0]
     creator_group = mixer.blend(Group)
     creator_group.membership_list.save_membership(
@@ -146,7 +146,7 @@ def shared_resource_data_entry_shared_target_members(users):
     )
     return mixer.blend(
         SharedResource,
-        share_access=SharedResource.SHARE_ACCESS_TARGET_MEMBERS,
+        share_access=SharedResource.SHARE_ACCESS_MEMBERS,
         share_uuid=uuid.uuid4(),
         target=creator_group,
         source=mixer.blend(
@@ -156,7 +156,7 @@ def shared_resource_data_entry_shared_target_members(users):
 
 
 @pytest.fixture
-def shared_resource_data_entry_shared_target_members_user_1(users):
+def shared_resource_data_entry_shared_members_user_1(users):
     creator = users[1]
     creator_group = mixer.blend(Group)
     creator_group.membership_list.save_membership(
@@ -164,7 +164,7 @@ def shared_resource_data_entry_shared_target_members_user_1(users):
     )
     return mixer.blend(
         SharedResource,
-        share_access=SharedResource.SHARE_ACCESS_TARGET_MEMBERS,
+        share_access=SharedResource.SHARE_ACCESS_MEMBERS,
         share_uuid=uuid.uuid4(),
         target=creator_group,
         source=mixer.blend(

@@ -30,12 +30,12 @@ class SharedResource(BaseModel):
     """
 
     SHARE_ACCESS_ALL = "all"
-    SHARE_ACCESS_TARGET_MEMBERS = "target_members"
-    DEFAULT_SHARE_ACCESS = SHARE_ACCESS_TARGET_MEMBERS
+    SHARE_ACCESS_MEMBERS = "members"
+    DEFAULT_SHARE_ACCESS = SHARE_ACCESS_MEMBERS
 
     SHARE_ACCESS_TYPES = (
         (SHARE_ACCESS_ALL, _("Anyone with the link")),
-        (SHARE_ACCESS_TARGET_MEMBERS, _("Only target members")),
+        (SHARE_ACCESS_MEMBERS, _("Only members")),
     )
 
     source = GenericForeignKey("source_content_type", "source_object_id")
@@ -68,8 +68,8 @@ class SharedResource(BaseModel):
     @classmethod
     def get_share_access_from_text(cls, share_access):
         if not share_access:
-            return cls.SHARE_ACCESS_TARGET_MEMBERS
+            return cls.SHARE_ACCESS_MEMBERS
         lowered = share_access.lower()
         if lowered == cls.SHARE_ACCESS_ALL:
             return cls.SHARE_ACCESS_ALL
-        return cls.SHARE_ACCESS_TARGET_MEMBERS
+        return cls.SHARE_ACCESS_MEMBERS

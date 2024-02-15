@@ -108,7 +108,7 @@ def resolve_shared_resource(root, info, share_uuid=None):
 
     share_access_all = Q(share_access=SharedResource.SHARE_ACCESS_ALL)
     share_access_members = Q(
-        Q(share_access=SharedResource.SHARE_ACCESS_TARGET_MEMBERS)
+        Q(share_access=SharedResource.SHARE_ACCESS_MEMBERS)
         & Q(Q(target_object_id__in=user_groups_ids) | Q(target_object_id__in=user_landscape_ids))
     )
 

@@ -110,7 +110,7 @@ def allowed_to_download_data_entry_file(user, shared_resource):
     if shared_resource.share_access == SharedResource.SHARE_ACCESS_ALL:
         return True
 
-    if shared_resource.share_access == SharedResource.SHARE_ACCESS_TARGET_MEMBERS:
+    if shared_resource.share_access == SharedResource.SHARE_ACCESS_MEMBERS:
         return is_target_member(user, target)
 
 

@@ -58,7 +58,7 @@ def test_shared_resource_access_members(client_query, data_entries, users):
         users[0].email, group_collaboration_roles.ROLE_MEMBER, CollaborationMembership.APPROVED
     )
 
-    shared_resource.share_access = SharedResource.SHARE_ACCESS_TARGET_MEMBERS
+    shared_resource.share_access = SharedResource.SHARE_ACCESS_MEMBERS
     shared_resource.save()
 
     response = client_query(
@@ -83,7 +83,7 @@ def test_shared_resource_access_members_fail(client_query, data_entries, users):
 
     shared_resource.target.membership_list.memberships.all().delete()
 
-    shared_resource.share_access = SharedResource.SHARE_ACCESS_TARGET_MEMBERS
+    shared_resource.share_access = SharedResource.SHARE_ACCESS_MEMBERS
     shared_resource.save()
 
     response = client_query(

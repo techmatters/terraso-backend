@@ -184,16 +184,14 @@ def test_download_data_entry_file_shared_all(
 
 
 @mock.patch("apps.shared_data.models.data_entries.data_entry_file_storage.url")
-def test_download_data_entry_file_shared_target_members(
-    get_url_mock, logged_client, shared_resource_data_entry_shared_target_members
+def test_download_data_entry_file_shared_members(
+    get_url_mock, logged_client, shared_resource_data_entry_shared_members
 ):
     redirect_url = "https://example.org/s3_file.json"
     get_url_mock.return_value = redirect_url
     url = reverse(
         "shared_data:download",
-        kwargs={
-            "shared_resource_uuid": shared_resource_data_entry_shared_target_members.share_uuid
-        },
+        kwargs={"shared_resource_uuid": shared_resource_data_entry_shared_members.share_uuid},
     )
     response = logged_client.get(url)
 
@@ -202,12 +200,12 @@ def test_download_data_entry_file_shared_target_members(
 
 
 @mock.patch("apps.shared_data.models.data_entries.data_entry_file_storage.url")
-def test_download_data_entry_file_shared_target_members_fail(
-    get_url_mock, logged_client, shared_resource_data_entry_shared_target_members_user_1
+def test_download_data_entry_file_shared_members_fail(
+    get_url_mock, logged_client, shared_resource_data_entry_shared_members_user_1
 ):
     redirect_url = "https://example.org/s3_file.json"
     get_url_mock.return_value = redirect_url
-    share_uuid = shared_resource_data_entry_shared_target_members_user_1.share_uuid
+    share_uuid = shared_resource_data_entry_shared_members_user_1.share_uuid
     url = reverse(
         "shared_data:download",
         kwargs={"shared_resource_uuid": share_uuid},
