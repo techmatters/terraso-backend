@@ -14,6 +14,7 @@
 # along with this program. If not, see https://www.gnu.org/licenses/.
 import uuid
 
+from django.conf import settings
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
@@ -64,6 +65,24 @@ class SharedResource(BaseModel):
                 name="unique_share_uuid",
             ),
         )
+
+    def get_download_url(self):
+        return f"{settings.API_ENDPOINT}/shared-data/download/{self.share_uuid}"
+
+    def get_share_url(self):
+        from apps.core.models import Group, Landscape
+
+        target = self.target
+        entity = (
+            "groups"
+            if isinstance(target, Group)
+            else "landscapes" if isinstance(target, Landscape) else None
+        )
+        if not entity:
+            return None
+        slug = target.slug
+        share_uuid = self.share_uuid
+        return f"{settings.WEB_CLIENT_URL}/{entity}/{slug}/download/{share_uuid}"
 
     @classmethod
     def get_share_access_from_text(cls, share_access):

@@ -22,7 +22,6 @@ from unittest import mock
 
 import geopandas as gpd
 import pytest
-from django.conf import settings
 
 from apps.collaboration.models import Membership as CollaborationMembership
 from apps.core import group_collaboration_roles
@@ -425,17 +424,14 @@ def test_data_entries_from_parent_query_by_resource_field(
     ]
 
     for data_entry in data_entries:
-        uuid = data_entry.shared_resources.all()[0].share_uuid
-        download_url = f"{settings.API_ENDPOINT}/shared-data/download/{uuid}"
-        slug = parent_entity.slug
-        share_url = f"{settings.WEB_CLIENT_URL}/{parent}/{slug}/download/{uuid}"
-
-        assert {
+        shared_resource = data_entry.shared_resources.all()[0]
+        expected = {
             "name": data_entry.name,
-            "download_url": download_url,
-            "share_url": share_url,
-            "share_access": data_entry.shared_resources.all()[0].share_access.upper(),
-        } in entries_result
+            "download_url": shared_resource.get_download_url(),
+            "share_url": shared_resource.get_share_url(),
+            "share_access": shared_resource.share_access.upper(),
+        }
+        assert expected in entries_result
 
 
 @pytest.mark.parametrize(

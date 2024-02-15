@@ -16,7 +16,6 @@
 import graphene
 import rules
 import structlog
-from django.conf import settings
 from django.db.models import Q, Subquery
 from graphene import relay
 from graphene_django import DjangoObjectType
@@ -64,20 +63,10 @@ class SharedResourceNode(DjangoObjectType):
         return self.target
 
     def resolve_download_url(self, info, **kwargs):
-        return f"{settings.API_ENDPOINT}/shared-data/download/{self.share_uuid}"
+        return self.get_download_url()
 
     def resolve_share_url(self, info, **kwargs):
-        target = self.target
-        entity = (
-            "groups"
-            if isinstance(target, Group)
-            else "landscapes" if isinstance(target, Landscape) else None
-        )
-        if not entity:
-            return None
-        slug = target.slug
-        share_uuid = self.share_uuid
-        return f"{settings.WEB_CLIENT_URL}/{entity}/{slug}/download/{share_uuid}"
+        return self.get_share_url()
 
 
 class SharedResourceRelayNode:
