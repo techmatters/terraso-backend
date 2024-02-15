@@ -450,8 +450,8 @@ enum CoreSharedResourceShareAccessChoices {
   """Anyone with the link"""
   ALL
 
-  """Only target members"""
-  TARGET_MEMBERS
+  """Only members"""
+  MEMBERS
 }
 
 union SourceNode = VisualizationConfigNode | DataEntryNode
