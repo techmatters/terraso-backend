@@ -1,4 +1,4 @@
-# Copyright © 2021-2023 Technology Matters
+# Copyright © 2024 Technology Matters
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as published
@@ -13,20 +13,17 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see https://www.gnu.org/licenses/.
 
-from django.urls import path
-from django.views.decorators.csrf import csrf_exempt
+from django.db import migrations
 
-from apps.auth.middleware import auth_optional
 
-from .views import DataEntryFileDownloadView, DataEntryFileUploadView
+class Migration(migrations.Migration):
 
-app_name = "apps.shared_data"
+    dependencies = [
+        ("core", "0050_sharedresource_remove_none"),
+    ]
 
-urlpatterns = [
-    path("upload/", csrf_exempt(DataEntryFileUploadView.as_view()), name="upload"),
-    path(
-        "download/<str:shared_resource_uuid>",
-        csrf_exempt(auth_optional(DataEntryFileDownloadView.as_view())),
-        name="download",
-    ),
-]
+    operations = [
+        migrations.RunSQL(
+            sql="UPDATE core_sharedresource SET share_access ='members' WHERE share_access='target_members';"
+        ),
+    ]

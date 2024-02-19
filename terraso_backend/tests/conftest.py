@@ -47,6 +47,11 @@ def logged_client(access_token):
 
 
 @pytest.fixture
+def not_logged_in_client(access_token):
+    return Client()
+
+
+@pytest.fixture
 def unit_polygon():
     """A polygon whose geographical area is roughly 1 km squared."""
     center_x, center_y = (1281904.47, 8752400.16)

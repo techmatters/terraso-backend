@@ -89,6 +89,7 @@ type Query {
     """Ordering"""
     orderBy: String
   ): AuditLogNodeConnection
+  sharedResource(shareUuid: String!): SharedResourceNode
 }
 
 type GroupNode implements Node {
@@ -430,8 +431,27 @@ type SharedResourceNodeEdge {
 
 type SharedResourceNode implements Node {
   id: ID!
+  shareUuid: UUID!
+  shareAccess: CoreSharedResourceShareAccessChoices!
   source: SourceNode
   target: TargetNode
+  downloadUrl: String
+  shareUrl: String
+}
+
+"""
+Leverages the internal Python implementation of UUID (uuid.UUID) to provide native UUID objects
+in fields, resolvers and input.
+"""
+scalar UUID
+
+"""An enumeration."""
+enum CoreSharedResourceShareAccessChoices {
+  """Anyone with the link"""
+  ALL
+
+  """Only members"""
+  MEMBERS
 }
 
 union SourceNode = VisualizationConfigNode | DataEntryNode
@@ -506,12 +526,6 @@ type VisualizationConfigNodeEdge {
   """A cursor for use in pagination"""
   cursor: String!
 }
-
-"""
-Leverages the internal Python implementation of UUID (uuid.UUID) to provide native UUID objects
-in fields, resolvers and input.
-"""
-scalar UUID
 
 union OwnerNode = GroupNode | LandscapeNode
 
@@ -1676,6 +1690,7 @@ type Mutations {
   deleteLandscapeMembership(input: LandscapeMembershipDeleteMutationInput!): LandscapeMembershipDeleteMutationPayload!
   saveGroupMembership(input: GroupMembershipSaveMutationInput!): GroupMembershipSaveMutationPayload!
   deleteGroupMembership(input: GroupMembershipDeleteMutationInput!): GroupMembershipDeleteMutationPayload!
+  updateSharedResource(input: SharedResourceUpdateMutationInput!): SharedResourceUpdateMutationPayload!
 }
 
 type GroupAddMutationPayload {
@@ -2475,5 +2490,17 @@ type GroupMembershipDeleteMutationPayload {
 input GroupMembershipDeleteMutationInput {
   id: ID!
   groupSlug: String!
+  clientMutationId: String
+}
+
+type SharedResourceUpdateMutationPayload {
+  errors: GenericScalar
+  sharedResource: SharedResourceNode
+  clientMutationId: String
+}
+
+input SharedResourceUpdateMutationInput {
+  id: ID!
+  shareAccess: String!
   clientMutationId: String
 }

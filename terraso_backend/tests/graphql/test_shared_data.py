@@ -146,9 +146,6 @@ def test_data_entries_filter_by_closed_group_slug_filters_successfuly(
         users[0].email, group_collaboration_roles.ROLE_MEMBER, CollaborationMembership.APPROVED
     )
 
-    shared_resources = data_entry_a.shared_resources.all()
-    print(shared_resources)
-
     response = client_query(
         """
         {dataEntries(sharedResources_Target_Slug: "%s", sharedResources_TargetContentType: "%s") {
@@ -344,10 +341,6 @@ def test_data_entries_empty_from_closed_group_query(client_query, groups_closed,
     data_entry_a.shared_resources.create(target=group)
     data_entry_b.shared_resources.create(target=group)
 
-    memberships = group.membership_list.memberships.all()
-
-    print(memberships)
-
     response = client_query(
         """
         {groups(slug: "%s") {
@@ -404,6 +397,9 @@ def test_data_entries_from_parent_query_by_resource_field(
                         name
                       }
                     }
+                    shareUrl
+                    downloadUrl
+                    shareAccess
                   }
                 }
               }
@@ -417,10 +413,25 @@ def test_data_entries_from_parent_query_by_resource_field(
     json_response = response.json()
 
     resources = json_response["data"][parent]["edges"][0]["node"]["sharedResources"]["edges"]
-    entries_result = [resource["node"]["source"]["name"] for resource in resources]
+    entries_result = [
+        {
+            "name": resource["node"]["source"]["name"],
+            "share_url": resource["node"]["shareUrl"],
+            "download_url": resource["node"]["downloadUrl"],
+            "share_access": resource["node"]["shareAccess"],
+        }
+        for resource in resources
+    ]
 
     for data_entry in data_entries:
-        assert data_entry.name in entries_result
+        shared_resource = data_entry.shared_resources.all()[0]
+        expected = {
+            "name": data_entry.name,
+            "download_url": shared_resource.get_download_url(),
+            "share_url": shared_resource.get_share_url(),
+            "share_access": shared_resource.share_access.upper(),
+        }
+        assert expected in entries_result
 
 
 @pytest.mark.parametrize(

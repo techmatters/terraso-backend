@@ -80,6 +80,7 @@ from .landscapes_memberships import (
     LandscapeMembershipDeleteMutation,
     LandscapeMembershipSaveMutation,
 )
+from .shared_resources import SharedResourceRelayNode, SharedResourceUpdateMutation
 from .sites import (
     SiteAddMutation,
     SiteDeleteMutation,
@@ -139,6 +140,8 @@ class Query(graphene.ObjectType):
     site = TerrasoRelayNode.Field(SiteNode)
     sites = DjangoFilterConnectionField(SiteNode, required=True)
     audit_logs = DjangoFilterConnectionField(AuditLogNode)
+    shared_resource = SharedResourceRelayNode.Field()
+    from .shared_resources import resolve_shared_resource
 
 
 # All mutations should inherit from BaseWriteMutation or BaseDeleteMutation
@@ -202,6 +205,7 @@ class Mutations(graphene.ObjectType):
     delete_landscape_membership = LandscapeMembershipDeleteMutation.Field()
     save_group_membership = GroupMembershipSaveMutation.Field()
     delete_group_membership = GroupMembershipDeleteMutation.Field()
+    update_shared_resource = SharedResourceUpdateMutation.Field()
 
 
 schema = graphene.Schema(query=Query, mutation=Mutations)

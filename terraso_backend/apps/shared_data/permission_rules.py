@@ -16,7 +16,7 @@
 import rules
 
 from apps.core import group_collaboration_roles, landscape_collaboration_roles
-from apps.core.models import Group, Landscape
+from apps.core.models import Group, Landscape, SharedResource
 
 
 def is_target_manager(user, target):
@@ -103,4 +103,16 @@ def allowed_to_delete_visualization_config(user, visualization_config):
     return is_user_allowed_to_change_data_entry(visualization_config.data_entry, user)
 
 
+@rules.predicate
+def allowed_to_download_data_entry_file(user, shared_resource):
+    target = shared_resource.target
+
+    if shared_resource.share_access == SharedResource.SHARE_ACCESS_ALL:
+        return True
+
+    if shared_resource.share_access == SharedResource.SHARE_ACCESS_MEMBERS:
+        return is_target_member(user, target)
+
+
 rules.add_rule("allowed_to_add_data_entry", allowed_to_add_data_entry)
+rules.add_rule("allowed_to_download_data_entry_file", allowed_to_download_data_entry_file)

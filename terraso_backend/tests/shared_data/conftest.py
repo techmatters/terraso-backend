@@ -13,11 +13,15 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see https://www.gnu.org/licenses/.
 
+import uuid
+
 import pytest
 from django.conf import settings
 from mixer.backend.django import mixer
 
-from apps.core.models import Group, Landscape, User
+from apps.collaboration.models import Membership as CollaborationMembership
+from apps.core import group_collaboration_roles
+from apps.core.models import Group, Landscape, SharedResource, User
 from apps.shared_data.models import DataEntry, VisualizationConfig
 
 
@@ -116,4 +120,54 @@ def visualization_config_gpx(user):
             resource_type="gpx",
         ),
         created_by=user,
+    )
+
+
+@pytest.fixture
+def shared_resource_data_entry_shared_all(users):
+    creator = users[0]
+    return mixer.blend(
+        SharedResource,
+        share_access=SharedResource.SHARE_ACCESS_ALL,
+        share_uuid=uuid.uuid4(),
+        target=mixer.blend(Group),
+        source=mixer.blend(
+            DataEntry, slug=None, created_by=creator, size=100, entry_type=DataEntry.ENTRY_TYPE_FILE
+        ),
+    )
+
+
+@pytest.fixture
+def shared_resource_data_entry_shared_members(users):
+    creator = users[0]
+    creator_group = mixer.blend(Group)
+    creator_group.membership_list.save_membership(
+        creator.email, group_collaboration_roles.ROLE_MEMBER, CollaborationMembership.APPROVED
+    )
+    return mixer.blend(
+        SharedResource,
+        share_access=SharedResource.SHARE_ACCESS_MEMBERS,
+        share_uuid=uuid.uuid4(),
+        target=creator_group,
+        source=mixer.blend(
+            DataEntry, slug=None, created_by=creator, size=100, entry_type=DataEntry.ENTRY_TYPE_FILE
+        ),
+    )
+
+
+@pytest.fixture
+def shared_resource_data_entry_shared_members_user_1(users):
+    creator = users[1]
+    creator_group = mixer.blend(Group)
+    creator_group.membership_list.save_membership(
+        creator.email, group_collaboration_roles.ROLE_MEMBER, CollaborationMembership.APPROVED
+    )
+    return mixer.blend(
+        SharedResource,
+        share_access=SharedResource.SHARE_ACCESS_MEMBERS,
+        share_uuid=uuid.uuid4(),
+        target=creator_group,
+        source=mixer.blend(
+            DataEntry, slug=None, created_by=creator, size=100, entry_type=DataEntry.ENTRY_TYPE_FILE
+        ),
     )

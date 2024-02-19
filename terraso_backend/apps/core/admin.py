@@ -20,6 +20,7 @@ from .models import (
     Landscape,
     LandscapeDevelopmentStrategy,
     LandscapeGroup,
+    SharedResource,
     TaxonomyTerm,
     User,
     UserPreference,
@@ -69,3 +70,8 @@ class TaxonomyTermAdmin(admin.ModelAdmin):
 @admin.register(LandscapeDevelopmentStrategy)
 class LandscapeDevelopmentStrategyAdmin(admin.ModelAdmin):
     list_display = ("id", "landscape")
+
+
+@admin.register(SharedResource)
+class SharedResourceAdmin(admin.ModelAdmin):
+    list_display = ("id", "share_uuid", "share_access")
