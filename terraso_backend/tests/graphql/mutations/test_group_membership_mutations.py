@@ -30,10 +30,13 @@ def test_group_membership_add(client_query, groups, users):
     group = groups[0]
     user = users[0]
 
+    group.membership_list.memberships.all().delete()
+
     response = client_query(
         """
         mutation addMembership($input: GroupMembershipSaveMutationInput!){
           saveGroupMembership(input: $input) {
+            errors
             memberships {
               id
               userRole
@@ -432,15 +435,23 @@ def test_group_membership_approve_by_member_fails(client_query, users, groups_cl
     )
 
 
-def test_group_membership_update_role_by_last_manager_fails(
-    client_query, users, group_manager_memberships, groups
-):
-    manager_membership = group_manager_memberships[0]
+def test_group_membership_update_role_by_last_manager_fails(client_query, users, groups):
+    user = users[0]
     group = groups[0]
 
-    manager_membership.delete()
+    group.membership_list.memberships.all().delete()
 
-    old_membership = group.membership_list.memberships.filter(user=users[1]).first()
+    group.membership_list.save_membership(
+        user_email=user.email,
+        user_role=group_collaboration_roles.ROLE_MANAGER,
+        membership_status=CollaborationMembership.APPROVED,
+    )
+
+    group.membership_list.save_membership(
+        user_email=users[1].email,
+        user_role=group_collaboration_roles.ROLE_MEMBER,
+        membership_status=CollaborationMembership.APPROVED,
+    )
 
     response = client_query(
         """
@@ -459,7 +470,7 @@ def test_group_membership_update_role_by_last_manager_fails(
         """,
         variables={
             "input": {
-                "userEmails": [old_membership.user.email],
+                "userEmails": [user.email],
                 "userRole": group_collaboration_roles.ROLE_MEMBER,
                 "groupSlug": group.slug,
             }

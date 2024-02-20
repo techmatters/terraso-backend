@@ -31,6 +31,8 @@ def test_landscape_membership_add(client_query, managed_landscapes, users):
     landscape = managed_landscapes[0]
     user = users[0]
 
+    landscape.membership_list.memberships.all().delete()
+
     response = client_query(
         """
         mutation addLandscapeMembership($input: LandscapeMembershipSaveMutationInput!){
