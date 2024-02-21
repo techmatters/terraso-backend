@@ -84,8 +84,16 @@ def validate_managers_count(user, membership, entity):
     Returns:
     bool: True if the count of managers is valid after the membership change, False otherwise.
     """
+    is_new = not membership
+    if is_new:
+        return True
+
     manager_role = get_manager_role(entity)
     is_manager = entity.membership_list.has_role(user, manager_role)
+
+    if not is_manager:
+        return True
+
     managers_count = entity.membership_list.memberships.by_role(manager_role).count()
     is_own_membership = user.collaboration_memberships.filter(pk=membership.id).exists()
 
@@ -137,6 +145,7 @@ def validate_change_membership(user, entity, obj):
                  - "user_role": The role the user will have after the change.
                  - "user_exists": A boolean indicating if the user is already registered.
                  - "user_email": The email of the user whose membership is being changed.
+                 - "current_membership": The current user membership
 
     Returns:
     bool: True if the user is allowed to change the membership, False otherwise.
@@ -144,6 +153,12 @@ def validate_change_membership(user, entity, obj):
     user_role = obj.get("user_role")
     user_exists = obj.get("user_exists")
     user_email = obj.get("user_email")
+    current_membership = obj.get("current_membership")
+
+    valid_managers_count = validate_managers_count(user, current_membership, entity)
+
+    if not valid_managers_count:
+        return False
 
     manager_role = get_manager_role(entity)
     is_manager = entity.membership_list.has_role(user, manager_role)
