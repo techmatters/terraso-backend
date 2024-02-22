@@ -89,3 +89,42 @@ def test_project_groups_not_included_in_query(client_query, project):
     )
     total_count = reponse.json()["data"]["groups"]["totalCount"]
     assert total_count == 0
+
+
+def test_groups_memberships_not_included_for_anonymous_user(client_query_no_token, groups_closed):
+    reponse = client_query_no_token(
+        """
+        {groups {
+          totalCount
+          edges {
+            node {
+              slug
+              membershipList {
+                memberships {
+                  edges {
+                    node {
+                      id
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }}
+        """
+    )
+    json_response = reponse.json()
+
+    assert "errors" not in json_response
+
+    total_count = json_response["data"]["groups"]["totalCount"]
+    assert total_count == 2
+
+    assert (
+        len(
+            json_response["data"]["groups"]["edges"][0]["node"]["membershipList"]["memberships"][
+                "edges"
+            ]
+        )
+        == 0
+    )
