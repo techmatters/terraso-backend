@@ -43,6 +43,8 @@ class Command(BaseCommand):
         app_models = apps.get_models()
         objects = []
         for model in app_models:
+            if model._meta.label in settings.DELETION_EXCEPTION_LIST:
+                continue
             for field in model._meta.fields:
                 if field.name == "deleted_at" and isinstance(field, models.fields.DateTimeField):
                     objects.extend(
