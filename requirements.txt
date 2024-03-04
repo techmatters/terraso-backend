@@ -524,9 +524,9 @@ python-dateutil==2.8.2 \
     # via
     #   botocore
     #   pandas
-python-ipware==2.0.1 \
-    --hash=sha256:1992920ef553165dfa35e6ea5a90762f64f3b943cc22ee6b4ec02e2c86d31178 \
-    --hash=sha256:9ba4805152ebb85ad5b53797185cd1ce6231e1db60155834f326c8cd61e8af34
+python-ipware==2.0.2 \
+    --hash=sha256:3a94fd073b93e12b13617e291f13eda3495d3ba68b580e3e30174ea84ac63041 \
+    --hash=sha256:86e30cc3af62cec42284dedd49c8a14e436e73c96433c8645ec0b476ff4ad7ec
     # via django-ipware
 python-magic==0.4.27 \
     --hash=sha256:c1ba14b08e4a5f5c31a302b7721239695b2f0f058d125bd5ce1ee36b9d9d3c3b \
