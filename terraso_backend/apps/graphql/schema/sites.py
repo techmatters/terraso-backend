@@ -25,6 +25,7 @@ from apps.audit_logs import api as audit_log_api
 from apps.project_management.graphql.projects import ProjectNode
 from apps.project_management.models import Project, Site, sites
 from apps.soil_id.models import SoilData
+from apps.soil_id.models.project_soil_settings import ProjectSoilSettings
 
 from .commons import (
     BaseAuthenticatedMutation,
@@ -223,10 +224,6 @@ class SiteUpdateMutation(BaseWriteMutation):
             if hasattr(project, "soil_settings") and hasattr(site, "soil_data"):
                 if project_id is not None:
                     metadata["project_id"] = str(project.id)
-        else:
-            if hasattr(site, "soil_data"):
-                # Delete existing intervals if removed from project
-                site.soil_data.remove_from_project()
 
         log.log(
             user=user,

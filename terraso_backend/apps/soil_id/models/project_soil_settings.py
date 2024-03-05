@@ -63,7 +63,6 @@ class ProjectSoilSettings(BaseModel):
     measurement_units = models.CharField(blank=True, null=True, choices=MeasurementUnit.choices)
 
     depth_interval_preset = models.CharField(
-        null=False,
         default=DepthIntervalPreset.LANDPKS.value,
         choices=DepthIntervalPreset.choices,
     )

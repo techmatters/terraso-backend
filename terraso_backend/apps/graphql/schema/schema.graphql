@@ -814,7 +814,7 @@ type SoilDataNode {
   soilDepthSelect: SoilIdSoilDataSoilDepthSelectChoices
   landCoverSelect: SoilIdSoilDataLandCoverSelectChoices
   grazingSelect: SoilIdSoilDataGrazingSelectChoices
-  depthIntervalPreset: SoilIdSoilDataDepthIntervalPresetChoices
+  depthIntervalPreset: SoilIdSoilDataDepthIntervalPresetChoices!
   depthIntervals: [SoilDataDepthIntervalNode!]!
   depthDependentData: [DepthDependentSoilDataNode!]!
 }
@@ -1106,14 +1106,14 @@ enum SoilIdSoilDataDepthIntervalPresetChoices {
 
 type SoilDataDepthIntervalNode {
   label: String!
-  soilTextureEnabled: Boolean!
-  soilColorEnabled: Boolean!
-  carbonatesEnabled: Boolean!
-  phEnabled: Boolean!
-  soilOrganicCarbonMatterEnabled: Boolean!
-  electricalConductivityEnabled: Boolean!
-  sodiumAdsorptionRatioEnabled: Boolean!
-  soilStructureEnabled: Boolean!
+  soilTextureEnabled: Boolean
+  soilColorEnabled: Boolean
+  soilStructureEnabled: Boolean
+  carbonatesEnabled: Boolean
+  phEnabled: Boolean
+  soilOrganicCarbonMatterEnabled: Boolean
+  electricalConductivityEnabled: Boolean
+  sodiumAdsorptionRatioEnabled: Boolean
   site: SiteNode!
   depthInterval: DepthInterval!
 }

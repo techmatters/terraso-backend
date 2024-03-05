@@ -115,7 +115,7 @@ class SoilDataNode(DjangoObjectType):
 
     @classmethod
     def depth_interval_preset_enum(cls):
-        return cls._meta.fields["depth_interval_preset"].type()
+        return cls._meta.fields["depth_interval_preset"].type.of_type()
 
 
 class ProjectSoilSettingsNode(DjangoObjectType):
