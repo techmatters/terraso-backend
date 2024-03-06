@@ -25,7 +25,6 @@ from apps.audit_logs import api as audit_log_api
 from apps.project_management.graphql.projects import ProjectNode
 from apps.project_management.models import Project, Site, sites
 from apps.soil_id.models import SoilData
-from apps.soil_id.models.project_soil_settings import ProjectSoilSettings
 
 from .commons import (
     BaseAuthenticatedMutation,
