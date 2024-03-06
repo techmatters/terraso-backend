@@ -211,15 +211,9 @@ class SoilData(BaseModel):
         CUSTOM = "CUSTOM"
 
     depth_interval_preset = models.CharField(
-        choices=SoilDataDepthIntervalPreset.choices, blank=True, null=True
+        choices=SoilDataDepthIntervalPreset.choices,
+        default=SoilDataDepthIntervalPreset.LANDPKS.value,
     )
-
-    def remove_from_project(self):
-        SoilDataDepthInterval.objects.filter(soil_data=self).delete()
-        # Default is to set the site interval to custom for now
-        # TODO: At some point, user will be able to set a default preset
-        self.depth_interval_preset = self.SoilDataDepthIntervalPreset.CUSTOM
-        self.save()
 
 
 class SoilDataDepthInterval(BaseModel, BaseDepthInterval):
@@ -240,11 +234,11 @@ class SoilDataDepthInterval(BaseModel, BaseDepthInterval):
         super().clean()
         BaseDepthInterval.validate_intervals(list(self.soil_data.depth_intervals.all()))
 
-    soil_texture_enabled = models.BooleanField(blank=True, default=False)
-    soil_color_enabled = models.BooleanField(blank=True, default=False)
-    carbonates_enabled = models.BooleanField(blank=True, default=False)
-    ph_enabled = models.BooleanField(blank=True, default=False)
-    soil_organic_carbon_matter_enabled = models.BooleanField(blank=True, default=False)
-    electrical_conductivity_enabled = models.BooleanField(blank=True, default=False)
-    sodium_adsorption_ratio_enabled = models.BooleanField(blank=True, default=False)
-    soil_structure_enabled = models.BooleanField(blank=True, default=False)
+    soil_texture_enabled = models.BooleanField(blank=True, null=True)
+    soil_color_enabled = models.BooleanField(blank=True, null=True)
+    soil_structure_enabled = models.BooleanField(blank=True, null=True)
+    carbonates_enabled = models.BooleanField(blank=True, null=True)
+    ph_enabled = models.BooleanField(blank=True, null=True)
+    soil_organic_carbon_matter_enabled = models.BooleanField(blank=True, null=True)
+    electrical_conductivity_enabled = models.BooleanField(blank=True, null=True)
+    sodium_adsorption_ratio_enabled = models.BooleanField(blank=True, null=True)

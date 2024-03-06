@@ -105,7 +105,7 @@ class BaseMutation(relay.ClientIDMutation):
         raise GraphQLNotFoundException(msg, field=field, model_name=model.__name__)
 
     @classmethod
-    def get_or_throw(cls, model, field_name, id_):
+    def get_or_throw[M](cls, model: type[M], field_name, id_) -> M:
         try:
             return model.objects.get(id=id_)
         except model.DoesNotExist:

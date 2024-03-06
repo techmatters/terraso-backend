@@ -223,10 +223,6 @@ class SiteUpdateMutation(BaseWriteMutation):
             if hasattr(project, "soil_settings") and hasattr(site, "soil_data"):
                 if project_id is not None:
                     metadata["project_id"] = str(project.id)
-        else:
-            if hasattr(site, "soil_data"):
-                # Delete existing intervals if removed from project
-                site.soil_data.remove_from_project()
 
         log.log(
             user=user,
