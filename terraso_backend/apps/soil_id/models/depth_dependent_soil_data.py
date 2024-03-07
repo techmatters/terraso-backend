@@ -61,50 +61,19 @@ class DepthDependentSoilData(BaseModel, BaseDepthInterval):
         blank=True, null=True, choices=RockFragmentVolume.choices
     )
 
-    class ColorHueSubstep(models.TextChoices):
-        SUBSTEP_2_5 = "SUBSTEP_2_5", "2.5"
-        SUBSTEP_5 = "SUBSTEP_5", "5"
-        SUBSTEP_7_5 = "SUBSTEP_7_5", "7.5"
-        SUBSTEP_10 = "SUBSTEP_10", "10"
+    color_hue = models.FloatField(
+        blank=True, null=True, validators=[MinValueValidator(0), MaxValueValidator(100)]
+    )
 
-    color_hue_substep = models.CharField(blank=True, null=True, choices=ColorHueSubstep.choices)
+    color_value = models.FloatField(
+        blank=True, null=True, validators=[MinValueValidator(0), MaxValueValidator(10)]
+    )
 
-    class ColorHue(models.TextChoices):
-        R = "R", "R"
-        YR = "YR", "YR"
-        Y = "Y", "Y"
-        GY = "GY", "GY"
-        G = "G", "G"
-        B = "B", "B"
-        BG = "BG", "BG"
+    color_chroma = models.FloatField(
+        blank=True, null=True, validators=[MinValueValidator(0), MaxValueValidator(50)]
+    )
 
-    color_hue = models.CharField(blank=True, null=True, choices=ColorHue.choices)
-
-    class ColorValue(models.TextChoices):
-        VALUE_2_5 = "VALUE_2_5", "2.5"
-        VALUE_3 = "VALUE_3", "3"
-        VALUE_4 = "VALUE_4", "4"
-        VALUE_5 = "VALUE_5", "5"
-        VALUE_6 = "VALUE_6", "6"
-        VALUE_7 = "VALUE_7", "7"
-        VALUE_8 = "VALUE_8", "8"
-        VALUE_8_5 = "VALUE_8_5", "8.5"
-        VALUE_9 = "VALUE_9", "9"
-        VALUE_9_5 = "VALUE_9_5", "9.5"
-
-    color_value = models.CharField(blank=True, null=True, choices=ColorValue.choices)
-
-    class ColorChroma(models.TextChoices):
-        CHROMA_1 = "CHROMA_1", "1"
-        CHROMA_2 = "CHROMA_2", "2"
-        CHROMA_3 = "CHROMA_3", "3"
-        CHROMA_4 = "CHROMA_4", "4"
-        CHROMA_5 = "CHROMA_5", "5"
-        CHROMA_6 = "CHROMA_6", "6"
-        CHROMA_7 = "CHROMA_7", "7"
-        CHROMA_8 = "CHROMA_8", "8"
-
-    color_chroma = models.CharField(blank=True, null=True, choices=ColorChroma.choices)
+    color_photo_used = models.BooleanField(blank=True, null=True)
 
     class ColorPhotoSoilCondition(models.TextChoices):
         MOIST = "MOIST"

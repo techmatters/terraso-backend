@@ -177,22 +177,6 @@ class DepthDependentSoilDataNode(DjangoObjectType):
         return cls._meta.fields["rock_fragment_volume"].type()
 
     @classmethod
-    def color_hue_substep_enum(cls):
-        return cls._meta.fields["color_hue_substep"].type()
-
-    @classmethod
-    def color_hue_enum(cls):
-        return cls._meta.fields["color_hue"].type()
-
-    @classmethod
-    def color_value_enum(cls):
-        return cls._meta.fields["color_value"].type()
-
-    @classmethod
-    def color_chroma_enum(cls):
-        return cls._meta.fields["color_chroma"].type()
-
-    @classmethod
     def color_photo_soil_condition_enum(cls):
         return cls._meta.fields["color_photo_soil_condition"].type()
 
@@ -397,10 +381,10 @@ class DepthDependentSoilDataUpdateMutation(BaseWriteMutation):
         texture = DepthDependentSoilDataNode.texture_enum()
         clay_percent = graphene.Int()
         rock_fragment_volume = DepthDependentSoilDataNode.rock_fragment_volume_enum()
-        color_hue_substep = DepthDependentSoilDataNode.color_hue_substep_enum()
-        color_hue = DepthDependentSoilDataNode.color_hue_enum()
-        color_value = DepthDependentSoilDataNode.color_value_enum()
-        color_chroma = DepthDependentSoilDataNode.color_chroma_enum()
+        color_hue = graphene.Float()
+        color_value = graphene.Float()
+        color_chroma = graphene.Float()
+        color_photo_used = graphene.Boolean()
         color_photo_soil_condition = DepthDependentSoilDataNode.color_photo_soil_condition_enum()
         color_photo_lighting_condition = (
             DepthDependentSoilDataNode.color_photo_lighting_condition_enum()
