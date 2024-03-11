@@ -244,7 +244,7 @@ class LogoutView(View):
         return HttpResponse("OK", status=200)
 
 
-def terraso_login(request, user, created_with_service):
+def terraso_login(request, user, created_with_service=None):
     access_token = jwt_service.create_access_token(user, created_with_service)
     refresh_token = jwt_service.create_refresh_token(user)
     dj_login(request, user, backend="django.contrib.auth.backends.ModelBackend")
