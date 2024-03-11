@@ -24,6 +24,7 @@ from moto import mock_aws
 from oauth2_provider.views import UserInfoView
 
 from apps.auth.providers import AppleProvider, GoogleProvider
+from apps.auth.services import JWTService
 from apps.core.models import User
 
 pytestmark = pytest.mark.django_db
@@ -259,3 +260,18 @@ def test_userinfo_claims(rf, bearer_header, user):
     assert resp.status_code == 200
     resp_json = json.loads(resp.content)
     assert resp_json["email"] == user.email
+
+
+@mock_aws
+def test_sign_up_created_with_service(client, access_tokens_google, respx_mock):
+    respx_mock.post(GoogleProvider.GOOGLE_TOKEN_URI).mock(
+        return_value=Response(200, json=access_tokens_google)
+    )
+    url = reverse("terraso_auth:google-callback")
+    response = client.get(url, {"code": "testing-code-google-auth"})
+
+    token = response.cookies.get("atoken")
+
+    decoded_payload = JWTService().verify_access_token(token.value)
+
+    assert decoded_payload["createdWithService"] == "google"
