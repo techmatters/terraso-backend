@@ -263,7 +263,7 @@ def test_userinfo_claims(rf, bearer_header, user):
 
 
 @mock_aws
-def test_sign_up_created_with_service(client, access_tokens_google, respx_mock):
+def test_sign_up_is_first_login(client, access_tokens_google, respx_mock):
     respx_mock.post(GoogleProvider.GOOGLE_TOKEN_URI).mock(
         return_value=Response(200, json=access_tokens_google)
     )
@@ -274,4 +274,4 @@ def test_sign_up_created_with_service(client, access_tokens_google, respx_mock):
 
     decoded_payload = JWTService().verify_access_token(token.value)
 
-    assert decoded_payload["createdWithService"] == "google"
+    assert decoded_payload["isFirstLogin"] is True

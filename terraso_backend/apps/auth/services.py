@@ -150,11 +150,11 @@ class JWTService:
             raise ValueError("User is not a test user")
         return self.create_token(user, None, {"test": True, "access": True})
 
-    def create_access_token(self, user, created_with_service=None):
+    def create_access_token(self, user, extra_params={}):
         return self.create_token(
             user,
             self.JWT_ACCESS_EXP_DELTA_SECONDS,
-            {"access": True, "createdWithService": created_with_service},
+            {**extra_params, "access": True},
         )
 
     def verify_access_token(self, token):

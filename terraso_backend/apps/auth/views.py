@@ -108,7 +108,8 @@ class AbstractCallbackView(View):
 
         try:
             user, created_with_service = self.process_signup()
-            access_token, refresh_token = terraso_login(self.request, user, created_with_service)
+            is_first_login = created_with_service is not None
+            access_token, refresh_token = terraso_login(self.request, user, is_first_login)
         except Exception as exc:
             logger.exception("Error attempting create access and refresh tokens")
             return HttpResponse(f"Error: {exc}", status=400)
@@ -244,8 +245,8 @@ class LogoutView(View):
         return HttpResponse("OK", status=200)
 
 
-def terraso_login(request, user, created_with_service=None):
-    access_token = jwt_service.create_access_token(user, created_with_service)
+def terraso_login(request, user, is_first_login=False):
+    access_token = jwt_service.create_access_token(user, {"isFirstLogin": is_first_login})
     refresh_token = jwt_service.create_refresh_token(user)
     dj_login(request, user, backend="django.contrib.auth.backends.ModelBackend")
 
