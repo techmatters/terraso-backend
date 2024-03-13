@@ -276,7 +276,6 @@ UPDATE_DEPTH_DEPENDENT_QUERY = """
                     }
                     texture
                     rockFragmentVolume
-                    colorHueSubstep
                     colorHue
                     colorValue
                     colorChroma
@@ -311,10 +310,9 @@ def test_update_depth_dependent_soil_data(client, user, site):
         },
         "texture": "CLAY",
         "rockFragmentVolume": "VOLUME_0_1",
-        "colorHueSubstep": "SUBSTEP_2_5",
-        "colorHue": "R",
-        "colorValue": "VALUE_3",
-        "colorChroma": "CHROMA_5",
+        "colorHue": 1.5,
+        "colorValue": 5.0,
+        "colorChroma": 4.5,
         "conductivity": "10.00",
         "conductivityTest": "SATURATED_PASTE",
         "conductivityUnit": "DECISIEMENS_METER",
@@ -373,10 +371,12 @@ def test_update_depth_dependent_soil_data_constraints(client, user, site):
     invalid_values = [
         ("texture", "SANDY_SAND", None),
         ("rockFragmentVolume", "VOLUME_0", None),
-        ("colorHueSubstep", "SUBSET_2", None),
-        ("colorHue", "RY", None),
-        ("colorValue", "VALUE_3_5", None),
-        ("colorChroma", "CHROMA_9", None),
+        ("colorHue", -0.5, "min_value"),
+        ("colorHue", 100.5, "max_value"),
+        ("colorValue", -0.5, "min_value"),
+        ("colorValue", 10.5, "max_value"),
+        ("colorChroma", -0.5, "min_value"),
+        ("colorChroma", 50.5, "max_value"),
         ("conductivity", "-1", "min_value"),
         ("conductivity", "10.013", "max_decimal_places"),
         ("conductivityTest", "SOIL_WATER_2_1", None),
