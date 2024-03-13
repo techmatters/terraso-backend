@@ -1127,10 +1127,10 @@ type DepthDependentSoilDataNode {
   texture: SoilIdDepthDependentSoilDataTextureChoices
   clayPercent: Int
   rockFragmentVolume: SoilIdDepthDependentSoilDataRockFragmentVolumeChoices
-  colorHueSubstep: SoilIdDepthDependentSoilDataColorHueSubstepChoices
-  colorHue: SoilIdDepthDependentSoilDataColorHueChoices
-  colorValue: SoilIdDepthDependentSoilDataColorValueChoices
-  colorChroma: SoilIdDepthDependentSoilDataColorChromaChoices
+  colorHue: Float
+  colorValue: Float
+  colorChroma: Float
+  colorPhotoUsed: Boolean
   colorPhotoSoilCondition: SoilIdDepthDependentSoilDataColorPhotoSoilConditionChoices
   colorPhotoLightingCondition: SoilIdDepthDependentSoilDataColorPhotoLightingConditionChoices
   conductivity: Decimal
@@ -1205,105 +1205,6 @@ enum SoilIdDepthDependentSoilDataRockFragmentVolumeChoices {
 
   """> 60%"""
   VOLUME_60
-}
-
-"""An enumeration."""
-enum SoilIdDepthDependentSoilDataColorHueSubstepChoices {
-  """2.5"""
-  SUBSTEP_2_5
-
-  """5"""
-  SUBSTEP_5
-
-  """7.5"""
-  SUBSTEP_7_5
-
-  """10"""
-  SUBSTEP_10
-}
-
-"""An enumeration."""
-enum SoilIdDepthDependentSoilDataColorHueChoices {
-  """R"""
-  R
-
-  """YR"""
-  YR
-
-  """Y"""
-  Y
-
-  """GY"""
-  GY
-
-  """G"""
-  G
-
-  """B"""
-  B
-
-  """BG"""
-  BG
-}
-
-"""An enumeration."""
-enum SoilIdDepthDependentSoilDataColorValueChoices {
-  """2.5"""
-  VALUE_2_5
-
-  """3"""
-  VALUE_3
-
-  """4"""
-  VALUE_4
-
-  """5"""
-  VALUE_5
-
-  """6"""
-  VALUE_6
-
-  """7"""
-  VALUE_7
-
-  """8"""
-  VALUE_8
-
-  """8.5"""
-  VALUE_8_5
-
-  """9"""
-  VALUE_9
-
-  """9.5"""
-  VALUE_9_5
-}
-
-"""An enumeration."""
-enum SoilIdDepthDependentSoilDataColorChromaChoices {
-  """1"""
-  CHROMA_1
-
-  """2"""
-  CHROMA_2
-
-  """3"""
-  CHROMA_3
-
-  """4"""
-  CHROMA_4
-
-  """5"""
-  CHROMA_5
-
-  """6"""
-  CHROMA_6
-
-  """7"""
-  CHROMA_7
-
-  """8"""
-  CHROMA_8
 }
 
 """An enumeration."""
@@ -2289,10 +2190,10 @@ input DepthDependentSoilDataUpdateMutationInput {
   texture: SoilIdDepthDependentSoilDataTextureChoices
   clayPercent: Int
   rockFragmentVolume: SoilIdDepthDependentSoilDataRockFragmentVolumeChoices
-  colorHueSubstep: SoilIdDepthDependentSoilDataColorHueSubstepChoices
-  colorHue: SoilIdDepthDependentSoilDataColorHueChoices
-  colorValue: SoilIdDepthDependentSoilDataColorValueChoices
-  colorChroma: SoilIdDepthDependentSoilDataColorChromaChoices
+  colorHue: Float
+  colorValue: Float
+  colorChroma: Float
+  colorPhotoUsed: Boolean
   colorPhotoSoilCondition: SoilIdDepthDependentSoilDataColorPhotoSoilConditionChoices
   colorPhotoLightingCondition: SoilIdDepthDependentSoilDataColorPhotoLightingConditionChoices
   conductivity: Decimal
