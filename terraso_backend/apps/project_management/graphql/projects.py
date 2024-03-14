@@ -46,7 +46,7 @@ from apps.graphql.signals import (
     membership_deleted_signal,
     membership_updated_signal,
 )
-from apps.project_management import collaboration_roles
+from apps.project_management.collaboration_roles import ProjectRole
 from apps.project_management.models import (
     Project,
     ProjectMembership,
@@ -55,11 +55,9 @@ from apps.project_management.models import (
 from apps.project_management.models.sites import Site
 from apps.soil_id.models.project_soil_settings import ProjectSoilSettings
 
-
-class UserRole(graphene.Enum):
-    viewer = collaboration_roles.ROLE_VIEWER
-    contributor = collaboration_roles.ROLE_CONTRIBUTOR
-    manager = collaboration_roles.ROLE_MANAGER
+ProjectRoleEnum = graphene.Enum(
+    "ProjectManagementProjectRoleChoices", [(c[0], c[1]) for c in ProjectRole.choices]
+)
 
 
 class ProjectMembershipNode(DjangoObjectType, MembershipNodeMixin):
@@ -67,18 +65,7 @@ class ProjectMembershipNode(DjangoObjectType, MembershipNodeMixin):
         model = ProjectMembership
 
     user = graphene.Field(UserNode, required=True)
-    user_role = graphene.Field(UserRole, required=True)
-
-    def resolve_user_role(self, info):
-        match self.user_role:
-            case "viewer":
-                return UserRole.viewer
-            case "contributor":
-                return UserRole.contributor
-            case "manager":
-                return UserRole.manager
-            case _:
-                raise Exception(f"Unexpected user role: {self.user_role}")
+    user_role = graphene.Field(ProjectRoleEnum, required=True)
 
 
 class ProjectMembershipFilterSet(FilterSet):
@@ -140,7 +127,6 @@ class ProjectNode(DjangoObjectType):
             "site_set",
             "archived",
             "membership_list",
-            "measurement_units",
             "site_instructions",
         )
 
@@ -154,6 +140,10 @@ class ProjectNode(DjangoObjectType):
         return self.seen_by.filter(id=user.id).exists()
 
     @classmethod
+    def privacy_enum(cls):
+        return cls._meta.fields["privacy"].type.of_type()
+
+    @classmethod
     def get_queryset(cls, queryset, info):
         # limit queries to membership lists of projects to which the user belongs
         user_pk = getattr(info.context.user, "pk", None)
@@ -161,16 +151,6 @@ class ProjectNode(DjangoObjectType):
             membership_list__memberships__user_id=user_pk,
             membership_list__memberships__deleted_at__isnull=True,
         )
-
-
-class ProjectPrivacy(graphene.Enum):
-    PRIVATE = Project.PRIVATE
-    PUBLIC = Project.PUBLIC
-
-
-class MeasurementUnits(graphene.Enum):
-    METRIC = "METRIC"
-    IMPERIAL = "IMPERIAL"
 
 
 class ProjectAddMutation(BaseWriteMutation):
@@ -181,9 +161,8 @@ class ProjectAddMutation(BaseWriteMutation):
 
     class Input:
         name = graphene.String(required=True)
-        privacy = graphene.Field(ProjectPrivacy, required=True)
+        privacy = ProjectNode.privacy_enum()
         description = graphene.String()
-        measurement_units = graphene.Field(MeasurementUnits, required=True)
         site_instructions = graphene.String()
         create_soil_settings = graphene.Boolean()
 
@@ -294,9 +273,8 @@ class ProjectUpdateMutation(BaseWriteMutation):
     class Input:
         id = graphene.ID(required=True)
         name = graphene.String()
-        privacy = graphene.Field(ProjectPrivacy)
+        privacy = ProjectNode.privacy_enum()
         description = graphene.String()
-        measurement_units = graphene.Field(MeasurementUnits)
         site_instructions = graphene.String()
 
     @classmethod
@@ -338,7 +316,7 @@ class ProjectAddUserMutation(BaseWriteMutation):
     class Input:
         project_id = graphene.ID(required=True)
         user_id = graphene.ID(required=True)
-        role = graphene.Field(UserRole, required=True)
+        role = graphene.Field(ProjectRoleEnum, required=True)
 
     @classmethod
     def mutate_and_get_payload(cls, root, info, project_id, user_id, role):
@@ -437,7 +415,7 @@ class ProjectUpdateUserRoleMutation(BaseWriteMutation):
     class Input:
         project_id = graphene.ID(required=True)
         user_id = graphene.ID(required=True)
-        new_role = graphene.Field(UserRole, required=True)
+        new_role = graphene.Field(ProjectRoleEnum, required=True)
 
     @classmethod
     def mutate_and_get_payload(cls, root, info, project_id, user_id, new_role):

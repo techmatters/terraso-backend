@@ -13,6 +13,10 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see https://www.gnu.org/licenses/.
 
-ROLE_MANAGER = "manager"
-ROLE_CONTRIBUTOR = "contributor"
-ROLE_VIEWER = "viewer"
+from django.db import models
+
+
+class ProjectRole(models.TextChoices):
+    VIEWER = "VIEWER"
+    CONTRIBUTOR = "CONTRIBUTOR"
+    MANAGER = "MANAGER"

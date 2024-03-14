@@ -373,7 +373,7 @@ def test_delete_user_from_project_delete_self(project, project_user, client):
 
 def test_delete_user_from_project_not_manager(project, project_user, client):
     other_user = mixer.blend(User)
-    project.add_user_with_role(other_user, "contributor")
+    project.add_contributor(other_user)
     client.force_login(project_user)
     input_data = {"projectId": str(project.id), "userId": str(other_user.id)}
     response = graphql_query(DELETE_USER_GRAPHQL, input_data=input_data, client=client)

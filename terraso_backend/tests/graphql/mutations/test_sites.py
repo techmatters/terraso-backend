@@ -24,6 +24,9 @@ from apps.audit_logs.api import CHANGE, CREATE, DELETE
 from apps.audit_logs.models import Log
 from apps.core.models import User
 from apps.project_management.models import Project, Site
+from backend.terraso_backend.apps.project_management.collaboration_roles import (
+    ProjectRole,
+)
 
 pytestmark = pytest.mark.django_db
 
@@ -291,7 +294,7 @@ def linked_site(request, project_manager):
     if request.param != "linked":
         project = mixer.blend(Project)
         site.add_to_project(project)
-        project.add_user_with_role(project_manager, request.param)
+        project.add_user_with_role(project_manager, ProjectRole(request.param))
     return site
 
 
@@ -339,7 +342,7 @@ def test_site_transfer_success(linked_site, client, project, project_manager):
 
 
 def test_site_transfer_unlinked_site_user_contributor_success(client, user, site, project):
-    project.add_user_with_role(user, "contributor")
+    project.add_contributor(user)
     input_data = {"siteIds": [str(site.id)], "projectId": str(project.id)}
     client.force_login(user)
     payload = graphql_query(SITE_TRANSFER_MUTATION, client=client, input_data=input_data).json()
@@ -351,7 +354,7 @@ def test_site_transfer_unlinked_site_user_contributor_success(client, user, site
 
 
 def test_site_transfer_unlinked_site_user_viewer_failure(client, user, site, project):
-    project.add_user_with_role(user, "viewer")
+    project.add_viewer(user)
     input_data = {"siteIds": [str(site.id)], "projectId": str(project.id)}
     client.force_login(user)
     payload = graphql_query(SITE_TRANSFER_MUTATION, client=client, input_data=input_data).json()
@@ -364,8 +367,8 @@ def test_site_transfer_unlinked_site_user_viewer_failure(client, user, site, pro
 def transfer_site(request, user, site, project):
     role_a, role_b = request.param
     project_a = mixer.blend(Project)
-    project_a.add_user_with_role(user, role_a)
-    project.add_user_with_role(user, role_b)
+    project_a.add_user_with_role(user, ProjectRole(role_a))
+    project.add_user_with_role(user, ProjectRole(role_b))
     site.add_to_project(project_a)
     return site
 
