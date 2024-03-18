@@ -621,9 +621,9 @@ stack-data==0.6.3 \
     --hash=sha256:836a778de4fec4dcd1dcd89ed8abff8a221f58308462e1c4aa2a3cf30148f0b9 \
     --hash=sha256:d5558e0c25a4cb0853cddad3d77da9891a08cb85dd9f9f91b9f8cd66e511e695
     # via ipython
-traitlets==5.14.1 \
-    --hash=sha256:2e5a030e6eff91737c643231bfcf04a65b0132078dad75e4936700b213652e74 \
-    --hash=sha256:8585105b371a04b8316a43d5ce29c098575c2e477850b62b848b964f1444527e
+traitlets==5.14.2 \
+    --hash=sha256:8cdd83c040dab7d1dee822678e5f5d100b514f7b72b01615b26fc5718916fdf9 \
+    --hash=sha256:fcdf85684a772ddeba87db2f398ce00b40ff550d1528c03c14dbf6a02003cd80
     # via
     #   ipython
     #   matplotlib-inline
