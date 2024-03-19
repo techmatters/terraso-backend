@@ -22,6 +22,9 @@ import pytest
 
 from apps.core.gis.parsers import parse_file_to_geojson
 
+KMZ_TEST_FILES = [
+    ("resources/gis/kmz_sample_1.kmz", "resources/gis/kmz_sample_1_geojson.json"),
+]
 KML_TEST_FILES = [
     ("resources/gis/kml_sample_1.kml", "resources/gis/kml_sample_1_geojson.json"),
     ("resources/gis/kml_sample_2.kml", "resources/gis/kml_sample_2_geojson.json"),
@@ -219,6 +222,21 @@ def test_parse_kml_file(kml_file_path_expected):
         expected_json = json.load(file)
 
     assert json.dumps(kml_json) == json.dumps(expected_json)
+
+@pytest.mark.parametrize(
+    "kmz_file_path_expected",
+    KMZ_TEST_FILES,
+)
+def test_parse_kmz_file(kmz_file_path_expected):
+    kmz_file_path = kmz_file_path_expected[0]
+    with open(resources.files("tests").joinpath(kmz_file_path), "rb") as file:
+        kmz_json = parse_file_to_geojson(file)
+
+    expected_file_path = kmz_file_path_expected[1]
+    with open(resources.files("tests").joinpath(expected_file_path), "rb") as file:
+        expected_json = json.load(file)
+
+    assert json.dumps(kmz_json) == json.dumps(expected_json)
 
 
 @pytest.fixture
