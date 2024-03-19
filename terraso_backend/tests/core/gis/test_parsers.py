@@ -223,6 +223,7 @@ def test_parse_kml_file(kml_file_path_expected):
 
     assert json.dumps(kml_json) == json.dumps(expected_json)
 
+
 @pytest.mark.parametrize(
     "kmz_file_path_expected",
     KMZ_TEST_FILES,
