@@ -131,7 +131,8 @@ def parse_kmz_file(file):
 
         kml_file = zip.extract(kml_filenames[0], tmp_folder)
 
-    geojson = parse_kml_file(kml_file)
+    with open(kml_file, "rb") as file_buffer:
+        geojson = parse_kml_file(file_buffer)
 
     # Delete extracted files
     os.remove(os.path.join(tmp_folder, kml_filenames[0]))
