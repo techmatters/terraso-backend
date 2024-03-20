@@ -54,6 +54,10 @@ lock-dev: pip-tools
 migrate: check_rebuild
 	$(DC_RUN_CMD) python terraso_backend/manage.py migrate --no-input
 
+deploy:
+	$(DC_RUN_CMD) python terraso_backend/manage.py migrate --no-input
+	$(DC_RUN_CMD) python terraso_backend/manage.py collectstatic --no-input
+
 makemigrations: check_rebuild
 	$(DC_RUN_CMD) python terraso_backend/manage.py makemigrations
 
