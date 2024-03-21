@@ -127,7 +127,7 @@ def project_user(project: Project) -> User:
     Membership.objects.create(
         user=user,
         membership_list=project.membership_list,
-        user_role="viewer",
+        user_role="VIEWER",
         membership_status=Membership.APPROVED,
     )
     return user

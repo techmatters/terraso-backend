@@ -31,7 +31,6 @@ from apps.collaboration.graphql.memberships import (
 )
 from apps.collaboration.models import Membership
 from apps.core.models import User
-from apps.graphql.exceptions import GraphQLValidationException
 from apps.graphql.schema.commons import (
     BaseAuthenticatedMutation,
     BaseDeleteMutation,
@@ -55,17 +54,15 @@ from apps.project_management.models import (
 from apps.project_management.models.sites import Site
 from apps.soil_id.models.project_soil_settings import ProjectSoilSettings
 
-ProjectRoleEnum = graphene.Enum(
-    "ProjectManagementProjectRoleChoices", [(c[0], c[1]) for c in ProjectRole.choices]
-)
-
 
 class ProjectMembershipNode(DjangoObjectType, MembershipNodeMixin):
     class Meta(MembershipNodeMixin.Meta):
         model = ProjectMembership
 
+    role_enum = graphene.Enum.from_enum(ProjectRole, "ProjectMembershipProjectRoleChoices")
+
     user = graphene.Field(UserNode, required=True)
-    user_role = graphene.Field(ProjectRoleEnum, required=True)
+    user_role = graphene.Field(role_enum, required=True)
 
 
 class ProjectMembershipFilterSet(FilterSet):
@@ -316,12 +313,10 @@ class ProjectAddUserMutation(BaseWriteMutation):
     class Input:
         project_id = graphene.ID(required=True)
         user_id = graphene.ID(required=True)
-        role = graphene.Field(ProjectRoleEnum, required=True)
+        role = graphene.Field(ProjectMembershipNode.role_enum, required=True)
 
     @classmethod
     def mutate_and_get_payload(cls, root, info, project_id, user_id, role):
-        if role not in Project.ROLES:
-            raise GraphQLValidationException(message=f"Invalid role: {role}")
         project = cls.get_or_throw(Project, "project_id", project_id)
         user = cls.get_or_throw(User, "user_id", user_id)
         request_user = info.context.user
@@ -415,7 +410,7 @@ class ProjectUpdateUserRoleMutation(BaseWriteMutation):
     class Input:
         project_id = graphene.ID(required=True)
         user_id = graphene.ID(required=True)
-        new_role = graphene.Field(ProjectRoleEnum, required=True)
+        new_role = graphene.Field(ProjectMembershipNode.role_enum, required=True)
 
     @classmethod
     def mutate_and_get_payload(cls, root, info, project_id, user_id, new_role):

@@ -13,7 +13,6 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see https://www.gnu.org/licenses/.
 from django.db import models
-from django.utils.translation import gettext_lazy as _
 
 from apps.collaboration.models import Membership, MembershipList
 from apps.core.models import User
@@ -126,13 +125,12 @@ class Project(BaseModel):
     def viewer_memberships(self):
         return self.memberships_by_role(ProjectRole.VIEWER)
 
-
     def memberships_by_role(self, role: ProjectRole):
         return self.membership_list.memberships.by_role(role.value)
-    
+
     def add_manager(self, user: User):
         return self.add_user_with_role(user, ProjectRole.MANAGER)
-    
+
     def add_contributor(self, user: User):
         return self.add_user_with_role(user, ProjectRole.CONTRIBUTOR)
 

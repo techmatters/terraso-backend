@@ -693,14 +693,14 @@ type ProjectMembershipNodeEdge {
 type ProjectMembershipNode implements Node {
   membershipList: CollaborationMembershipListNode!
   user: UserNode!
-  userRole: ProjectManagementProjectRoleChoices!
+  userRole: ProjectMembershipProjectRoleChoices!
   membershipStatus: CollaborationMembershipMembershipStatusChoices!
   pendingEmail: String
   id: ID!
 }
 
 """An enumeration."""
-enum ProjectManagementProjectRoleChoices {
+enum ProjectMembershipProjectRoleChoices {
   VIEWER
   CONTRIBUTOR
   MANAGER
@@ -2086,7 +2086,7 @@ type ProjectAddUserMutationPayload {
 input ProjectAddUserMutationInput {
   projectId: ID!
   userId: ID!
-  role: ProjectManagementProjectRoleChoices!
+  role: ProjectMembershipProjectRoleChoices!
   clientMutationId: String
 }
 
@@ -2113,7 +2113,7 @@ type ProjectUpdateUserRoleMutationPayload {
 input ProjectUpdateUserRoleMutationInput {
   projectId: ID!
   userId: ID!
-  newRole: ProjectManagementProjectRoleChoices!
+  newRole: ProjectMembershipProjectRoleChoices!
   clientMutationId: String
 }
 
