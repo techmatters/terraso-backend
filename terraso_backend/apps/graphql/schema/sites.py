@@ -189,8 +189,11 @@ class SiteUpdateMutation(BaseWriteMutation):
         site = cls.get_or_throw(Site, "id", kwargs["id"])
         if not user.has_perm(Site.get_perm("change"), site):
             raise cls.not_allowed(MutationTypes.UPDATE)
-        project_id = kwargs.pop("project_id", False)
+        if Site.SETTINGS_FIELDS.intersection(kwargs.keys()):
+            if not user.has_perm(Site.get_perm("change_settings"), site):
+                raise cls.not_allowed(MutationTypes.UPDATE)
 
+        project_id = kwargs.pop("project_id", False)
         result = super().mutate_and_get_payload(root, info, **kwargs)
         if project_id is False:
             # no project id included
