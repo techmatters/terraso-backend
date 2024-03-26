@@ -642,7 +642,6 @@ type ProjectNode implements Node {
   membershipList: ProjectMembershipListNode!
   privacy: ProjectManagementProjectPrivacyChoices!
   archived: Boolean!
-  measurementUnits: ProjectManagementProjectMeasurementUnitsChoices!
   siteInstructions: String
   siteSet(
     offset: Int
@@ -694,16 +693,17 @@ type ProjectMembershipNodeEdge {
 type ProjectMembershipNode implements Node {
   membershipList: CollaborationMembershipListNode!
   user: UserNode!
-  userRole: UserRole!
+  userRole: ProjectMembershipProjectRoleChoices!
   membershipStatus: CollaborationMembershipMembershipStatusChoices!
   pendingEmail: String
   id: ID!
 }
 
-enum UserRole {
-  viewer
-  contributor
-  manager
+"""An enumeration."""
+enum ProjectMembershipProjectRoleChoices {
+  VIEWER
+  CONTRIBUTOR
+  MANAGER
 }
 
 """An enumeration."""
@@ -713,15 +713,6 @@ enum ProjectManagementProjectPrivacyChoices {
 
   """Public"""
   PUBLIC
-}
-
-"""An enumeration."""
-enum ProjectManagementProjectMeasurementUnitsChoices {
-  """Metric"""
-  METRIC
-
-  """Imperial"""
-  IMPERIAL
 }
 
 type SiteNodeConnection {
@@ -2039,22 +2030,11 @@ type ProjectAddMutationPayload {
 
 input ProjectAddMutationInput {
   name: String!
-  privacy: ProjectPrivacy!
+  privacy: ProjectManagementProjectPrivacyChoices
   description: String
-  measurementUnits: MeasurementUnits!
   siteInstructions: String
   createSoilSettings: Boolean
   clientMutationId: String
-}
-
-enum ProjectPrivacy {
-  PRIVATE
-  PUBLIC
-}
-
-enum MeasurementUnits {
-  METRIC
-  IMPERIAL
 }
 
 type ProjectUpdateMutationPayload {
@@ -2066,9 +2046,8 @@ type ProjectUpdateMutationPayload {
 input ProjectUpdateMutationInput {
   id: ID!
   name: String
-  privacy: ProjectPrivacy = null
+  privacy: ProjectManagementProjectPrivacyChoices
   description: String
-  measurementUnits: MeasurementUnits = null
   siteInstructions: String
   clientMutationId: String
 }
@@ -2107,7 +2086,7 @@ type ProjectAddUserMutationPayload {
 input ProjectAddUserMutationInput {
   projectId: ID!
   userId: ID!
-  role: UserRole!
+  role: ProjectMembershipProjectRoleChoices!
   clientMutationId: String
 }
 
@@ -2134,7 +2113,7 @@ type ProjectUpdateUserRoleMutationPayload {
 input ProjectUpdateUserRoleMutationInput {
   projectId: ID!
   userId: ID!
-  newRole: UserRole!
+  newRole: ProjectMembershipProjectRoleChoices!
   clientMutationId: String
 }
 

@@ -47,12 +47,7 @@ def test_create_project(client, user):
     response = graphql_query(
         CREATE_PROJECT_QUERY,
         variables={
-            "input": {
-                "name": "testProject",
-                "privacy": "PRIVATE",
-                "description": "A test project",
-                "measurementUnits": "METRIC",
-            }
+            "input": {"name": "testProject", "privacy": "PRIVATE", "description": "A test project"}
         },
         client=client,
     )
@@ -71,7 +66,7 @@ def test_create_project(client, user):
     assert log_result.resource_object == project
     expected_metadata = {
         "name": "testProject",
-        "privacy": "private",
+        "privacy": "PRIVATE",
         "description": "A test project",
     }
     assert log_result.metadata == expected_metadata
@@ -224,8 +219,6 @@ def test_update_project_audit_log(metadata, project, client, project_manager):
     assert log_result.user_human_readable == project_manager.full_name()
     assert log_result.resource_object == project
     expected_metadata = metadata
-    if "privacy" in expected_metadata:
-        expected_metadata["privacy"] = expected_metadata["privacy"].lower()
     assert log_result.metadata == expected_metadata
 
 
@@ -258,7 +251,7 @@ mutation addUser($input: ProjectAddUserMutationInput!) {
 def test_add_user_to_project(project, project_manager, client):
     user = mixer.blend(User)
     client.force_login(project_manager)
-    input_data = {"projectId": str(project.id), "userId": str(user.id), "role": "viewer"}
+    input_data = {"projectId": str(project.id), "userId": str(user.id), "role": "VIEWER"}
     response = graphql_query(ADD_USER_GRAPHQL, input_data=input_data, client=client)
     payload = response.json()
     assert "errors" not in payload and "errors" not in payload["data"]
@@ -279,7 +272,7 @@ def test_add_user_to_project_audit_log(client, project, project_manager, user):
             "input": {
                 "projectId": str(project.id),
                 "userId": str(user.id),
-                "role": "viewer",
+                "role": "VIEWER",
             }
         },
         client=client,
@@ -297,7 +290,7 @@ def test_add_user_to_project_audit_log(client, project, project_manager, user):
     assert log_result.resource_object == membership
     expected_metadata = {
         "user_email": user.email,
-        "user_role": "viewer",
+        "user_role": "VIEWER",
         "project_id": str(project.id),
     }
     assert log_result.metadata == expected_metadata
@@ -373,7 +366,7 @@ def test_delete_user_from_project_delete_self(project, project_user, client):
 
 def test_delete_user_from_project_not_manager(project, project_user, client):
     other_user = mixer.blend(User)
-    project.add_user_with_role(other_user, "contributor")
+    project.add_contributor(other_user)
     client.force_login(project_user)
     input_data = {"projectId": str(project.id), "userId": str(other_user.id)}
     response = graphql_query(DELETE_USER_GRAPHQL, input_data=input_data, client=client)
@@ -412,12 +405,12 @@ def test_update_project_role_manager(project, project_manager, project_user, cli
     input_data = {
         "projectId": str(project.id),
         "userId": str(project_user.id),
-        "newRole": "contributor",
+        "newRole": "CONTRIBUTOR",
     }
     response = graphql_query(UPDATE_PROJECT_ROLE_GRAPHQL, input_data=input_data, client=client)
     payload = response.json()
     assert "errors" not in payload
-    assert payload["data"]["updateUserRoleInProject"]["membership"]["userRole"] == "contributor"
+    assert payload["data"]["updateUserRoleInProject"]["membership"]["userRole"] == "CONTRIBUTOR"
     assert project.is_contributor(project_user)
     assert not project.is_viewer(project_user)
     assert response.status_code == 200
@@ -432,7 +425,7 @@ def test_update_project_role_manager(project, project_manager, project_user, cli
     assert log_result.resource_object == membership
     expected_metadata = {
         "user_email": project_user.email,
-        "user_role": "contributor",
+        "user_role": "CONTRIBUTOR",
         "project_id": str(project.id),
     }
     assert log_result.metadata == expected_metadata
@@ -443,7 +436,7 @@ def test_update_project_role_not_manager(project, project_user, client):
     input_data = {
         "projectId": str(project.id),
         "userId": str(project_user.id),
-        "newRole": "contributor",
+        "newRole": "CONTRIBUTOR",
     }
     response = graphql_query(UPDATE_PROJECT_ROLE_GRAPHQL, input_data=input_data, client=client)
     payload = response.json()
@@ -456,7 +449,7 @@ def test_update_project_role_user_not_in_project(project, project_user, client):
     input_data = {
         "projectId": str(project.id),
         "userId": str(project_user.id),
-        "newRole": "contributor",
+        "newRole": "CONTRIBUTOR",
     }
     response = graphql_query(UPDATE_PROJECT_ROLE_GRAPHQL, input_data=input_data, client=client)
     payload = response.json()
@@ -467,9 +460,7 @@ def test_mark_project_seen(client, user):
     client.force_login(user)
     response = graphql_query(
         CREATE_PROJECT_QUERY,
-        variables={
-            "input": {"name": "project", "privacy": "PUBLIC", "measurementUnits": "IMPERIAL"}
-        },
+        variables={"input": {"name": "project", "privacy": "PUBLIC"}},
         client=client,
     )
     project = response.json()["data"]["addProject"]["project"]

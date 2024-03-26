@@ -13,17 +13,12 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see https://www.gnu.org/licenses/.
 from django.db import models
-from django.utils.translation import gettext_lazy as _
 
 from apps.collaboration.models import Membership, MembershipList
 from apps.core.models import User
 from apps.core.models.commons import BaseModel
 from apps.project_management import permission_rules
-from apps.project_management.collaboration_roles import (
-    ROLE_CONTRIBUTOR,
-    ROLE_MANAGER,
-    ROLE_VIEWER,
-)
+from apps.project_management.collaboration_roles import ProjectRole
 
 
 class ProjectSettings(BaseModel):
@@ -37,22 +32,17 @@ class ProjectSettings(BaseModel):
 
 
 class ProjectMembership(Membership):
-    """A proxy class created soley for graphene schema reasons"""
+    """A proxy class created solely for graphene schema reasons"""
 
     class Meta:
         proxy = True
 
 
 class ProjectMembershipList(MembershipList):
-    """A proxy class created soley for graphql schema reasons"""
+    """A proxy class created solely for graphql schema reasons"""
 
     class Meta:
         proxy = True
-
-
-class MeasurementUnits(models.TextChoices):
-    METRIC = "METRIC"
-    IMPERIAL = "IMPERIAL"
 
 
 class Project(BaseModel):
@@ -67,20 +57,15 @@ class Project(BaseModel):
             "archive": permission_rules.allowed_to_archive_project,
         }
 
-    ROLES = (ROLE_VIEWER, ROLE_CONTRIBUTOR, ROLE_MANAGER)
-
-    PRIVATE = "private"
-    PUBLIC = "public"
-    DEFAULT_PRIVACY_STATUS = PRIVATE
-
-    PRIVACY_STATUS = ((PRIVATE, _("Private")), (PUBLIC, _("Public")))
-
     name = models.CharField(max_length=120)
     description = models.CharField(max_length=512, default="", blank=True)
     membership_list = models.OneToOneField(ProjectMembershipList, on_delete=models.CASCADE)
-    privacy = models.CharField(
-        max_length=32, choices=PRIVACY_STATUS, default=DEFAULT_PRIVACY_STATUS
-    )
+
+    class Privacy(models.TextChoices):
+        PRIVATE = "PRIVATE"
+        PUBLIC = "PUBLIC"
+
+    privacy = models.CharField(max_length=32, choices=Privacy.choices, default=Privacy.PRIVATE)
 
     seen_by = models.ManyToManyField(User, related_name="+")
     archived = models.BooleanField(
@@ -88,9 +73,7 @@ class Project(BaseModel):
     )
 
     settings = models.OneToOneField(ProjectSettings, on_delete=models.PROTECT)
-    measurement_units = models.CharField(
-        default=MeasurementUnits.METRIC, choices=MeasurementUnits.choices
-    )
+
     site_instructions = models.TextField(null=True, blank=True)
 
     @staticmethod
@@ -115,43 +98,51 @@ class Project(BaseModel):
             enroll_method=MembershipList.ENROLL_METHOD_JOIN,
         )
 
-    def is_manager(self, user: User) -> bool:
-        return self.manager_memberships.filter(user=user).exists()
+    def user_has_role(self, user: User, role: ProjectRole) -> bool:
+        return self.memberships_by_role(role).filter(user=user).exists()
 
-    def is_viewer(self, user: User) -> bool:
-        return self.viewer_memberships.filter(user=user).exists()
+    def is_manager(self, user: User) -> bool:
+        return self.user_has_role(user, ProjectRole.MANAGER)
 
     def is_contributor(self, user: User) -> bool:
-        return self.contributor_memberships.filter(user=user).exists()
+        return self.user_has_role(user, ProjectRole.CONTRIBUTOR)
+
+    def is_viewer(self, user: User) -> bool:
+        return self.user_has_role(user, ProjectRole.VIEWER)
 
     def is_member(self, user: User) -> bool:
         return self.membership_list.is_member(user)
 
     @property
     def manager_memberships(self):
-        return self.membership_list.memberships.by_role(ROLE_MANAGER)
-
-    @property
-    def viewer_memberships(self):
-        return self.membership_list.memberships.by_role(ROLE_VIEWER)
+        return self.memberships_by_role(ProjectRole.MANAGER)
 
     @property
     def contributor_memberships(self):
-        return self.membership_list.memberships.by_role(ROLE_CONTRIBUTOR)
+        return self.memberships_by_role(ProjectRole.CONTRIBUTOR)
+
+    @property
+    def viewer_memberships(self):
+        return self.memberships_by_role(ProjectRole.VIEWER)
+
+    def memberships_by_role(self, role: ProjectRole):
+        return self.membership_list.memberships.by_role(role.value)
 
     def add_manager(self, user: User):
-        return self.add_user_with_role(user, ROLE_MANAGER)
+        return self.add_user_with_role(user, ProjectRole.MANAGER)
+
+    def add_contributor(self, user: User):
+        return self.add_user_with_role(user, ProjectRole.CONTRIBUTOR)
 
     def add_viewer(self, user: User):
-        return self.add_user_with_role(user, ROLE_VIEWER)
+        return self.add_user_with_role(user, ProjectRole.VIEWER)
 
-    def add_user_with_role(self, user: User, role: str):
-        assert role in self.ROLES
+    def add_user_with_role(self, user: User, role: ProjectRole):
         return Membership.objects.create(
             membership_list=self.membership_list,
             user=user,
             membership_status=Membership.APPROVED,
-            user_role=role,
+            user_role=role.value,
             pending_email=None,
         )
 

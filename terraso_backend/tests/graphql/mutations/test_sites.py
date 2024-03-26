@@ -23,6 +23,7 @@ from tests.utils import match_json
 from apps.audit_logs.api import CHANGE, CREATE, DELETE
 from apps.audit_logs.models import Log
 from apps.core.models import User
+from apps.project_management.collaboration_roles import ProjectRole
 from apps.project_management.models import Project, Site
 
 pytestmark = pytest.mark.django_db
@@ -68,7 +69,7 @@ def test_site_creation(client_query, user):
     assert log_result.metadata == expected_metadata
 
 
-@pytest.mark.parametrize("project_user_w_role", ["manager", "contributor"], indirect=True)
+@pytest.mark.parametrize("project_user_w_role", ["MANAGER", "CONTRIBUTOR"], indirect=True)
 def test_site_creation_in_project(client, project_user_w_role, project):
     kwargs = site_creation_keywords()
     kwargs["projectId"] = str(project.id)
@@ -291,11 +292,11 @@ def linked_site(request, project_manager):
     if request.param != "linked":
         project = mixer.blend(Project)
         site.add_to_project(project)
-        project.add_user_with_role(project_manager, request.param)
+        project.add_user_with_role(project_manager, ProjectRole(request.param))
     return site
 
 
-@pytest.mark.parametrize("linked_site", ["manager"], indirect=True)
+@pytest.mark.parametrize("linked_site", ["MANAGER"], indirect=True)
 def test_delete_linked_site(client, linked_site, project_manager):
     client.force_login(project_manager)
     response = graphql_query(
@@ -315,7 +316,7 @@ def test_delete_linked_site(client, linked_site, project_manager):
     assert log_result.metadata["project_id"] == str(linked_site.project.id)
 
 
-@pytest.mark.parametrize("linked_site", ["linked", "manager"], indirect=True)
+@pytest.mark.parametrize("linked_site", ["linked", "MANAGER"], indirect=True)
 def test_site_transfer_success(linked_site, client, project, project_manager):
     input_data = {"siteIds": [str(linked_site.id)], "projectId": str(project.id)}
     client.force_login(project_manager)
@@ -339,7 +340,7 @@ def test_site_transfer_success(linked_site, client, project, project_manager):
 
 
 def test_site_transfer_unlinked_site_user_contributor_success(client, user, site, project):
-    project.add_user_with_role(user, "contributor")
+    project.add_contributor(user)
     input_data = {"siteIds": [str(site.id)], "projectId": str(project.id)}
     client.force_login(user)
     payload = graphql_query(SITE_TRANSFER_MUTATION, client=client, input_data=input_data).json()
@@ -351,7 +352,7 @@ def test_site_transfer_unlinked_site_user_contributor_success(client, user, site
 
 
 def test_site_transfer_unlinked_site_user_viewer_failure(client, user, site, project):
-    project.add_user_with_role(user, "viewer")
+    project.add_viewer(user)
     input_data = {"siteIds": [str(site.id)], "projectId": str(project.id)}
     client.force_login(user)
     payload = graphql_query(SITE_TRANSFER_MUTATION, client=client, input_data=input_data).json()
@@ -364,14 +365,14 @@ def test_site_transfer_unlinked_site_user_viewer_failure(client, user, site, pro
 def transfer_site(request, user, site, project):
     role_a, role_b = request.param
     project_a = mixer.blend(Project)
-    project_a.add_user_with_role(user, role_a)
-    project.add_user_with_role(user, role_b)
+    project_a.add_user_with_role(user, ProjectRole(role_a))
+    project.add_user_with_role(user, ProjectRole(role_b))
     site.add_to_project(project_a)
     return site
 
 
 @pytest.mark.parametrize(
-    "transfer_site", [("contributor", "manager"), ("manager", "contributor")], indirect=True
+    "transfer_site", [("CONTRIBUTOR", "MANAGER"), ("MANAGER", "CONTRIBUTOR")], indirect=True
 )
 def test_site_transfer_between_projects_failure(transfer_site, client, project, user):
     client.force_login(user)
