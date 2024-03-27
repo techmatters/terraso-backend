@@ -61,6 +61,14 @@ class Project(BaseModel):
     description = models.CharField(max_length=512, default="", blank=True)
     membership_list = models.OneToOneField(ProjectMembershipList, on_delete=models.CASCADE)
 
+    class MeasurementUnit(models.TextChoices):
+        IMPERIAL = "IMPERIAL"
+        METRIC = "METRIC"
+
+    measurement_units = models.CharField(
+        default=MeasurementUnit.METRIC, choices=MeasurementUnit.choices
+    )
+
     class Privacy(models.TextChoices):
         PRIVATE = "PRIVATE"
         PUBLIC = "PUBLIC"

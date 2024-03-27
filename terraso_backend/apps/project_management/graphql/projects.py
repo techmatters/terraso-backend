@@ -118,6 +118,7 @@ class ProjectNode(DjangoObjectType):
         filterset_class = ProjectFilterSet
         fields = (
             "name",
+            "measurement_units",
             "privacy",
             "description",
             "updated_at",
@@ -135,6 +136,10 @@ class ProjectNode(DjangoObjectType):
         if user.is_anonymous:
             return True
         return self.seen_by.filter(id=user.id).exists()
+
+    @classmethod
+    def measurement_units_enum(cls):
+        return cls._meta.fields["measurement_units"].type.of_type()
 
     @classmethod
     def privacy_enum(cls):
@@ -158,6 +163,7 @@ class ProjectAddMutation(BaseWriteMutation):
 
     class Input:
         name = graphene.String(required=True)
+        measurement_units = ProjectNode.measurement_units_enum()
         privacy = ProjectNode.privacy_enum()
         description = graphene.String()
         site_instructions = graphene.String()
@@ -270,6 +276,7 @@ class ProjectUpdateMutation(BaseWriteMutation):
     class Input:
         id = graphene.ID(required=True)
         name = graphene.String()
+        measurement_units = ProjectNode.measurement_units_enum()
         privacy = ProjectNode.privacy_enum()
         description = graphene.String()
         site_instructions = graphene.String()

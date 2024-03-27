@@ -130,10 +130,6 @@ class ProjectSoilSettingsNode(DjangoObjectType):
         ]
 
     @classmethod
-    def measurement_units_enum(cls):
-        return cls._meta.fields["measurement_units"].type()
-
-    @classmethod
     def depth_interval_preset_enum(cls):
         return cls._meta.fields["depth_interval_preset"].type.of_type()
 
@@ -432,7 +428,6 @@ class ProjectSoilSettingsUpdateMutation(BaseWriteMutation):
 
     class Input:
         project_id = graphene.ID(required=True)
-        measurement_units = ProjectSoilSettingsNode.measurement_units_enum()
         depth_interval_preset = ProjectSoilSettingsNode.depth_interval_preset_enum()
         soil_pit_required = graphene.Boolean()
         slope_required = graphene.Boolean()
