@@ -62,7 +62,7 @@ class Project(BaseModel):
     membership_list = models.OneToOneField(ProjectMembershipList, on_delete=models.CASCADE)
 
     class MeasurementUnit(models.TextChoices):
-        IMPERIAL = "IMPERIAL"
+        ENGLISH = "ENGLISH"
         METRIC = "METRIC"
 
     measurement_units = models.CharField(
