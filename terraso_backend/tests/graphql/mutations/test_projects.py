@@ -32,6 +32,8 @@ CREATE_PROJECT_QUERY = """
         addProject(input: $input) {
             project {
                 id
+                privacy
+                measurementUnits
                 seen
                 membershipList {
                    id
@@ -42,12 +44,15 @@ CREATE_PROJECT_QUERY = """
 """
 
 
-def test_create_project(client, user):
+def test_create_project_default_values(client, user):
     client.force_login(user)
     response = graphql_query(
         CREATE_PROJECT_QUERY,
         variables={
-            "input": {"name": "testProject", "privacy": "PRIVATE", "description": "A test project"}
+            "input": {
+                "name": "testProject",
+                "description": "A test project",
+            }
         },
         client=client,
     )
@@ -56,6 +61,8 @@ def test_create_project(client, user):
     id = content["data"]["addProject"]["project"]["id"]
     project = Project.objects.get(pk=id)
     assert list([mb.user for mb in project.manager_memberships.all()]) == [user]
+    assert project.measurement_units == Project.MeasurementUnit.METRIC
+    assert project.privacy == Project.Privacy.PRIVATE
     assert project.description == "A test project"
     assert project.soil_settings is not None
 
@@ -67,6 +74,43 @@ def test_create_project(client, user):
     expected_metadata = {
         "name": "testProject",
         "privacy": "PRIVATE",
+        "description": "A test project",
+    }
+    assert log_result.metadata == expected_metadata
+
+
+def test_create_project_values(client, user):
+    client.force_login(user)
+    response = graphql_query(
+        CREATE_PROJECT_QUERY,
+        variables={
+            "input": {
+                "name": "testProject",
+                "description": "A test project",
+                "privacy": "PUBLIC",
+                "measurementUnits": "ENGLISH",
+            }
+        },
+        client=client,
+    )
+    content = json.loads(response.content)
+    assert "errors" not in content
+    id = content["data"]["addProject"]["project"]["id"]
+    project = Project.objects.get(pk=id)
+    assert list([mb.user for mb in project.manager_memberships.all()]) == [user]
+    assert project.measurement_units == Project.MeasurementUnit.ENGLISH
+    assert project.privacy == Project.Privacy.PUBLIC
+    assert project.description == "A test project"
+    assert project.soil_settings is not None
+
+    logs = Log.objects.all()
+    assert len(logs) == 1
+    log_result = logs[0]
+    assert log_result.event == CREATE.value
+    assert log_result.resource_object == project
+    expected_metadata = {
+        "name": "testProject",
+        "privacy": "PUBLIC",
         "description": "A test project",
     }
     assert log_result.metadata == expected_metadata
@@ -164,27 +208,35 @@ def test_archive_project_user_not_manager(project, client, project_user):
 
 UPDATE_PROJECT_GRAPHQL = """
     mutation($input: ProjectUpdateMutationInput!) {
-    updateProject(input: $input) {
-        project{
-        id,
-        name,
-        privacy
+        updateProject(input: $input) {
+            project{
+                id
+                name
+                privacy
+                measurementUnits
+            }
+            errors
         }
-        errors
-    }
     }
 """
 
 
 def test_update_project_user_is_manager(project, client, project_manager):
-    input = {"id": str(project.id), "name": "test_name", "privacy": "PRIVATE"}
+    input = {
+        "id": str(project.id),
+        "name": "test_name",
+        "privacy": "PRIVATE",
+        "measurementUnits": "ENGLISH",
+    }
     client.force_login(project_manager)
     response = graphql_query(UPDATE_PROJECT_GRAPHQL, input_data=input, client=client)
     content = json.loads(response.content)
+    assert "errors" not in content
     assert content["data"]["updateProject"]["errors"] is None
     assert content["data"]["updateProject"]["project"]["id"] == str(project.id)
     assert content["data"]["updateProject"]["project"]["name"] == "test_name"
     assert content["data"]["updateProject"]["project"]["privacy"] == "PRIVATE"
+    assert content["data"]["updateProject"]["project"]["measurementUnits"] == "ENGLISH"
 
 
 @pytest.mark.parametrize(

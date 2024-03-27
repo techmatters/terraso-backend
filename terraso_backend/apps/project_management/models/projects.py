@@ -66,14 +66,16 @@ class Project(BaseModel):
         METRIC = "METRIC"
 
     measurement_units = models.CharField(
-        default=MeasurementUnit.METRIC, choices=MeasurementUnit.choices
+        choices=MeasurementUnit.choices, default=MeasurementUnit.METRIC.value
     )
 
     class Privacy(models.TextChoices):
         PRIVATE = "PRIVATE"
         PUBLIC = "PUBLIC"
 
-    privacy = models.CharField(max_length=32, choices=Privacy.choices, default=Privacy.PRIVATE)
+    privacy = models.CharField(
+        max_length=32, choices=Privacy.choices, default=Privacy.PRIVATE.value
+    )
 
     seen_by = models.ManyToManyField(User, related_name="+")
     archived = models.BooleanField(
