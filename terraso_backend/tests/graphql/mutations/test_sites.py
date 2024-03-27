@@ -140,7 +140,7 @@ def test_update_site_in_project(client, project, project_manager, site_with_soil
     assert log_result.metadata["project_id"] == str(project.id)
 
 
-@pytest.mark.parametrize("project_user_w_role", ["contributor"], indirect=True)
+@pytest.mark.parametrize("project_user_w_role", ["CONTRIBUTOR"], indirect=True)
 def test_update_site_settings_contributor(client, project, project_user_w_role, site):
     site.add_to_project(project)
 
@@ -158,7 +158,7 @@ def test_update_site_settings_contributor(client, project, project_user_w_role, 
     assert json_error[0]["code"] == "update_not_allowed"
 
 
-@pytest.mark.parametrize("project_user_w_role", ["manager"], indirect=True)
+@pytest.mark.parametrize("project_user_w_role", ["MANAGER"], indirect=True)
 def test_update_site_settings_manager(client, project, project_user_w_role, site):
     site.add_to_project(project)
 
