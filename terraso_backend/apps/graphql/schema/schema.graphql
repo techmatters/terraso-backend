@@ -640,6 +640,7 @@ type ProjectNode implements Node {
   name: String!
   description: String!
   membershipList: ProjectMembershipListNode!
+  measurementUnits: ProjectManagementProjectMeasurementUnitsChoices!
   privacy: ProjectManagementProjectPrivacyChoices!
   archived: Boolean!
   siteInstructions: String
@@ -704,6 +705,15 @@ enum ProjectMembershipProjectRoleChoices {
   VIEWER
   CONTRIBUTOR
   MANAGER
+}
+
+"""An enumeration."""
+enum ProjectManagementProjectMeasurementUnitsChoices {
+  """English"""
+  ENGLISH
+
+  """Metric"""
+  METRIC
 }
 
 """An enumeration."""
@@ -1407,7 +1417,6 @@ enum SoilIdDepthDependentSoilDataCarbonatesChoices {
 
 type ProjectSoilSettingsNode {
   project: ProjectNode!
-  measurementUnits: SoilIdProjectSoilSettingsMeasurementUnitsChoices
   depthIntervalPreset: SoilIdProjectSoilSettingsDepthIntervalPresetChoices!
   soilPitRequired: Boolean!
   slopeRequired: Boolean!
@@ -1425,15 +1434,6 @@ type ProjectSoilSettingsNode {
   photosRequired: Boolean!
   notesRequired: Boolean!
   depthIntervals: [ProjectDepthIntervalNode!]!
-}
-
-"""An enumeration."""
-enum SoilIdProjectSoilSettingsMeasurementUnitsChoices {
-  """Imperial"""
-  IMPERIAL
-
-  """Metric"""
-  METRIC
 }
 
 """An enumeration."""
@@ -2030,6 +2030,7 @@ type ProjectAddMutationPayload {
 
 input ProjectAddMutationInput {
   name: String!
+  measurementUnits: ProjectManagementProjectMeasurementUnitsChoices
   privacy: ProjectManagementProjectPrivacyChoices
   description: String
   siteInstructions: String
@@ -2046,6 +2047,7 @@ type ProjectUpdateMutationPayload {
 input ProjectUpdateMutationInput {
   id: ID!
   name: String
+  measurementUnits: ProjectManagementProjectMeasurementUnitsChoices
   privacy: ProjectManagementProjectPrivacyChoices
   description: String
   siteInstructions: String
@@ -2238,7 +2240,6 @@ type ProjectSoilSettingsUpdateMutationPayload {
 
 input ProjectSoilSettingsUpdateMutationInput {
   projectId: ID!
-  measurementUnits: SoilIdProjectSoilSettingsMeasurementUnitsChoices
   depthIntervalPreset: SoilIdProjectSoilSettingsDepthIntervalPresetChoices
   soilPitRequired: Boolean
   slopeRequired: Boolean
