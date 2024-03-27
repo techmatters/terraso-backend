@@ -138,9 +138,9 @@ class SiteAddMutation(BaseWriteMutation):
         site = result.site
         site.mark_seen_by(user)
         metadata = {
-            "latitude": kwargs["latitude"],
-            "longitude": kwargs["longitude"],
-            "name": kwargs["name"],
+            "latitude": site.latitude,
+            "longitude": site.longitude,
+            "name": site.name,
         }
         if kwargs.get("project_id", None):
             metadata["project_id"] = kwargs["project_id"]
@@ -209,10 +209,10 @@ class SiteUpdateMutation(BaseWriteMutation):
             client_time = datetime.now()
 
         metadata = {}
-        for key, value in kwargs.items():
+        for key in kwargs.keys():
             if key == "id":
                 continue
-            metadata[key] = value
+            metadata[key] = getattr(site, key)
         if project_id:
             if hasattr(project, "soil_settings") and hasattr(site, "soil_data"):
                 if project_id is not None:
