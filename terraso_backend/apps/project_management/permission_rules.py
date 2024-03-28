@@ -31,12 +31,21 @@ def allowed_to_add_site_to_project(user, project):
 def allowed_to_update_site(user, site):
     if site.owned_by_user:
         return site.owner == user
-    return site.project.is_manager(user)
+    return site.project.is_manager(user) or site.project.is_contributor(user)
 
 
 @rules.predicate
 def allowed_to_delete_site(user, site):
-    return allowed_to_update_site(user, site)
+    if site.owned_by_user:
+        return site.owner == user
+    return site.project.is_manager(user)
+
+
+@rules.predicate
+def allowed_to_update_site_settings(user, site):
+    if site.owned_by_user:
+        return site.owner == user
+    return site.project.is_manager(user)
 
 
 @rules.predicate
