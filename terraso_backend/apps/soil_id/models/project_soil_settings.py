@@ -56,12 +56,6 @@ class ProjectSoilSettings(BaseModel):
 
     project = models.OneToOneField(Project, on_delete=models.CASCADE, related_name="soil_settings")
 
-    class MeasurementUnit(models.TextChoices):
-        IMPERIAL = "IMPERIAL"
-        METRIC = "METRIC"
-
-    measurement_units = models.CharField(blank=True, null=True, choices=MeasurementUnit.choices)
-
     depth_interval_preset = models.CharField(
         default=DepthIntervalPreset.LANDPKS.value,
         choices=DepthIntervalPreset.choices,

@@ -61,11 +61,21 @@ class Project(BaseModel):
     description = models.CharField(max_length=512, default="", blank=True)
     membership_list = models.OneToOneField(ProjectMembershipList, on_delete=models.CASCADE)
 
+    class MeasurementUnit(models.TextChoices):
+        ENGLISH = "ENGLISH"
+        METRIC = "METRIC"
+
+    measurement_units = models.CharField(
+        choices=MeasurementUnit.choices, default=MeasurementUnit.METRIC.value
+    )
+
     class Privacy(models.TextChoices):
         PRIVATE = "PRIVATE"
         PUBLIC = "PUBLIC"
 
-    privacy = models.CharField(max_length=32, choices=Privacy.choices, default=Privacy.PRIVATE)
+    privacy = models.CharField(
+        max_length=32, choices=Privacy.choices, default=Privacy.PRIVATE.value
+    )
 
     seen_by = models.ManyToManyField(User, related_name="+")
     archived = models.BooleanField(
