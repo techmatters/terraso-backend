@@ -140,6 +140,44 @@ def test_update_site_in_project(client, project, project_manager, site_with_soil
     assert log_result.metadata["project_id"] == str(project.id)
 
 
+@pytest.mark.parametrize("project_user_w_role", ["CONTRIBUTOR"], indirect=True)
+def test_update_site_settings_contributor(client, project, project_user_w_role, site):
+    site.add_to_project(project)
+
+    client.force_login(project_user_w_role)
+    response = graphql_query(
+        UPDATE_SITE_QUERY,
+        variables={
+            "input": {"id": str(site.id), "projectId": str(project.id), "name": "this is a test"}
+        },
+        client=client,
+    )
+
+    error_result = response.json()["data"]["updateSite"]["errors"][0]["message"]
+    json_error = json.loads(error_result)
+    assert json_error[0]["code"] == "update_not_allowed"
+
+
+@pytest.mark.parametrize("project_user_w_role", ["MANAGER"], indirect=True)
+def test_update_site_settings_manager(client, project, project_user_w_role, site):
+    site.add_to_project(project)
+
+    client.force_login(project_user_w_role)
+    response = graphql_query(
+        UPDATE_SITE_QUERY,
+        variables={
+            "input": {"id": str(site.id), "projectId": str(project.id), "name": "this is a test"}
+        },
+        client=client,
+    )
+
+    content = json.loads(response.content)
+    assert content["data"]["updateSite"]["errors"] is None
+
+    site.refresh_from_db()
+    assert site.name == "this is a test"
+
+
 def test_adding_site_to_project_user_not_manager(client, project, site, project_user):
     site_creator = project_user
     client.force_login(site_creator)
