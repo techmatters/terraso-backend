@@ -597,9 +597,9 @@ responses==0.25.0 \
     --hash=sha256:01ae6a02b4f34e39bffceb0fc6786b67a25eae919c6368d05eabc8d9576c2a66 \
     --hash=sha256:2f0b9c2b6437db4b528619a77e5d565e4ec2a9532162ac1a131a83529db7be1a
     # via moto
-respx==0.21.0 \
-    --hash=sha256:0293d9c92b58f5d31bf24e4545129779b4194de156227eae8f5f8eedb5eaa6cc \
-    --hash=sha256:30f6ec0e82d00bc7b664d79155e5df34ce40b5183f6eb4460e371ced7ae7232e
+respx==0.21.1 \
+    --hash=sha256:05f45de23f0c785862a2c92a3e173916e8ca88e4caad715dd5f68584d6053c20 \
+    --hash=sha256:0bd7fe21bfaa52106caa1223ce61224cf30786985f17c63c5d71eff0307ee8af
     # via -r requirements/dev.in
 s3transfer==0.10.1 \
     --hash=sha256:5683916b4c724f799e600f41dd9e10a9ff19871bf87623cc8f491cb4f5fa0a19 \
