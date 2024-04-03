@@ -29,7 +29,7 @@ from django.db import transaction
 from django.utils import timezone
 
 from apps.core.models import UserPreference
-from apps.core.models.users import NOTIFICATION_KEYS
+from apps.core.models.users import NOTIFICATION_KEY_LANGUAGE, NOTIFICATION_KEYS
 from apps.storage.services import ProfileImageService
 
 from .providers import AppleProvider, GoogleProvider, MicrosoftProvider
@@ -83,7 +83,15 @@ class AccountService:
 
     def _set_default_preferences(self, user):
         for notification_key in NOTIFICATION_KEYS:
-            UserPreference.objects.create(user=user, key=notification_key, value="true")
+            default_val = "true"
+            if notification_key == NOTIFICATION_KEY_LANGUAGE:
+                # Reformat from 'en-us' to 'en-US'. Assumes language code comes in as 'xx-XX'
+                def format(lang_code):
+                    parts = lang_code.split("-")
+                    return f"{parts[0]}-{parts[1].upper()}"
+
+                default_val = format(settings.DEFAULT_LANGUAGE_CODE)
+            UserPreference.objects.create(user=user, key=notification_key, value=default_val)
 
     @transaction.atomic
     def _persist_user(self, email, first_name="", last_name="", profile_image_url=None):
