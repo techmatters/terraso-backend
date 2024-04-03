@@ -23,10 +23,14 @@ from safedelete.models import SOFT_DELETE_CASCADE, SafeDeleteManager, SafeDelete
 
 from apps.core import group_collaboration_roles, landscape_collaboration_roles
 
-NOTIFICATION_KEY_GROUP = "group_notifications"
-NOTIFICATION_KEY_STORY_MAP = "story_map_notifications"
-NOTIFICATION_KEY_LANGUAGE = "language"
-NOTIFICATION_KEYS = [NOTIFICATION_KEY_GROUP, NOTIFICATION_KEY_STORY_MAP, NOTIFICATION_KEY_LANGUAGE]
+USER_PREFS_KEY_GROUP_NOTIFICATIONS = "group_notifications"
+USER_PREFS_KEY_STORY_MAP_NOTIFICATIONS = "story_map_notifications"
+USER_PREFS_KEY_LANGUAGE = "language"
+USER_PREFS_KEYS = [
+    USER_PREFS_KEY_GROUP_NOTIFICATIONS,
+    USER_PREFS_KEY_STORY_MAP_NOTIFICATIONS,
+    USER_PREFS_KEY_LANGUAGE,
+]
 
 
 class UserManager(SafeDeleteManager, BaseUserManager):
@@ -138,10 +142,10 @@ class User(SafeDeleteModel, AbstractUser):
         return f"'{self.full_name()}' <{self.email}>"
 
     def group_notifications_enabled(self):
-        return self._notifications_enabled(NOTIFICATION_KEY_GROUP)
+        return self._notifications_enabled(USER_PREFS_KEY_GROUP_NOTIFICATIONS)
 
     def story_map_notifications_enabled(self):
-        return self._notifications_enabled(NOTIFICATION_KEY_STORY_MAP)
+        return self._notifications_enabled(USER_PREFS_KEY_STORY_MAP_NOTIFICATIONS)
 
     def _notifications_enabled(self, key):
         preferences = self.preferences.filter(key=key)

@@ -21,7 +21,7 @@ from mixer.backend.django import mixer
 from apps.collaboration.models import Membership as CollaborationMembership
 from apps.core import group_collaboration_roles
 from apps.core.models import UserPreference
-from apps.core.models.users import NOTIFICATION_KEY_GROUP
+from apps.core.models.users import USER_PREFS_KEY_GROUP_NOTIFICATIONS
 
 pytestmark = pytest.mark.django_db
 
@@ -266,7 +266,9 @@ def test_group_membership_add_member_closed_with_notification(
 
     manager_membership = groups_closed_managers[0]
     manager_user = manager_membership.user
-    mixer.blend(UserPreference, user=manager_user, key=NOTIFICATION_KEY_GROUP, value="true")
+    mixer.blend(
+        UserPreference, user=manager_user, key=USER_PREFS_KEY_GROUP_NOTIFICATIONS, value="true"
+    )
 
     response = client_query(
         """
