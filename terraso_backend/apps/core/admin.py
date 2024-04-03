@@ -61,6 +61,7 @@ class UserPreferenceInline(admin.TabularInline):
 class UserAdmin(DjangoUserAdmin):
     ordering = ("email",)
     list_display = ("email", "first_name", "last_name", "created_at", "is_staff")
+    search_fields = ("email", "first_name", "last_name")
     inlines = [UserPreferenceInline]
     fieldsets = (
         (None, {"fields": ("email", "password")}),
