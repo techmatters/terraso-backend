@@ -14,7 +14,7 @@
 # along with this program. If not, see https://www.gnu.org/licenses/.
 
 
-# Reformat from 'en-us' to 'en-US'. Assumes language code comes in as 'xx-XX'
+# Reformat from 'en-us' to 'en-US'. Assumes language code comes in as 'xx-xx'
 def format_to_upper(lang_code):
     parts = lang_code.split("-")
     return f"{parts[0]}-{parts[1].upper()}"
