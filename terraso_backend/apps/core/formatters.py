@@ -34,3 +34,8 @@ def from_snake_to_camel_case(snake_case_string):
 
     words = snake_case_string.split("_")
     return words[0].lower() + "".join([w.lower().title() for w in words[1:]])
+
+
+def uppercase_locale(lang_code):
+    parts = lang_code.split("-")
+    return f"{parts[0]}-{parts[1].upper()}"

@@ -23,7 +23,7 @@ from graphene_django import DjangoObjectType
 from apps.auth.services import JWTService
 from apps.collaboration.models import Membership
 from apps.core.models import User, UserPreference
-from apps.core.models.users import NOTIFICATION_KEYS
+from apps.core.models.users import USER_PREFS_KEYS
 from apps.graphql.exceptions import GraphQLNotAllowedException
 
 from .commons import (
@@ -184,7 +184,7 @@ class UserPreferenceUpdate(BaseAuthenticatedMutation):
                 model_name=UserPreference.__name__, operation=MutationTypes.UPDATE
             )
 
-        if key not in NOTIFICATION_KEYS:
+        if key not in USER_PREFS_KEYS:
             logger.error(
                 "Attempt to update a User preferences, key not allowed",
                 extra={"request_user_id": request_user.id, "target_user_id": user.id, "key": key},
@@ -234,7 +234,7 @@ class UserPreferenceDelete(BaseAuthenticatedMutation):
                 model_name=UserPreference.__name__, operation=MutationTypes.DELETE
             )
 
-        if key not in NOTIFICATION_KEYS:
+        if key not in USER_PREFS_KEYS:
             logger.error(
                 "Attempt to delete a User preferences, key not allowed",
                 extra={"request_user_id": request_user.id, "target_user_id": user.id, "key": key},
@@ -279,7 +279,7 @@ class UserUnsubscribeUpdate(BaseUnauthenticatedMutation):
                 model_name=UserPreference.__name__, operation=MutationTypes.UPDATE
             )
 
-        for notification_key in NOTIFICATION_KEYS:
+        for notification_key in USER_PREFS_KEYS:
             preference, _ = UserPreference.objects.get_or_create(
                 user_id=user.id, key=notification_key
             )
