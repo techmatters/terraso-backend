@@ -34,6 +34,7 @@ from apps.storage.services import ProfileImageService
 
 from .providers import AppleProvider, GoogleProvider, MicrosoftProvider
 from .signals import user_signup_signal
+from .utils import format_to_upper
 
 logger = structlog.get_logger(__name__)
 User = get_user_model()
@@ -85,12 +86,7 @@ class AccountService:
         for notification_key in USER_PREFS_KEYS:
             default_val = "true"
             if notification_key == USER_PREFS_KEY_LANGUAGE:
-                # Reformat from 'en-us' to 'en-US'. Assumes language code comes in as 'xx-XX'
-                def format(lang_code):
-                    parts = lang_code.split("-")
-                    return f"{parts[0]}-{parts[1].upper()}"
-
-                default_val = format(settings.DEFAULT_LANGUAGE_CODE)
+                default_val = format_to_upper(settings.DEFAULT_LANGUAGE_CODE)
             UserPreference.objects.create(user=user, key=notification_key, value=default_val)
 
     @transaction.atomic
