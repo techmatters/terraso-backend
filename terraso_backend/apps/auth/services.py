@@ -28,13 +28,13 @@ from django.contrib.auth import get_user_model
 from django.db import transaction
 from django.utils import timezone
 
+from apps.core.formatters import uppercase_locale
 from apps.core.models import UserPreference
 from apps.core.models.users import USER_PREFS_KEY_LANGUAGE, USER_PREFS_KEYS
 from apps.storage.services import ProfileImageService
 
 from .providers import AppleProvider, GoogleProvider, MicrosoftProvider
 from .signals import user_signup_signal
-from .utils import format_to_upper
 
 logger = structlog.get_logger(__name__)
 User = get_user_model()
@@ -86,7 +86,7 @@ class AccountService:
         for notification_key in USER_PREFS_KEYS:
             default_val = "true"
             if notification_key == USER_PREFS_KEY_LANGUAGE:
-                default_val = format_to_upper(settings.DEFAULT_LANGUAGE_CODE)
+                default_val = uppercase_locale(settings.DEFAULT_LANGUAGE_CODE)
             UserPreference.objects.create(user=user, key=notification_key, value=default_val)
 
     @transaction.atomic
