@@ -14,7 +14,7 @@
 # along with this program. If not, see https://www.gnu.org/licenses/.
 import rules
 
-from .collaboration_roles import ROLE_MANAGER
+from apps.project_management.collaboration_roles import ProjectRole
 
 
 @rules.predicate
@@ -31,12 +31,21 @@ def allowed_to_add_site_to_project(user, project):
 def allowed_to_update_site(user, site):
     if site.owned_by_user:
         return site.owner == user
-    return site.project.is_manager(user)
+    return site.project.is_manager(user) or site.project.is_contributor(user)
 
 
 @rules.predicate
 def allowed_to_delete_site(user, site):
-    return allowed_to_update_site(user, site)
+    if site.owned_by_user:
+        return site.owner == user
+    return site.project.is_manager(user)
+
+
+@rules.predicate
+def allowed_to_update_site_settings(user, site):
+    if site.owned_by_user:
+        return site.owner == user
+    return site.project.is_manager(user)
 
 
 @rules.predicate
@@ -60,7 +69,7 @@ def allowed_to_add_member_to_project(user, context):
     requester_membership = context["requester_membership"]
     return (
         requester_membership.membership_list == project.membership_list
-        and requester_membership.user_role == ROLE_MANAGER
+        and requester_membership.user_role == ProjectRole.MANAGER.value
     )
 
 
@@ -73,7 +82,8 @@ def allowed_to_delete_user_from_project(user, context):
     requester_membership = context["requester_membership"]
     target_membership = context["target_membership"]
     return project.membership_list == requester_membership.membership_list and (
-        user == target_membership.user or requester_membership.user_role == ROLE_MANAGER
+        user == target_membership.user
+        or requester_membership.user_role == ProjectRole.MANAGER.value
     )
 
 
@@ -89,7 +99,7 @@ def allowed_to_change_user_project_role(user, context):
         project.membership_list
         == requester_membership.membership_list
         == target_membership.membership_list
-        and requester_membership.user_role == ROLE_MANAGER
+        and requester_membership.user_role == ProjectRole.MANAGER.value
     )
 
 

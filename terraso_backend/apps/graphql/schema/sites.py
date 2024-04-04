@@ -115,9 +115,6 @@ class SiteAddMutation(BaseWriteMutation):
         log = cls.get_logger()
         user = info.context.user
 
-        if "privacy" in kwargs:
-            kwargs["privacy"] = kwargs["privacy"].value
-
         client_time = kwargs.pop("client_time", None)
         if not client_time:
             client_time = datetime.now()
@@ -141,9 +138,9 @@ class SiteAddMutation(BaseWriteMutation):
         site = result.site
         site.mark_seen_by(user)
         metadata = {
-            "latitude": kwargs["latitude"],
-            "longitude": kwargs["longitude"],
-            "name": kwargs["name"],
+            "latitude": site.latitude,
+            "longitude": site.longitude,
+            "name": site.name,
         }
         if kwargs.get("project_id", None):
             metadata["project_id"] = kwargs["project_id"]
@@ -192,11 +189,14 @@ class SiteUpdateMutation(BaseWriteMutation):
         site = cls.get_or_throw(Site, "id", kwargs["id"])
         if not user.has_perm(Site.get_perm("change"), site):
             raise cls.not_allowed(MutationTypes.UPDATE)
+
+        # if any site settings fields are present in the mutuation, check that the user
+        # has the associated settings-change permission as well
+        if Site.SETTINGS_FIELDS.intersection(kwargs.keys()):
+            if not user.has_perm(Site.get_perm("change_settings"), site):
+                raise cls.not_allowed(MutationTypes.UPDATE)
+
         project_id = kwargs.pop("project_id", False)
-
-        if "privacy" in kwargs:
-            kwargs["privacy"] = kwargs["privacy"].value
-
         result = super().mutate_and_get_payload(root, info, **kwargs)
         if project_id is False:
             # no project id included
@@ -215,10 +215,10 @@ class SiteUpdateMutation(BaseWriteMutation):
             client_time = datetime.now()
 
         metadata = {}
-        for key, value in kwargs.items():
+        for key in kwargs.keys():
             if key == "id":
                 continue
-            metadata[key] = value
+            metadata[key] = getattr(site, key)
         if project_id:
             if hasattr(project, "soil_settings") and hasattr(site, "soil_data"):
                 if project_id is not None:

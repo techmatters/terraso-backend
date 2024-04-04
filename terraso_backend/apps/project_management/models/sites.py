@@ -40,6 +40,7 @@ class Site(BaseModel):
             "change": permission_rules.allowed_to_update_site,
             "delete": permission_rules.allowed_to_delete_site,
             "transfer": permission_rules.allowed_to_transfer_site_to_project,
+            "change_settings": permission_rules.allowed_to_update_site_settings,
             "update_depth_interval": permission_rules.allowed_to_update_depth_interval,
         }
 
@@ -63,6 +64,9 @@ class Site(BaseModel):
     DEFAULT_PRIVACY_STATUS = PRIVATE
 
     PRIVACY_STATUS = ((PRIVATE, _("Private")), (PUBLIC, _("Public")))
+
+    # changing settings fields must be restricted by the corresponding permission
+    SETTINGS_FIELDS = set(["name", "privacy", "projectId"])
 
     privacy = models.CharField(
         max_length=32, null=False, choices=PRIVACY_STATUS, default=DEFAULT_PRIVACY_STATUS

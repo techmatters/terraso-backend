@@ -26,6 +26,7 @@ from apps.auth.services import JWTService
 from apps.collaboration.models import Membership
 from apps.core.gis.utils import DEFAULT_CRS
 from apps.core.models import User
+from apps.project_management.collaboration_roles import ProjectRole
 from apps.project_management.models import Project, Site
 
 pytestmark = pytest.mark.django_db
@@ -126,7 +127,7 @@ def project_user(project: Project) -> User:
     Membership.objects.create(
         user=user,
         membership_list=project.membership_list,
-        user_role="viewer",
+        user_role="VIEWER",
         membership_status=Membership.APPROVED,
     )
     return user
@@ -135,7 +136,7 @@ def project_user(project: Project) -> User:
 @pytest.fixture
 def project_user_w_role(request, project: Project):
     user = mixer.blend(User)
-    project.add_user_with_role(user, request.param)
+    project.add_user_with_role(user, ProjectRole(request.param))
     return user
 
 

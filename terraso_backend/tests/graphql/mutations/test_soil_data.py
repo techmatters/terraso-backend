@@ -583,7 +583,6 @@ UPDATE_PROJECT_SETTINGS_QUERY = """
     ) {
         updateProjectSoilSettings(input: $input) {
             projectSoilSettings {
-                measurementUnits
                 depthIntervalPreset
                 soilPitRequired
                 slopeRequired
@@ -629,7 +628,6 @@ def test_update_project_soil_settings(client, user, project_manager, project):
 
     new_data = {
         "projectId": str(project.id),
-        "measurementUnits": "METRIC",
         "depthIntervalPreset": "NRCS",
         "soilPitRequired": True,
         "slopeRequired": False,
