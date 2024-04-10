@@ -1,3 +1,4 @@
-FROM techmatters/terraso_backend
+ARG TERRASSO_APP_IMAGE=techmatters/terraso_backend:latest
+FROM $TERRASSO_APP_IMAGE
 
 RUN make install-dev
