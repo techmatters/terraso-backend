@@ -39,7 +39,7 @@ class Landscape(SlugModel, DirtyFieldsMixin):
     This model represents a Landscape on Terraso platform.
 
     A Landscape is a socio-ecological system that consists of natural
-    and/or human-modified ecosystems. Defined by its stakeholds, a
+    and/or human-modified ecosystems. Defined by its stakeholders, a
     Landscape usually has geographical boundaries. It may correspond to,
     or be a combination of, natural boundaries, distinct land features,
     socially defined areas such as indigenous territories, and/or
