@@ -2,7 +2,7 @@ version: "3"
 
 services:
   web:
-    image: techmatters/terraso_backend:${TAG:-latest}
+    image: techmatters/terraso-backend:${TAG:-latest}
     command: python terraso_backend/manage.py runserver 0.0.0.0:${PORT}
     labels:
       org.techmatters.project: terraso_backend

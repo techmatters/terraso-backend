@@ -3,8 +3,9 @@ version: "3"
 services:
   web:
     extends:
-      file: docker-compose.base.yml
+      file: docker-compose.yml
       service: web
+    image: techmatters/terraso-backend:${TAG:-latest-dev}
     volumes:
       - .:/app:z
     depends_on:
@@ -12,7 +13,7 @@ services:
         condition: service_healthy
   db:
     extends:
-      file: docker-compose.base.yml
+      file: docker-compose.yml
       service: db
 
 volumes:

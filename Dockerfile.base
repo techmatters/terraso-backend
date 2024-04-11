@@ -1,0 +1,68 @@
+ARG TERRASSO_BASE_IMAGE=python:3.12.2-slim-bullseye
+FROM $TERRASSO_BASE_IMAGE AS build
+
+# ==============================================================================
+# Build container for terraso_backend. We use a multi-stage dependent build to
+# keep the deployment build as quick as possible
+# ==============================================================================
+
+ENV PATH /home/terraso/.local/bin:$PATH
+
+# see https://github.com/aws/aws-cli/tags for list of versions
+ENV AWS_CLI_VERSION 2.8.12
+
+# Instal OS level dependencies
+RUN apt-get update && \
+    apt-get install -q -y --no-install-recommends \
+                     build-essential libpq-dev dnsutils libmagic-dev mailcap \
+                     gettext software-properties-common \
+                     libkml-dev libgdal-dev gdal-bin unzip curl && \
+    curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip" && \
+    unzip awscliv2.zip && \
+    ./aws/install && \
+    apt-get clean && rm -rf /var/lib/apt/lists/*
+
+# Create and use the terraso user for user specific installs
+RUN adduser --disabled-password terraso
+USER terraso
+WORKDIR /app
+
+RUN pip install --upgrade pip
+
+# COPY files needed for the build AFTER the rest of the setup so changes don't invalidate the cache
+COPY --chown=terraso:terraso requirements.txt /app
+COPY --chown=terraso:terraso Makefile /app
+COPY --chown=terraso:terraso makefiles/ /app/makefiles
+
+RUN make install
+
+# back to root for cleanup
+USER root
+# TODO: removing dev packages, but pip may still need them. Need to test
+RUN apt-get remove -q -y --purge build-essential libpq-dev libkml-dev libgdal-dev && \
+    apt-get autoremove -q -y && \
+    apt-get clean && rm -rf /var/lib/apt/lists/* && \
+    rm -rf /home/terraso/.cache
+
+# Once the build is complete, we can copy the required files into a final image in a multi-stage
+# build pipelineto minimize the size of the final image
+FROM $TERRASSO_BASE_IMAGE
+
+COPY --from=build /etc /etc
+COPY --from=build /usr/local/bin/aws /usr/local/bin/aws
+COPY --from=build /usr/bin /usr/bin
+COPY --from=build /usr/lib /usr/lib
+COPY --from=build /usr/local/lib /usr/local/lib
+
+ENV PATH /home/terraso/.local/bin:$PATH
+
+COPY --from=build /home/terraso/ /home/terraso/
+
+USER terraso
+WORKDIR /app
+
+# We should NOT copy any code into the base image so that we can use the same base image repeatedly
+# for various releases. The caveat here is that we should make sure to update the base image with
+# some amount of regularity to ensure that the base image is up to date with the latest security
+# patches and updates.
+

@@ -1,13 +1,13 @@
-ARG TERRASSO_BASE_IMAGE=techmatters/terraso_backend_base:latest
+# We need the ability to specify the base image for the app dockerfile for
+# PR specific builds that are not yet merged into the main branch.
+# ex: we build terraso_backend_base:PR-1234 for PR 1234 which contains
+# the changes to the base image that we want to be sure to test.
+ARG TERRASSO_BASE_IMAGE=techmatters/terraso_backend:latest-base
 FROM $TERRASSO_BASE_IMAGE
 
 # ==============================================================================
-# This is the base dockerfile for deploys to Render and as a base for Dockerfile.dev
+# This is the app dockerfile for deploys to Render and the base for Dockerfile.dev
 # ==============================================================================
-
-# There isn't a great way to DRY this out becuase of the way Render deploys,
-# any changes here should be duplicated in ./Dockerfile.staging
-
 USER terraso
 COPY --chown=terraso:terraso . /app
 

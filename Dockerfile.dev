@@ -1,4 +1,22 @@
 ARG TERRASSO_APP_IMAGE=techmatters/terraso_backend:latest
 FROM $TERRASSO_APP_IMAGE
 
+# ==============================================================================
+# The dev Dockerfile adds requirements for development and testing to the app image
+# ==============================================================================
+USER root
+RUN apt-get update && \
+    apt-get install -q -y --no-install-recommends \
+                     build-essential && \
+    apt-get clean && rm -rf /var/lib/apt/lists/*
+
+USER terraso
 RUN make install-dev
+
+USER root
+RUN apt-get remove -q -y --purge build-essential && \
+    apt-get autoremove -q -y && \
+    apt-get clean && rm -rf /var/lib/apt/lists/* && \
+    rm -rf /home/terraso/.cache
+
+USER terraso
