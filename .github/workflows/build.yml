@@ -76,6 +76,9 @@ jobs:
             echo "DEV_IMAGE=${{ env.IMAGE_BASE }}:latest-dev" >> $GITHUB_ENV
           fi
 
+      #TODO: If we move this entire workflow into a single build/test/push job, we'll want to build the images first,
+      # then run tests, and only then push them if the tests succeed. But for now I'm just pushing everything to test
+      # timing improvements
       - name: Build and push App and Dev images to Docker Hub
         run: make push_app push_dev APP_IMAGE=${{ env.APP_IMAGE }} BASE_IMAGE=${{ env.BASE_IMAGE }} DEV_IMAGE=${{ env.DEV_IMAGE }} PLATFORMS=linux/amd64
 
