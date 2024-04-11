@@ -61,7 +61,7 @@ jobs:
 
       - name: Build and push
         if: steps.changed-files.outputs.any_changed == 'true'
-        run: make push_base BASE_IMAGE=${{ BASE_IMAGE }} PLATFORMS=linux/amd64
+        run: make push_base BASE_IMAGE=${{ env.BASE_IMAGE }} PLATFORMS=linux/amd64
 
       - name: Set App and Dev image vars
         run: |
