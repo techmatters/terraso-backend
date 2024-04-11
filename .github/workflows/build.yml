@@ -100,6 +100,7 @@ jobs:
         with:
           python-version: "3.12.2"
 
+      # TODO: Since we have a dev image with these dependencies, we may want to use that instead of installing them here.
       - name: Install Python dependencies for CI
         run: |
           pip install -r requirements-dev.txt
@@ -109,13 +110,14 @@ jobs:
 
   build-and-test:
     runs-on: ubuntu-latest
+    #TODO: if these steps are all running sequentially, we can remove the needs tree and things will be much faster.
     needs: lint
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Build base Docker image
+      - name: Setup
         run: |
           cp .env.sample .env.ci
           echo "SENTRY_DSN=${{ secrets.SENTRY_DSN }}" >> .env.ci
