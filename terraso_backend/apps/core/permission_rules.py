@@ -121,18 +121,6 @@ def allowed_to_update_preferences(user, user_preferences):
     return user_preferences.user.id == user.id
 
 
-@rules.predicate
-def allowed_to_change_project(user, project):
-    return project.is_manager(user)
-
-
-@rules.predicate
-def allowed_to_update_site(user, site):
-    if not site.owned_by_user:
-        return site.project.is_manager(user)
-    return site.owner == user
-
-
 def validate_change_membership(user, entity, obj):
     """
     Validates if a user is allowed to change the membership of an entity.
