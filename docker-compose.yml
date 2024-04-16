@@ -2,10 +2,7 @@ version: "3"
 
 services:
   web:
-    image: techmatters/terraso_backend
-    build:
-      context: .
-      dockerfile: Dockerfile.dev
+    image: techmatters/terraso-backend:${TAG:-latest}
     command: python terraso_backend/manage.py runserver 0.0.0.0:${PORT}
     labels:
       org.techmatters.project: terraso_backend
@@ -16,7 +13,7 @@ services:
     tty: true
 
   db:
-    image: "postgis/postgis:14-master"
+    image: postgis/postgis:14-master
     labels:
       org.techmatters.project: terraso_backend
     env_file: .env

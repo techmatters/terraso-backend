@@ -1,0 +1,9 @@
+# We don't want to rebuild base every time any file in the repo changes
+# so we exclude all files that are not related to the base image
+*
+
+!Dockerfile.base
+!requirements.txt
+!Makefile
+!makefiles/docker.make
+!makefiles/install.make
