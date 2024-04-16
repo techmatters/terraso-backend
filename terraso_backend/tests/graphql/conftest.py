@@ -49,11 +49,6 @@ pytestmark = pytest.mark.django_db
 
 
 @pytest.fixture
-def user(users):
-    return users[0]
-
-
-@pytest.fixture
 def access_token(user):
     return JWTService().create_access_token(user)
 

@@ -38,6 +38,16 @@ def users():
 
 
 @pytest.fixture
+def user(users):
+    return users[0]
+
+
+@pytest.fixture
+def user_b(users):
+    return users[1]
+
+
+@pytest.fixture
 def access_token(users):
     return JWTService().create_access_token(users[0])
 
