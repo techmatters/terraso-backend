@@ -18,6 +18,78 @@ from apps.project_management.collaboration_roles import ProjectRole
 
 
 @rules.predicate
+def allowed_to_create(user):
+    # (all logged-in users are allowed to create)
+    return True
+
+
+@rules.predicate
+def allowed_to_manage_project(user, project):
+    return project.is_manager(user)
+
+
+@rules.predicate
+def allowed_to_be_project_member(user, project):
+    return project.is_manager(user) or project.is_contributor(user) or project.is_viewer(user)
+
+
+@rules.predicate
+def allowed_to_contribute_to_affiliated_site(user, site):
+    if site.owned_by_user:
+        return False
+    return site.project.is_manager(user) or site.project.is_contributor(user)
+
+
+@rules.predicate
+def allowed_to_edit_affiliated_site_note(user, site_note):
+    site = site_note.site
+    if site.owned_by_user:
+        return False
+    return site.project.is_contributor(user) and site_note.is_author(user)
+
+
+@rules.predicate
+def allowed_to_delete_affiliated_site_note(user, site_note):
+    site = site_note.site
+    if site.owned_by_user:
+        return False
+    return site.project.is_manager(user) or (
+        site.project.is_contributor(user) and site_note.is_author(user)
+    )
+
+
+@rules.predicate
+def allowed_to_manage_unaffiliated_site(user, site):
+    return site.owned_by_user and site.owner == user
+
+
+@rules.predicate
+def allowed_to_add_unaffiliated_site_to_project(user, context):
+    site = context["site"]
+    project = context["project"]
+    if not site.owned_by_user:
+        return False
+    return site.owner == user and (project.is_manager(user) or project.is_contributor(user))
+
+
+@rules.predicate
+def allowed_to_transfer_affiliated_site(user, context):
+    site = context["site"]
+    if site.owned_by_user:
+        return False
+    dest_project = context["project"]
+    src_project = site.project
+    return src_project.is_manager(user) and (
+        dest_project.is_manager(user) or dest_project.is_contributor(user)
+    )
+
+
+# ---
+# old rules - to be deleted
+# ---
+
+
+@rules.predicate
 def allowed_to_change_project(user, project):
     return project.is_manager(user)
 
