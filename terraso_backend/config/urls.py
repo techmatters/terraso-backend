@@ -75,6 +75,7 @@ urlpatterns = [
     path("graphql/", include("apps.graphql.urls", namespace="terraso_graphql")),
     path("storage/", include("apps.storage.urls", namespace="terraso_storage")),
     path("shared-data/", include("apps.shared_data.urls", namespace="shared_data")),
+    path("soil-id/", include("apps.soil_id.urls", namespace="soil_id")),
     path("story-map/", include("apps.story_map.urls", namespace="story_map")),
     path("web-client/", include("apps.web_client.urls", namespace="web_client")),
 ]
