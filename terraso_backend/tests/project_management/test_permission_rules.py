@@ -147,6 +147,20 @@ def test_cant_manage_affiliated_site(user, project_site):
     assert permission_rules.allowed_to_manage_unaffiliated_site(user, project_site) is False
 
 
+def test_contributor_can_add_new_site(user, project):
+    project.add_contributor(user)
+    assert permission_rules.allowed_to_add_new_site_to_project(user, project) is True
+
+
+def test_manager_can_add_new_site(user, project):
+    project.add_manager(user)
+    assert permission_rules.allowed_to_add_new_site_to_project(user, project) is True
+
+
+def test_other_user_cant_add_new_site(user, project):
+    assert permission_rules.allowed_to_add_new_site_to_project(user, project) is False
+
+
 def test_contributor_site_owner_can_add_unaffiliated_site(user, site, project):
     project.add_contributor(user)
     context = {"site": site, "project": project}

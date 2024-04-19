@@ -37,7 +37,6 @@ class Site(BaseModel):
             )
         ]
         rules_permissions = {
-            "add_unaffiliated": permission_rules.allowed_to_add_unaffiliated_site_to_project,
             "contribute_affiliated": permission_rules.allowed_to_contribute_to_affiliated_site,
             "transfer_affiliated": permission_rules.allowed_to_transfer_affiliated_site,
             "manage_unaffiliated": permission_rules.allowed_to_manage_unaffiliated_site,

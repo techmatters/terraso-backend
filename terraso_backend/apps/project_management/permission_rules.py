@@ -64,6 +64,11 @@ def allowed_to_manage_unaffiliated_site(user, site):
 
 
 @rules.predicate
+def allowed_to_add_new_site_to_project(user, project):
+    return project.is_manager(user) or project.is_contributor(user)
+
+
+@rules.predicate
 def allowed_to_add_unaffiliated_site_to_project(user, context):
     site = context["site"]
     project = context["project"]

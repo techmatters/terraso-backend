@@ -53,6 +53,8 @@ class Project(BaseModel):
             "create": permission_rules.allowed_to_create,
             "manage": permission_rules.allowed_to_manage_project,
             "member": permission_rules.allowed_to_be_project_member,
+            "add_new_site": permission_rules.allowed_to_add_new_site_to_project,
+            "add_unaffiliated_site": permission_rules.allowed_to_add_unaffiliated_site_to_project,
             # old permissions
             "change": permission_rules.allowed_to_change_project,
             "delete": permission_rules.allowed_to_delete_project,
