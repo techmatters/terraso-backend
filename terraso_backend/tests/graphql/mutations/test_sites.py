@@ -192,7 +192,7 @@ def test_adding_site_to_project_user_not_manager(client, project, site, project_
     assert json_error[0]["code"] == "update_not_allowed"
 
 
-def test_adding_site_owned_by_user_to_project(client, project, site, project_manager):
+def test_adding_site_unaffiliated_to_project(client, project, site, project_manager):
     site.add_owner(project_manager)
     client.force_login(project_manager)
     response = graphql_query(

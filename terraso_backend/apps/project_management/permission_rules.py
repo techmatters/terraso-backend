@@ -35,7 +35,7 @@ def allowed_to_be_project_member(user, project):
 
 @rules.predicate
 def allowed_to_contribute_to_affiliated_site(user, site):
-    if site.owned_by_user:
+    if site.is_unaffiliated:
         return False
     return site.project.is_manager(user) or site.project.is_contributor(user)
 
@@ -43,7 +43,7 @@ def allowed_to_contribute_to_affiliated_site(user, site):
 @rules.predicate
 def allowed_to_edit_affiliated_site_note(user, site_note):
     site = site_note.site
-    if site.owned_by_user:
+    if site.is_unaffiliated:
         return False
     return site.project.is_contributor(user) and site_note.is_author(user)
 
@@ -51,7 +51,7 @@ def allowed_to_edit_affiliated_site_note(user, site_note):
 @rules.predicate
 def allowed_to_delete_affiliated_site_note(user, site_note):
     site = site_note.site
-    if site.owned_by_user:
+    if site.is_unaffiliated:
         return False
     return site.project.is_manager(user) or (
         site.project.is_contributor(user) and site_note.is_author(user)
@@ -60,14 +60,14 @@ def allowed_to_delete_affiliated_site_note(user, site_note):
 
 @rules.predicate
 def allowed_to_manage_unaffiliated_site(user, site):
-    return site.owned_by_user and site.owner == user
+    return site.is_unaffiliated and site.owner == user
 
 
 @rules.predicate
 def allowed_to_add_unaffiliated_site_to_project(user, context):
     site = context["site"]
     project = context["project"]
-    if not site.owned_by_user:
+    if not site.is_unaffiliated:
         return False
     return site.owner == user and (project.is_manager(user) or project.is_contributor(user))
 
@@ -75,7 +75,7 @@ def allowed_to_add_unaffiliated_site_to_project(user, context):
 @rules.predicate
 def allowed_to_transfer_affiliated_site(user, context):
     site = context["site"]
-    if site.owned_by_user:
+    if site.is_unaffiliated:
         return False
     dest_project = context["project"]
     src_project = site.project
@@ -101,21 +101,21 @@ def allowed_to_add_site_to_project(user, project):
 
 @rules.predicate
 def allowed_to_update_site(user, site):
-    if site.owned_by_user:
+    if site.is_unaffiliated:
         return site.owner == user
     return site.project.is_manager(user) or site.project.is_contributor(user)
 
 
 @rules.predicate
 def allowed_to_delete_site(user, site):
-    if site.owned_by_user:
+    if site.is_unaffiliated:
         return site.owner == user
     return site.project.is_manager(user)
 
 
 @rules.predicate
 def allowed_to_update_site_settings(user, site):
-    if site.owned_by_user:
+    if site.is_unaffiliated:
         return site.owner == user
     return site.project.is_manager(user)
 
@@ -182,7 +182,7 @@ rules.add_rule("allowed_to_change_user_project_role", allowed_to_change_user_pro
 def allowed_to_transfer_site_to_project(user, context):
     project, site = context
     # contributor can add user-owned site to project
-    if site.owned_by_user:
+    if site.is_unaffiliated:
         return (
             project.is_manager(user) or project.is_contributor(user)
         ) and site.owner.id == user.id
@@ -194,7 +194,7 @@ rules.add_rule("allowed_to_transfer_site_to_project", allowed_to_transfer_site_t
 
 @rules.predicate
 def allowed_to_update_site_note(user, site_note):
-    if site_note.site.owned_by_user:
+    if site_note.site.is_unaffiliated:
         return site_note.site.owner == user
     return site_note.is_author(user)
 

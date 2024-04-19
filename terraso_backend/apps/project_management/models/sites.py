@@ -84,17 +84,17 @@ class Site(BaseModel):
     )
 
     @property
-    def owned_by_user(self):
+    def is_unaffiliated(self):
         return self.owner is not None
 
     def add_to_project(self, project):
-        if self.owned_by_user:
+        if self.is_unaffiliated:
             self.owner = None
         self.project = project
         self.save()
 
     def add_owner(self, user):
-        if not self.owned_by_user:
+        if not self.is_unaffiliated:
             self.project = None
         self.owner = user
         self.save()
