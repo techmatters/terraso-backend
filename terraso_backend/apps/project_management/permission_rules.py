@@ -18,7 +18,7 @@ from apps.project_management.collaboration_roles import ProjectRole
 
 
 @rules.predicate
-def allowed_to_create(user):
+def allowed_to_create(user, context):
     # (all logged-in users are allowed to create)
     return True
 

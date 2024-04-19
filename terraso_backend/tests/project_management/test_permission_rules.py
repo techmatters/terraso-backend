@@ -23,7 +23,7 @@ pytestmark = pytest.mark.django_db
 
 
 def test_user_can_create(user):
-    assert permission_rules.allowed_to_create(user) is True
+    assert permission_rules.allowed_to_create(user, None) is True
 
 
 def test_project_manager_can_manage_project(project, project_manager):
