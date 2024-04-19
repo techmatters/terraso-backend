@@ -50,6 +50,10 @@ class Project(BaseModel):
         abstract = False
 
         rules_permissions = {
+            "create": permission_rules.allowed_to_create,
+            "manage": permission_rules.allowed_to_manage_project,
+            "member": permission_rules.allowed_to_be_project_member,
+            # old permissions
             "change": permission_rules.allowed_to_change_project,
             "delete": permission_rules.allowed_to_delete_project,
             "add": permission_rules.allowed_to_add_to_project,

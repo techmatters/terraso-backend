@@ -24,6 +24,9 @@ class SiteNote(BaseModel):
     class Meta(BaseModel.Meta):
         abstract = False
         rules_permissions = {
+            "edit_affiliated": permission_rules.allowed_to_edit_affiliated_site_note,
+            "delete_affiliated": permission_rules.allowed_to_delete_affiliated_site_note,
+            # old permissions
             "update": permission_rules.allowed_to_update_site_note,
             "delete": permission_rules.allowed_to_delete_site_note,
         }
