@@ -193,6 +193,12 @@ def test_src_manager_dest_contributor_can_transfer_affiliated_site(user, project
     assert permission_rules.allowed_to_transfer_affiliated_site(user, context) is True
 
 
+def test_src_manager_can_transfer_affiliated_site_to_none(user, project_site, project):
+    project.add_manager(user)
+    context = {"site": project_site, "project": None}
+    assert permission_rules.allowed_to_transfer_affiliated_site(user, context) is True
+
+
 def test_src_non_manager_cant_transfer_affiliated_site(user, project_site, project):
     project.add_contributor(user)
     project_b = mixer.blend(Project)

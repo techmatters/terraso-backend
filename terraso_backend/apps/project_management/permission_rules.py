@@ -80,7 +80,7 @@ def allowed_to_transfer_affiliated_site(user, context):
     dest_project = context["project"]
     src_project = site.project
     return src_project.is_manager(user) and (
-        dest_project.is_manager(user) or dest_project.is_contributor(user)
+        dest_project is None or dest_project.is_manager(user) or dest_project.is_contributor(user)
     )
 
 
