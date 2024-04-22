@@ -21,7 +21,7 @@ from django.utils.translation import gettext_lazy as _
 from apps.collaboration.models import Membership as CollaborationMembership
 from apps.core.models import User
 from apps.core.models.commons import BaseModel
-from apps.project_management import permission_rules
+from apps.project_management import permission_rules, permission_rules_old
 
 from .projects import Project
 
@@ -37,14 +37,15 @@ class Site(BaseModel):
             )
         ]
         rules_permissions = {
-            "contribute_affiliated": permission_rules.allowed_to_contribute_to_affiliated_site,
-            "transfer_affiliated": permission_rules.allowed_to_transfer_affiliated_site,
             "manage_unaffiliated": permission_rules.allowed_to_manage_unaffiliated_site,
-            # old permissions
-            "change": permission_rules.allowed_to_update_site,
-            "delete": permission_rules.allowed_to_delete_site,
-            "transfer": permission_rules.allowed_to_transfer_site_to_project,
-            "change_settings": permission_rules.allowed_to_update_site_settings,
+            "contribute_affiliated": permission_rules.allowed_to_contribute_to_affiliated_site,
+            "edit_affiliated_note": permission_rules.allowed_to_contribute_to_affiliated_site,
+            "delete_affiliated_note": permission_rules.allowed_to_contribute_to_affiliated_site,
+            # old rules
+            "change": permission_rules_old.allowed_to_update_site,
+            "delete": permission_rules_old.allowed_to_delete_site,
+            "transfer": permission_rules_old.allowed_to_transfer_site_to_project,
+            "change_settings": permission_rules_old.allowed_to_update_site_settings,
         }
 
     name = models.CharField(max_length=200)
