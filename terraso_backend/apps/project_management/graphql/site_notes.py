@@ -24,6 +24,8 @@ from apps.graphql.schema.commons import (
 )
 from apps.project_management.models.site_notes import SiteNote
 from apps.project_management.models.sites import Site
+from apps.project_management.permission_matrix import check_site_permission
+from apps.project_management.permission_rules import Context
 
 
 class SiteNoteNode(DjangoObjectType):
@@ -51,6 +53,9 @@ class SiteNoteAddMutation(BaseWriteMutation):
         user = info.context.user
         site_id = input["site_id"]
         site = cls.get_or_throw(Site, "id", site_id)
+        if not check_site_permission(user, "create_note", Context(site=site)):
+            cls.not_allowed_create(SiteNote)
+
         site_note = SiteNote.objects.create(site=site, content=input["content"], author=user)
         return SiteNoteAddMutation(site_note=site_note)
 
@@ -70,7 +75,7 @@ class SiteNoteUpdateMutation(BaseWriteMutation):
         user = info.context.user
         site_note_id = kwargs["id"]
         site_note = cls.get_or_throw(SiteNote, "id", site_note_id)
-        if not user.has_perm(SiteNote.get_perm("update"), site_note):
+        if not check_site_permission(user, "edit_note", Context(site_note=site_note)):
             cls.not_allowed()
 
         site_note.content = kwargs["content"]
@@ -92,7 +97,7 @@ class SiteNoteDeleteMutation(BaseDeleteMutation):
         user = info.context.user
         site_note_id = kwargs["id"]
         site_note = cls.get_or_throw(SiteNote, "id", site_note_id)
-        if not user.has_perm(SiteNote.get_perm("delete"), site_note):
+        if not check_site_permission(user, "delete_note", Context(site_note=site_note)):
             cls.not_allowed()
 
         site_note.delete()

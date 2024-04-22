@@ -75,6 +75,13 @@ def test_site_note_creation(client_query, site, user):
     assert site_note.site == site
 
 
+def test_site_note_creation_unauthorized(client_query, project_site):
+    kwargs = site_note_creation_data(project_site)
+    response = client_query(ADD_SITE_NOTE_QUERY, variables={"input": kwargs})
+    content = json.loads(response.content)
+    assert "errors" in content, content["errors"]
+
+
 DELETE_SITE_NOTE_QUERY = """
     mutation deleteSiteNote($input: SiteNoteDeleteMutationInput!) {
         deleteSiteNote(input: $input) {
@@ -88,6 +95,13 @@ def test_delete_site_note(client_query, site_note):
     response = client_query(DELETE_SITE_NOTE_QUERY, variables={"input": {"id": str(site_note.id)}})
     assert response.json()["data"]["deleteSiteNote"]["errors"] is None
     assert len(SiteNote.objects.filter(id=site_note.id)) == 0
+
+
+def test_delete_site_note_unauthorized(client_query, project_site, project_user):
+    site_note = mixer.blend(SiteNote, author=project_user, site=project_site)
+    client_query(DELETE_SITE_NOTE_QUERY, variables={"input": {"id": str(site_note.id)}})
+
+    assert len(SiteNote.objects.filter(id=site_note.id)) == 1
 
 
 UPDATE_SITE_NOTE_QUERY = """
@@ -122,3 +136,14 @@ def test_site_note_update(client_query, client, site_note):
     assert (
         site_note.content == "This is an updated test note."
     ), "Site note content did not update as expected"
+
+
+def test_site_note_update_unauthorized(client_query, project_site, project_user):
+    site_note = mixer.blend(SiteNote, author=project_user, site=project_site)
+    variables = {"input": {"id": str(site_note.id), "content": "This is an updated test note."}}
+    client_query(UPDATE_SITE_NOTE_QUERY, variables=variables)
+
+    site_note.refresh_from_db()
+    assert (
+        site_note.content != "This is an updated test note."
+    ), "Site note content updated unexpectedly"
