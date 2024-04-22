@@ -40,6 +40,8 @@ class SiteNoteNode(DjangoObjectType):
 class SiteNoteAddMutation(BaseWriteMutation):
     site_note = graphene.Field(SiteNoteNode, required=True)
 
+    model_class = SiteNote
+
     class Input:
         site_id = graphene.ID(required=True)
         content = graphene.String(required=True)
@@ -55,6 +57,8 @@ class SiteNoteAddMutation(BaseWriteMutation):
 
 class SiteNoteUpdateMutation(BaseWriteMutation):
     site_note = graphene.Field(SiteNoteNode, required=True)
+
+    model_class = SiteNote
 
     class Input:
         id = graphene.ID(required=True)
@@ -76,6 +80,8 @@ class SiteNoteUpdateMutation(BaseWriteMutation):
 
 class SiteNoteDeleteMutation(BaseDeleteMutation):
     ok = graphene.Boolean()
+
+    model_class = SiteNote
 
     class Input:
         id = graphene.ID(required=True)
