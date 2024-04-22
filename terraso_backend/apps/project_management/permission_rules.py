@@ -44,7 +44,7 @@ class Context:
 
 @rules.predicate
 def allowed_to_create(user, context):
-    # (all logged-in users are allowed to create)
+    # (all logged-in users are allowed base creation actions)
     return True
 
 
