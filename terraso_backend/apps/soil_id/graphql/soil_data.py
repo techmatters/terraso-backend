@@ -27,6 +27,11 @@ from apps.graphql.schema.sites import SiteNode
 from apps.project_management.graphql.projects import ProjectNode
 from apps.project_management.models.projects import Project
 from apps.project_management.models.sites import Site
+from apps.project_management.permission_matrix import (
+    check_project_permission,
+    check_site_permission,
+)
+from apps.project_management.permission_rules import Context
 from apps.soil_id.models.depth_dependent_soil_data import DepthDependentSoilData
 from apps.soil_id.models.project_soil_settings import (
     ProjectDepthInterval,
@@ -250,7 +255,7 @@ class SoilDataUpdateDepthIntervalMutation(BaseWriteMutation):
         site = cls.get_or_throw(Site, "id", site_id)
 
         user = info.context.user
-        if not user.has_perm(Site.get_perm("change"), site):
+        if not check_site_permission(user, "update_depth_interval", Context(site=site)):
             raise cls.not_allowed(MutationTypes.UPDATE)
 
         with transaction.atomic():
@@ -299,7 +304,7 @@ class SoilDataDeleteDepthIntervalMutation(BaseAuthenticatedMutation):
         site = cls.get_or_throw(Site, "id", site_id)
 
         user = info.context.user
-        if not user.has_perm(Site.get_perm("delete"), site):
+        if not check_site_permission(user, "update_depth_interval", Context(site=site)):
             raise cls.not_allowed(MutationTypes.DELETE)
 
         if not hasattr(site, "soil_data"):
@@ -348,7 +353,7 @@ class SoilDataUpdateMutation(BaseWriteMutation):
         site = cls.get_or_throw(Site, "id", site_id)
 
         user = info.context.user
-        if not user.has_perm(Site.get_perm("change"), site):
+        if not check_site_permission(user, "enter_data", Context(site=site)):
             raise cls.not_allowed(MutationTypes.UPDATE)
 
         if not hasattr(site, "soil_data"):
@@ -404,7 +409,7 @@ class DepthDependentSoilDataUpdateMutation(BaseWriteMutation):
         site = cls.get_or_throw(Site, "id", site_id)
 
         user = info.context.user
-        if not user.has_perm(Site.get_perm("change"), site):
+        if not check_site_permission(user, "enter_data", Context(site=site)):
             raise cls.not_allowed(MutationTypes.UPDATE)
 
         with transaction.atomic():
@@ -450,7 +455,7 @@ class ProjectSoilSettingsUpdateMutation(BaseWriteMutation):
         project = cls.get_or_throw(Project, "id", project_id)
 
         user = info.context.user
-        if not user.has_perm(Project.get_perm("change"), project):
+        if not check_project_permission(user, "update_requirements", Context(project=project)):
             raise cls.not_allowed(MutationTypes.UPDATE)
 
         if not hasattr(project, "soil_settings"):
@@ -482,7 +487,9 @@ class ProjectSoilSettingsUpdateDepthIntervalMutation(BaseWriteMutation):
         project = cls.get_or_throw(Project, "id", project_id)
 
         user = info.context.user
-        if not user.has_perm(Project.get_perm("change"), project):
+        if not check_project_permission(
+            user, "change_required_depth_interval", Context(project=project)
+        ):
             raise cls.not_allowed(MutationTypes.UPDATE)
 
         if not project.soil_settings or not project.soil_settings.is_custom_preset:
@@ -517,7 +524,9 @@ class ProjectSoilSettingsDeleteDepthIntervalMutation(BaseAuthenticatedMutation):
         project = cls.get_or_throw(Project, "id", project_id)
 
         user = info.context.user
-        if not user.has_perm(Project.get_perm("delete"), project):
+        if not check_project_permission(
+            user, "change_required_depth_interval", Context(project=project)
+        ):
             raise cls.not_allowed(MutationTypes.DELETE)
 
         if not hasattr(project, "soil_settings"):
