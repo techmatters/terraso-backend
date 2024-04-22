@@ -16,7 +16,6 @@
 from datetime import datetime
 
 import graphene
-import rules
 from django.core.exceptions import ValidationError
 from django.db import transaction
 from django_filters import CharFilter, FilterSet
@@ -52,6 +51,8 @@ from apps.project_management.models import (
     ProjectMembershipList,
 )
 from apps.project_management.models.sites import Site
+from apps.project_management.permission_matrix import check_project_permission
+from apps.project_management.permission_rules import Context
 from apps.soil_id.models.project_soil_settings import ProjectSoilSettings
 
 
@@ -173,6 +174,10 @@ class ProjectAddMutation(BaseWriteMutation):
     def mutate_and_get_payload(cls, root, info, create_soil_settings=True, **kwargs):
         logger = cls.get_logger()
         user = info.context.user
+
+        if not check_project_permission(user, "create", Context()):
+            cls.not_allowed_create(Project)
+
         with transaction.atomic():
             result = super().mutate_and_get_payload(root, info, **kwargs)
             result.project.add_manager(user)
@@ -216,14 +221,19 @@ class ProjectDeleteMutation(BaseDeleteMutation):
         user = info.context.user
         project_id = kwargs["id"]
         project = cls.get_or_throw(Project, "id", project_id)
-        if not user.has_perm(Project.get_perm("delete"), project):
+        if not check_project_permission(user, "delete", Context(project=project)):
             cls.not_allowed()
         if "transfer_project_id" in kwargs:
             transfer_project_id = kwargs["transfer_project_id"]
             transfer_project = cls.get_or_throw(Project, "id", transfer_project_id)
-            if not user.has_perm(Project.get_perm("add"), transfer_project):
-                cls.not_allowed()
             project_sites = project.site_set.all()
+            for site in project_sites:
+                if not check_project_permission(
+                    user,
+                    "transfer_affiliated_site",
+                    Context(project=transfer_project, source_site=site),
+                ):
+                    cls.not_allowed()
             for site in project_sites:
                 site.project = transfer_project
             Site.objects.bulk_update(project_sites, ["project"])
@@ -257,7 +267,7 @@ class ProjectArchiveMutation(BaseWriteMutation):
         user = info.context.user
         project_id = kwargs["id"]
         project = cls.get_or_throw(Project, "id", project_id)
-        if not user.has_perm(Project.get_perm("archive"), project):
+        if not check_project_permission(user, "archive", Context(project=project)):
             cls.not_allowed()
         project_sites = project.site_set.all()
         for site in project_sites:
@@ -288,7 +298,7 @@ class ProjectUpdateMutation(BaseWriteMutation):
         project_id = kwargs["id"]
         project = cls.get_or_throw(Project, "id", project_id)
         cls.remove_null_fields(kwargs, ["privacy", "measurement_units"])
-        if not user.has_perm(Project.get_perm("change"), project):
+        if not check_project_permission(user, "update_requirements", Context(project=project)):
             cls.not_allowed()
 
         metadata = {
@@ -326,17 +336,15 @@ class ProjectAddUserMutation(BaseWriteMutation):
         project = cls.get_or_throw(Project, "project_id", project_id)
         user = cls.get_or_throw(User, "user_id", user_id)
         request_user = info.context.user
+
+        if not check_project_permission(request_user, "add_member", Context(project=project)):
+            cls.not_allowed_create(
+                model=Membership, msg="User cannot add membership to this project"
+            )
+
         requester_membership = project.get_membership(request_user)
         if not requester_membership:
             cls.not_allowed_create(model=Membership, msg="User does not belong to project")
-
-        def validate(context):
-            if not rules.test_rule(
-                "allowed_to_add_member_to_project",
-                request_user,
-                {"project": project, "requester_membership": requester_membership},
-            ):
-                raise ValidationError("User cannot add membership to this project")
 
         if membership := project.get_membership(user):
             # if user is already a member, don't do anything
@@ -348,7 +356,6 @@ class ProjectAddUserMutation(BaseWriteMutation):
                 user_email=user.email,
                 user_role=role.value,
                 membership_status=Membership.APPROVED,
-                validation_func=validate,
                 membership_class=ProjectMembership,
             )
         except ValidationError as e:
@@ -375,32 +382,24 @@ class ProjectDeleteUserMutation(BaseWriteMutation):
         project = cls.get_or_throw(Project, "project_id", project_id)
         user = cls.get_or_throw(User, "user_id", user_id)
         requester = info.context.user
-        requester_membership = project.get_membership(requester)
-        if not requester_membership:
-            cls.not_allowed(
-                MutationTypes.DELETE,
-                msg="User cannot delete other users" " from project where they are not a member",
-            )
+        if user == requester:
+            # leaving a project is implemented as removing yourself
+            if not check_project_permission(requester, "leave", Context(project)):
+                cls.not_allowed(MutationTypes.UPDATE, msg="User not allowed to leave project")
+        else:
+            if not check_project_permission(requester, "delete_user", Context(project)):
+                cls.not_allowed(
+                    MutationTypes.UPDATE, msg="User not allowed to remove member from project"
+                )
+
         target_membership = project.get_membership(user)
         if not target_membership:
             cls.not_allowed(
                 MutationTypes.DELETE, msg="Cannot delete a user membership that does not exist"
             )
-        if not rules.test_rule(
-            "allowed_to_delete_user_from_project",
-            requester,
-            {
-                "project": project,
-                "requester_membership": requester_membership,
-                "target_membership": target_membership,
-            },
-        ):
-            cls.not_allowed(
-                MutationTypes.DELETE, msg="User not allowed to remove member from project"
-            )
-
+            
         if project.is_sole_manager(user):
-            cls.not_allowed(MutationTypes.DELETE, msg="Cannot remove the last manager from project")
+                    cls.not_allowed(MutationTypes.DELETE, msg="Cannot remove the last manager from project")
 
         # remove membership
         membership = project.get_membership(user)
@@ -427,26 +426,14 @@ class ProjectUpdateUserRoleMutation(BaseWriteMutation):
         project = cls.get_or_throw(Project, "project_id", project_id)
         requester = info.context.user
 
-        if not (requester_membership := project.get_membership(requester)):
-            cls.not_allowed(MutationTypes.UPDATE, msg="Requesting member not a member of project")
+        if not check_project_permission(requester, "change_user_role", Context(project)):
+            cls.not_allowed(
+                MutationTypes.UPDATE, msg="User is not allowed to change other user role"
+            )
 
         target_user = cls.get_or_throw(User, "user_id", user_id)
         if not (target_membership := project.get_membership(target_user)):
             cls.not_allowed(MutationTypes.UPDATE, msg="Target user not a member of project")
-
-        if not rules.test_rule(
-            "allowed_to_change_user_project_role",
-            requester,
-            {
-                "project": project,
-                "requester_membership": requester_membership,
-                "target_membership": target_membership,
-                "user_role": new_role,
-            },
-        ):
-            cls.not_allowed(
-                MutationTypes.UPDATE, msg="User is not allowed to change other user role"
-            )
 
         target_membership.user_role = new_role.value
         target_membership.save()
