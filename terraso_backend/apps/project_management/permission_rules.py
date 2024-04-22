@@ -12,12 +12,34 @@
 #
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see https://www.gnu.org/licenses/.
-from collections import namedtuple
+from dataclasses import dataclass
 
 import rules
 
-# context data for a site-project management action
-Context = namedtuple("Context", ["site", "project"])
+from apps.project_management.models import Project, Site, SiteNote
+
+
+@dataclass
+class Context:
+    # these are the target entity(s) the operation is occurring on. they will always be
+    # referentually consistent (i.e., if the context has a site this will always be the site's
+    # project)
+    project: Project = None
+    site: Site = None
+    site_note: SiteNote = None
+
+    # these are the source entities which may also be part of the operation (i.e., the site which
+    # is being added to a new owner, and that site's current project if it has one)
+    source_project: Project = None
+    source_site: Site = None
+
+    def __post_init__(self):
+        if self.site_note:
+            self.site = self.site_note.site
+        if self.site:
+            self.project = self.site.project
+        if self.source_site:
+            self.source_project = self.source_site.project
 
 
 @rules.predicate
@@ -27,66 +49,81 @@ def allowed_to_create(user, context):
 
 
 @rules.predicate
-def allowed_to_manage_project(user, project):
-    return project.is_manager(user)
+def allowed_to_manage_project(user, context):
+    return context.project.is_manager(user)
 
 
 @rules.predicate
-def allowed_to_be_project_member(user, project):
-    return project.is_manager(user) or project.is_contributor(user) or project.is_viewer(user)
-
-
-@rules.predicate
-def allowed_to_contribute_to_affiliated_site(user, site):
-    if site.is_unaffiliated:
-        return False
-    return site.project.is_manager(user) or site.project.is_contributor(user)
-
-
-@rules.predicate
-def allowed_to_edit_affiliated_site_note(user, site_note):
-    site = site_note.site
-    if site.is_unaffiliated:
-        return False
-    return site.project.is_contributor(user) and site_note.is_author(user)
-
-
-@rules.predicate
-def allowed_to_delete_affiliated_site_note(user, site_note):
-    site = site_note.site
-    if site.is_unaffiliated:
-        return False
-    return site.project.is_manager(user) or (
-        site.project.is_contributor(user) and site_note.is_author(user)
+def allowed_to_be_project_member(user, context):
+    return (
+        context.project.is_manager(user)
+        or context.project.is_contributor(user)
+        or context.project.is_viewer(user)
     )
 
 
 @rules.predicate
-def allowed_to_manage_unaffiliated_site(user, site):
-    return site.is_unaffiliated and site.owner == user
+def allowed_to_contribute_to_affiliated_site(user, context):
+    if context.site.is_unaffiliated:
+        return False
+    return context.project.is_manager(user) or context.project.is_contributor(user)
 
 
 @rules.predicate
-def allowed_to_add_new_site_to_project(user, project):
-    return project.is_manager(user) or project.is_contributor(user)
+def allowed_to_edit_affiliated_site_note(user, context):
+    if context.site.is_unaffiliated:
+        return False
+    return context.project.is_contributor(user) and context.site_note.is_author(user)
+
+
+@rules.predicate
+def allowed_to_delete_affiliated_site_note(user, context):
+    if context.site.is_unaffiliated:
+        return False
+    return context.project.is_manager(user) or (
+        context.project.is_contributor(user) and context.site_note.is_author(user)
+    )
+
+
+@rules.predicate
+def allowed_to_manage_unaffiliated_site(user, context):
+    return context.site.is_unaffiliated and context.site.owner == user
+
+
+@rules.predicate
+def allowed_to_add_new_site_to_project(user, context):
+    return context.project.is_manager(user) or context.project.is_contributor(user)
 
 
 @rules.predicate
 def allowed_to_add_unaffiliated_site_to_project(user, context):
-    site = context.site
-    project = context.project
-    if not site.is_unaffiliated:
+    if not context.source_site.is_unaffiliated:
         return False
-    return site.owner == user and (project.is_manager(user) or project.is_contributor(user))
+    return context.source_site.owner == user and (
+        context.project.is_manager(user) or context.project.is_contributor(user)
+    )
 
 
 @rules.predicate
 def allowed_to_transfer_affiliated_site(user, context):
-    site = context.site
-    if site.is_unaffiliated:
+    if context.source_site.is_unaffiliated:
         return False
     dest_project = context.project
-    src_project = site.project
+    src_project = context.source_project
     return src_project.is_manager(user) and (
         dest_project is None or dest_project.is_manager(user) or dest_project.is_contributor(user)
     )
+
+
+rules.add_perm("allowed_to_create", allowed_to_create)
+rules.add_perm("allowed_to_manage_project", allowed_to_manage_project)
+rules.add_perm("allowed_to_be_project_member", allowed_to_be_project_member)
+rules.add_perm("allowed_to_contribute_to_affiliated_site", allowed_to_contribute_to_affiliated_site)
+rules.add_perm("allowed_to_edit_affiliated_site_note", allowed_to_edit_affiliated_site_note)
+rules.add_perm("allowed_to_delete_affiliated_site_note", allowed_to_delete_affiliated_site_note)
+rules.add_perm("allowed_to_manage_unaffiliated_site", allowed_to_manage_unaffiliated_site)
+rules.add_perm("allowed_to_add_new_site_to_project", allowed_to_add_new_site_to_project)
+rules.add_perm(
+    "allowed_to_add_unaffiliated_site_to_project", allowed_to_add_unaffiliated_site_to_project
+)
+rules.add_perm("allowed_to_transfer_affiliated_site", allowed_to_transfer_affiliated_site)

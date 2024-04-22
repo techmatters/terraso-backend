@@ -17,7 +17,7 @@ from django.db import models
 from apps.collaboration.models import Membership, MembershipList
 from apps.core.models import User
 from apps.core.models.commons import BaseModel
-from apps.project_management import permission_rules, permission_rules_old
+from apps.project_management import permission_rules_old
 from apps.project_management.collaboration_roles import ProjectRole
 
 
@@ -50,12 +50,6 @@ class Project(BaseModel):
         abstract = False
 
         rules_permissions = {
-            "manage": permission_rules.allowed_to_manage_project,
-            "member": permission_rules.allowed_to_be_project_member,
-            "add_new_site": permission_rules.allowed_to_add_new_site_to_project,
-            "add_unaffiliated_site": permission_rules.allowed_to_add_unaffiliated_site_to_project,
-            "transfer_unaffiliated_site": permission_rules.allowed_to_transfer_affiliated_site,
-            # old rules
             "change": permission_rules_old.allowed_to_change_project,
             "delete": permission_rules_old.allowed_to_delete_project,
             "add": permission_rules_old.allowed_to_add_to_project,
