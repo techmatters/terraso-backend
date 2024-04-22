@@ -64,9 +64,6 @@ class Site(BaseModel):
 
     PRIVACY_STATUS = ((PRIVATE, _("Private")), (PUBLIC, _("Public")))
 
-    # changing settings fields must be restricted by the corresponding permission
-    SETTINGS_FIELDS = set(["name", "privacy", "projectId"])
-
     privacy = models.CharField(
         max_length=32, null=False, choices=PRIVACY_STATUS, default=DEFAULT_PRIVACY_STATUS
     )

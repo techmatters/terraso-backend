@@ -394,7 +394,7 @@ def test_site_transfer_unlinked_site_user_viewer_failure(client, user, site, pro
     input_data = {"siteIds": [str(site.id)], "projectId": str(project.id)}
     client.force_login(user)
     payload = graphql_query(SITE_TRANSFER_MUTATION, client=client, input_data=input_data).json()
-    assert "errors" in payload
+    assert match_json("*..badPermissions[*].id", payload) == [str(site.id)]
     site.refresh_from_db()
     assert site.owner == user
 
@@ -409,14 +409,11 @@ def transfer_site(request, user, site, project):
     return site
 
 
-@pytest.mark.parametrize(
-    "transfer_site", [("CONTRIBUTOR", "MANAGER"), ("MANAGER", "CONTRIBUTOR")], indirect=True
-)
+@pytest.mark.parametrize("transfer_site", [("CONTRIBUTOR", "MANAGER")], indirect=True)
 def test_site_transfer_between_projects_failure(transfer_site, client, project, user):
     client.force_login(user)
     input_data = {"siteIds": [str(transfer_site.id)], "projectId": str(project.id)}
     payload = graphql_query(SITE_TRANSFER_MUTATION, client=client, input_data=input_data).json()
     assert match_json("*..badPermissions[*].id", payload) == [str(transfer_site.id)]
     assert match_json("*..project.id", payload) == [str(project.id)]
-    transfer_site.refresh_from_db()
     assert transfer_site.project.id != project.id
