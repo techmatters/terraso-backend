@@ -17,16 +17,11 @@ from django.db import models
 
 from apps.core.models import User
 from apps.core.models.commons import BaseModel
-from apps.project_management import permission_rules_old
 
 
 class SiteNote(BaseModel):
     class Meta(BaseModel.Meta):
         abstract = False
-        rules_permissions = {
-            "update": permission_rules_old.allowed_to_update_site_note,
-            "delete": permission_rules_old.allowed_to_delete_site_note,
-        }
 
     site = models.ForeignKey("Site", on_delete=models.CASCADE, related_name="notes")
     content = models.TextField()

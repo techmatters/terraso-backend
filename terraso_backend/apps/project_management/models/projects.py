@@ -17,7 +17,6 @@ from django.db import models
 from apps.collaboration.models import Membership, MembershipList
 from apps.core.models import User
 from apps.core.models.commons import BaseModel
-from apps.project_management import permission_rules_old
 from apps.project_management.collaboration_roles import ProjectRole
 
 
@@ -48,14 +47,6 @@ class ProjectMembershipList(MembershipList):
 class Project(BaseModel):
     class Meta(BaseModel.Meta):
         abstract = False
-
-        rules_permissions = {
-            "change": permission_rules_old.allowed_to_change_project,
-            "delete": permission_rules_old.allowed_to_delete_project,
-            "add": permission_rules_old.allowed_to_add_to_project,
-            "add_site": permission_rules_old.allowed_to_add_site_to_project,
-            "archive": permission_rules_old.allowed_to_archive_project,
-        }
 
     name = models.CharField(max_length=120)
     description = models.CharField(max_length=512, default="", blank=True)
