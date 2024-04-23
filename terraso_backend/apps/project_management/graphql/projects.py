@@ -426,7 +426,7 @@ class ProjectUpdateUserRoleMutation(BaseWriteMutation):
 
         if not check_project_permission(requester, "change_user_role", Context(project)):
             cls.not_allowed(
-                MutationTypes.UPDATE, msg="User is not allowed to change other user role"
+                MutationTypes.UPDATE, msg="User is not allowed to change another user's role"
             )
 
         target_user = cls.get_or_throw(User, "user_id", user_id)
