@@ -338,9 +338,7 @@ class ProjectAddUserMutation(BaseWriteMutation):
         request_user = info.context.user
 
         if not check_project_permission(request_user, "add_member", Context(project=project)):
-            cls.not_allowed_create(
-                model=Membership, msg="User cannot add membership to this project"
-            )
+            cls.not_allowed_create(model=Membership, msg="User cannot add member to this project")
 
         requester_membership = project.get_membership(request_user)
         if not requester_membership:
