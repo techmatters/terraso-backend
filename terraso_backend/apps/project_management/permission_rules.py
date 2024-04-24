@@ -54,7 +54,7 @@ def allowed_to_manage_project(user, context):
 
 
 @rules.predicate
-def allowed_to_be_project_member(user, context):
+def is_project_member(user, context):
     return (
         context.project.is_manager(user)
         or context.project.is_contributor(user)
@@ -117,7 +117,7 @@ def allowed_to_transfer_affiliated_site(user, context):
 
 rules.add_perm("allowed_to_create", allowed_to_create)
 rules.add_perm("allowed_to_manage_project", allowed_to_manage_project)
-rules.add_perm("allowed_to_be_project_member", allowed_to_be_project_member)
+rules.add_perm("is_project_member", is_project_member)
 rules.add_perm("allowed_to_contribute_to_affiliated_site", allowed_to_contribute_to_affiliated_site)
 rules.add_perm("allowed_to_edit_affiliated_site_note", allowed_to_edit_affiliated_site_note)
 rules.add_perm("allowed_to_delete_affiliated_site_note", allowed_to_delete_affiliated_site_note)

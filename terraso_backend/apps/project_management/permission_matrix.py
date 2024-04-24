@@ -24,7 +24,7 @@ PROJECT_PERMISSIONS = {
     "delete": "allowed_to_manage_project",
     "generate_link": "allowed_to_manage_project",
     "change_required_depth_interval": "allowed_to_manage_project",
-    "leave": "allowed_to_be_project_member",
+    "leave": "is_project_member",
     "add_new_site": "allowed_to_add_new_site_to_project",
     "add_unaffiliated_site": "allowed_to_add_unaffiliated_site_to_project",
     "transfer_affiliated_site": "allowed_to_transfer_affiliated_site",

@@ -21,7 +21,6 @@ from apps.project_management.permission_rules import (
     Context,
     allowed_to_add_new_site_to_project,
     allowed_to_add_unaffiliated_site_to_project,
-    allowed_to_be_project_member,
     allowed_to_contribute_to_affiliated_site,
     allowed_to_create,
     allowed_to_delete_affiliated_site_note,
@@ -29,6 +28,7 @@ from apps.project_management.permission_rules import (
     allowed_to_manage_project,
     allowed_to_manage_unaffiliated_site,
     allowed_to_transfer_affiliated_site,
+    is_project_member,
 )
 
 pytestmark = pytest.mark.django_db
@@ -53,21 +53,21 @@ def test_project_non_manager_cant_manage_project(user, project):
 
 def test_project_manager_can_be_member(project, user):
     project.add_manager(user)
-    assert allowed_to_be_project_member(user, Context(project=project)) is True
+    assert is_project_member(user, Context(project=project)) is True
 
 
 def test_project_contributor_can_be_member(project, user):
     project.add_contributor(user)
-    assert allowed_to_be_project_member(user, Context(project=project)) is True
+    assert is_project_member(user, Context(project=project)) is True
 
 
 def test_project_viewer_can_be_member(project, user):
     project.add_viewer(user)
-    assert allowed_to_be_project_member(user, Context(project=project)) is True
+    assert is_project_member(user, Context(project=project)) is True
 
 
 def test_other_user_cant_be_member(project, user):
-    assert allowed_to_be_project_member(user, Context(project=project)) is False
+    assert is_project_member(user, Context(project=project)) is False
 
 
 def test_cant_contribute_to_unaffiliated_affiliated_site(site, site_creator):
