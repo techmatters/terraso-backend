@@ -24,11 +24,13 @@ from graphene_django.filter import TypedFilter
 from apps.audit_logs import api as audit_log_api
 from apps.project_management.graphql.projects import ProjectNode
 from apps.project_management.models import Project, Site, sites
-from apps.project_management.permission_matrix import (
+from apps.project_management.permission_rules import Context
+from apps.project_management.permission_table import (
+    ProjectAction,
+    SiteAction,
     check_project_permission,
     check_site_permission,
 )
-from apps.project_management.permission_rules import Context
 from apps.soil_id.models import SoilData
 
 from .commons import (
@@ -120,7 +122,7 @@ class SiteAddMutation(BaseWriteMutation):
         log = cls.get_logger()
         user = info.context.user
 
-        if not check_site_permission(user, "create", Context()):
+        if not check_site_permission(user, SiteAction.CREATE, Context()):
             cls.not_allowed_create(Site)
 
         client_time = kwargs.pop("client_time", None)
@@ -130,7 +132,9 @@ class SiteAddMutation(BaseWriteMutation):
         adding_to_project = "project_id" in kwargs
         if adding_to_project:
             project = cls.get_or_throw(Project, "project_id", kwargs["project_id"])
-            if not check_project_permission(user, "add_new_site", Context(project=project)):
+            if not check_project_permission(
+                user, ProjectAction.ADD_NEW_SITE, Context(project=project)
+            ):
                 raise cls.not_allowed(MutationTypes.CREATE)
             kwargs["project"] = project
         else:
@@ -196,7 +200,7 @@ class SiteUpdateMutation(BaseWriteMutation):
         user = info.context.user
         site = cls.get_or_throw(Site, "id", kwargs["id"])
 
-        if not check_site_permission(user, "update_settings", Context(site=site)):
+        if not check_site_permission(user, SiteAction.UPDATE_SETTINGS, Context(site=site)):
             raise cls.not_allowed(MutationTypes.UPDATE)
 
         project_id = kwargs.pop("project_id", False)
@@ -217,10 +221,10 @@ class SiteUpdateMutation(BaseWriteMutation):
         # check if we're allowed to make the change
         context = Context(project=project, source_site=site)
         if site.is_unaffiliated:
-            if not check_project_permission(user, "add_unaffiliated_site", context):
+            if not check_project_permission(user, ProjectAction.ADD_UNAFFILIATED_SITE, context):
                 raise cls.not_allowed(MutationTypes.UPDATE)
         else:
-            if not check_project_permission(user, "transfer_affiliated_site", context):
+            if not check_project_permission(user, ProjectAction.TRANSFER_AFFILIATED_SITE, context):
                 raise cls.not_allowed(MutationTypes.UPDATE)
 
         # if the check passed, make the change
@@ -269,7 +273,7 @@ class SiteDeleteMutation(BaseDeleteMutation):
         user = info.context.user
         site_id = kwargs["id"]
         site = cls.get_or_throw(Site, "id", site_id)
-        if not check_site_permission(user, "delete", Context(site=site)):
+        if not check_site_permission(user, SiteAction.DELETE, Context(site=site)):
             cls.not_allowed(MutationTypes.DELETE)
 
         result = super().mutate_and_get_payload(root, info, **kwargs)
@@ -318,11 +322,15 @@ class SiteTransferMutation(BaseWriteMutation):
         for site in sites:
             if site.is_unaffiliated:
                 permission = check_project_permission(
-                    user, "add_unaffiliated_site", Context(project=project, source_site=site)
+                    user,
+                    ProjectAction.ADD_UNAFFILIATED_SITE,
+                    Context(project=project, source_site=site),
                 )
             else:
                 permission = check_project_permission(
-                    user, "transfer_affiliated_site", Context(project=project, source_site=site)
+                    user,
+                    ProjectAction.TRANSFER_AFFILIATED_SITE,
+                    Context(project=project, source_site=site),
                 )
 
             if not permission:

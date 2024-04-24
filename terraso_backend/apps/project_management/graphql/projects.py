@@ -51,8 +51,11 @@ from apps.project_management.models import (
     ProjectMembershipList,
 )
 from apps.project_management.models.sites import Site
-from apps.project_management.permission_matrix import check_project_permission
 from apps.project_management.permission_rules import Context
+from apps.project_management.permission_table import (
+    ProjectAction,
+    check_project_permission,
+)
 from apps.soil_id.models.project_soil_settings import ProjectSoilSettings
 
 
@@ -175,7 +178,7 @@ class ProjectAddMutation(BaseWriteMutation):
         logger = cls.get_logger()
         user = info.context.user
 
-        if not check_project_permission(user, "create", Context()):
+        if not check_project_permission(user, ProjectAction.CREATE, Context()):
             cls.not_allowed_create(Project)
 
         with transaction.atomic():
@@ -221,7 +224,7 @@ class ProjectDeleteMutation(BaseDeleteMutation):
         user = info.context.user
         project_id = kwargs["id"]
         project = cls.get_or_throw(Project, "id", project_id)
-        if not check_project_permission(user, "delete", Context(project=project)):
+        if not check_project_permission(user, ProjectAction.DELETE, Context(project=project)):
             cls.not_allowed()
         if "transfer_project_id" in kwargs:
             transfer_project_id = kwargs["transfer_project_id"]
@@ -230,7 +233,7 @@ class ProjectDeleteMutation(BaseDeleteMutation):
             for site in project_sites:
                 if not check_project_permission(
                     user,
-                    "transfer_affiliated_site",
+                    ProjectAction.TRANSFER_AFFILIATED_SITE,
                     Context(project=transfer_project, source_site=site),
                 ):
                     cls.not_allowed()
@@ -267,7 +270,7 @@ class ProjectArchiveMutation(BaseWriteMutation):
         user = info.context.user
         project_id = kwargs["id"]
         project = cls.get_or_throw(Project, "id", project_id)
-        if not check_project_permission(user, "archive", Context(project=project)):
+        if not check_project_permission(user, ProjectAction.ARCHIVE, Context(project=project)):
             cls.not_allowed()
         project_sites = project.site_set.all()
         for site in project_sites:
@@ -298,7 +301,9 @@ class ProjectUpdateMutation(BaseWriteMutation):
         project_id = kwargs["id"]
         project = cls.get_or_throw(Project, "id", project_id)
         cls.remove_null_fields(kwargs, ["privacy", "measurement_units"])
-        if not check_project_permission(user, "update_requirements", Context(project=project)):
+        if not check_project_permission(
+            user, ProjectAction.UPDATE_REQUIREMENTS, Context(project=project)
+        ):
             cls.not_allowed()
 
         metadata = {
@@ -337,7 +342,9 @@ class ProjectAddUserMutation(BaseWriteMutation):
         user = cls.get_or_throw(User, "user_id", user_id)
         request_user = info.context.user
 
-        if not check_project_permission(request_user, "add_member", Context(project=project)):
+        if not check_project_permission(
+            request_user, ProjectAction.ADD_MEMBER, Context(project=project)
+        ):
             cls.not_allowed_create(model=Membership, msg="User cannot add member to this project")
 
         requester_membership = project.get_membership(request_user)
@@ -382,10 +389,14 @@ class ProjectDeleteUserMutation(BaseWriteMutation):
         requester = info.context.user
         if user == requester:
             # leaving a project is implemented as removing yourself
-            if not check_project_permission(requester, "leave", Context(project=project)):
+            if not check_project_permission(
+                requester, ProjectAction.LEAVE, Context(project=project)
+            ):
                 cls.not_allowed(MutationTypes.UPDATE, msg="User not allowed to leave project")
         else:
-            if not check_project_permission(requester, "delete_user", Context(project=project)):
+            if not check_project_permission(
+                requester, ProjectAction.DELETE_USER, Context(project=project)
+            ):
                 cls.not_allowed(
                     MutationTypes.UPDATE, msg="User not allowed to remove member from project"
                 )
@@ -424,7 +435,9 @@ class ProjectUpdateUserRoleMutation(BaseWriteMutation):
         project = cls.get_or_throw(Project, "project_id", project_id)
         requester = info.context.user
 
-        if not check_project_permission(requester, "change_user_role", Context(project=project)):
+        if not check_project_permission(
+            requester, ProjectAction.CHANGE_USER_ROLE, Context(project=project)
+        ):
             cls.not_allowed(
                 MutationTypes.UPDATE, msg="User is not allowed to change another user's role"
             )
