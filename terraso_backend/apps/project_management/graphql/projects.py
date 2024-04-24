@@ -382,10 +382,10 @@ class ProjectDeleteUserMutation(BaseWriteMutation):
         requester = info.context.user
         if user == requester:
             # leaving a project is implemented as removing yourself
-            if not check_project_permission(requester, "leave", Context(project)):
+            if not check_project_permission(requester, "leave", Context(project=project)):
                 cls.not_allowed(MutationTypes.UPDATE, msg="User not allowed to leave project")
         else:
-            if not check_project_permission(requester, "delete_user", Context(project)):
+            if not check_project_permission(requester, "delete_user", Context(project=project)):
                 cls.not_allowed(
                     MutationTypes.UPDATE, msg="User not allowed to remove member from project"
                 )
@@ -424,7 +424,7 @@ class ProjectUpdateUserRoleMutation(BaseWriteMutation):
         project = cls.get_or_throw(Project, "project_id", project_id)
         requester = info.context.user
 
-        if not check_project_permission(requester, "change_user_role", Context(project)):
+        if not check_project_permission(requester, "change_user_role", Context(project=project)):
             cls.not_allowed(
                 MutationTypes.UPDATE, msg="User is not allowed to change another user's role"
             )
