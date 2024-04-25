@@ -435,6 +435,27 @@ def test_delete_user_from_project_not_member(project, project_user, client):
     assert "errors" in payload
 
 
+def test_delete_user_from_project_last_manager(project, project_manager, client):
+    client.force_login(project_manager)
+    input_data = {"projectId": str(project.id), "userId": str(project_manager.id)}
+    response = graphql_query(DELETE_USER_GRAPHQL, input_data=input_data, client=client)
+    payload = response.json()
+    assert "errors" in payload
+    project.refresh_from_db()
+    assert project.is_manager(project_manager) is True
+
+
+def test_delete_user_from_project_other_manager(project, project_manager, user, client):
+    client.force_login(project_manager)
+    project.add_manager(user)
+    input_data = {"projectId": str(project.id), "userId": str(user.id)}
+    response = graphql_query(DELETE_USER_GRAPHQL, input_data=input_data, client=client)
+    payload = response.json()
+    assert "errors" not in payload
+    project.refresh_from_db()
+    assert project.is_manager(user) is False
+
+
 UPDATE_PROJECT_ROLE_GRAPHQL = """
 mutation updateProjectRole($input: ProjectUpdateUserRoleMutationInput!) {
   updateUserRoleInProject(input: $input) {
