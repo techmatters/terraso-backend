@@ -70,8 +70,9 @@ def test_other_user_cant_be_member(project, user):
     assert is_project_member(user, Context(project=project)) is False
 
 
-def test_cant_contribute_to_unaffiliated_affiliated_site(site, site_creator):
-    assert allowed_to_contribute_to_affiliated_site(site_creator, Context(site=site)) is False
+def test_cant_contribute_to_unaffiliated_site(site, site_creator):
+    with pytest.raises(ValueError):
+        allowed_to_contribute_to_affiliated_site(site_creator, Context(site=site))
 
 
 def test_project_manager_can_contribute_to_affiliated_site(project_site, project_manager):
@@ -116,6 +117,12 @@ def test_contributing_non_note_author_cant_edit_affiliated_note(
     assert allowed_to_edit_affiliated_site_note(user, Context(site_note=site_note)) is False
 
 
+def test_cant_edit_unaffiliated_site_note(user, site):
+    site_note = mixer.blend(SiteNote, author=user, site=site)
+    with pytest.raises(ValueError):
+        allowed_to_edit_affiliated_site_note(user, Context(site_note=site_note))
+
+
 def test_contributing_note_author_can_delete_affiliated_note(user, project, project_site):
     project.add_contributor(user)
     site_note = mixer.blend(SiteNote, author=user, site=project_site)
@@ -143,9 +150,10 @@ def test_manager_can_delete_affiliated_note(user, project_site, project_manager)
     )
 
 
-def test_cant_edit_unaffiliated_site_note(user, site):
+def test_cant_deleteunaffiliated_site_note(user, site):
     site_note = mixer.blend(SiteNote, author=user, site=site)
-    assert allowed_to_edit_affiliated_site_note(user, Context(site_note=site_note)) is False
+    with pytest.raises(ValueError):
+        allowed_to_delete_affiliated_site_note(user, Context(site_note=site_note))
 
 
 def test_site_owner_can_manage_unaffiliated_site(user, site):
@@ -157,7 +165,8 @@ def test_site_non_owner_cant_manage_unaffiliated_site(user_b, site):
 
 
 def test_cant_manage_affiliated_site(user, project_site):
-    assert allowed_to_manage_unaffiliated_site(user, Context(site=project_site)) is False
+    with pytest.raises(ValueError):
+        allowed_to_manage_unaffiliated_site(user, Context(site=project_site))
 
 
 def test_contributor_can_add_new_site(user, project):
@@ -206,12 +215,10 @@ def test_manager_non_site_owner_cant_add_unaffiliated_site(project_manager, site
 def test_cant_add_affiliated_site(site, project, project_manager):
     project_b = mixer.blend(Project)
     site = mixer.blend(Site, project=project_b)
-    assert (
+    with pytest.raises(ValueError):
         allowed_to_add_unaffiliated_site_to_project(
             project_manager, Context(project=project, source_site=site)
         )
-        is False
-    )
 
 
 def test_src_manager_dest_manager_can_transfer_affiliated_site(user, project_site, project):
@@ -273,7 +280,5 @@ def test_dst_non_manager_or_contributor_cant_transfer_affiliated_site(user, proj
 def test_cant_transfer_unaffiliated_site(user, site):
     project_b = mixer.blend(Project)
     project_b.add_manager(user)
-    assert (
+    with pytest.raises(ValueError):
         allowed_to_transfer_affiliated_site(user, Context(project=project_b, source_site=site))
-        is False
-    )

@@ -64,22 +64,19 @@ def is_project_member(user, context):
 
 @rules.predicate
 def allowed_to_contribute_to_affiliated_site(user, context):
-    if context.site.is_unaffiliated:
-        return False
+    require_affiliated_site(context.site)
     return context.project.is_manager(user) or context.project.is_contributor(user)
 
 
 @rules.predicate
 def allowed_to_edit_affiliated_site_note(user, context):
-    if context.site.is_unaffiliated:
-        return False
+    require_affiliated_site(context.site)
     return context.project.is_contributor(user) and context.site_note.is_author(user)
 
 
 @rules.predicate
 def allowed_to_delete_affiliated_site_note(user, context):
-    if context.site.is_unaffiliated:
-        return False
+    require_affiliated_site(context.site)
     return context.project.is_manager(user) or (
         context.project.is_contributor(user) and context.site_note.is_author(user)
     )
@@ -87,7 +84,8 @@ def allowed_to_delete_affiliated_site_note(user, context):
 
 @rules.predicate
 def allowed_to_manage_unaffiliated_site(user, context):
-    return context.site.is_unaffiliated and context.site.owner == user
+    require_unaffiliated_site(context.site)
+    return context.site.owner == user
 
 
 @rules.predicate
@@ -97,8 +95,7 @@ def allowed_to_add_new_site_to_project(user, context):
 
 @rules.predicate
 def allowed_to_add_unaffiliated_site_to_project(user, context):
-    if not context.source_site.is_unaffiliated:
-        return False
+    require_unaffiliated_site(context.source_site)
     return context.source_site.owner == user and (
         context.project.is_manager(user) or context.project.is_contributor(user)
     )
@@ -106,13 +103,22 @@ def allowed_to_add_unaffiliated_site_to_project(user, context):
 
 @rules.predicate
 def allowed_to_transfer_affiliated_site(user, context):
-    if context.source_site.is_unaffiliated:
-        return False
+    require_affiliated_site(context.source_site)
     dest_project = context.project
     src_project = context.source_project
     return src_project.is_manager(user) and (
         dest_project is None or dest_project.is_manager(user) or dest_project.is_contributor(user)
     )
+
+
+def require_affiliated_site(site):
+    if site.is_unaffiliated:
+        raise ValueError("Checking affiliated permissions on an unaffiliated site")
+
+
+def require_unaffiliated_site(site):
+    if not site.is_unaffiliated:
+        raise ValueError("Checking unaffiliated permissions on an affiliated site")
 
 
 rules.add_perm("allowed_to_create", allowed_to_create)
