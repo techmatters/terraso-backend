@@ -398,6 +398,10 @@ class ProjectDeleteUserMutation(BaseWriteMutation):
             cls.not_allowed(
                 MutationTypes.DELETE, msg="User not allowed to remove member from project"
             )
+
+        if project.is_sole_manager(user):
+            cls.not_allowed(MutationTypes.DELETE, msg="Cannot remove the last manager from project")
+
         # remove membership
         membership = project.get_membership(user)
         membership.delete()

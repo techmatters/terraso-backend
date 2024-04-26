@@ -111,6 +111,9 @@ class Project(BaseModel):
     def user_has_role(self, user: User, role: ProjectRole) -> bool:
         return self.memberships_by_role(role).filter(user=user).exists()
 
+    def is_sole_manager(self, user: User) -> bool:
+        return self.is_manager(user) and self.manager_memberships.count() == 1
+
     def is_manager(self, user: User) -> bool:
         return self.user_has_role(user, ProjectRole.MANAGER)
 
