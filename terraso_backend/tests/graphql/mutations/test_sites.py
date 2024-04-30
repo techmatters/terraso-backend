@@ -192,7 +192,7 @@ def test_adding_site_to_project_user_not_manager(client, project, site, project_
     assert json_error[0]["code"] == "update_not_allowed"
 
 
-def test_adding_site_owned_by_user_to_project(client, project, site, project_manager):
+def test_adding_site_unaffiliated_to_project(client, project, site, project_manager):
     site.add_owner(project_manager)
     client.force_login(project_manager)
     response = graphql_query(
@@ -394,29 +394,36 @@ def test_site_transfer_unlinked_site_user_viewer_failure(client, user, site, pro
     input_data = {"siteIds": [str(site.id)], "projectId": str(project.id)}
     client.force_login(user)
     payload = graphql_query(SITE_TRANSFER_MUTATION, client=client, input_data=input_data).json()
-    assert "errors" in payload
+    assert match_json("*..badPermissions[*].id", payload) == [str(site.id)]
     site.refresh_from_db()
     assert site.owner == user
 
 
-@pytest.fixture
-def transfer_site(request, user, site, project):
-    role_a, role_b = request.param
+def test_site_transfer_between_projects_source_contributor(client, user, site):
     project_a = mixer.blend(Project)
-    project_a.add_user_with_role(user, ProjectRole(role_a))
-    project.add_user_with_role(user, ProjectRole(role_b))
+    project_b = mixer.blend(Project)
+    project_a.add_contributor(user)
+    project_b.add_manager(user)
     site.add_to_project(project_a)
-    return site
 
-
-@pytest.mark.parametrize(
-    "transfer_site", [("CONTRIBUTOR", "MANAGER"), ("MANAGER", "CONTRIBUTOR")], indirect=True
-)
-def test_site_transfer_between_projects_failure(transfer_site, client, project, user):
     client.force_login(user)
-    input_data = {"siteIds": [str(transfer_site.id)], "projectId": str(project.id)}
+    input_data = {"siteIds": [str(site.id)], "projectId": str(project_b.id)}
     payload = graphql_query(SITE_TRANSFER_MUTATION, client=client, input_data=input_data).json()
-    assert match_json("*..badPermissions[*].id", payload) == [str(transfer_site.id)]
-    assert match_json("*..project.id", payload) == [str(project.id)]
-    transfer_site.refresh_from_db()
-    assert transfer_site.project.id != project.id
+    assert match_json("*..badPermissions[*].id", payload) == [str(site.id)]
+    assert match_json("*..project.id", payload) == [str(project_b.id)]
+    site.refresh_from_db()
+    assert site.project.id != project_b.id
+
+
+def test_site_transfer_between_projects_source_manager(client, user, site):
+    project_a = mixer.blend(Project)
+    project_b = mixer.blend(Project)
+    project_a.add_manager(user)
+    project_b.add_contributor(user)
+    site.add_to_project(project_a)
+
+    client.force_login(user)
+    input_data = {"siteIds": [str(site.id)], "projectId": str(project_b.id)}
+    graphql_query(SITE_TRANSFER_MUTATION, client=client, input_data=input_data).json()
+    site.refresh_from_db()
+    assert site.project.id == project_b.id

@@ -1,4 +1,4 @@
-# Copyright © 2021-2023 Technology Matters
+# Copyright © 2021–2024 Technology Matters
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as published
@@ -12,137 +12,126 @@
 #
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see https://www.gnu.org/licenses/.
+from dataclasses import dataclass
+
 import rules
 
-from apps.project_management.collaboration_roles import ProjectRole
+from apps.project_management.models import Project, Site, SiteNote
+
+
+@dataclass
+class Context:
+    # these are the target entity(s) the operation is occurring on. they will always be
+    # referentually consistent (i.e., if the context has a site this will always be the site's
+    # project)
+    project: Project = None
+    site: Site = None
+    site_note: SiteNote = None
+
+    # these are the source entities which may also be part of the operation (i.e., the site which
+    # is being added to a new owner, and that site's current project if it has one)
+    source_project: Project = None
+    source_site: Site = None
+
+    def __post_init__(self):
+        if self.site_note:
+            self.site = self.site_note.site
+        if self.site:
+            self.project = self.site.project
+        if self.source_site:
+            self.source_project = self.source_site.project
 
 
 @rules.predicate
-def allowed_to_change_project(user, project):
-    return project.is_manager(user)
+def allowed_to_create(user, context):
+    # (all logged-in users are allowed base creation actions)
+    return True
 
 
 @rules.predicate
-def allowed_to_add_site_to_project(user, project):
-    return project.is_manager(user) or project.is_contributor(user)
+def allowed_to_manage_project(user, context):
+    return context.project.is_manager(user)
 
 
 @rules.predicate
-def allowed_to_update_site(user, site):
-    if site.owned_by_user:
-        return site.owner == user
-    return site.project.is_manager(user) or site.project.is_contributor(user)
-
-
-@rules.predicate
-def allowed_to_delete_site(user, site):
-    if site.owned_by_user:
-        return site.owner == user
-    return site.project.is_manager(user)
-
-
-@rules.predicate
-def allowed_to_update_site_settings(user, site):
-    if site.owned_by_user:
-        return site.owner == user
-    return site.project.is_manager(user)
-
-
-@rules.predicate
-def allowed_to_delete_project(user, project):
-    return project.is_manager(user)
-
-
-@rules.predicate
-def allowed_to_add_to_project(user, project):
-    return project.is_manager(user)
-
-
-@rules.predicate
-def allowed_to_archive_project(user, project):
-    return project.is_manager(user)
-
-
-@rules.predicate
-def allowed_to_add_member_to_project(user, context):
-    project = context["project"]
-    requester_membership = context["requester_membership"]
+def is_project_member(user, context):
     return (
-        requester_membership.membership_list == project.membership_list
-        and requester_membership.user_role == ProjectRole.MANAGER.value
+        context.project.is_manager(user)
+        or context.project.is_contributor(user)
+        or context.project.is_viewer(user)
     )
 
 
-rules.add_rule("allowed_to_add_member_to_project", allowed_to_add_member_to_project)
+@rules.predicate
+def allowed_to_contribute_to_affiliated_site(user, context):
+    require_affiliated_site(context.site)
+    return context.project.is_manager(user) or context.project.is_contributor(user)
 
 
 @rules.predicate
-def allowed_to_delete_user_from_project(user, context):
-    project = context["project"]
-    requester_membership = context["requester_membership"]
-    target_membership = context["target_membership"]
-    return project.membership_list == requester_membership.membership_list and (
-        user == target_membership.user
-        or requester_membership.user_role == ProjectRole.MANAGER.value
+def allowed_to_edit_affiliated_site_note(user, context):
+    require_affiliated_site(context.site)
+    return context.site_note.is_author(user) and (
+        context.project.is_manager(user) or context.project.is_contributor(user)
     )
 
 
-rules.add_rule("allowed_to_delete_user_from_project", allowed_to_delete_user_from_project)
-
-
 @rules.predicate
-def allowed_to_change_user_project_role(user, context):
-    project = context["project"]
-    requester_membership = context["requester_membership"]
-    target_membership = context["target_membership"]
-    return (
-        project.membership_list
-        == requester_membership.membership_list
-        == target_membership.membership_list
-        and requester_membership.user_role == ProjectRole.MANAGER.value
+def allowed_to_delete_affiliated_site_note(user, context):
+    require_affiliated_site(context.site)
+    return context.project.is_manager(user) or (
+        context.project.is_contributor(user) and context.site_note.is_author(user)
     )
 
 
-rules.add_rule("allowed_to_change_user_project_role", allowed_to_change_user_project_role)
+@rules.predicate
+def allowed_to_manage_unaffiliated_site(user, context):
+    require_unaffiliated_site(context.site)
+    return context.site.owner == user
 
 
 @rules.predicate
-def allowed_to_transfer_site_to_project(user, context):
-    project, site = context
-    # contributor can add user-owned site to project
-    if site.owned_by_user:
-        return (
-            project.is_manager(user) or project.is_contributor(user)
-        ) and site.owner.id == user.id
-    return project.is_manager(user) and site.project.is_manager(user)
-
-
-rules.add_rule("allowed_to_transfer_site_to_project", allowed_to_transfer_site_to_project)
+def allowed_to_add_new_site_to_project(user, context):
+    return context.project.is_manager(user) or context.project.is_contributor(user)
 
 
 @rules.predicate
-def allowed_to_update_site_note(user, site_note):
-    if site_note.site.owned_by_user:
-        return site_note.site.owner == user
-    return site_note.is_author(user)
-
-
-rules.add_rule("allowed_to_update_site_note", allowed_to_update_site_note)
-
-
-@rules.predicate
-def allowed_to_delete_site_note(user, site_note):
-    return allowed_to_update_site_note(user, site_note)
-
-
-rules.add_rule("allowed_to_delete_site_note", allowed_to_delete_site_note)
+def allowed_to_add_unaffiliated_site_to_project(user, context):
+    require_unaffiliated_site(context.source_site)
+    return context.source_site.owner == user and (
+        context.project.is_manager(user) or context.project.is_contributor(user)
+    )
 
 
 @rules.predicate
-def allowed_to_update_depth_interval(user, site):
-    if site.owner:
-        return site.owner.id == user.id
-    return site.project.is_manager(user)
+def allowed_to_transfer_affiliated_site(user, context):
+    require_affiliated_site(context.source_site)
+    dest_project = context.project
+    src_project = context.source_project
+    return src_project.is_manager(user) and (
+        dest_project is None or dest_project.is_manager(user) or dest_project.is_contributor(user)
+    )
 
 
-rules.add_rule("allowed_to_update_depth_interval", allowed_to_update_depth_interval)
+def require_affiliated_site(site):
+    if site.is_unaffiliated:
+        raise ValueError("Checking affiliated permissions on an unaffiliated site")
+
+
+def require_unaffiliated_site(site):
+    if not site.is_unaffiliated:
+        raise ValueError("Checking unaffiliated permissions on an affiliated site")
+
+
+rules.add_perm("allowed_to_create", allowed_to_create)
+rules.add_perm("allowed_to_manage_project", allowed_to_manage_project)
+rules.add_perm("is_project_member", is_project_member)
+rules.add_perm("allowed_to_contribute_to_affiliated_site", allowed_to_contribute_to_affiliated_site)
+rules.add_perm("allowed_to_edit_affiliated_site_note", allowed_to_edit_affiliated_site_note)
+rules.add_perm("allowed_to_delete_affiliated_site_note", allowed_to_delete_affiliated_site_note)
+rules.add_perm("allowed_to_manage_unaffiliated_site", allowed_to_manage_unaffiliated_site)
+rules.add_perm("allowed_to_add_new_site_to_project", allowed_to_add_new_site_to_project)
+rules.add_perm(
+    "allowed_to_add_unaffiliated_site_to_project", allowed_to_add_unaffiliated_site_to_project
+)
+rules.add_perm("allowed_to_transfer_affiliated_site", allowed_to_transfer_affiliated_site)

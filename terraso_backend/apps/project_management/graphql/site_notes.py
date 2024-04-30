@@ -24,6 +24,8 @@ from apps.graphql.schema.commons import (
 )
 from apps.project_management.models.site_notes import SiteNote
 from apps.project_management.models.sites import Site
+from apps.project_management.permission_rules import Context
+from apps.project_management.permission_table import SiteAction, check_site_permission
 
 
 class SiteNoteNode(DjangoObjectType):
@@ -40,6 +42,8 @@ class SiteNoteNode(DjangoObjectType):
 class SiteNoteAddMutation(BaseWriteMutation):
     site_note = graphene.Field(SiteNoteNode, required=True)
 
+    model_class = SiteNote
+
     class Input:
         site_id = graphene.ID(required=True)
         content = graphene.String(required=True)
@@ -49,12 +53,17 @@ class SiteNoteAddMutation(BaseWriteMutation):
         user = info.context.user
         site_id = input["site_id"]
         site = cls.get_or_throw(Site, "id", site_id)
+        if not check_site_permission(user, SiteAction.CREATE_NOTE, Context(site=site)):
+            cls.not_allowed_create(SiteNote)
+
         site_note = SiteNote.objects.create(site=site, content=input["content"], author=user)
         return SiteNoteAddMutation(site_note=site_note)
 
 
 class SiteNoteUpdateMutation(BaseWriteMutation):
     site_note = graphene.Field(SiteNoteNode, required=True)
+
+    model_class = SiteNote
 
     class Input:
         id = graphene.ID(required=True)
@@ -66,7 +75,7 @@ class SiteNoteUpdateMutation(BaseWriteMutation):
         user = info.context.user
         site_note_id = kwargs["id"]
         site_note = cls.get_or_throw(SiteNote, "id", site_note_id)
-        if not user.has_perm(SiteNote.get_perm("update"), site_note):
+        if not check_site_permission(user, SiteAction.EDIT_NOTE, Context(site_note=site_note)):
             cls.not_allowed()
 
         site_note.content = kwargs["content"]
@@ -77,6 +86,8 @@ class SiteNoteUpdateMutation(BaseWriteMutation):
 class SiteNoteDeleteMutation(BaseDeleteMutation):
     ok = graphene.Boolean()
 
+    model_class = SiteNote
+
     class Input:
         id = graphene.ID(required=True)
 
@@ -86,7 +97,7 @@ class SiteNoteDeleteMutation(BaseDeleteMutation):
         user = info.context.user
         site_note_id = kwargs["id"]
         site_note = cls.get_or_throw(SiteNote, "id", site_note_id)
-        if not user.has_perm(SiteNote.get_perm("delete"), site_note):
+        if not check_site_permission(user, SiteAction.DELETE_NOTE, Context(site_note=site_note)):
             cls.not_allowed()
 
         site_note.delete()

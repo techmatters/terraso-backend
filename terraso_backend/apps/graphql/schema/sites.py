@@ -24,6 +24,13 @@ from graphene_django.filter import TypedFilter
 from apps.audit_logs import api as audit_log_api
 from apps.project_management.graphql.projects import ProjectNode
 from apps.project_management.models import Project, Site, sites
+from apps.project_management.permission_rules import Context
+from apps.project_management.permission_table import (
+    ProjectAction,
+    SiteAction,
+    check_project_permission,
+    check_site_permission,
+)
 from apps.soil_id.models import SoilData
 
 from .commons import (
@@ -115,6 +122,9 @@ class SiteAddMutation(BaseWriteMutation):
         log = cls.get_logger()
         user = info.context.user
 
+        if not check_site_permission(user, SiteAction.CREATE, Context()):
+            cls.not_allowed_create(Site)
+
         client_time = kwargs.pop("client_time", None)
         if not client_time:
             client_time = datetime.now()
@@ -122,7 +132,9 @@ class SiteAddMutation(BaseWriteMutation):
         adding_to_project = "project_id" in kwargs
         if adding_to_project:
             project = cls.get_or_throw(Project, "project_id", kwargs["project_id"])
-            if not user.has_perm(Project.get_perm("add_site"), project):
+            if not check_project_permission(
+                user, ProjectAction.ADD_NEW_SITE, Context(project=project)
+            ):
                 raise cls.not_allowed(MutationTypes.CREATE)
             kwargs["project"] = project
         else:
@@ -187,25 +199,36 @@ class SiteUpdateMutation(BaseWriteMutation):
         log = cls.get_logger()
         user = info.context.user
         site = cls.get_or_throw(Site, "id", kwargs["id"])
-        if not user.has_perm(Site.get_perm("change"), site):
-            raise cls.not_allowed(MutationTypes.UPDATE)
 
-        # if any site settings fields are present in the mutuation, check that the user
-        # has the associated settings-change permission as well
-        if Site.SETTINGS_FIELDS.intersection(kwargs.keys()):
-            if not user.has_perm(Site.get_perm("change_settings"), site):
-                raise cls.not_allowed(MutationTypes.UPDATE)
+        if not check_site_permission(user, SiteAction.UPDATE_SETTINGS, Context(site=site)):
+            raise cls.not_allowed(MutationTypes.UPDATE)
 
         project_id = kwargs.pop("project_id", False)
         result = super().mutate_and_get_payload(root, info, **kwargs)
         if project_id is False:
             # no project id included
             return result
+
+        # otherwise, we might need to update the site's project
         site = result.site
+
+        # determine the potential target project
         if project_id is not None:
             project = Project.objects.get(id=project_id)
-            if not user.has_perm(Project.get_perm("add_site"), project):
+        else:
+            project = None
+
+        # check if we're allowed to make the change
+        context = Context(project=project, source_site=site)
+        if site.is_unaffiliated:
+            if not check_project_permission(user, ProjectAction.ADD_UNAFFILIATED_SITE, context):
                 raise cls.not_allowed(MutationTypes.UPDATE)
+        else:
+            if not check_project_permission(user, ProjectAction.TRANSFER_AFFILIATED_SITE, context):
+                raise cls.not_allowed(MutationTypes.UPDATE)
+
+        # if the check passed, make the change
+        if project:
             site.add_to_project(project)
         else:
             site.add_owner(user)
@@ -250,7 +273,7 @@ class SiteDeleteMutation(BaseDeleteMutation):
         user = info.context.user
         site_id = kwargs["id"]
         site = cls.get_or_throw(Site, "id", site_id)
-        if not user.has_perm(Site.get_perm("delete"), site):
+        if not check_site_permission(user, SiteAction.DELETE, Context(site=site)):
             cls.not_allowed(MutationTypes.DELETE)
 
         result = super().mutate_and_get_payload(root, info, **kwargs)
@@ -286,11 +309,7 @@ class SiteTransferMutation(BaseWriteMutation):
     def mutate_and_get_payload(cls, root, info, **kwargs):
         log = cls.get_logger()
         user = info.context.user
-
         project = cls.get_or_throw(Project, "project_id", kwargs["project_id"])
-
-        if not user.has_perm(Project.get_perm("add_site"), project):
-            raise cls.not_allowed(MutationTypes.UPDATE)
 
         site_ids = kwargs.get("site_ids", [])
         sites = Site.objects.filter(id__in=site_ids)
@@ -301,7 +320,20 @@ class SiteTransferMutation(BaseWriteMutation):
         old_projects = []
 
         for site in sites:
-            if not (user.has_perm(Site.get_perm("transfer"), (project, site))):
+            if site.is_unaffiliated:
+                permission = check_project_permission(
+                    user,
+                    ProjectAction.ADD_UNAFFILIATED_SITE,
+                    Context(project=project, source_site=site),
+                )
+            else:
+                permission = check_project_permission(
+                    user,
+                    ProjectAction.TRANSFER_AFFILIATED_SITE,
+                    Context(project=project, source_site=site),
+                )
+
+            if not permission:
                 bad_permissions.append(site)
             else:
                 to_change.append(site)

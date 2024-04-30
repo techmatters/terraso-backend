@@ -357,6 +357,15 @@ def test_add_user_to_project_bad_roles(project, project_manager, client):
     assert "errors" in payload
 
 
+def test_add_user_to_project_not_manager(project, project_user, client):
+    user = mixer.blend(User)
+    client.force_login(project_user)
+    input_data = {"projectId": str(project.id), "userId": str(user.id), "role": "VIEWER"}
+    response = graphql_query(ADD_USER_GRAPHQL, input_data=input_data, client=client)
+    payload = response.json()
+    assert "errors" in payload
+
+
 def test_add_user_project_user_already_member(project, project_manager, project_user, client):
     client.force_login(project_manager)
     membership = project.get_membership(project_user)
@@ -522,6 +531,19 @@ def test_update_project_role_user_not_in_project(project, project_user, client):
     input_data = {
         "projectId": str(project.id),
         "userId": str(project_user.id),
+        "newRole": "CONTRIBUTOR",
+    }
+    response = graphql_query(UPDATE_PROJECT_ROLE_GRAPHQL, input_data=input_data, client=client)
+    payload = response.json()
+    assert "errors" in payload
+
+
+def test_update_project_role_target_user_not_in_project(project, project_manager, client):
+    other_user = mixer.blend(User)
+    client.force_login(project_manager)
+    input_data = {
+        "projectId": str(project.id),
+        "userId": str(other_user.id),
         "newRole": "CONTRIBUTOR",
     }
     response = graphql_query(UPDATE_PROJECT_ROLE_GRAPHQL, input_data=input_data, client=client)

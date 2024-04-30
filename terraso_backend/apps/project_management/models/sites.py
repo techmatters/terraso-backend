@@ -21,7 +21,6 @@ from django.utils.translation import gettext_lazy as _
 from apps.collaboration.models import Membership as CollaborationMembership
 from apps.core.models import User
 from apps.core.models.commons import BaseModel
-from apps.project_management import permission_rules
 
 from .projects import Project
 
@@ -36,13 +35,6 @@ class Site(BaseModel):
                 name="site_must_be_owned_once",
             )
         ]
-        rules_permissions = {
-            "change": permission_rules.allowed_to_update_site,
-            "delete": permission_rules.allowed_to_delete_site,
-            "transfer": permission_rules.allowed_to_transfer_site_to_project,
-            "change_settings": permission_rules.allowed_to_update_site_settings,
-            "update_depth_interval": permission_rules.allowed_to_update_depth_interval,
-        }
 
     name = models.CharField(max_length=200)
     latitude = models.FloatField()
@@ -65,9 +57,6 @@ class Site(BaseModel):
 
     PRIVACY_STATUS = ((PRIVATE, _("Private")), (PUBLIC, _("Public")))
 
-    # changing settings fields must be restricted by the corresponding permission
-    SETTINGS_FIELDS = set(["name", "privacy", "projectId"])
-
     privacy = models.CharField(
         max_length=32, null=False, choices=PRIVACY_STATUS, default=DEFAULT_PRIVACY_STATUS
     )
@@ -85,17 +74,17 @@ class Site(BaseModel):
     )
 
     @property
-    def owned_by_user(self):
+    def is_unaffiliated(self):
         return self.owner is not None
 
     def add_to_project(self, project):
-        if self.owned_by_user:
+        if self.is_unaffiliated:
             self.owner = None
         self.project = project
         self.save()
 
     def add_owner(self, user):
-        if not self.owned_by_user:
+        if not self.is_unaffiliated:
             self.project = None
         self.owner = user
         self.save()

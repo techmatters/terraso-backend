@@ -21,18 +21,8 @@ from mixer.backend.django import mixer
 
 from apps.collaboration.models import Membership as CollaborationMembership
 from apps.core import group_collaboration_roles
-from apps.core.models import Group, Landscape, SharedResource, User
+from apps.core.models import Group, Landscape, SharedResource
 from apps.shared_data.models import DataEntry, VisualizationConfig
-
-
-@pytest.fixture
-def user():
-    return mixer.blend(User)
-
-
-@pytest.fixture
-def user_b():
-    return mixer.blend(User)
 
 
 @pytest.fixture
