@@ -104,8 +104,20 @@ def test_contributing_note_author_can_edit_affiliated_note(user, project, projec
     assert allowed_to_edit_affiliated_site_note(user, Context(site_note=site_note)) is True
 
 
+def test_manager_note_author_can_edit_affiliated_note(user, project, project_site):
+    project.add_manager(user)
+    site_note = mixer.blend(SiteNote, author=user, site=project_site)
+    assert allowed_to_edit_affiliated_site_note(user, Context(site_note=site_note)) is True
+
+
 def test_non_contributing_note_author_cant_edit_affiliated_note(user, project_site):
     site_note = mixer.blend(SiteNote, author=user, site=project_site)
+    assert allowed_to_edit_affiliated_site_note(user, Context(site_note=site_note)) is False
+
+
+def test_manager_non_note_author_cant_edit_affiliated_note(user, user_b, project, project_site):
+    project.add_manager(user)
+    site_note = mixer.blend(SiteNote, author=user_b, site=project_site)
     assert allowed_to_edit_affiliated_site_note(user, Context(site_note=site_note)) is False
 
 

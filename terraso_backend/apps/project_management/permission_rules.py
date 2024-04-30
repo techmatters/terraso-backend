@@ -71,7 +71,9 @@ def allowed_to_contribute_to_affiliated_site(user, context):
 @rules.predicate
 def allowed_to_edit_affiliated_site_note(user, context):
     require_affiliated_site(context.site)
-    return context.project.is_contributor(user) and context.site_note.is_author(user)
+    return context.site_note.is_author(user) and (
+        context.project.is_manager(user) or context.project.is_contributor(user)
+    )
 
 
 @rules.predicate
