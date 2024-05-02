@@ -24,4 +24,4 @@ python-magic
 rules
 sentry-sdk[django]
 shapely
-soil_id @ https://github.com/techmatters/soil-id-algorithm/archive/ddf718a.zip
+soil-id @ https://github.com/techmatters/soil-id-algorithm/archive/ddf718a.zip
