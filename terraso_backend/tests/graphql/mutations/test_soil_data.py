@@ -689,10 +689,10 @@ def test_update_project_depth_interval_preset_depth_dependent_data(
     assert not project.soil_settings.depth_intervals.exists()
 
     # TODO: This will probably be reimplemented later
-    # if original_preset == depth_interval_preset:
-    #    assert site_with_soil_data.soil_data.depth_dependent_data.exists()
-    # else:
-    #    assert not site_with_soil_data.soil_data.depth_dependent_data.exists()
+    # if original_preset == depth_interval_preset:                               noqa: E800
+    #    assert site_with_soil_data.soil_data.depth_dependent_data.exists()      noqa: E800
+    # else:                                                                      noqa: E800
+    #    assert not site_with_soil_data.soil_data.depth_dependent_data.exists()  noqa: E800
 
 
 UPDATE_SOIL_DEPTH_PRESET_GRAPHQL = """

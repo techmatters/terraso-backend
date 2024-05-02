@@ -13,16 +13,10 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see https://www.gnu.org/licenses/.
 
-# import uuid
-# from unittest import mock
-
 import pytest
 
 from apps.collaboration.models import Membership as CollaborationMembership
 from apps.core import landscape_collaboration_roles
-
-# from mixer.backend.django import mixer
-
 
 pytestmark = pytest.mark.django_db
 
