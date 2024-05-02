@@ -12,7 +12,7 @@ django-storages
 django-structlog
 fiona --no-binary fiona
 geopandas
-graphene-django
+graphene-django==3.1.5
 httpx
 openpyxl
 pandas
@@ -25,3 +25,4 @@ requests
 rules
 sentry-sdk[django]
 shapely
+soil_id @ https://github.com/techmatters/soil-id-algorithm/archive/ddf718a.zip
