@@ -90,6 +90,7 @@ type Query {
     orderBy: String
   ): AuditLogNodeConnection
   sharedResource(shareUuid: String!): SharedResourceNode
+  soilId: SoilID!
 }
 
 type GroupNode implements Node {
@@ -1527,6 +1528,96 @@ String, Boolean, Int, Float, List or Object.
 """
 scalar GenericScalar
 
+"""Soil ID algorithm queries."""
+type SoilID {
+  locationBasedSoilMatches(latitude: Float!, longitude: Float!): LocationBasedSoilMatches!
+  dataBasedSoilMatches(latitude: Float!, longitude: Float!, data: SoilIDInputData!): DataBasedSoilMatches!
+}
+
+"""A ranked group of soil matches based solely on a coordinate pair."""
+type LocationBasedSoilMatches {
+  matches: [LocationBasedSoilMatch]!
+}
+
+"""A soil match based solely on a coordinate pair."""
+type LocationBasedSoilMatch {
+  soilInfo: SoilInfo!
+  match: SoilMatch!
+}
+
+"""Provides information about soil at a particular location."""
+type SoilInfo {
+  soilSeries: SoilSeries!
+  ecologicalSite: EcologicalSite
+  landCapabilityClass: LandCapabilityClass!
+}
+
+"""Information about a soil series."""
+type SoilSeries {
+  name: String!
+  taxonomySubgroup: String!
+  description: String!
+  fullDescriptionUrl: String!
+  dataSource: String!
+}
+
+"""Information about an ecological site."""
+type EcologicalSite {
+  name: String!
+  id: String!
+  url: String!
+}
+
+"""Caveat: may want to update these fields to an enum at some point."""
+type LandCapabilityClass {
+  capabilityClass: String!
+  subClass: String!
+}
+
+"""
+The likelihood score and rank within the match group for a particular soil type.
+"""
+type SoilMatch {
+  score: Float!
+  rank: Int!
+}
+
+"""
+A ranked group of soil matches based on a coordinate pair and soil data.
+"""
+type DataBasedSoilMatches {
+  matches: [DataBasedSoilMatch]!
+}
+
+"""A soil match based on a coordinate pair and soil data."""
+type DataBasedSoilMatch {
+  soilInfo: SoilInfo!
+  locationMatch: SoilMatch!
+  dataMatch: SoilMatch!
+  combinedMatch: SoilMatch!
+}
+
+"""Soil data provided to the soil ID algorithm."""
+input SoilIDInputData {
+  slope: SoilIdSoilDataSlopeSteepnessSelectChoices
+  intervals: [SoilIDInputDepthDependentData]!
+}
+
+"""Depth dependent data provided to the soil ID algorithm."""
+input SoilIDInputDepthDependentData {
+  depthInterval: DepthIntervalInput!
+  texture: SoilIdDepthDependentSoilDataTextureChoices = null
+  rockFragmentVolume: SoilIdDepthDependentSoilDataRockFragmentVolumeChoices = null
+  colorHue: Float
+  colorValue: Float
+  colorChroma: Float
+}
+
+input DepthIntervalInput {
+  start: Int!
+  end: Int!
+}
+
 type Mutations {
   addGroup(input: GroupAddMutationInput!): GroupAddMutationPayload!
   addLandscape(input: LandscapeAddMutationInput!): LandscapeAddMutationPayload!
@@ -2191,11 +2282,6 @@ input DepthDependentSoilDataUpdateMutationInput {
   sodiumAbsorptionRatio: Decimal
   carbonates: SoilIdDepthDependentSoilDataCarbonatesChoices
   clientMutationId: String
-}
-
-input DepthIntervalInput {
-  start: Int!
-  end: Int!
 }
 
 type SoilDataUpdateDepthIntervalMutationPayload {
