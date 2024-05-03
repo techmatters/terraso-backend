@@ -35,15 +35,15 @@ blinker==1.8.1 \
     # via
     #   flask
     #   soil-id
-boto3==1.34.96 \
-    --hash=sha256:42ea7d46688e7cb27259780b9da2cddcfaf2763ff5d327f4d54eac12edba8e72 \
-    --hash=sha256:fe3d039631074a96374a354764641b6623036b6ea15381b8a04ac0a193b8c1e0
+boto3==1.34.97 \
+    --hash=sha256:60e5dda0b29805fb410bfda1d98e898edaebedac0e6983e9c57cb88e44dfa64e \
+    --hash=sha256:6c8125310005255ea998bccc3e8353b4df81a96ab105c89c118461f6c54c07c8
     # via
     #   -r requirements/base.in
     #   django-ses
-botocore==1.34.96 \
-    --hash=sha256:00e917cd8152d902a4771b9e1e4d0cf1ee096c90027ee35f2a76b6d394e2ada5 \
-    --hash=sha256:4c307f5772286f1ab58a91220ea8e180416a2ea0cc7e76983a6984e4ef8c212d
+botocore==1.34.97 \
+    --hash=sha256:c98b1272e377c69e167cc68c0f2c9c79bc7a6098775eecdad41ee5a28de69324 \
+    --hash=sha256:e421b592add68547ed141643c8a8b4aa819a07059b85efd72e89b6758c956420
     # via
     #   boto3
     #   s3transfer
@@ -348,6 +348,9 @@ flask==3.0.3 \
     --hash=sha256:34e815dfaa43340d1d15a5c3a02b8476004037eb4840b34910c6e21679d288f3 \
     --hash=sha256:ceb27b0af3823ea2737928a4d99d125a06175b8512c445cbd9a9ce200ef76842
     # via soil-id
+gdal==3.8.5 \
+    --hash=sha256:ad8addd58ba9c62aefc7f65d345c168736798f137e5c8f247af76fcf4862d371
+    # via soil-id
 geopandas==0.14.4 \
     --hash=sha256:3bb6473cb59d51e1a7fe2dbc24a1a063fb0ebdeddf3ce08ddbf8c7ddc99689aa \
     --hash=sha256:56765be9d58e2c743078085db3bd07dc6be7719f0dbe1dfdc1d705cb80be7c25
@@ -504,17 +507,6 @@ markupsafe==2.1.5 \
     #   jinja2
     #   soil-id
     #   werkzeug
-mysqlclient==2.2.4 \
-    --hash=sha256:329e4eec086a2336fe3541f1ce095d87a6f169d1cc8ba7b04ac68bcb234c9711 \
-    --hash=sha256:33bc9fb3464e7d7c10b1eaf7336c5ff8f2a3d3b88bab432116ad2490beb3bf41 \
-    --hash=sha256:3c318755e06df599338dad7625f884b8a71fcf322a9939ef78c9b3db93e1de7a \
-    --hash=sha256:4e80dcad884dd6e14949ac6daf769123223a52a6805345608bf49cdaf7bc8b3a \
-    --hash=sha256:9d3310295cb682232cadc28abd172f406c718b9ada41d2371259098ae37779d3 \
-    --hash=sha256:9d4c015480c4a6b2b1602eccd9846103fc70606244788d04aa14b31c4bd1f0e2 \
-    --hash=sha256:ac44777eab0a66c14cb0d38965572f762e193ec2e5c0723bcd11319cc5b693c5 \
-    --hash=sha256:d43987bb9626096a302ca6ddcdd81feaeca65ced1d5fe892a6a66b808326aa54 \
-    --hash=sha256:e1ebe3f41d152d7cb7c265349fdb7f1eca86ccb0ca24a90036cde48e00ceb2ab
-    # via soil-id
 networkx==3.3 \
     --hash=sha256:0c127d8b2f4865f59ae9cb8aafcd60b5c70f3241ebd66f7defad7c4ab90126c9 \
     --hash=sha256:28575580c6ebdaf4505b22c6256a2b9de86b316dc63ba9e93abde3d78dfdbcf2
@@ -727,7 +719,9 @@ psycopg2==2.9.9 \
     --hash=sha256:d735786acc7dd25815e89cc4ad529a43af779db2e25aa7c626de864127e5a024 \
     --hash=sha256:de80739447af31525feddeb8effd640782cf5998e1a4e9192ebdf829717e3913 \
     --hash=sha256:ff432630e510709564c01dafdbe996cb552e0b9f3f065eb89bdce5bd31fabf4c
-    # via -r requirements/base.in
+    # via
+    #   -r requirements/base.in
+    #   soil-id
 pycparser==2.22 \
     --hash=sha256:491c8be9c040f5390f5bf44a5b07752bd07f56edf992381b05c701439eec10f6 \
     --hash=sha256:c3702b6d3dd8c7abc1afa565d7e63d53a1d0bd86cdc24edd75470f4de499cfcc
@@ -992,8 +986,8 @@ sniffio==1.3.1 \
     # via
     #   anyio
     #   httpx
-soil-id @ https://github.com/techmatters/soil-id-algorithm/archive/ddf718a.zip \
-    --hash=sha256:15d29948023384962b2d45e6503ac1a0030b7f3b86881ee6db8338939e1acd06
+soil-id @ https://github.com/techmatters/soil-id-algorithm/archive/f6cc011.zip \
+    --hash=sha256:43b69bd85e06a9b20c23ff9295f4dde4cb9e1af5a3eaf95e621dd49112515ca4
     # via -r requirements/base.in
 sqlparse==0.5.0 \
     --hash=sha256:714d0a4932c059d16189f58ef5411ec2287a4360f17cdd0edd2d09d4c5087c93 \
