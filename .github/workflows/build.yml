@@ -50,6 +50,26 @@ jobs:
           echo "SENTRY_DSN=${{ secrets.SENTRY_DSN }}" >> .env
           make build DC_ENV=ci
 
+      - name: Restore data cache
+        uses: actions/cache@v4
+        with:
+          path: Data/
+          key: ${{ runner.os }}-data-${{ hashFiles('Data/*') }}
+          restore-keys: ${{ runner.os }}-data-
+
+      - name: Download data
+        if: ${{ hashFiles('Data/*') == '' }}
+        run: |
+          mkdir Data
+          cd Data
+          gdown 1tN23iVe6X1fcomcfveVp4w3Pwd0HJuTe # Munsell CSV
+          gdown 1WUa9e3vTWPi6G8h4OI3CBUZP5y7tf1Li # SHX
+          gdown 1l9MxC0xENGmI_NmGlBY74EtlD6SZid_a # SHP
+          gdown 1asGnnqe0zI2v8xuOszlsNmZkOSl7cJ2n # SBX
+          gdown 185Qjb9pJJn4AzOissiTz283tINrDqgI0 # SBN
+          gdown 1P3xl1YRlfcMjfO_4PM39tkrrlL3hoLzv # PRJ
+          gdown 1K0GkqxhZiVUND6yfFmaI7tYanLktekyp # DBF
+
       - name: Run tests using built Docker image
         run: |
           make test-ci DC_ENV=ci
