@@ -60,6 +60,7 @@ jobs:
       - name: Download data
         if: ${{ hashFiles('Data/*') == '' }}
         run: |
+          pip install gdown
           mkdir Data
           cd Data
           gdown 1tN23iVe6X1fcomcfveVp4w3Pwd0HJuTe # Munsell CSV
