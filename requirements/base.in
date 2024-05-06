@@ -21,6 +21,7 @@ psycopg2
 pyjwt[crypto]
 pyproj
 python-magic
+requests
 rules
 sentry-sdk[django]
 shapely
