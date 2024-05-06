@@ -436,3 +436,11 @@ if config("SENTRY_DSN", default=""):
 else:
     # structlog is already set up at this point, so we can log nicely.
     structlog.get_logger().warning("SENTRY_DSN is not defined, continuing without Sentry.")
+
+HUBSPOT_AUTH_TOKEN = config("HUBSPOT_AUTH_TOKEN", default="")
+HUBSPOT_PORTAL_ID = config("HUBSPOT_PORTAL_ID", default="")
+HUBSPOT_ACCOUNT_DELETION_FORM_ID = config("HUBSPOT_ACCOUNT_DELETION_FORM_ID", default="")
+HUBSPOT_ACCOUNT_DELETION_FORM_API_URL = (
+    f"https://api.hsforms.com/submissions/v3/integration/submit/"
+    f"{HUBSPOT_PORTAL_ID}/{HUBSPOT_ACCOUNT_DELETION_FORM_ID}"
+)
