@@ -28,7 +28,6 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name="site",
             name="elevation",
-            field=models.FloatField(default=0.0),
-            preserve_default=False,
+            field=models.FloatField(null=True),
         ),
     ]

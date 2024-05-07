@@ -114,7 +114,7 @@ class SiteAddMutation(BaseWriteMutation):
         name = graphene.String(required=True)
         latitude = graphene.Float(required=True)
         longitude = graphene.Float(required=True)
-        elevation = graphene.Float(required=True)
+        elevation = graphene.Float()
         privacy = SiteNode.privacy_enum()
         project_id = graphene.ID()
         create_soil_data = graphene.Boolean()
