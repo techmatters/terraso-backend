@@ -74,6 +74,7 @@ class SiteNode(DjangoObjectType):
             "name",
             "latitude",
             "longitude",
+            "elevation",
             "project",
             "archived",
             "owner",
@@ -113,6 +114,7 @@ class SiteAddMutation(BaseWriteMutation):
         name = graphene.String(required=True)
         latitude = graphene.Float(required=True)
         longitude = graphene.Float(required=True)
+        elevation = graphene.Float(required=True)
         privacy = SiteNode.privacy_enum()
         project_id = graphene.ID()
         create_soil_data = graphene.Boolean()
@@ -152,6 +154,7 @@ class SiteAddMutation(BaseWriteMutation):
         metadata = {
             "latitude": site.latitude,
             "longitude": site.longitude,
+            "elevation": site.elevation,
             "name": site.name,
         }
         if kwargs.get("project_id", None):
@@ -190,6 +193,7 @@ class SiteUpdateMutation(BaseWriteMutation):
         name = graphene.String()
         latitude = graphene.Float()
         longitude = graphene.Float()
+        elevation = graphene.Float()
         privacy = SiteNode.privacy_enum()
         project_id = graphene.ID()
 
