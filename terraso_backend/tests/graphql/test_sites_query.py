@@ -29,6 +29,7 @@ def test_query_site_fields(client, project, project_user):
             name="site 1",
             latitude=1.0,
             longitude=-1.0,
+            elevation=1.0,
             owner=project_user,
             privacy="PRIVATE",
             archived=False,
@@ -37,6 +38,7 @@ def test_query_site_fields(client, project, project_user):
             name="site 2",
             latitude=-2.0,
             longitude=2.0,
+            elevation=2.0,
             project=project,
             privacy="PUBLIC",
             archived=True,
@@ -52,6 +54,7 @@ def test_query_site_fields(client, project, project_user):
         name
         latitude
         longitude
+        elevation
         privacy
         archived
         owner { id }
@@ -67,6 +70,7 @@ def test_query_site_fields(client, project, project_user):
         assert site_json["name"] == site.name
         assert site_json["latitude"] == site.latitude
         assert site_json["longitude"] == site.longitude
+        assert site_json["elevation"] == site.elevation
         assert site_json["privacy"] == site.privacy
         assert site_json["archived"] == site.archived
         if site_json["owner"] is None:
@@ -83,7 +87,13 @@ def test_query_by_project(client, project, project_manager, site):
     site.project = project
     site.owner = None
     site.save()
-    site2 = Site(name=2, project=project, latitude=site.latitude, longitude=site.longitude)
+    site2 = Site(
+        name=2,
+        project=project,
+        latitude=site.latitude,
+        longitude=site.longitude,
+        elevation=site.elevation,
+    )
     site2.save()
     query = """
     {
@@ -135,9 +145,21 @@ def test_query_by_project_member(client, project, site, project_user):
     site.project = project
     site.owner = None
     site.save()
-    site2 = Site(name="2", project=project2, latitude=site.latitude, longitude=site.longitude)
+    site2 = Site(
+        name="2",
+        project=project2,
+        latitude=site.latitude,
+        longitude=site.longitude,
+        elevation=site.elevation,
+    )
     site2.save()
-    site3 = Site(name="3", owner=project_user, latitude=site.latitude, longitude=site.longitude)
+    site3 = Site(
+        name="3",
+        owner=project_user,
+        latitude=site.latitude,
+        longitude=site.longitude,
+        elevation=site.elevation,
+    )
     site3.save()
     query = """
     {
@@ -163,7 +185,13 @@ def test_query_by_project_member(client, project, site, project_user):
 
 def test_query_by_owner(client, project, site, user):
     user2 = mixer.blend(User)
-    site2 = Site(name="2", owner=user2, latitude=site.latitude, longitude=site.longitude)
+    site2 = Site(
+        name="2",
+        owner=user2,
+        latitude=site.latitude,
+        longitude=site.longitude,
+        elevation=site.elevation,
+    )
     site2.save()
     query = """
     {
@@ -193,9 +221,21 @@ def test_query_site_permissions(client, client_query, project, project_manager, 
     site.save()
     client.force_login(project_manager)
     assert project_manager != user
-    site2 = Site(name=2, latitude=site.latitude, longitude=site.longitude, owner=user)
+    site2 = Site(
+        name=2,
+        latitude=site.latitude,
+        longitude=site.longitude,
+        elevation=site.elevation,
+        owner=user,
+    )
     site2.save()
-    site3 = Site(name=3, latitude=site.latitude, longitude=site.longitude, owner=user)
+    site3 = Site(
+        name=3,
+        latitude=site.latitude,
+        longitude=site.longitude,
+        elevation=site.elevation,
+        owner=user,
+    )
     site3.save()
     query = """
        {

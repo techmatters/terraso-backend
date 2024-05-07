@@ -44,7 +44,7 @@ CREATE_SITE_QUERY = """
 
 
 def site_creation_keywords():
-    return {"latitude": 0, "longitude": 0, "name": "Test Site", "privacy": "PUBLIC"}
+    return {"latitude": 0, "longitude": 0, "elevation": 0, "name": "Test Site", "privacy": "PUBLIC"}
 
 
 def test_site_creation(client_query, user):
@@ -57,6 +57,7 @@ def test_site_creation(client_query, user):
     assert str(site.id) == id
     assert site.latitude == pytest.approx(site.latitude)
     assert site.longitude == pytest.approx(site.longitude)
+    assert site.elevation == pytest.approx(site.elevation)
     assert site.owner == user
     assert site.privacy == "public"
     logs = Log.objects.all()
@@ -65,7 +66,7 @@ def test_site_creation(client_query, user):
     assert log_result.event == CREATE.value
     assert log_result.user == user
     assert log_result.resource_object == site
-    expected_metadata = {"name": "Test Site", "latitude": 0.0, "longitude": 0.0}
+    expected_metadata = {"name": "Test Site", "latitude": 0.0, "longitude": 0.0, "elevation": 0.0}
     assert log_result.metadata == expected_metadata
 
 
@@ -275,7 +276,7 @@ def test_mark_site_seen(client, user):
     client.force_login(user)
     response = graphql_query(
         CREATE_SITE_QUERY,
-        variables={"input": {"name": "site", "latitude": 0, "longitude": 0}},
+        variables={"input": {"name": "site", "latitude": 0, "longitude": 0, "elevation": 0}},
         client=client,
     )
     site = response.json()["data"]["addSite"]["site"]

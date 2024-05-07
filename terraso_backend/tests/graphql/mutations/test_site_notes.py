@@ -25,7 +25,7 @@ pytestmark = pytest.mark.django_db
 @pytest.fixture
 def site(user):
     return Site.objects.create(
-        name="Test Site", latitude=0, longitude=0, privacy="PUBLIC", owner=user
+        name="Test Site", latitude=0, longitude=0, elevation=0, privacy="PUBLIC", owner=user
     )
 
 
