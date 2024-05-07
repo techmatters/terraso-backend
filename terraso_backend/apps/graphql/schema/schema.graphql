@@ -747,6 +747,7 @@ type SiteNode implements Node {
   name: String!
   latitude: Float!
   longitude: Float!
+  elevation: Float!
   updatedAt: DateTime!
   owner: UserNode
   privacy: ProjectManagementSitePrivacyChoices!
@@ -1958,6 +1959,7 @@ input SiteAddMutationInput {
   name: String!
   latitude: Float!
   longitude: Float!
+  elevation: Float!
   privacy: ProjectManagementSitePrivacyChoices
   projectId: ID
   createSoilData: Boolean
@@ -1975,6 +1977,7 @@ input SiteUpdateMutationInput {
   name: String
   latitude: Float
   longitude: Float
+  elevation: Float
   privacy: ProjectManagementSitePrivacyChoices
   projectId: ID
   clientMutationId: String
