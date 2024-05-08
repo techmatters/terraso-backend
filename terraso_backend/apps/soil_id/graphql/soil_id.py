@@ -67,25 +67,34 @@ class SoilIdSoilData(graphene.ObjectType):
 class SoilInfo(graphene.ObjectType):
     """Provides information about soil at a particular location."""
 
-    data_source = graphene.String(required=True)
     soil_series = graphene.Field(SoilSeries, required=True)
     ecological_site = graphene.Field(EcologicalSite, required=False)
     land_capability_class = graphene.Field(LandCapabilityClass, required=True)
     soil_data = graphene.Field(SoilIdSoilData, required=True)
 
 
-class SoilMatch(graphene.ObjectType):
+class SoilMatchInfo(graphene.ObjectType):
     """The likelihood score and rank within the match group for a particular soil type."""
 
     score = graphene.Float(required=True)
     rank = graphene.Int(required=True)
 
 
-class LocationBasedSoilMatch(graphene.ObjectType):
+class SoilMatch(graphene.ObjectType):
+    """Base class for location/data based soil matches."""
+
+    class Meta:
+        abstract = True
+
+    data_source = graphene.String(required=True)
+    in_map_unit = graphene.Boolean(required=True)
+    soil_info = graphene.Field(SoilInfo, required=True)
+
+
+class LocationBasedSoilMatch(SoilMatch):
     """A soil match based solely on a coordinate pair."""
 
-    soil_info = graphene.Field(SoilInfo, required=True)
-    match = graphene.Field(SoilMatch, required=True)
+    match = graphene.Field(SoilMatchInfo, required=True)
 
 
 class LocationBasedSoilMatches(graphene.ObjectType):
@@ -94,13 +103,13 @@ class LocationBasedSoilMatches(graphene.ObjectType):
     matches = graphene.List(graphene.NonNull(LocationBasedSoilMatch), required=True)
 
 
-class DataBasedSoilMatch(graphene.ObjectType):
+class DataBasedSoilMatch(SoilMatch):
     """A soil match based on a coordinate pair and soil data."""
 
     soil_info = graphene.Field(SoilInfo, required=True)
-    location_match = graphene.Field(SoilMatch, required=True)
-    data_match = graphene.Field(SoilMatch, required=True)
-    combined_match = graphene.Field(SoilMatch, required=True)
+    location_match = graphene.Field(SoilMatchInfo, required=True)
+    data_match = graphene.Field(SoilMatchInfo, required=True)
+    combined_match = graphene.Field(SoilMatchInfo, required=True)
 
 
 class DataBasedSoilMatches(graphene.ObjectType):
@@ -131,7 +140,6 @@ class SoilIdInputData(graphene.InputObjectType):
 
 sample_soil_infos = [
     SoilInfo(
-        data_source="SSURGO",
         soil_series=SoilSeries(
             name="Yemassee",
             taxonomy_subgroup="Aeric Endoaquults",
@@ -167,7 +175,6 @@ sample_soil_infos = [
         ),
     ),
     SoilInfo(
-        data_source="STATSGO",
         soil_series=SoilSeries(
             name="Randall",
             taxonomy_subgroup="Ustic Epiaquerts",
@@ -205,11 +212,15 @@ def resolve_location_based_soil_matches(_parent, _info, latitude: float, longitu
     return LocationBasedSoilMatches(
         matches=[
             LocationBasedSoilMatch(
-                match=SoilMatch(score=1.0, rank=0),
+                data_source="SSURGO",
+                in_map_unit=True,
+                match=SoilMatchInfo(score=1.0, rank=0),
                 soil_info=sample_soil_infos[0],
             ),
             LocationBasedSoilMatch(
-                match=SoilMatch(score=0.5, rank=1),
+                data_source="STATSGO",
+                in_map_unit=False,
+                match=SoilMatchInfo(score=0.5, rank=1),
                 soil_info=sample_soil_infos[1],
             ),
         ]
@@ -223,15 +234,19 @@ def resolve_data_based_soil_matches(
     return DataBasedSoilMatches(
         matches=[
             DataBasedSoilMatch(
-                location_match=SoilMatch(score=1.0, rank=0),
-                data_match=SoilMatch(score=0.2, rank=1),
-                combined_match=SoilMatch(score=0.6, rank=1),
+                data_source="SSURGO",
+                in_map_unit=True,
+                location_match=SoilMatchInfo(score=1.0, rank=0),
+                data_match=SoilMatchInfo(score=0.2, rank=1),
+                combined_match=SoilMatchInfo(score=0.6, rank=1),
                 soil_info=sample_soil_infos[0],
             ),
             DataBasedSoilMatch(
-                location_match=SoilMatch(score=0.5, rank=1),
-                data_match=SoilMatch(score=0.75, rank=0),
-                combined_match=SoilMatch(score=0.625, rank=0),
+                data_source="STATSGO",
+                in_map_unit=False,
+                location_match=SoilMatchInfo(score=0.5, rank=1),
+                data_match=SoilMatchInfo(score=0.75, rank=0),
+                combined_match=SoilMatchInfo(score=0.625, rank=0),
                 soil_info=sample_soil_infos[1],
             ),
         ]

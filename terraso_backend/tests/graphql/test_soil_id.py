@@ -23,12 +23,11 @@ pytestmark = pytest.mark.django_db
 logger = structlog.get_logger(__name__)
 
 SOIL_MATCH_FRAGMENTS = """
-  fragment soilMatch on SoilMatch {
+  fragment soilMatch on SoilMatchInfo {
     score
     rank
   }
   fragment soilInfo on SoilInfo {
-    dataSource
     soilSeries {
       name
       taxonomySubgroup
@@ -72,6 +71,8 @@ LOCATION_BASED_MATCHES_QUERY = (
   }
   fragment locationBasedSoilMatches on LocationBasedSoilMatches {
     matches {
+      dataSource
+      inMapUnit
       match {
         ...soilMatch
       }
@@ -97,12 +98,14 @@ def test_location_based_soil_matches_endpoint(client):
     assert len(payload["matches"]) > 0
 
     for match in payload["matches"]:
+        assert match["dataSource"] is not None
+        assert match["inMapUnit"] is not None
+
         assert match["match"]["score"] >= 0 and match["match"]["score"] <= 1
         assert match["match"]["rank"] >= 0
 
         info = match["soilInfo"]
 
-        assert info["dataSource"] is not None
         assert info["soilSeries"] is not None
         assert info["landCapabilityClass"] is not None
         assert info["soilData"] is not None
@@ -120,6 +123,8 @@ DATA_BASED_MATCHES_QUERY = (
   }
   fragment dataBasedSoilMatches on DataBasedSoilMatches {
     matches {
+      dataSource
+      inMapUnit
       locationMatch {
         ...soilMatch
       }
@@ -162,7 +167,6 @@ def test_data_based_soil_matches_endpoint(client):
         client=client,
     )
 
-    print(response.json())
     assert response.json()["data"] is not None
 
     payload = response.json()["data"]["soilId"]["dataBasedSoilMatches"]
@@ -170,6 +174,9 @@ def test_data_based_soil_matches_endpoint(client):
     assert len(payload["matches"]) > 0
 
     for match in payload["matches"]:
+        assert match["dataSource"] is not None
+        assert match["inMapUnit"] is not None
+
         match_kinds = ["locationMatch", "dataMatch", "combinedMatch"]
         for kind in match_kinds:
             assert match[kind]["score"] >= 0 and match[kind]["score"] <= 1
@@ -177,7 +184,6 @@ def test_data_based_soil_matches_endpoint(client):
 
         info = match["soilInfo"]
 
-        assert info["dataSource"] is not None
         assert info["soilSeries"] is not None
         assert info["landCapabilityClass"] is not None
         assert info["soilData"] is not None

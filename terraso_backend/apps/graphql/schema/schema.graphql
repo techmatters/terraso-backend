@@ -107,13 +107,14 @@ type LocationBasedSoilMatches {
 
 """A soil match based solely on a coordinate pair."""
 type LocationBasedSoilMatch {
+  dataSource: String!
+  inMapUnit: Boolean!
   soilInfo: SoilInfo!
-  match: SoilMatch!
+  match: SoilMatchInfo!
 }
 
 """Provides information about soil at a particular location."""
 type SoilInfo {
-  dataSource: String!
   soilSeries: SoilSeries!
   ecologicalSite: EcologicalSite
   landCapabilityClass: LandCapabilityClass!
@@ -224,7 +225,7 @@ enum SoilIdDepthDependentSoilDataRockFragmentVolumeChoices {
 """
 The likelihood score and rank within the match group for a particular soil type.
 """
-type SoilMatch {
+type SoilMatchInfo {
   score: Float!
   rank: Int!
 }
@@ -238,10 +239,12 @@ type DataBasedSoilMatches {
 
 """A soil match based on a coordinate pair and soil data."""
 type DataBasedSoilMatch {
+  dataSource: String!
+  inMapUnit: Boolean!
   soilInfo: SoilInfo!
-  locationMatch: SoilMatch!
-  dataMatch: SoilMatch!
-  combinedMatch: SoilMatch!
+  locationMatch: SoilMatchInfo!
+  dataMatch: SoilMatchInfo!
+  combinedMatch: SoilMatchInfo!
 }
 
 """Soil data provided to the soil ID algorithm."""
