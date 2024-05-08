@@ -19,7 +19,6 @@ from apps.soil_id.graphql.soil_data import (
     DepthDependentSoilDataNode,
     DepthInterval,
     DepthIntervalInput,
-    SoilDataNode,
 )
 
 
@@ -47,13 +46,22 @@ class LandCapabilityClass(graphene.ObjectType):
     sub_class = graphene.String(required=True)
 
 
-class SoilIdSoilData(graphene.ObjectType):
+class SoilIdDepthDependentData(graphene.ObjectType):
+    """Depth dependent soil data associated with a soil match output by the soil algorithm."""
+
     depth_interval = graphene.Field(DepthInterval, required=True)
     texture = DepthDependentSoilDataNode.texture_enum()
-    rockFragmentVolume = DepthDependentSoilDataNode.rock_fragment_volume_enum()
-    colorHue = graphene.Float()
-    colorValue = graphene.Float()
-    colorChroma = graphene.Float()
+    rock_fragment_volume = DepthDependentSoilDataNode.rock_fragment_volume_enum()
+    color_hue = graphene.Float()
+    color_value = graphene.Float()
+    color_chroma = graphene.Float()
+
+
+class SoilIdSoilData(graphene.ObjectType):
+    """Soil data associated with a soil match output by the soil algorithm."""
+
+    slope = graphene.Float()
+    depth_dependent_data = graphene.List(graphene.NonNull(SoilIdDepthDependentData), required=True)
 
 
 class SoilInfo(graphene.ObjectType):
@@ -63,7 +71,7 @@ class SoilInfo(graphene.ObjectType):
     soil_series = graphene.Field(SoilSeries, required=True)
     ecological_site = graphene.Field(EcologicalSite, required=False)
     land_capability_class = graphene.Field(LandCapabilityClass, required=True)
-    soil_data = graphene.Field(graphene.List(graphene.NonNull(SoilIdSoilData)), required=True)
+    soil_data = graphene.Field(SoilIdSoilData, required=True)
 
 
 class SoilMatch(graphene.ObjectType):
@@ -83,7 +91,7 @@ class LocationBasedSoilMatch(graphene.ObjectType):
 class LocationBasedSoilMatches(graphene.ObjectType):
     """A ranked group of soil matches based solely on a coordinate pair."""
 
-    matches = graphene.Field(graphene.List(LocationBasedSoilMatch), required=True)
+    matches = graphene.List(graphene.NonNull(LocationBasedSoilMatch), required=True)
 
 
 class DataBasedSoilMatch(graphene.ObjectType):
@@ -98,10 +106,10 @@ class DataBasedSoilMatch(graphene.ObjectType):
 class DataBasedSoilMatches(graphene.ObjectType):
     """A ranked group of soil matches based on a coordinate pair and soil data."""
 
-    matches = graphene.Field(graphene.List(DataBasedSoilMatch), required=True)
+    matches = graphene.List(graphene.NonNull(DataBasedSoilMatch), required=True)
 
 
-class SoilIDInputDepthDependentData(graphene.InputObjectType):
+class SoilIdInputDepthDependentData(graphene.InputObjectType):
     """Depth dependent data provided to the soil ID algorithm."""
 
     depth_interval = graphene.Field(DepthIntervalInput, required=True)
@@ -112,11 +120,84 @@ class SoilIDInputDepthDependentData(graphene.InputObjectType):
     color_chroma = graphene.Float()
 
 
-class SoilIDInputData(graphene.InputObjectType):
+class SoilIdInputData(graphene.InputObjectType):
     """Soil data provided to the soil ID algorithm."""
 
-    slope = SoilDataNode.slope_steepness_enum()
-    intervals = graphene.Field(graphene.List(SoilIDInputDepthDependentData), required=True)
+    slope = graphene.Float()
+    depth_dependent_data = graphene.List(
+        graphene.NonNull(SoilIdInputDepthDependentData), required=True
+    )
+
+
+sample_soil_infos = [
+    SoilInfo(
+        data_source="SSURGO",
+        soil_series=SoilSeries(
+            name="Yemassee",
+            taxonomy_subgroup="Aeric Endoaquults",
+            description="The Yemassee series consists of very deep, somewhat poorly drained, moderately permeable, loamy soils that formed in marine sediments. These soils are on terraces and broad flats of the lower Coastal Plain. Slopes range from 0 to 2 percent.",  # noqa: E501   <- flake8 ignore line length
+            full_description_url="https://casoilresource.lawr.ucdavis.edu/sde/?series=yemassee",  # noqa: E501   <- flake8 ignore line length
+        ),
+        ecological_site=EcologicalSite(
+            name="Loamy Rise, Moderately Wet",
+            id="R153AY001GA",
+            url="https://edit.jornada.nmsu.edu/catalogs/esd/153A/R153AY001GA",
+        ),
+        land_capability_class=LandCapabilityClass(capability_class="6", sub_class="w"),
+        soil_data=SoilIdSoilData(
+            slope=0.5,
+            depth_dependent_data=[
+                SoilIdDepthDependentData(
+                    depth_interval=DepthInterval(start=0, end=10),
+                    texture="CLAY_LOAM",
+                    rock_fragment_volume="VOLUME_1_15",
+                    color_hue=10.0,
+                    color_value=5.0,
+                    color_chroma=4.0,
+                ),
+                SoilIdDepthDependentData(
+                    depth_interval=DepthInterval(start=10, end=15),
+                    texture="SILT",
+                    rock_fragment_volume="VOLUME_15_35",
+                    color_hue=15.0,
+                    color_value=2.0,
+                    color_chroma=0.0,
+                ),
+            ],
+        ),
+    ),
+    SoilInfo(
+        data_source="STATSGO",
+        soil_series=SoilSeries(
+            name="Randall",
+            taxonomy_subgroup="Ustic Epiaquerts",
+            description="The Randall series consists of very deep, poorly drained, very slowly permeable soils that formed in clayey lacustrine sediments derived from the Blackwater Draw Formation of Pleistocene age. These nearly level soils are on the floor of playa basins 3 to 15 m (10 to 50 ft) below the surrounding plain and range in size from 10 to more than 150 acres. Slope ranges from 0 to 1 percent. Mean annual precipitation is 483 mm (19 in), and mean annual temperature is 15 degrees C (59 degrees F).",  # noqa: E501   <- flake8 ignore line length
+            full_description_url="https://casoilresource.lawr.ucdavis.edu/sde/?series=randall",  # noqa: E501   <- flake8 ignore line length
+        ),
+        land_capability_class=LandCapabilityClass(capability_class="4", sub_class="s-a"),
+        soil_data=SoilIdSoilData(
+            slope=0.5,
+            depth_dependent_data=[
+                SoilIdDepthDependentData(
+                    depth_interval=DepthInterval(start=0, end=10),
+                    texture="CLAY_LOAM",
+                    rock_fragment_volume="VOLUME_1_15",
+                    color_hue=10.0,
+                    color_value=5.0,
+                    color_chroma=4.0,
+                ),
+                SoilIdDepthDependentData(
+                    depth_interval=DepthInterval(start=10, end=15),
+                    texture="SILT",
+                    rock_fragment_volume="VOLUME_15_35",
+                    color_hue=15.0,
+                    color_value=2.0,
+                    color_chroma=0.0,
+                ),
+            ],
+        ),
+    ),
+]
 
 
 # to be replaced by actual algorithm output
@@ -125,70 +206,11 @@ def resolve_location_based_soil_matches(_parent, _info, latitude: float, longitu
         matches=[
             LocationBasedSoilMatch(
                 match=SoilMatch(score=1.0, rank=0),
-                soil_info=SoilInfo(
-                    soil_type=SoilSeries(
-                        name="Yemassee",
-                        taxonomy_subgroup="Aeric Endoaquults",
-                        description="The Yemassee series consists of very deep, somewhat poorly drained, moderately permeable, loamy soils that formed in marine sediments. These soils are on terraces and broad flats of the lower Coastal Plain. Slopes range from 0 to 2 percent.",  # noqa: E501   <- flake8 ignore line length
-                        full_description_url="https://casoilresource.lawr.ucdavis.edu/sde/?series=yemassee",  # noqa: E501   <- flake8 ignore line length
-                    ),
-                    ecological_site=EcologicalSite(
-                        name="Loamy Rise, Moderately Wet",
-                        id="R153AY001GA",
-                        url="https://edit.jornada.nmsu.edu/catalogs/esd/153A/R153AY001GA",
-                    ),
-                    land_capability_class=LandCapabilityClass(capability_class="6", sub_class="w"),
-                    soil_data=[
-                        SoilIdSoilData(
-                            depth_interval=DepthInterval(start=0, end=10),
-                            texture="CLAY_LOAM",
-                            rock_fragment_volume="VOLUME_1_15",
-                            color_hue=10.0,
-                            color_value=5.0,
-                            color_chroma=4.0,
-                        ),
-                        SoilIdSoilData(
-                            depth_interval=DepthInterval(start=10, end=15),
-                            texture="SILT",
-                            rock_fragment_volume="VOLUME_15_35",
-                            color_hue=15.0,
-                            color_value=2.0,
-                            color_chroma=0.0,
-                        ),
-                    ],
-                ),
+                soil_info=sample_soil_infos[0],
             ),
             LocationBasedSoilMatch(
                 match=SoilMatch(score=0.5, rank=1),
-                soil_info=SoilInfo(
-                    soil_type=SoilSeries(
-                        name="Randall",
-                        taxonomy_subgroup="Ustic Epiaquerts",
-                        description="The Randall series consists of very deep, poorly drained, very slowly permeable soils that formed in clayey lacustrine sediments derived from the Blackwater Draw Formation of Pleistocene age. These nearly level soils are on the floor of playa basins 3 to 15 m (10 to 50 ft) below the surrounding plain and range in size from 10 to more than 150 acres. Slope ranges from 0 to 1 percent. Mean annual precipitation is 483 mm (19 in), and mean annual temperature is 15 degrees C (59 degrees F).",  # noqa: E501   <- flake8 ignore line length
-                        full_description_url="https://casoilresource.lawr.ucdavis.edu/sde/?series=randall",  # noqa: E501   <- flake8 ignore line length
-                    ),
-                    land_capability_class=LandCapabilityClass(
-                        capability_class="4", sub_class="s-a"
-                    ),
-                    soil_data=[
-                        SoilIdSoilData(
-                            depth_interval=DepthInterval(start=0, end=10),
-                            texture="CLAY_LOAM",
-                            rock_fragment_volume="VOLUME_1_15",
-                            color_hue=10.0,
-                            color_value=5.0,
-                            color_chroma=4.0,
-                        ),
-                        SoilIdSoilData(
-                            depth_interval=DepthInterval(start=10, end=15),
-                            texture="SILT",
-                            rock_fragment_volume="VOLUME_15_35",
-                            color_hue=15.0,
-                            color_value=2.0,
-                            color_chroma=0.0,
-                        ),
-                    ],
-                ),
+                soil_info=sample_soil_infos[1],
             ),
         ]
     )
@@ -196,7 +218,7 @@ def resolve_location_based_soil_matches(_parent, _info, latitude: float, longitu
 
 # to be replaced by actual algorithm output
 def resolve_data_based_soil_matches(
-    _parent, _info, latitude: float, longitude: float, soil_data: SoilIDInputData
+    _parent, _info, latitude: float, longitude: float, data: SoilIdInputData
 ):
     return DataBasedSoilMatches(
         matches=[
@@ -204,80 +226,19 @@ def resolve_data_based_soil_matches(
                 location_match=SoilMatch(score=1.0, rank=0),
                 data_match=SoilMatch(score=0.2, rank=1),
                 combined_match=SoilMatch(score=0.6, rank=1),
-                soil_info=SoilInfo(
-                    data_source="SSURGO",
-                    soil_type=SoilSeries(
-                        name="Yemassee",
-                        taxonomy_subgroup="Aeric Endoaquults",
-                        description="The Yemassee series consists of very deep, somewhat poorly drained, moderately permeable, loamy soils that formed in marine sediments. These soils are on terraces and broad flats of the lower Coastal Plain. Slopes range from 0 to 2 percent.",  # noqa: E501   <- flake8 ignore line length
-                        full_description_url="https://casoilresource.lawr.ucdavis.edu/sde/?series=yemassee",  # noqa: E501   <- flake8 ignore line length
-                    ),
-                    ecological_site=EcologicalSite(
-                        name="Loamy Rise, Moderately Wet",
-                        id="R153AY001GA",
-                        url="https://edit.jornada.nmsu.edu/catalogs/esd/153A/R153AY001GA",
-                    ),
-                    land_capability_class=LandCapabilityClass(
-                        capability_class="4", sub_class="s-a"
-                    ),
-                    soil_data=[
-                        SoilIdSoilData(
-                            depth_interval=DepthInterval(start=0, end=10),
-                            texture="CLAY_LOAM",
-                            rock_fragment_volume="VOLUME_1_15",
-                            color_hue=10.0,
-                            color_value=5.0,
-                            color_chroma=4.0,
-                        ),
-                        SoilIdSoilData(
-                            depth_interval=DepthInterval(start=10, end=15),
-                            texture="SILT",
-                            rock_fragment_volume="VOLUME_15_35",
-                            color_hue=15.0,
-                            color_value=2.0,
-                            color_chroma=0.0,
-                        ),
-                    ],
-                ),
+                soil_info=sample_soil_infos[0],
             ),
             DataBasedSoilMatch(
                 location_match=SoilMatch(score=0.5, rank=1),
                 data_match=SoilMatch(score=0.75, rank=0),
                 combined_match=SoilMatch(score=0.625, rank=0),
-                soil_info=SoilInfo(
-                    data_source="STATSGO",
-                    soil_type=SoilSeries(
-                        name="Randall",
-                        taxonomy_subgroup="Ustic Epiaquerts",
-                        description="The Randall series consists of very deep, poorly drained, very slowly permeable soils that formed in clayey lacustrine sediments derived from the Blackwater Draw Formation of Pleistocene age. These nearly level soils are on the floor of playa basins 3 to 15 m (10 to 50 ft) below the surrounding plain and range in size from 10 to more than 150 acres. Slope ranges from 0 to 1 percent. Mean annual precipitation is 483 mm (19 in), and mean annual temperature is 15 degrees C (59 degrees F).",  # noqa: E501   <- flake8 ignore line length
-                        full_description_url="https://casoilresource.lawr.ucdavis.edu/sde/?series=randall",  # noqa: E501 <- flake8 ignore line length
-                    ),
-                    land_capability_class=LandCapabilityClass(capability_class="6", sub_class="w"),
-                    soil_data=[
-                        SoilIdSoilData(
-                            depth_interval=DepthInterval(start=0, end=10),
-                            texture="CLAY_LOAM",
-                            rock_fragment_volume="VOLUME_1_15",
-                            color_hue=10.0,
-                            color_value=5.0,
-                            color_chroma=4.0,
-                        ),
-                        SoilIdSoilData(
-                            depth_interval=DepthInterval(start=10, end=15),
-                            texture="SILT",
-                            rock_fragment_volume="VOLUME_15_35",
-                            color_hue=15.0,
-                            color_value=2.0,
-                            color_chroma=0.0,
-                        ),
-                    ],
-                ),
+                soil_info=sample_soil_infos[1],
             ),
         ]
     )
 
 
-class SoilID(graphene.ObjectType):
+class SoilId(graphene.ObjectType):
     """Soil ID algorithm queries."""
 
     location_based_soil_matches = graphene.Field(
@@ -292,7 +253,16 @@ class SoilID(graphene.ObjectType):
         DataBasedSoilMatches,
         latitude=graphene.Float(required=True),
         longitude=graphene.Float(required=True),
-        data=graphene.Argument(SoilIDInputData, required=True),
+        data=graphene.Argument(SoilIdInputData, required=True),
         resolver=resolve_data_based_soil_matches,
         required=True,
     )
+
+
+def resolve_soil_id(parent, info):
+    return SoilId()
+
+
+soil_id = graphene.Field(
+    SoilId, required=True, resolver=resolve_soil_id, description="Soil ID algorithm Queries"
+)
