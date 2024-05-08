@@ -1547,9 +1547,11 @@ type LocationBasedSoilMatch {
 
 """Provides information about soil at a particular location."""
 type SoilInfo {
+  dataSource: String!
   soilSeries: SoilSeries!
   ecologicalSite: EcologicalSite
   landCapabilityClass: LandCapabilityClass!
+  soilData: [SoilIdSoilData!]!
 }
 
 """Information about a soil series."""
@@ -1558,7 +1560,6 @@ type SoilSeries {
   taxonomySubgroup: String!
   description: String!
   fullDescriptionUrl: String!
-  dataSource: String!
 }
 
 """Information about an ecological site."""
@@ -1572,6 +1573,15 @@ type EcologicalSite {
 type LandCapabilityClass {
   capabilityClass: String!
   subClass: String!
+}
+
+type SoilIdSoilData {
+  depthInterval: DepthInterval!
+  texture: SoilIdDepthDependentSoilDataTextureChoices
+  rockFragmentVolume: SoilIdDepthDependentSoilDataRockFragmentVolumeChoices
+  colorHue: Float
+  colorValue: Float
+  colorChroma: Float
 }
 
 """

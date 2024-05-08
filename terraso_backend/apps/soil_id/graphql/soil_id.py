@@ -17,6 +17,7 @@ import graphene
 
 from apps.soil_id.graphql.soil_data import (
     DepthDependentSoilDataNode,
+    DepthInterval,
     DepthIntervalInput,
     SoilDataNode,
 )
@@ -37,7 +38,6 @@ class SoilSeries(graphene.ObjectType):
     taxonomy_subgroup = graphene.String(required=True)
     description = graphene.String(required=True)
     full_description_url = graphene.String(required=True)
-    data_source = graphene.String(required=True)
 
 
 class LandCapabilityClass(graphene.ObjectType):
@@ -47,12 +47,23 @@ class LandCapabilityClass(graphene.ObjectType):
     sub_class = graphene.String(required=True)
 
 
+class SoilIdSoilData(graphene.ObjectType):
+    depth_interval = graphene.Field(DepthInterval, required=True)
+    texture = DepthDependentSoilDataNode.texture_enum()
+    rockFragmentVolume = DepthDependentSoilDataNode.rock_fragment_volume_enum()
+    colorHue = graphene.Float()
+    colorValue = graphene.Float()
+    colorChroma = graphene.Float()
+
+
 class SoilInfo(graphene.ObjectType):
     """Provides information about soil at a particular location."""
 
+    data_source = graphene.String(required=True)
     soil_series = graphene.Field(SoilSeries, required=True)
     ecological_site = graphene.Field(EcologicalSite, required=False)
     land_capability_class = graphene.Field(LandCapabilityClass, required=True)
+    soil_data = graphene.Field(graphene.List(graphene.NonNull(SoilIdSoilData)), required=True)
 
 
 class SoilMatch(graphene.ObjectType):
@@ -108,6 +119,7 @@ class SoilIDInputData(graphene.InputObjectType):
     intervals = graphene.Field(graphene.List(SoilIDInputDepthDependentData), required=True)
 
 
+# to be replaced by actual algorithm output
 def resolve_location_based_soil_matches(_parent, _info, latitude: float, longitude: float):
     return LocationBasedSoilMatches(
         matches=[
@@ -117,8 +129,8 @@ def resolve_location_based_soil_matches(_parent, _info, latitude: float, longitu
                     soil_type=SoilSeries(
                         name="Yemassee",
                         taxonomy_subgroup="Aeric Endoaquults",
-                        description="The Yemassee series consists of very deep, somewhat poorly drained, moderately permeable, loamy soils that formed in marine sediments. These soils are on terraces and broad flats of the lower Coastal Plain. Slopes range from 0 to 2 percent.",
-                        full_description_url="https://casoilresource.lawr.ucdavis.edu/sde/?series=yemassee",
+                        description="The Yemassee series consists of very deep, somewhat poorly drained, moderately permeable, loamy soils that formed in marine sediments. These soils are on terraces and broad flats of the lower Coastal Plain. Slopes range from 0 to 2 percent.",  # noqa: E501   <- flake8 ignore line length
+                        full_description_url="https://casoilresource.lawr.ucdavis.edu/sde/?series=yemassee",  # noqa: E501   <- flake8 ignore line length
                     ),
                     ecological_site=EcologicalSite(
                         name="Loamy Rise, Moderately Wet",
@@ -126,6 +138,24 @@ def resolve_location_based_soil_matches(_parent, _info, latitude: float, longitu
                         url="https://edit.jornada.nmsu.edu/catalogs/esd/153A/R153AY001GA",
                     ),
                     land_capability_class=LandCapabilityClass(capability_class="6", sub_class="w"),
+                    soil_data=[
+                        SoilIdSoilData(
+                            depth_interval=DepthInterval(start=0, end=10),
+                            texture="CLAY_LOAM",
+                            rock_fragment_volume="VOLUME_1_15",
+                            color_hue=10.0,
+                            color_value=5.0,
+                            color_chroma=4.0,
+                        ),
+                        SoilIdSoilData(
+                            depth_interval=DepthInterval(start=10, end=15),
+                            texture="SILT",
+                            rock_fragment_volume="VOLUME_15_35",
+                            color_hue=15.0,
+                            color_value=2.0,
+                            color_chroma=0.0,
+                        ),
+                    ],
                 ),
             ),
             LocationBasedSoilMatch(
@@ -134,18 +164,37 @@ def resolve_location_based_soil_matches(_parent, _info, latitude: float, longitu
                     soil_type=SoilSeries(
                         name="Randall",
                         taxonomy_subgroup="Ustic Epiaquerts",
-                        description="The Randall series consists of very deep, poorly drained, very slowly permeable soils that formed in clayey lacustrine sediments derived from the Blackwater Draw Formation of Pleistocene age. These nearly level soils are on the floor of playa basins 3 to 15 m (10 to 50 ft) below the surrounding plain and range in size from 10 to more than 150 acres. Slope ranges from 0 to 1 percent. Mean annual precipitation is 483 mm (19 in), and mean annual temperature is 15 degrees C (59 degrees F).",
-                        full_description_url="https://casoilresource.lawr.ucdavis.edu/sde/?series=randall",
+                        description="The Randall series consists of very deep, poorly drained, very slowly permeable soils that formed in clayey lacustrine sediments derived from the Blackwater Draw Formation of Pleistocene age. These nearly level soils are on the floor of playa basins 3 to 15 m (10 to 50 ft) below the surrounding plain and range in size from 10 to more than 150 acres. Slope ranges from 0 to 1 percent. Mean annual precipitation is 483 mm (19 in), and mean annual temperature is 15 degrees C (59 degrees F).",  # noqa: E501   <- flake8 ignore line length
+                        full_description_url="https://casoilresource.lawr.ucdavis.edu/sde/?series=randall",  # noqa: E501   <- flake8 ignore line length
                     ),
                     land_capability_class=LandCapabilityClass(
                         capability_class="4", sub_class="s-a"
                     ),
+                    soil_data=[
+                        SoilIdSoilData(
+                            depth_interval=DepthInterval(start=0, end=10),
+                            texture="CLAY_LOAM",
+                            rock_fragment_volume="VOLUME_1_15",
+                            color_hue=10.0,
+                            color_value=5.0,
+                            color_chroma=4.0,
+                        ),
+                        SoilIdSoilData(
+                            depth_interval=DepthInterval(start=10, end=15),
+                            texture="SILT",
+                            rock_fragment_volume="VOLUME_15_35",
+                            color_hue=15.0,
+                            color_value=2.0,
+                            color_chroma=0.0,
+                        ),
+                    ],
                 ),
             ),
         ]
     )
 
 
+# to be replaced by actual algorithm output
 def resolve_data_based_soil_matches(
     _parent, _info, latitude: float, longitude: float, soil_data: SoilIDInputData
 ):
@@ -156,20 +205,39 @@ def resolve_data_based_soil_matches(
                 data_match=SoilMatch(score=0.2, rank=1),
                 combined_match=SoilMatch(score=0.6, rank=1),
                 soil_info=SoilInfo(
+                    data_source="SSURGO",
                     soil_type=SoilSeries(
                         name="Yemassee",
                         taxonomy_subgroup="Aeric Endoaquults",
-                        description="The Yemassee series consists of very deep, somewhat poorly drained, moderately permeable, loamy soils that formed in marine sediments. These soils are on terraces and broad flats of the lower Coastal Plain. Slopes range from 0 to 2 percent.",
-                        full_description_url="https://casoilresource.lawr.ucdavis.edu/sde/?series=yemassee",
-                    ),
-                    land_capability_class=LandCapabilityClass(
-                        capability_class="4", sub_class="s-a"
+                        description="The Yemassee series consists of very deep, somewhat poorly drained, moderately permeable, loamy soils that formed in marine sediments. These soils are on terraces and broad flats of the lower Coastal Plain. Slopes range from 0 to 2 percent.",  # noqa: E501   <- flake8 ignore line length
+                        full_description_url="https://casoilresource.lawr.ucdavis.edu/sde/?series=yemassee",  # noqa: E501   <- flake8 ignore line length
                     ),
                     ecological_site=EcologicalSite(
                         name="Loamy Rise, Moderately Wet",
                         id="R153AY001GA",
                         url="https://edit.jornada.nmsu.edu/catalogs/esd/153A/R153AY001GA",
                     ),
+                    land_capability_class=LandCapabilityClass(
+                        capability_class="4", sub_class="s-a"
+                    ),
+                    soil_data=[
+                        SoilIdSoilData(
+                            depth_interval=DepthInterval(start=0, end=10),
+                            texture="CLAY_LOAM",
+                            rock_fragment_volume="VOLUME_1_15",
+                            color_hue=10.0,
+                            color_value=5.0,
+                            color_chroma=4.0,
+                        ),
+                        SoilIdSoilData(
+                            depth_interval=DepthInterval(start=10, end=15),
+                            texture="SILT",
+                            rock_fragment_volume="VOLUME_15_35",
+                            color_hue=15.0,
+                            color_value=2.0,
+                            color_chroma=0.0,
+                        ),
+                    ],
                 ),
             ),
             DataBasedSoilMatch(
@@ -177,13 +245,32 @@ def resolve_data_based_soil_matches(
                 data_match=SoilMatch(score=0.75, rank=0),
                 combined_match=SoilMatch(score=0.625, rank=0),
                 soil_info=SoilInfo(
+                    data_source="STATSGO",
                     soil_type=SoilSeries(
                         name="Randall",
                         taxonomy_subgroup="Ustic Epiaquerts",
-                        description="The Randall series consists of very deep, poorly drained, very slowly permeable soils that formed in clayey lacustrine sediments derived from the Blackwater Draw Formation of Pleistocene age. These nearly level soils are on the floor of playa basins 3 to 15 m (10 to 50 ft) below the surrounding plain and range in size from 10 to more than 150 acres. Slope ranges from 0 to 1 percent. Mean annual precipitation is 483 mm (19 in), and mean annual temperature is 15 degrees C (59 degrees F).",
-                        full_description_url="https://casoilresource.lawr.ucdavis.edu/sde/?series=randall",
+                        description="The Randall series consists of very deep, poorly drained, very slowly permeable soils that formed in clayey lacustrine sediments derived from the Blackwater Draw Formation of Pleistocene age. These nearly level soils are on the floor of playa basins 3 to 15 m (10 to 50 ft) below the surrounding plain and range in size from 10 to more than 150 acres. Slope ranges from 0 to 1 percent. Mean annual precipitation is 483 mm (19 in), and mean annual temperature is 15 degrees C (59 degrees F).",  # noqa: E501   <- flake8 ignore line length
+                        full_description_url="https://casoilresource.lawr.ucdavis.edu/sde/?series=randall",  # noqa: E501 <- flake8 ignore line length
                     ),
                     land_capability_class=LandCapabilityClass(capability_class="6", sub_class="w"),
+                    soil_data=[
+                        SoilIdSoilData(
+                            depth_interval=DepthInterval(start=0, end=10),
+                            texture="CLAY_LOAM",
+                            rock_fragment_volume="VOLUME_1_15",
+                            color_hue=10.0,
+                            color_value=5.0,
+                            color_chroma=4.0,
+                        ),
+                        SoilIdSoilData(
+                            depth_interval=DepthInterval(start=10, end=15),
+                            texture="SILT",
+                            rock_fragment_volume="VOLUME_15_35",
+                            color_hue=15.0,
+                            color_value=2.0,
+                            color_chroma=0.0,
+                        ),
+                    ],
                 ),
             ),
         ]
