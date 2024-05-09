@@ -70,6 +70,30 @@ def test_site_creation(client_query, user):
     assert log_result.metadata == expected_metadata
 
 
+def test_site_creation_without_elevation(client_query, user):
+    kwargs = site_creation_keywords()
+    del kwargs["elevation"]
+    response = client_query(CREATE_SITE_QUERY, variables={"input": kwargs})
+    content = json.loads(response.content)
+    assert "errors" not in content
+    id = content["data"]["addSite"]["site"]["id"]
+    site = Site.objects.get(pk=id)
+    assert str(site.id) == id
+    assert site.latitude == pytest.approx(site.latitude)
+    assert site.longitude == pytest.approx(site.longitude)
+    assert site.elevation is None
+    assert site.owner == user
+    assert site.privacy == "public"
+    logs = Log.objects.all()
+    assert len(logs) == 1
+    log_result = logs[0]
+    assert log_result.event == CREATE.value
+    assert log_result.user == user
+    assert log_result.resource_object == site
+    expected_metadata = {"name": "Test Site", "latitude": 0.0, "longitude": 0.0, "elevation": None}
+    assert log_result.metadata == expected_metadata
+
+
 @pytest.mark.parametrize("project_user_w_role", ["MANAGER", "CONTRIBUTOR"], indirect=True)
 def test_site_creation_in_project(client, project_user_w_role, project):
     kwargs = site_creation_keywords()
