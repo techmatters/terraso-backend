@@ -65,13 +65,19 @@ need to attach to the application running container.
 
 So, assuming that the application is running with `make run`:
 
+List the running containers
+
 ```sh
-# List the running containers
 $ docker ps
-# Get the id of the web container before next step
-$ docker attach <web-container-id>
-# This will give you access to the web running container
 ```
+
+Get the id of the web container before next step
+
+```sh
+$ docker attach <web-container-id>
+```
+
+This will give you access to the web running container
 
 Make the application request call that will pass on breakpoint, like
 calling an API or clicking in some button. As soon as the process get to
