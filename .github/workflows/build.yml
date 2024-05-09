@@ -55,9 +55,17 @@ jobs:
           key: ${{ runner.os }}-data-${{ hashFiles('Data/*') }}
           restore-keys: ${{ runner.os }}-data-
 
-      - name: Download data
+      - name: Setup Python
         if: ${{ hashFiles('Data/*') == '' }}
-        run: make download-soil-data
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12.3"
+
+      - name: Install Python dependencies and download data
+        if: ${{ hashFiles('Data/*') == '' }}
+        run: |
+          make install-dev
+          make download-soil-data
 
       - name: Run tests using built Docker image
         run: make test-ci DC_ENV=ci
