@@ -23,8 +23,7 @@ jobs:
           python-version: "3.12.3"
 
       - name: Install Python dependencies for CI
-        run: |
-          pip install -r requirements-dev.txt
+        run: make install-dev
 
       - name: Build base Docker image
         run: |
