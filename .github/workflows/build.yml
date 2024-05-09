@@ -33,8 +33,7 @@ jobs:
           make build DC_ENV=ci
 
       - name: Run lint checks
-        run: |
-          make lint
+        run: make lint
 
   build-and-test:
     runs-on: ubuntu-latest
@@ -72,5 +71,4 @@ jobs:
           gdown 1K0GkqxhZiVUND6yfFmaI7tYanLktekyp # DBF
 
       - name: Run tests using built Docker image
-        run: |
-          make test-ci DC_ENV=ci
+        run: make test-ci DC_ENV=ci
