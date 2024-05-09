@@ -92,6 +92,12 @@ Import landscape boundaries geodata:
 $ python terraso_backend/manage.py load_landscapes_geojson --airtable_api_key xxxxx
 ```
 
+Download Soil ID data:
+
+```sh
+$ make download-soil-data
+```
+
 ## Reset the database
 
 You can reset the database back to its default state:
