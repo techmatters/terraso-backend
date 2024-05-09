@@ -96,7 +96,7 @@ type Query {
 
 """Soil ID algorithm queries."""
 type SoilId {
-  locationBasedSoilMatches(latitude: Float!, longitude: Float!): LocationBasedSoilMatches!
+  locationBasedSoilMatches(latitude: Float!, longitude: Float!): LocationBasedSoilMatches
   dataBasedSoilMatches(latitude: Float!, longitude: Float!, data: SoilIdInputData!): DataBasedSoilMatches!
 }
 
