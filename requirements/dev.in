@@ -1,6 +1,7 @@
 black
 flake8
 freezegun
+gdown
 ipdb
 isort
 mixer
