@@ -52,9 +52,7 @@ SOIL_MATCH_FRAGMENTS = """
         }
         texture
         rockFragmentVolume
-        colorHue
-        colorValue
-        colorChroma
+        munsellColorString
       }
     }
   }
@@ -72,7 +70,7 @@ LOCATION_BASED_MATCHES_QUERY = (
   fragment locationBasedSoilMatches on LocationBasedSoilMatches {
     matches {
       dataSource
-      inMapUnit
+      distanceToNearestMapUnitM
       match {
         ...soilMatch
       }
@@ -98,8 +96,8 @@ def test_location_based_soil_matches_endpoint(client):
     assert len(payload["matches"]) > 0
 
     for match in payload["matches"]:
-        assert match["dataSource"] is not None
-        assert match["inMapUnit"] is not None
+        assert isinstance(match["dataSource"], str)
+        assert isinstance(match["distanceToNearestMapUnitM"], float)
 
         assert match["match"]["score"] >= 0 and match["match"]["score"] <= 1
         assert match["match"]["rank"] >= 0
@@ -124,7 +122,7 @@ DATA_BASED_MATCHES_QUERY = (
   fragment dataBasedSoilMatches on DataBasedSoilMatches {
     matches {
       dataSource
-      inMapUnit
+      distanceToNearestMapUnitM
       locationMatch {
         ...soilMatch
       }
@@ -157,9 +155,7 @@ def test_data_based_soil_matches_endpoint(client):
                         "depthInterval": {"start": 0, "end": 10},
                         "texture": "CLAY",
                         "rockFragmentVolume": "VOLUME_0_1",
-                        "colorHue": 20,
-                        "colorValue": 5,
-                        "colorChroma": 4,
+                        "colorLab": {"L": 20, "a": 30, "b": 40},
                     }
                 ],
             },
@@ -174,8 +170,8 @@ def test_data_based_soil_matches_endpoint(client):
     assert len(payload["matches"]) > 0
 
     for match in payload["matches"]:
-        assert match["dataSource"] is not None
-        assert match["inMapUnit"] is not None
+        assert isinstance(match["dataSource"], str)
+        assert isinstance(match["distanceToNearestMapUnitM"], float)
 
         match_kinds = ["locationMatch", "dataMatch", "combinedMatch"]
         for kind in match_kinds:

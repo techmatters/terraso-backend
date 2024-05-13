@@ -52,9 +52,7 @@ class SoilIdDepthDependentData(graphene.ObjectType):
     depth_interval = graphene.Field(DepthInterval, required=True)
     texture = DepthDependentSoilDataNode.texture_enum()
     rock_fragment_volume = DepthDependentSoilDataNode.rock_fragment_volume_enum()
-    color_hue = graphene.Float()
-    color_value = graphene.Float()
-    color_chroma = graphene.Float()
+    munsell_color_string = graphene.String()
 
 
 class SoilIdSoilData(graphene.ObjectType):
@@ -87,7 +85,7 @@ class SoilMatch(graphene.ObjectType):
         abstract = True
 
     data_source = graphene.String(required=True)
-    in_map_unit = graphene.Boolean(required=True)
+    distance_to_nearest_map_unit_m = graphene.Float(required=True)
     soil_info = graphene.Field(SoilInfo, required=True)
 
 
@@ -118,15 +116,19 @@ class DataBasedSoilMatches(graphene.ObjectType):
     matches = graphene.List(graphene.NonNull(DataBasedSoilMatch), required=True)
 
 
+class LabColorInput(graphene.InputObjectType):
+    L = graphene.Float(required=True)
+    a = graphene.Float(required=True)
+    b = graphene.Float(required=True)
+
+
 class SoilIdInputDepthDependentData(graphene.InputObjectType):
     """Depth dependent data provided to the soil ID algorithm."""
 
     depth_interval = graphene.Field(DepthIntervalInput, required=True)
     texture = graphene.Field(DepthDependentSoilDataNode.texture_enum())
     rock_fragment_volume = graphene.Field(DepthDependentSoilDataNode.rock_fragment_volume_enum())
-    color_hue = graphene.Float()
-    color_value = graphene.Float()
-    color_chroma = graphene.Float()
+    color_lab = graphene.Field(LabColorInput)
 
 
 class SoilIdInputData(graphene.InputObjectType):
@@ -159,17 +161,13 @@ sample_soil_infos = [
                     depth_interval=DepthInterval(start=0, end=10),
                     texture="CLAY_LOAM",
                     rock_fragment_volume="VOLUME_1_15",
-                    color_hue=10.0,
-                    color_value=5.0,
-                    color_chroma=4.0,
+                    munsell_color_string="10R 5/4",
                 ),
                 SoilIdDepthDependentData(
                     depth_interval=DepthInterval(start=10, end=15),
                     texture="SILT",
                     rock_fragment_volume="VOLUME_15_35",
-                    color_hue=15.0,
-                    color_value=2.0,
-                    color_chroma=0.0,
+                    munsell_color_string="10YR 2/6",
                 ),
             ],
         ),
@@ -189,17 +187,13 @@ sample_soil_infos = [
                     depth_interval=DepthInterval(start=0, end=10),
                     texture="CLAY_LOAM",
                     rock_fragment_volume="VOLUME_1_15",
-                    color_hue=10.0,
-                    color_value=5.0,
-                    color_chroma=4.0,
+                    munsell_color_string="10R 5/4",
                 ),
                 SoilIdDepthDependentData(
                     depth_interval=DepthInterval(start=10, end=15),
                     texture="SILT",
                     rock_fragment_volume="VOLUME_15_35",
-                    color_hue=15.0,
-                    color_value=2.0,
-                    color_chroma=0.0,
+                    munsell_color_string="N 4/",
                 ),
             ],
         ),
@@ -213,13 +207,13 @@ def resolve_location_based_soil_matches(_parent, _info, latitude: float, longitu
         matches=[
             LocationBasedSoilMatch(
                 data_source="SSURGO",
-                in_map_unit=True,
+                distance_to_nearest_map_unit_m=0.0,
                 match=SoilMatchInfo(score=1.0, rank=0),
                 soil_info=sample_soil_infos[0],
             ),
             LocationBasedSoilMatch(
                 data_source="STATSGO",
-                in_map_unit=False,
+                distance_to_nearest_map_unit_m=50.0,
                 match=SoilMatchInfo(score=0.5, rank=1),
                 soil_info=sample_soil_infos[1],
             ),
@@ -235,7 +229,7 @@ def resolve_data_based_soil_matches(
         matches=[
             DataBasedSoilMatch(
                 data_source="SSURGO",
-                in_map_unit=True,
+                distance_to_nearest_map_unit_m=0.0,
                 location_match=SoilMatchInfo(score=1.0, rank=0),
                 data_match=SoilMatchInfo(score=0.2, rank=1),
                 combined_match=SoilMatchInfo(score=0.6, rank=1),
@@ -243,7 +237,7 @@ def resolve_data_based_soil_matches(
             ),
             DataBasedSoilMatch(
                 data_source="STATSGO",
-                in_map_unit=False,
+                distance_to_nearest_map_unit_m=50.0,
                 location_match=SoilMatchInfo(score=0.5, rank=1),
                 data_match=SoilMatchInfo(score=0.75, rank=0),
                 combined_match=SoilMatchInfo(score=0.625, rank=0),

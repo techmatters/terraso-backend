@@ -108,7 +108,7 @@ type LocationBasedSoilMatches {
 """A soil match based solely on a coordinate pair."""
 type LocationBasedSoilMatch {
   dataSource: String!
-  inMapUnit: Boolean!
+  distanceToNearestMapUnitM: Float!
   soilInfo: SoilInfo!
   match: SoilMatchInfo!
 }
@@ -240,7 +240,7 @@ type DataBasedSoilMatches {
 """A soil match based on a coordinate pair and soil data."""
 type DataBasedSoilMatch {
   dataSource: String!
-  inMapUnit: Boolean!
+  distanceToNearestMapUnitM: Float!
   soilInfo: SoilInfo!
   locationMatch: SoilMatchInfo!
   dataMatch: SoilMatchInfo!
