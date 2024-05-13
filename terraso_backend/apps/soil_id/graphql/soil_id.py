@@ -118,8 +118,8 @@ class DataBasedSoilMatches(graphene.ObjectType):
 
 class LabColorInput(graphene.InputObjectType):
     L = graphene.Float(required=True)
-    a = graphene.Float(required=True)
-    b = graphene.Float(required=True)
+    A = graphene.Float(required=True)
+    B = graphene.Float(required=True)
 
 
 class SoilIdInputDepthDependentData(graphene.InputObjectType):

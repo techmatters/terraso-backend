@@ -155,9 +155,7 @@ type SoilIdDepthDependentData {
   depthInterval: DepthInterval!
   texture: SoilIdDepthDependentSoilDataTextureChoices
   rockFragmentVolume: SoilIdDepthDependentSoilDataRockFragmentVolumeChoices
-  colorHue: Float
-  colorValue: Float
-  colorChroma: Float
+  munsellColorString: String
 }
 
 type DepthInterval {
@@ -258,14 +256,18 @@ input SoilIdInputDepthDependentData {
   depthInterval: DepthIntervalInput!
   texture: SoilIdDepthDependentSoilDataTextureChoices = null
   rockFragmentVolume: SoilIdDepthDependentSoilDataRockFragmentVolumeChoices = null
-  colorHue: Float
-  colorValue: Float
-  colorChroma: Float
+  colorLab: LabColorInput = null
 }
 
 input DepthIntervalInput {
   start: Int!
   end: Int!
+}
+
+input LabColorInput {
+  L: Float!
+  A: Float!
+  B: Float!
 }
 
 type GroupNode implements Node {
