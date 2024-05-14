@@ -256,7 +256,7 @@ input SoilIdInputDepthDependentData {
   depthInterval: DepthIntervalInput!
   texture: SoilIdDepthDependentSoilDataTextureChoices = null
   rockFragmentVolume: SoilIdDepthDependentSoilDataRockFragmentVolumeChoices = null
-  colorLab: LABColorInput = null
+  colorLAB: LABColorInput = null
 }
 
 input DepthIntervalInput {
