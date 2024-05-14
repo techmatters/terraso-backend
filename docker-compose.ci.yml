@@ -5,7 +5,10 @@ services:
     extends:
       file: docker-compose.base.yml
       service: web
-
+    volumes:
+      - type: bind
+        source: /home/runner/work/terraso-backend/terraso-backend/Data
+        target: /app/Data
     depends_on:
       db:
         condition: service_healthy

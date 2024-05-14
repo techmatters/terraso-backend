@@ -112,6 +112,18 @@ test-ci: clean
 bash:
 	$(DC_RUN_CMD) bash
 
+# Donwload Munsell CSV, SHX, SHP, SBX, SBN, PRJ, DBF
+download-soil-data:
+	mkdir -p Data
+	cd Data; \
+	gdown 1tN23iVe6X1fcomcfveVp4w3Pwd0HJuTe; \
+	gdown 1WUa9e3vTWPi6G8h4OI3CBUZP5y7tf1Li; \
+	gdown 1l9MxC0xENGmI_NmGlBY74EtlD6SZid_a; \
+	gdown 1asGnnqe0zI2v8xuOszlsNmZkOSl7cJ2n; \
+	gdown 185Qjb9pJJn4AzOissiTz283tINrDqgI0; \
+	gdown 1P3xl1YRlfcMjfO_4PM39tkrrlL3hoLzv; \
+	gdown 1K0GkqxhZiVUND6yfFmaI7tYanLktekyp \
+
 ${VIRTUAL_ENV}/scripts/black:
 	pip install black
 
