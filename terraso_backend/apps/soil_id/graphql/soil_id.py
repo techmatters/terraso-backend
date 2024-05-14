@@ -116,7 +116,7 @@ class DataBasedSoilMatches(graphene.ObjectType):
     matches = graphene.List(graphene.NonNull(DataBasedSoilMatch), required=True)
 
 
-class LabColorInput(graphene.InputObjectType):
+class LABColorInput(graphene.InputObjectType):
     L = graphene.Float(required=True)
     A = graphene.Float(required=True)
     B = graphene.Float(required=True)
@@ -128,7 +128,7 @@ class SoilIdInputDepthDependentData(graphene.InputObjectType):
     depth_interval = graphene.Field(DepthIntervalInput, required=True)
     texture = graphene.Field(DepthDependentSoilDataNode.texture_enum())
     rock_fragment_volume = graphene.Field(DepthDependentSoilDataNode.rock_fragment_volume_enum())
-    color_lab = graphene.Field(LabColorInput)
+    color_LAB = graphene.Field(LABColorInput, name="colorLAB")
 
 
 class SoilIdInputData(graphene.InputObjectType):

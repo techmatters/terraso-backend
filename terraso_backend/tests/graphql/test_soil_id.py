@@ -155,7 +155,7 @@ def test_data_based_soil_matches_endpoint(client):
                         "depthInterval": {"start": 0, "end": 10},
                         "texture": "CLAY",
                         "rockFragmentVolume": "VOLUME_0_1",
-                        "colorLab": {"L": 20, "A": 30, "B": 40},
+                        "colorLAB": {"L": 20, "A": 30, "B": 40},
                     }
                 ],
             },
