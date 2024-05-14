@@ -203,6 +203,10 @@ sample_soil_infos = [
 ]
 
 
+def resolve_texture(texture: str):
+    return texture.upper().replace(" ", "_")
+
+
 def resolve_rock_fragment_volume(rock_fragment_volume: int):
     if rock_fragment_volume <= 1:
         return DepthDependentSoilData.RockFragmentVolume.VOLUME_0_1
@@ -224,7 +228,7 @@ def resolve_soil_data(soil_match):
     for id, bottom_depth in bottom_depths.items():
         depth_dependent_data[int(id)] = SoilIdDepthDependentData(
             depth_interval=DepthInterval(start=prev_depth, end=bottom_depth),
-            texture=soil_match["texture"][id].upper().replace(" ", "_"),
+            texture=resolve_texture(soil_match["texture"][id]),
             rock_fragment_volume=resolve_rock_fragment_volume(soil_match["rock_fragments"][id]),
             munsell_color_string=soil_match["munsell"][id],
         )
@@ -269,13 +273,13 @@ def resolve_soil_match(soil_match):
 
 
 def resolve_location_based_soil_matches(_parent, _info, latitude: float, longitude: float):
-    algorithm_result = list_soils(lat=latitude, lon=longitude, plot_id=None, site_calc=False)
+    result = list_soils(lat=latitude, lon=longitude, plot_id=None, site_calc=False)
 
-    if isinstance(algorithm_result, str):
+    if isinstance(result, str):
         return None
 
     matches = []
-    for match in algorithm_result["soilList"]:
+    for match in result["soilList"]:
         if match["id"]["rank_loc"] != "Not Displayed":
             matches.append(resolve_soil_match(match))
     return LocationBasedSoilMatches(matches=matches)
