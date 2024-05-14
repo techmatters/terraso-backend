@@ -4,6 +4,8 @@ schema {
 }
 
 type Query {
+  """Soil ID algorithm Queries"""
+  soilId: SoilId!
   group(
     """The ID of the object"""
     id: ID!
@@ -90,6 +92,182 @@ type Query {
     orderBy: String
   ): AuditLogNodeConnection
   sharedResource(shareUuid: String!): SharedResourceNode
+}
+
+"""Soil ID algorithm queries."""
+type SoilId {
+  locationBasedSoilMatches(latitude: Float!, longitude: Float!): LocationBasedSoilMatches!
+  dataBasedSoilMatches(latitude: Float!, longitude: Float!, data: SoilIdInputData!): DataBasedSoilMatches!
+}
+
+"""A ranked group of soil matches based solely on a coordinate pair."""
+type LocationBasedSoilMatches {
+  matches: [LocationBasedSoilMatch!]!
+}
+
+"""A soil match based solely on a coordinate pair."""
+type LocationBasedSoilMatch {
+  dataSource: String!
+  distanceToNearestMapUnitM: Float!
+  soilInfo: SoilInfo!
+  match: SoilMatchInfo!
+}
+
+"""Provides information about soil at a particular location."""
+type SoilInfo {
+  soilSeries: SoilSeries!
+  ecologicalSite: EcologicalSite
+  landCapabilityClass: LandCapabilityClass!
+  soilData: SoilIdSoilData!
+}
+
+"""Information about a soil series."""
+type SoilSeries {
+  name: String!
+  taxonomySubgroup: String!
+  description: String!
+  fullDescriptionUrl: String!
+}
+
+"""Information about an ecological site."""
+type EcologicalSite {
+  name: String!
+  id: String!
+  url: String!
+}
+
+"""Caveat: may want to update these fields to an enum at some point."""
+type LandCapabilityClass {
+  capabilityClass: String!
+  subClass: String!
+}
+
+"""Soil data associated with a soil match output by the soil algorithm."""
+type SoilIdSoilData {
+  slope: Float
+  depthDependentData: [SoilIdDepthDependentData!]!
+}
+
+"""
+Depth dependent soil data associated with a soil match output by the soil algorithm.
+"""
+type SoilIdDepthDependentData {
+  depthInterval: DepthInterval!
+  texture: SoilIdDepthDependentSoilDataTextureChoices
+  rockFragmentVolume: SoilIdDepthDependentSoilDataRockFragmentVolumeChoices
+  munsellColorString: String
+}
+
+type DepthInterval {
+  start: Int!
+  end: Int!
+}
+
+"""An enumeration."""
+enum SoilIdDepthDependentSoilDataTextureChoices {
+  """Sand"""
+  SAND
+
+  """Loamy Sand"""
+  LOAMY_SAND
+
+  """Sandy Loam"""
+  SANDY_LOAM
+
+  """Silt Loam"""
+  SILT_LOAM
+
+  """Silt"""
+  SILT
+
+  """Loam"""
+  LOAM
+
+  """Sandy Clay Loam"""
+  SANDY_CLAY_LOAM
+
+  """Silty Clay Loam"""
+  SILTY_CLAY_LOAM
+
+  """Clay Loam"""
+  CLAY_LOAM
+
+  """Sandy Clay"""
+  SANDY_CLAY
+
+  """Silty Clay"""
+  SILTY_CLAY
+
+  """Clay"""
+  CLAY
+}
+
+"""An enumeration."""
+enum SoilIdDepthDependentSoilDataRockFragmentVolumeChoices {
+  """0 — 1%"""
+  VOLUME_0_1
+
+  """1 — 15%"""
+  VOLUME_1_15
+
+  """15 — 35%"""
+  VOLUME_15_35
+
+  """35 — 60%"""
+  VOLUME_35_60
+
+  """> 60%"""
+  VOLUME_60
+}
+
+"""
+The likelihood score and rank within the match group for a particular soil type.
+"""
+type SoilMatchInfo {
+  score: Float!
+  rank: Int!
+}
+
+"""
+A ranked group of soil matches based on a coordinate pair and soil data.
+"""
+type DataBasedSoilMatches {
+  matches: [DataBasedSoilMatch!]!
+}
+
+"""A soil match based on a coordinate pair and soil data."""
+type DataBasedSoilMatch {
+  dataSource: String!
+  distanceToNearestMapUnitM: Float!
+  soilInfo: SoilInfo!
+  locationMatch: SoilMatchInfo!
+  dataMatch: SoilMatchInfo!
+  combinedMatch: SoilMatchInfo!
+}
+
+"""Soil data provided to the soil ID algorithm."""
+input SoilIdInputData {
+  slope: Float
+  depthDependentData: [SoilIdInputDepthDependentData!]!
+}
+
+"""Depth dependent data provided to the soil ID algorithm."""
+input SoilIdInputDepthDependentData {
+  depthInterval: DepthIntervalInput!
+  texture: SoilIdDepthDependentSoilDataTextureChoices = null
+  rockFragmentVolume: SoilIdDepthDependentSoilDataRockFragmentVolumeChoices = null
+  colorLAB: LABColorInput = null
+}
+
+input DepthIntervalInput {
+  start: Int!
+  end: Int!
+}
+
+input LABColorInput {
+  L: Float!
+  A: Float!
+  B: Float!
 }
 
 type GroupNode implements Node {
@@ -1120,11 +1298,6 @@ type SoilDataDepthIntervalNode {
   depthInterval: DepthInterval!
 }
 
-type DepthInterval {
-  start: Int!
-  end: Int!
-}
-
 type DepthDependentSoilDataNode {
   texture: SoilIdDepthDependentSoilDataTextureChoices
   clayPercent: Int
@@ -1150,63 +1323,6 @@ type DepthDependentSoilDataNode {
   carbonates: SoilIdDepthDependentSoilDataCarbonatesChoices
   site: SiteNode!
   depthInterval: DepthInterval!
-}
-
-"""An enumeration."""
-enum SoilIdDepthDependentSoilDataTextureChoices {
-  """Sand"""
-  SAND
-
-  """Loamy Sand"""
-  LOAMY_SAND
-
-  """Sandy Loam"""
-  SANDY_LOAM
-
-  """Silt Loam"""
-  SILT_LOAM
-
-  """Silt"""
-  SILT
-
-  """Loam"""
-  LOAM
-
-  """Sandy Clay Loam"""
-  SANDY_CLAY_LOAM
-
-  """Silty Clay Loam"""
-  SILTY_CLAY_LOAM
-
-  """Clay Loam"""
-  CLAY_LOAM
-
-  """Sandy Clay"""
-  SANDY_CLAY
-
-  """Silty Clay"""
-  SILTY_CLAY
-
-  """Clay"""
-  CLAY
-}
-
-"""An enumeration."""
-enum SoilIdDepthDependentSoilDataRockFragmentVolumeChoices {
-  """0 — 1%"""
-  VOLUME_0_1
-
-  """1 — 15%"""
-  VOLUME_1_15
-
-  """15 — 35%"""
-  VOLUME_15_35
-
-  """35 — 60%"""
-  VOLUME_35_60
-
-  """> 60%"""
-  VOLUME_60
 }
 
 """An enumeration."""
@@ -2194,11 +2310,6 @@ input DepthDependentSoilDataUpdateMutationInput {
   sodiumAbsorptionRatio: Decimal
   carbonates: SoilIdDepthDependentSoilDataCarbonatesChoices
   clientMutationId: String
-}
-
-input DepthIntervalInput {
-  start: Int!
-  end: Int!
 }
 
 type SoilDataUpdateDepthIntervalMutationPayload {

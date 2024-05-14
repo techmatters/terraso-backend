@@ -41,6 +41,7 @@ from apps.soil_id.graphql.soil_data import (
     SoilDataUpdateDepthIntervalMutation,
     SoilDataUpdateMutation,
 )
+from apps.soil_id.graphql.soil_id import soil_id
 
 from .audit_logs import AuditLogNode
 from .commons import TerrasoRelayNode
@@ -141,6 +142,7 @@ class Query(graphene.ObjectType):
     sites = DjangoFilterConnectionField(SiteNode, required=True)
     audit_logs = DjangoFilterConnectionField(AuditLogNode)
     shared_resource = SharedResourceRelayNode.Field()
+    soil_id = soil_id
     from .shared_resources import resolve_shared_resource
 
 
