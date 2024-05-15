@@ -86,7 +86,9 @@ LOCATION_BASED_MATCHES_QUERY = (
 
 def test_location_based_soil_matches_endpoint(client):
     response = graphql_query(
-        LOCATION_BASED_MATCHES_QUERY, variables={"latitude": 0.0, "longitude": 0.0}, client=client
+        LOCATION_BASED_MATCHES_QUERY,
+        variables={"latitude": 33.81246789, "longitude": -101.9733687},
+        client=client,
     )
 
     assert response.json()["data"] is not None

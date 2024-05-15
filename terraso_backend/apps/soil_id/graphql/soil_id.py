@@ -14,12 +14,14 @@
 # along with this program. If not, see https://www.gnu.org/licenses/.
 
 import graphene
+from soil_id.us_soil import list_soils
 
 from apps.soil_id.graphql.soil_data import (
     DepthDependentSoilDataNode,
     DepthInterval,
     DepthIntervalInput,
 )
+from apps.soil_id.models.depth_dependent_soil_data import DepthDependentSoilData
 
 
 class EcologicalSite(graphene.ObjectType):
@@ -201,24 +203,86 @@ sample_soil_infos = [
 ]
 
 
-# to be replaced by actual algorithm output
-def resolve_location_based_soil_matches(_parent, _info, latitude: float, longitude: float):
-    return LocationBasedSoilMatches(
-        matches=[
-            LocationBasedSoilMatch(
-                data_source="SSURGO",
-                distance_to_nearest_map_unit_m=0.0,
-                match=SoilMatchInfo(score=1.0, rank=0),
-                soil_info=sample_soil_infos[0],
-            ),
-            LocationBasedSoilMatch(
-                data_source="STATSGO",
-                distance_to_nearest_map_unit_m=50.0,
-                match=SoilMatchInfo(score=0.5, rank=1),
-                soil_info=sample_soil_infos[1],
-            ),
-        ]
+def resolve_texture(texture: str):
+    return texture.upper().replace(" ", "_")
+
+
+def resolve_rock_fragment_volume(rock_fragment_volume: int):
+    if rock_fragment_volume <= 1:
+        return DepthDependentSoilData.RockFragmentVolume.VOLUME_0_1
+    elif rock_fragment_volume <= 15:
+        return DepthDependentSoilData.RockFragmentVolume.VOLUME_1_15
+    elif rock_fragment_volume <= 35:
+        return DepthDependentSoilData.RockFragmentVolume.VOLUME_15_35
+    elif rock_fragment_volume <= 60:
+        return DepthDependentSoilData.RockFragmentVolume.VOLUME_35_60
+    else:
+        return DepthDependentSoilData.RockFragmentVolume.VOLUME_60
+
+
+def resolve_soil_data(soil_match):
+    bottom_depths = soil_match["bottom_depth"]
+    prev_depth = 0
+    depth_dependent_data = [None] * len(bottom_depths)
+
+    for id, bottom_depth in bottom_depths.items():
+        depth_dependent_data[int(id)] = SoilIdDepthDependentData(
+            depth_interval=DepthInterval(start=prev_depth, end=bottom_depth),
+            texture=resolve_texture(soil_match["texture"][id]),
+            rock_fragment_volume=resolve_rock_fragment_volume(soil_match["rock_fragments"][id]),
+            munsell_color_string=soil_match["munsell"][id],
+        )
+
+    return SoilIdSoilData(
+        slope=soil_match["site"]["siteData"]["slope"], depth_dependent_data=depth_dependent_data
     )
+
+
+def resolve_soil_match(soil_match):
+    soil_id = soil_match["id"]
+    site_data = soil_match["site"]["siteData"]
+    ecological_site = soil_match["esd"]["ESD"]
+    if ecological_site["ecoclassid"] == "":
+        ecological_site = None
+    else:
+        ecological_site = EcologicalSite(
+            name=ecological_site["ecoclassname"],
+            id=ecological_site["ecoclassid"],
+            url=ecological_site["esd_url"],
+        )
+
+    return LocationBasedSoilMatch(
+        data_source=site_data["dataSource"],
+        distance_to_nearest_map_unit_m=site_data["minCompDistance"],
+        match=SoilMatchInfo(score=soil_id["score_loc"], rank=int(soil_id["rank_loc"]) - 1),
+        soil_info=SoilInfo(
+            soil_series=SoilSeries(
+                name=soil_id["component"],
+                taxonomy_subgroup=site_data["taxsubgrp"],
+                description=soil_match["site"]["siteDescription"],
+                full_description_url=site_data["sdeURL"],
+            ),
+            land_capability_class=LandCapabilityClass(
+                capability_class=site_data["nirrcapcl"],
+                sub_class=site_data["nirrcapscl"],
+            ),
+            ecological_site=ecological_site,
+            soil_data=resolve_soil_data(soil_match),
+        ),
+    )
+
+
+def resolve_location_based_soil_matches(_parent, _info, latitude: float, longitude: float):
+    result = list_soils(lat=latitude, lon=longitude, plot_id=None, site_calc=False)
+
+    if isinstance(result, str):
+        return None
+
+    matches = []
+    for match in result["soilList"]:
+        if match["id"]["rank_loc"] != "Not Displayed":
+            matches.append(resolve_soil_match(match))
+    return LocationBasedSoilMatches(matches=matches)
 
 
 # to be replaced by actual algorithm output
@@ -255,7 +319,6 @@ class SoilId(graphene.ObjectType):
         latitude=graphene.Float(required=True),
         longitude=graphene.Float(required=True),
         resolver=resolve_location_based_soil_matches,
-        required=True,
     )
 
     data_based_soil_matches = graphene.Field(
