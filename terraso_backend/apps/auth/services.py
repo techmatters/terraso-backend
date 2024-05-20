@@ -328,10 +328,13 @@ class TokenExchangeService:
             raise TokenExchangeException(
                 f"provider {provider_name} is missing config variables", "bad_config"
             )
+
+        # If the mobile client supplies a client id, use that
+        client_id = payload.get("client_id", provider["client_id"])
         return cls(
             token=token,
             jwks_uri=provider["url"],
-            client_id=provider["client_id"],
+            client_id=client_id,
             provider_name=provider_name,
         )
 
