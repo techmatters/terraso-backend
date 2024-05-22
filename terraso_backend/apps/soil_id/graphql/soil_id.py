@@ -23,6 +23,7 @@ from apps.soil_id.graphql.soil_data import (
     DepthDependentSoilDataNode,
     DepthInterval,
     DepthIntervalInput,
+    SoilDataNode,
 )
 from apps.soil_id.models.depth_dependent_soil_data import DepthDependentSoilData
 
@@ -142,6 +143,7 @@ class SoilIdInputData(graphene.InputObjectType):
     """Soil data provided to the soil ID algorithm."""
 
     slope = graphene.Float()
+    surface_cracks = SoilDataNode.surface_cracks_enum()
     depth_dependent_data = graphene.List(
         graphene.NonNull(SoilIdInputDepthDependentData), required=True
     )
