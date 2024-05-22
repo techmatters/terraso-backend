@@ -97,7 +97,7 @@ type Query {
 """Soil ID algorithm queries."""
 type SoilId {
   locationBasedSoilMatches(latitude: Float!, longitude: Float!): LocationBasedSoilMatches
-  dataBasedSoilMatches(latitude: Float!, longitude: Float!, data: SoilIdInputData!): DataBasedSoilMatches!
+  dataBasedSoilMatches(latitude: Float!, longitude: Float!, data: SoilIdInputData!): DataBasedSoilMatches
 }
 
 """A ranked group of soil matches based solely on a coordinate pair."""
@@ -248,7 +248,20 @@ type DataBasedSoilMatch {
 """Soil data provided to the soil ID algorithm."""
 input SoilIdInputData {
   slope: Float
+  surfaceCracks: SoilIdSoilDataSurfaceCracksSelectChoices
   depthDependentData: [SoilIdInputDepthDependentData!]!
+}
+
+"""An enumeration."""
+enum SoilIdSoilDataSurfaceCracksSelectChoices {
+  """No cracking"""
+  NO_CRACKING
+
+  """Surface cracking only"""
+  SURFACE_CRACKING_ONLY
+
+  """Deep vertical cracks"""
+  DEEP_VERTICAL_CRACKS
 }
 
 """Depth dependent data provided to the soil ID algorithm."""
@@ -1090,18 +1103,6 @@ enum SoilIdSoilDataSlopeSteepnessSelectChoices {
 
   """100%+ (steepest)"""
   STEEPEST
-}
-
-"""An enumeration."""
-enum SoilIdSoilDataSurfaceCracksSelectChoices {
-  """No cracking"""
-  NO_CRACKING
-
-  """Surface cracking only"""
-  SURFACE_CRACKING_ONLY
-
-  """Deep vertical cracks"""
-  DEEP_VERTICAL_CRACKS
 }
 
 """An enumeration."""
