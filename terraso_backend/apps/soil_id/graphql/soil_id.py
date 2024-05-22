@@ -345,8 +345,11 @@ def parse_color_LAB(color_LAB):
 
 
 def parse_rank_soils_input_data(data: SoilIdInputData):
-    # TODO: what units do we expect slope in?
+    # TODO: what units do we expect slope in? percentage?
     # TODO: high location/data score but low combined score?
+    # TODO: always high data score?
+    # TODO: update vertical cracks value when https://github.com/techmatters/soil-id-algorithm/pull/96 lands
+    # TODO: pass in values for elevation and bedrock
     inputs = {
         "soilHorizon": [],
         "horizonDepth": [],
