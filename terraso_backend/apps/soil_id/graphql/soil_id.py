@@ -345,7 +345,7 @@ def parse_color_LAB(color_LAB):
 
 
 def parse_rank_soils_input_data(data: SoilIdInputData):
-    # TODO: update vertical cracks value when https://github.com/techmatters/soil-id-algorithm/pull/96 lands
+    # TODO: update cracks value when https://github.com/techmatters/soil-id-algorithm/pull/96 lands
     # TODO: pass in values for elevation and bedrock
     inputs = {
         "soilHorizon": [],
