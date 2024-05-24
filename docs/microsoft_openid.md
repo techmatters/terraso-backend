@@ -27,7 +27,7 @@ openssl req -new -key server.key -out server.csr
 The `server.key` private key and `server.csr` can be used to create a certificate.
 
 ```
-openssl x509 -req -sha256 -in server.csr -signkey server.key -out server.crt
+openssl x509 -req -sha256 -days 365 -in server.csr -signkey server.key -out server.crt
 ```
 
 ## Uploading certificate
