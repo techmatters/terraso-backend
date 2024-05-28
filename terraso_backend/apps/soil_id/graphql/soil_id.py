@@ -13,10 +13,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see https://www.gnu.org/licenses/.
 
-import traceback
-
 import graphene
-import structlog
 from soil_id.us_soil import list_soils, rank_soils
 
 from apps.soil_id.graphql.soil_data import (
@@ -26,8 +23,6 @@ from apps.soil_id.graphql.soil_data import (
     SoilDataNode,
 )
 from apps.soil_id.models.depth_dependent_soil_data import DepthDependentSoilData
-
-logger = structlog.get_logger(__name__)
 
 
 class EcologicalSite(graphene.ObjectType):
@@ -390,22 +385,17 @@ def resolve_data_based_soil_matches(
         **parse_rank_soils_input_data(data)
     )
 
-    try:
-        ranked_matches = []
-        for ranked_match in result["soilRank"]:
-            rankValues = [
-                ranked_match["rank_loc"],
-                ranked_match["rank_data"],
-                ranked_match["rank_data_loc"],
-            ]
-            if all([value != "Not Displayed" for value in rankValues]):
-                ranked_matches.append(
-                    resolve_data_based_soil_match(
-                        list_result.soil_list_json["soilList"], ranked_match
-                    )
-                )
-    except Exception:
-        logger.info(traceback.format_exc())
+    ranked_matches = []
+    for ranked_match in result["soilRank"]:
+        rankValues = [
+            ranked_match["rank_loc"],
+            ranked_match["rank_data"],
+            ranked_match["rank_data_loc"],
+        ]
+        if all([value != "Not Displayed" for value in rankValues]):
+            ranked_matches.append(
+                resolve_data_based_soil_match(list_result.soil_list_json["soilList"], ranked_match)
+            )
 
     return DataBasedSoilMatches(matches=ranked_matches)
 

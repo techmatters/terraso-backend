@@ -165,8 +165,6 @@ def test_data_based_soil_matches_endpoint(client):
         client=client,
     )
 
-    print(response.json())
-
     assert response.json()["data"] is not None
 
     payload = response.json()["data"]["soilId"]["dataBasedSoilMatches"]
