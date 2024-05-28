@@ -810,9 +810,9 @@ scipy==1.13.1 \
     #   scikit-image
     #   scikit-learn
     #   soil-id
-sentry-sdk==2.2.0 \
-    --hash=sha256:674f58da37835ea7447fe0e34c57b4a4277fad558b0a7cb4a6c83bcb263086be \
-    --hash=sha256:70eca103cf4c6302365a9d7cf522e7ed7720828910eb23d43ada8e50d1ecda9d
+sentry-sdk==2.3.1 \
+    --hash=sha256:139a71a19f5e9eb5d3623942491ce03cf8ebc14ea2e39ba3e6fe79560d8a5b1f \
+    --hash=sha256:c5aeb095ba226391d337dd42a6f9470d86c9fc236ecc71cfc7cd1942b45010c6
     # via -r requirements/base.in
 shapely==2.0.4 \
     --hash=sha256:011b77153906030b795791f2fdfa2d68f1a8d7e40bce78b029782ade3afe4f2f \
