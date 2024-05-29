@@ -23,6 +23,7 @@ from apps.soil_id.graphql.soil_data import (
     SoilDataNode,
 )
 from apps.soil_id.models.depth_dependent_soil_data import DepthDependentSoilData
+from apps.soil_id.models.soil_data import SoilData
 
 
 class EcologicalSite(graphene.ObjectType):
@@ -318,11 +319,11 @@ def resolve_data_based_soil_match(soil_matches: list[dict], ranked_match: dict):
     )
 
 
-def parse_texture(texture):
+def parse_texture(texture: DepthDependentSoilData.Texture):
     return texture.value.replace("_", " ").lower()
 
 
-def parse_rock_fragment_volume(rock_fragment_volume):
+def parse_rock_fragment_volume(rock_fragment_volume: DepthDependentSoilData.RockFragmentVolume):
     if rock_fragment_volume == DepthDependentSoilData.RockFragmentVolume.VOLUME_0_1:
         return "0-1%"
     elif rock_fragment_volume == DepthDependentSoilData.RockFragmentVolume.VOLUME_1_15:
@@ -338,9 +339,13 @@ def parse_rock_fragment_volume(rock_fragment_volume):
 def parse_color_LAB(color_LAB):
     return [color_LAB.L, color_LAB.A, color_LAB.B]
 
+def parse_surface_cracks(surface_cracks: SoilData.SurfaceCracks):
+   if surface_cracks is None:
+       return None
+   return surface_cracks == SoilData.SurfaceCracks.DEEP_VERTICAL_CRACKING
+
 
 def parse_rank_soils_input_data(data: SoilIdInputData):
-    # TODO: update cracks value when https://github.com/techmatters/soil-id-algorithm/pull/96 lands
     # TODO: pass in values for elevation and bedrock
     inputs = {
         "soilHorizon": [],
@@ -350,7 +355,7 @@ def parse_rank_soils_input_data(data: SoilIdInputData):
         "pSlope": data.slope,
         "pElev": None,  # meters
         "bedrock": None,
-        "cracks": False,
+        "cracks": parse_surface_cracks(data.surface_cracks),
     }
 
     depths = data.depth_dependent_data
