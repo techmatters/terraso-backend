@@ -145,69 +145,8 @@ class SoilIdInputData(graphene.InputObjectType):
     )
 
 
-sample_soil_infos = [
-    SoilInfo(
-        soil_series=SoilSeries(
-            name="Yemassee",
-            taxonomy_subgroup="Aeric Endoaquults",
-            description="The Yemassee series consists of very deep, somewhat poorly drained, moderately permeable, loamy soils that formed in marine sediments. These soils are on terraces and broad flats of the lower Coastal Plain. Slopes range from 0 to 2 percent.",  # noqa: E501   <- flake8 ignore line length
-            full_description_url="https://casoilresource.lawr.ucdavis.edu/sde/?series=yemassee",  # noqa: E501   <- flake8 ignore line length
-        ),
-        ecological_site=EcologicalSite(
-            name="Loamy Rise, Moderately Wet",
-            id="R153AY001GA",
-            url="https://edit.jornada.nmsu.edu/catalogs/esd/153A/R153AY001GA",
-        ),
-        land_capability_class=LandCapabilityClass(capability_class="6", sub_class="w"),
-        soil_data=SoilIdSoilData(
-            slope=0.5,
-            depth_dependent_data=[
-                SoilIdDepthDependentData(
-                    depth_interval=DepthInterval(start=0, end=10),
-                    texture="CLAY_LOAM",
-                    rock_fragment_volume="VOLUME_1_15",
-                    munsell_color_string="10R 5/4",
-                ),
-                SoilIdDepthDependentData(
-                    depth_interval=DepthInterval(start=10, end=15),
-                    texture="SILT",
-                    rock_fragment_volume="VOLUME_15_35",
-                    munsell_color_string="10YR 2/6",
-                ),
-            ],
-        ),
-    ),
-    SoilInfo(
-        soil_series=SoilSeries(
-            name="Randall",
-            taxonomy_subgroup="Ustic Epiaquerts",
-            description="The Randall series consists of very deep, poorly drained, very slowly permeable soils that formed in clayey lacustrine sediments derived from the Blackwater Draw Formation of Pleistocene age. These nearly level soils are on the floor of playa basins 3 to 15 m (10 to 50 ft) below the surrounding plain and range in size from 10 to more than 150 acres. Slope ranges from 0 to 1 percent. Mean annual precipitation is 483 mm (19 in), and mean annual temperature is 15 degrees C (59 degrees F).",  # noqa: E501   <- flake8 ignore line length
-            full_description_url="https://casoilresource.lawr.ucdavis.edu/sde/?series=randall",  # noqa: E501   <- flake8 ignore line length
-        ),
-        land_capability_class=LandCapabilityClass(capability_class="4", sub_class="s-a"),
-        soil_data=SoilIdSoilData(
-            slope=0.5,
-            depth_dependent_data=[
-                SoilIdDepthDependentData(
-                    depth_interval=DepthInterval(start=0, end=10),
-                    texture="CLAY_LOAM",
-                    rock_fragment_volume="VOLUME_1_15",
-                    munsell_color_string="10R 5/4",
-                ),
-                SoilIdDepthDependentData(
-                    depth_interval=DepthInterval(start=10, end=15),
-                    texture="SILT",
-                    rock_fragment_volume="VOLUME_15_35",
-                    munsell_color_string="N 4/",
-                ),
-            ],
-        ),
-    ),
-]
-
-
 def resolve_texture(texture: str):
-    return texture.upper().replace(" ", "_")
+    return texture.upper().replace(" ", "_") if texture != "" else None
 
 
 def resolve_rock_fragment_volume(rock_fragment_volume: int):
@@ -232,7 +171,7 @@ def resolve_soil_data(soil_match):
         depth_dependent_data[int(id)] = SoilIdDepthDependentData(
             depth_interval=DepthInterval(start=prev_depth, end=bottom_depth),
             texture=resolve_texture(soil_match["texture"][id]),
-            rock_fragment_volume=resolve_rock_fragment_volume(soil_match["rock_fragments"][id]),
+            rock_fragment_volume=resolve_rock_fragment_volume(soil_match["rock_fragments"][id]).value,
             munsell_color_string=soil_match["munsell"][id],
         )
 
@@ -249,9 +188,9 @@ def resolve_soil_info(soil_match: dict):
         ecological_site = None
     else:
         ecological_site = EcologicalSite(
-            name=ecological_site["ecoclassname"],
-            id=ecological_site["ecoclassid"],
-            url=ecological_site["esd_url"],
+            name=ecological_site["ecoclassname"][0] if ecological_site["ecoclassname"] is list else "",
+            id=ecological_site["ecoclassid"][0] if ecological_site["ecoclassid"] is list else "",
+            url=ecological_site["esd_url"][0] if ecological_site["esd_url"] is list else "",
         )
 
     return SoilInfo(
@@ -388,7 +327,7 @@ def resolve_data_based_soil_matches(
         lat=latitude,
         lon=longitude,
         list_output_data=list_result,
-        **parse_rank_soils_input_data(data)
+        **parse_rank_soils_input_data(data),
     )
 
     ranked_matches = []
