@@ -148,8 +148,8 @@ def test_data_based_soil_matches_endpoint(client):
     response = graphql_query(
         DATA_BASED_MATCHES_QUERY,
         variables={
-            "latitude": 0.0,
-            "longitude": 0.0,
+            "latitude": 33.81246789,
+            "longitude": -101.9733687,
             "data": {
                 "slope": 0.5,
                 "depthDependentData": [
