@@ -339,10 +339,11 @@ def parse_rock_fragment_volume(rock_fragment_volume: DepthDependentSoilData.Rock
 def parse_color_LAB(color_LAB):
     return [color_LAB.L, color_LAB.A, color_LAB.B]
 
+
 def parse_surface_cracks(surface_cracks: SoilData.SurfaceCracks):
-   if surface_cracks is None:
-       return None
-   return surface_cracks == SoilData.SurfaceCracks.DEEP_VERTICAL_CRACKING
+    if surface_cracks is None:
+        return None
+    return surface_cracks == SoilData.SurfaceCracks.DEEP_VERTICAL_CRACKING
 
 
 def parse_rank_soils_input_data(data: SoilIdInputData):
