@@ -171,7 +171,9 @@ def resolve_soil_data(soil_match):
         depth_dependent_data[int(id)] = SoilIdDepthDependentData(
             depth_interval=DepthInterval(start=prev_depth, end=bottom_depth),
             texture=resolve_texture(soil_match["texture"][id]),
-            rock_fragment_volume=resolve_rock_fragment_volume(soil_match["rock_fragments"][id]).value,
+            rock_fragment_volume=resolve_rock_fragment_volume(
+                soil_match["rock_fragments"][id]
+            ).value,
             munsell_color_string=soil_match["munsell"][id],
         )
 
@@ -188,7 +190,11 @@ def resolve_soil_info(soil_match: dict):
         ecological_site = None
     else:
         ecological_site = EcologicalSite(
-            name=ecological_site["ecoclassname"][0] if ecological_site["ecoclassname"] is list else "",
+            name=(
+                ecological_site["ecoclassname"][0]
+                if ecological_site["ecoclassname"] is list
+                else ""
+            ),
             id=ecological_site["ecoclassid"][0] if ecological_site["ecoclassid"] is list else "",
             url=ecological_site["esd_url"][0] if ecological_site["esd_url"] is list else "",
         )
