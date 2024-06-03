@@ -87,7 +87,7 @@ coordinates_to_test = [
     {"latitude": 33.81246789, "longitude": -101.9733687},
     {"latitude": 33.71431377069193, "longitude": -102.01942440745314},
     # currently fails upstream
-    # {"latitude": 37.430296, "longitude": -122.126583},
+    # {"latitude": 37.430296, "longitude": -122.126583},  noqa: E800
 ]
 
 
