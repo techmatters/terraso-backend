@@ -203,7 +203,7 @@ class UserPreferenceUpdate(BaseAuthenticatedMutation):
             and previous_value.lower() != "true"
             and value.lower() == "true"
         ):
-            create_account_deletion_ticket(request_user)
+            create_account_deletion_ticket(user)
 
         return cls(preference=preference)
 
