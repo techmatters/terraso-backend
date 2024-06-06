@@ -194,10 +194,15 @@ class UserPreferenceUpdate(BaseAuthenticatedMutation):
                 model_name=UserPreference.__name__, operation=MutationTypes.UPDATE
             )
 
+        previous_value = preference.value
         preference.value = value
         preference.save()
 
-        if key == USER_PREFS_KEY_ACCOUNT_DELETION and value.lower() == "true":
+        if (
+            key == USER_PREFS_KEY_ACCOUNT_DELETION
+            and previous_value.lower() != "true"
+            and value.lower() == "true"
+        ):
             create_account_deletion_ticket(request_user)
 
         return cls(preference=preference)
