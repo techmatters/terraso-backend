@@ -22,8 +22,9 @@ from graphene_django import DjangoObjectType
 
 from apps.auth.services import JWTService
 from apps.collaboration.models import Membership
+from apps.core.hubspot import create_account_deletion_ticket
 from apps.core.models import User, UserPreference
-from apps.core.models.users import USER_PREFS_KEYS
+from apps.core.models.users import USER_PREFS_KEY_ACCOUNT_DELETION, USER_PREFS_KEYS
 from apps.graphql.exceptions import GraphQLNotAllowedException
 
 from .commons import (
@@ -195,6 +196,9 @@ class UserPreferenceUpdate(BaseAuthenticatedMutation):
 
         preference.value = value
         preference.save()
+
+        if key == USER_PREFS_KEY_ACCOUNT_DELETION and value.lower() == "true":
+            create_account_deletion_ticket(request_user)
 
         return cls(preference=preference)
 
