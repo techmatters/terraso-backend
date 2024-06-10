@@ -45,7 +45,7 @@ def token_client_query(client):
     def _client_query(token, *args, **kwargs):
         headers = {
             "CONTENT_TYPE": "application/json",
-            "HTTP_AUTHORIZATION": f"Bearer {token}",
+            "AUTHORIZATION": f"Bearer {token}",
         }
         return graphql_query(*args, **kwargs, headers=headers, client=client)
 

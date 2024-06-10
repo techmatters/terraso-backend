@@ -64,7 +64,7 @@ def client_query(client, access_token):
     def _client_query(*args, **kwargs):
         headers = {
             "CONTENT_TYPE": "application/json",
-            "HTTP_AUTHORIZATION": f"Bearer {access_token}",
+            "AUTHORIZATION": f"Bearer {access_token}",
         }
         return graphql_query(*args, **kwargs, headers=headers, client=client)
 
@@ -76,7 +76,7 @@ def expired_client_query(client, expired_access_token):
     def _client_query(*args, **kwargs):
         headers = {
             "CONTENT_TYPE": "application/json",
-            "HTTP_AUTHORIZATION": f"Bearer {expired_access_token}",
+            "AUTHORIZATION": f"Bearer {expired_access_token}",
         }
         return graphql_query(*args, **kwargs, headers=headers, client=client)
 
