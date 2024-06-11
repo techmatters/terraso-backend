@@ -39,6 +39,7 @@ from apps.soil_id.graphql.soil_id.schema import (
 )
 from apps.soil_id.models.depth_dependent_soil_data import DepthDependentSoilData
 from apps.soil_id.models.soil_data import SoilData
+from apps.soil_id.models.soil_id_cache import SoilIdCache
 
 logger = structlog.get_logger(__name__)
 
@@ -142,18 +143,33 @@ def resolve_list_output_failure(list_output: SoilListOutputData | str):
     if isinstance(list_output, SoilListOutputData):
         return None
     elif isinstance(list_output, str):
-        return SoilIdFailure(reason=SoilIdFailureReason.DATA_UNAVAILABLE)
+        return SoilIdFailureReason.DATA_UNAVAILABLE
     else:
-        return SoilIdFailure(reason=SoilIdFailureReason.ALGORITHM_FAILURE)
+        return SoilIdFailureReason.ALGORITHM_FAILURE
+
+
+def get_cached_list_soils_output(latitude, longitude):
+    cached_result = SoilIdCache.get_data(latitude=latitude, longitude=longitude)
+    if cached_result is None:
+        list_output = list_soils(lat=latitude, lon=longitude)
+        failure_reason = resolve_list_output_failure(list_output)
+
+        if failure_reason is not None:
+            list_output = failure_reason
+
+        SoilIdCache.save_data(latitude=latitude, longitude=longitude, data=list_output)
+
+        return list_output
+    else:
+        return cached_result
 
 
 def resolve_location_based_result(_parent, _info, latitude: float, longitude: float):
     try:
-        list_output = list_soils(lat=latitude, lon=longitude)
+        list_output = get_cached_list_soils_output(latitude=latitude, longitude=longitude)
 
-        failure = resolve_list_output_failure(list_output)
-        if failure is not None:
-            return failure
+        if isinstance(list_output, str):
+            return SoilIdFailure(reason=list_output)
 
         return resolve_location_based_soil_matches(list_output.soil_list_json)
     except Exception:
@@ -266,11 +282,10 @@ def resolve_data_based_result(
     _parent, _info, latitude: float, longitude: float, data: SoilIdInputData
 ):
     try:
-        list_output = list_soils(lat=latitude, lon=longitude)
+        list_output = get_cached_list_soils_output(latitude=latitude, longitude=longitude)
 
-        failure = resolve_list_output_failure(list_output)
-        if failure is not None:
-            return failure
+        if isinstance(list_output, str):
+            return SoilIdFailure(reason=list_output)
 
         rank_output = rank_soils(
             lat=latitude,

@@ -93,32 +93,34 @@ coordinates_to_test = [
 
 @pytest.mark.parametrize("coords", coordinates_to_test)
 def test_location_based_soil_matches_endpoint(client, coords):
-    response = graphql_query(
-        LOCATION_BASED_MATCHES_QUERY,
-        variables=coords,
-        client=client,
-    )
+    # run it twice to exercise the cache
+    for _ in range(0, 2):
+        response = graphql_query(
+            LOCATION_BASED_MATCHES_QUERY,
+            variables=coords,
+            client=client,
+        )
 
-    assert response.json()["data"] is not None
-    assert "errors" not in response.json()
+        assert response.json()["data"] is not None
+        assert "errors" not in response.json()
 
-    payload = response.json()["data"]["soilId"]["locationBasedSoilMatches"]
+        payload = response.json()["data"]["soilId"]["locationBasedSoilMatches"]
 
-    assert len(payload["matches"]) > 0
+        assert len(payload["matches"]) > 0
 
-    for match in payload["matches"]:
-        assert isinstance(match["dataSource"], str)
-        assert isinstance(match["distanceToNearestMapUnitM"], float)
+        for match in payload["matches"]:
+            assert isinstance(match["dataSource"], str)
+            assert isinstance(match["distanceToNearestMapUnitM"], float)
 
-        assert match["match"]["score"] >= 0 and match["match"]["score"] <= 1
-        assert match["match"]["rank"] >= 0
+            assert match["match"]["score"] >= 0 and match["match"]["score"] <= 1
+            assert match["match"]["rank"] >= 0
 
-        info = match["soilInfo"]
+            info = match["soilInfo"]
 
-        assert info["soilSeries"] is not None
-        assert info["landCapabilityClass"] is not None
-        assert info["soilData"] is not None
-        assert len(info["soilData"]["depthDependentData"]) > 0
+            assert info["soilSeries"] is not None
+            assert info["landCapabilityClass"] is not None
+            assert info["soilData"] is not None
+            assert len(info["soilData"]["depthDependentData"]) > 0
 
 
 DATA_BASED_MATCHES_QUERY = (
@@ -155,45 +157,47 @@ DATA_BASED_MATCHES_QUERY = (
 
 @pytest.mark.parametrize("coords", coordinates_to_test)
 def test_data_based_soil_matches_endpoint(client, coords):
-    response = graphql_query(
-        DATA_BASED_MATCHES_QUERY,
-        variables={
-            "latitude": coords["latitude"],
-            "longitude": coords["longitude"],
-            "data": {
-                "slope": 0.5,
-                "depthDependentData": [
-                    {
-                        "depthInterval": {"start": 0, "end": 10},
-                        "texture": "CLAY",
-                        "rockFragmentVolume": "VOLUME_0_1",
-                        "colorLAB": {"L": 20, "A": 30, "B": 40},
-                    }
-                ],
+    # run it twice to exercise the cache
+    for _ in range(0, 2):
+        response = graphql_query(
+            DATA_BASED_MATCHES_QUERY,
+            variables={
+                "latitude": coords["latitude"],
+                "longitude": coords["longitude"],
+                "data": {
+                    "slope": 0.5,
+                    "depthDependentData": [
+                        {
+                            "depthInterval": {"start": 0, "end": 10},
+                            "texture": "CLAY",
+                            "rockFragmentVolume": "VOLUME_0_1",
+                            "colorLAB": {"L": 20, "A": 30, "B": 40},
+                        }
+                    ],
+                },
             },
-        },
-        client=client,
-    )
+            client=client,
+        )
 
-    assert response.json()["data"] is not None
-    assert "errors" not in response.json()
+        assert response.json()["data"] is not None
+        assert "errors" not in response.json()
 
-    payload = response.json()["data"]["soilId"]["dataBasedSoilMatches"]
+        payload = response.json()["data"]["soilId"]["dataBasedSoilMatches"]
 
-    assert len(payload["matches"]) > 0
+        assert len(payload["matches"]) > 0
 
-    for match in payload["matches"]:
-        assert isinstance(match["dataSource"], str)
-        assert isinstance(match["distanceToNearestMapUnitM"], float)
+        for match in payload["matches"]:
+            assert isinstance(match["dataSource"], str)
+            assert isinstance(match["distanceToNearestMapUnitM"], float)
 
-        match_kinds = ["locationMatch", "dataMatch", "combinedMatch"]
-        for kind in match_kinds:
-            assert match[kind]["score"] >= 0 and match[kind]["score"] <= 1
-            assert match[kind]["rank"] >= 0
+            match_kinds = ["locationMatch", "dataMatch", "combinedMatch"]
+            for kind in match_kinds:
+                assert match[kind]["score"] >= 0 and match[kind]["score"] <= 1
+                assert match[kind]["rank"] >= 0
 
-        info = match["soilInfo"]
+            info = match["soilInfo"]
 
-        assert info["soilSeries"] is not None
-        assert info["landCapabilityClass"] is not None
-        assert info["soilData"] is not None
-        assert len(info["soilData"]["depthDependentData"]) > 0
+            assert info["soilSeries"] is not None
+            assert info["landCapabilityClass"] is not None
+            assert info["soilData"] is not None
+            assert len(info["soilData"]["depthDependentData"]) > 0
