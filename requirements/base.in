@@ -12,7 +12,7 @@ django-storages
 django-structlog
 fiona --no-binary fiona
 geopandas
-graphene-django==3.2.0
+graphene-django
 httpx
 openpyxl
 pandas
