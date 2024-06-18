@@ -13,6 +13,8 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see https://www.gnu.org/licenses/.
 
+from typing import Optional
+
 from soil_id.us_soil import list_soils, rank_soils
 
 from apps.soil_id.graphql.soil_data import DepthInterval
@@ -22,9 +24,12 @@ from apps.soil_id.graphql.soil_id.sample_data import (
 )
 from apps.soil_id.graphql.soil_id.schema import (
     DataBasedSoilMatch,
+    DataBasedSoilMatches,
     EcologicalSite,
+    LABColorInput,
     LandCapabilityClass,
     LocationBasedSoilMatch,
+    LocationBasedSoilMatches,
     SoilIdDepthDependentData,
     SoilIdInputData,
     SoilIdSoilData,
@@ -36,24 +41,28 @@ from apps.soil_id.models.depth_dependent_soil_data import DepthDependentSoilData
 from apps.soil_id.models.soil_data import SoilData
 
 
-def resolve_texture(texture: str):
-    return texture.upper().replace(" ", "_") if texture != "" else None
+def resolve_texture(texture: str | float):
+    if not isinstance(texture, str) or texture == "":
+        return None
+    return texture.upper().replace(" ", "_")
 
 
-def resolve_rock_fragment_volume(rock_fragment_volume: int):
-    if rock_fragment_volume <= 1:
-        return DepthDependentSoilData.RockFragmentVolume.VOLUME_0_1
+def resolve_rock_fragment_volume(rock_fragment_volume: int | float | str):
+    if not (isinstance(rock_fragment_volume, float) or isinstance(rock_fragment_volume, int)):
+        return None
+    elif rock_fragment_volume <= 1:
+        return DepthDependentSoilData.RockFragmentVolume.VOLUME_0_1.value
     elif rock_fragment_volume <= 15:
-        return DepthDependentSoilData.RockFragmentVolume.VOLUME_1_15
+        return DepthDependentSoilData.RockFragmentVolume.VOLUME_1_15.value
     elif rock_fragment_volume <= 35:
-        return DepthDependentSoilData.RockFragmentVolume.VOLUME_15_35
+        return DepthDependentSoilData.RockFragmentVolume.VOLUME_15_35.value
     elif rock_fragment_volume <= 60:
-        return DepthDependentSoilData.RockFragmentVolume.VOLUME_35_60
+        return DepthDependentSoilData.RockFragmentVolume.VOLUME_35_60.value
     else:
-        return DepthDependentSoilData.RockFragmentVolume.VOLUME_60
+        return DepthDependentSoilData.RockFragmentVolume.VOLUME_60.value
 
 
-def resolve_soil_data(soil_match):
+def resolve_soil_data(soil_match) -> SoilIdSoilData:
     bottom_depths = soil_match["bottom_depth"]
     prev_depth = 0
     depth_dependent_data = [None] * len(bottom_depths)
@@ -62,33 +71,30 @@ def resolve_soil_data(soil_match):
         depth_dependent_data[int(id)] = SoilIdDepthDependentData(
             depth_interval=DepthInterval(start=prev_depth, end=bottom_depth),
             texture=resolve_texture(soil_match["texture"][id]),
-            rock_fragment_volume=resolve_rock_fragment_volume(
-                soil_match["rock_fragments"][id]
-            ).value,
+            rock_fragment_volume=resolve_rock_fragment_volume(soil_match["rock_fragments"][id]),
             munsell_color_string=soil_match["munsell"][id],
         )
+        prev_depth = bottom_depth
 
     return SoilIdSoilData(
         slope=soil_match["site"]["siteData"]["slope"], depth_dependent_data=depth_dependent_data
     )
 
 
+def resolve_ecological_site(ecological_site: dict):
+    if ecological_site["ecoclassid"] == "" or ecological_site["ecoclassid"][0] == "":
+        return None
+    else:
+        return EcologicalSite(
+            name=ecological_site["ecoclassname"][0],
+            id=ecological_site["ecoclassid"][0],
+            url=ecological_site["esd_url"][0],
+        )
+
+
 def resolve_soil_info(soil_match: dict):
     soil_id = soil_match["id"]
     site_data = soil_match["site"]["siteData"]
-    ecological_site = soil_match["esd"]["ESD"]
-    if ecological_site["ecoclassid"] == "":
-        ecological_site = None
-    else:
-        ecological_site = EcologicalSite(
-            name=(
-                ecological_site["ecoclassname"][0]
-                if ecological_site["ecoclassname"] is list
-                else ""
-            ),
-            id=ecological_site["ecoclassid"][0] if ecological_site["ecoclassid"] is list else "",
-            url=ecological_site["esd_url"][0] if ecological_site["esd_url"] is list else "",
-        )
 
     return SoilInfo(
         soil_series=SoilSeries(
@@ -101,7 +107,7 @@ def resolve_soil_info(soil_match: dict):
             capability_class=site_data["nirrcapcl"],
             sub_class=site_data["nirrcapscl"],
         ),
-        ecological_site=ecological_site,
+        ecological_site=resolve_ecological_site(soil_match["esd"]["ESD"]),
         soil_data=resolve_soil_data(soil_match),
     )
 
@@ -122,6 +128,14 @@ def resolve_location_based_soil_match(soil_match: dict):
     )
 
 
+def resolve_location_matches_from_soil_id_result(soil_list_json: dict):
+    matches = []
+    for match in soil_list_json["soilList"]:
+        if match["id"]["rank_loc"] != "Not Displayed":
+            matches.append(resolve_location_based_soil_match(match))
+    return LocationBasedSoilMatches(matches=matches)
+
+
 def resolve_location_based_soil_matches(_parent, _info, latitude: float, longitude: float):
     # TODO: remove this line to re-enable using the actual algorithm to resolve this query
     return dummy_location_matches
@@ -131,11 +145,7 @@ def resolve_location_based_soil_matches(_parent, _info, latitude: float, longitu
     if isinstance(result, str):
         return None
 
-    matches = []
-    for match in result.soil_list_json["soilList"]:
-        if match["id"]["rank_loc"] != "Not Displayed":
-            matches.append(resolve_location_based_soil_match(match))
-    return LocationBasedSoilMatches(matches=matches)
+    return resolve_location_matches_from_soil_id_result(result.soil_list_json)
 
 
 def resolve_data_based_soil_match(soil_matches: list[dict], ranked_match: dict):
@@ -158,12 +168,18 @@ def resolve_data_based_soil_match(soil_matches: list[dict], ranked_match: dict):
     )
 
 
-def parse_texture(texture: DepthDependentSoilData.Texture):
+def parse_texture(texture: Optional[DepthDependentSoilData.Texture]):
+    if texture is None:
+        return None
     return texture.value.replace("_", " ").lower()
 
 
-def parse_rock_fragment_volume(rock_fragment_volume: DepthDependentSoilData.RockFragmentVolume):
-    if rock_fragment_volume == DepthDependentSoilData.RockFragmentVolume.VOLUME_0_1:
+def parse_rock_fragment_volume(
+    rock_fragment_volume: Optional[DepthDependentSoilData.RockFragmentVolume],
+):
+    if rock_fragment_volume is None:
+        return None
+    elif rock_fragment_volume == DepthDependentSoilData.RockFragmentVolume.VOLUME_0_1:
         return "0-1%"
     elif rock_fragment_volume == DepthDependentSoilData.RockFragmentVolume.VOLUME_1_15:
         return "1-15%"
@@ -175,7 +191,9 @@ def parse_rock_fragment_volume(rock_fragment_volume: DepthDependentSoilData.Rock
         return ">60%"
 
 
-def parse_color_LAB(color_LAB):
+def parse_color_LAB(color_LAB: Optional[LABColorInput]):
+    if color_LAB is None:
+        return None
     return [color_LAB.L, color_LAB.A, color_LAB.B]
 
 
@@ -215,6 +233,22 @@ def parse_rank_soils_input_data(data: SoilIdInputData):
     return inputs
 
 
+def resolve_data_matches_from_soil_id_result(soil_list_json: dict, rank_json: dict):
+    ranked_matches = []
+    for ranked_match in rank_json["soilRank"]:
+        rankValues = [
+            ranked_match["rank_loc"],
+            ranked_match["rank_data"],
+            ranked_match["rank_data_loc"],
+        ]
+        if all([value != "Not Displayed" for value in rankValues]):
+            ranked_matches.append(
+                resolve_data_based_soil_match(soil_list_json["soilList"], ranked_match)
+            )
+
+    return DataBasedSoilMatches(matches=ranked_matches)
+
+
 # to be replaced by actual algorithm output
 def resolve_data_based_soil_matches(
     _parent, _info, latitude: float, longitude: float, data: SoilIdInputData
@@ -233,16 +267,6 @@ def resolve_data_based_soil_matches(
         **parse_rank_soils_input_data(data),
     )
 
-    ranked_matches = []
-    for ranked_match in result["soilRank"]:
-        rankValues = [
-            ranked_match["rank_loc"],
-            ranked_match["rank_data"],
-            ranked_match["rank_data_loc"],
-        ]
-        if all([value != "Not Displayed" for value in rankValues]):
-            ranked_matches.append(
-                resolve_data_based_soil_match(list_result.soil_list_json["soilList"], ranked_match)
-            )
-
-    return DataBasedSoilMatches(matches=ranked_matches)
+    return resolve_data_matches_from_soil_id_result(
+        soil_list_json=list_result.soil_list_json, rank_json=result
+    )
