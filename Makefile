@@ -2,7 +2,7 @@ DC_ENV ?= dev
 DC_FILE_ARG = -f docker-compose.$(DC_ENV).yml
 DC_RUN_CMD = docker compose $(DC_FILE_ARG) run --quiet-pull --rm web
 
-SCHEMA_BUILD_CMD = $(DC_RUN_CMD) python terraso_backend/manage.py graphql_schema --schema apps.graphql.schema.schema --out=-.graphql
+SCHEMA_BUILD_CMD = $(DC_RUN_CMD) python terraso_backend/manage.py graphql_schema --schema apps.graphql.schema.schema.schema --out=-.graphql
 SCHEMA_BUILD_FILE = terraso_backend/apps/graphql/schema/schema.graphql
 api_schema: check_rebuild
 	$(SCHEMA_BUILD_CMD) > $(SCHEMA_BUILD_FILE)
