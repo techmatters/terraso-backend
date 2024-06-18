@@ -18,10 +18,6 @@ from typing import Optional
 from soil_id.us_soil import list_soils, rank_soils
 
 from apps.soil_id.graphql.soil_data import DepthInterval
-from apps.soil_id.graphql.soil_id.sample_data import (
-    dummy_data_matches,
-    dummy_location_matches,
-)
 from apps.soil_id.graphql.soil_id.schema import (
     DataBasedSoilMatch,
     DataBasedSoilMatches,
@@ -137,9 +133,6 @@ def resolve_location_matches_from_soil_id_result(soil_list_json: dict):
 
 
 def resolve_location_based_soil_matches(_parent, _info, latitude: float, longitude: float):
-    # TODO: remove this line to re-enable using the actual algorithm to resolve this query
-    return dummy_location_matches
-
     result = list_soils(lat=latitude, lon=longitude)
 
     if isinstance(result, str):
@@ -253,9 +246,6 @@ def resolve_data_matches_from_soil_id_result(soil_list_json: dict, rank_json: di
 def resolve_data_based_soil_matches(
     _parent, _info, latitude: float, longitude: float, data: SoilIdInputData
 ):
-    # TODO: remove this line to re-enable using the actual algorithm to resolve this query
-    return dummy_data_matches
-
     list_result = list_soils(lat=latitude, lon=longitude)
     if isinstance(list_result, str):
         return None
