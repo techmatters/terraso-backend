@@ -36,8 +36,7 @@ sample_soil_list_json = [
                 "sdeURL": "https://casoilresource.lawr.ucdavis.edu/sde/?series=randall",
                 "seeURL": "https://casoilresource.lawr.ucdavis.edu/see/#randall",
             },
-            # noqa E501
-            "siteDescription": "The Randall series consists of very deep, poorly drained, very slowly permeable soils that formed in clayey lacustrine sediments derived from the Blackwater Draw Formation of Pleistocene age. These nearly level soils are on the floor of playa basins 3 to 15 m (10 to 50 ft) below the surrounding plain and range in size from 10 to more than 150 acres. Slope ranges from 0 to 1 percent. Mean annual precipitation is 483 mm (19 in), and mean annual temperature is 15 degrees C (59 degrees F).",
+            "siteDescription": "The Randall series consists of very deep, poorly drained, very slowly permeable soils that formed in clayey lacustrine sediments derived from the Blackwater Draw Formation of Pleistocene age. These nearly level soils are on the floor of playa basins 3 to 15 m (10 to 50 ft) below the surrounding plain and range in size from 10 to more than 150 acres. Slope ranges from 0 to 1 percent. Mean annual precipitation is 483 mm (19 in), and mean annual temperature is 15 degrees C (59 degrees F).",  # noqa: E501
         },
         "esd": {"ESD": {"ecoclassid": "", "ecoclassname": "", "esd_url": ""}},
         "bottom_depth": {"0": 30, "1": 94, "2": 203},
@@ -264,8 +263,7 @@ def test_resolve_soil_info():
     assert result.soil_series.taxonomy_subgroup == "Ustic Epiaquerts"
     assert (
         result.soil_series.description
-        # noqa E501
-        == "The Randall series consists of very deep, poorly drained, very slowly permeable soils that formed in clayey lacustrine sediments derived from the Blackwater Draw Formation of Pleistocene age. These nearly level soils are on the floor of playa basins 3 to 15 m (10 to 50 ft) below the surrounding plain and range in size from 10 to more than 150 acres. Slope ranges from 0 to 1 percent. Mean annual precipitation is 483 mm (19 in), and mean annual temperature is 15 degrees C (59 degrees F)."
+        == "The Randall series consists of very deep, poorly drained, very slowly permeable soils that formed in clayey lacustrine sediments derived from the Blackwater Draw Formation of Pleistocene age. These nearly level soils are on the floor of playa basins 3 to 15 m (10 to 50 ft) below the surrounding plain and range in size from 10 to more than 150 acres. Slope ranges from 0 to 1 percent. Mean annual precipitation is 483 mm (19 in), and mean annual temperature is 15 degrees C (59 degrees F)."  # noqa: E501
     )
     assert (
         result.soil_series.full_description_url
