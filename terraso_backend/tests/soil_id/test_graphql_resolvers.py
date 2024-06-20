@@ -1,5 +1,4 @@
 from apps.soil_id.graphql.soil_id.resolvers import (
-    parse_rank_soils_input_data,
     resolve_data_based_soil_match,
     resolve_data_matches_from_soil_id_result,
     resolve_ecological_site,
@@ -37,6 +36,7 @@ sample_soil_list_json = [
                 "sdeURL": "https://casoilresource.lawr.ucdavis.edu/sde/?series=randall",
                 "seeURL": "https://casoilresource.lawr.ucdavis.edu/see/#randall",
             },
+            # noqa E501
             "siteDescription": "The Randall series consists of very deep, poorly drained, very slowly permeable soils that formed in clayey lacustrine sediments derived from the Blackwater Draw Formation of Pleistocene age. These nearly level soils are on the floor of playa basins 3 to 15 m (10 to 50 ft) below the surrounding plain and range in size from 10 to more than 150 acres. Slope ranges from 0 to 1 percent. Mean annual precipitation is 483 mm (19 in), and mean annual temperature is 15 degrees C (59 degrees F).",
         },
         "esd": {"ESD": {"ecoclassid": "", "ecoclassname": "", "esd_url": ""}},
@@ -205,7 +205,7 @@ def test_resolve_texture():
 
 
 def test_resolve_rock_fragment_volume():
-    assert resolve_rock_fragment_volume("") == None
+    assert resolve_rock_fragment_volume("") is None
     assert resolve_rock_fragment_volume(0.5) == "VOLUME_0_1"
     assert resolve_rock_fragment_volume(1) == "VOLUME_0_1"
     assert resolve_rock_fragment_volume(15) == "VOLUME_1_15"
@@ -264,6 +264,7 @@ def test_resolve_soil_info():
     assert result.soil_series.taxonomy_subgroup == "Ustic Epiaquerts"
     assert (
         result.soil_series.description
+        # noqa E501
         == "The Randall series consists of very deep, poorly drained, very slowly permeable soils that formed in clayey lacustrine sediments derived from the Blackwater Draw Formation of Pleistocene age. These nearly level soils are on the floor of playa basins 3 to 15 m (10 to 50 ft) below the surrounding plain and range in size from 10 to more than 150 acres. Slope ranges from 0 to 1 percent. Mean annual precipitation is 483 mm (19 in), and mean annual temperature is 15 degrees C (59 degrees F)."
     )
     assert (
@@ -309,6 +310,8 @@ def test_resolve_data_based_soil_match():
 
 
 def test_resolve_data_matches_from_soil_id_result():
-    result = resolve_data_matches_from_soil_id_result({"soilList": sample_soil_list_json}, {"soilRank": sample_rank_json})
+    result = resolve_data_matches_from_soil_id_result(
+        {"soilList": sample_soil_list_json}, {"soilRank": sample_rank_json}
+    )
 
     assert len(result.matches) == 2
