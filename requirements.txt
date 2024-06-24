@@ -721,9 +721,9 @@ requests==2.32.3 \
     #   django-oauth-toolkit
     #   requests-cache
     #   soil-id
-requests-cache==1.2.0 \
-    --hash=sha256:490324301bf0cb924ff4e6324bd2613453e7e1f847353928b08adb0fdfb7f722 \
-    --hash=sha256:db1c709ca343cc1cd5b6c8b1a5387298eceed02306a6040760db538c885e3838
+requests-cache==1.2.1 \
+    --hash=sha256:1285151cddf5331067baa82598afe2d47c7495a1334bfe7a7d329b43e9fd3603 \
+    --hash=sha256:68abc986fdc5b8d0911318fbb5f7c80eebcd4d01bfacc6685ecf8876052511d1
     # via soil-id
 rosetta-soil @ https://github.com/paulschreiber/rosetta-soil/archive/bc53029.zip \
     --hash=sha256:6aa7934ffd07b6d52fa6167eb888dbc9f2d2ae1c1ccd5d00ad537c0114f041ba
