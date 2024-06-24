@@ -28,9 +28,9 @@ attrs==23.2.0 \
     #   cattrs
     #   fiona
     #   requests-cache
-boto3==1.34.127 \
-    --hash=sha256:58ccdeae3a96811ecc9d5d866d8226faadbd0ee1891756e4a04d5186e9a57a64 \
-    --hash=sha256:d370befe4fb7aea5bc383057d7dad18dda5d0cf3cd3295915bcc8c8c4191905c
+boto3==1.34.131 \
+    --hash=sha256:05e388cb937e82be70bfd7eb0c84cf8011ff35cf582a593873ac21675268683b \
+    --hash=sha256:dab8f72a6c4e62b4fd70da09e08a6b2a65ea2115b27dd63737142005776ef216
     # via
     #   -r requirements/base.in
     #   django-ses
@@ -276,9 +276,9 @@ django==5.0.6 \
     #   django-structlog
     #   graphene-django
     #   sentry-sdk
-django-cors-headers==4.3.1 \
-    --hash=sha256:0b1fd19297e37417fc9f835d39e45c8c642938ddba1acce0c1753d3edef04f36 \
-    --hash=sha256:0bf65ef45e606aff1994d35503e6b677c0b26cafff6506f8fd7187f3be840207
+django-cors-headers==4.4.0 \
+    --hash=sha256:5c6e3b7fe870876a1efdfeb4f433782c3524078fa0dc9e0195f6706ce7a242f6 \
+    --hash=sha256:92cf4633e22af67a230a1456cb1b7a02bb213d6536d2dcb2a4a24092ea9cebc2
     # via -r requirements/base.in
 django-dirtyfields==1.9.3 \
     --hash=sha256:c0ac06cd152f44bdc65f39e4b8e04ec0df2c54882e3726fc713b57da7d05f2ad \
@@ -322,15 +322,13 @@ et-xmlfile==1.1.0 \
     # via openpyxl
 fiona==1.9.6 \
     --hash=sha256:791b3494f8b218c06ea56f892bd6ba893dfa23525347761d066fb7738acda3b1
-    # via
-    #   -r requirements/base.in
-    #   geopandas
+    # via -r requirements/base.in
 gdal==3.8.4 \
     --hash=sha256:7c51e0ae7a7ccf43ad9e4bf435176baa9276653dfa16fd167c3632f6e7275207
     # via soil-id
-geopandas==0.14.4 \
-    --hash=sha256:3bb6473cb59d51e1a7fe2dbc24a1a063fb0ebdeddf3ce08ddbf8c7ddc99689aa \
-    --hash=sha256:56765be9d58e2c743078085db3bd07dc6be7719f0dbe1dfdc1d705cb80be7c25
+geopandas==1.0.0 \
+    --hash=sha256:386d42c028047e2b0f09191d7859268304761c4711a247173a88891b6161f711 \
+    --hash=sha256:cdd3ddf3c9f978997c7f08d0c544b6f887c94af4bc2e01e3df3ae69a43510df3
     # via
     #   -r requirements/base.in
     #   soil-id
@@ -656,7 +654,9 @@ pyogrio==0.9.0 \
     --hash=sha256:f5d80eb846be4fc4e642cbedc1ed0c143e8d241653382ecc76a7620bbd2a5c3a \
     --hash=sha256:f8bf193269ea9d347ac3ddada960a59f1ab2e4a5c009be95dc70e6505346b2fc \
     --hash=sha256:fb04bd80964428491951766452f0071b0bc37c7d38c45ef02502dbd83e5d74a0
-    # via soil-id
+    # via
+    #   geopandas
+    #   soil-id
 pyproj==3.6.1 \
     --hash=sha256:18faa54a3ca475bfe6255156f2f2874e9a1c8917b0004eee9f664b86ccc513d3 \
     --hash=sha256:1e9fbaf920f0f9b4ee62aab832be3ae3968f33f24e2e3f7fbb8c6728ef1d9746 \
