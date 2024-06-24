@@ -338,9 +338,9 @@ fiona==1.10.0 \
 gdal==3.8.4 \
     --hash=sha256:7c51e0ae7a7ccf43ad9e4bf435176baa9276653dfa16fd167c3632f6e7275207
     # via soil-id
-geopandas==0.14.4 \
-    --hash=sha256:3bb6473cb59d51e1a7fe2dbc24a1a063fb0ebdeddf3ce08ddbf8c7ddc99689aa \
-    --hash=sha256:56765be9d58e2c743078085db3bd07dc6be7719f0dbe1dfdc1d705cb80be7c25
+geopandas==1.0.0 \
+    --hash=sha256:386d42c028047e2b0f09191d7859268304761c4711a247173a88891b6161f711 \
+    --hash=sha256:cdd3ddf3c9f978997c7f08d0c544b6f887c94af4bc2e01e3df3ae69a43510df3
     # via
     #   -r requirements/base.in
     #   soil-id
