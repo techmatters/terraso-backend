@@ -17,5 +17,5 @@ from soil_id.us_soil import list_soils
 
 
 def test_soil_list():
-    list_soils(-101.9733687, 33.81246789, None, False)
+    list_soils(-101.9733687, 33.81246789)
     assert True

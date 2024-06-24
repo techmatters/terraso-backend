@@ -83,15 +83,24 @@ LOCATION_BASED_MATCHES_QUERY = (
     + SOIL_MATCH_FRAGMENTS
 )
 
+coordinates_to_test = [
+    {"latitude": 33.81246789, "longitude": -101.9733687},
+    {"latitude": 33.71431377069193, "longitude": -102.01942440745314},
+    # currently fails upstream
+    # {"latitude": 37.430296, "longitude": -122.126583},  noqa: E800
+]
 
-def test_location_based_soil_matches_endpoint(client):
+
+@pytest.mark.parametrize("coords", coordinates_to_test)
+def test_location_based_soil_matches_endpoint(client, coords):
     response = graphql_query(
         LOCATION_BASED_MATCHES_QUERY,
-        variables={"latitude": 33.81246789, "longitude": -101.9733687},
+        variables=coords,
         client=client,
     )
 
     assert response.json()["data"] is not None
+    assert "errors" not in response.json()
 
     payload = response.json()["data"]["soilId"]["locationBasedSoilMatches"]
 
@@ -144,12 +153,13 @@ DATA_BASED_MATCHES_QUERY = (
 )
 
 
-def test_data_based_soil_matches_endpoint(client):
+@pytest.mark.parametrize("coords", coordinates_to_test)
+def test_data_based_soil_matches_endpoint(client, coords):
     response = graphql_query(
         DATA_BASED_MATCHES_QUERY,
         variables={
-            "latitude": 0.0,
-            "longitude": 0.0,
+            "latitude": coords["latitude"],
+            "longitude": coords["longitude"],
             "data": {
                 "slope": 0.5,
                 "depthDependentData": [
@@ -166,6 +176,7 @@ def test_data_based_soil_matches_endpoint(client):
     )
 
     assert response.json()["data"] is not None
+    assert "errors" not in response.json()
 
     payload = response.json()["data"]["soilId"]["dataBasedSoilMatches"]
 

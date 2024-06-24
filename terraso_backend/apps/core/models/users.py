@@ -26,10 +26,12 @@ from apps.core import group_collaboration_roles, landscape_collaboration_roles
 USER_PREFS_KEY_GROUP_NOTIFICATIONS = "group_notifications"
 USER_PREFS_KEY_STORY_MAP_NOTIFICATIONS = "story_map_notifications"
 USER_PREFS_KEY_LANGUAGE = "language"
+USER_PREFS_KEY_ACCOUNT_DELETION = "account_deletion_request"
 USER_PREFS_KEYS = [
     USER_PREFS_KEY_GROUP_NOTIFICATIONS,
     USER_PREFS_KEY_STORY_MAP_NOTIFICATIONS,
     USER_PREFS_KEY_LANGUAGE,
+    USER_PREFS_KEY_ACCOUNT_DELETION,
 ]
 
 

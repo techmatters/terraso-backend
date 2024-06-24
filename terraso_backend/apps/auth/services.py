@@ -30,7 +30,11 @@ from django.utils import timezone
 
 from apps.core.formatters import uppercase_locale
 from apps.core.models import UserPreference
-from apps.core.models.users import USER_PREFS_KEY_LANGUAGE, USER_PREFS_KEYS
+from apps.core.models.users import (
+    USER_PREFS_KEY_ACCOUNT_DELETION,
+    USER_PREFS_KEY_LANGUAGE,
+    USER_PREFS_KEYS,
+)
 from apps.storage.services import ProfileImageService
 
 from .providers import AppleProvider, GoogleProvider, MicrosoftProvider
@@ -87,6 +91,8 @@ class AccountService:
             default_val = "true"
             if notification_key == USER_PREFS_KEY_LANGUAGE:
                 default_val = uppercase_locale(settings.DEFAULT_LANGUAGE_CODE)
+            elif notification_key == USER_PREFS_KEY_ACCOUNT_DELETION:
+                continue
             UserPreference.objects.create(user=user, key=notification_key, value=default_val)
 
     @transaction.atomic
@@ -328,10 +334,13 @@ class TokenExchangeService:
             raise TokenExchangeException(
                 f"provider {provider_name} is missing config variables", "bad_config"
             )
+
+        # If the mobile client supplies a client id, use that
+        client_id = payload.get("client_id", provider["client_id"])
         return cls(
             token=token,
             jwks_uri=provider["url"],
-            client_id=provider["client_id"],
+            client_id=client_id,
             provider_name=provider_name,
         )
 
