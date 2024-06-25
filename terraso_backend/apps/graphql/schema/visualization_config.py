@@ -34,9 +34,10 @@ from apps.shared_data.visualization_tileset_tasks import (
 )
 
 from ..exceptions import GraphQLNotFoundException
-from . import GroupNode, LandscapeNode
 from .commons import BaseDeleteMutation, BaseWriteMutation, TerrasoConnection
 from .constants import MutationTypes
+from .groups import GroupNode
+from .landscapes import LandscapeNode
 
 logger = structlog.get_logger(__name__)
 

@@ -41,7 +41,7 @@ from apps.soil_id.graphql.soil_data import (
     SoilDataUpdateDepthIntervalMutation,
     SoilDataUpdateMutation,
 )
-from apps.soil_id.graphql.soil_id import soil_id
+from apps.soil_id.graphql.soil_id.endpoints import soil_id
 
 from .audit_logs import AuditLogNode
 from .commons import TerrasoRelayNode

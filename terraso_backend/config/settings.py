@@ -251,7 +251,7 @@ structlog.configure(
 )
 
 GRAPHENE = {
-    "SCHEMA": "apps.graphql.schema.schema",
+    "SCHEMA": "apps.graphql.schema.schema.schema",
     "TESTING_ENDPOINT": "/graphql/",
 }
 
