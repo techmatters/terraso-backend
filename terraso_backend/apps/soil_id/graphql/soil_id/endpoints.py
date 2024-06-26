@@ -17,12 +17,12 @@
 import graphene
 
 from apps.soil_id.graphql.soil_id.resolvers import (
-    resolve_data_based_soil_matches,
-    resolve_location_based_soil_matches,
+    resolve_data_based_result,
+    resolve_location_based_result,
 )
 from apps.soil_id.graphql.soil_id.schema import (
-    DataBasedSoilMatches,
-    LocationBasedSoilMatches,
+    DataBasedResult,
+    LocationBasedResult,
     SoilIdInputData,
 )
 
@@ -31,18 +31,18 @@ class SoilId(graphene.ObjectType):
     """Soil ID algorithm queries."""
 
     location_based_soil_matches = graphene.Field(
-        LocationBasedSoilMatches,
+        graphene.NonNull(LocationBasedResult),
         latitude=graphene.Float(required=True),
         longitude=graphene.Float(required=True),
-        resolver=resolve_location_based_soil_matches,
+        resolver=resolve_location_based_result,
     )
 
     data_based_soil_matches = graphene.Field(
-        DataBasedSoilMatches,
+        graphene.NonNull(DataBasedResult),
         latitude=graphene.Float(required=True),
         longitude=graphene.Float(required=True),
         data=graphene.Argument(SoilIdInputData, required=True),
-        resolver=resolve_data_based_soil_matches,
+        resolver=resolve_data_based_result,
     )
 
 
