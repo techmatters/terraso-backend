@@ -13,9 +13,11 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see https://www.gnu.org/licenses/.
 
+import traceback
 from typing import Optional
 
-from soil_id.us_soil import list_soils, rank_soils
+import structlog
+from soil_id.us_soil import SoilListOutputData, list_soils, rank_soils
 
 from apps.soil_id.graphql.soil_data import DepthInterval
 from apps.soil_id.graphql.soil_id.schema import (
@@ -27,6 +29,8 @@ from apps.soil_id.graphql.soil_id.schema import (
     LocationBasedSoilMatch,
     LocationBasedSoilMatches,
     SoilIdDepthDependentData,
+    SoilIdFailure,
+    SoilIdFailureReason,
     SoilIdInputData,
     SoilIdSoilData,
     SoilInfo,
@@ -35,6 +39,8 @@ from apps.soil_id.graphql.soil_id.schema import (
 )
 from apps.soil_id.models.depth_dependent_soil_data import DepthDependentSoilData
 from apps.soil_id.models.soil_data import SoilData
+
+logger = structlog.get_logger(__name__)
 
 
 def resolve_texture(texture: str | float):
@@ -124,7 +130,7 @@ def resolve_location_based_soil_match(soil_match: dict):
     )
 
 
-def resolve_location_matches_from_soil_id_result(soil_list_json: dict):
+def resolve_location_based_soil_matches(soil_list_json: dict):
     matches = []
     for match in soil_list_json["soilList"]:
         if match["id"]["rank_loc"] != "Not Displayed":
@@ -132,13 +138,27 @@ def resolve_location_matches_from_soil_id_result(soil_list_json: dict):
     return LocationBasedSoilMatches(matches=matches)
 
 
-def resolve_location_based_soil_matches(_parent, _info, latitude: float, longitude: float):
-    result = list_soils(lat=latitude, lon=longitude)
-
-    if isinstance(result, str):
+def resolve_list_output_failure(list_output: SoilListOutputData | str):
+    if isinstance(list_output, SoilListOutputData):
         return None
+    elif isinstance(list_output, str):
+        return SoilIdFailure(reason=SoilIdFailureReason.DATA_UNAVAILABLE)
+    else:
+        return SoilIdFailure(reason=SoilIdFailureReason.ALGORITHM_FAILURE)
 
-    return resolve_location_matches_from_soil_id_result(result.soil_list_json)
+
+def resolve_location_based_result(_parent, _info, latitude: float, longitude: float):
+    try:
+        list_output = list_soils(lat=latitude, lon=longitude)
+
+        failure = resolve_list_output_failure(list_output)
+        if failure is not None:
+            return failure
+
+        return resolve_location_based_soil_matches(list_output.soil_list_json)
+    except Exception:
+        logger.error(traceback.format_exc())
+        return SoilIdFailure(reason=SoilIdFailureReason.ALGORITHM_FAILURE)
 
 
 def resolve_data_based_soil_match(soil_matches: list[dict], ranked_match: dict):
@@ -226,7 +246,7 @@ def parse_rank_soils_input_data(data: SoilIdInputData):
     return inputs
 
 
-def resolve_data_matches_from_soil_id_result(soil_list_json: dict, rank_json: dict):
+def resolve_data_based_soil_matches(soil_list_json: dict, rank_json: dict):
     ranked_matches = []
     for ranked_match in rank_json["soilRank"]:
         rankValues = [
@@ -242,21 +262,26 @@ def resolve_data_matches_from_soil_id_result(soil_list_json: dict, rank_json: di
     return DataBasedSoilMatches(matches=ranked_matches)
 
 
-# to be replaced by actual algorithm output
-def resolve_data_based_soil_matches(
+def resolve_data_based_result(
     _parent, _info, latitude: float, longitude: float, data: SoilIdInputData
 ):
-    list_result = list_soils(lat=latitude, lon=longitude)
-    if isinstance(list_result, str):
-        return None
+    try:
+        list_output = list_soils(lat=latitude, lon=longitude)
 
-    result = rank_soils(
-        lat=latitude,
-        lon=longitude,
-        list_output_data=list_result,
-        **parse_rank_soils_input_data(data),
-    )
+        failure = resolve_list_output_failure(list_output)
+        if failure is not None:
+            return failure
 
-    return resolve_data_matches_from_soil_id_result(
-        soil_list_json=list_result.soil_list_json, rank_json=result
-    )
+        rank_output = rank_soils(
+            lat=latitude,
+            lon=longitude,
+            list_output_data=list_output,
+            **parse_rank_soils_input_data(data),
+        )
+
+        return resolve_data_based_soil_matches(
+            soil_list_json=list_output.soil_list_json, rank_json=rank_output
+        )
+    except Exception:
+        logger.error(traceback.format_exc())
+        return SoilIdFailure(reason=SoilIdFailureReason.ALGORITHM_FAILURE)

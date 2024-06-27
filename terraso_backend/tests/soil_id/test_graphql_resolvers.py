@@ -1,9 +1,9 @@
 from apps.soil_id.graphql.soil_id.resolvers import (
     resolve_data_based_soil_match,
-    resolve_data_matches_from_soil_id_result,
+    resolve_data_based_soil_matches,
     resolve_ecological_site,
     resolve_location_based_soil_match,
-    resolve_location_matches_from_soil_id_result,
+    resolve_location_based_soil_matches,
     resolve_rock_fragment_volume,
     resolve_soil_data,
     resolve_soil_info,
@@ -290,8 +290,8 @@ def test_resolve_location_based_soil_match():
     assert result.soil_info.soil_series.name == "Randall"
 
 
-def test_resolve_location_matches_from_soil_id_result():
-    result = resolve_location_matches_from_soil_id_result({"soilList": sample_soil_list_json})
+def test_resolve_location_based_soil_matches():
+    result = resolve_location_based_soil_matches({"soilList": sample_soil_list_json})
 
     assert len(result.matches) == 2
 
@@ -307,8 +307,8 @@ def test_resolve_data_based_soil_match():
     assert result.soil_info.soil_series.name == "Randall"
 
 
-def test_resolve_data_matches_from_soil_id_result():
-    result = resolve_data_matches_from_soil_id_result(
+def test_resolve_data_based_soil_matches():
+    result = resolve_data_based_soil_matches(
         {"soilList": sample_soil_list_json}, {"soilRank": sample_rank_json}
     )
 
