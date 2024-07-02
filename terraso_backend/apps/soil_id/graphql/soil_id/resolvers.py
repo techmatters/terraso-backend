@@ -13,6 +13,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see https://www.gnu.org/licenses/.
 
+import math
 import traceback
 from typing import Optional
 
@@ -79,9 +80,11 @@ def resolve_soil_data(soil_match) -> SoilIdSoilData:
         )
         prev_depth = bottom_depth
 
-    return SoilIdSoilData(
-        slope=soil_match["site"]["siteData"]["slope"], depth_dependent_data=depth_dependent_data
-    )
+    slope = soil_match["site"]["siteData"]["slope"]
+    if slope == "":
+        slope = None
+
+    return SoilIdSoilData(slope=slope, depth_dependent_data=depth_dependent_data)
 
 
 def resolve_ecological_site(ecological_site: dict):
@@ -148,6 +151,16 @@ def resolve_list_output_failure(list_output: SoilListOutputData | str):
         return SoilIdFailureReason.ALGORITHM_FAILURE
 
 
+def clean_soil_list_json(obj):
+    if isinstance(obj, float) and math.isnan(obj):
+        return None
+    elif isinstance(obj, dict):
+        return dict((k, clean_soil_list_json(v)) for k, v in obj.items())
+    elif isinstance(obj, (list, set, tuple)):
+        return list(map(clean_soil_list_json, obj))
+    return obj
+
+
 def get_cached_list_soils_output(latitude, longitude):
     cached_result = SoilIdCache.get_data(latitude=latitude, longitude=longitude)
     if cached_result is None:
@@ -155,7 +168,9 @@ def get_cached_list_soils_output(latitude, longitude):
         failure_reason = resolve_list_output_failure(list_output)
 
         if failure_reason is not None:
-            list_output = failure_reason
+            list_output = failure_reason.value
+        else:
+            list_output.soil_list_json = clean_soil_list_json(list_output.soil_list_json)
 
         SoilIdCache.save_data(latitude=latitude, longitude=longitude, data=list_output)
 

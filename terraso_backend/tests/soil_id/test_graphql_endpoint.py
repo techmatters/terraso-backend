@@ -64,6 +64,9 @@ LOCATION_BASED_MATCHES_QUERY = (
     soilId {
       locationBasedSoilMatches(latitude: $latitude, longitude: $longitude) {
         ...locationBasedSoilMatches
+        ... on SoilIdFailure {
+          reason
+        }
       }
     }
   }
@@ -85,7 +88,8 @@ LOCATION_BASED_MATCHES_QUERY = (
 
 coordinates_to_test = [
     {"latitude": 33.81246789, "longitude": -101.9733687},
-    {"latitude": 33.71431377069193, "longitude": -102.01942440745314},
+    {"latitude": 48, "longitude": -123.38},  # triggered a JSON decoding bug in soil ID cache
+    {"latitude": 49, "longitude": -123.38},  # triggers a DATA_UNAVAILABLE
     # currently fails upstream
     # {"latitude": 37.430296, "longitude": -122.126583},  noqa: E800
 ]
@@ -105,6 +109,9 @@ def test_location_based_soil_matches_endpoint(client, coords):
         assert "errors" not in response.json()
 
         payload = response.json()["data"]["soilId"]["locationBasedSoilMatches"]
+
+        if "reason" in payload:
+            continue
 
         assert len(payload["matches"]) > 0
 
@@ -129,6 +136,9 @@ DATA_BASED_MATCHES_QUERY = (
     soilId {
       dataBasedSoilMatches(latitude: $latitude, longitude: $longitude, data: $data) {
         ...dataBasedSoilMatches
+        ... on SoilIdFailure {
+          reason
+        }
       }
     }
   }
@@ -183,6 +193,9 @@ def test_data_based_soil_matches_endpoint(client, coords):
         assert "errors" not in response.json()
 
         payload = response.json()["data"]["soilId"]["dataBasedSoilMatches"]
+
+        if "reason" in payload:
+            continue
 
         assert len(payload["matches"]) > 0
 

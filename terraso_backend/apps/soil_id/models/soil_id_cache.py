@@ -13,6 +13,9 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see https://www.gnu.org/licenses/.
 
+import math
+from json import JSONEncoder
+
 from django.db import models
 from soil_id.us_soil import SoilListOutputData
 
@@ -36,7 +39,7 @@ class SoilIdCache(models.Model):
 
     @classmethod
     def save_data(cls, latitude: float, longitude: float, data: SoilListOutputData | str):
-        if data is str:
+        if isinstance(data, str):
             data_to_save = {"failure_reason": data}
         else:
             data_to_save = {
