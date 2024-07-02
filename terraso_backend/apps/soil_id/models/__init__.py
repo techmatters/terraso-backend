@@ -23,6 +23,7 @@ from .project_soil_settings import (
     ProjectSoilSettings,
 )
 from .soil_data import SoilData, SoilDataDepthInterval
+from .soil_id_cache import SoilIdCache
 
 __all__ = [
     "SoilData",
@@ -33,4 +34,5 @@ __all__ = [
     "LandPKSIntervalDefaults",
     "NRCSIntervalDefaults",
     "DepthIntervalPreset",
+    "SoilIdCache",
 ]

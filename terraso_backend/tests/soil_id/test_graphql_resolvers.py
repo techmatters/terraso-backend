@@ -57,7 +57,7 @@ sample_soil_list_json = [
                 "componentPct": 85,
                 "distance": 90.0,
                 "minCompDistance": 90.0,
-                "slope": 2.0,
+                "slope": "",
                 "nirrcapcl": "3",
                 "nirrcapscl": "e",
                 "nirrcapunit": "None",

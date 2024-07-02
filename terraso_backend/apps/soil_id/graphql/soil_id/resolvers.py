@@ -13,6 +13,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see https://www.gnu.org/licenses/.
 
+import math
 import traceback
 from typing import Optional
 
@@ -39,6 +40,7 @@ from apps.soil_id.graphql.soil_id.schema import (
 )
 from apps.soil_id.models.depth_dependent_soil_data import DepthDependentSoilData
 from apps.soil_id.models.soil_data import SoilData
+from apps.soil_id.models.soil_id_cache import SoilIdCache
 
 logger = structlog.get_logger(__name__)
 
@@ -78,9 +80,11 @@ def resolve_soil_data(soil_match) -> SoilIdSoilData:
         )
         prev_depth = bottom_depth
 
-    return SoilIdSoilData(
-        slope=soil_match["site"]["siteData"]["slope"], depth_dependent_data=depth_dependent_data
-    )
+    slope = soil_match["site"]["siteData"]["slope"]
+    if slope == "":
+        slope = None
+
+    return SoilIdSoilData(slope=slope, depth_dependent_data=depth_dependent_data)
 
 
 def resolve_ecological_site(ecological_site: dict):
@@ -142,18 +146,45 @@ def resolve_list_output_failure(list_output: SoilListOutputData | str):
     if isinstance(list_output, SoilListOutputData):
         return None
     elif isinstance(list_output, str):
-        return SoilIdFailure(reason=SoilIdFailureReason.DATA_UNAVAILABLE)
+        return SoilIdFailureReason.DATA_UNAVAILABLE
     else:
-        return SoilIdFailure(reason=SoilIdFailureReason.ALGORITHM_FAILURE)
+        return SoilIdFailureReason.ALGORITHM_FAILURE
+
+
+def clean_soil_list_json(obj):
+    if isinstance(obj, float) and math.isnan(obj):
+        return None
+    elif isinstance(obj, dict):
+        return dict((k, clean_soil_list_json(v)) for k, v in obj.items())
+    elif isinstance(obj, (list, set, tuple)):
+        return list(map(clean_soil_list_json, obj))
+    return obj
+
+
+def get_cached_list_soils_output(latitude, longitude):
+    cached_result = SoilIdCache.get_data(latitude=latitude, longitude=longitude)
+    if cached_result is None:
+        list_output = list_soils(lat=latitude, lon=longitude)
+        failure_reason = resolve_list_output_failure(list_output)
+
+        if failure_reason is not None:
+            list_output = failure_reason.value
+        else:
+            list_output.soil_list_json = clean_soil_list_json(list_output.soil_list_json)
+
+        SoilIdCache.save_data(latitude=latitude, longitude=longitude, data=list_output)
+
+        return list_output
+    else:
+        return cached_result
 
 
 def resolve_location_based_result(_parent, _info, latitude: float, longitude: float):
     try:
-        list_output = list_soils(lat=latitude, lon=longitude)
+        list_output = get_cached_list_soils_output(latitude=latitude, longitude=longitude)
 
-        failure = resolve_list_output_failure(list_output)
-        if failure is not None:
-            return failure
+        if isinstance(list_output, str):
+            return SoilIdFailure(reason=list_output)
 
         return resolve_location_based_soil_matches(list_output.soil_list_json)
     except Exception:
@@ -266,11 +297,10 @@ def resolve_data_based_result(
     _parent, _info, latitude: float, longitude: float, data: SoilIdInputData
 ):
     try:
-        list_output = list_soils(lat=latitude, lon=longitude)
+        list_output = get_cached_list_soils_output(latitude=latitude, longitude=longitude)
 
-        failure = resolve_list_output_failure(list_output)
-        if failure is not None:
-            return failure
+        if isinstance(list_output, str):
+            return SoilIdFailure(reason=list_output)
 
         rank_output = rank_soils(
             lat=latitude,
