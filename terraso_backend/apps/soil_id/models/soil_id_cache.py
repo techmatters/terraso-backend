@@ -13,8 +13,6 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see https://www.gnu.org/licenses/.
 
-import math
-from json import JSONEncoder
 
 from django.db import models
 from soil_id.us_soil import SoilListOutputData
