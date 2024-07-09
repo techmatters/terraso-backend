@@ -331,6 +331,7 @@ class SoilDataUpdateMutation(BaseWriteMutation):
 
     class Input:
         site_id = graphene.ID(required=True)
+        selected_soil_id = graphene.String()
         down_slope = SoilDataNode.down_slope_enum()
         cross_slope = SoilDataNode.cross_slope_enum()
         bedrock = graphene.Int()

@@ -1003,6 +1003,7 @@ type SiteNoteNode implements Node {
 
 type SoilDataNode {
   site: SiteNode!
+  selectedSoilId: String
   downSlope: SoilIdSoilDataDownSlopeChoices
   crossSlope: SoilIdSoilDataCrossSlopeChoices
   bedrock: Int
@@ -2271,6 +2272,7 @@ type SoilDataUpdateMutationPayload {
 
 input SoilDataUpdateMutationInput {
   siteId: ID!
+  selectedSoilId: String
   downSlope: SoilIdSoilDataDownSlopeChoices
   crossSlope: SoilIdSoilDataCrossSlopeChoices
   bedrock: Int

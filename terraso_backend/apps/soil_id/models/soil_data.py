@@ -52,6 +52,7 @@ def validate_depth_intervals(intervals):
 
 class SoilData(BaseModel):
     site = models.OneToOneField(Site, on_delete=models.CASCADE, related_name="soil_data")
+    selected_soil_id = models.CharField(blank=True, null=True)
 
     class SlopeShape(models.TextChoices):
         CONCAVE = "CONCAVE"
