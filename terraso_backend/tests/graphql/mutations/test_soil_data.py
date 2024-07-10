@@ -562,7 +562,7 @@ def test_update_project_depth_intervals(client, project_manager, project):
     ]
 
 
-@pytest.mark.parametrize("preset", ["NRCS", "BLM_STANDARD", "NONE"])
+@pytest.mark.parametrize("preset", ["NRCS", "BLM", "NONE"])
 def test_updating_project_interval_not_allowed_with_preset(
     preset, client, project, project_manager
 ):
@@ -628,7 +628,7 @@ def test_update_project_soil_settings(client, user, project_manager, project):
 
     new_data = {
         "projectId": str(project.id),
-        "depthIntervalPreset": "BLM_STANDARD",
+        "depthIntervalPreset": "BLM",
         "soilPitRequired": True,
         "slopeRequired": False,
         "soilTextureRequired": True,
@@ -666,7 +666,7 @@ def test_update_project_soil_settings(client, user, project_manager, project):
     assert payload == new_data
 
 
-@pytest.mark.parametrize("depth_interval_preset", ["NRCS", "BLM_STANDARD", "CUSTOM"])
+@pytest.mark.parametrize("depth_interval_preset", ["NRCS", "BLM", "CUSTOM"])
 def test_update_project_depth_interval_preset_depth_dependent_data(
     depth_interval_preset, client, project, project_manager, site_with_soil_data
 ):

@@ -22,7 +22,7 @@ from apps.soil_id.models.soil_data import SoilDataDepthInterval
 
 class DepthIntervalPreset(models.TextChoices):
     NRCS = "NRCS"
-    BLM_STANDARD = "BLM_STANDARD"
+    BLM = "BLM"
     NONE = "NONE"
     CUSTOM = "CUSTOM"
 
@@ -36,7 +36,7 @@ NRCSIntervalDefaults = [
     dict(depth_interval_start=100, depth_interval_end=200),
 ]
 
-BLMStandardIntervalDefaults = [
+BLMIntervalDefaults = [
     dict(depth_interval_start=0, depth_interval_end=1),
     dict(depth_interval_start=1, depth_interval_end=10),
     dict(depth_interval_start=10, depth_interval_end=20),

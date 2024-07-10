@@ -1288,8 +1288,8 @@ enum SoilIdSoilDataGrazingSelectChoices {
 
 """An enumeration."""
 enum SoilIdSoilDataDepthIntervalPresetChoices {
-  """Blm Standard"""
-  BLM_STANDARD
+  """Blm"""
+  BLM
 
   """Nrcs"""
   NRCS
@@ -1572,8 +1572,8 @@ enum SoilIdProjectSoilSettingsDepthIntervalPresetChoices {
   """Nrcs"""
   NRCS
 
-  """Blm Standard"""
-  BLM_STANDARD
+  """Blm"""
+  BLM
 
   """None"""
   NONE
