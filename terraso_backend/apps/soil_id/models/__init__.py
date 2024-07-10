@@ -16,8 +16,8 @@
 
 from .depth_dependent_soil_data import DepthDependentSoilData
 from .project_soil_settings import (
+    BLMStandardIntervalDefaults,
     DepthIntervalPreset,
-    LandPKSIntervalDefaults,
     NRCSIntervalDefaults,
     ProjectDepthInterval,
     ProjectSoilSettings,
@@ -31,8 +31,8 @@ __all__ = [
     "ProjectSoilSettings",
     "ProjectDepthInterval",
     "SoilDataDepthInterval",
-    "LandPKSIntervalDefaults",
     "NRCSIntervalDefaults",
+    "BLMStandardIntervalDefaults",
     "DepthIntervalPreset",
     "SoilIdCache",
 ]
