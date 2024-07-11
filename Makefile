@@ -52,7 +52,7 @@ lock-dev: pip-tools
 	CUSTOM_COMPILE_COMMAND="make lock-dev" pip-compile --upgrade --generate-hashes --strip-extras --resolver=backtracking --output-file requirements-dev.txt requirements/dev.in
 
 migrate: check_rebuild
-	$(DC_RUN_CMD) python terraso_backend/manage.py migrate --no-input
+	$(DC_RUN_CMD) python terraso_backend/manage.py migrate --no-input $(APP_MIGRATION_NAME)
 
 deploy:
 	python terraso_backend/manage.py migrate --no-input
@@ -108,6 +108,9 @@ test: clean check_rebuild compile-translations
 test-ci: clean
 	# Same action as 'test' but avoiding to create test cache
 	$(DC_RUN_CMD) pytest -p no:cacheprovider terraso_backend
+
+connect_db:
+	docker compose $(DC_FILE_ARG) exec db psql -U postgres -d terraso_backend
 
 bash:
 	$(DC_RUN_CMD) bash
