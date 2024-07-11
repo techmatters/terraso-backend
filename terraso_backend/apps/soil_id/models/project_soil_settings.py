@@ -21,20 +21,11 @@ from apps.soil_id.models.soil_data import SoilDataDepthInterval
 
 
 class DepthIntervalPreset(models.TextChoices):
-    LANDPKS = "LANDPKS"
     NRCS = "NRCS"
+    BLM = "BLM"
     NONE = "NONE"
     CUSTOM = "CUSTOM"
 
-
-LandPKSIntervalDefaults = [
-    dict(depth_interval_start=0, depth_interval_end=10),
-    dict(depth_interval_start=10, depth_interval_end=20),
-    dict(depth_interval_start=20, depth_interval_end=50),
-    dict(depth_interval_start=50, depth_interval_end=70),
-    dict(depth_interval_start=70, depth_interval_end=100),
-    dict(depth_interval_start=100, depth_interval_end=200),
-]
 
 NRCSIntervalDefaults = [
     dict(depth_interval_start=0, depth_interval_end=5),
@@ -45,6 +36,14 @@ NRCSIntervalDefaults = [
     dict(depth_interval_start=100, depth_interval_end=200),
 ]
 
+BLMIntervalDefaults = [
+    dict(depth_interval_start=0, depth_interval_end=1),
+    dict(depth_interval_start=1, depth_interval_end=10),
+    dict(depth_interval_start=10, depth_interval_end=20),
+    dict(depth_interval_start=20, depth_interval_end=50),
+    dict(depth_interval_start=50, depth_interval_end=70),
+]
+
 
 class ProjectSoilSettings(BaseModel):
     class Meta(BaseModel.Meta):
@@ -53,7 +52,7 @@ class ProjectSoilSettings(BaseModel):
     project = models.OneToOneField(Project, on_delete=models.CASCADE, related_name="soil_settings")
 
     depth_interval_preset = models.CharField(
-        default=DepthIntervalPreset.LANDPKS.value,
+        default=DepthIntervalPreset.NRCS.value,
         choices=DepthIntervalPreset.choices,
     )
 

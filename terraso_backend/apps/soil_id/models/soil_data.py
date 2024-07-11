@@ -206,13 +206,13 @@ class SoilData(BaseModel):
     grazing_select = models.CharField(blank=True, null=True, choices=Grazing.choices)
 
     class SoilDataDepthIntervalPreset(models.TextChoices):
-        LANDPKS = "LANDPKS"
+        BLM = "BLM"
         NRCS = "NRCS"
         CUSTOM = "CUSTOM"
 
     depth_interval_preset = models.CharField(
         choices=SoilDataDepthIntervalPreset.choices,
-        default=SoilDataDepthIntervalPreset.LANDPKS.value,
+        default=SoilDataDepthIntervalPreset.NRCS.value,
     )
 
 

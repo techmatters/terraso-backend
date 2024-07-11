@@ -1288,8 +1288,8 @@ enum SoilIdSoilDataGrazingSelectChoices {
 
 """An enumeration."""
 enum SoilIdSoilDataDepthIntervalPresetChoices {
-  """Landpks"""
-  LANDPKS
+  """Blm"""
+  BLM
 
   """Nrcs"""
   NRCS
@@ -1569,11 +1569,11 @@ type ProjectSoilSettingsNode {
 
 """An enumeration."""
 enum SoilIdProjectSoilSettingsDepthIntervalPresetChoices {
-  """Landpks"""
-  LANDPKS
-
   """Nrcs"""
   NRCS
+
+  """Blm"""
+  BLM
 
   """None"""
   NONE
