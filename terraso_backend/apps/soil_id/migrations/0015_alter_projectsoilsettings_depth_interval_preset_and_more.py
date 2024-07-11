@@ -18,6 +18,26 @@
 from django.db import migrations, models
 
 
+# This will not restore data in depth intervals.
+# This will only turn CUSTOM depth presets with no data and no customization to the LANDPKS preset
+def revertDepthIntervalPresets(apps, schema_editor):
+    SoilData = apps.get_model("soil_id", "SoilData")
+    ProjectSoilSettings = apps.get_model("soil_id", "ProjectSoilSettings")
+
+    for siteSoilData in SoilData.objects.all():
+        if siteSoilData.depth_interval_preset == "CUSTOM" and (
+            siteSoilData.depth_dependent_data.count() > 0
+            or siteSoilData.depth_intervals.count() > 0
+        ):
+            siteSoilData.depth_interval_preset = "LANDPKS"
+            siteSoilData.save(update_fields=["depth_interval_preset"])
+
+    for project in ProjectSoilSettings.objects.all():
+        if project.depth_interval_preset == "CUSTOM" and not project.depth_intervals.count() == 0:
+            project.depth_interval_preset = "LANDPKS"
+            project.save(update_fields=["depth_interval_preset"])
+
+
 def updateDepthIntervalPresets(apps, schema_editor):
     SoilData = apps.get_model("soil_id", "SoilData")
     ProjectSoilSettings = apps.get_model("soil_id", "ProjectSoilSettings")
@@ -55,5 +75,5 @@ class Migration(migrations.Migration):
                 choices=[("BLM", "Blm"), ("NRCS", "Nrcs"), ("CUSTOM", "Custom")], default="NRCS"
             ),
         ),
-        migrations.RunPython(updateDepthIntervalPresets),
+        migrations.RunPython(updateDepthIntervalPresets, revertDepthIntervalPresets),
     ]
