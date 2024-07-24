@@ -896,8 +896,8 @@ sniffio==1.3.1 \
     # via
     #   anyio
     #   httpx
-soil-id @ https://github.com/techmatters/soil-id-algorithm/archive/a8f8837.zip \
-    --hash=sha256:cae57b2e93c4c295f85b157baa48c721b7e656600316672edc5fa5999737d3b3
+soil-id @ https://github.com/techmatters/soil-id-algorithm/archive/f91ebdf.zip \
+    --hash=sha256:5c6134a2a3b5a0485a3ef017b7069c79b32c38cfc8fed72704c67af532e5ea09
     # via -r requirements/base.in
 sqlparse==0.5.1 \
     --hash=sha256:773dcbf9a5ab44a090f3441e2180efe2560220203dc2f8c0b0fa141e18b505e4 \
