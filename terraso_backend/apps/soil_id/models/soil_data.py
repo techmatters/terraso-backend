@@ -103,7 +103,7 @@ class SoilData(BaseModel):
     )
 
     slope_steepness_degree = models.IntegerField(
-        blank=True, null=True, validators=[MinValueValidator(0), MaxValueValidator(90)]
+        blank=True, null=True, validators=[MinValueValidator(0), MaxValueValidator(89)]
     )
 
     class SurfaceCracks(models.TextChoices):
