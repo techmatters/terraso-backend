@@ -25,6 +25,7 @@ class ProjectSettings(BaseModel):
 
     class Meta(BaseModel.Meta):
         abstract = False
+        verbose_name_plural = "project settings"
 
     member_can_update_site = models.BooleanField(default=False)
     member_can_add_site_to_project = models.BooleanField(default=False)

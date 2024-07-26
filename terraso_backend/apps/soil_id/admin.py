@@ -50,7 +50,15 @@ class SoilDataAdmin(admin.ModelAdmin):
     def site_name(self, obj):
         return obj.site.name
 
-    list_display = ("site_name", "depth_interval_preset")
+    @admin.display(ordering="site__owner")
+    def site_owner(self, obj):
+        return obj.site.owner
+
+    @admin.display(ordering="site__project__name")
+    def project(self, obj):
+        return obj.site.project.name if obj.site.project is not None else None
+
+    list_display = ("site_name", "project", "site_owner", "depth_interval_preset")
     inlines = [
         DepthDependentSoilDataInline,
         SoilDataDepthIntervalInline,

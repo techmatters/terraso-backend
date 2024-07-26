@@ -215,6 +215,9 @@ class SoilData(BaseModel):
         default=SoilDataDepthIntervalPreset.NRCS.value,
     )
 
+    class Meta(BaseModel.Meta):
+        verbose_name_plural = "soil data"
+
 
 class SoilDataDepthInterval(BaseModel, BaseDepthInterval):
     soil_data = models.ForeignKey(
