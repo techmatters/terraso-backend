@@ -48,6 +48,7 @@ BLMIntervalDefaults = [
 class ProjectSoilSettings(BaseModel):
     class Meta(BaseModel.Meta):
         abstract = False
+        verbose_name_plural = "project soil settings"
 
     project = models.OneToOneField(Project, on_delete=models.CASCADE, related_name="soil_settings")
 
