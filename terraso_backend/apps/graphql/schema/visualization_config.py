@@ -138,10 +138,11 @@ class VisualizationConfigNode(DjangoObjectType):
             return self.mapbox_tileset_id
 
         # Check if tileset ready to be published and update status
-        published = get_publish_status(self.mapbox_tileset_id)
-        if published:
-            self.mapbox_tileset_status = VisualizationConfig.MAPBOX_TILESET_READY
-            self.save()
+        if self.mapbox_tileset_id:
+            published = get_publish_status(self.mapbox_tileset_id)
+            if published:
+                self.mapbox_tileset_status = VisualizationConfig.MAPBOX_TILESET_READY
+                self.save()
 
         return self.mapbox_tileset_id
 
