@@ -96,6 +96,7 @@ class VisualizationConfigNode(DjangoObjectType):
             "created_at",
             "data_entry",
             "mapbox_tileset_id",
+            "mapbox_tileset_status",
         )
         interfaces = (relay.Node,)
         filterset_class = VisualizationConfigFilterSet
@@ -141,7 +142,8 @@ class VisualizationConfigNode(DjangoObjectType):
         if published:
             self.mapbox_tileset_status = VisualizationConfig.MAPBOX_TILESET_READY
             self.save()
-            return self.mapbox_tileset_id
+
+        return self.mapbox_tileset_id
 
 
 class VisualizationConfigAddMutation(BaseWriteMutation):
