@@ -17,6 +17,7 @@ import pytest
 
 from apps.collaboration.models import Membership as CollaborationMembership
 from apps.core import group_collaboration_roles
+from apps.shared_data.models import VisualizationConfig
 
 pytestmark = pytest.mark.django_db
 
@@ -192,3 +193,25 @@ def test_visualization_configs_returns_only_for_users_groups(
     assert entries_result[0] == str(visualization_config_current_user.id)
     assert edges[0]["node"]["title"] == visualization_config_current_user.title
     assert edges[0]["node"]["description"] == visualization_config_current_user.description
+
+
+def test_visualization_configs_query_processing_status(
+    client_query, visualization_config_processing
+):
+    response = client_query(
+        """
+        {visualizationConfigs {
+          edges {
+            node {
+              mapboxTilesetStatus
+            }
+          }
+        }}
+        """
+    )
+    edges = response.json()["data"]["visualizationConfigs"]["edges"]
+    for edge in edges:
+        assert (
+            edge["node"]["mapboxTilesetStatus"]
+            == VisualizationConfig.MAPBOX_TILESET_PENDING.upper()
+        )

@@ -669,6 +669,7 @@ type VisualizationConfigNode implements Node {
   configuration: JSONString
   createdBy: UserNode
   mapboxTilesetId: String
+  mapboxTilesetStatus: SharedDataVisualizationConfigMapboxTilesetStatusChoices!
   dataEntry: DataEntryNode!
   owner: OwnerNode
 }
@@ -679,6 +680,15 @@ value as specified by
 [iso8601](https://en.wikipedia.org/wiki/ISO_8601).
 """
 scalar DateTime
+
+"""An enumeration."""
+enum SharedDataVisualizationConfigMapboxTilesetStatusChoices {
+  """Pending"""
+  PENDING
+
+  """Ready"""
+  READY
+}
 
 type DataEntryNode implements Node {
   createdAt: DateTime!
