@@ -500,9 +500,9 @@ pure-eval==0.2.3 \
     --hash=sha256:1db8e35b67b3d218d818ae653e27f06c3aa420901fa7b081ca98cbedc874e0d0 \
     --hash=sha256:5f4e983f40564c576c7c8635ae88db5956bb2229d7e9237d03b3c0b0190eaf42
     # via stack-data
-pycodestyle==2.12.0 \
-    --hash=sha256:442f950141b4f43df752dd303511ffded3a04c2b6fb7f65980574f0c31e6e79c \
-    --hash=sha256:949a39f6b86c3e1515ba1787c2022131d165a8ad271b11370a8819aa070269e4
+pycodestyle==2.12.1 \
+    --hash=sha256:46f0fb92069a7c28ab7bb558f05bfc0110dac69a0cd23c61ea0040283a9d78b3 \
+    --hash=sha256:6838eae08bbce4f6accd5d5572075c63626a15ee3e6f842df996bf62f6d73521
     # via flake8
 pycparser==2.22 \
     --hash=sha256:491c8be9c040f5390f5bf44a5b07752bd07f56edf992381b05c701439eec10f6 \
