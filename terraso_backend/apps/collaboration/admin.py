@@ -26,6 +26,7 @@ class MembershipInline(admin.TabularInline):
 class MembershipListAdmin(admin.ModelAdmin):
     list_display = ("project", "id", "created_at")
     inlines = [MembershipInline]
+    search_fields = ["project__name"]
 
 
 @admin.register(Membership)
@@ -34,11 +35,12 @@ class MembershipAdmin(admin.ModelAdmin):
     def project(self, obj):
         return obj.membership_list.project
 
-    list_display = (
+    list_display = [
         "user",
         "project",
         "user_role",
         "membership_status",
         "membership_list",
         "created_at",
-    )
+    ]
+    search_fields = ["user__email", "membership_list__project__name"]

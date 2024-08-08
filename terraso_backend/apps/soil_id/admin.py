@@ -42,6 +42,7 @@ class ProjectSoilSettingsAdmin(admin.ModelAdmin):
     inlines = [
         ProjectDepthIntervalInline,
     ]
+    search_fields = ["project__name"]
 
 
 @admin.register(SoilData)
@@ -58,7 +59,8 @@ class SoilDataAdmin(admin.ModelAdmin):
     def project(self, obj):
         return obj.site.project.name if obj.site.project is not None else None
 
-    list_display = ("site_name", "project", "site_owner", "depth_interval_preset")
+    list_display = ["site_name", "project", "site_owner", "depth_interval_preset"]
+    search_fields = ["site__name", "site__project__name"]
     inlines = [
         DepthDependentSoilDataInline,
         SoilDataDepthIntervalInline,
