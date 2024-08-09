@@ -335,8 +335,8 @@ fiona==1.9.6 \
     # via
     #   -r requirements/base.in
     #   geopandas
-gdal==3.9.0 \
-    --hash=sha256:7c2a857cf903b9921357e0dfae593f2fe6f7dcd2ea42600577d5fc3c864fb066
+gdal==3.9.1 \
+    --hash=sha256:6d8a8f162ed32c5cb58839fa9198def477c68b670eed4cbce9eeef387ac3c8da
     # via soil-id
 geopandas==0.14.4 \
     --hash=sha256:3bb6473cb59d51e1a7fe2dbc24a1a063fb0ebdeddf3ce08ddbf8c7ddc99689aa \
@@ -908,8 +908,8 @@ sniffio==1.3.1 \
     # via
     #   anyio
     #   httpx
-soil-id @ https://github.com/techmatters/soil-id-algorithm/archive/a788e5a.zip \
-    --hash=sha256:0a880b61ebdca98a0a99628d52226ba81156f00ccba8da76d53d72609d8a0680
+soil-id @ https://github.com/techmatters/soil-id-algorithm/archive/66cb18e.zip \
+    --hash=sha256:55e4ef93597439f8348d88bcf64a3d9176ed4e645a759a1d2d5766a6394424ea
     # via -r requirements/base.in
 sqlparse==0.5.1 \
     --hash=sha256:773dcbf9a5ab44a090f3441e2180efe2560220203dc2f8c0b0fa141e18b505e4 \
