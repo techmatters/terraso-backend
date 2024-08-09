@@ -2,7 +2,7 @@ DC_ENV ?= dev
 DC_FILE_ARG = -f docker-compose.$(DC_ENV).yml
 DC_RUN_CMD = docker compose $(DC_FILE_ARG) run --quiet-pull --rm web
 
-SCHEMA_BUILD_CMD = $(DC_RUN_CMD) python terraso_backend/manage.py graphql_schema --schema apps.graphql.schema.schema --out=-.graphql
+SCHEMA_BUILD_CMD = $(DC_RUN_CMD) python terraso_backend/manage.py graphql_schema --schema apps.graphql.schema.schema.schema --out=-.graphql
 SCHEMA_BUILD_FILE = terraso_backend/apps/graphql/schema/schema.graphql
 api_schema: check_rebuild
 	$(SCHEMA_BUILD_CMD) > $(SCHEMA_BUILD_FILE)
@@ -52,7 +52,7 @@ lock-dev: pip-tools
 	CUSTOM_COMPILE_COMMAND="make lock-dev" pip-compile --upgrade --generate-hashes --strip-extras --resolver=backtracking --output-file requirements-dev.txt requirements/dev.in
 
 migrate: check_rebuild
-	$(DC_RUN_CMD) python terraso_backend/manage.py migrate --no-input
+	$(DC_RUN_CMD) python terraso_backend/manage.py migrate --no-input $(APP_MIGRATION_NAME)
 
 deploy:
 	python terraso_backend/manage.py migrate --no-input
@@ -109,10 +109,20 @@ test-ci: clean
 	# Same action as 'test' but avoiding to create test cache
 	$(DC_RUN_CMD) pytest -p no:cacheprovider terraso_backend
 
+connect_db:
+	docker compose $(DC_FILE_ARG) exec db psql -U postgres -d terraso_backend
+
 bash:
 	$(DC_RUN_CMD) bash
 
 # Donwload Munsell CSV, SHX, SHP, SBX, SBN, PRJ, DBF
+# 1tN23iVe6X1fcomcfveVp4w3Pwd0HJuTe: LandPKS_munsell_rgb_lab.csv
+# 1WUa9e3vTWPi6G8h4OI3CBUZP5y7tf1Li: gsmsoilmu_a_us.shx
+# 1l9MxC0xENGmI_NmGlBY74EtlD6SZid_a: gsmsoilmu_a_us.shp
+# 1asGnnqe0zI2v8xuOszlsNmZkOSl7cJ2n: gsmsoilmu_a_us.sbx
+# 185Qjb9pJJn4AzOissiTz283tINrDqgI0: gsmsoilmu_a_us.sbn
+# 1P3xl1YRlfcMjfO_4PM39tkrrlL3hoLzv: gsmsoilmu_a_us.prj
+# 1K0GkqxhZiVUND6yfFmaI7tYanLktekyp: gsmsoilmu_a_us.dbf
 download-soil-data:
 	mkdir -p Data
 	cd Data; \

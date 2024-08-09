@@ -34,9 +34,10 @@ from apps.shared_data.visualization_tileset_tasks import (
 )
 
 from ..exceptions import GraphQLNotFoundException
-from . import GroupNode, LandscapeNode
 from .commons import BaseDeleteMutation, BaseWriteMutation, TerrasoConnection
 from .constants import MutationTypes
+from .groups import GroupNode
+from .landscapes import LandscapeNode
 
 logger = structlog.get_logger(__name__)
 
@@ -95,6 +96,7 @@ class VisualizationConfigNode(DjangoObjectType):
             "created_at",
             "data_entry",
             "mapbox_tileset_id",
+            "mapbox_tileset_status",
         )
         interfaces = (relay.Node,)
         filterset_class = VisualizationConfigFilterSet
@@ -136,11 +138,13 @@ class VisualizationConfigNode(DjangoObjectType):
             return self.mapbox_tileset_id
 
         # Check if tileset ready to be published and update status
-        published = get_publish_status(self.mapbox_tileset_id)
-        if published:
-            self.mapbox_tileset_status = VisualizationConfig.MAPBOX_TILESET_READY
-            self.save()
-            return self.mapbox_tileset_id
+        if self.mapbox_tileset_id:
+            published = get_publish_status(self.mapbox_tileset_id)
+            if published:
+                self.mapbox_tileset_status = VisualizationConfig.MAPBOX_TILESET_READY
+                self.save()
+
+        return self.mapbox_tileset_id
 
 
 class VisualizationConfigAddMutation(BaseWriteMutation):

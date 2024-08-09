@@ -20,7 +20,7 @@ from jsonpath_ng import parse as jsonpath_parse
 from apps.soil_id.models import (
     DepthDependentSoilData,
     DepthIntervalPreset,
-    LandPKSIntervalDefaults,
+    NRCSIntervalDefaults,
     ProjectSoilSettings,
     SoilData,
 )
@@ -37,11 +37,11 @@ def to_snake_case(name):
     return name.lower()
 
 
-def add_soil_data_to_site(site, preset=DepthIntervalPreset.LANDPKS):
+def add_soil_data_to_site(site, preset=DepthIntervalPreset.NRCS):
     ProjectSoilSettings.objects.create(project=site.project, depth_interval_preset=preset)
     if not getattr(site, "soil_data", None):
         SoilData.objects.create(site=site)
-    for interval in LandPKSIntervalDefaults:
+    for interval in NRCSIntervalDefaults:
         DepthDependentSoilData.objects.create(
             soil_data=site.soil_data,
             depth_interval_start=interval["depth_interval_start"],

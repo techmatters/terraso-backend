@@ -24,10 +24,11 @@ from apps.collaboration.models import Membership as CollaborationMembership
 from apps.core.models import Group, Landscape, SharedResource
 from apps.graphql.exceptions import GraphQLNotAllowedException, GraphQLNotFoundException
 
-from . import GroupNode, LandscapeNode
 from .commons import BaseWriteMutation, TerrasoConnection
 from .constants import MutationTypes
 from .data_entries import DataEntryNode
+from .groups import GroupNode
+from .landscapes import LandscapeNode
 from .visualization_config import VisualizationConfigNode
 
 logger = structlog.get_logger(__name__)
