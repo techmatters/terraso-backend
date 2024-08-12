@@ -12,7 +12,7 @@ on:
 
 jobs:
   lint:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -35,7 +35,7 @@ jobs:
         run: make lint
 
   build-and-test:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     needs: lint
 
     steps:
