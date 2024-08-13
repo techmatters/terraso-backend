@@ -94,7 +94,7 @@ def resolve_ecological_site(ecological_site: dict):
         return EcologicalSite(
             name=ecological_site["ecoclassname"][0],
             id=ecological_site["ecoclassid"][0],
-            url=ecological_site["esd_url"][0],
+            url=ecological_site["edit_url"][0],
         )
 
 
