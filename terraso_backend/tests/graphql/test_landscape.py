@@ -253,13 +253,6 @@ def test_landscape_membership_query_by_membership_omit_soft_deleted(
           edges {
             node {
               name
-              membershipList {
-                accountMembership {
-                  id
-                  userRole
-                  membershipStatus
-                }
-              }
             }
           }
         }}
