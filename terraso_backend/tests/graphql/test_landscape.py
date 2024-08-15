@@ -17,8 +17,6 @@ import json
 
 import pytest
 
-from apps.core import landscape_collaboration_roles
-
 pytestmark = pytest.mark.django_db
 
 
@@ -247,8 +245,6 @@ def test_landscape_membership_query_by_membership_omit_soft_deleted(
     old_membership = landscape.membership_list.memberships.filter(
         user=users[0], deleted_at=None
     ).first()
-
-    old_membership.user_role = landscape_collaboration_roles.ROLE_MEMBER
     old_membership.delete()
 
     response = client_query(
