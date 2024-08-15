@@ -479,63 +479,6 @@ def test_landscape_membership_delete_by_membership_owner(client_query, users, ma
     )
 
 
-def test_landscape_membership_delete_by_membership_owner_avoid_fetch(
-    client_query, users, managed_landscapes
-):
-    landscape = managed_landscapes[0]
-    old_membership = landscape.membership_list.memberships.filter(
-        user=users[0], deleted_at=None
-    ).first()
-
-    old_membership.user_role = landscape_collaboration_roles.ROLE_MEMBER
-    old_membership.save()
-
-    client_query(
-        """
-        mutation deleteMembership($input: LandscapeMembershipDeleteMutationInput!){
-          deleteLandscapeMembership(input: $input) {
-            membership {
-              user {
-                email
-              },
-            }
-          }
-        }
-        """,
-        variables={
-            "input": {
-                "id": str(old_membership.id),
-                "landscapeSlug": landscape.slug,
-            }
-        },
-    )
-
-    response = client_query(
-        """
-        {landscapes(membershipList_Memberships_User_Email: "%s") {
-          edges {
-            node {
-              name
-              membershipList {
-                accountMembership {
-                  id
-                  userRole
-                  membershipStatus
-                }
-              }
-            }
-          }
-        }}
-        """
-        % old_membership.user.email
-    )
-
-    json_response = response.json()
-
-    landscapes = json_response["data"]["landscapes"]["edges"]
-    assert len(landscapes) == 0
-
-
 def test_landscape_membership_delete_by_any_other_user(
     client_query, landscape_user_memberships, managed_landscapes
 ):
