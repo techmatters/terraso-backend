@@ -13,6 +13,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see https://www.gnu.org/licenses/.
 
+import secrets
 import uuid
 from datetime import timedelta
 
@@ -440,6 +441,7 @@ def visualization_configs(users, groups):
     visualizations = mixer.cycle(5).blend(
         VisualizationConfig,
         created_by=creator,
+        readable_id=secrets.token_hex(4),
         data_entry=lambda: mixer.blend(
             SharedResource,
             target=creator_group,
