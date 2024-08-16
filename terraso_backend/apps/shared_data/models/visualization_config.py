@@ -34,6 +34,7 @@ class VisualizationConfig(SlugModel):
         (MAPBOX_TILESET_READY, _("Ready")),
     )
 
+    readable_id = models.CharField(max_length=10, default="")
     title = models.CharField(max_length=128, validators=[validate_name])
     description = models.TextField(blank=True, null=True)
     configuration = models.JSONField(blank=True, null=True)
@@ -66,7 +67,7 @@ class VisualizationConfig(SlugModel):
     class Meta(BaseModel.Meta):
         constraints = (
             models.UniqueConstraint(
-                fields=("owner_object_id", "slug"),
+                fields=("owner_object_id", "slug", "readable_id"),
                 condition=models.Q(deleted_at__isnull=True),
                 name="shared_data_visualizationconfig_unique_active_slug_by_owner",
             ),
