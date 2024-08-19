@@ -36,6 +36,7 @@ from apps.core.models.users import (
     USER_PREFS_KEYS,
 )
 from apps.storage.services import ProfileImageService
+from apps.storage.tasks import start_update_profile_image_task
 
 from .providers import AppleProvider, GoogleProvider, MicrosoftProvider
 from .signals import user_signup_signal
@@ -103,7 +104,7 @@ class AccountService:
             raise ValueError("Could not create account, user email is empty")
         user, created = User.objects.get_or_create(email=email)
 
-        self._update_profile_image(user, profile_image_url)
+        start_update_profile_image_task(user.id, profile_image_url)
 
         if not created:
             return user, False
