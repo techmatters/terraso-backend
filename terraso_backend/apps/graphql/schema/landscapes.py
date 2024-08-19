@@ -13,6 +13,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see https://www.gnu.org/licenses/.
 
+import django_filters
 import graphene
 import structlog
 from django.db import transaction
@@ -40,6 +41,28 @@ from .shared_resources_mixin import SharedResourcesMixin
 logger = structlog.get_logger(__name__)
 
 
+class LandscapeFilterSet(django_filters.FilterSet):
+    membership_list__memberships__user__email = django_filters.CharFilter(
+        method="filter_memberships_email"
+    )
+
+    class Meta:
+        model = Landscape
+        fields = {
+            "name": ["icontains"],
+            "description": ["icontains"],
+            "slug": ["exact", "icontains"],
+            "website": ["icontains"],
+            "location": ["icontains"],
+        }
+
+    def filter_memberships_email(self, queryset, name, value):
+        return queryset.filter(
+            membership_list__memberships__user__email=value,
+            membership_list__memberships__deleted_at__isnull=True,
+        )
+
+
 class LandscapeNode(DjangoObjectType, SharedResourcesMixin):
     id = graphene.ID(source="pk", required=True)
     area_types = graphene.List(graphene.String)
@@ -47,14 +70,6 @@ class LandscapeNode(DjangoObjectType, SharedResourcesMixin):
 
     class Meta:
         model = Landscape
-        filter_fields = {
-            "name": ["icontains"],
-            "description": ["icontains"],
-            "slug": ["exact", "icontains"],
-            "website": ["icontains"],
-            "location": ["icontains"],
-            "membership_list__memberships__user__email": ["exact"],
-        }
         fields = (
             "name",
             "slug",
@@ -75,7 +90,7 @@ class LandscapeNode(DjangoObjectType, SharedResourcesMixin):
             "center_coordinates",
             "membership_list",
         )
-
+        filterset_class = LandscapeFilterSet
         interfaces = (relay.Node,)
         connection_class = TerrasoConnection
 

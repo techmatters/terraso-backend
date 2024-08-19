@@ -236,3 +236,31 @@ def test_landscapes_query_by_membership_email(client_query, landscape_user_membe
     memberships = membership_list["memberships"]["edges"]
     assert len(memberships) == 2
     assert membership_list["membershipsCount"] == 2
+
+
+def test_landscape_membership_query_by_membership_omit_soft_deleted(
+    client_query, users, managed_landscapes
+):
+    landscape = managed_landscapes[0]
+    old_membership = landscape.membership_list.memberships.filter(
+        user=users[0], deleted_at=None
+    ).first()
+    old_membership.delete()
+
+    response = client_query(
+        """
+        {landscapes(membershipList_Memberships_User_Email: "%s") {
+          edges {
+            node {
+              name
+            }
+          }
+        }}
+        """
+        % old_membership.user.email
+    )
+
+    json_response = response.json()
+
+    landscapes = json_response["data"]["landscapes"]["edges"]
+    assert len(landscapes) == 0
