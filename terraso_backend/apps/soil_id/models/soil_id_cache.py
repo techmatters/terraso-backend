@@ -30,6 +30,8 @@ class SoilIdCache(models.Model):
         constraints = [
             models.UniqueConstraint(fields=["latitude", "longitude"], name="coordinate_index")
         ]
+        verbose_name = "Soil ID Cache"
+        verbose_name_plural = "Soil ID Cache"
 
     @classmethod
     def round_coordinate(cls, coord: float):

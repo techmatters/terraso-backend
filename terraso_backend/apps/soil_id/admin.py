@@ -22,6 +22,7 @@ from apps.soil_id.models import (
     SoilData,
     SoilDataDepthInterval,
 )
+from apps.soil_id.models.soil_id_cache import SoilIdCache
 
 
 class DepthDependentSoilDataInline(admin.TabularInline):
@@ -65,3 +66,8 @@ class SoilDataAdmin(admin.ModelAdmin):
         DepthDependentSoilDataInline,
         SoilDataDepthIntervalInline,
     ]
+
+
+@admin.register(SoilIdCache)
+class SoilIdCacheAdmin(admin.ModelAdmin):
+    list_display = ["id", "latitude", "longitude"]
