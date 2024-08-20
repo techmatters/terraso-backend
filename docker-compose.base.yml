@@ -11,12 +11,12 @@ services:
       org.techmatters.project: terraso_backend
     env_file: .env
     ports:
-      - "${PORT}:${PORT}"
+      - '${PORT}:${PORT}'
     stdin_open: true
     tty: true
 
   db:
-    image: "postgis/postgis:14-master"
+    image: 'postgis/postgis:14-master'
     labels:
       org.techmatters.project: terraso_backend
     env_file: .env
@@ -28,7 +28,7 @@ services:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
     ports:
-      - "${DATABASE_EXTERNAL_PORT}:5432"
+      - '${DATABASE_EXTERNAL_PORT}:5432'
     healthcheck:
       test: pg_isready -U postgres -d terraso_backend
       interval: 3s
