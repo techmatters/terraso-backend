@@ -253,6 +253,7 @@ structlog.configure(
 GRAPHENE = {
     "SCHEMA": "apps.graphql.schema.schema.schema",
     "TESTING_ENDPOINT": "/graphql/",
+    "RELAY_CONNECTION_MAX_LIMIT": config("RELAY_CONNECTION_MAX_LIMIT", default=1000),
 }
 
 WEB_CLIENT_DOMAIN = config("WEB_CLIENT_DOMAIN", default="")
