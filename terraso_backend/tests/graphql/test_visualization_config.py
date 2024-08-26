@@ -13,10 +13,13 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see https://www.gnu.org/licenses/.
 
+from datetime import datetime, timedelta, timezone
+
 import pytest
 
 from apps.collaboration.models import Membership as CollaborationMembership
 from apps.core import group_collaboration_roles
+from apps.core.management.commands.harddelete import Command
 from apps.shared_data.models import VisualizationConfig
 
 pytestmark = pytest.mark.django_db
@@ -215,3 +218,38 @@ def test_visualization_configs_query_processing_status(
             edge["node"]["mapboxTilesetStatus"]
             == VisualizationConfig.MAPBOX_TILESET_PENDING.upper()
         )
+
+
+def test_visualization_configs_with_deleted_data_entry(client_query, visualization_configs, groups):
+    visualization_config_a = visualization_configs[0]
+    visualization_config_b = visualization_configs[1]
+
+    visualization_config_a.data_entry.shared_resources.create(target=groups[-1])
+    visualization_config_b.data_entry.shared_resources.create(target=groups[-1])
+
+    visualization_config_b.data_entry.deleted_at = datetime.now(timezone.utc) - (
+        Command.DEFAULT_DELETION_GAP + timedelta(days=1)
+    )
+    visualization_config_b.data_entry.save(keep_deleted=True)
+
+    group_filter = groups[-1]
+
+    response = client_query(
+        """
+        {visualizationConfigs(
+          dataEntry_SharedResources_Target_Slug: "%s",
+          dataEntry_SharedResources_TargetContentType: "%s"
+        ) {
+          edges {
+            node {
+              id
+            }
+          }
+        }}
+        """
+        % (group_filter.slug, "group")
+    )
+    json_response = response.json()
+    edges = json_response["data"]["visualizationConfigs"]["edges"]
+    visualization_configs_result = [edge["node"]["id"] for edge in edges]
+    assert len(visualization_configs_result) == 1
