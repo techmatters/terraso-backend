@@ -131,8 +131,14 @@ class VisualizationConfigNode(DjangoObjectType):
             ).values("id")
         )
         return queryset.filter(
-            Q(data_entry__shared_resources__target_object_id__in=user_groups_ids)
-            | Q(data_entry__shared_resources__target_object_id__in=user_landscape_ids)
+            Q(
+                data_entry__shared_resources__target_object_id__in=user_groups_ids,
+                data_entry__deleted_at__isnull=True,
+            )
+            | Q(
+                data_entry__shared_resources__target_object_id__in=user_landscape_ids,
+                data_entry__deleted_at__isnull=True,
+            )
         ).distinct()
 
     def resolve_mapbox_tileset_id(self, info):
