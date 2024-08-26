@@ -38,7 +38,7 @@ sample_soil_list_json = [
             },
             "siteDescription": "The Randall series consists of very deep, poorly drained, very slowly permeable soils that formed in clayey lacustrine sediments derived from the Blackwater Draw Formation of Pleistocene age. These nearly level soils are on the floor of playa basins 3 to 15 m (10 to 50 ft) below the surrounding plain and range in size from 10 to more than 150 acres. Slope ranges from 0 to 1 percent. Mean annual precipitation is 483 mm (19 in), and mean annual temperature is 15 degrees C (59 degrees F).",  # noqa: E501
         },
-        "esd": {"ESD": {"ecoclassid": "", "ecoclassname": "", "edit_url": ""}},
+        "esd": {"ESD": {"ecoclassid": "", "ecoclassname": "", "esd_url": ""}},
         "bottom_depth": {"0": 30, "1": 94, "2": 203},
         "texture": {"0": "", "1": "Clay loam", "2": float("nan")},
         "rock_fragments": {"0": 0, "1": "", "2": 0},
@@ -70,7 +70,7 @@ sample_soil_list_json = [
             },
             "siteDescription": "",
         },
-        "esd": {"ESD": {"ecoclassid": "", "ecoclassname": "", "edit_url": ""}},
+        "esd": {"ESD": {"ecoclassid": "", "ecoclassname": "", "esd_url": ""}},
         "bottom_depth": {"0": 30, "1": 97, "2": 147, "3": 203},
         "sand": {"0": 49.1, "1": 48.9, "2": 48.7, "3": 52.5},
         "clay": {"0": 20.2, "1": 27.6, "2": 32.1, "3": 29.8},
@@ -128,7 +128,7 @@ sample_soil_list_json = [
             },
             "siteDescription": "",
         },
-        "esd": {"ESD": {"ecoclassid": "", "ecoclassname": "", "edit_url": ""}},
+        "esd": {"ESD": {"ecoclassid": "", "ecoclassname": "", "esd_url": ""}},
         "bottom_depth": {"0": 30, "1": 97, "2": 147, "3": 203},
         "sand": {"0": 50.9, "1": 48.9, "2": 48.7, "3": 52.5},
         "clay": {"0": 19.1, "1": 27.6, "2": 32.1, "3": 29.8},
@@ -238,17 +238,16 @@ def test_resolve_soil_data():
 
 
 def test_resolve_ecological_site():
-    assert resolve_ecological_site({"ecoclassid": "", "ecoclassname": "", "edit_url": ""}) is None
+    assert resolve_ecological_site({"ecoclassid": "", "ecoclassname": "", "esd_url": ""}) is None
     assert (
-        resolve_ecological_site({"ecoclassid": [""], "ecoclassname": [""], "edit_url": [""]})
-        is None
+        resolve_ecological_site({"ecoclassid": [""], "ecoclassname": [""], "esd_url": [""]}) is None
     )
 
     result = resolve_ecological_site(
         {
             "ecoclassid": ["AX001X02X001"],
             "ecoclassname": ["Mesic Udic Riparian Forest"],
-            "edit_url": [""],
+            "esd_url": [""],
         }
     )
 
