@@ -13,6 +13,8 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see https://www.gnu.org/licenses/.
 
+import secrets
+
 import django_filters
 import graphene
 import structlog
@@ -54,6 +56,7 @@ class VisualizationConfigFilterSet(django_filters.FilterSet):
         model = VisualizationConfig
         fields = {
             "slug": ["exact", "icontains"],
+            "readable_id": ["exact"],
             "data_entry__shared_resources__target_object_id": ["exact"],
         }
 
@@ -88,6 +91,7 @@ class VisualizationConfigNode(DjangoObjectType):
         model = VisualizationConfig
         fields = (
             "id",
+            "readable_id",
             "slug",
             "title",
             "description",
@@ -203,6 +207,8 @@ class VisualizationConfigAddMutation(BaseWriteMutation):
             kwargs["created_by"] = user
 
         kwargs["owner"] = owner
+
+        kwargs["readable_id"] = secrets.token_hex(4)
 
         result = super().mutate_and_get_payload(root, info, **kwargs)
 

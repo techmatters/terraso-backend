@@ -13,7 +13,6 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see https://www.gnu.org/licenses/.
 
-import json
 from unittest import mock
 
 import pytest
@@ -72,7 +71,7 @@ def test_visualization_config_add(
 
 
 @mock.patch("apps.graphql.schema.visualization_config.start_create_mapbox_tileset_task")
-def test_visualization_config_add_fails_due_uniqueness_check(
+def test_visualization_config_add_works_for_duplicated_title(
     mock_create_tileset, client_query, visualization_configs, data_entries
 ):
     new_data = {
@@ -88,7 +87,8 @@ def test_visualization_config_add_fails_due_uniqueness_check(
         mutation addVisualizationConfig($input: VisualizationConfigAddMutationInput!) {
           addVisualizationConfig(input: $input) {
             visualizationConfig {
-              id
+              title
+              readableId
             }
             errors
           }
@@ -98,12 +98,12 @@ def test_visualization_config_add_fails_due_uniqueness_check(
     )
     response = response.json()
 
-    assert "errors" in response["data"]["addVisualizationConfig"]
-    error_message = json.loads(response["data"]["addVisualizationConfig"]["errors"][0]["message"])[
-        0
-    ]
-    assert error_message["code"] == "unique"
-    mock_create_tileset.assert_not_called()
+    result = response["data"]["addVisualizationConfig"]["visualizationConfig"]
+
+    assert result["title"] == visualization_configs[0].title
+    assert result["readableId"] is not None
+
+    mock_create_tileset.assert_called_once()
 
 
 @mock.patch("apps.graphql.schema.visualization_config.start_create_mapbox_tileset_task")
