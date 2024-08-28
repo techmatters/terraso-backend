@@ -17,8 +17,10 @@
 from django.db import models
 from soil_id.us_soil import SoilListOutputData
 
+from apps.core.models.commons import BaseModel
 
-class SoilIdCache(models.Model):
+
+class SoilIdCache(BaseModel):
     latitude = models.FloatField()
     longitude = models.FloatField()
     failure_reason = models.TextField(null=True)
