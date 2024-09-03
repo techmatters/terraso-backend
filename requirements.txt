@@ -269,9 +269,9 @@ dj-database-url==2.2.0 \
     --hash=sha256:3e792567b0aa9a4884860af05fe2aa4968071ad351e033b6db632f97ac6db9de \
     --hash=sha256:9f9b05058ddf888f1e6f840048b8d705ff9395e3b52a07165daa3d8b9360551b
     # via -r requirements/base.in
-django==5.1 \
-    --hash=sha256:848a5980e8efb76eea70872fb0e4bc5e371619c70fffbe48e3e1b50b2c09455d \
-    --hash=sha256:d3b811bf5371a26def053d7ee42a9df1267ef7622323fe70a601936725aa4557
+django==5.1.1 \
+    --hash=sha256:021ffb7fdab3d2d388bc8c7c2434eb9c1f6f4d09e6119010bbb1694dda286bc2 \
+    --hash=sha256:71603f27dac22a6533fb38d83072eea9ddb4017fead6f67f2562a40402d61c3f
     # via
     #   -r requirements/base.in
     #   dj-database-url
@@ -754,9 +754,9 @@ rtree==1.3.0 \
     --hash=sha256:c021f4772b25cc24915da8073e553ded6fa8d0b317caa4202255ed26b2344c1c \
     --hash=sha256:ec2ed6d1635753dab966e68f592a9c4896f3f4ec6ad2b09b776d592eacd883a9
     # via soil-id
-rules==3.4 \
-    --hash=sha256:c4702c1d60ca43e97d4dfced31e98274c652dea3c461105d8df6186d663e3212 \
-    --hash=sha256:e906114d9b3cce73871213c6311b94cb26a5bc2c3b00aa2f13d3633a65447817
+rules==3.5 \
+    --hash=sha256:0f00fc9ee448b3f82e9aff9334ab0c56c76dce4dfa14f1598f57969f1022acc0 \
+    --hash=sha256:f01336218f4561bab95f53672d22418b4168baea271423d50d9e8490d64cb27a
     # via -r requirements/base.in
 s3transfer==0.10.2 \
     --hash=sha256:0711534e9356d3cc692fdde846b4a1e4b0cb6519971860796e6bc4c7aea00ef6 \
