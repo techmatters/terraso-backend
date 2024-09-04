@@ -2,9 +2,9 @@ FROM python:3.12.5-slim-bookworm
 
 RUN adduser --disabled-password terraso
 
-ENV PATH /home/terraso/.local/bin:$PATH
+ENV PATH=/home/terraso/.local/bin:$PATH
 # see https://github.com/aws/aws-cli/tags for list of versions
-ENV AWS_CLI_VERSION 2.8.12
+ENV AWS_CLI_VERSION=2.8.12
 
 # Add testing sources and pin the GDAL packages to testing
 # Allows us to get 3.8.x versions of GDAL
