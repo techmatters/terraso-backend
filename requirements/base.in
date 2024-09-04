@@ -10,7 +10,7 @@ django-safedelete
 django-ses
 django-storages
 django-structlog
-fiona==1.10b3 --no-binary fiona
+fiona --no-binary fiona
 geopandas
 graphene-django
 httpx
