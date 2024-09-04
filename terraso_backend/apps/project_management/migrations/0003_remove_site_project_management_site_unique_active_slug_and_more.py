@@ -49,7 +49,7 @@ class Migration(migrations.Migration):
         migrations.AddConstraint(
             model_name="site",
             constraint=models.CheckConstraint(
-                check=models.Q(
+                condition=models.Q(
                     models.Q(("project__isnull", False), ("owner__isnull", False), _connector="OR"),
                     models.Q(("project__isnull", True), ("owner__isnull", True), _connector="OR"),
                 ),

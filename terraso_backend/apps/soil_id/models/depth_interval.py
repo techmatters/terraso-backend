@@ -38,7 +38,7 @@ class BaseDepthInterval(models.Model):
                 name="%(app_label)s_%(class)s_unique_depth_interval",
             ),
             models.CheckConstraint(
-                check=models.Q(depth_interval_start__lt=models.F("depth_interval_end")),
+                condition=models.Q(depth_interval_start__lt=models.F("depth_interval_end")),
                 name="%(app_label)s_%(class)s_depth_interval_coherence",
             ),
         ]

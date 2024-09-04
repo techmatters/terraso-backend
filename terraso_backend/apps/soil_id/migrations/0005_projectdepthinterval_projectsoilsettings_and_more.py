@@ -205,7 +205,7 @@ class Migration(migrations.Migration):
         migrations.AddConstraint(
             model_name="depthdependentsoildata",
             constraint=models.CheckConstraint(
-                check=models.Q(("depth_interval_start__lt", models.F("depth_interval_end"))),
+                condition=models.Q(("depth_interval_start__lt", models.F("depth_interval_end"))),
                 name="soil_id_depthdependentsoildata_depth_interval_coherence",
             ),
         ),
@@ -247,7 +247,7 @@ class Migration(migrations.Migration):
         migrations.AddConstraint(
             model_name="soildatadepthinterval",
             constraint=models.CheckConstraint(
-                check=models.Q(("depth_interval_start__lt", models.F("depth_interval_end"))),
+                condition=models.Q(("depth_interval_start__lt", models.F("depth_interval_end"))),
                 name="soil_id_soildatadepthinterval_depth_interval_coherence",
             ),
         ),
@@ -262,7 +262,7 @@ class Migration(migrations.Migration):
         migrations.AddConstraint(
             model_name="projectdepthinterval",
             constraint=models.CheckConstraint(
-                check=models.Q(("depth_interval_start__lt", models.F("depth_interval_end"))),
+                condition=models.Q(("depth_interval_start__lt", models.F("depth_interval_end"))),
                 name="soil_id_projectdepthinterval_depth_interval_coherence",
             ),
         ),
