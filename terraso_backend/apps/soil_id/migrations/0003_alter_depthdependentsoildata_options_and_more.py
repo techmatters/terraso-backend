@@ -499,7 +499,7 @@ class Migration(migrations.Migration):
         migrations.AddConstraint(
             model_name="depthdependentsoildata",
             constraint=models.CheckConstraint(
-                check=models.Q(("depth_start__lt", models.F("depth_end"))),
+                condition=models.Q(("depth_start__lt", models.F("depth_end"))),
                 name="depth_interval_coherence",
             ),
         ),
