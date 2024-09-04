@@ -447,4 +447,4 @@ HUBSPOT_ACCOUNT_DELETION_FORM_API_URL = (
 )
 
 # Neeed for Django 5.x to silence warning. Remove when Django 6.0 is released.
-FORMS_URLFIELD_ASSUME_HTTPS=True
+FORMS_URLFIELD_ASSUME_HTTPS = True
