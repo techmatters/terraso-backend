@@ -463,6 +463,7 @@ def test_data_entry_kml_to_geojson(
 
     assert data_entry_result["id"] == str(data_entry_kml.id)
     assert data_entry_result["name"] == data_entry_kml.name
+    assert 0
     assert json.loads(data_entry_result["geojson"])["features"] == expected_json["features"]
 
 

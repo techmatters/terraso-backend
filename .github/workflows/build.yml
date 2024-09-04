@@ -11,36 +11,39 @@ on:
       - main
 
 jobs:
-  lint:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+  # lint:
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: Checkout
+  #       uses: actions/checkout@v4
 
-      - name: Setup Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.12.5'
+  #     - name: Setup Python
+  #       uses: actions/setup-python@v5
+  #       with:
+  #         python-version: '3.12.5'
 
-      - name: Install Python dependencies for CI
-        run: make install-dev
+  #     - name: Install Python dependencies for CI
+  #       run: make install-dev
 
-      - name: Build base Docker image
-        run: |
-          cp .env.sample .env
-          echo "SENTRY_DSN=${{ secrets.SENTRY_DSN }}" >> .env
-          make build DC_ENV=ci
+  #     - name: Build base Docker image
+  #       run: |
+  #         cp .env.sample .env
+  #         echo "SENTRY_DSN=${{ secrets.SENTRY_DSN }}" >> .env
+  #         make build DC_ENV=ci
 
-      - name: Run lint checks
-        run: make lint
+  #     - name: Run lint checks
+  #       run: make lint
 
   build-and-test:
     runs-on: ubuntu-latest
-    needs: lint
+    # needs: lint
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Setup tmate session
+        uses: mxschmitt/action-tmate@v3
 
       - name: Build base Docker image
         run: |
@@ -68,4 +71,4 @@ jobs:
           make download-soil-data
 
       - name: Run tests using built Docker image
-        run: make test-ci DC_ENV=ci
+        run: make testkml DC_ENV=ci

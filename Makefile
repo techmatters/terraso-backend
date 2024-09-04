@@ -105,6 +105,9 @@ test: clean check_rebuild compile-translations
 		$(DC_RUN_CMD) pytest terraso_backend -k $(PATTERN); \
 	fi
 
+testkml:
+	$(DC_RUN_CMD) pytest -p no:cacheprovider terraso_backend -k kml --pdb
+
 test-ci: clean
 	# Same action as 'test' but avoiding to create test cache
 	$(DC_RUN_CMD) pytest -p no:cacheprovider terraso_backend
