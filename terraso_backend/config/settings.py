@@ -445,3 +445,6 @@ HUBSPOT_ACCOUNT_DELETION_FORM_API_URL = (
     f"https://api.hsforms.com/submissions/v3/integration/submit/"
     f"{HUBSPOT_PORTAL_ID}/{HUBSPOT_ACCOUNT_DELETION_FORM_ID}"
 )
+
+# Neeed for Django 5.x to silence warning. Remove when Django 6.0 is released.
+FORMS_URLFIELD_ASSUME_HTTPS=True
