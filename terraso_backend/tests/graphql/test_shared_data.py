@@ -29,6 +29,8 @@ from apps.core.gis.utils import DEFAULT_CRS
 
 from ..core.gis.test_parsers import KML_TEST_FILES
 
+gpd.options.io_engine = "fiona"
+
 pytestmark = pytest.mark.django_db
 
 
