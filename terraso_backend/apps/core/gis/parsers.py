@@ -31,6 +31,8 @@ from apps.core.gis.utils import DEFAULT_CRS
 
 logger = structlog.get_logger(__name__)
 
+gpd.options.io_engine = "fiona"
+
 supported_drivers["KML"] = "rw"
 supported_drivers["LIBKML"] = "rw"
 supported_drivers["GPX"] = "rw"
