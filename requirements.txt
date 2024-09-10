@@ -332,15 +332,13 @@ et-xmlfile==1.1.0 \
     # via openpyxl
 fiona==1.10.0 \
     --hash=sha256:3529fd46d269ff3f70aeb9316a93ae95cf2f87d7e148a8ff0d68532bf81ff7ae
-    # via
-    #   -r requirements/base.in
-    #   geopandas
-gdal==3.8.4 \
-    --hash=sha256:7c51e0ae7a7ccf43ad9e4bf435176baa9276653dfa16fd167c3632f6e7275207
+    # via -r requirements/base.in
+gdal==3.9.2 \
+    --hash=sha256:cf9c1add09ce152975c94d48a1a89dd300c292e0761fd3d22a8071a98852e129
     # via soil-id
-geopandas==0.14.4 \
-    --hash=sha256:3bb6473cb59d51e1a7fe2dbc24a1a063fb0ebdeddf3ce08ddbf8c7ddc99689aa \
-    --hash=sha256:56765be9d58e2c743078085db3bd07dc6be7719f0dbe1dfdc1d705cb80be7c25
+geopandas==1.0.1 \
+    --hash=sha256:01e147d9420cc374d26f51fc23716ac307f32b49406e4bd8462c07e82ed1d3d6 \
+    --hash=sha256:b8bf70a5534588205b7a56646e2082fb1de9a03599651b3d80c99ea4c2ca08ab
     # via
     #   -r requirements/base.in
     #   soil-id
@@ -740,9 +738,7 @@ python-magic==0.4.27 \
 pytz==2024.1 \
     --hash=sha256:2a29735ea9c18baf14b448846bde5a48030ed267578472d8955cd0e7443a9812 \
     --hash=sha256:328171f4e3623139da4983451950b28e95ac706e13f3f2630a879749e7a8b319
-    # via
-    #   django-oauth-toolkit
-    #   pandas
+    # via pandas
 requests==2.32.3 \
     --hash=sha256:55365417734eb18255590a9ff9eb97e9e1da868d4ccd6402399eaf68af20a760 \
     --hash=sha256:70761cfe03c773ceb22aa2f671b4757976145175cdfca038c02654d061d6dcc6
@@ -928,8 +924,8 @@ sniffio==1.3.1 \
     # via
     #   anyio
     #   httpx
-soil-id @ https://github.com/techmatters/soil-id-algorithm/archive/f91ebdf.zip \
-    --hash=sha256:5c6134a2a3b5a0485a3ef017b7069c79b32c38cfc8fed72704c67af532e5ea09
+soil-id @ https://github.com/techmatters/soil-id-algorithm/archive/3faf689.zip \
+    --hash=sha256:dd714d05259fc3fada4d932ffda7cd68ae37e70c2fb29adeee96d0c67121b2b6
     # via -r requirements/base.in
 sqlparse==0.5.1 \
     --hash=sha256:773dcbf9a5ab44a090f3441e2180efe2560220203dc2f8c0b0fa141e18b505e4 \
