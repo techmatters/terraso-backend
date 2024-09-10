@@ -30,7 +30,7 @@ class Site(BaseModel):
         abstract = False
         constraints = [
             models.CheckConstraint(
-                check=(models.Q(project__isnull=False) | models.Q(owner__isnull=False))
+                condition=(models.Q(project__isnull=False) | models.Q(owner__isnull=False))
                 & (models.Q(project__isnull=True) | models.Q(owner__isnull=True)),
                 name="site_must_be_owned_once",
             )
