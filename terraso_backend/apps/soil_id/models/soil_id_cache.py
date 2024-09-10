@@ -53,7 +53,7 @@ class SoilIdCache(BaseModel):
         cls.objects.update_or_create(
             latitude=cls.round_coordinate(latitude),
             longitude=cls.round_coordinate(longitude),
-            create_defaults=data_to_save,
+            defaults=data_to_save,
         )
 
     @classmethod
