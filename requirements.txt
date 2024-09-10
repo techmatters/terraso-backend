@@ -306,9 +306,9 @@ django-naomi==0.8 \
     --hash=sha256:145b7bd54443a7062cc2b48c5572c526641c01233f697a7e8be96e1c11a082da \
     --hash=sha256:76da7bf3fd139129557348a440811678616a89e2fbcd3c0cebfc69094e6324db
     # via -r requirements/base.in
-django-oauth-toolkit==2.4.0 \
-    --hash=sha256:4931d6bf64b6aee32a42f989f218769d1876f3daa53c6bf883d8ab793fb302ee \
-    --hash=sha256:8975eaf697413a8d54208ee068bc5ad6d1ed76f1df84e4882fbb25e7e6966e1b
+django-oauth-toolkit==3.0.1 \
+    --hash=sha256:3ef00b062a284f2031b0732b32dc899e3bbf0eac221bbb1cffcb50b8932e55ed \
+    --hash=sha256:7200e4a9fb229b145a6d808cbf0423b6d69a87f68557437733eec3c0cf71db02
     # via -r requirements/base.in
 django-safedelete==1.4.0 \
     --hash=sha256:ce63f2dd101fec303837ef624592628e022691c3ade2a0893c9fc4c7796e8288 \
