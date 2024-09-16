@@ -23,6 +23,8 @@ from uuid import uuid4
 import httpx
 import jwt
 import structlog
+from asgiref.sync import async_to_sync
+from channels.layers import get_channel_layer
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.db import transaction
@@ -105,6 +107,13 @@ class AccountService:
         user, created = User.objects.get_or_create(email=email)
 
         start_update_profile_image_task(user.id, profile_image_url)
+
+        print("GOOGLE Login")
+        channel_layer = get_channel_layer()
+        async_to_sync(channel_layer.group_send)(
+            "backend_updates",  # The group name should match the one in the consumer
+            {"type": "send_update", "message": "has been updated"},  # Method name in consumer
+        )
 
         if not created:
             return user, False
