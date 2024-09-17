@@ -5,7 +5,9 @@ from channels.generic.websocket import AsyncWebsocketConsumer
 
 class YourConsumer(AsyncWebsocketConsumer):
     async def connect(self):
-        self.group_name = "backend_updates"
+        print(f"scope user:{self.scope['user']}")
+        user = self.scope["user"]
+        self.group_name = f"backend_updates_{user.id}"
 
         # Join group
         await self.channel_layer.group_add(self.group_name, self.channel_name)

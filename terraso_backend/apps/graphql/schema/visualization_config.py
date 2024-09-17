@@ -18,6 +18,8 @@ import secrets
 import django_filters
 import graphene
 import structlog
+from asgiref.sync import async_to_sync
+from channels.layers import get_channel_layer
 from django.contrib.contenttypes.models import ContentType
 from django.db import transaction
 from django.db.models import Q, Subquery
@@ -144,6 +146,22 @@ class VisualizationConfigNode(DjangoObjectType):
     def resolve_mapbox_tileset_id(self, info):
         if self.mapbox_tileset_id is None:
             return None
+
+        shared_resources = self.data_entry.shared_resources.all()
+        users = []
+        for shared_resource in shared_resources:
+            members = (
+                shared_resource.target.membership_list.members.all()
+            )  # TODO Get only approved memberships
+            ids = [member.id for member in members]
+            users = set(users + ids)
+        for user_id in users:
+            channel_layer = get_channel_layer()
+            async_to_sync(channel_layer.group_send)(
+                f"backend_updates_{user_id}",
+                {"type": "send_update", "message": f"has been updated: {self.mapbox_tileset_id}"},
+            )
+
         if self.mapbox_tileset_status == VisualizationConfig.MAPBOX_TILESET_READY:
             return self.mapbox_tileset_id
 
