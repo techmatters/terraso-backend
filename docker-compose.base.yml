@@ -4,7 +4,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.dev
-    command: python terraso_backend/manage.py runserver 0.0.0.0:${PORT}
+    command: daphne -b 0.0.0.0 -p ${PORT} "terraso_backend.config.asgi:application"
     labels:
       org.techmatters.project: terraso_backend
     env_file: .env

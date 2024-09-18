@@ -1,4 +1,7 @@
+asgiref
 boto3
+channels
+daphne
 dj-database-url
 django
 django-cors-headers

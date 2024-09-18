@@ -1,4 +1,4 @@
-# Copyright © 2021-2023 Technology Matters
+# Copyright © 2024 Technology Matters
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as published
@@ -13,21 +13,10 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see https://www.gnu.org/licenses/.
 
-import os
+from django.urls import path
 
-from channels.auth import AuthMiddlewareStack
-from channels.routing import ProtocolTypeRouter, URLRouter
-from django.core.asgi import get_asgi_application
+from apps.notifications.websocket import NotificationsConsumer
 
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings")
-
-application = ProtocolTypeRouter(
-    {
-        "http": get_asgi_application(),
-        "websocket": AuthMiddlewareStack(
-            URLRouter(
-                __import__("apps.notifications.urls").notifications.urls.websocket_urlpatterns
-            )
-        ),
-    }
-)
+websocket_urlpatterns = [
+    path("ws/notifications/", NotificationsConsumer.as_asgi()),
+]

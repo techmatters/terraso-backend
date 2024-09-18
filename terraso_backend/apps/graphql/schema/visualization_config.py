@@ -28,6 +28,7 @@ from apps.collaboration.models import Membership as CollaborationMembership
 from apps.core.gis.mapbox import get_publish_status
 from apps.core.models import Group, Landscape
 from apps.graphql.exceptions import GraphQLNotAllowedException
+from apps.notifications.websocket import notify_user
 from apps.shared_data.models.data_entries import DataEntry
 from apps.shared_data.models.visualization_config import VisualizationConfig
 from apps.shared_data.visualization_tileset_tasks import (
@@ -144,6 +145,18 @@ class VisualizationConfigNode(DjangoObjectType):
     def resolve_mapbox_tileset_id(self, info):
         if self.mapbox_tileset_id is None:
             return None
+
+        shared_resources = self.data_entry.shared_resources.all()
+        users = []
+        for shared_resource in shared_resources:
+            members = (
+                shared_resource.target.membership_list.members.all()
+            )  # TODO Get only approved memberships
+            ids = [member.id for member in members]
+            users = set(users + ids)
+        for user_id in users:
+            notify_user(user_id, f"Updated: {self.mapbox_tileset_id}")
+
         if self.mapbox_tileset_status == VisualizationConfig.MAPBOX_TILESET_READY:
             return self.mapbox_tileset_id
 

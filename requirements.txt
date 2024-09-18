@@ -18,6 +18,9 @@ asgiref==3.8.1 \
     --hash=sha256:3e1e3ecc849832fe52ccf2cb6686b7a55f82bb1d6aee72a58826471390335e47 \
     --hash=sha256:c343bd80a0bec947a9860adb4c432ffa7db769836c64238fc34bdc3fec84d590
     # via
+    #   -r requirements/base.in
+    #   channels
+    #   daphne
     #   django
     #   django-cors-headers
     #   django-structlog
@@ -28,15 +31,25 @@ attrs==24.2.0 \
     #   cattrs
     #   fiona
     #   requests-cache
-boto3==1.35.19 \
-    --hash=sha256:84b3fe1727945bc3cada832d969ddb3dc0d08fce1677064ca8bdc13a89c1a143 \
-    --hash=sha256:9979fe674780a0b7100eae9156d74ee374cd1638a9f61c77277e3ce712f3e496
+    #   service-identity
+    #   twisted
+autobahn==24.4.2 \
+    --hash=sha256:a2d71ef1b0cf780b6d11f8b205fd2c7749765e65795f2ea7d823796642ee92c9 \
+    --hash=sha256:c56a2abe7ac78abbfb778c02892d673a4de58fd004d088cd7ab297db25918e81
+    # via daphne
+automat==24.8.1 \
+    --hash=sha256:b34227cf63f6325b8ad2399ede780675083e439b20c323d376373d8ee6306d88 \
+    --hash=sha256:bf029a7bc3da1e2c24da2343e7598affaa9f10bf0ab63ff808566ce90551e02a
+    # via twisted
+boto3==1.35.20 \
+    --hash=sha256:47e89d95964f10beee21ee723c3290874fddf364269bd97d200e8bfa9bf93a06 \
+    --hash=sha256:aaddbeb8c37608492f2c8286d004101464833d4c6e49af44601502b8b18785ed
     # via
     #   -r requirements/base.in
     #   django-ses
-botocore==1.35.19 \
-    --hash=sha256:42d6d8db7250cbd7899f786f9861e02cab17dc238f64d6acb976098ed9809625 \
-    --hash=sha256:c83f7f0cacfe7c19b109b363ebfa8736e570d24922f16ed371681f58ebab44a9
+botocore==1.35.20 \
+    --hash=sha256:62412038f960691a299e60492f9ee7e8e75af563f2eca7f3640b3b54b8f5d236 \
+    --hash=sha256:82ad8a73fcd5852d127461c8dadbe40bf679f760a4efb0dde8d4d269ad3f126f
     # via
     #   boto3
     #   s3transfer
@@ -124,6 +137,10 @@ cffi==1.17.1 \
     --hash=sha256:f7f5baafcc48261359e14bcd6d9bff6d4b28d9103847c9e136694cb0501aef87 \
     --hash=sha256:fc48c783f9c87e60831201f2cce7f3b2e4846bf4d8728eabe54d60700b318a0b
     # via cryptography
+channels==4.1.0 \
+    --hash=sha256:a3c4419307f582c3f71d67bfb6eff748ae819c2f360b9b141694d84f242baa48 \
+    --hash=sha256:e0ed375719f5c1851861f05ed4ce78b0166f9245ca0ecd836cb77d4bb531489d
+    # via -r requirements/base.in
 charset-normalizer==3.3.2 \
     --hash=sha256:06435b539f889b1f6f4ac1758871aae42dc3a8c0e24ac9e60c2384973ad73027 \
     --hash=sha256:06a81e93cd441c56a9b65d8e1d043daeb97a3d0856d177d5c90ba85acb3db087 \
@@ -234,6 +251,10 @@ cligj==0.7.2 \
 composition-stats==2.0.0 \
     --hash=sha256:d0f741ca968ef45a0c70d7a4ed68f4d140e82fddb4664a33f34ce213ddc66f6c
     # via soil-id
+constantly==23.10.4 \
+    --hash=sha256:3fd9b4d1c3dc1ec9757f3c52aef7e53ad9323dbe39f51dfd4c43853b68dfa3f9 \
+    --hash=sha256:aa92b70a33e2ac0bb33cd745eb61776594dc48764b06c35e0efd050b7f1c7cbd
+    # via twisted
 cryptography==43.0.1 \
     --hash=sha256:014f58110f53237ace6a408b5beb6c427b64e084eb451ef25a28308270086494 \
     --hash=sha256:1bbcce1a551e262dfbafb6e6252f1ae36a248e615ca44ba302df077a846a8806 \
@@ -263,8 +284,15 @@ cryptography==43.0.1 \
     --hash=sha256:f98bf604c82c416bc829e490c700ca1553eafdf2912a91e23a79d97d9801372a \
     --hash=sha256:fba1007b3ef89946dbbb515aeeb41e30203b004f0b4b00e5e16078b518563289
     # via
+    #   autobahn
     #   jwcrypto
     #   pyjwt
+    #   pyopenssl
+    #   service-identity
+daphne==4.1.2 \
+    --hash=sha256:618d1322bb4d875342b99dd2a10da2d9aae7ee3645f765965fdc1e658ea5290a \
+    --hash=sha256:fcbcace38eb86624ae247c7ffdc8ac12f155d7d19eafac4247381896d6f33761
+    # via -r requirements/base.in
 dj-database-url==2.2.0 \
     --hash=sha256:3e792567b0aa9a4884860af05fe2aa4968071ad351e033b6db632f97ac6db9de \
     --hash=sha256:9f9b05058ddf888f1e6f840048b8d705ff9395e3b52a07165daa3d8b9360551b
@@ -274,6 +302,7 @@ django==5.1.1 \
     --hash=sha256:71603f27dac22a6533fb38d83072eea9ddb4017fead6f67f2562a40402d61c3f
     # via
     #   -r requirements/base.in
+    #   channels
     #   dj-database-url
     #   django-cors-headers
     #   django-dirtyfields
@@ -330,8 +359,8 @@ et-xmlfile==1.1.0 \
     --hash=sha256:8eb9e2bc2f8c97e37a2dc85a09ecdcdec9d8a396530a6d5a33b30b9a92da0c5c \
     --hash=sha256:a2ba85d1d6a74ef63837eed693bcb89c3f752169b0e3e7ae5b16ca5e1b3deada
     # via openpyxl
-fiona==1.10.0 \
-    --hash=sha256:3529fd46d269ff3f70aeb9316a93ae95cf2f87d7e148a8ff0d68532bf81ff7ae
+fiona==1.10.1 \
+    --hash=sha256:b00ae357669460c6491caba29c2022ff0acfcbde86a95361ea8ff5cd14a86b68
     # via -r requirements/base.in
 gdal==3.9.2 \
     --hash=sha256:cf9c1add09ce152975c94d48a1a89dd300c292e0761fd3d22a8071a98852e129
@@ -379,17 +408,29 @@ httpx==0.27.2 \
     --hash=sha256:7bb2708e112d8fdd7829cd4243970f0c223274051cb35ee80c03301ee29a3df0 \
     --hash=sha256:f7c2be1d2f3c3c3160d441802406b206c2b76f5947b11115e6df10c6c65e66c2
     # via -r requirements/base.in
+hyperlink==21.0.0 \
+    --hash=sha256:427af957daa58bc909471c6c40f74c5450fa123dd093fc53efd2e91d2705a56b \
+    --hash=sha256:e6b14c37ecb73e89c77d78cdb4c2cc8f3fb59a885c5b3f819ff4ed80f25af1b4
+    # via
+    #   autobahn
+    #   twisted
 idna==3.10 \
     --hash=sha256:12f65c9b470abda6dc35cf8e63cc574b1c52b11df2c86030af0ac09b01b13ea9 \
     --hash=sha256:946d195a0d259cbba61165e88e65941f16e9b36ea6ddb97f00452bae8b1287d3
     # via
     #   anyio
     #   httpx
+    #   hyperlink
     #   requests
+    #   twisted
 imageio==2.35.1 \
     --hash=sha256:4952dfeef3c3947957f6d5dedb1f4ca31c6e509a476891062396834048aeed2a \
     --hash=sha256:6eb2e5244e7a16b85c10b5c2fe0f7bf961b40fcb9f1a9fd1bd1d2c2f8fb3cd65
     # via scikit-image
+incremental==24.7.2 \
+    --hash=sha256:8cb2c3431530bec48ad70513931a760f446ad6c25e8333ca5d95e24b0ed7b8fe \
+    --hash=sha256:fb4f1d47ee60efe87d4f6f0ebb5f70b9760db2b2574c59c8e8912be4ebd464c9
+    # via twisted
 jmespath==1.0.1 \
     --hash=sha256:02e2e4cc71b5bcab88332eebf907519190dd9e6e82107fa7f83b1003a6252980 \
     --hash=sha256:90261b206d6defd58fdd5e85f478bf633a2901798906be2ad389150c5c60edbe
@@ -648,6 +689,16 @@ psycopg2==2.9.9 \
     # via
     #   -r requirements/base.in
     #   soil-id
+pyasn1==0.6.1 \
+    --hash=sha256:0d632f46f2ba09143da3a8afe9e33fb6f92fa2320ab7e886e2d0f7672af84629 \
+    --hash=sha256:6f580d2bdd84365380830acf45550f2511469f673cb4a5ae3857a3170128b034
+    # via
+    #   pyasn1-modules
+    #   service-identity
+pyasn1-modules==0.4.1 \
+    --hash=sha256:49bfa96b45a292b711e986f222502c1c9a5e1f4e568fc30e2574a6c7d07838fd \
+    --hash=sha256:c28e2dbf9c06ad61c71a075c7e0f9fd0f1b0bb2d2ad4377f240d33ac2ab60a7c
+    # via service-identity
 pycparser==2.22 \
     --hash=sha256:491c8be9c040f5390f5bf44a5b07752bd07f56edf992381b05c701439eec10f6 \
     --hash=sha256:c3702b6d3dd8c7abc1afa565d7e63d53a1d0bd86cdc24edd75470f4de499cfcc
@@ -686,6 +737,10 @@ pyogrio==0.9.0 \
     # via
     #   geopandas
     #   soil-id
+pyopenssl==24.2.1 \
+    --hash=sha256:4247f0dbe3748d560dcbb2ff3ea01af0f9a1a001ef5f7c4c647956ed8cbf0e95 \
+    --hash=sha256:967d5719b12b243588573f39b0c677637145c7a1ffedcd495a487e58177fbb8d
+    # via twisted
 pyproj==3.6.1 \
     --hash=sha256:18faa54a3ca475bfe6255156f2f2874e9a1c8917b0004eee9f664b86ccc513d3 \
     --hash=sha256:1e9fbaf920f0f9b4ee62aab832be3ae3968f33f24e2e3f7fbb8c6728ef1d9746 \
@@ -864,6 +919,10 @@ sentry-sdk==2.14.0 \
     --hash=sha256:1e0e2eaf6dad918c7d1e0edac868a7bf20017b177f242cefe2a6bcd47955961d \
     --hash=sha256:b8bc3dc51d06590df1291b7519b85c75e2ced4f28d9ea655b6d54033503b5bf4
     # via -r requirements/base.in
+service-identity==24.1.0 \
+    --hash=sha256:6829c9d62fb832c2e1c435629b0a8c476e1929881f28bee4d20bc24161009221 \
+    --hash=sha256:a28caf8130c8a5c1c7a6f5293faaf239bbfb7751e4862436920ee6f2616f568a
+    # via twisted
 shapely==2.0.6 \
     --hash=sha256:0334bd51828f68cd54b87d80b3e7cee93f249d82ae55a0faf3ea21c9be7b323a \
     --hash=sha256:1bbc783529a21f2bd50c79cef90761f72d41c45622b3e57acf78d984c50a5d13 \
@@ -947,12 +1006,21 @@ tifffile==2024.8.30 \
     --hash=sha256:2c9508fe768962e30f87def61819183fb07692c258cb175b3c114828368485a4 \
     --hash=sha256:8bc59a8f02a2665cd50a910ec64961c5373bee0b8850ec89d3b7b485bf7be7ad
     # via scikit-image
+twisted==24.7.0 \
+    --hash=sha256:5a60147f044187a127ec7da96d170d49bcce50c6fd36f594e60f4587eff4d394 \
+    --hash=sha256:734832ef98108136e222b5230075b1079dad8a3fc5637319615619a7725b0c81
+    # via daphne
+txaio==23.1.1 \
+    --hash=sha256:aaea42f8aad50e0ecfb976130ada140797e9dcb85fad2cf72b0f37f8cefcb490 \
+    --hash=sha256:f9a9216e976e5e3246dfd112ad7ad55ca915606b60b84a757ac769bd404ff704
+    # via autobahn
 typing-extensions==4.12.2 \
     --hash=sha256:04e5ca0351e0f3f85c6853954072df659d0d13fac324d0072316b67d7794700d \
     --hash=sha256:1a7ead55c7e559dd4dee8856e3a88b41225abfe1ce8df57b7c13915fe121ffb8
     # via
     #   dj-database-url
     #   jwcrypto
+    #   twisted
 tzdata==2024.1 \
     --hash=sha256:2674120f8d891909751c38abcdfd386ac0a5a1127954fbc332af6b5ceae07efd \
     --hash=sha256:9068bc196136463f5245e51efda838afa15aaeca9903f49050dfa2679db4d252
@@ -969,3 +1037,48 @@ urllib3==2.2.3 \
     #   requests
     #   requests-cache
     #   sentry-sdk
+zope-interface==7.0.3 \
+    --hash=sha256:01e6e58078ad2799130c14a1d34ec89044ada0e1495329d72ee0407b9ae5100d \
+    --hash=sha256:064ade95cb54c840647205987c7b557f75d2b2f7d1a84bfab4cf81822ef6e7d1 \
+    --hash=sha256:11fa1382c3efb34abf16becff8cb214b0b2e3144057c90611621f2d186b7e1b7 \
+    --hash=sha256:1bee1b722077d08721005e8da493ef3adf0b7908e0cd85cc7dc836ac117d6f32 \
+    --hash=sha256:1eeeb92cb7d95c45e726e3c1afe7707919370addae7ed14f614e22217a536958 \
+    --hash=sha256:21a207c6b2c58def5011768140861a73f5240f4f39800625072ba84e76c9da0b \
+    --hash=sha256:2545d6d7aac425d528cd9bf0d9e55fcd47ab7fd15f41a64b1c4bf4c6b24946dc \
+    --hash=sha256:2c4316a30e216f51acbd9fb318aa5af2e362b716596d82cbb92f9101c8f8d2e7 \
+    --hash=sha256:35062d93bc49bd9b191331c897a96155ffdad10744ab812485b6bad5b588d7e4 \
+    --hash=sha256:382d31d1e68877061daaa6499468e9eb38eb7625d4369b1615ac08d3860fe896 \
+    --hash=sha256:3aa8fcbb0d3c2be1bfd013a0f0acd636f6ed570c287743ae2bbd467ee967154d \
+    --hash=sha256:3d4b91821305c8d8f6e6207639abcbdaf186db682e521af7855d0bea3047c8ca \
+    --hash=sha256:3de1d553ce72868b77a7e9d598c9bff6d3816ad2b4cc81c04f9d8914603814f3 \
+    --hash=sha256:3fcdc76d0cde1c09c37b7c6b0f8beba2d857d8417b055d4f47df9c34ec518bdd \
+    --hash=sha256:5112c530fa8aa2108a3196b9c2f078f5738c1c37cfc716970edc0df0414acda8 \
+    --hash=sha256:53d678bb1c3b784edbfb0adeebfeea6bf479f54da082854406a8f295d36f8386 \
+    --hash=sha256:6195c3c03fef9f87c0dbee0b3b6451df6e056322463cf35bca9a088e564a3c58 \
+    --hash=sha256:6d04b11ea47c9c369d66340dbe51e9031df2a0de97d68f442305ed7625ad6493 \
+    --hash=sha256:6dd647fcd765030638577fe6984284e0ebba1a1008244c8a38824be096e37fe3 \
+    --hash=sha256:799ef7a444aebbad5a145c3b34bff012b54453cddbde3332d47ca07225792ea4 \
+    --hash=sha256:7d92920416f31786bc1b2f34cc4fc4263a35a407425319572cbf96b51e835cd3 \
+    --hash=sha256:7e0c151a6c204f3830237c59ee4770cc346868a7a1af6925e5e38650141a7f05 \
+    --hash=sha256:84f8794bd59ca7d09d8fce43ae1b571be22f52748169d01a13d3ece8394d8b5b \
+    --hash=sha256:95e5913ec718010dc0e7c215d79a9683b4990e7026828eedfda5268e74e73e11 \
+    --hash=sha256:9b9369671a20b8d039b8e5a1a33abd12e089e319a3383b4cc0bf5c67bd05fe7b \
+    --hash=sha256:ab985c566a99cc5f73bc2741d93f1ed24a2cc9da3890144d37b9582965aff996 \
+    --hash=sha256:af94e429f9d57b36e71ef4e6865182090648aada0cb2d397ae2b3f7fc478493a \
+    --hash=sha256:c96b3e6b0d4f6ddfec4e947130ec30bd2c7b19db6aa633777e46c8eecf1d6afd \
+    --hash=sha256:cd2690d4b08ec9eaf47a85914fe513062b20da78d10d6d789a792c0b20307fb1 \
+    --hash=sha256:d3b7ce6d46fb0e60897d62d1ff370790ce50a57d40a651db91a3dde74f73b738 \
+    --hash=sha256:d976fa7b5faf5396eb18ce6c132c98e05504b52b60784e3401f4ef0b2e66709b \
+    --hash=sha256:db6237e8fa91ea4f34d7e2d16d74741187e9105a63bbb5686c61fea04cdbacca \
+    --hash=sha256:ecd32f30f40bfd8511b17666895831a51b532e93fc106bfa97f366589d3e4e0e \
+    --hash=sha256:f418c88f09c3ba159b95a9d1cfcdbe58f208443abb1f3109f4b9b12fd60b187c
+    # via twisted
+
+# The following packages are considered to be unsafe in a requirements file:
+setuptools==75.1.0 \
+    --hash=sha256:35ab7fd3bcd95e6b7fd704e4a1539513edad446c097797f2985e0e4b960772f2 \
+    --hash=sha256:d59a21b17a275fb872a9c3dae73963160ae079f1049ed956880cd7c09b120538
+    # via
+    #   autobahn
+    #   incremental
+    #   zope-interface
