@@ -17,7 +17,6 @@ from django.urls import path
 from django.views.decorators.csrf import csrf_exempt
 
 from apps.auth.middleware import auth_optional
-from apps.shared_data.websocket_consumers import YourConsumer
 
 from .views import DataEntryFileDownloadView, DataEntryFileUploadView
 
@@ -30,8 +29,4 @@ urlpatterns = [
         csrf_exempt(auth_optional(DataEntryFileDownloadView.as_view())),
         name="download",
     ),
-]
-
-websocket_urlpatterns = [
-    path("ws/shared-data/", YourConsumer.as_asgi()),
 ]

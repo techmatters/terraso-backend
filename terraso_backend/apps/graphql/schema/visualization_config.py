@@ -18,8 +18,6 @@ import secrets
 import django_filters
 import graphene
 import structlog
-from asgiref.sync import async_to_sync
-from channels.layers import get_channel_layer
 from django.contrib.contenttypes.models import ContentType
 from django.db import transaction
 from django.db.models import Q, Subquery
@@ -30,6 +28,7 @@ from apps.collaboration.models import Membership as CollaborationMembership
 from apps.core.gis.mapbox import get_publish_status
 from apps.core.models import Group, Landscape
 from apps.graphql.exceptions import GraphQLNotAllowedException
+from apps.notifications.websocket import notify_user
 from apps.shared_data.models.data_entries import DataEntry
 from apps.shared_data.models.visualization_config import VisualizationConfig
 from apps.shared_data.visualization_tileset_tasks import (
@@ -156,11 +155,7 @@ class VisualizationConfigNode(DjangoObjectType):
             ids = [member.id for member in members]
             users = set(users + ids)
         for user_id in users:
-            channel_layer = get_channel_layer()
-            async_to_sync(channel_layer.group_send)(
-                f"backend_updates_{user_id}",
-                {"type": "send_update", "message": f"has been updated: {self.mapbox_tileset_id}"},
-            )
+            notify_user(user_id, f"Updated: {self.mapbox_tileset_id}")
 
         if self.mapbox_tileset_status == VisualizationConfig.MAPBOX_TILESET_READY:
             return self.mapbox_tileset_id

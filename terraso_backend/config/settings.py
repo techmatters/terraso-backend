@@ -57,7 +57,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "django.contrib.sites",
     "django.contrib.sitemaps",
-    'channels',
+    "channels",
     "oauth2_provider",
     "corsheaders",
     "graphene_django",
@@ -448,7 +448,7 @@ HUBSPOT_ACCOUNT_DELETION_FORM_API_URL = (
 )
 
 CHANNEL_LAYERS = {
-    'default': {
-        'BACKEND': 'channels.layers.InMemoryChannelLayer',
+    "default": {
+        "BACKEND": "channels.layers.InMemoryChannelLayer",
     },
 }
