@@ -671,8 +671,8 @@ type VisualizationConfigNode implements Node {
   createdBy: UserNode
   mapboxTilesetId: String
   mapboxTilesetStatus: SharedDataVisualizationConfigMapboxTilesetStatusChoices!
-  dataEntry: DataEntryNode!
   owner: OwnerNode
+  dataEntry: DataEntryNode
 }
 
 """
@@ -690,6 +690,8 @@ enum SharedDataVisualizationConfigMapboxTilesetStatusChoices {
   """Ready"""
   READY
 }
+
+union OwnerNode = GroupNode | LandscapeNode
 
 type DataEntryNode implements Node {
   createdAt: DateTime!
@@ -741,8 +743,6 @@ type VisualizationConfigNodeEdge {
   """A cursor for use in pagination"""
   cursor: String!
 }
-
-union OwnerNode = GroupNode | LandscapeNode
 
 union TargetNode = GroupNode | LandscapeNode
 
