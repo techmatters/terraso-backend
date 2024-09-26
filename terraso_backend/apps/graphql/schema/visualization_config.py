@@ -132,8 +132,7 @@ class VisualizationConfigNode(DjangoObjectType):
             ).values("id")
         )
         return (
-            queryset.defer("configuration")
-            .prefetch_related(
+            queryset.prefetch_related(
                 Prefetch(
                     "data_entry",
                     queryset=DataEntry.objects.prefetch_related(
