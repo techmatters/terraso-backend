@@ -780,3 +780,80 @@ def test_apply_to_all(client, project_site, project_manager):
     db_intervals = SoilDataDepthInterval.objects.filter(soil_data=project_site.soil_data).all()
     for interval in db_intervals:
         assert interval.soil_texture_enabled
+
+
+BULK_UPDATE_QUERY = """
+    mutation BulkSoilDataUpdateMutation($input: SoilDataBulkUpdateInput!) {
+        bulkUpdateSoilData(input: $input) {
+            results {
+                siteId
+                result {
+                    __typename
+                    ... on SoilDataBulkUpdateFailure {
+                        reason 
+                    }
+                    ... on SoilDataBulkUpdateSuccess {
+                        soilData {
+                            slopeAspect
+                            depthDependentData {
+                                depthInterval {
+                                    start
+                                    end
+                                }
+                                clayPercent
+                            }
+                        }
+                    }
+                }
+            }
+            errors
+        }
+    }
+"""
+
+
+def test_bulk_update(client, user):
+    sites = mixer.cycle(2).blend(Site, owner=user)
+
+    client.force_login(user)
+    response = graphql_query(
+        BULK_UPDATE_QUERY,
+        input_data={
+            "soilData": [
+                {
+                    "siteId": str(sites[0].id),
+                    "slopeAspect": 10,
+                    "depthIntervals": [],
+                },
+                {
+                    "siteId": str(sites[1].id),
+                    "depthIntervals": [
+                        {"depthInterval": {"start": 0, "end": 10}, "clayPercent": 5}
+                    ],
+                },
+                {
+                    "siteId": str("c9df7deb-6b9d-4c55-8ba6-641acc47dbb2"),
+                    "depthIntervals": [],
+                },
+            ]
+        },
+        client=client,
+    )
+
+    print(response.json())
+    result = response.json()["data"]["bulkUpdateSoilData"]
+    assert result["errors"] is None
+    assert result["results"][2]["result"]["reason"] == "DOES_NOT_EXIST"
+
+    assert response.json()
+
+    sites[0].refresh_from_db()
+    sites[1].refresh_from_db()
+
+    assert sites[0].soil_data.slope_aspect == 10
+    assert (
+        sites[1]
+        .soil_data.depth_dependent_data.get(depth_interval_start=0, depth_interval_end=10)
+        .clay_percent
+        == 5
+    )
