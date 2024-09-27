@@ -53,6 +53,11 @@ class SharedResourcesMixin:
     )
 
     def resolve_shared_resources(self, info, **kwargs):
+        if (
+            hasattr(self, "_prefetched_objects_cache")
+            and "shared_resources" in self._prefetched_objects_cache
+        ):
+            return self.shared_resources
         user_pk = getattr(info.context.user, "pk", False)
         user_groups_ids = Subquery(
             Group.objects.filter(

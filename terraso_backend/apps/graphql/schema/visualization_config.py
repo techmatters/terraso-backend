@@ -20,14 +20,15 @@ import graphene
 import structlog
 from django.contrib.contenttypes.models import ContentType
 from django.db import transaction
-from django.db.models import Q, Subquery
+from django.db.models import Prefetch, Q, Subquery
 from graphene import relay
 from graphene_django import DjangoObjectType
 
 from apps.collaboration.models import Membership as CollaborationMembership
 from apps.core.gis.mapbox import get_publish_status
-from apps.core.models import Group, Landscape
+from apps.core.models import Group, Landscape, SharedResource
 from apps.graphql.exceptions import GraphQLNotAllowedException
+from apps.graphql.schema.data_entries import DataEntryNode
 from apps.shared_data.models.data_entries import DataEntry
 from apps.shared_data.models.visualization_config import VisualizationConfig
 from apps.shared_data.visualization_tileset_tasks import (
@@ -86,6 +87,7 @@ class OwnerNode(graphene.Union):
 class VisualizationConfigNode(DjangoObjectType):
     id = graphene.ID(source="pk", required=True)
     owner = graphene.Field(OwnerNode)
+    data_entry = graphene.Field(DataEntryNode)
 
     class Meta:
         model = VisualizationConfig
@@ -98,7 +100,6 @@ class VisualizationConfigNode(DjangoObjectType):
             "configuration",
             "created_by",
             "created_at",
-            "data_entry",
             "mapbox_tileset_id",
             "mapbox_tileset_status",
         )
@@ -130,16 +131,35 @@ class VisualizationConfigNode(DjangoObjectType):
                 membership_list__memberships__membership_status=CollaborationMembership.APPROVED,
             ).values("id")
         )
-        return queryset.filter(
-            Q(
-                data_entry__shared_resources__target_object_id__in=user_groups_ids,
-                data_entry__deleted_at__isnull=True,
+        return (
+            queryset.prefetch_related(
+                Prefetch(
+                    "data_entry",
+                    queryset=DataEntry.objects.prefetch_related(
+                        Prefetch(
+                            "shared_resources",
+                            queryset=SharedResource.objects.prefetch_related("target"),
+                        ),
+                        Prefetch("created_by"),
+                    ),
+                ),
+                Prefetch("created_by"),
             )
-            | Q(
-                data_entry__shared_resources__target_object_id__in=user_landscape_ids,
-                data_entry__deleted_at__isnull=True,
+            .filter(
+                Q(
+                    data_entry__shared_resources__target_object_id__in=user_groups_ids,
+                    data_entry__deleted_at__isnull=True,
+                )
+                | Q(
+                    data_entry__shared_resources__target_object_id__in=user_landscape_ids,
+                    data_entry__deleted_at__isnull=True,
+                )
             )
-        ).distinct()
+            .distinct()
+        )
+
+    def resolve_data_entry(self, info):
+        return self.data_entry
 
     def resolve_mapbox_tileset_id(self, info):
         if self.mapbox_tileset_id is None:
