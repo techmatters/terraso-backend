@@ -2352,7 +2352,7 @@ type SoilDataBulkUpdateResultEntry {
 union SoilDataBulkUpdateResult = SoilDataBulkUpdateSuccess | SoilDataBulkUpdateFailure
 
 type SoilDataBulkUpdateSuccess {
-  soilData: SoilDataNode!
+  site: SiteNode!
 }
 
 type SoilDataBulkUpdateFailure {
@@ -2360,8 +2360,8 @@ type SoilDataBulkUpdateFailure {
 }
 
 enum SoilDataBulkUpdateFailureReason {
-  SITE_DELETED
-  LOST_PERMISSION
+  DOES_NOT_EXIST
+  NOT_ALLOWED
 }
 
 input SoilDataBulkUpdateInput {
@@ -2388,7 +2388,28 @@ input SoilDataBulkUpdateEntry {
   landCoverSelect: SoilIdSoilDataLandCoverSelectChoices
   grazingSelect: SoilIdSoilDataGrazingSelectChoices
   siteId: ID!
-  depthIntervals: [SoilDataBulkUpdateDepthDependentEntry!]!
+  soilData: SoilDataBulkUpdateSoilData!
+  depthDependentData: [SoilDataBulkUpdateDepthDependentEntry!]!
+}
+
+input SoilDataBulkUpdateSoilData {
+  downSlope: SoilIdSoilDataDownSlopeChoices
+  crossSlope: SoilIdSoilDataCrossSlopeChoices
+  bedrock: Int
+  slopeLandscapePosition: SoilIdSoilDataSlopeLandscapePositionChoices
+  slopeAspect: Int
+  slopeSteepnessSelect: SoilIdSoilDataSlopeSteepnessSelectChoices
+  slopeSteepnessPercent: Int
+  slopeSteepnessDegree: Int
+  surfaceCracksSelect: SoilIdSoilDataSurfaceCracksSelectChoices
+  surfaceSaltSelect: SoilIdSoilDataSurfaceSaltSelectChoices
+  floodingSelect: SoilIdSoilDataFloodingSelectChoices
+  limeRequirementsSelect: SoilIdSoilDataLimeRequirementsSelectChoices
+  surfaceStoninessSelect: SoilIdSoilDataSurfaceStoninessSelectChoices
+  waterTableDepthSelect: SoilIdSoilDataWaterTableDepthSelectChoices
+  soilDepthSelect: SoilIdSoilDataSoilDepthSelectChoices
+  landCoverSelect: SoilIdSoilDataLandCoverSelectChoices
+  grazingSelect: SoilIdSoilDataGrazingSelectChoices
 }
 
 input SoilDataBulkUpdateDepthDependentEntry {
