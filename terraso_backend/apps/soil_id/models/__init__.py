@@ -23,6 +23,7 @@ from .project_soil_settings import (
     ProjectSoilSettings,
 )
 from .soil_data import SoilData, SoilDataDepthInterval
+from .soil_data_history import SoilDataHistory
 from .soil_id_cache import SoilIdCache
 
 __all__ = [
@@ -35,4 +36,5 @@ __all__ = [
     "BLMIntervalDefaults",
     "DepthIntervalPreset",
     "SoilIdCache",
+    "SoilDataHistory",
 ]
