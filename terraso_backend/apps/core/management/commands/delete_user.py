@@ -44,18 +44,12 @@ class Command(BaseCommand):
                 raise CommandError(f"Please specify a valid user ID or email [input: {user_id}]")
 
         # projects where the user is the only member
-        projects = Project.objects.annotate(members_count=Count("group__members__id")).filter(
+        Project.objects.annotate(members_count=Count("group__members__id")).filter(
             members_count=1, group__members__id=user.id
-        )
-
-        for project in projects:
-            project.delete()
+        ).delete()
 
         # sites created by the user
-        sites = Site.objects.filter(owner_id=user.id)
-
-        for site in sites:
-            site.delete()
+        Site.objects.filter(owner_id=user.id).delete()
 
         # NOTE: user deletion currently fails due to audit logs
         try:
