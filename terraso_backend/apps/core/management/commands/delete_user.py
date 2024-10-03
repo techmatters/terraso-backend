@@ -41,7 +41,7 @@ class Command(BaseCommand):
             try:
                 user = User.objects.get(id=user_id)
             except (User.DoesNotExist, ValidationError):
-                raise CommandError(f"Please specify a valid user ID [input: {user_id}]")
+                raise CommandError(f"Please specify a valid user ID or email [input: {user_id}]")
 
         # projects where the user is the only member
         projects = Project.objects.annotate(members_count=Count("group__members__id")).filter(
