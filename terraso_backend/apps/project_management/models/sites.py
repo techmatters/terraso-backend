@@ -74,6 +74,9 @@ class Site(BaseModel):
         default=False,
     )
 
+    def __str__(self):
+        return f"{self.name} ({self.id})"
+
     @property
     def is_unaffiliated(self):
         return self.owner is not None
