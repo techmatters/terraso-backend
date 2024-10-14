@@ -410,9 +410,8 @@ jmespath==1.0.1 \
     # via
     #   boto3
     #   botocore
-jsonpath-ng==1.6.1 \
-    --hash=sha256:086c37ba4917304850bd837aeab806670224d3f038fe2833ff593a672ef0a5fa \
-    --hash=sha256:8f22cd8273d7772eea9aaa84d922e0841aa36fdb8a2c6b7f6c3791a16a9bc0be
+jsonpath-ng==1.7.0 \
+    --hash=sha256:f6f5f7fd4e5ff79c785f1573b394043b39849fb2bb47bcead935d12b00beab3c
     # via -r requirements/dev.in
 markupsafe==3.0.1 \
     --hash=sha256:0778de17cff1acaeccc3ff30cd99a3fd5c50fc58ad3d6c0e0c4c58092b859396 \
