@@ -490,9 +490,9 @@ mixer==7.2.2 \
     --hash=sha256:8089b8e2d00288c77e622936198f5dd03c8ac1603a1530a4f870dc213363b2ae \
     --hash=sha256:9b3f1a261b56d8f2394f39955f83adbc7ff3ab4bb1065ebfec19a10d3e8501e0
     # via -r requirements/dev.in
-moto==5.0.16 \
-    --hash=sha256:4ce1f34830307f7b3d553d77a7ef26066ab3b70006203d4226b048c9d11a3be4 \
-    --hash=sha256:f4afb176a964cd7a70da9bc5e053d43109614ce3cab26044bcbb53610435dff4
+moto==5.0.17 \
+    --hash=sha256:165a291ac0b983f53a09f67f9841f72214c5a1b0c56392d88f7035a6a8718fca \
+    --hash=sha256:6b56b7bb5675d60e79890c9867e446f29d7a5be02051238b8df079f649270130
     # via -r requirements/dev.in
 mypy-extensions==1.0.0 \
     --hash=sha256:4392f6c0eb8a5668a69e23d168ffa70f0be9ccfd32b5cc2d26a34ae5b844552d \
