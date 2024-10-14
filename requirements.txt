@@ -637,9 +637,9 @@ platformdirs==4.3.6 \
 prettyconf==2.2.1 \
     --hash=sha256:2478d16bc2596c9863e93dd182ca70b71f636f0e169ab23288906c53147cfdbc
     # via -r requirements/base.in
-profilehooks==1.12.0 \
-    --hash=sha256:05b87589df8a8c630fd701bae6008cc1cfff4457bd0064887ad25248327a5ba3 \
-    --hash=sha256:dc87f319c9596b8c50fd374e3c08c51fa29a61553f1d9281482e4ca31829b021
+profilehooks==1.13.0 \
+    --hash=sha256:54a541cad49ddccee97b61a617404d7d736bf0bf79d36fbe2ac7caa3a1d9daaf \
+    --hash=sha256:869f63862b3d85e8af44ad7eb01a00203cc7a27a376ed3a51e409399062659c6
     # via soil-id
 promise==2.3 \
     --hash=sha256:dfd18337c523ba4b6a58801c164c1904a9d4d1b1747c7d5dbf45b693a49d93d0
