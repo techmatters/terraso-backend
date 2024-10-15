@@ -42,7 +42,7 @@ from apps.soil_id.graphql.soil_data import (
     SoilDataUpdateMutation,
 )
 from apps.soil_id.graphql.soil_id.endpoints import soil_id
-from apps.soil_id.graphql.soil_id.soil_data.types import SoilDataBulkUpdate
+from apps.soil_id.graphql.soil_id.soil_data.types import SoilDataPush
 
 from .audit_logs import AuditLogNode
 from .commons import TerrasoRelayNode
@@ -192,7 +192,7 @@ class Mutations(graphene.ObjectType):
     mark_project_seen = ProjectMarkSeenMutation.Field()
     update_soil_data = SoilDataUpdateMutation.Field()
     update_depth_dependent_soil_data = DepthDependentSoilDataUpdateMutation.Field()
-    bulk_update_soil_data = SoilDataBulkUpdate.Field()
+    push_soil_data = SoilDataPush.Field()
     update_soil_data_depth_interval = SoilDataUpdateDepthIntervalMutation.Field()
     delete_soil_data_depth_interval = SoilDataDeleteDepthIntervalMutation.Field()
     update_project_soil_settings = ProjectSoilSettingsUpdateMutation.Field()

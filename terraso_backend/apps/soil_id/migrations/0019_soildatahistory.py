@@ -26,7 +26,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("project_management", "0029_alter_projectsettings_options"),
+        ("project_management", "0028_site_elevation"),
         ("soil_id", "0018_alter_projectsoilsettings_options_and_more"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]

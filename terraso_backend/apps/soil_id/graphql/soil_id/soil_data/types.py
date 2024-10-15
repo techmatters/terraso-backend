@@ -21,67 +21,64 @@ from apps.soil_id.models.soil_data_history import SoilDataHistory
 logger = structlog.get_logger(__name__)
 
 
-class SoilDataBulkUpdateSuccess(graphene.ObjectType):
+class SoilDataPushSuccess(graphene.ObjectType):
     site = graphene.Field(SiteNode, required=True)
 
 
 # TODO: just a generic "can't access" result?
-class SoilDataBulkUpdateFailureReason(graphene.Enum):
+class SoilDataPushFailureReason(graphene.Enum):
     DOES_NOT_EXIST = "DOES_NOT_EXIST"
     NOT_ALLOWED = "NOT_ALLOWED"
     INTEGRITY_ERROR = "INTEGRITY_ERROR"
 
 
-class SoilDataBulkUpdateFailure(graphene.ObjectType):
-    site = graphene.Field(SiteNode, required=False)
-    reason = graphene.Field(SoilDataBulkUpdateFailureReason, required=True)
+class SoilDataPushFailure(graphene.ObjectType):
+    reason = graphene.Field(SoilDataPushFailureReason, required=True)
 
 
-class SoilDataBulkUpdateResult(graphene.Union):
+class SoilDataPushResult(graphene.Union):
     class Meta:
-        types = (SoilDataBulkUpdateSuccess, SoilDataBulkUpdateFailure)
+        types = (SoilDataPushSuccess, SoilDataPushFailure)
 
 
-class SoilDataBulkUpdateResultEntry(graphene.ObjectType):
+class SoilDataPushResultEntry(graphene.ObjectType):
     site_id = graphene.ID(required=True)
-    result = graphene.Field(SoilDataBulkUpdateResult, required=True)
+    result = graphene.Field(SoilDataPushResult, required=True)
 
 
-class SoilDataBulkUpdateDepthDependentEntry(SoilDataDepthDependentInputs, graphene.InputObjectType):
+class SoilDataPushDepthDependentEntry(SoilDataDepthDependentInputs, graphene.InputObjectType):
     pass
 
 
-class SoilDataBulkUpdateSoilData(SoilDataInputs, graphene.InputObjectType):
+class SoilDataPushDepthIntervalEntry(SoilDataDepthIntervalFields, graphene.InputObjectType):
     pass
 
 
-class SoilDataBulkUpdateDepthIntervalEntry(SoilDataDepthIntervalFields, graphene.InputObjectType):
-    deleted = graphene.Boolean(required=True)
-    pass
-
-
-class SoilDataBulkUpdateEntry(SoilDataInputs, graphene.InputObjectType):
-    site_id = graphene.ID(required=True)
-    soil_data = graphene.Field(graphene.NonNull(SoilDataBulkUpdateSoilData))
+class SoilDataPushSoilData(SoilDataInputs, graphene.InputObjectType):
     depth_dependent_data = graphene.Field(
-        graphene.List(graphene.NonNull(SoilDataBulkUpdateDepthDependentEntry)), required=True
+        graphene.List(graphene.NonNull(SoilDataPushDepthDependentEntry)), required=True
     )
     depth_intervals = graphene.Field(
-        graphene.List(graphene.NonNull(SoilDataBulkUpdateDepthIntervalEntry)), required=True
+        graphene.List(graphene.NonNull(SoilDataPushDepthIntervalEntry)), required=True
     )
     deleted_depth_intervals = graphene.Field(
         graphene.List(graphene.NonNull(DepthIntervalInput)), required=True
     )
 
 
-class SoilDataBulkUpdate(BaseWriteMutation):
+class SoilDataPushEntry(SoilDataInputs, graphene.InputObjectType):
+    site_id = graphene.ID(required=True)
+    soil_data = graphene.Field(graphene.NonNull(SoilDataPushSoilData))
+
+
+class SoilDataPush(BaseWriteMutation):
     results = graphene.Field(
-        graphene.List(graphene.NonNull(SoilDataBulkUpdateResultEntry)), required=True
+        graphene.List(graphene.NonNull(SoilDataPushResultEntry)), required=True
     )
 
     class Input:
         soil_data = graphene.Field(
-            graphene.List(graphene.NonNull(SoilDataBulkUpdateEntry)), required=True
+            graphene.List(graphene.NonNull(SoilDataPushEntry)), required=True
         )
 
     @classmethod
@@ -98,10 +95,10 @@ class SoilDataBulkUpdate(BaseWriteMutation):
 
                 if site is None:
                     results.append(
-                        SoilDataBulkUpdateResultEntry(
+                        SoilDataPushResultEntry(
                             site_id=site_id,
-                            result=SoilDataBulkUpdateFailure(
-                                reason=SoilDataBulkUpdateFailureReason.DOES_NOT_EXIST
+                            result=SoilDataPushFailure(
+                                reason=SoilDataPushFailureReason.DOES_NOT_EXIST
                             ),
                         )
                     )
@@ -110,10 +107,10 @@ class SoilDataBulkUpdate(BaseWriteMutation):
                 user = info.context.user
                 if not check_site_permission(user, SiteAction.ENTER_DATA, Context(site=site)):
                     results.append(
-                        SoilDataBulkUpdateResultEntry(
+                        SoilDataPushResultEntry(
                             site_id=site_id,
-                            result=SoilDataBulkUpdateFailure(
-                                site=site, reason=SoilDataBulkUpdateFailureReason.NOT_ALLOWED
+                            result=SoilDataPushFailure(
+                                site=site, reason=SoilDataPushFailureReason.NOT_ALLOWED
                             ),
                         )
                     )
@@ -146,9 +143,9 @@ class SoilDataBulkUpdate(BaseWriteMutation):
                     depth_interval.save()
 
                 results.append(
-                    SoilDataBulkUpdateResultEntry(
+                    SoilDataPushResultEntry(
                         site_id=site_id,
-                        result=SoilDataBulkUpdateSuccess(site=site),
+                        result=SoilDataPushSuccess(site=site),
                     )
                 )
 

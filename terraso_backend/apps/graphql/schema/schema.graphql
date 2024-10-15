@@ -1712,7 +1712,7 @@ type Mutations {
   markProjectSeen(input: ProjectMarkSeenMutationInput!): ProjectMarkSeenMutationPayload!
   updateSoilData(input: SoilDataUpdateMutationInput!): SoilDataUpdateMutationPayload!
   updateDepthDependentSoilData(input: DepthDependentSoilDataUpdateMutationInput!): DepthDependentSoilDataUpdateMutationPayload!
-  bulkUpdateSoilData(input: SoilDataBulkUpdateInput!): SoilDataBulkUpdatePayload!
+  pushSoilData(input: SoilDataPushInput!): SoilDataPushPayload!
   updateSoilDataDepthInterval(input: SoilDataUpdateDepthIntervalMutationInput!): SoilDataUpdateDepthIntervalMutationPayload!
   deleteSoilDataDepthInterval(input: SoilDataDeleteDepthIntervalMutationInput!): SoilDataDeleteDepthIntervalMutationPayload!
   updateProjectSoilSettings(input: ProjectSoilSettingsUpdateMutationInput!): ProjectSoilSettingsUpdateMutationPayload!
@@ -2338,40 +2338,39 @@ input DepthDependentSoilDataUpdateMutationInput {
   clientMutationId: String
 }
 
-type SoilDataBulkUpdatePayload {
+type SoilDataPushPayload {
   errors: GenericScalar
-  results: [SoilDataBulkUpdateResultEntry!]!
+  results: [SoilDataPushResultEntry!]!
   clientMutationId: String
 }
 
-type SoilDataBulkUpdateResultEntry {
+type SoilDataPushResultEntry {
   siteId: ID!
-  result: SoilDataBulkUpdateResult!
+  result: SoilDataPushResult!
 }
 
-union SoilDataBulkUpdateResult = SoilDataBulkUpdateSuccess | SoilDataBulkUpdateFailure
+union SoilDataPushResult = SoilDataPushSuccess | SoilDataPushFailure
 
-type SoilDataBulkUpdateSuccess {
+type SoilDataPushSuccess {
   site: SiteNode!
 }
 
-type SoilDataBulkUpdateFailure {
-  site: SiteNode
-  reason: SoilDataBulkUpdateFailureReason!
+type SoilDataPushFailure {
+  reason: SoilDataPushFailureReason!
 }
 
-enum SoilDataBulkUpdateFailureReason {
+enum SoilDataPushFailureReason {
   DOES_NOT_EXIST
   NOT_ALLOWED
   INTEGRITY_ERROR
 }
 
-input SoilDataBulkUpdateInput {
-  soilData: [SoilDataBulkUpdateEntry!]!
+input SoilDataPushInput {
+  soilData: [SoilDataPushEntry!]!
   clientMutationId: String
 }
 
-input SoilDataBulkUpdateEntry {
+input SoilDataPushEntry {
   downSlope: SoilIdSoilDataDownSlopeChoices
   crossSlope: SoilIdSoilDataCrossSlopeChoices
   bedrock: Int
@@ -2390,13 +2389,10 @@ input SoilDataBulkUpdateEntry {
   landCoverSelect: SoilIdSoilDataLandCoverSelectChoices
   grazingSelect: SoilIdSoilDataGrazingSelectChoices
   siteId: ID!
-  soilData: SoilDataBulkUpdateSoilData!
-  depthDependentData: [SoilDataBulkUpdateDepthDependentEntry!]!
-  depthIntervals: [SoilDataBulkUpdateDepthIntervalEntry!]!
-  deletedDepthIntervals: [DepthIntervalInput!]!
+  soilData: SoilDataPushSoilData!
 }
 
-input SoilDataBulkUpdateSoilData {
+input SoilDataPushSoilData {
   downSlope: SoilIdSoilDataDownSlopeChoices
   crossSlope: SoilIdSoilDataCrossSlopeChoices
   bedrock: Int
@@ -2414,9 +2410,12 @@ input SoilDataBulkUpdateSoilData {
   soilDepthSelect: SoilIdSoilDataSoilDepthSelectChoices
   landCoverSelect: SoilIdSoilDataLandCoverSelectChoices
   grazingSelect: SoilIdSoilDataGrazingSelectChoices
+  depthDependentData: [SoilDataPushDepthDependentEntry!]!
+  depthIntervals: [SoilDataPushDepthIntervalEntry!]!
+  deletedDepthIntervals: [DepthIntervalInput!]!
 }
 
-input SoilDataBulkUpdateDepthDependentEntry {
+input SoilDataPushDepthDependentEntry {
   depthInterval: DepthIntervalInput!
   texture: SoilIdDepthDependentSoilDataTextureChoices
   clayPercent: Int
@@ -2442,7 +2441,7 @@ input SoilDataBulkUpdateDepthDependentEntry {
   carbonates: SoilIdDepthDependentSoilDataCarbonatesChoices
 }
 
-input SoilDataBulkUpdateDepthIntervalEntry {
+input SoilDataPushDepthIntervalEntry {
   label: String
   depthInterval: DepthIntervalInput!
   soilTextureEnabled: Boolean
@@ -2453,7 +2452,6 @@ input SoilDataBulkUpdateDepthIntervalEntry {
   electricalConductivityEnabled: Boolean
   sodiumAdsorptionRatioEnabled: Boolean
   soilStructureEnabled: Boolean
-  deleted: Boolean!
 }
 
 type SoilDataUpdateDepthIntervalMutationPayload {
