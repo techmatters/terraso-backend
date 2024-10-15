@@ -2340,22 +2340,22 @@ input DepthDependentSoilDataUpdateMutationInput {
 
 type SoilDataPushPayload {
   errors: GenericScalar
-  results: [SoilDataPushResultEntry!]!
+  results: [SoilDataPushEntry!]!
   clientMutationId: String
 }
 
-type SoilDataPushResultEntry {
+type SoilDataPushEntry {
   siteId: ID!
-  result: SoilDataPushResult!
+  result: SoilDataPushEntryResult!
 }
 
-union SoilDataPushResult = SoilDataPushSuccess | SoilDataPushFailure
+union SoilDataPushEntryResult = SoilDataPushEntrySuccess | SoilDataPushEntryFailure
 
-type SoilDataPushSuccess {
+type SoilDataPushEntrySuccess {
   site: SiteNode!
 }
 
-type SoilDataPushFailure {
+type SoilDataPushEntryFailure {
   reason: SoilDataPushFailureReason!
 }
 
@@ -2366,11 +2366,11 @@ enum SoilDataPushFailureReason {
 }
 
 input SoilDataPushInput {
-  soilData: [SoilDataPushEntry!]!
+  soilData: [SoilDataPushInputEntry!]!
   clientMutationId: String
 }
 
-input SoilDataPushEntry {
+input SoilDataPushInputEntry {
   downSlope: SoilIdSoilDataDownSlopeChoices
   crossSlope: SoilIdSoilDataCrossSlopeChoices
   bedrock: Int
@@ -2389,10 +2389,10 @@ input SoilDataPushEntry {
   landCoverSelect: SoilIdSoilDataLandCoverSelectChoices
   grazingSelect: SoilIdSoilDataGrazingSelectChoices
   siteId: ID!
-  soilData: SoilDataPushSoilData!
+  soilData: SoilDataPushInputSoilData!
 }
 
-input SoilDataPushSoilData {
+input SoilDataPushInputSoilData {
   downSlope: SoilIdSoilDataDownSlopeChoices
   crossSlope: SoilIdSoilDataCrossSlopeChoices
   bedrock: Int
@@ -2410,12 +2410,12 @@ input SoilDataPushSoilData {
   soilDepthSelect: SoilIdSoilDataSoilDepthSelectChoices
   landCoverSelect: SoilIdSoilDataLandCoverSelectChoices
   grazingSelect: SoilIdSoilDataGrazingSelectChoices
-  depthDependentData: [SoilDataPushDepthDependentEntry!]!
-  depthIntervals: [SoilDataPushDepthIntervalEntry!]!
+  depthDependentData: [SoilDataPushInputDepthDependentData!]!
+  depthIntervals: [SoilDataPushInputDepthInterval!]!
   deletedDepthIntervals: [DepthIntervalInput!]!
 }
 
-input SoilDataPushDepthDependentEntry {
+input SoilDataPushInputDepthDependentData {
   depthInterval: DepthIntervalInput!
   texture: SoilIdDepthDependentSoilDataTextureChoices
   clayPercent: Int
@@ -2441,7 +2441,7 @@ input SoilDataPushDepthDependentEntry {
   carbonates: SoilIdDepthDependentSoilDataCarbonatesChoices
 }
 
-input SoilDataPushDepthIntervalEntry {
+input SoilDataPushInputDepthInterval {
   label: String
   depthInterval: DepthIntervalInput!
   soilTextureEnabled: Boolean
