@@ -9,7 +9,12 @@ from apps.graphql.schema.sites import SiteNode
 from apps.project_management.models.sites import Site
 from apps.project_management.permission_rules import Context
 from apps.project_management.permission_table import SiteAction, check_site_permission
-from apps.soil_id.graphql.soil_data import SoilDataDepthDependentInputs, SoilDataInputs
+from apps.soil_id.graphql.soil_data import (
+    DepthIntervalInput,
+    SoilDataDepthDependentInputs,
+    SoilDataDepthIntervalFields,
+    SoilDataInputs,
+)
 from apps.soil_id.models.soil_data import SoilData
 from apps.soil_id.models.soil_data_history import SoilDataHistory
 
@@ -24,9 +29,11 @@ class SoilDataBulkUpdateSuccess(graphene.ObjectType):
 class SoilDataBulkUpdateFailureReason(graphene.Enum):
     DOES_NOT_EXIST = "DOES_NOT_EXIST"
     NOT_ALLOWED = "NOT_ALLOWED"
+    INTEGRITY_ERROR = "INTEGRITY_ERROR"
 
 
 class SoilDataBulkUpdateFailure(graphene.ObjectType):
+    site = graphene.Field(SiteNode, required=False)
     reason = graphene.Field(SoilDataBulkUpdateFailureReason, required=True)
 
 
@@ -48,11 +55,22 @@ class SoilDataBulkUpdateSoilData(SoilDataInputs, graphene.InputObjectType):
     pass
 
 
+class SoilDataBulkUpdateDepthIntervalEntry(SoilDataDepthIntervalFields, graphene.InputObjectType):
+    deleted = graphene.Boolean(required=True)
+    pass
+
+
 class SoilDataBulkUpdateEntry(SoilDataInputs, graphene.InputObjectType):
     site_id = graphene.ID(required=True)
     soil_data = graphene.Field(graphene.NonNull(SoilDataBulkUpdateSoilData))
     depth_dependent_data = graphene.Field(
         graphene.List(graphene.NonNull(SoilDataBulkUpdateDepthDependentEntry)), required=True
+    )
+    depth_intervals = graphene.Field(
+        graphene.List(graphene.NonNull(SoilDataBulkUpdateDepthIntervalEntry)), required=True
+    )
+    deleted_depth_intervals = graphene.Field(
+        graphene.List(graphene.NonNull(DepthIntervalInput)), required=True
     )
 
 
@@ -95,7 +113,7 @@ class SoilDataBulkUpdate(BaseWriteMutation):
                         SoilDataBulkUpdateResultEntry(
                             site_id=site_id,
                             result=SoilDataBulkUpdateFailure(
-                                reason=SoilDataBulkUpdateFailureReason.NOT_ALLOWED
+                                site=site, reason=SoilDataBulkUpdateFailureReason.NOT_ALLOWED
                             ),
                         )
                     )

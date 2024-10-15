@@ -2356,12 +2356,14 @@ type SoilDataBulkUpdateSuccess {
 }
 
 type SoilDataBulkUpdateFailure {
+  site: SiteNode
   reason: SoilDataBulkUpdateFailureReason!
 }
 
 enum SoilDataBulkUpdateFailureReason {
   DOES_NOT_EXIST
   NOT_ALLOWED
+  INTEGRITY_ERROR
 }
 
 input SoilDataBulkUpdateInput {
@@ -2390,6 +2392,8 @@ input SoilDataBulkUpdateEntry {
   siteId: ID!
   soilData: SoilDataBulkUpdateSoilData!
   depthDependentData: [SoilDataBulkUpdateDepthDependentEntry!]!
+  depthIntervals: [SoilDataBulkUpdateDepthIntervalEntry!]!
+  deletedDepthIntervals: [DepthIntervalInput!]!
 }
 
 input SoilDataBulkUpdateSoilData {
@@ -2438,14 +2442,7 @@ input SoilDataBulkUpdateDepthDependentEntry {
   carbonates: SoilIdDepthDependentSoilDataCarbonatesChoices
 }
 
-type SoilDataUpdateDepthIntervalMutationPayload {
-  errors: GenericScalar
-  soilData: SoilDataNode
-  clientMutationId: String
-}
-
-input SoilDataUpdateDepthIntervalMutationInput {
-  siteId: ID!
+input SoilDataBulkUpdateDepthIntervalEntry {
   label: String
   depthInterval: DepthIntervalInput!
   soilTextureEnabled: Boolean
@@ -2456,6 +2453,27 @@ input SoilDataUpdateDepthIntervalMutationInput {
   electricalConductivityEnabled: Boolean
   sodiumAdsorptionRatioEnabled: Boolean
   soilStructureEnabled: Boolean
+  deleted: Boolean!
+}
+
+type SoilDataUpdateDepthIntervalMutationPayload {
+  errors: GenericScalar
+  soilData: SoilDataNode
+  clientMutationId: String
+}
+
+input SoilDataUpdateDepthIntervalMutationInput {
+  label: String
+  depthInterval: DepthIntervalInput!
+  soilTextureEnabled: Boolean
+  soilColorEnabled: Boolean
+  carbonatesEnabled: Boolean
+  phEnabled: Boolean
+  soilOrganicCarbonMatterEnabled: Boolean
+  electricalConductivityEnabled: Boolean
+  sodiumAdsorptionRatioEnabled: Boolean
+  soilStructureEnabled: Boolean
+  siteId: ID!
   applyToIntervals: [DepthIntervalInput!] = null
   clientMutationId: String
 }

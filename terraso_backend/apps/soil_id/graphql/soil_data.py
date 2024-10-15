@@ -225,23 +225,26 @@ class DepthIntervalInput(graphene.InputObjectType):
     end = graphene.Int(required=True)
 
 
+class SoilDataDepthIntervalFields:
+    label = graphene.String()
+    depth_interval = graphene.Field(DepthIntervalInput, required=True)
+    soil_texture_enabled = graphene.Boolean()
+    soil_color_enabled = graphene.Boolean()
+    carbonates_enabled = graphene.Boolean()
+    ph_enabled = graphene.Boolean()
+    soil_organic_carbon_matter_enabled = graphene.Boolean()
+    electrical_conductivity_enabled = graphene.Boolean()
+    sodium_adsorption_ratio_enabled = graphene.Boolean()
+    soil_structure_enabled = graphene.Boolean()
+
+
 class SoilDataUpdateDepthIntervalMutation(BaseWriteMutation):
     soil_data = graphene.Field(SoilDataNode)
     model_class = SoilDataDepthIntervalNode
     result_class = SoilData
 
-    class Input:
+    class Input(SoilDataDepthIntervalFields):
         site_id = graphene.ID(required=True)
-        label = graphene.String()
-        depth_interval = graphene.Field(DepthIntervalInput, required=True)
-        soil_texture_enabled = graphene.Boolean()
-        soil_color_enabled = graphene.Boolean()
-        carbonates_enabled = graphene.Boolean()
-        ph_enabled = graphene.Boolean()
-        soil_organic_carbon_matter_enabled = graphene.Boolean()
-        electrical_conductivity_enabled = graphene.Boolean()
-        sodium_adsorption_ratio_enabled = graphene.Boolean()
-        soil_structure_enabled = graphene.Boolean()
         apply_to_intervals = graphene.Field(graphene.List(graphene.NonNull(DepthIntervalInput)))
 
     @classmethod
