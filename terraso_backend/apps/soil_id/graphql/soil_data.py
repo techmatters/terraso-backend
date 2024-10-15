@@ -225,23 +225,26 @@ class DepthIntervalInput(graphene.InputObjectType):
     end = graphene.Int(required=True)
 
 
+class SoilDataDepthIntervalFields:
+    label = graphene.String()
+    depth_interval = graphene.Field(DepthIntervalInput, required=True)
+    soil_texture_enabled = graphene.Boolean()
+    soil_color_enabled = graphene.Boolean()
+    carbonates_enabled = graphene.Boolean()
+    ph_enabled = graphene.Boolean()
+    soil_organic_carbon_matter_enabled = graphene.Boolean()
+    electrical_conductivity_enabled = graphene.Boolean()
+    sodium_adsorption_ratio_enabled = graphene.Boolean()
+    soil_structure_enabled = graphene.Boolean()
+
+
 class SoilDataUpdateDepthIntervalMutation(BaseWriteMutation):
     soil_data = graphene.Field(SoilDataNode)
     model_class = SoilDataDepthIntervalNode
     result_class = SoilData
 
-    class Input:
+    class Input(SoilDataDepthIntervalFields):
         site_id = graphene.ID(required=True)
-        label = graphene.String()
-        depth_interval = graphene.Field(DepthIntervalInput, required=True)
-        soil_texture_enabled = graphene.Boolean()
-        soil_color_enabled = graphene.Boolean()
-        carbonates_enabled = graphene.Boolean()
-        ph_enabled = graphene.Boolean()
-        soil_organic_carbon_matter_enabled = graphene.Boolean()
-        electrical_conductivity_enabled = graphene.Boolean()
-        sodium_adsorption_ratio_enabled = graphene.Boolean()
-        soil_structure_enabled = graphene.Boolean()
         apply_to_intervals = graphene.Field(graphene.List(graphene.NonNull(DepthIntervalInput)))
 
     @classmethod
@@ -325,29 +328,32 @@ class SoilDataDeleteDepthIntervalMutation(BaseAuthenticatedMutation):
         return SoilDataDeleteDepthIntervalMutation(soil_data=site.soil_data)
 
 
+class SoilDataInputs:
+    down_slope = SoilDataNode.down_slope_enum()
+    cross_slope = SoilDataNode.cross_slope_enum()
+    bedrock = graphene.Int()
+    slope_landscape_position = SoilDataNode.slope_landscape_position_enum()
+    slope_aspect = graphene.Int()
+    slope_steepness_select = SoilDataNode.slope_steepness_enum()
+    slope_steepness_percent = graphene.Int()
+    slope_steepness_degree = graphene.Int()
+    surface_cracks_select = SoilDataNode.surface_cracks_enum()
+    surface_salt_select = SoilDataNode.surface_salt_enum()
+    flooding_select = SoilDataNode.flooding_enum()
+    lime_requirements_select = SoilDataNode.lime_requirements_enum()
+    surface_stoniness_select = SoilDataNode.surface_stoniness_enum()
+    water_table_depth_select = SoilDataNode.water_table_depth_enum()
+    soil_depth_select = SoilDataNode.soil_depth_enum()
+    land_cover_select = SoilDataNode.land_cover_enum()
+    grazing_select = SoilDataNode.grazing_enum()
+
+
 class SoilDataUpdateMutation(BaseWriteMutation):
     soil_data = graphene.Field(SoilDataNode)
     model_class = SoilData
 
-    class Input:
+    class Input(SoilDataInputs):
         site_id = graphene.ID(required=True)
-        down_slope = SoilDataNode.down_slope_enum()
-        cross_slope = SoilDataNode.cross_slope_enum()
-        bedrock = graphene.Int()
-        slope_landscape_position = SoilDataNode.slope_landscape_position_enum()
-        slope_aspect = graphene.Int()
-        slope_steepness_select = SoilDataNode.slope_steepness_enum()
-        slope_steepness_percent = graphene.Int()
-        slope_steepness_degree = graphene.Int()
-        surface_cracks_select = SoilDataNode.surface_cracks_enum()
-        surface_salt_select = SoilDataNode.surface_salt_enum()
-        flooding_select = SoilDataNode.flooding_enum()
-        lime_requirements_select = SoilDataNode.lime_requirements_enum()
-        surface_stoniness_select = SoilDataNode.surface_stoniness_enum()
-        water_table_depth_select = SoilDataNode.water_table_depth_enum()
-        soil_depth_select = SoilDataNode.soil_depth_enum()
-        land_cover_select = SoilDataNode.land_cover_enum()
-        grazing_select = SoilDataNode.grazing_enum()
         depth_interval_preset = SoilDataNode.depth_interval_preset_enum()
 
     @classmethod
@@ -373,38 +379,41 @@ class SoilDataUpdateMutation(BaseWriteMutation):
         return result
 
 
+class SoilDataDepthDependentInputs:
+    depth_interval = graphene.Field(DepthIntervalInput, required=True)
+    texture = DepthDependentSoilDataNode.texture_enum()
+    clay_percent = graphene.Int()
+    rock_fragment_volume = DepthDependentSoilDataNode.rock_fragment_volume_enum()
+    color_hue = graphene.Float()
+    color_value = graphene.Float()
+    color_chroma = graphene.Float()
+    color_photo_used = graphene.Boolean()
+    color_photo_soil_condition = DepthDependentSoilDataNode.color_photo_soil_condition_enum()
+    color_photo_lighting_condition = (
+        DepthDependentSoilDataNode.color_photo_lighting_condition_enum()
+    )
+    conductivity = graphene.Decimal()
+    conductivity_test = DepthDependentSoilDataNode.conductivity_test_enum()
+    conductivity_unit = DepthDependentSoilDataNode.conductivity_unit_enum()
+    structure = DepthDependentSoilDataNode.structure_enum()
+    ph = graphene.Decimal()
+    ph_testing_solution = DepthDependentSoilDataNode.ph_testing_solution_enum()
+    ph_testing_method = DepthDependentSoilDataNode.ph_testing_method_enum()
+    soil_organic_carbon = graphene.Decimal()
+    soil_organic_matter = graphene.Decimal()
+    soil_organic_carbon_testing = DepthDependentSoilDataNode.soil_organic_carbon_testing_enum()
+    soil_organic_matter_testing = DepthDependentSoilDataNode.soil_organic_matter_testing_enum()
+    sodium_absorption_ratio = graphene.Decimal()
+    carbonates = DepthDependentSoilDataNode.carbonates_enum()
+
+
 class DepthDependentSoilDataUpdateMutation(BaseWriteMutation):
     soil_data = graphene.Field(SoilDataNode)
     model_class = DepthDependentSoilData
     result_class = SoilData
 
-    class Input:
+    class Input(SoilDataDepthDependentInputs):
         site_id = graphene.ID(required=True)
-        depth_interval = graphene.Field(DepthIntervalInput, required=True)
-        texture = DepthDependentSoilDataNode.texture_enum()
-        clay_percent = graphene.Int()
-        rock_fragment_volume = DepthDependentSoilDataNode.rock_fragment_volume_enum()
-        color_hue = graphene.Float()
-        color_value = graphene.Float()
-        color_chroma = graphene.Float()
-        color_photo_used = graphene.Boolean()
-        color_photo_soil_condition = DepthDependentSoilDataNode.color_photo_soil_condition_enum()
-        color_photo_lighting_condition = (
-            DepthDependentSoilDataNode.color_photo_lighting_condition_enum()
-        )
-        conductivity = graphene.Decimal()
-        conductivity_test = DepthDependentSoilDataNode.conductivity_test_enum()
-        conductivity_unit = DepthDependentSoilDataNode.conductivity_unit_enum()
-        structure = DepthDependentSoilDataNode.structure_enum()
-        ph = graphene.Decimal()
-        ph_testing_solution = DepthDependentSoilDataNode.ph_testing_solution_enum()
-        ph_testing_method = DepthDependentSoilDataNode.ph_testing_method_enum()
-        soil_organic_carbon = graphene.Decimal()
-        soil_organic_matter = graphene.Decimal()
-        soil_organic_carbon_testing = DepthDependentSoilDataNode.soil_organic_carbon_testing_enum()
-        soil_organic_matter_testing = DepthDependentSoilDataNode.soil_organic_matter_testing_enum()
-        sodium_absorption_ratio = graphene.Decimal()
-        carbonates = DepthDependentSoilDataNode.carbonates_enum()
 
     @classmethod
     def mutate_and_get_payload(cls, root, info, site_id, depth_interval, **kwargs):
