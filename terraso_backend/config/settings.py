@@ -386,9 +386,6 @@ PUBLIC_BASE_PATHS = [
 
 HARD_DELETE_DELETION_GAP = config("HARD_DELETE_DELETION_GAP_DAYS", default="30", cast=config.eval)
 
-# Preserve users to ensure audit logs are readable.
-DELETION_EXCEPTION_LIST = ["core.User"]
-
 
 class JWTProvider(TypedDict):
     """Type hint to indicate correct config for JWT_EXCHANGE_PROVIDERS"""

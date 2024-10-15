@@ -18,6 +18,3 @@ from django.apps import AppConfig
 class ProjectManagementConfig(AppConfig):
     default_auto_field = "django.db.models.BigAutoField"
     name = "apps.project_management"
-
-    def ready(self):
-        from .signals import handle_membership_added, handle_membership_updated  # noqa

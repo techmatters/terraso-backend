@@ -24,8 +24,6 @@ from graphene import Connection, Int, relay
 from graphene.types.generic import GenericScalar
 from graphql import get_nullable_type
 
-from apps.audit_logs import api as audit_log_api
-from apps.audit_logs import services as audit_log_services
 from apps.core.formatters import from_camel_to_snake_case
 from apps.graphql.exceptions import (
     GraphQLNotAllowedException,
@@ -179,18 +177,7 @@ class BaseAuthenticatedMutation(BaseMutation):
         raise super().not_found(msg, field=field, model=model or cls.model_class)
 
 
-class LoggerMixin:
-    logger: Optional[audit_log_api.AuditLog] = None
-
-    @classmethod
-    def get_logger(cls):
-        """Returns the logger instance."""
-        if not cls.logger:
-            cls.logger = audit_log_services.new_audit_logger()
-        return cls.logger
-
-
-class BaseWriteMutation(BaseAuthenticatedMutation, LoggerMixin):
+class BaseWriteMutation(BaseAuthenticatedMutation):
     skip_field_validation: Optional[str] = None
 
     @classmethod
@@ -281,7 +268,7 @@ class BaseWriteMutation(BaseAuthenticatedMutation, LoggerMixin):
         return kwargs
 
 
-class BaseDeleteMutation(BaseAuthenticatedMutation, LoggerMixin):
+class BaseDeleteMutation(BaseAuthenticatedMutation):
     @classmethod
     def mutate_and_get_payload(cls, root, info, **kwargs):
         if "model_instance" in kwargs:

@@ -23,7 +23,6 @@ from graphene import relay
 from graphene_django import DjangoObjectType
 from graphene_django.filter import DjangoFilterConnectionField, TypedFilter
 
-from apps.audit_logs import api as log_api
 from apps.collaboration.graphql.memberships import (
     MembershipListNodeMixin,
     MembershipNodeMixin,
@@ -175,7 +174,6 @@ class ProjectAddMutation(BaseWriteMutation):
 
     @classmethod
     def mutate_and_get_payload(cls, root, info, create_soil_settings=True, **kwargs):
-        logger = cls.get_logger()
         user = info.context.user
 
         if not check_project_permission(user, ProjectAction.CREATE, Context()):
@@ -192,19 +190,6 @@ class ProjectAddMutation(BaseWriteMutation):
         result.project.mark_seen_by(user)
         if not client_time:
             client_time = datetime.now()
-        action = log_api.CREATE
-        metadata = {
-            "name": result.project.name,
-            "privacy": result.project.privacy,
-            "description": result.project.description,
-        }
-        logger.log(
-            user=user,
-            action=action,
-            resource=result.project,
-            client_time=client_time,
-            metadata=metadata,
-        )
         return result
 
 
@@ -220,7 +205,6 @@ class ProjectDeleteMutation(BaseDeleteMutation):
     @classmethod
     @transaction.atomic
     def mutate_and_get_payload(cls, root, info, **kwargs):
-        logger = cls.get_logger()
         user = info.context.user
         project_id = kwargs["id"]
         project = cls.get_or_throw(Project, "id", project_id)
@@ -242,16 +226,6 @@ class ProjectDeleteMutation(BaseDeleteMutation):
             Site.objects.bulk_update(project_sites, ["project"])
         result = super().mutate_and_get_payload(root, info, **kwargs)
 
-        logger.log(
-            user=user,
-            action=log_api.DELETE,
-            resource=result.project,
-            client_time=datetime.now(),
-            metadata={
-                "name": project.name,
-                "privacy": project.privacy,
-            },
-        )
         return result
 
 
@@ -296,7 +270,6 @@ class ProjectUpdateMutation(BaseWriteMutation):
     @classmethod
     @transaction.atomic
     def mutate_and_get_payload(cls, root, info, **kwargs):
-        logger = cls.get_logger()
         user = info.context.user
         project_id = kwargs["id"]
         project = cls.get_or_throw(Project, "id", project_id)
@@ -313,14 +286,6 @@ class ProjectUpdateMutation(BaseWriteMutation):
 
         if privacy := kwargs.get("privacy"):
             metadata["privacy"] = privacy.value
-
-        logger.log(
-            user=user,
-            action=log_api.CHANGE,
-            resource=project,
-            client_time=datetime.now(),
-            metadata=metadata,
-        )
 
         return super().mutate_and_get_payload(root, info, **kwargs)
 

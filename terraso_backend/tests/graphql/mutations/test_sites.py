@@ -20,8 +20,6 @@ from graphene_django.utils.testing import graphql_query
 from mixer.backend.django import mixer
 from tests.utils import match_json
 
-from apps.audit_logs.api import CHANGE, CREATE, DELETE
-from apps.audit_logs.models import Log
 from apps.core.models import User
 from apps.project_management.collaboration_roles import ProjectRole
 from apps.project_management.models import Project, Site
@@ -60,14 +58,6 @@ def test_site_creation(client_query, user):
     assert site.elevation == pytest.approx(site.elevation)
     assert site.owner == user
     assert site.privacy == "public"
-    logs = Log.objects.all()
-    assert len(logs) == 1
-    log_result = logs[0]
-    assert log_result.event == CREATE.value
-    assert log_result.user == user
-    assert log_result.resource_object == site
-    expected_metadata = {"name": "Test Site", "latitude": 0.0, "longitude": 0.0, "elevation": 0.0}
-    assert log_result.metadata == expected_metadata
 
 
 def test_site_creation_without_elevation(client_query, user):
@@ -84,14 +74,6 @@ def test_site_creation_without_elevation(client_query, user):
     assert site.elevation is None
     assert site.owner == user
     assert site.privacy == "public"
-    logs = Log.objects.all()
-    assert len(logs) == 1
-    log_result = logs[0]
-    assert log_result.event == CREATE.value
-    assert log_result.user == user
-    assert log_result.resource_object == site
-    expected_metadata = {"name": "Test Site", "latitude": 0.0, "longitude": 0.0, "elevation": None}
-    assert log_result.metadata == expected_metadata
 
 
 @pytest.mark.parametrize("project_user_w_role", ["MANAGER", "CONTRIBUTOR"], indirect=True)
@@ -105,15 +87,6 @@ def test_site_creation_in_project(client, project_user_w_role, project):
     id = content["data"]["addSite"]["site"]["id"]
     site = Site.objects.get(pk=id)
     assert site.project == project
-    logs = Log.objects.all()
-    assert len(logs) == 1
-    log_result = logs[0]
-    assert log_result.event == CREATE.value
-    assert log_result.resource_object == site
-    expected_metadata = {"name": "Test Site", "latitude": 0.0, "longitude": 0.0}
-    assert log_result.metadata["name"] == expected_metadata["name"]
-    assert log_result.metadata["latitude"] == expected_metadata["latitude"]
-    assert log_result.metadata["longitude"] == expected_metadata["longitude"]
 
 
 UPDATE_SITE_QUERY = """
@@ -156,13 +129,6 @@ def test_update_site_in_project(client, project, project_manager, site_with_soil
     site.refresh_from_db()
     assert site.project.id == project.id
     assert site.privacy == "public"
-
-    logs = Log.objects.all()
-    assert len(logs) == 1
-    log_result = logs[0]
-    assert log_result.event == CHANGE.value
-    assert log_result.resource_object == site
-    assert log_result.metadata["project_id"] == str(project.id)
 
 
 @pytest.mark.parametrize("project_user_w_role", ["CONTRIBUTOR"], indirect=True)
@@ -371,13 +337,6 @@ def test_delete_linked_site(client, linked_site, project_manager):
     assert response.json()["data"]["deleteSite"]["errors"] is None
     assert len(Site.objects.filter(id=linked_site.id)) == 0
 
-    logs = Log.objects.all()
-    assert len(logs) == 1
-    log_result = logs[0]
-    assert log_result.event == DELETE.value
-    assert log_result.resource_object == linked_site
-    assert log_result.metadata["project_id"] == str(linked_site.project.id)
-
 
 @pytest.mark.parametrize("linked_site", ["linked", "MANAGER"], indirect=True)
 def test_site_transfer_success(linked_site, client, project, project_manager):
@@ -392,14 +351,6 @@ def test_site_transfer_success(linked_site, client, project, project_manager):
     assert match_json("*..project.id", payload) == [str(project.id)]
     linked_site.refresh_from_db()
     assert linked_site.project == project
-
-    logs = Log.objects.all()
-    assert len(logs) == 1
-    log_result = logs[0]
-    assert log_result.event == CHANGE.value
-    assert log_result.resource_object == project
-    assert log_result.metadata["project_id"] == str(project.id)
-    assert log_result.metadata["transfered_sites"] == [str(linked_site.id)]
 
 
 def test_site_transfer_unlinked_site_user_contributor_success(client, user, site, project):
