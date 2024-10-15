@@ -21,7 +21,6 @@ from graphene import relay
 from graphene_django import DjangoObjectType
 from graphene_django.filter import TypedFilter
 
-from apps.audit_logs import api as audit_log_api
 from apps.project_management.graphql.projects import ProjectNode
 from apps.project_management.models import Project, Site, sites
 from apps.project_management.permission_rules import Context
@@ -121,7 +120,6 @@ class SiteAddMutation(BaseWriteMutation):
 
     @classmethod
     def mutate_and_get_payload(cls, root, info, create_soil_data=True, **kwargs):
-        log = cls.get_logger()
         user = info.context.user
 
         if not check_site_permission(user, SiteAction.CREATE, Context()):
@@ -159,13 +157,6 @@ class SiteAddMutation(BaseWriteMutation):
         }
         if kwargs.get("project_id", None):
             metadata["project_id"] = kwargs["project_id"]
-        log.log(
-            user=user,
-            action=audit_log_api.CREATE,
-            resource=site,
-            metadata=metadata,
-            client_time=client_time,
-        )
         return result
 
 
@@ -200,7 +191,6 @@ class SiteUpdateMutation(BaseWriteMutation):
     @classmethod
     @transaction.atomic
     def mutate_and_get_payload(cls, root, info, **kwargs):
-        log = cls.get_logger()
         user = info.context.user
         site = cls.get_or_throw(Site, "id", kwargs["id"])
 
@@ -251,14 +241,6 @@ class SiteUpdateMutation(BaseWriteMutation):
                 if project_id is not None:
                     metadata["project_id"] = str(project.id)
 
-        log.log(
-            user=user,
-            action=audit_log_api.CHANGE,
-            resource=site,
-            metadata=metadata,
-            client_time=client_time,
-        )
-
         return result
 
 
@@ -273,7 +255,6 @@ class SiteDeleteMutation(BaseDeleteMutation):
     @classmethod
     @transaction.atomic
     def mutate_and_get_payload(cls, root, info, **kwargs):
-        log = cls.get_logger()
         user = info.context.user
         site_id = kwargs["id"]
         site = cls.get_or_throw(Site, "id", site_id)
@@ -281,14 +262,6 @@ class SiteDeleteMutation(BaseDeleteMutation):
             cls.not_allowed(MutationTypes.DELETE)
 
         result = super().mutate_and_get_payload(root, info, **kwargs)
-        metadata = {"project_id": str(site.project.id)} if site.project else {}
-        log.log(
-            user=user,
-            action=audit_log_api.DELETE,
-            resource=site,
-            metadata=metadata,
-            client_time=datetime.now(),
-        )
         return result
 
 
@@ -311,7 +284,6 @@ class SiteTransferMutation(BaseWriteMutation):
 
     @classmethod
     def mutate_and_get_payload(cls, root, info, **kwargs):
-        log = cls.get_logger()
         user = info.context.user
         project = cls.get_or_throw(Project, "project_id", kwargs["project_id"])
 
@@ -344,17 +316,6 @@ class SiteTransferMutation(BaseWriteMutation):
                 old_projects.append(site.project)
 
         Site.bulk_change_project(to_change, project)
-
-        log.log(
-            user=user,
-            action=audit_log_api.CHANGE,
-            resource=project,
-            metadata={
-                "project_id": str(project.id),
-                "transfered_sites": [str(site.id) for site in to_change],
-            },
-            client_time=datetime.now(),
-        )
 
         return SiteTransferMutation(
             project=project,

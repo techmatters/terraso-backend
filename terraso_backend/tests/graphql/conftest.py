@@ -559,11 +559,6 @@ def story_map_user_memberships_not_registered_approve_tokens(
 
 
 @pytest.fixture
-def audit_log_user():
-    return mixer.blend(User)
-
-
-@pytest.fixture
 def site_with_depth_intervals(project):
     site = mixer.blend(Site, project=project)
     soil_data = mixer.blend(SoilData, site=site)

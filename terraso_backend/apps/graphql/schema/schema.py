@@ -43,7 +43,6 @@ from apps.soil_id.graphql.soil_data import (
 )
 from apps.soil_id.graphql.soil_id.endpoints import soil_id
 
-from .audit_logs import AuditLogNode
 from .commons import TerrasoRelayNode
 from .data_entries import (
     DataEntryAddMutation,
@@ -140,7 +139,6 @@ class Query(graphene.ObjectType):
     projects = DjangoFilterConnectionField(ProjectNode, required=True)
     site = TerrasoRelayNode.Field(SiteNode)
     sites = DjangoFilterConnectionField(SiteNode, required=True)
-    audit_logs = DjangoFilterConnectionField(AuditLogNode)
     shared_resource = SharedResourceRelayNode.Field()
     soil_id = soil_id
     from .shared_resources import resolve_shared_resource
