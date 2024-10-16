@@ -783,17 +783,17 @@ def test_apply_to_all(client, project_site, project_manager):
         assert interval.soil_texture_enabled
 
 
-BULK_UPDATE_QUERY = """
-    mutation BulkSoilDataUpdateMutation($input: SoilDataBulkUpdateInput!) {
-        bulkUpdateSoilData(input: $input) {
+PUSH_SOIL_DATA_QUERY = """
+    mutation PushSoilDataMutation($input: SoilDataPushInput!) {
+        pushSoilData(input: $input) {
             results {
                 siteId
                 result {
                     __typename
-                    ... on SoilDataBulkUpdateFailure {
+                    ... on SoilDataPushEntryFailure {
                         reason
                     }
-                    ... on SoilDataBulkUpdateSuccess {
+                    ... on SoilDataPushEntrySuccess {
                         site {
                             soilData {
                                 slopeAspect
@@ -815,30 +815,40 @@ BULK_UPDATE_QUERY = """
 """
 
 
-def test_bulk_update(client, user):
+def test_push_soil_data(client, user):
     sites = mixer.cycle(2).blend(Site, owner=user)
 
     client.force_login(user)
     response = graphql_query(
-        BULK_UPDATE_QUERY,
+        PUSH_SOIL_DATA_QUERY,
         input_data={
-            "soilData": [
+            "soilDataEntries": [
                 {
                     "siteId": str(sites[0].id),
-                    "soilData": {"slopeAspect": 10},
-                    "depthDependentData": [],
+                    "soilData": {
+                        "slopeAspect": 10,
+                        "depthDependentData": [],
+                        "depthIntervals": [],
+                        "deletedDepthIntervals": [],
+                    },
                 },
                 {
                     "siteId": str(sites[1].id),
-                    "soilData": {},
-                    "depthDependentData": [
-                        {"depthInterval": {"start": 0, "end": 10}, "clayPercent": 5}
-                    ],
+                    "soilData": {
+                        "depthDependentData": [
+                            {"depthInterval": {"start": 0, "end": 10}, "clayPercent": 5}
+                        ],
+                        "depthIntervals": [],
+                        "deletedDepthIntervals": [],
+                    },
                 },
                 {
                     "siteId": str("c9df7deb-6b9d-4c55-8ba6-641acc47dbb2"),
-                    "soilData": {},
-                    "depthDependentData": [],
+                    "soilData": {
+                        "depthDependentData": [],
+                        "depthIntervals": [],
+                        "deletedDepthIntervals": [],
+                    },
                 },
             ]
         },
@@ -846,7 +856,7 @@ def test_bulk_update(client, user):
     )
 
     print(response.json())
-    result = response.json()["data"]["bulkUpdateSoilData"]
+    result = response.json()["data"]["pushSoilData"]
     assert result["errors"] is None
     assert result["results"][2]["result"]["reason"] == "DOES_NOT_EXIST"
 
@@ -867,4 +877,4 @@ def test_bulk_update(client, user):
     assert history_1.soil_data_changes["soil_data"]["slope_aspect"] == 10
 
     history_2 = SoilDataHistory.objects.get(site=sites[1])
-    assert history_2.soil_data_changes["depth_dependent_data"][0]["clay_percent"] == 5
+    assert history_2.soil_data_changes["soil_data"]["depth_dependent_data"][0]["clay_percent"] == 5

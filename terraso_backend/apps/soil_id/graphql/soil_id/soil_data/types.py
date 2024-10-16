@@ -1,9 +1,12 @@
+import copy
 import enum
 
 import graphene
 import structlog
-from django.db import transaction
+from django.db import IntegrityError, transaction
+from django.forms import ValidationError
 
+from apps.core.models.users import User
 from apps.graphql.schema.commons import BaseWriteMutation
 from apps.graphql.schema.sites import SiteNode
 from apps.project_management.models.sites import Site
@@ -29,7 +32,7 @@ class SoilDataPushEntrySuccess(graphene.ObjectType):
 class SoilDataPushFailureReason(graphene.Enum):
     DOES_NOT_EXIST = "DOES_NOT_EXIST"
     NOT_ALLOWED = "NOT_ALLOWED"
-    INTEGRITY_ERROR = "INTEGRITY_ERROR"
+    INVALID_DATA = "INVALID_DATA"
 
 
 class SoilDataPushEntryFailure(graphene.ObjectType):
@@ -75,79 +78,106 @@ class SoilDataPush(BaseWriteMutation):
     results = graphene.Field(graphene.List(graphene.NonNull(SoilDataPushEntry)), required=True)
 
     class Input:
-        soil_data = graphene.Field(
+        soil_data_entries = graphene.Field(
             graphene.List(graphene.NonNull(SoilDataPushInputEntry)), required=True
         )
 
-    @classmethod
-    def mutate_and_get_payload(cls, root, info, soil_data):
-        # TODO: refactor spaghetti mutation logic re: history, split into smaller functions
-        results = []
+    @staticmethod
+    def record_update(user: User, soil_data_entries: list[dict]) -> list[SoilDataHistory]:
+        history_entries = []
 
-        with transaction.atomic():
-            for entry in soil_data:
-                site_id = entry.pop("site_id")
-                depth_intervals = entry["depth_dependent_data"]
+        for entry in soil_data_entries:
+            changes = copy.deepcopy(entry)
+            site_id = changes.pop("site_id")
+            site = Site.objects.filter(id=site_id).first()
 
-                site = Site.objects.filter(id=site_id).first()
+            history_entry = SoilDataHistory(site=site, changed_by=user, soil_data_changes=changes)
+            history_entry.save()
+            history_entries.append(history_entry)
 
-                if site is None:
-                    results.append(
-                        SoilDataPushEntry(
-                            site_id=site_id,
-                            result=SoilDataPushEntryFailure(
-                                reason=SoilDataPushFailureReason.DOES_NOT_EXIST
-                            ),
-                        )
-                    )
-                    continue
+        return history_entries
 
-                user = info.context.user
-                if not check_site_permission(user, SiteAction.ENTER_DATA, Context(site=site)):
-                    results.append(
-                        SoilDataPushEntry(
-                            site_id=site_id,
-                            result=SoilDataPushEntryFailure(
-                                site=site, reason=SoilDataPushFailureReason.NOT_ALLOWED
-                            ),
-                        )
-                    )
-                    continue
+    @staticmethod
+    def record_update_failure(
+        history_entry: SoilDataHistory, reason: SoilDataPushFailureReason, site_id: str
+    ):
+        history_entry.update_failure_reason = reason
+        history_entry.save()
+        return SoilDataPushEntry(site_id=site_id, result=SoilDataPushEntryFailure(reason=reason))
 
-                if not hasattr(site, "soil_data"):
-                    site.soil_data = SoilData()
+    @staticmethod
+    def get_valid_site_for_soil_update(user: User, site_id: str):
+        site = Site.objects.filter(id=site_id).first()
 
-                for attr, value in entry["soil_data"].items():
-                    if isinstance(value, enum.Enum):
-                        value = value.value
-                    setattr(site.soil_data, attr, value)
+        if site is None:
+            return None, SoilDataPushFailureReason.DOES_NOT_EXIST
 
-                site.soil_data.save()
+        if not check_site_permission(user, SiteAction.ENTER_DATA, Context(site=site)):
+            return None, SoilDataPushFailureReason.NOT_ALLOWED
 
-                for depth_interval_input in depth_intervals:
-                    interval = depth_interval_input.pop("depth_interval")
-                    depth_interval, _ = site.soil_data.depth_dependent_data.get_or_create(
-                        depth_interval_start=interval["start"],
-                        depth_interval_end=interval["end"],
-                    )
+        if not hasattr(site, "soil_data"):
+            site.soil_data = SoilData()
 
-                    for attr, value in depth_interval_input.items():
-                        if isinstance(value, enum.Enum):
-                            value = value.value
-                        setattr(depth_interval, attr, value)
+        return site, None
 
-                    depth_interval_input["depth_interval"] = interval
+    @staticmethod
+    def get_entry_result(user: User, soil_data_entry: dict, history_entry: SoilDataHistory):
+        site_id = soil_data_entry["site_id"]
+        soil_data = soil_data_entry["soil_data"]
 
-                    depth_interval.save()
+        depth_dependent_data = soil_data.pop("depth_dependent_data")
+        depth_intervals = soil_data.pop("depth_intervals")
+        deleted_depth_intervals = soil_data.pop("deleted_depth_intervals")
 
-                results.append(
-                    SoilDataPushEntry(
-                        site_id=site_id,
-                        result=SoilDataPushEntrySuccess(site=site),
-                    )
+        try:
+            site, reason = SoilDataPush.get_valid_site_for_soil_update(user=user, site_id=site_id)
+            if site is None:
+                return SoilDataPush.record_update_failure(
+                    history_entry=history_entry,
+                    site_id=site_id,
+                    reason=reason,
                 )
 
-                history_entry = SoilDataHistory(site=site, changed_by=user, soil_data_changes=entry)
-                history_entry.save()
+            BaseWriteMutation.assign_graphql_fields_to_model_instance(
+                model_instance=site.soil_data, fields=soil_data
+            )
+
+            for depth_dependent_entry in depth_dependent_data:
+                interval = depth_dependent_entry.pop("depth_interval")
+                depth_interval, _ = site.soil_data.depth_dependent_data.get_or_create(
+                    depth_interval_start=interval["start"],
+                    depth_interval_end=interval["end"],
+                )
+
+                BaseWriteMutation.assign_graphql_fields_to_model_instance(
+                    model_instance=depth_interval, fields=depth_dependent_entry
+                )
+
+            history_entry.update_succeeded = True
+            history_entry.save()
+            return SoilDataPushEntry(site_id=site_id, result=SoilDataPushEntrySuccess(site=site))
+
+        except (ValidationError, IntegrityError):
+            return SoilDataPush.record_update_failure(
+                history_entry=history_entry,
+                site_id=site_id,
+                reason=SoilDataPushFailureReason.INVALID_DATA,
+            )
+
+    @classmethod
+    def mutate_and_get_payload(cls, root, info, soil_data_entries: list[dict]):
+        results = []
+        user = info.context.user
+
+        with transaction.atomic():
+            history_entries = SoilDataPush.record_update(user, soil_data_entries)
+
+        with transaction.atomic():
+            for entry, history_entry in zip(soil_data_entries, history_entries):
+                results.append(
+                    SoilDataPush.get_entry_result(
+                        user=user, soil_data_entry=entry, history_entry=history_entry
+                    )
+                )
 
         return cls(results=results)

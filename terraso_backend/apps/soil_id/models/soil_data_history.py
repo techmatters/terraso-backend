@@ -21,17 +21,32 @@ from apps.project_management.models.sites import Site
 
 
 class SoilDataHistory(BaseModel):
-    site = models.ForeignKey(Site, on_delete=models.CASCADE)
+    site = models.ForeignKey(Site, null=True, on_delete=models.CASCADE)
     changed_by = models.ForeignKey(User, on_delete=models.CASCADE)
+    update_succeeded = models.BooleanField(null=False, blank=False, default=False)
+    update_failure_reason = models.TextField(null=True)
 
     # intended JSON schema: {
     #   ...soilDataInputs,
+    #   "depth_dependent_data": [{
+    #     "depth_interval": {
+    #       "start": number,
+    #       "end": number
+    #     },
+    #     ...depthDependentInputs
+    #   }],
     #   "depth_intervals": [{
     #     "depth_interval": {
     #       "start": number,
     #       "end": number
     #     },
-    #     ...depthIntervalInputs,
+    #     ...depthIntervalConfig
+    #   }],
+    #   "deleted_depth_intervals": [{
+    #     "depth_interval": {
+    #       "start": number,
+    #       "end": number
+    #     }
     #   }]
     # }
     soil_data_changes = models.JSONField()

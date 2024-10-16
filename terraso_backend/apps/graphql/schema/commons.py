@@ -15,11 +15,11 @@
 
 import enum
 import json
-from typing import Optional
+from typing import Any, Optional
 
 import structlog
 from django.core.exceptions import NON_FIELD_ERRORS, ValidationError
-from django.db import IntegrityError
+from django.db import IntegrityError, models
 from graphene import Connection, Int, relay
 from graphene.types.generic import GenericScalar
 from graphql import get_nullable_type
@@ -191,7 +191,7 @@ class LoggerMixin:
 
 
 class BaseWriteMutation(BaseAuthenticatedMutation, LoggerMixin):
-    skip_field_validation: Optional[str] = None
+    skip_field_validation: Optional[list[str]] = None
 
     @classmethod
     def mutate_and_get_payload(cls, root, info, **kwargs):
@@ -215,16 +215,12 @@ class BaseWriteMutation(BaseAuthenticatedMutation, LoggerMixin):
         result_class = cls.result_class or cls.model_class
         result_instance = kwargs.pop("result_instance", model_instance)
 
-        for attr, value in kwargs.items():
-            if isinstance(value, enum.Enum):
-                value = value.value
-            setattr(model_instance, attr, value)
-
         try:
-            kwargs = {}
-            if cls.skip_field_validation is not None:
-                kwargs["exclude"] = cls.skip_field_validation
-            model_instance.full_clean(**kwargs)
+            BaseWriteMutation.assign_graphql_fields_to_model(
+                model_instance=model_instance,
+                fields=kwargs,
+                skip_field_validation=cls.skip_field_validation,
+            )
         except ValidationError as exc:
             logger.info(
                 "Attempt to mutate an model, but it's invalid",
@@ -233,9 +229,6 @@ class BaseWriteMutation(BaseAuthenticatedMutation, LoggerMixin):
             raise GraphQLValidationException.from_validation_error(
                 exc, model_name=cls.model_class.__name__
             )
-
-        try:
-            model_instance.save()
         except IntegrityError as exc:
             logger.info(
                 "Attempt to mutate an model, but it's not unique",
@@ -263,6 +256,20 @@ class BaseWriteMutation(BaseAuthenticatedMutation, LoggerMixin):
     @classmethod
     def is_update(cls, data):
         return "id" in data
+
+    @staticmethod
+    def assign_graphql_fields_to_model_instance(
+        model_instance: models.Model,
+        fields: dict[str, Any],
+        skip_field_validation: Optional[list[str]] = None,
+    ):
+        for attr, value in fields.items():
+            if isinstance(value, enum.Enum):
+                value = value.value
+            setattr(model_instance, attr, value)
+
+        model_instance.full_clean(exclude=skip_field_validation)
+        model_instance.save()
 
     @staticmethod
     def remove_null_fields(kwargs, options=[str]):

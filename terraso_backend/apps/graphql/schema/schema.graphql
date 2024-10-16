@@ -2366,7 +2366,7 @@ enum SoilDataPushFailureReason {
 }
 
 input SoilDataPushInput {
-  soilData: [SoilDataPushInputEntry!]!
+  soilDataEntries: [SoilDataPushInputEntry!]!
   clientMutationId: String
 }
 
