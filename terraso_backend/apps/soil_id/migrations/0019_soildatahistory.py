@@ -55,9 +55,13 @@ class Migration(migrations.Migration):
                 (
                     "site",
                     models.ForeignKey(
-                        on_delete=django.db.models.deletion.CASCADE, to="project_management.site"
+                        null=True,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to="project_management.site",
                     ),
                 ),
+                ("update_failure_reason", models.TextField(null=True)),
+                ("update_succeeded", models.BooleanField(default=False)),
             ],
             options={
                 "ordering": ["created_at"],
