@@ -25,4 +25,4 @@ requests
 rules
 sentry-sdk[django]
 shapely
-soil-id @ https://github.com/techmatters/soil-id-algorithm/archive/50f7836.zip
+soil-id @ https://github.com/techmatters/soil-id-algorithm/archive/baa1afc.zip
