@@ -357,9 +357,9 @@ geopandas==1.0.1 \
     # via
     #   -r requirements/base.in
     #   soil-id
-graphene==3.3 \
-    --hash=sha256:529bf40c2a698954217d3713c6041d69d3f719ad0080857d7ee31327112446b0 \
-    --hash=sha256:bb3810be33b54cb3e6969506671eb72319e8d7ba0d5ca9c8066472f75bf35a38
+graphene==3.4.1 \
+    --hash=sha256:828a8d7b1bce450566a72cc8733716c20f3acfc659960de73dd38f46dc302040 \
+    --hash=sha256:ca98f853201293871cdc7f55faf2523a9bc077181fe0f4947db5a243e5c67083
     # via graphene-django
 graphene-django==3.2.2 \
     --hash=sha256:059ccf25d9a5159f28d7ebf1a648c993ab34deb064e80b70ca096aa22a609556 \
