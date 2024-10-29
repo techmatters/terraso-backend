@@ -111,7 +111,7 @@ class ProjectNode(DjangoObjectType):
     id = graphene.ID(source="pk", required=True)
     seen = graphene.Boolean(required=True)
     soil_settings = graphene.Field(
-        "apps.soil_id.graphql.soil_data.ProjectSoilSettingsNode",
+        "apps.soil_id.graphql.soil_project.queries.ProjectSoilSettingsNode",
         required=True,
         default_value=ProjectSoilSettings(),
     )

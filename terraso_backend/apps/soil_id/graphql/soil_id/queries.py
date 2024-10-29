@@ -20,7 +20,7 @@ from apps.soil_id.graphql.soil_id.resolvers import (
     resolve_data_based_result,
     resolve_location_based_result,
 )
-from apps.soil_id.graphql.soil_id.schema import (
+from apps.soil_id.graphql.soil_id.types import (
     DataBasedResult,
     LocationBasedResult,
     SoilIdInputData,

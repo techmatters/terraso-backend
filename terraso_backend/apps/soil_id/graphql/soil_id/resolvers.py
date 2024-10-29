@@ -20,8 +20,7 @@ from typing import Optional
 import structlog
 from soil_id.us_soil import SoilListOutputData, list_soils, rank_soils
 
-from apps.soil_id.graphql.soil_data import DepthInterval
-from apps.soil_id.graphql.soil_id.schema import (
+from apps.soil_id.graphql.soil_id.types import (
     DataBasedSoilMatch,
     DataBasedSoilMatches,
     EcologicalSite,
@@ -38,6 +37,7 @@ from apps.soil_id.graphql.soil_id.schema import (
     SoilMatchInfo,
     SoilSeries,
 )
+from apps.soil_id.graphql.types import DepthInterval
 from apps.soil_id.models.depth_dependent_soil_data import DepthDependentSoilData
 from apps.soil_id.models.soil_data import SoilData
 from apps.soil_id.models.soil_id_cache import SoilIdCache

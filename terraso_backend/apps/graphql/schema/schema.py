@@ -32,16 +32,18 @@ from apps.project_management.graphql.site_notes import (
     SiteNoteDeleteMutation,
     SiteNoteUpdateMutation,
 )
-from apps.soil_id.graphql.soil_data import (
+from apps.soil_id.graphql.soil_data.mutations import (
     DepthDependentSoilDataUpdateMutation,
-    ProjectSoilSettingsDeleteDepthIntervalMutation,
-    ProjectSoilSettingsUpdateDepthIntervalMutation,
-    ProjectSoilSettingsUpdateMutation,
     SoilDataDeleteDepthIntervalMutation,
     SoilDataUpdateDepthIntervalMutation,
     SoilDataUpdateMutation,
 )
-from apps.soil_id.graphql.soil_id.endpoints import soil_id
+from apps.soil_id.graphql.soil_id.queries import soil_id
+from apps.soil_id.graphql.soil_project.mutations import (
+    ProjectSoilSettingsDeleteDepthIntervalMutation,
+    ProjectSoilSettingsUpdateDepthIntervalMutation,
+    ProjectSoilSettingsUpdateMutation,
+)
 
 from .audit_logs import AuditLogNode
 from .commons import TerrasoRelayNode

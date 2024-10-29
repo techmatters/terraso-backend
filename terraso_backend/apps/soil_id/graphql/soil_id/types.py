@@ -15,12 +15,11 @@
 
 import graphene
 
-from apps.soil_id.graphql.soil_data import (
+from apps.soil_id.graphql.soil_data.queries import (
     DepthDependentSoilDataNode,
-    DepthInterval,
-    DepthIntervalInput,
     SoilDataNode,
 )
+from apps.soil_id.graphql.types import DepthInterval, DepthIntervalInput
 
 
 class EcologicalSite(graphene.ObjectType):
