@@ -1015,7 +1015,7 @@ def test_push_soil_data_success(client, user):
         site.soil_data.depth_intervals.get(
             depth_interval_start=0, depth_interval_end=10
         ).soil_texture_enabled
-        == True
+        is True
     )
     assert not site.soil_data.depth_intervals.filter(
         depth_interval_start=10, depth_interval_end=20
@@ -1030,6 +1030,6 @@ def test_push_soil_data_success(client, user):
     assert history.soil_data_changes["depth_dependent_data"][0]["clay_percent"] == 10
     assert history.soil_data_changes["depth_intervals"][0]["depth_interval"]["start"] == 0
     assert history.soil_data_changes["depth_intervals"][0]["depth_interval"]["end"] == 10
-    assert history.soil_data_changes["depth_intervals"][0]["soil_texture_enabled"] == True
+    assert history.soil_data_changes["depth_intervals"][0]["soil_texture_enabled"] is True
     assert history.soil_data_changes["deleted_depth_intervals"][0]["start"] == 10
     assert history.soil_data_changes["deleted_depth_intervals"][0]["end"] == 20
