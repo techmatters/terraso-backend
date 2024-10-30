@@ -1644,6 +1644,7 @@ type Mutations {
   markProjectSeen(input: ProjectMarkSeenMutationInput!): ProjectMarkSeenMutationPayload!
   updateSoilData(input: SoilDataUpdateMutationInput!): SoilDataUpdateMutationPayload!
   updateDepthDependentSoilData(input: DepthDependentSoilDataUpdateMutationInput!): DepthDependentSoilDataUpdateMutationPayload!
+  pushSoilData(input: SoilDataPushInput!): SoilDataPushPayload!
   updateSoilDataDepthInterval(input: SoilDataUpdateDepthIntervalMutationInput!): SoilDataUpdateDepthIntervalMutationPayload!
   deleteSoilDataDepthInterval(input: SoilDataDeleteDepthIntervalMutationInput!): SoilDataDeleteDepthIntervalMutationPayload!
   updateProjectSoilSettings(input: ProjectSoilSettingsUpdateMutationInput!): ProjectSoilSettingsUpdateMutationPayload!
@@ -2274,6 +2275,105 @@ input DepthDependentSoilDataUpdateMutationInput {
   sodiumAbsorptionRatio: Decimal
   carbonates: SoilIdDepthDependentSoilDataCarbonatesChoices
   clientMutationId: String
+}
+
+type SoilDataPushPayload {
+  errors: GenericScalar
+  results: [SoilDataPushEntry!]!
+  clientMutationId: String
+}
+
+type SoilDataPushEntry {
+  siteId: ID!
+  result: SoilDataPushEntryResult!
+}
+
+union SoilDataPushEntryResult = SoilDataPushEntrySuccess | SoilDataPushEntryFailure
+
+type SoilDataPushEntrySuccess {
+  site: SiteNode!
+}
+
+type SoilDataPushEntryFailure {
+  reason: SoilDataPushFailureReason!
+}
+
+enum SoilDataPushFailureReason {
+  DOES_NOT_EXIST
+  NOT_ALLOWED
+  INVALID_DATA
+}
+
+input SoilDataPushInput {
+  soilDataEntries: [SoilDataPushInputEntry!]!
+  clientMutationId: String
+}
+
+input SoilDataPushInputEntry {
+  siteId: ID!
+  soilData: SoilDataPushInputSoilData!
+}
+
+input SoilDataPushInputSoilData {
+  downSlope: SoilIdSoilDataDownSlopeChoices
+  crossSlope: SoilIdSoilDataCrossSlopeChoices
+  bedrock: Int
+  slopeLandscapePosition: SoilIdSoilDataSlopeLandscapePositionChoices
+  slopeAspect: Int
+  slopeSteepnessSelect: SoilIdSoilDataSlopeSteepnessSelectChoices
+  slopeSteepnessPercent: Int
+  slopeSteepnessDegree: Int
+  surfaceCracksSelect: SoilIdSoilDataSurfaceCracksSelectChoices
+  surfaceSaltSelect: SoilIdSoilDataSurfaceSaltSelectChoices
+  floodingSelect: SoilIdSoilDataFloodingSelectChoices
+  limeRequirementsSelect: SoilIdSoilDataLimeRequirementsSelectChoices
+  surfaceStoninessSelect: SoilIdSoilDataSurfaceStoninessSelectChoices
+  waterTableDepthSelect: SoilIdSoilDataWaterTableDepthSelectChoices
+  soilDepthSelect: SoilIdSoilDataSoilDepthSelectChoices
+  landCoverSelect: SoilIdSoilDataLandCoverSelectChoices
+  grazingSelect: SoilIdSoilDataGrazingSelectChoices
+  depthDependentData: [SoilDataPushInputDepthDependentData!]!
+  depthIntervals: [SoilDataPushInputDepthInterval!]!
+  deletedDepthIntervals: [DepthIntervalInput!]!
+}
+
+input SoilDataPushInputDepthDependentData {
+  depthInterval: DepthIntervalInput!
+  texture: SoilIdDepthDependentSoilDataTextureChoices
+  clayPercent: Int
+  rockFragmentVolume: SoilIdDepthDependentSoilDataRockFragmentVolumeChoices
+  colorHue: Float
+  colorValue: Float
+  colorChroma: Float
+  colorPhotoUsed: Boolean
+  colorPhotoSoilCondition: SoilIdDepthDependentSoilDataColorPhotoSoilConditionChoices
+  colorPhotoLightingCondition: SoilIdDepthDependentSoilDataColorPhotoLightingConditionChoices
+  conductivity: Decimal
+  conductivityTest: SoilIdDepthDependentSoilDataConductivityTestChoices
+  conductivityUnit: SoilIdDepthDependentSoilDataConductivityUnitChoices
+  structure: SoilIdDepthDependentSoilDataStructureChoices
+  ph: Decimal
+  phTestingSolution: SoilIdDepthDependentSoilDataPhTestingSolutionChoices
+  phTestingMethod: SoilIdDepthDependentSoilDataPhTestingMethodChoices
+  soilOrganicCarbon: Decimal
+  soilOrganicMatter: Decimal
+  soilOrganicCarbonTesting: SoilIdDepthDependentSoilDataSoilOrganicCarbonTestingChoices
+  soilOrganicMatterTesting: SoilIdDepthDependentSoilDataSoilOrganicMatterTestingChoices
+  sodiumAbsorptionRatio: Decimal
+  carbonates: SoilIdDepthDependentSoilDataCarbonatesChoices
+}
+
+input SoilDataPushInputDepthInterval {
+  label: String
+  depthInterval: DepthIntervalInput!
+  soilTextureEnabled: Boolean
+  soilColorEnabled: Boolean
+  carbonatesEnabled: Boolean
+  phEnabled: Boolean
+  soilOrganicCarbonMatterEnabled: Boolean
+  electricalConductivityEnabled: Boolean
+  sodiumAdsorptionRatioEnabled: Boolean
+  soilStructureEnabled: Boolean
 }
 
 type SoilDataUpdateDepthIntervalMutationPayload {
