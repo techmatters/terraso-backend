@@ -63,7 +63,9 @@ class SiteNode(DjangoObjectType):
     id = graphene.ID(source="pk", required=True)
     seen = graphene.Boolean(required=True)
     soil_data = graphene.Field(
-        "apps.soil_id.graphql.soil_data.SoilDataNode", required=True, default_value=SoilData()
+        "apps.soil_id.graphql.soil_data.queries.SoilDataNode",
+        required=True,
+        default_value=SoilData(),
     )
 
     class Meta:
