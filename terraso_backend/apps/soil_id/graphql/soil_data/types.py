@@ -37,6 +37,7 @@ class SoilDataDepthIntervalInputs:
 
 
 class SoilDataInputs:
+    depth_interval_preset = SoilDataNode.depth_interval_preset_enum()
     down_slope = SoilDataNode.down_slope_enum()
     cross_slope = SoilDataNode.cross_slope_enum()
     bedrock = graphene.Int()

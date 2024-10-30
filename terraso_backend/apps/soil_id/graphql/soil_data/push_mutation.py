@@ -82,13 +82,12 @@ class SoilDataPush(BaseWriteMutation):
         )
 
     @staticmethod
-    def record_update(user: User, soil_data_entries: list[dict]) -> list[SoilDataHistory]:
+    def record_soil_data_push(user: User, soil_data_entries: list[dict]) -> list[SoilDataHistory]:
         history_entries = []
 
         for entry in soil_data_entries:
-            changes = copy.deepcopy(entry)
-            site_id = changes.pop("site_id")
-            site = Site.objects.filter(id=site_id).first()
+            changes = copy.deepcopy(entry["soil_data"])
+            site = Site.objects.filter(id=entry["site_id"]).first()
 
             history_entry = SoilDataHistory(site=site, changed_by=user, soil_data_changes=changes)
             history_entry.save()
@@ -97,10 +96,10 @@ class SoilDataPush(BaseWriteMutation):
         return history_entries
 
     @staticmethod
-    def record_update_failure(
+    def record_entry_failure(
         history_entry: SoilDataHistory, reason: SoilDataPushFailureReason, site_id: str
     ):
-        history_entry.update_failure_reason = reason
+        history_entry.update_failure_reason = reason.value
         history_entry.save()
         return SoilDataPushEntry(site_id=site_id, result=SoilDataPushEntryFailure(reason=reason))
 
@@ -114,10 +113,58 @@ class SoilDataPush(BaseWriteMutation):
         if not check_site_permission(user, SiteAction.ENTER_DATA, Context(site=site)):
             return None, SoilDataPushFailureReason.NOT_ALLOWED
 
+        if not check_site_permission(user, SiteAction.UPDATE_DEPTH_INTERVAL, Context(site=site)):
+            return None, SoilDataPushFailureReason.NOT_ALLOWED
+
         if not hasattr(site, "soil_data"):
             site.soil_data = SoilData()
 
         return site, None
+
+    @staticmethod
+    def save_soil_data(site: Site, soil_data: dict):
+        if (
+            "depth_interval_preset" in soil_data
+            and soil_data["depth_interval_preset"] != site.soil_data.depth_interval_preset
+        ):
+            site.soil_data.depth_intervals.all().delete()
+
+        BaseWriteMutation.assign_graphql_fields_to_model_instance(
+            model_instance=site.soil_data, fields=soil_data
+        )
+
+    @staticmethod
+    def save_depth_dependent_data(site: Site, depth_dependent_data: list[dict]):
+        for depth_dependent_entry in depth_dependent_data:
+            interval = depth_dependent_entry.pop("depth_interval")
+            depth_interval, _ = site.soil_data.depth_dependent_data.get_or_create(
+                depth_interval_start=interval["start"],
+                depth_interval_end=interval["end"],
+            )
+
+            BaseWriteMutation.assign_graphql_fields_to_model_instance(
+                model_instance=depth_interval, fields=depth_dependent_entry
+            )
+
+    @staticmethod
+    def update_depth_intervals(site: Site, depth_intervals: list[dict]):
+        for depth_interval_input in depth_intervals:
+            interval_input = depth_interval_input.pop("depth_interval")
+            depth_interval, _ = site.soil_data.depth_intervals.get_or_create(
+                depth_interval_start=interval_input["start"],
+                depth_interval_end=interval_input["end"],
+            )
+
+            BaseWriteMutation.assign_graphql_fields_to_model_instance(
+                model_instance=depth_interval, fields=depth_interval_input
+            )
+
+    @staticmethod
+    def delete_depth_intervals(site: Site, deleted_depth_intervals: list[dict]):
+        for interval in deleted_depth_intervals:
+            site.soil_data.depth_intervals.filter(
+                depth_interval_start=interval["start"], depth_interval_end=interval["end"]
+            ).delete()
 
     @staticmethod
     def get_entry_result(user: User, soil_data_entry: dict, history_entry: SoilDataHistory):
@@ -131,33 +178,23 @@ class SoilDataPush(BaseWriteMutation):
         try:
             site, reason = SoilDataPush.get_valid_site_for_soil_update(user=user, site_id=site_id)
             if site is None:
-                return SoilDataPush.record_update_failure(
+                return SoilDataPush.record_entry_failure(
                     history_entry=history_entry,
                     site_id=site_id,
                     reason=reason,
                 )
 
-            BaseWriteMutation.assign_graphql_fields_to_model_instance(
-                model_instance=site.soil_data, fields=soil_data
-            )
-
-            for depth_dependent_entry in depth_dependent_data:
-                interval = depth_dependent_entry.pop("depth_interval")
-                depth_interval, _ = site.soil_data.depth_dependent_data.get_or_create(
-                    depth_interval_start=interval["start"],
-                    depth_interval_end=interval["end"],
-                )
-
-                BaseWriteMutation.assign_graphql_fields_to_model_instance(
-                    model_instance=depth_interval, fields=depth_dependent_entry
-                )
+            SoilDataPush.save_soil_data(site, soil_data)
+            SoilDataPush.update_depth_intervals(site, depth_intervals)
+            SoilDataPush.save_depth_dependent_data(site, depth_dependent_data)
+            SoilDataPush.delete_depth_intervals(site, deleted_depth_intervals)
 
             history_entry.update_succeeded = True
             history_entry.save()
             return SoilDataPushEntry(site_id=site_id, result=SoilDataPushEntrySuccess(site=site))
 
         except (ValidationError, IntegrityError):
-            return SoilDataPush.record_update_failure(
+            return SoilDataPush.record_entry_failure(
                 history_entry=history_entry,
                 site_id=site_id,
                 reason=SoilDataPushFailureReason.INVALID_DATA,
@@ -169,7 +206,7 @@ class SoilDataPush(BaseWriteMutation):
         user = info.context.user
 
         with transaction.atomic():
-            history_entries = SoilDataPush.record_update(user, soil_data_entries)
+            history_entries = SoilDataPush.record_soil_data_push(user, soil_data_entries)
 
         with transaction.atomic():
             for entry, history_entry in zip(soil_data_entries, history_entries):

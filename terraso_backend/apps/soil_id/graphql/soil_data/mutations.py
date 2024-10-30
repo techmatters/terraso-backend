@@ -131,7 +131,6 @@ class SoilDataUpdateMutation(BaseWriteMutation):
 
     class Input(SoilDataInputs):
         site_id = graphene.ID(required=True)
-        depth_interval_preset = SoilDataNode.depth_interval_preset_enum()
 
     @classmethod
     def mutate_and_get_payload(cls, root, info, site_id, **kwargs):
