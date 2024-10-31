@@ -20,6 +20,12 @@ from apps.core.models.commons import BaseModel
 from apps.project_management.models.sites import Site
 
 
+# NOTE: this table may contain data associated with sites that was submitted
+#       by unauthorized (but still authenticated) users. such requests may have
+#       an update_failure_reason of null or "NOT_ALLOWED". unless a user is
+#       handcrafting malicious requests, this will be because a user had
+#       authorization to enter data for a site, then went offline and made
+#       changes simultaneous to losing authorization to enter data for that site
 class SoilDataHistory(BaseModel):
     site = models.ForeignKey(Site, null=True, on_delete=models.CASCADE)
     changed_by = models.ForeignKey(User, on_delete=models.CASCADE)

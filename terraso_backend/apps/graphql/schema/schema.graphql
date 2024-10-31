@@ -1642,11 +1642,11 @@ type Mutations {
   deleteUserFromProject(input: ProjectDeleteUserMutationInput!): ProjectDeleteUserMutationPayload!
   updateUserRoleInProject(input: ProjectUpdateUserRoleMutationInput!): ProjectUpdateUserRoleMutationPayload!
   markProjectSeen(input: ProjectMarkSeenMutationInput!): ProjectMarkSeenMutationPayload!
-  updateSoilData(input: SoilDataUpdateMutationInput!): SoilDataUpdateMutationPayload!
-  updateDepthDependentSoilData(input: DepthDependentSoilDataUpdateMutationInput!): DepthDependentSoilDataUpdateMutationPayload!
+  updateSoilData(input: SoilDataUpdateMutationInput!): SoilDataUpdateMutationPayload! @deprecated(reason: "Use push_soil_data instead.")
+  updateDepthDependentSoilData(input: DepthDependentSoilDataUpdateMutationInput!): DepthDependentSoilDataUpdateMutationPayload! @deprecated(reason: "Use push_soil_data instead.")
   pushSoilData(input: SoilDataPushInput!): SoilDataPushPayload!
-  updateSoilDataDepthInterval(input: SoilDataUpdateDepthIntervalMutationInput!): SoilDataUpdateDepthIntervalMutationPayload!
-  deleteSoilDataDepthInterval(input: SoilDataDeleteDepthIntervalMutationInput!): SoilDataDeleteDepthIntervalMutationPayload!
+  updateSoilDataDepthInterval(input: SoilDataUpdateDepthIntervalMutationInput!): SoilDataUpdateDepthIntervalMutationPayload! @deprecated(reason: "Use push_soil_data instead.")
+  deleteSoilDataDepthInterval(input: SoilDataDeleteDepthIntervalMutationInput!): SoilDataDeleteDepthIntervalMutationPayload! @deprecated(reason: "Use push_soil_data instead.")
   updateProjectSoilSettings(input: ProjectSoilSettingsUpdateMutationInput!): ProjectSoilSettingsUpdateMutationPayload!
   updateProjectSoilSettingsDepthInterval(input: ProjectSoilSettingsUpdateDepthIntervalMutationInput!): ProjectSoilSettingsUpdateDepthIntervalMutationPayload!
   deleteProjectSoilSettingsDepthInterval(input: ProjectSoilSettingsDeleteDepthIntervalMutationInput!): ProjectSoilSettingsDeleteDepthIntervalMutationPayload!
@@ -2291,7 +2291,7 @@ type SoilDataPushEntry {
 union SoilDataPushEntryResult = SoilDataPushEntrySuccess | SoilDataPushEntryFailure
 
 type SoilDataPushEntrySuccess {
-  site: SiteNode!
+  soilData: SoilDataNode!
 }
 
 type SoilDataPushEntryFailure {

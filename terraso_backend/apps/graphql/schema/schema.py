@@ -190,11 +190,19 @@ class Mutations(graphene.ObjectType):
     delete_user_from_project = ProjectDeleteUserMutation.Field()
     update_user_role_in_project = ProjectUpdateUserRoleMutation.Field()
     mark_project_seen = ProjectMarkSeenMutation.Field()
-    update_soil_data = SoilDataUpdateMutation.Field()
-    update_depth_dependent_soil_data = DepthDependentSoilDataUpdateMutation.Field()
+    update_soil_data = SoilDataUpdateMutation.Field(
+        deprecation_reason="Use push_soil_data instead."
+    )
+    update_depth_dependent_soil_data = DepthDependentSoilDataUpdateMutation.Field(
+        deprecation_reason="Use push_soil_data instead."
+    )
     push_soil_data = SoilDataPush.Field()
-    update_soil_data_depth_interval = SoilDataUpdateDepthIntervalMutation.Field()
-    delete_soil_data_depth_interval = SoilDataDeleteDepthIntervalMutation.Field()
+    update_soil_data_depth_interval = SoilDataUpdateDepthIntervalMutation.Field(
+        deprecation_reason="Use push_soil_data instead."
+    )
+    delete_soil_data_depth_interval = SoilDataDeleteDepthIntervalMutation.Field(
+        deprecation_reason="Use push_soil_data instead."
+    )
     update_project_soil_settings = ProjectSoilSettingsUpdateMutation.Field()
     update_project_soil_settings_depth_interval = (
         ProjectSoilSettingsUpdateDepthIntervalMutation.Field()

@@ -794,69 +794,67 @@ PUSH_SOIL_DATA_QUERY = """
                         reason
                     }
                     ... on SoilDataPushEntrySuccess {
-                        site {
-                            soilData {
-                                downSlope
-                                crossSlope
-                                bedrock
-                                depthIntervalPreset
-                                slopeLandscapePosition
-                                slopeAspect
-                                slopeSteepnessSelect
-                                slopeSteepnessPercent
-                                slopeSteepnessDegree
-                                surfaceCracksSelect
-                                surfaceSaltSelect
-                                floodingSelect
-                                limeRequirementsSelect
-                                surfaceStoninessSelect
-                                waterTableDepthSelect
-                                soilDepthSelect
-                                landCoverSelect
-                                grazingSelect
-                                depthDependentData {
-                                    depthInterval {
-                                        start
-                                        end
-                                    }
-                                    texture
-                                    rockFragmentVolume
-                                    clayPercent
-                                    colorHue
-                                    colorValue
-                                    colorChroma
-                                    colorPhotoUsed
-                                    colorPhotoSoilCondition
-                                    colorPhotoLightingCondition
-                                    conductivity
-                                    conductivityTest
-                                    conductivityUnit
-                                    structure
-                                    ph
-                                    phTestingSolution
-                                    phTestingMethod
-                                    soilOrganicCarbon
-                                    soilOrganicMatter
-                                    soilOrganicCarbonTesting
-                                    soilOrganicMatterTesting
-                                    sodiumAbsorptionRatio
-                                    carbonates
+                        soilData {
+                            downSlope
+                            crossSlope
+                            bedrock
+                            depthIntervalPreset
+                            slopeLandscapePosition
+                            slopeAspect
+                            slopeSteepnessSelect
+                            slopeSteepnessPercent
+                            slopeSteepnessDegree
+                            surfaceCracksSelect
+                            surfaceSaltSelect
+                            floodingSelect
+                            limeRequirementsSelect
+                            surfaceStoninessSelect
+                            waterTableDepthSelect
+                            soilDepthSelect
+                            landCoverSelect
+                            grazingSelect
+                            depthDependentData {
+                                depthInterval {
+                                    start
+                                    end
                                 }
-                                depthIntervals {
-                                    label
-                                    depthInterval {
-                                      start
-                                      end
-                                    }
-                                    soilTextureEnabled
-                                    soilColorEnabled
-                                    carbonatesEnabled
-                                    phEnabled
-                                    soilOrganicCarbonMatterEnabled
-                                    electricalConductivityEnabled
-                                    sodiumAdsorptionRatioEnabled
-                                    soilStructureEnabled
+                                texture
+                                rockFragmentVolume
+                                clayPercent
+                                colorHue
+                                colorValue
+                                colorChroma
+                                colorPhotoUsed
+                                colorPhotoSoilCondition
+                                colorPhotoLightingCondition
+                                conductivity
+                                conductivityTest
+                                conductivityUnit
+                                structure
+                                ph
+                                phTestingSolution
+                                phTestingMethod
+                                soilOrganicCarbon
+                                soilOrganicMatter
+                                soilOrganicCarbonTesting
+                                soilOrganicMatterTesting
+                                sodiumAbsorptionRatio
+                                carbonates
+                            }
+                            depthIntervals {
+                                label
+                                depthInterval {
+                                  start
+                                  end
                                 }
+                                soilTextureEnabled
+                                soilColorEnabled
+                                carbonatesEnabled
+                                phEnabled
+                                soilOrganicCarbonMatterEnabled
+                                electricalConductivityEnabled
+                                sodiumAdsorptionRatioEnabled
+                                soilStructureEnabled
                             }
                         }
                     }
@@ -924,9 +922,10 @@ def test_push_soil_data_can_process_mixed_results(client, user):
     )
 
     assert response.json()
+    assert "data" in response.json()
     result = response.json()["data"]["pushSoilData"]
     assert result["errors"] is None
-    assert result["results"][0]["result"]["site"]["soilData"]["slopeAspect"] == 10
+    assert result["results"][0]["result"]["soilData"]["slopeAspect"] == 10
     assert result["results"][1]["result"]["reason"] == "INVALID_DATA"
     assert result["results"][2]["result"]["reason"] == "NOT_ALLOWED"
     assert result["results"][3]["result"]["reason"] == "DOES_NOT_EXIST"
@@ -961,7 +960,6 @@ def test_push_soil_data_can_process_mixed_results(client, user):
     assert history_3.soil_data_changes["slope_aspect"] == 15
 
 
-# TODO: fleshly out
 def test_push_soil_data_success(client, user):
     site = mixer.blend(Site, owner=user)
 
@@ -1000,7 +998,7 @@ def test_push_soil_data_success(client, user):
     assert response.json()
     result = response.json()["data"]["pushSoilData"]
     assert result["errors"] is None
-    assert result["results"][0]["result"]["site"]["soilData"]["slopeAspect"] == 10
+    assert result["results"][0]["result"]["soilData"]["slopeAspect"] == 10
 
     site.refresh_from_db()
 
