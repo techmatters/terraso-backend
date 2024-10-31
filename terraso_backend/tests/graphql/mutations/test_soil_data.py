@@ -866,6 +866,79 @@ PUSH_SOIL_DATA_QUERY = """
 """
 
 
+def test_push_soil_data_success(client, user):
+    site = mixer.blend(Site, owner=user)
+
+    site.soil_data = SoilData()
+    site.soil_data.save()
+    site.soil_data.depth_intervals.get_or_create(depth_interval_start=10, depth_interval_end=20)
+
+    soil_data_changes = {
+        "slopeAspect": 10,
+        "depthDependentData": [{"depthInterval": {"start": 0, "end": 10}, "clayPercent": 10}],
+        "depthIntervals": [
+            {
+                "depthInterval": {"start": 0, "end": 10},
+                "soilTextureEnabled": True,
+            }
+        ],
+        "deletedDepthIntervals": [
+            {
+                "start": 10,
+                "end": 20,
+            }
+        ],
+    }
+
+    client.force_login(user)
+    response = graphql_query(
+        PUSH_SOIL_DATA_QUERY,
+        input_data={
+            "soilDataEntries": [
+                {"siteId": str(site.id), "soilData": soil_data_changes},
+            ]
+        },
+        client=client,
+    )
+
+    assert response.json()
+    result = response.json()["data"]["pushSoilData"]
+    assert result["errors"] is None
+    assert result["results"][0]["result"]["soilData"]["slopeAspect"] == 10
+
+    site.refresh_from_db()
+
+    assert site.soil_data.slope_aspect == 10
+    assert (
+        site.soil_data.depth_dependent_data.get(
+            depth_interval_start=0, depth_interval_end=10
+        ).clay_percent
+        == 10
+    )
+    assert (
+        site.soil_data.depth_intervals.get(
+            depth_interval_start=0, depth_interval_end=10
+        ).soil_texture_enabled
+        is True
+    )
+    assert not site.soil_data.depth_intervals.filter(
+        depth_interval_start=10, depth_interval_end=20
+    ).exists()
+
+    history = SoilDataHistory.objects.get(site=site)
+    assert history.update_failure_reason is None
+    assert history.update_succeeded
+    assert history.soil_data_changes["slope_aspect"] == 10
+    assert history.soil_data_changes["depth_dependent_data"][0]["depth_interval"]["start"] == 0
+    assert history.soil_data_changes["depth_dependent_data"][0]["depth_interval"]["end"] == 10
+    assert history.soil_data_changes["depth_dependent_data"][0]["clay_percent"] == 10
+    assert history.soil_data_changes["depth_intervals"][0]["depth_interval"]["start"] == 0
+    assert history.soil_data_changes["depth_intervals"][0]["depth_interval"]["end"] == 10
+    assert history.soil_data_changes["depth_intervals"][0]["soil_texture_enabled"] is True
+    assert history.soil_data_changes["deleted_depth_intervals"][0]["start"] == 10
+    assert history.soil_data_changes["deleted_depth_intervals"][0]["end"] == 20
+
+
 def test_push_soil_data_can_process_mixed_results(client, user):
     non_user = mixer.blend(User)
     user_sites = mixer.cycle(2).blend(Site, owner=user)
@@ -958,76 +1031,3 @@ def test_push_soil_data_can_process_mixed_results(client, user):
     assert history_3.update_failure_reason == "DOES_NOT_EXIST"
     assert not history_3.update_succeeded
     assert history_3.soil_data_changes["slope_aspect"] == 15
-
-
-def test_push_soil_data_success(client, user):
-    site = mixer.blend(Site, owner=user)
-
-    site.soil_data = SoilData()
-    site.soil_data.save()
-    site.soil_data.depth_intervals.get_or_create(depth_interval_start=10, depth_interval_end=20)
-
-    soil_data_changes = {
-        "slopeAspect": 10,
-        "depthDependentData": [{"depthInterval": {"start": 0, "end": 10}, "clayPercent": 10}],
-        "depthIntervals": [
-            {
-                "depthInterval": {"start": 0, "end": 10},
-                "soilTextureEnabled": True,
-            }
-        ],
-        "deletedDepthIntervals": [
-            {
-                "start": 10,
-                "end": 20,
-            }
-        ],
-    }
-
-    client.force_login(user)
-    response = graphql_query(
-        PUSH_SOIL_DATA_QUERY,
-        input_data={
-            "soilDataEntries": [
-                {"siteId": str(site.id), "soilData": soil_data_changes},
-            ]
-        },
-        client=client,
-    )
-
-    assert response.json()
-    result = response.json()["data"]["pushSoilData"]
-    assert result["errors"] is None
-    assert result["results"][0]["result"]["soilData"]["slopeAspect"] == 10
-
-    site.refresh_from_db()
-
-    assert site.soil_data.slope_aspect == 10
-    assert (
-        site.soil_data.depth_dependent_data.get(
-            depth_interval_start=0, depth_interval_end=10
-        ).clay_percent
-        == 10
-    )
-    assert (
-        site.soil_data.depth_intervals.get(
-            depth_interval_start=0, depth_interval_end=10
-        ).soil_texture_enabled
-        is True
-    )
-    assert not site.soil_data.depth_intervals.filter(
-        depth_interval_start=10, depth_interval_end=20
-    ).exists()
-
-    history = SoilDataHistory.objects.get(site=site)
-    assert history.update_failure_reason is None
-    assert history.update_succeeded
-    assert history.soil_data_changes["slope_aspect"] == 10
-    assert history.soil_data_changes["depth_dependent_data"][0]["depth_interval"]["start"] == 0
-    assert history.soil_data_changes["depth_dependent_data"][0]["depth_interval"]["end"] == 10
-    assert history.soil_data_changes["depth_dependent_data"][0]["clay_percent"] == 10
-    assert history.soil_data_changes["depth_intervals"][0]["depth_interval"]["start"] == 0
-    assert history.soil_data_changes["depth_intervals"][0]["depth_interval"]["end"] == 10
-    assert history.soil_data_changes["depth_intervals"][0]["soil_texture_enabled"] is True
-    assert history.soil_data_changes["deleted_depth_intervals"][0]["start"] == 10
-    assert history.soil_data_changes["deleted_depth_intervals"][0]["end"] == 20

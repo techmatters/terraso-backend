@@ -79,7 +79,8 @@ class SoilDataPushInputEntry(graphene.InputObjectType):
 #       an individual site's updates are invalid, we reject all of that site's updates
 # NOTE: changing a depth interval preset causes all depth intervals for that site to be
 #       deleted. we haven't yet thought through the implications of when/whether to apply
-#       that change in the context of this mutation
+#       that change in the context of this mutation. this work is tracked here:
+#         https://github.com/techmatters/terraso-backend/issues/1527
 class SoilDataPush(BaseWriteMutation):
     results = graphene.Field(graphene.List(graphene.NonNull(SoilDataPushEntry)), required=True)
 
