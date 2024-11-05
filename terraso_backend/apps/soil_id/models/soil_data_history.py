@@ -13,11 +13,21 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see https://www.gnu.org/licenses/.
 
+import enum
+
+from django.core.serializers.json import DjangoJSONEncoder
 from django.db import models
 
 from apps.core.models import User
 from apps.core.models.commons import BaseModel
 from apps.project_management.models.sites import Site
+
+
+class JSONEncoder(DjangoJSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, enum.Enum):
+            return obj.value
+        return super().default(obj)
 
 
 # NOTE: this table may contain data associated with sites that was submitted
@@ -55,4 +65,4 @@ class SoilDataHistory(BaseModel):
     #     }
     #   }]
     # }
-    soil_data_changes = models.JSONField()
+    soil_data_changes = models.JSONField(encoder=JSONEncoder)

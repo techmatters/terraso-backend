@@ -875,6 +875,7 @@ def test_push_soil_data_success(client, user):
 
     soil_data_changes = {
         "slopeAspect": 10,
+        "downSlope": "CONVEX",
         "depthDependentData": [{"depthInterval": {"start": 0, "end": 10}, "clayPercent": 10}],
         "depthIntervals": [
             {
