@@ -58,10 +58,10 @@ class ProjectSoilSettings(BaseModel):
         choices=DepthIntervalPreset.choices,
     )
 
-    soil_pit_required = models.BooleanField(blank=True, default=False)
-    slope_required = models.BooleanField(blank=True, default=False)
-    soil_texture_required = models.BooleanField(blank=True, default=False)
-    soil_color_required = models.BooleanField(blank=True, default=False)
+    soil_pit_required = models.BooleanField(blank=True, default=True)
+    slope_required = models.BooleanField(blank=True, default=True)
+    soil_texture_required = models.BooleanField(blank=True, default=True)
+    soil_color_required = models.BooleanField(blank=True, default=True)
     vertical_cracking_required = models.BooleanField(blank=True, default=False)
     carbonates_required = models.BooleanField(blank=True, default=False)
     ph_required = models.BooleanField(blank=True, default=False)
