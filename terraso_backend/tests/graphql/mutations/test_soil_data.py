@@ -14,6 +14,7 @@
 # along with this program. If not, see https://www.gnu.org/licenses/.
 
 import json
+from decimal import Decimal
 
 import pytest
 import structlog
@@ -21,6 +22,7 @@ from graphene_django.utils.testing import graphql_query
 from mixer.backend.django import mixer
 from tests.utils import match_json
 
+from apps.core.formatters import from_camel_to_snake_case
 from apps.core.models import User
 from apps.project_management.models.projects import Project
 from apps.project_management.models.sites import Site
@@ -875,11 +877,70 @@ def test_push_soil_data_success(client, user):
 
     soil_data_changes = {
         "slopeAspect": 10,
-        "depthDependentData": [{"depthInterval": {"start": 0, "end": 10}, "clayPercent": 10}],
+        "downSlope": "CONVEX",
+        "crossSlope": "CONCAVE",
+        "bedrock": 20,
+        "slopeLandscapePosition": "HILLS_MOUNTAINS",
+        "slopeSteepnessSelect": "ROLLING",
+        "slopeSteepnessPercent": 15,
+        "slopeSteepnessDegree": 30,
+        "surfaceCracksSelect": "SURFACE_CRACKING_ONLY",
+        "surfaceSaltSelect": "SMALL_TEMPORARY_PATCHES",
+        "floodingSelect": "OCCASIONAL",
+        "limeRequirementsSelect": "SOME",
+        "surfaceStoninessSelect": "BETWEEN_3_AND_15",
+        "waterTableDepthSelect": "BETWEEN_30_AND_45_CM",
+        "soilDepthSelect": "BETWEEN_50_AND_70_CM",
+        "landCoverSelect": "GRASSLAND",
+        "grazingSelect": "CATTLE",
+        "depthIntervalPreset": "NRCS",
+    }
+
+    depth_dependent_changes = {
+        "clayPercent": 25,
+        "texture": "SANDY_LOAM",
+        "rockFragmentVolume": "VOLUME_1_15",
+        "colorHue": 7,
+        "colorValue": 4,
+        "colorChroma": 3,
+        "colorPhotoUsed": True,
+        "colorPhotoSoilCondition": "MOIST",
+        "colorPhotoLightingCondition": "EVEN",
+        "conductivity": "2.50",
+        "conductivityTest": "SOIL_WATER_1_1",
+        "conductivityUnit": "MILLISIEMENS_CENTIMETER",
+        "structure": "ANGULAR_BLOCKY",
+        "ph": "6.5",
+        "phTestingSolution": "SOIL_WATER_1_1",
+        "phTestingMethod": "METER",
+        "soilOrganicCarbon": "1.2",
+        "soilOrganicMatter": "2.3",
+        "soilOrganicCarbonTesting": "DRY_COMBUSTION",
+        "soilOrganicMatterTesting": "WET_OXIDATION",
+        "sodiumAbsorptionRatio": "5.1",
+        "carbonates": "SLIGHTLY_EFFERVESCENT",
+    }
+
+    depth_interval_changes = {
+        "label": "test label",
+        "soilTextureEnabled": True,
+        "soilColorEnabled": True,
+        "carbonatesEnabled": True,
+        "phEnabled": True,
+        "soilOrganicCarbonMatterEnabled": True,
+        "electricalConductivityEnabled": True,
+        "sodiumAdsorptionRatioEnabled": True,
+        "soilStructureEnabled": True,
+    }
+
+    nested_changes = {
+        "depthDependentData": [
+            {"depthInterval": {"start": 0, "end": 10}, **depth_dependent_changes}
+        ],
         "depthIntervals": [
             {
                 "depthInterval": {"start": 0, "end": 10},
-                "soilTextureEnabled": True,
+                **depth_interval_changes,
             }
         ],
         "deletedDepthIntervals": [
@@ -895,7 +956,7 @@ def test_push_soil_data_success(client, user):
         PUSH_SOIL_DATA_QUERY,
         input_data={
             "soilDataEntries": [
-                {"siteId": str(site.id), "soilData": soil_data_changes},
+                {"siteId": str(site.id), "soilData": {**soil_data_changes, **nested_changes}},
             ]
         },
         client=client,
@@ -904,23 +965,37 @@ def test_push_soil_data_success(client, user):
     assert response.json()
     result = response.json()["data"]["pushSoilData"]
     assert result["errors"] is None
-    assert result["results"][0]["result"]["soilData"]["slopeAspect"] == 10
+    result_soil_data = result["results"][0]["result"]["soilData"]
+    for field, expected_value in soil_data_changes.items():
+        assert result_soil_data[field] == expected_value
+    assert result_soil_data["depthDependentData"][0]["depthInterval"]["start"] == 0
+    assert result_soil_data["depthDependentData"][0]["depthInterval"]["end"] == 10
+    for field, expected_value in depth_dependent_changes.items():
+        assert result_soil_data["depthDependentData"][0][field] == expected_value
+    assert result_soil_data["depthIntervals"][0]["depthInterval"]["start"] == 0
+    assert result_soil_data["depthIntervals"][0]["depthInterval"]["end"] == 10
+    for field, expected_value in depth_interval_changes.items():
+        assert result_soil_data["depthIntervals"][0][field] == expected_value
+    assert result_soil_data["depthIntervals"][0]["soilTextureEnabled"] is True
+    assert len(result_soil_data["depthIntervals"]) == 1
 
     site.refresh_from_db()
 
-    assert site.soil_data.slope_aspect == 10
-    assert (
-        site.soil_data.depth_dependent_data.get(
-            depth_interval_start=0, depth_interval_end=10
-        ).clay_percent
-        == 10
+    for field, expected_value in soil_data_changes.items():
+        assert getattr(site.soil_data, from_camel_to_snake_case(field)) == expected_value
+    depth_dependent_data = site.soil_data.depth_dependent_data.get(
+        depth_interval_start=0, depth_interval_end=10
     )
-    assert (
-        site.soil_data.depth_intervals.get(
-            depth_interval_start=0, depth_interval_end=10
-        ).soil_texture_enabled
-        is True
+    for field, expected_value in depth_dependent_changes.items():
+        attr = getattr(depth_dependent_data, from_camel_to_snake_case(field))
+        if isinstance(attr, Decimal):
+            attr = str(attr)
+        assert attr == expected_value
+    depth_interval = site.soil_data.depth_intervals.get(
+        depth_interval_start=0, depth_interval_end=10
     )
+    for field, expected_value in depth_interval_changes.items():
+        assert getattr(depth_interval, from_camel_to_snake_case(field)) == expected_value
     assert not site.soil_data.depth_intervals.filter(
         depth_interval_start=10, depth_interval_end=20
     ).exists()
@@ -928,15 +1003,18 @@ def test_push_soil_data_success(client, user):
     history = SoilDataHistory.objects.get(site=site)
     assert history.update_failure_reason is None
     assert history.update_succeeded
-    assert history.soil_data_changes["slope_aspect"] == 10
-    assert history.soil_data_changes["depth_dependent_data"][0]["depth_interval"]["start"] == 0
-    assert history.soil_data_changes["depth_dependent_data"][0]["depth_interval"]["end"] == 10
-    assert history.soil_data_changes["depth_dependent_data"][0]["clay_percent"] == 10
-    assert history.soil_data_changes["depth_intervals"][0]["depth_interval"]["start"] == 0
-    assert history.soil_data_changes["depth_intervals"][0]["depth_interval"]["end"] == 10
-    assert history.soil_data_changes["depth_intervals"][0]["soil_texture_enabled"] is True
-    assert history.soil_data_changes["deleted_depth_intervals"][0]["start"] == 10
-    assert history.soil_data_changes["deleted_depth_intervals"][0]["end"] == 20
+    for field, expected_value in soil_data_changes.items():
+        assert history.soil_data_changes[from_camel_to_snake_case(field)] == expected_value
+    depth_dependent_history = history.soil_data_changes["depth_dependent_data"][0]
+    assert depth_dependent_history["depth_interval"]["start"] == 0
+    assert depth_dependent_history["depth_interval"]["end"] == 10
+    for field, expected_value in depth_dependent_changes.items():
+        assert depth_dependent_history[from_camel_to_snake_case(field)] == expected_value
+    depth_interval_history = history.soil_data_changes["depth_intervals"][0]
+    assert depth_interval_history["depth_interval"]["start"] == 0
+    assert depth_interval_history["depth_interval"]["end"] == 10
+    for field, expected_value in depth_interval_changes.items():
+        assert depth_interval_history[from_camel_to_snake_case(field)] == expected_value
 
 
 def test_push_soil_data_can_process_mixed_results(client, user):
