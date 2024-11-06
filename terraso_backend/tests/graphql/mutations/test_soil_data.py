@@ -921,6 +921,18 @@ def test_push_soil_data_success(client, user):
         "carbonates": "SLIGHTLY_EFFERVESCENT",
     }
 
+    depth_interval_changes = {
+        "label": "test label",
+        "soilTextureEnabled": True,
+        "soilColorEnabled": True,
+        "carbonatesEnabled": True,
+        "phEnabled": True,
+        "soilOrganicCarbonMatterEnabled": True,
+        "electricalConductivityEnabled": True,
+        "sodiumAdsorptionRatioEnabled": True,
+        "soilStructureEnabled": True,
+    }
+
     nested_changes = {
         "depthDependentData": [
             {"depthInterval": {"start": 0, "end": 10}, **depth_dependent_changes}
@@ -928,7 +940,7 @@ def test_push_soil_data_success(client, user):
         "depthIntervals": [
             {
                 "depthInterval": {"start": 0, "end": 10},
-                "soilTextureEnabled": True,
+                **depth_interval_changes,
             }
         ],
         "deletedDepthIntervals": [
@@ -953,7 +965,6 @@ def test_push_soil_data_success(client, user):
     assert response.json()
     result = response.json()["data"]["pushSoilData"]
     assert result["errors"] is None
-    print(response.json())
     result_soil_data = result["results"][0]["result"]["soilData"]
     for field, expected_value in soil_data_changes.items():
         assert result_soil_data[field] == expected_value
@@ -963,6 +974,8 @@ def test_push_soil_data_success(client, user):
         assert result_soil_data["depthDependentData"][0][field] == expected_value
     assert result_soil_data["depthIntervals"][0]["depthInterval"]["start"] == 0
     assert result_soil_data["depthIntervals"][0]["depthInterval"]["end"] == 10
+    for field, expected_value in depth_interval_changes.items():
+        assert result_soil_data["depthIntervals"][0][field] == expected_value
     assert result_soil_data["depthIntervals"][0]["soilTextureEnabled"] is True
     assert len(result_soil_data["depthIntervals"]) == 1
 
@@ -978,12 +991,11 @@ def test_push_soil_data_success(client, user):
         if isinstance(attr, Decimal):
             attr = str(attr)
         assert attr == expected_value
-    assert (
-        site.soil_data.depth_intervals.get(
-            depth_interval_start=0, depth_interval_end=10
-        ).soil_texture_enabled
-        is True
+    depth_interval = site.soil_data.depth_intervals.get(
+        depth_interval_start=0, depth_interval_end=10
     )
+    for field, expected_value in depth_interval_changes.items():
+        assert getattr(depth_interval, from_camel_to_snake_case(field)) == expected_value
     assert not site.soil_data.depth_intervals.filter(
         depth_interval_start=10, depth_interval_end=20
     ).exists()
@@ -998,9 +1010,11 @@ def test_push_soil_data_success(client, user):
     assert depth_dependent_history["depth_interval"]["end"] == 10
     for field, expected_value in depth_dependent_changes.items():
         assert depth_dependent_history[from_camel_to_snake_case(field)] == expected_value
-    assert history.soil_data_changes["depth_intervals"][0]["depth_interval"]["start"] == 0
-    assert history.soil_data_changes["depth_intervals"][0]["depth_interval"]["end"] == 10
-    assert history.soil_data_changes["depth_intervals"][0]["soil_texture_enabled"] is True
+    depth_interval_history = history.soil_data_changes["depth_intervals"][0]
+    assert depth_interval_history["depth_interval"]["start"] == 0
+    assert depth_interval_history["depth_interval"]["end"] == 10
+    for field, expected_value in depth_interval_changes.items():
+        assert depth_interval_history[from_camel_to_snake_case(field)] == expected_value
 
 
 def test_push_soil_data_can_process_mixed_results(client, user):
