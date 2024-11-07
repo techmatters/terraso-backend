@@ -30,8 +30,9 @@ class StoryMap(SlugModel):
 
     story_map_id = models.CharField(max_length=10, default="")
     title = models.CharField(max_length=128, validators=[validate_name])
-    configuration = models.JSONField(blank=True, null=True)
     created_by = models.ForeignKey(User, null=True, on_delete=models.DO_NOTHING)
+    configuration = models.JSONField(blank=True, null=True)
+    published_configuration = models.JSONField(blank=True, null=True)
     is_published = models.BooleanField(blank=True, default=False)
     published_at = models.DateTimeField(blank=True, null=True)
 
