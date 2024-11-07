@@ -669,6 +669,41 @@ def test_update_project_soil_settings(client, user, project_manager, project):
     assert payload == new_data
 
 
+def test_project_soil_settings_defaults(client, project_manager, project):
+    client.force_login(project_manager)
+
+    expected_defaults = {
+        "depthIntervalPreset": "NRCS",
+        "soilPitRequired": True,
+        "slopeRequired": True,
+        "soilTextureRequired": True,
+        "soilColorRequired": True,
+        "verticalCrackingRequired": False,
+        "carbonatesRequired": False,
+        "phRequired": False,
+        "soilOrganicCarbonMatterRequired": False,
+        "electricalConductivityRequired": False,
+        "sodiumAdsorptionRatioRequired": False,
+        "soilStructureRequired": False,
+        "landUseLandCoverRequired": False,
+        "soilLimitationsRequired": False,
+        "photosRequired": False,
+        "notesRequired": False,
+    }
+
+    response = graphql_query(
+        UPDATE_PROJECT_SETTINGS_QUERY,
+        variables={"input": {"projectId": str(project.id)}},
+        client=client,
+    )
+
+    assert response.json()["data"]["updateProjectSoilSettings"]["errors"] is None
+    payload = response.json()["data"]["updateProjectSoilSettings"]["projectSoilSettings"]
+    intervals = payload.pop("depthIntervals")
+    assert intervals == []
+    assert payload == expected_defaults
+
+
 @pytest.mark.parametrize("depth_interval_preset", ["NRCS", "BLM", "CUSTOM"])
 def test_update_project_depth_interval_preset_depth_dependent_data(
     depth_interval_preset, client, project, project_manager, site_with_soil_data
