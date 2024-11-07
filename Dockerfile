@@ -7,7 +7,7 @@ ENV PATH=/home/terraso/.local/bin:$PATH
 ENV AWS_CLI_VERSION=2.8.12
 
 # Add testing sources and pin the GDAL packages to testing
-# Allows us to get 3.8.x versions of GDAL
+# Allows us to get 3.9.x versions of GDAL
 RUN sed 's/bookworm/testing/g' /etc/apt/sources.list.d/debian.sources >  /etc/apt/sources.list.d/testing.sources
 
 RUN echo 'Package: libgdal-dev gdal-bin\nPin: release a=testing\nPin-Priority: 900' > /etc/apt/preferences.d/gdal-testing
