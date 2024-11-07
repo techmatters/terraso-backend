@@ -45,8 +45,10 @@ class StoryMapAddView(AuthenticationRequiredMixin, FormView):
 
         config = json.loads(form_data["configuration"])
 
+        publish = form_data["publish"] == "true"
+
         form_data["created_by"] = request.user
-        form_data["is_published"] = form_data["is_published"] == "true"
+        form_data["is_published"] = publish
         form_data["published_at"] = (
             timezone.make_aware(datetime.now(), timezone.get_current_timezone())
             if form_data["is_published"]
@@ -75,12 +77,15 @@ class StoryMapAddView(AuthenticationRequiredMixin, FormView):
             return JsonResponse({"errors": [{"message": [asdict(error_message)]}]}, status=400)
 
         try:
+            configuration = handle_config_media(config, None, request)
+
             story_map = StoryMap.objects.create(
                 story_map_id=secrets.token_hex(4),
                 created_by=form_data["created_by"],
                 title=form_data["title"],
                 is_published=form_data["is_published"],
-                configuration=handle_config_media(config, None, request),
+                configuration=configuration,
+                published_configuration=configuration if publish else None,
                 published_at=form_data["published_at"],
             )
         except IntegrityError as exc:
@@ -93,6 +98,8 @@ class StoryMapUpdateView(AuthenticationRequiredMixin, FormView):
     def post(self, request, **kwargs):
         user = request.user
         form_data = request.POST.copy()
+
+        publish = form_data["publish"] == "true"
 
         story_map = StoryMap.objects.get(id=form_data["id"])
 
@@ -108,12 +115,11 @@ class StoryMapUpdateView(AuthenticationRequiredMixin, FormView):
 
         story_map.title = form_data["title"]
 
-        if form_data["is_published"] == "true" and not story_map.is_published:
+        if publish:
             story_map.published_at = timezone.make_aware(
                 datetime.now(), timezone.get_current_timezone()
             )
-
-        story_map.is_published = form_data["is_published"] == "true"
+            story_map.is_published = True
 
         new_config = json.loads(form_data["configuration"])
 
@@ -131,7 +137,9 @@ class StoryMapUpdateView(AuthenticationRequiredMixin, FormView):
             )
             return JsonResponse({"errors": [{"message": [asdict(error_message)]}]}, status=400)
 
-        story_map.configuration = handle_config_media(new_config, story_map.configuration, request)
+        story_map.configuration = handle_config_media(new_config, story_map, request)
+        if publish:
+            story_map.published_configuration = story_map.configuration
 
         entry_form = StoryMapForm(data=story_map.to_dict())
 
@@ -149,7 +157,9 @@ class StoryMapUpdateView(AuthenticationRequiredMixin, FormView):
         return JsonResponse(story_map.to_dict(), status=201)
 
 
-def handle_config_media(new_config, current_config, request):
+def handle_config_media(new_config, story_map, request):
+    current_config = story_map.configuration
+    current_published_config = story_map.published_configuration
     if "chapters" in new_config:
         for chapter in new_config["chapters"]:
             media = chapter.get("media")
@@ -169,6 +179,8 @@ def handle_config_media(new_config, current_config, request):
     if (current_config is None) or (not current_config.get("chapters")):
         return new_config
 
+    all_active_chapters = current_published_config["chapters"] + new_config["chapters"]
+
     # Delete changed media
     current_media = [
         chapter["media"]["url"]
@@ -177,7 +189,7 @@ def handle_config_media(new_config, current_config, request):
     ]
     new_media = [
         chapter["media"]["url"]
-        for chapter in new_config["chapters"]
+        for chapter in all_active_chapters
         if chapter.get("media") and "url" in chapter["media"]
     ]
 
