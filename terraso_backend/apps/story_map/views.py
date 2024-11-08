@@ -179,7 +179,11 @@ def handle_config_media(new_config, story_map, request):
     if (current_config is None) or (not current_config.get("chapters")):
         return new_config
 
-    all_active_chapters = current_published_config["chapters"] + new_config["chapters"]
+    all_active_chapters = (
+        new_config["chapters"]
+        if current_published_config is None
+        else current_published_config["chapters"] + new_config["chapters"]
+    )
 
     # Delete changed media
     current_media = [
