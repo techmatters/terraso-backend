@@ -52,7 +52,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: Data/
-          key: ${{ runner.os }}-data-${{ hashFiles('Data/*') }}
+          key: ${{ runner.os }}-data-${{ hashFiles('*') }}
           restore-keys: ${{ runner.os }}-data-
 
       - name: Setup Python
