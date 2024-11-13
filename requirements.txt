@@ -344,8 +344,8 @@ et-xmlfile==2.0.0 \
 fiona==1.10.1 \
     --hash=sha256:b00ae357669460c6491caba29c2022ff0acfcbde86a95361ea8ff5cd14a86b68
     # via -r requirements/base.in
-gdal==3.9.2 \
-    --hash=sha256:cf9c1add09ce152975c94d48a1a89dd300c292e0761fd3d22a8071a98852e129
+gdal==3.9.3 \
+    --hash=sha256:b4026010883b37d159fa43aee3ecb28bb466bd9d7e085c4d623d858edd6c62b9
     # via soil-id
 geopandas==1.0.1 \
     --hash=sha256:01e147d9420cc374d26f51fc23716ac307f32b49406e4bd8462c07e82ed1d3d6 \
