@@ -14,7 +14,7 @@ services:
     tty: true
 
   db:
-    image: 'postgis/postgis:14-master'
+    image: 'postgis/postgis:16-master'
     labels:
       org.techmatters.project: terraso_backend
     env_file: .env
