@@ -154,6 +154,12 @@ class StoryMapUpdateView(AuthenticationRequiredMixin, FormView):
         except IntegrityError as exc:
             return handle_integrity_error(exc)
 
+        for chapter in story_map.configuration["chapters"]:
+            media = chapter.get("media")
+            if media and "url" in media and media["type"].startswith(("image", "audio", "video")):
+                signed_url = story_map_media_upload_service.get_signed_url(media["url"])
+                chapter["media"]["signedUrl"] = signed_url
+
         return JsonResponse(story_map.to_dict(), status=201)
 
 
