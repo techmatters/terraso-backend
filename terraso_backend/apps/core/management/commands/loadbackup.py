@@ -29,7 +29,7 @@ from django.core.management.base import BaseCommand, CommandError
 from django.db import connection
 from django.db.models.fields import URLField
 from django.db.models.fields.related import ForeignKey, ManyToManyField
-from psycopg2 import sql
+from psycopg import sql
 
 from apps.core.models import User
 
