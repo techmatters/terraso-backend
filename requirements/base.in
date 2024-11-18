@@ -17,7 +17,7 @@ httpx
 openpyxl
 pandas
 prettyconf
-psycopg2
+psycopg
 pyjwt[crypto]
 pyproj
 python-magic
