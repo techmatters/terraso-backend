@@ -25,9 +25,11 @@ from .project_soil_settings import (
 from .soil_data import SoilData, SoilDataDepthInterval
 from .soil_data_history import SoilDataHistory
 from .soil_id_cache import SoilIdCache
+from .soil_metadata import SoilMetadata
 
 __all__ = [
     "SoilData",
+    "SoilMetadata",
     "DepthDependentSoilData",
     "ProjectSoilSettings",
     "ProjectDepthInterval",

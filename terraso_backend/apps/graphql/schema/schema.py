@@ -40,6 +40,7 @@ from apps.soil_id.graphql.soil_data.mutations import (
 )
 from apps.soil_id.graphql.soil_data.push_mutation import SoilDataPush
 from apps.soil_id.graphql.soil_id.queries import soil_id
+from apps.soil_id.graphql.soil_metadata.mutations import SoilMetadataUpdateMutation
 from apps.soil_id.graphql.soil_project.mutations import (
     ProjectSoilSettingsDeleteDepthIntervalMutation,
     ProjectSoilSettingsUpdateDepthIntervalMutation,
@@ -203,6 +204,7 @@ class Mutations(graphene.ObjectType):
     delete_soil_data_depth_interval = SoilDataDeleteDepthIntervalMutation.Field(
         deprecation_reason="Use push_soil_data instead."
     )
+    update_soil_metadata = SoilMetadataUpdateMutation.Field()
     update_project_soil_settings = ProjectSoilSettingsUpdateMutation.Field()
     update_project_soil_settings_depth_interval = (
         ProjectSoilSettingsUpdateDepthIntervalMutation.Field()
