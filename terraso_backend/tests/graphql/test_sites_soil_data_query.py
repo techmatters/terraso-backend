@@ -15,13 +15,16 @@
 
 import pytest
 from graphene_django.utils.testing import graphql_query
+from mixer.backend.django import mixer
 
+from apps.project_management.models import Site
 from apps.soil_id.models import SoilData, SoilMetadata
 
 pytestmark = pytest.mark.django_db
 
 
-def test_query_site_soil_data_fields(client, site, site_creator):
+def test_query_site_soil_data_fields(client, user):
+    site = mixer.blend(Site, owner=user, name="name")
     SoilData.objects.create(site=site, bedrock=1),
     SoilMetadata.objects.create(site=site, selected_soil_id="a"),
 
@@ -34,7 +37,7 @@ def test_query_site_soil_data_fields(client, site, site_creator):
       }
     }
     """
-    client.force_login(site_creator)
+    client.force_login(user)
 
     response = graphql_query(query % site.id, client=client)
 
