@@ -956,6 +956,7 @@ type SiteNode implements Node {
   id: ID!
   seen: Boolean!
   soilData: SoilDataNode!
+  soilMetadata: SoilMetadataNode!
 }
 
 """An enumeration."""
@@ -1541,6 +1542,11 @@ enum SoilIdDepthDependentSoilDataCarbonatesChoices {
   VIOLENTLY_EFFERVESCENT
 }
 
+type SoilMetadataNode {
+  site: SiteNode!
+  selectedSoilId: String
+}
+
 type ProjectSoilSettingsNode {
   project: ProjectNode!
   depthIntervalPreset: SoilIdProjectSoilSettingsDepthIntervalPresetChoices!
@@ -1647,6 +1653,7 @@ type Mutations {
   pushSoilData(input: SoilDataPushInput!): SoilDataPushPayload!
   updateSoilDataDepthInterval(input: SoilDataUpdateDepthIntervalMutationInput!): SoilDataUpdateDepthIntervalMutationPayload! @deprecated(reason: "Use push_soil_data instead.")
   deleteSoilDataDepthInterval(input: SoilDataDeleteDepthIntervalMutationInput!): SoilDataDeleteDepthIntervalMutationPayload! @deprecated(reason: "Use push_soil_data instead.")
+  updateSoilMetadata(input: SoilMetadataUpdateMutationInput!): SoilMetadataUpdateMutationPayload!
   updateProjectSoilSettings(input: ProjectSoilSettingsUpdateMutationInput!): ProjectSoilSettingsUpdateMutationPayload!
   updateProjectSoilSettingsDepthInterval(input: ProjectSoilSettingsUpdateDepthIntervalMutationInput!): ProjectSoilSettingsUpdateDepthIntervalMutationPayload!
   deleteProjectSoilSettingsDepthInterval(input: ProjectSoilSettingsDeleteDepthIntervalMutationInput!): ProjectSoilSettingsDeleteDepthIntervalMutationPayload!
@@ -2408,6 +2415,18 @@ type SoilDataDeleteDepthIntervalMutationPayload {
 input SoilDataDeleteDepthIntervalMutationInput {
   siteId: ID!
   depthInterval: DepthIntervalInput!
+  clientMutationId: String
+}
+
+type SoilMetadataUpdateMutationPayload {
+  errors: GenericScalar
+  soilMetadata: SoilMetadataNode
+  clientMutationId: String
+}
+
+input SoilMetadataUpdateMutationInput {
+  selectedSoilId: String
+  siteId: ID!
   clientMutationId: String
 }
 

@@ -30,7 +30,7 @@ from apps.project_management.permission_table import (
     check_project_permission,
     check_site_permission,
 )
-from apps.soil_id.models import SoilData
+from apps.soil_id.models import SoilData, SoilMetadata
 
 from .commons import (
     BaseAuthenticatedMutation,
@@ -66,6 +66,11 @@ class SiteNode(DjangoObjectType):
         "apps.soil_id.graphql.soil_data.queries.SoilDataNode",
         required=True,
         default_value=SoilData(),
+    )
+    soil_metadata = graphene.Field(
+        "apps.soil_id.graphql.soil_metadata.queries.SoilMetadataNode",
+        required=True,
+        default_value=SoilMetadata(),
     )
 
     class Meta:
@@ -148,6 +153,7 @@ class SiteAddMutation(BaseWriteMutation):
 
         if create_soil_data:
             SoilData.objects.create(site=result.site)
+            SoilMetadata.objects.create(site=result.site)
 
         site = result.site
         site.mark_seen_by(user)
