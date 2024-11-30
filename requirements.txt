@@ -397,9 +397,9 @@ idna==3.10 \
     #   anyio
     #   httpx
     #   requests
-imageio==2.36.0 \
-    --hash=sha256:1c8f294db862c256e9562354d65aa54725b8dafed7f10f02bb3ec20ec1678850 \
-    --hash=sha256:471f1eda55618ee44a3c9960911c35e647d9284c68f077e868df633398f137f0
+imageio==2.36.1 \
+    --hash=sha256:20abd2cae58e55ca1af8a8dcf43293336a59adf0391f1917bf8518633cfc2cdf \
+    --hash=sha256:e4e1d231f47f9a9e16100b0f7ce1a86e8856fb4d1c0fa2c4365a316f1746be62
     # via scikit-image
 jmespath==1.0.1 \
     --hash=sha256:02e2e4cc71b5bcab88332eebf907519190dd9e6e82107fa7f83b1003a6252980 \
