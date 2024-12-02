@@ -164,8 +164,8 @@ class StoryMapUpdateView(AuthenticationRequiredMixin, FormView):
 
 
 def handle_config_media(new_config, story_map, request):
-    current_config = story_map.configuration
-    current_published_config = story_map.published_configuration
+    current_config = None if story_map is None else story_map.configuration
+    current_published_config = None if story_map is None else story_map.published_configuration
     if "chapters" in new_config:
         for chapter in new_config["chapters"]:
             media = chapter.get("media")
