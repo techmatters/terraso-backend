@@ -6,7 +6,7 @@ platform.
 ## Requirements
 
 -   Docker: version 24 or better
--   Python: 3.12
+-   Python: 3.12 or better
 
 ## Running locally with Docker
 
