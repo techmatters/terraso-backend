@@ -12,7 +12,11 @@ RUN sed 's/bookworm/testing/g' /etc/apt/sources.list.d/debian.sources >  /etc/ap
 
 RUN echo 'Package: libgdal-dev gdal-bin\nPin: release a=testing\nPin-Priority: 900' > /etc/apt/preferences.d/gdal-testing
 
-RUN apt-get update && \
+ENV DOCKER_BUILDKIT 1
+
+RUN --mount=target=/var/lib/apt/lists,type=cache,sharing=locked \
+    --mount=target=/var/cache/apt,type=cache,sharing=locked \
+    apt-get update && \
     apt-get install -q -y --no-install-recommends \
                      build-essential libpq-dev dnsutils libmagic-dev mailcap \
                      gettext software-properties-common \
@@ -29,7 +33,8 @@ COPY --chown=terraso:terraso Makefile /app
 
 USER terraso
 
-RUN pip install --upgrade pip && make install
+RUN --mount=target=/root/.cache,type=cache,sharing=locked \
+    pip install --upgrade pip && make install
 
 COPY --chown=terraso:terraso . /app
 
