@@ -24,9 +24,9 @@ attrs==24.3.0 \
     #   cattrs
     #   fiona
     #   requests-cache
-boto3==1.35.78 \
-    --hash=sha256:5ef7166fe5060637b92af8dc152cd7acecf96b3fc9c5456706a886cadb534391 \
-    --hash=sha256:fc8001519c8842e766ad3793bde3fbd0bb39e821a582fc12cf67876b8f3cf7f1
+boto3==1.35.82 \
+    --hash=sha256:2bbaf1551b1ed55770cb437d7040f1abe6742601103695057b30ce6328eef286 \
+    --hash=sha256:c422b68ae76959b9e23b77eb79e41c3483332f7e1de918d2b083c456d8cf234c
     # via
     #   -r requirements/base.in
     #   django-ses
