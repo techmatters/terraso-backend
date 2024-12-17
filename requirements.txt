@@ -327,9 +327,9 @@ django-safedelete==1.4.0 \
     --hash=sha256:ce63f2dd101fec303837ef624592628e022691c3ade2a0893c9fc4c7796e8288 \
     --hash=sha256:f722845088c00398711fad8961f044cf18badfecaf541bcc616102f46339adda
     # via -r requirements/base.in
-django-ses==4.3.0 \
-    --hash=sha256:3f2374368251c3d614d6409d7f477747ebba705df38823eb3bf3b578c916f9c6 \
-    --hash=sha256:91ed468ae1d64bbbebb24661c9e324f49e52de4d228744d1d5ace203ffd4e4e6
+django-ses==4.3.1 \
+    --hash=sha256:1b66e7958c74b5109aa5179aa975b71599c4db15d5072d5787a2c2ff53e50903 \
+    --hash=sha256:3db5b442d76f38679a09099c8e3bfd60690823e4bd583b15fe5187822bf8389d
     # via -r requirements/base.in
 django-storages==1.14.4 \
     --hash=sha256:69aca94d26e6714d14ad63f33d13619e697508ee33ede184e462ed766dc2a73f \
