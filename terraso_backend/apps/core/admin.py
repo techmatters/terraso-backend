@@ -63,8 +63,9 @@ class UserAdmin(DjangoUserAdmin):
     list_display = ("email", "first_name", "last_name", "created_at", "is_staff")
     search_fields = ("email", "first_name", "last_name")
     inlines = [UserPreferenceInline]
+    readonly_fields = ["id"]
     fieldsets = (
-        (None, {"fields": ("email", "password")}),
+        (None, {"fields": ("email", "id", "password")}),
         ("Personal info", {"fields": ("first_name", "last_name")}),
         (
             "Permissions",
