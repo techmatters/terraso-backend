@@ -2,6 +2,7 @@ from apps.soil_id.graphql.soil_id.resolvers import (
     resolve_data_based_soil_match,
     resolve_data_based_soil_matches,
     resolve_ecological_site,
+    resolve_land_capability_class,
     resolve_location_based_soil_match,
     resolve_location_based_soil_matches,
     resolve_rock_fragment_volume,
@@ -116,8 +117,8 @@ sample_soil_list_json = [
                 "distance": 204.0,
                 "minCompDistance": 90.0,
                 "slope": 0.5,
-                "nirrcapcl": "2",
-                "nirrcapscl": "s",
+                "nirrcapcl": "None",
+                "nirrcapscl": "nan",
                 "nirrcapunit": "None",
                 "irrcapcl": "2",
                 "irrcapscl": "s",
@@ -255,6 +256,20 @@ def test_resolve_ecological_site():
     assert result.name == "Mesic Udic Riparian Forest"
     assert result.id == "AX001X02X001"
     assert result.url == ""
+
+
+def test_resolve_land_capability_class_success():
+    result = resolve_land_capability_class({"nirrcapcl": "6", "nirrcapscl": "s"})
+
+    assert result.capability_class == "6"
+    assert result.sub_class == "s"
+
+
+def test_resolve_land_capability_class_not_available():
+    result = resolve_land_capability_class({"nirrcapcl": "None", "nirrcapscl": "nan"})
+
+    assert result.capability_class == "None"
+    assert result.sub_class == "nan"
 
 
 def test_resolve_soil_info():
