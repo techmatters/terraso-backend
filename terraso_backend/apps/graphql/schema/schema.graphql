@@ -81,7 +81,7 @@ type Query {
 """Soil ID algorithm queries."""
 type SoilId {
   """
-  NOTE: For now, prefer using the dataBasedSoilMatches endpoint with empty input data over locationBasedSoilMatches, as they are inconsistent with each other due to an unresolved upstream algorithm bug.
+  NOTE: For now, prefer using the dataBasedSoilMatches endpoint with empty input data over locationBasedSoilMatches, as they are inconsistent with each other due to an unresolved upstream algorithm bug: https://github.com/techmatters/soil-id-algorithm/issues/126
   """
   locationBasedSoilMatches(latitude: Float!, longitude: Float!): LocationBasedResult!
   dataBasedSoilMatches(latitude: Float!, longitude: Float!, data: SoilIdInputData!): DataBasedResult!
