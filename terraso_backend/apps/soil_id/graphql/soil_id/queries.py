@@ -35,6 +35,7 @@ class SoilId(graphene.ObjectType):
         latitude=graphene.Float(required=True),
         longitude=graphene.Float(required=True),
         resolver=resolve_location_based_result,
+        description="NOTE: For now, prefer using the dataBasedSoilMatches endpoint with empty input data over locationBasedSoilMatches, as they are inconsistent with each other due to an unresolved upstream algorithm bug.",
     )
 
     data_based_soil_matches = graphene.Field(
