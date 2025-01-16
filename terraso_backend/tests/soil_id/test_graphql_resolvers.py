@@ -268,8 +268,8 @@ def test_resolve_land_capability_class_success():
 def test_resolve_land_capability_class_not_available():
     result = resolve_land_capability_class({"nirrcapcl": "None", "nirrcapscl": "nan"})
 
-    assert result.capability_class == "None"
-    assert result.sub_class == "nan"
+    assert result.capability_class == ""
+    assert result.sub_class == ""
 
 
 def test_resolve_soil_info():

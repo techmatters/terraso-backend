@@ -101,7 +101,7 @@ def resolve_ecological_site(ecological_site: dict):
 def resolve_land_capability_class(site_data: dict):
     def resolve_lcc_value(value):
         # note that the soil ID algorithm also sometimes returns the _strings_ "None" or "nan"
-        if value is None or value == "None" or math.isnan(value) or value == "nan":
+        if not isinstance(value, str) or value == "None" or value == "nan":
             return ""
         return value
 
