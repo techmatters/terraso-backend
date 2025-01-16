@@ -98,6 +98,19 @@ def resolve_ecological_site(ecological_site: dict):
         )
 
 
+def resolve_land_capability_class(site_data: dict):
+    def resolve_lcc_value(value):
+        # note that the soil ID algorithm also sometimes returns the _strings_ "None" or "nan"
+        if not isinstance(value, str) or value == "None" or value == "nan":
+            return ""
+        return value
+
+    return LandCapabilityClass(
+        capability_class=resolve_lcc_value(site_data["nirrcapcl"]),
+        sub_class=resolve_lcc_value(site_data["nirrcapscl"]),
+    )
+
+
 def resolve_soil_info(soil_match: dict):
     soil_id = soil_match["id"]
     site_data = soil_match["site"]["siteData"]
@@ -109,10 +122,7 @@ def resolve_soil_info(soil_match: dict):
             description=soil_match["site"]["siteDescription"],
             full_description_url=site_data["sdeURL"],
         ),
-        land_capability_class=LandCapabilityClass(
-            capability_class=site_data["nirrcapcl"],
-            sub_class=site_data["nirrcapscl"],
-        ),
+        land_capability_class=resolve_land_capability_class(site_data),
         ecological_site=resolve_ecological_site(soil_match["esd"]["ESD"]),
         soil_data=resolve_soil_data(soil_match),
     )
