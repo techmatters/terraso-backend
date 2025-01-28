@@ -70,7 +70,6 @@ INSTALLED_APPS = [
     "apps.story_map",
     "apps.notifications",
     "apps.project_management",
-    "apps.audit_logs",
     "apps.e2e_tests",
     "apps.soil_id",
     "apps.collaboration",
