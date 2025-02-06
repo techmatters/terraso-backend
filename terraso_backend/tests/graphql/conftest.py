@@ -482,11 +482,19 @@ def taxonomy_terms():
 @pytest.fixture
 def story_maps(users):
     user_0_stories_published = mixer.cycle(2).blend(
-        StoryMap, created_by=users[0], is_published=True
+        StoryMap,
+        created_by=users[0],
+        is_published=True,
+        published_configuration={"title": "Published"},
+        configuration={"title": "Draft"},
     )
     user_0_stories_drafts = mixer.cycle(3).blend(StoryMap, created_by=users[0], is_published=False)
     user_1_stories_published = mixer.cycle(4).blend(
-        StoryMap, created_by=users[1], is_published=True
+        StoryMap,
+        created_by=users[1],
+        is_published=True,
+        published_configuration={"title": "Published"},
+        configuration={"title": "Draft"},
     )
     user_1_stories_drafts = mixer.cycle(5).blend(StoryMap, created_by=users[1], is_published=False)
     return (

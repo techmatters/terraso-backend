@@ -812,8 +812,9 @@ type StoryMapNode implements Node {
   slug: String!
   storyMapId: String!
   title: String!
-  configuration: JSONString
   createdBy: UserNode
+  configuration: JSONString
+  publishedConfiguration: JSONString
   isPublished: Boolean!
   publishedAt: DateTime
   membershipList: CollaborationMembershipListNode

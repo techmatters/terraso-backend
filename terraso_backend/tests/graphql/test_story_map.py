@@ -26,6 +26,8 @@ def test_story_maps_query(client_query, story_maps, users):
             node {
               title
               isPublished
+              configuration
+              publishedConfiguration
               createdBy {
                 id
               }
@@ -41,6 +43,8 @@ def test_story_maps_query(client_query, story_maps, users):
     assert len(entries_result) == 9
     for story_map in entries_result:
         assert story_map["isPublished"] is True or story_map["createdBy"]["id"] == str(users[0].id)
+        if story_map["isPublished"]:
+            assert story_map["configuration"] != story_map["publishedConfiguration"]
 
 
 def test_story_maps_filter_by_can_change_by_email(client_query, story_maps, users):
