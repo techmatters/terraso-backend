@@ -74,6 +74,7 @@ class StoryMapNode(DjangoObjectType):
             "story_map_id",
             "title",
             "configuration",
+            "published_configuration",
             "is_published",
             "created_by",
             "created_at",

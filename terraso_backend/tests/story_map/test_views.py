@@ -35,7 +35,7 @@ def test_add_form_valid(logged_client, users):
                 "chapters": [],
             }
         ),
-        "is_published": "true",
+        "publish": "true",
     }
     response = logged_client.post(url, data=data)
 
@@ -47,7 +47,7 @@ def test_add_form_valid(logged_client, users):
 
 def test_add_form_invalid(logged_client):
     url = reverse("story_map:add")
-    data = {"title": "Test StoryMap", "is_published": "invalid", "configuration": json.dumps({})}
+    data = {"title": "Test StoryMap", "publish": "invalid", "configuration": json.dumps({})}
     response = logged_client.post(url, data=data)
 
     assert response.status_code == 400
@@ -61,7 +61,7 @@ def test_update_form_valid(logged_client, users):
         "id": story_map.pk,
         "title": "Test StoryMap Updated",
         "configuration": json.dumps({"chapters": []}),
-        "is_published": "false",
+        "publish": "false",
     }
     response = logged_client.post(url, data=data)
 
@@ -76,7 +76,7 @@ def test_update_form_invalid(logged_client, users):
     data = {
         "id": story_map.pk,
         "title": "",
-        "is_published": "invalid",
+        "publish": "invalid",
         "configuration": json.dumps(
             {
                 "title": "Test StoryMap",
@@ -96,7 +96,7 @@ def test_update_form_unauthorized(logged_client):
         "id": story_map.pk,
         "title": "Test StoryMap Updated",
         "configuration": json.dumps({"chapters": []}),
-        "is_published": "false",
+        "publish": "false",
     }
     response = logged_client.post(url, data=data)
 
@@ -110,7 +110,7 @@ def test_update_upload_media(logged_client, users):
     data = {
         "id": story_map.pk,
         "title": "Test StoryMap Updated",
-        "is_published": "false",
+        "publish": "false",
         "files": SimpleUploadedFile(
             name="audio_file.mp3",
             content="content".encode(),
@@ -154,7 +154,7 @@ def test_update_oversized_media_upload(mock_get_size, logged_client, users):
     data = {
         "id": story_map.pk,
         "title": "Test StoryMap Updated",
-        "is_published": "false",
+        "publish": "false",
         "files": SimpleUploadedFile(
             name="audio_file.mp3",
             content="content".encode(),
@@ -199,7 +199,7 @@ def test_update_upload_media_invalid(logged_client, users):
     data = {
         "id": story_map.pk,
         "title": "Test StoryMap Invalid Media",
-        "is_published": "false",
+        "publish": "false",
         "files": SimpleUploadedFile(
             name="audio_file.MOV",
             content="content".encode(),
@@ -242,7 +242,7 @@ def test_update_upload_multiple_media_invalid(logged_client, users):
     data = {
         "id": story_map.pk,
         "title": "Test StoryMap Invalid Media",
-        "is_published": "false",
+        "publish": "false",
         "files": [
             SimpleUploadedFile(
                 name="audio_file.mp4",
@@ -301,7 +301,7 @@ def test_add_null_media_valid(logged_client, users):
     data = {
         "id": story_map.pk,
         "title": "Test StoryMap Updated",
-        "is_published": "true",
+        "publish": "true",
         "configuration": json.dumps(
             {
                 "title": "Test StoryMap Updated",
