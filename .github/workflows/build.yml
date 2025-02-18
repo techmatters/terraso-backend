@@ -10,6 +10,9 @@ on:
     branches:
       - main
 
+env:
+  UV_PROJECT_ENVIRONMENT: '/usr/local'
+
 jobs:
   lint:
     runs-on: ubuntu-latest
