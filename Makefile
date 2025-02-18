@@ -36,19 +36,19 @@ format: ${VIRTUAL_ENV}/scripts/ruff
 	ruff format terraso_backend
 
 install:
-	pip install -r requirements.txt
+	uv pip install -r requirements.txt
 
 install-dev:
-	pip install -r requirements-dev.txt
+	uv pip install -r requirements-dev.txt
 
 lint: check_api_schema
 	ruff check terraso_backend
 
 lock: pip-tools
-	CUSTOM_COMPILE_COMMAND="make lock" pip-compile --upgrade --generate-hashes --strip-extras --resolver=backtracking --output-file requirements.txt requirements/base.in requirements/deploy.in
+	CUSTOM_COMPILE_COMMAND="make lock" uv pip compile --generate-hashes requirements/base.in requirements/deploy.in -o requirements.txt
 
 lock-dev: pip-tools
-	CUSTOM_COMPILE_COMMAND="make lock-dev" pip-compile --upgrade --generate-hashes --strip-extras --resolver=backtracking --output-file requirements-dev.txt requirements/dev.in
+	CUSTOM_COMPILE_COMMAND="make lock-dev" uv pip compile --generate-hashes requirements/dev.in -o requirements-dev.txt
 
 migrate: check_rebuild
 	$(DC_RUN_CMD) python terraso_backend/manage.py migrate --no-input $(APP_MIGRATION_NAME)
@@ -137,4 +137,4 @@ ${VIRTUAL_ENV}/scripts/ruff:
 	pip install ruff
 
 ${VIRTUAL_ENV}/scripts/pip-sync:
-	pip install pip-tools
+	uv pip install pip-tools
