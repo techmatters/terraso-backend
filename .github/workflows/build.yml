@@ -20,7 +20,7 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.13.1'
+          python-version: '3.13.2'
 
       - name: Install Python dependencies for CI
         run: make install-dev
@@ -59,7 +59,7 @@ jobs:
         if: ${{ hashFiles('Data/*') == '' }}
         uses: actions/setup-python@v5
         with:
-          python-version: '3.13.1'
+          python-version: '3.13.2'
 
       - name: Install Python dependencies and download data
         if: ${{ hashFiles('Data/*') == '' }}
