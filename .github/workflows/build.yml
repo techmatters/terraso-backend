@@ -11,7 +11,7 @@ on:
       - main
 
 env:
-  UV_PROJECT_ENVIRONMENT: '/usr/local'
+  UV_PROJECT_ENVIRONMENT: ${{ env.pythonLocation }}
 
 jobs:
   lint:
