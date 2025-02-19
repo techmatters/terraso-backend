@@ -10,8 +10,8 @@ on:
     branches:
       - main
 
-# env:
-#   UV_PROJECT_ENVIRONMENT: ${{ env.pythonLocation }}
+env:
+  UV_PROJECT_ENVIRONMENT: $pythonLocation
 
 jobs:
   lint:
@@ -31,8 +31,7 @@ jobs:
           enable-cache: true
           cache-dependency-glob: 'requirements**.txt'
 
-      - name: test env
-        run: env
+      - run: env
 
       - name: Install Python dependencies for CI
         run: make install-dev
