@@ -30,10 +30,11 @@ jobs:
 
       - run: |
           echo "UV_PROJECT_ENVIRONMENT=$pythonLocation" >> $GITHUB_ENV
-          env
 
       - name: Install Python dependencies for CI
-        run: make install-dev
+        run: |
+          echo $UV_PROJECT_ENVIRONMENT
+          make install-dev
 
       - name: Build base Docker image
         run: |
