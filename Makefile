@@ -2,6 +2,10 @@ DC_ENV ?= dev
 DC_FILE_ARG = -f docker-compose.$(DC_ENV).yml
 DC_RUN_CMD = docker compose $(DC_FILE_ARG) run --quiet-pull --rm web
 
+ifeq ($(DC_ENV),ci)
+	UV_FLAGS = "--system"
+endif
+
 SCHEMA_BUILD_CMD = $(DC_RUN_CMD) python terraso_backend/manage.py graphql_schema --schema apps.graphql.schema.schema.schema --out=-.graphql
 SCHEMA_BUILD_FILE = terraso_backend/apps/graphql/schema/schema.graphql
 api_schema: check_rebuild
@@ -36,10 +40,10 @@ format: ${VIRTUAL_ENV}/scripts/ruff
 	ruff format terraso_backend
 
 install:
-	uv pip install -r requirements.txt
+	uv pip install -r requirements.txt $(UV_FLAGS)
 
 install-dev:
-	uv pip install -r requirements-dev.txt
+	echo uv pip install -r requirements-dev.txt $(UV_FLAGS)
 
 lint: check_api_schema
 	ruff check terraso_backend

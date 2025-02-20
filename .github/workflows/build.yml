@@ -13,8 +13,6 @@ on:
 jobs:
   lint:
     runs-on: ubuntu-latest
-    env:
-      UV_PROJECT_ENVIRONMENT: '/opt/hostedtoolcache/Python/3.13.2/x64'
     steps:
       - name: Checkout
         uses: actions/checkout@v4
