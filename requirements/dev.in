@@ -1,5 +1,3 @@
-black
-flake8
 freezegun
 gdown
 ipdb
@@ -10,4 +8,5 @@ pytest
 pytest-cov
 pytest-django
 respx
+ruff
 jsonpath-ng
