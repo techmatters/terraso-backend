@@ -133,9 +133,9 @@ def test_site_note_update(client_query, client, site_note):
     content = json.loads(response.content)
     assert "errors" not in content, f"Unexpected errors: {content.get('errors')}"
     site_note.refresh_from_db()
-    assert (
-        site_note.content == "This is an updated test note."
-    ), "Site note content did not update as expected"
+    assert site_note.content == "This is an updated test note.", (
+        "Site note content did not update as expected"
+    )
 
 
 def test_site_note_update_unauthorized(client_query, project_site, project_user):
@@ -144,6 +144,6 @@ def test_site_note_update_unauthorized(client_query, project_site, project_user)
     client_query(UPDATE_SITE_NOTE_QUERY, variables=variables)
 
     site_note.refresh_from_db()
-    assert (
-        site_note.content != "This is an updated test note."
-    ), "Site note content updated unexpectedly"
+    assert site_note.content != "This is an updated test note.", (
+        "Site note content updated unexpectedly"
+    )

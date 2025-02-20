@@ -30,9 +30,9 @@ def test_delete_model_deleted(model, delete_date):
     obj.deleted_at = delete_date
     obj.save(keep_deleted=True)
     call_command("harddelete")
-    assert (
-        not model.objects.all(force_visibility=True).filter(id=obj.id).exists()
-    ), "Model should be deleted"
+    assert not model.objects.all(force_visibility=True).filter(id=obj.id).exists(), (
+        "Model should be deleted"
+    )
 
 
 @pytest.mark.parametrize("model", [User, Group, DataEntry])
@@ -42,6 +42,6 @@ def test_delete_model_not_deleted(model, no_delete_date):
     obj.deleted_at = no_delete_date
     obj.save(keep_deleted=True)
     call_command("harddelete")
-    assert (
-        model.objects.all(force_visibility=True).filter(id=obj.id).exists()
-    ), "Model should not be deleted"
+    assert model.objects.all(force_visibility=True).filter(id=obj.id).exists(), (
+        "Model should not be deleted"
+    )

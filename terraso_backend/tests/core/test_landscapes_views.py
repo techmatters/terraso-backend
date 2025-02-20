@@ -95,9 +95,9 @@ def test_get_landscape_json_view(client, landscape):
 
     for key, value in expected.items():
         assert key in json_response, f"Key '{key}' not found in the actual dictionary."
-        assert (
-            json_response[key] == value
-        ), f"Value for key '{key}' does not match. Expected: {value}, Actual: {json_response[key]}"
+        assert json_response[key] == value, (
+            f"Value for key '{key}' does not match. Expected: {value}, Actual: {json_response[key]}"
+        )
 
 
 def test_get_landscape_json_view_groups(client, landscape):
