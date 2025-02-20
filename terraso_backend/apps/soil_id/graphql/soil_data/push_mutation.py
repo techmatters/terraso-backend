@@ -196,6 +196,8 @@ class SoilDataPush(BaseWriteMutation):
                     reason=reason,
                 )
 
+            # Delete depth intervals first to avoid errors during validation if new
+            # intervals overlap with deleted ones
             SoilDataPush.delete_depth_intervals(soil_data, deleted_depth_intervals)
             SoilDataPush.update_soil_data(soil_data, update_data)
             SoilDataPush.update_depth_intervals(soil_data, depth_intervals)
