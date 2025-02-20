@@ -29,7 +29,7 @@ COPY --chown=terraso:terraso Makefile /app
 
 USER terraso
 
-RUN uv pip install --upgrade pip uv && make install
+RUN pip install --upgrade pip uv && make install
 
 COPY --chown=terraso:terraso . /app
 
