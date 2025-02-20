@@ -6,6 +6,8 @@ ENV PATH=/home/terraso/.local/bin:$PATH
 # see https://github.com/aws/aws-cli/tags for list of versions
 ENV AWS_CLI_VERSION=2.8.12
 
+ENV UV_PROJECT_ENVIRONMENT="/usr/local"
+
 # Add testing sources and pin the GDAL packages to testing
 # Allows us to get 3.9.x versions of GDAL
 RUN sed 's/bookworm/testing/g' /etc/apt/sources.list.d/debian.sources >  /etc/apt/sources.list.d/testing.sources
