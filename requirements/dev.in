@@ -1,7 +1,6 @@
 freezegun
 gdown
 ipdb
-isort
 mixer
 moto
 pytest

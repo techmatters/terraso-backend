@@ -352,10 +352,6 @@ ipython==8.32.0 \
     --hash=sha256:be2c91895b0b9ea7ba49d33b23e2040c352b33eb6a519cca7ce6e0c743444251 \
     --hash=sha256:cae85b0c61eff1fc48b0a8002de5958b6528fa9c8defb1894da63f42613708aa
     # via ipdb
-isort==6.0.0 \
-    --hash=sha256:567954102bb47bb12e0fae62606570faacddd441e45683968c8d1734fb1af892 \
-    --hash=sha256:75d9d8a1438a9432a7d7b54f2d3b45cad9a4a0fdba43617d9873379704a8bdf1
-    # via -r requirements/dev.in
 jedi==0.19.2 \
     --hash=sha256:4770dc3de41bde3966b02eb84fbcf557fb33cce26ad23da12c742fb50ecb11f0 \
     --hash=sha256:a8ef22bde8490f57fe5c7681a3c83cb58874daf72b4784de3cce5b6ef6edb5b9
