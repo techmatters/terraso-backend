@@ -50,10 +50,10 @@ lint: check_api_schema
 	flake8 terraso_backend && isort -c terraso_backend && black --check terraso_backend
 
 lock: pip-tools
-	CUSTOM_COMPILE_COMMAND="make lock" uv pip compile --generate-hashes requirements/base.in requirements/deploy.in -o requirements.txt
+	CUSTOM_COMPILE_COMMAND="make lock" uv pip compile --upgrade --generate-hashes requirements/base.in requirements/deploy.in -o requirements.txt
 
 lock-dev: pip-tools
-	CUSTOM_COMPILE_COMMAND="make lock-dev" uv pip compile --generate-hashes requirements/dev.in -o requirements-dev.txt
+	CUSTOM_COMPILE_COMMAND="make lock-dev" uv pip compile --upgrade --generate-hashes requirements/dev.in -o requirements-dev.txt
 
 migrate: check_rebuild
 	$(DC_RUN_CMD) python terraso_backend/manage.py migrate --no-input $(APP_MIGRATION_NAME)
