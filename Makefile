@@ -43,7 +43,7 @@ install:
 	uv pip install -r requirements.txt $(UV_FLAGS)
 
 install-dev:
-	echo uv pip install -r requirements-dev.txt $(UV_FLAGS)
+	uv pip install -r requirements-dev.txt $(UV_FLAGS)
 
 lint: check_api_schema
 	ruff check terraso_backend
