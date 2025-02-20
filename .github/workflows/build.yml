@@ -10,6 +10,9 @@ on:
     branches:
       - main
 
+env:
+  UV_PROJECT_ENVIRONMENT: '/opt/hostedtoolcache/Python/3.13.2/x64'
+
 jobs:
   lint:
     runs-on: ubuntu-latest
@@ -28,13 +31,8 @@ jobs:
           enable-cache: true
           cache-dependency-glob: 'requirements**.txt'
 
-      - run: |
-          echo "UV_PROJECT_ENVIRONMENT=$pythonLocation" >> $GITHUB_ENV
-
       - name: Install Python dependencies for CI
-        run: |
-          echo $UV_PROJECT_ENVIRONMENT
-          make install-dev
+        run: make install-dev
 
       - name: Build base Docker image
         run: |
