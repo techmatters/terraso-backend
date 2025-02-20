@@ -29,7 +29,7 @@ jobs:
           cache-dependency-glob: 'requirements**.txt'
 
       - name: Install Python dependencies for CI
-        run: make install-dev
+        run: make install-dev DC_ENV=ci
 
       - name: Build base Docker image
         run: |
@@ -76,7 +76,7 @@ jobs:
       - name: Install Python dependencies and download data
         if: ${{ hashFiles('Data/*') == '' }}
         run: |
-          make install-dev
+          make install-dev DC_ENV=ci
           make download-soil-data
 
       - name: Run tests using built Docker image
