@@ -28,8 +28,7 @@ class Migration(migrations.Migration):
     operations = [
         migrations.RunSQL(
             sql=[
-                (
-                    """
+                """
                     DELETE FROM core_landscape_taxonomy_terms
                     WHERE taxonomyterm_id IN (
                         SELECT id
@@ -37,17 +36,14 @@ class Migration(migrations.Migration):
                         WHERE type = 'livelihood' AND value_original = 'Other'
                     );
                     """
-                )
             ],
         ),
         migrations.RunSQL(
             sql=[
-                (
-                    """
+                """
                     DELETE FROM core_taxonomyterm
                     WHERE type = 'livelihood' AND value_original = 'Other';
                     """
-                )
             ],
         ),
     ]
