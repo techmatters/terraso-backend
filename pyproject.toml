@@ -1,6 +1,9 @@
-[tool.black]
+[tool.ruff]
+exclude = ["migrations"]
 line-length = 100
 
-[tool.isort]
-profile = "black"
-known_first_party = "apps"
+[tool.ruff.lint.isort]
+known-first-party = ["apps"]
+
+[tool.ruff.lint]
+extend-ignore = ["E203"]
