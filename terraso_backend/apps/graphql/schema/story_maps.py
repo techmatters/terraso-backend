@@ -31,6 +31,26 @@ from .constants import MutationTypes
 logger = structlog.get_logger(__name__)
 
 
+def _resolve_configuration(story_map, info, field):
+    is_owner = story_map.created_by == info.context.user
+    is_approved_member = story_map.membership_list and story_map.membership_list.is_approved_member(
+        info.context.user
+    )
+
+    if not story_map.is_published and not is_owner and not is_approved_member:
+        return None
+
+    config = getattr(story_map, field)
+    if "chapters" in config:
+        for chapter in getattr(story_map, field)["chapters"]:
+            media = chapter.get("media")
+            if media and "url" in media and media["type"].startswith(("image", "audio", "video")):
+                signed_url = story_map_media_upload_service.get_signed_url(media["url"])
+                chapter["media"]["signedUrl"] = signed_url
+
+    return config
+
+
 class StoryMapFilterSet(django_filters.FilterSet):
     memberships__user__email__not = django_filters.CharFilter(
         method="filter_memberships_user_email_not"
@@ -87,21 +107,13 @@ class StoryMapNode(DjangoObjectType):
         connection_class = TerrasoConnection
 
     def resolve_configuration(self, info):
-        is_owner = self.created_by == info.context.user
-        is_approved_member = self.membership_list and self.membership_list.is_approved_member(
-            info.context.user
-        )
-
-        if not self.is_published and not is_owner and not is_approved_member:
+        if info.context.user.is_anonymous:
             return None
 
-        for chapter in self.configuration["chapters"]:
-            media = chapter.get("media")
-            if media and "url" in media and media["type"].startswith(("image", "audio", "video")):
-                signed_url = story_map_media_upload_service.get_signed_url(media["url"])
-                chapter["media"]["signedUrl"] = signed_url
+        return _resolve_configuration(self, info, "configuration")
 
-        return self.configuration
+    def resolve_published_configuration(self, info):
+        return _resolve_configuration(self, info, "published_configuration")
 
     def resolve_membership_list(self, info):
         user = info.context.user
