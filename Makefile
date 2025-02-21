@@ -2,6 +2,10 @@ DC_ENV ?= dev
 DC_FILE_ARG = -f docker-compose.$(DC_ENV).yml
 DC_RUN_CMD = docker compose $(DC_FILE_ARG) run --quiet-pull --rm web
 
+ifeq ($(DC_ENV),ci)
+	UV_FLAGS = "--system"
+endif
+
 SCHEMA_BUILD_CMD = $(DC_RUN_CMD) python terraso_backend/manage.py graphql_schema --schema apps.graphql.schema.schema.schema --out=-.graphql
 SCHEMA_BUILD_FILE = terraso_backend/apps/graphql/schema/schema.graphql
 api_schema: check_rebuild
@@ -32,24 +36,24 @@ clean:
 createsuperuser: check_rebuild
 	$(DC_RUN_CMD) python terraso_backend/manage.py createsuperuser
 
-format: ${VIRTUAL_ENV}/scripts/black ${VIRTUAL_ENV}/scripts/isort
+format:
 	isort --atomic terraso_backend
 	black terraso_backend
 
 install:
-	pip install -r requirements.txt
+	uv pip install -r requirements.txt $(UV_FLAGS)
 
 install-dev:
-	pip install -r requirements-dev.txt
+	uv pip install -r requirements-dev.txt $(UV_FLAGS)
 
 lint: check_api_schema
 	flake8 terraso_backend && isort -c terraso_backend && black --check terraso_backend
 
-lock: pip-tools
-	CUSTOM_COMPILE_COMMAND="make lock" pip-compile --upgrade --generate-hashes --strip-extras --resolver=backtracking --output-file requirements.txt requirements/base.in requirements/deploy.in
+lock:
+	CUSTOM_COMPILE_COMMAND="make lock" uv pip compile --upgrade --generate-hashes requirements/base.in requirements/deploy.in -o requirements.txt
 
-lock-dev: pip-tools
-	CUSTOM_COMPILE_COMMAND="make lock-dev" pip-compile --upgrade --generate-hashes --strip-extras --resolver=backtracking --output-file requirements-dev.txt requirements/dev.in
+lock-dev:
+	CUSTOM_COMPILE_COMMAND="make lock-dev" uv pip compile --upgrade --generate-hashes requirements/dev.in -o requirements-dev.txt
 
 migrate: check_rebuild
 	$(DC_RUN_CMD) python terraso_backend/manage.py migrate --no-input $(APP_MIGRATION_NAME)
@@ -77,8 +81,6 @@ translate: generate-translations compile-translations
 
 generate-test-token:
 	$(DC_RUN_CMD) python terraso_backend/manage.py generate_test_token --email $(email)
-
-pip-tools: ${VIRTUAL_ENV}/scripts/pip-sync
 
 setup-git-hooks:
 	@cp scripts/pre-commit.sample .git/hooks/pre-commit
@@ -133,12 +135,3 @@ download-soil-data:
 	gdown 185Qjb9pJJn4AzOissiTz283tINrDqgI0; \
 	gdown 1P3xl1YRlfcMjfO_4PM39tkrrlL3hoLzv; \
 	gdown 1K0GkqxhZiVUND6yfFmaI7tYanLktekyp \
-
-${VIRTUAL_ENV}/scripts/black:
-	pip install black
-
-${VIRTUAL_ENV}/scripts/isort:
-	pip install isort
-
-${VIRTUAL_ENV}/scripts/pip-sync:
-	pip install pip-tools
