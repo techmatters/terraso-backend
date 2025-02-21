@@ -1,3 +1,9 @@
+[project]
+name = "terraso_backend"
+readme = "README.md"
+license = {file = "LICENSE"}
+requires-python = ">=3.12"
+
 [tool.ruff]
 exclude = ["migrations"]
 line-length = 100
