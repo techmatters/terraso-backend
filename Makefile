@@ -36,7 +36,7 @@ clean:
 createsuperuser: check_rebuild
 	$(DC_RUN_CMD) python terraso_backend/manage.py createsuperuser
 
-format: ${VIRTUAL_ENV}/scripts/black ${VIRTUAL_ENV}/scripts/isort
+format:
 	isort --atomic terraso_backend
 	black terraso_backend
 
@@ -49,10 +49,10 @@ install-dev:
 lint: check_api_schema
 	flake8 terraso_backend && isort -c terraso_backend && black --check terraso_backend
 
-lock: pip-tools
+lock:
 	CUSTOM_COMPILE_COMMAND="make lock" uv pip compile --upgrade --generate-hashes requirements/base.in requirements/deploy.in -o requirements.txt
 
-lock-dev: pip-tools
+lock-dev:
 	CUSTOM_COMPILE_COMMAND="make lock-dev" uv pip compile --upgrade --generate-hashes requirements/dev.in -o requirements-dev.txt
 
 migrate: check_rebuild
@@ -81,8 +81,6 @@ translate: generate-translations compile-translations
 
 generate-test-token:
 	$(DC_RUN_CMD) python terraso_backend/manage.py generate_test_token --email $(email)
-
-pip-tools: ${VIRTUAL_ENV}/scripts/pip-sync
 
 setup-git-hooks:
 	@cp scripts/pre-commit.sample .git/hooks/pre-commit
@@ -137,12 +135,3 @@ download-soil-data:
 	gdown 185Qjb9pJJn4AzOissiTz283tINrDqgI0; \
 	gdown 1P3xl1YRlfcMjfO_4PM39tkrrlL3hoLzv; \
 	gdown 1K0GkqxhZiVUND6yfFmaI7tYanLktekyp \
-
-${VIRTUAL_ENV}/scripts/black:
-	uv pip install black
-
-${VIRTUAL_ENV}/scripts/isort:
-	uv pip install isort
-
-${VIRTUAL_ENV}/scripts/pip-sync:
-	uv pip install pip-tools
