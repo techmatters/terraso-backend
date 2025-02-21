@@ -48,10 +48,10 @@ install-dev:
 lint: check_api_schema
 	ruff check terraso_backend
 
-lock: pip-tools
+lock:
 	CUSTOM_COMPILE_COMMAND="make lock" uv pip compile --upgrade --generate-hashes requirements/base.in requirements/deploy.in -o requirements.txt
 
-lock-dev: pip-tools
+lock-dev:
 	CUSTOM_COMPILE_COMMAND="make lock-dev" uv pip compile --upgrade --generate-hashes requirements/dev.in -o requirements-dev.txt
 
 migrate: check_rebuild
@@ -80,8 +80,6 @@ translate: generate-translations compile-translations
 
 generate-test-token:
 	$(DC_RUN_CMD) python terraso_backend/manage.py generate_test_token --email $(email)
-
-pip-tools: ${VIRTUAL_ENV}/scripts/pip-sync
 
 setup-git-hooks:
 	@cp scripts/pre-commit.sample .git/hooks/pre-commit
@@ -138,7 +136,4 @@ download-soil-data:
 	gdown 1K0GkqxhZiVUND6yfFmaI7tYanLktekyp \
 
 ${VIRTUAL_ENV}/scripts/ruff:
-	pip install ruff
-
-${VIRTUAL_ENV}/scripts/pip-sync:
-	uv pip install pip-tools
+	uv pip install ruff
