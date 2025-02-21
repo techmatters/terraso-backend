@@ -24,7 +24,6 @@ class Command(BaseCommand):
         parser.add_argument("email", type=str, help="The test user email")
 
     def handle(self, *args, **options):
-
         email = options["email"]
         if not email:
             raise CommandError("Please provide an email")

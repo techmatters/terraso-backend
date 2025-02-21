@@ -172,9 +172,7 @@ def test_query_by_project_member(client, project, site, project_user):
         }
       }
     }
-    """ % (
-        project_user.id,
-    )
+    """ % (project_user.id,)
     client.force_login(project_user)
     response = graphql_query(query, client=client)
     assert "errors" not in response.json()
@@ -204,9 +202,7 @@ def test_query_by_owner(client, project, site, user):
         }
       }
     }
-    """ % (
-        user2.id,
-    )
+    """ % (user2.id,)
     client.force_login(user2)
     response = graphql_query(query, client=client)
     assert "errors" not in response.json()
@@ -248,9 +244,7 @@ def test_query_site_permissions(client, client_query, project, project_manager, 
            }
          }
        }
-       """ % (
-        "created_at",
-    )
+       """ % ("created_at",)
     response = graphql_query(query, client=client)
 
     assert "errors" not in response.json()
@@ -272,9 +266,7 @@ def test_query_site_permissions(client, client_query, project, project_manager, 
            }
          }
        }
-       """ % (
-        "created_at",
-    )
+       """ % ("created_at",)
     response = graphql_query(query, client=client)
     assert "errors" not in response.json()
     edges = response.json()["data"]["sites"]["edges"]
@@ -292,9 +284,7 @@ def test_query_site_permissions(client, client_query, project, project_manager, 
                }
              }
            }
-           """ % (
-        "created_at",
-    )
+           """ % ("created_at",)
     response = graphql_query(query, client=client)
     assert "errors" not in response.json()
     edges = response.json()["data"]["sites"]["edges"]

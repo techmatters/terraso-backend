@@ -25,8 +25,8 @@ pytestmark = pytest.mark.django_db
 
 def test_query_site_soil_data_fields(client, user):
     site = mixer.blend(Site, owner=user, name="name")
-    SoilData.objects.create(site=site, bedrock=1),
-    SoilMetadata.objects.create(site=site, selected_soil_id="a"),
+    (SoilData.objects.create(site=site, bedrock=1),)
+    (SoilMetadata.objects.create(site=site, selected_soil_id="a"),)
 
     query = """
     {

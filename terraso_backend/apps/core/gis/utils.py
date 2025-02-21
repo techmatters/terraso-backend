@@ -14,6 +14,7 @@
 # along with this program. If not, see https://www.gnu.org/licenses/.
 
 """Geospatial utility methods"""
+
 import structlog
 from pyproj import CRS
 from shapely.geometry import MultiPolygon, shape

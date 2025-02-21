@@ -32,9 +32,8 @@ clean:
 createsuperuser: check_rebuild
 	$(DC_RUN_CMD) python terraso_backend/manage.py createsuperuser
 
-format: ${VIRTUAL_ENV}/scripts/black ${VIRTUAL_ENV}/scripts/isort
-	isort --atomic terraso_backend
-	black terraso_backend
+format: ${VIRTUAL_ENV}/scripts/ruff
+	ruff format terraso_backend
 
 install:
 	pip install -r requirements.txt
@@ -43,7 +42,7 @@ install-dev:
 	pip install -r requirements-dev.txt
 
 lint: check_api_schema
-	flake8 terraso_backend && isort -c terraso_backend && black --check terraso_backend
+	ruff check terraso_backend
 
 lock: pip-tools
 	CUSTOM_COMPILE_COMMAND="make lock" pip-compile --upgrade --generate-hashes --strip-extras --resolver=backtracking --output-file requirements.txt requirements/base.in requirements/deploy.in
@@ -134,11 +133,8 @@ download-soil-data:
 	gdown 1P3xl1YRlfcMjfO_4PM39tkrrlL3hoLzv; \
 	gdown 1K0GkqxhZiVUND6yfFmaI7tYanLktekyp \
 
-${VIRTUAL_ENV}/scripts/black:
-	pip install black
-
-${VIRTUAL_ENV}/scripts/isort:
-	pip install isort
+${VIRTUAL_ENV}/scripts/ruff:
+	pip install ruff
 
 ${VIRTUAL_ENV}/scripts/pip-sync:
 	pip install pip-tools

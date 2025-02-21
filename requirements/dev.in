@@ -1,13 +1,11 @@
-black
-flake8
 freezegun
 gdown
 ipdb
-isort
 mixer
 moto
 pytest
 pytest-cov
 pytest-django
 respx
+ruff
 jsonpath-ng
