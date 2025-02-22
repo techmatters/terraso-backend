@@ -493,7 +493,10 @@ def story_maps(users):
         StoryMap,
         created_by=users[1],
         is_published=True,
-        published_configuration={"title": "Published"},
+        published_configuration={
+            "title": "Published",
+            "chapters": [{"media": {"type": "image", "url": "test_url"}}],
+        },
         configuration={"title": "Draft"},
     )
     user_1_stories_drafts = mixer.cycle(5).blend(StoryMap, created_by=users[1], is_published=False)

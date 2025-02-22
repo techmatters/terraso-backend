@@ -13,6 +13,8 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see https://www.gnu.org/licenses/.
 
+from unittest import mock
+
 import pytest
 
 pytestmark = pytest.mark.django_db
@@ -86,6 +88,7 @@ def test_story_maps_anonymous_user(client_query_no_token, story_maps):
                 id
               }
               configuration
+              publishedConfiguration
             }
           }
         }}
@@ -100,6 +103,7 @@ def test_story_maps_anonymous_user(client_query_no_token, story_maps):
         assert story_map["isPublished"] is True
         assert story_map["membershipList"] is None
         assert story_map["configuration"] is None
+        assert story_map["publishedConfiguration"] is not None
 
 
 def test_story_map_by_membership_email_filter_no_results(client_query, users):
@@ -173,3 +177,24 @@ def test_story_map_by_membership_email_not_filter(client_query, story_map_user_m
     story_maps_result = [edge["node"] for edge in edges]
 
     assert len(story_maps_result) == 4
+
+
+@mock.patch("apps.graphql.schema.story_maps.story_map_media_upload_service.get_signed_url")
+def test_story_maps_published_media_signed_url(
+    mocked_get_signed_url, client_query, story_maps, users
+):
+    mocked_get_signed_url.return_value = "signed_url"
+    client_query(
+        """
+        {storyMaps {
+          edges {
+            node {
+              isPublished
+              publishedConfiguration
+            }
+          }
+        }}
+        """
+    )
+
+    mocked_get_signed_url.assert_called()
