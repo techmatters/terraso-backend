@@ -1052,6 +1052,76 @@ def test_push_soil_data_success(client, user):
         assert depth_interval_history[from_camel_to_snake_case(field)] == expected_value
 
 
+def test_push_soil_data_success_on_edit_depth_interval(client, user):
+    site = mixer.blend(Site, owner=user)
+
+    site.soil_data = SoilData()
+    site.soil_data.save()
+    site.soil_data.depth_intervals.get_or_create(depth_interval_start=0, depth_interval_end=20)
+
+    nested_changes = {
+        "depthDependentData": [{"depthInterval": {"start": 1, "end": 10}}],
+        "depthIntervals": [
+            {
+                "depthInterval": {"start": 1, "end": 10},
+            }
+        ],
+        "deletedDepthIntervals": [
+            {
+                "start": 0,
+                "end": 20,
+            }
+        ],
+    }
+
+    client.force_login(user)
+    response = graphql_query(
+        PUSH_SOIL_DATA_QUERY,
+        input_data={
+            "soilDataEntries": [
+                {"siteId": str(site.id), "soilData": {**nested_changes}},
+            ]
+        },
+        client=client,
+    )
+
+    assert response.json()
+    assert "data" in response.json()
+    result = response.json()["data"]["pushSoilData"]
+    assert result["errors"] is None
+    assert len(result["results"]) == 1
+    result_soil_data = result["results"][0]["result"]["soilData"]
+
+    assert len(result_soil_data["depthIntervals"]) == 1
+    assert result_soil_data["depthIntervals"][0]["depthInterval"]["start"] == 1
+    assert result_soil_data["depthIntervals"][0]["depthInterval"]["end"] == 10
+
+    # FYI depthDependentData would also maintain the old (0,20) depth interval if
+    # it was there to begin with, but it was not
+    assert len(result_soil_data["depthDependentData"]) > 0
+    assert result_soil_data["depthDependentData"][0]["depthInterval"]["start"] == 1
+    assert result_soil_data["depthDependentData"][0]["depthInterval"]["end"] == 10
+
+    site.refresh_from_db()
+
+    assert not site.soil_data.depth_intervals.filter(
+        depth_interval_start=0, depth_interval_end=20
+    ).exists()
+    assert site.soil_data.depth_intervals.filter(
+        depth_interval_start=1, depth_interval_end=10
+    ).exists()
+
+    history = SoilDataHistory.objects.get(site=site)
+    assert history.update_failure_reason is None
+    assert history.update_succeeded
+    depth_dependent_history = history.soil_data_changes["depth_dependent_data"][0]
+    assert depth_dependent_history["depth_interval"]["start"] == 1
+    assert depth_dependent_history["depth_interval"]["end"] == 10
+    depth_interval_history = history.soil_data_changes["depth_intervals"][0]
+    assert depth_interval_history["depth_interval"]["start"] == 1
+    assert depth_interval_history["depth_interval"]["end"] == 10
+
+
 def test_push_soil_data_can_process_mixed_results(client, user):
     non_user = mixer.blend(User)
     user_sites = mixer.cycle(2).blend(Site, owner=user)
