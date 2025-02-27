@@ -82,8 +82,8 @@ generate-test-token:
 	$(DC_RUN_CMD) python terraso_backend/manage.py generate_test_token --email $(email)
 
 setup-git-hooks:
-	@cp scripts/pre-commit.sample .git/hooks/pre-commit
 	@cp scripts/commit-msg.sample .git/hooks/commit-msg
+	@pre-commit install
 	@echo "git hooks installed"
 
 pre-commit: lint
