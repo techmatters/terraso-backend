@@ -22,8 +22,14 @@ jobs:
         with:
           python-version: '3.13.2'
 
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+          cache-dependency-glob: 'requirements**.txt'
+
       - name: Install Python dependencies for CI
-        run: make install-dev
+        run: make install-dev DC_ENV=ci
 
       - name: Build base Docker image
         run: |
@@ -61,10 +67,16 @@ jobs:
         with:
           python-version: '3.13.2'
 
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+          cache-dependency-glob: 'requirements**.txt'
+
       - name: Install Python dependencies and download data
         if: ${{ hashFiles('Data/*') == '' }}
         run: |
-          make install-dev
+          make install-dev DC_ENV=ci
           make download-soil-data
 
       - name: Run tests using built Docker image

@@ -1,3 +1,5 @@
 FROM techmatters/terraso_backend
 
+COPY --chown=terraso:terraso requirements-dev.txt /app
+
 RUN make install-dev
