@@ -1,4 +1,11 @@
 repos:
+    - repo: local
+      hooks:
+          - id: check_api_schema
+            name: Check API Schema
+            language: system
+            entry: make check_api_schema
+            pass_filenames: false
     - repo: https://github.com/astral-sh/ruff-pre-commit
       rev: v0.9.8
       hooks:
