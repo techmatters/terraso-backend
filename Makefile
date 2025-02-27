@@ -86,8 +86,6 @@ setup-git-hooks:
 	@pre-commit install
 	@echo "git hooks installed"
 
-pre-commit: lint
-
 run: check_rebuild
 	@./scripts/docker.sh "$(DC_FILE_ARG)"
 
