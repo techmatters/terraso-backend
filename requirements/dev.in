@@ -3,6 +3,7 @@ gdown
 ipdb
 mixer
 moto
+pre-commit
 pytest
 pytest-cov
 pytest-django
