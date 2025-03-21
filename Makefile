@@ -40,7 +40,7 @@ format: ${VIRTUAL_ENV}/scripts/ruff
 	ruff format terraso_backend
 
 install:
-	uv pip install -r requirements.txt $(UV_FLAGS)
+	uv pip install -r requirements.txt --no-binary fiona $(UV_FLAGS)
 
 install-dev:
 	uv pip install -r requirements-dev.txt $(UV_FLAGS)
