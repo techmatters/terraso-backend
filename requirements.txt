@@ -1022,9 +1022,9 @@ tzdata==2025.2 \
     --hash=sha256:1a403fada01ff9221ca8044d701868fa132215d84beb92242d9acd2147f667a8 \
     --hash=sha256:b60a638fcc0daffadf82fe0f57e53d06bdec2f36c4df66280ae79bce6bd6f2b9
     # via pandas
-url-normalize==2.2.0 \
-    --hash=sha256:0f0b7cc95a95d2d9b0c9a51d47a326559bc05bd1558accdada21bb0c9504de85 \
-    --hash=sha256:3fe387b62f5b66db94304bc703bf6d34de52aaa9590d4d1f1bbdf305a1430064
+url-normalize==2.2.1 \
+    --hash=sha256:3deb687587dc91f7b25c9ae5162ffc0f057ae85d22b1e15cf5698311247f567b \
+    --hash=sha256:74a540a3b6eba1d95bdc610c24f2c0141639f3ba903501e61a52a8730247ff37
     # via requests-cache
 urllib3==2.4.0 \
     --hash=sha256:414bc6535b787febd7567804cc015fee39daab8ad86268f1310a9250697de466 \
