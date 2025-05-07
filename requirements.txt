@@ -20,15 +20,15 @@ attrs==25.3.0 \
     #   cattrs
     #   fiona
     #   requests-cache
-boto3==1.38.2 \
-    --hash=sha256:53c8d44b231251fa9421dd13d968236d59fe2cf0421e077afedbf3821653fb3b \
-    --hash=sha256:ef3237b169cd906a44a32c03b3229833d923c9e9733355b329ded2151f91ec0b
+boto3==1.38.10 \
+    --hash=sha256:26113a47d549bc3c46dbf56c8ab74f272c3da55df23e2c460fcf3c6c64d54dce \
+    --hash=sha256:af4c78a3faa1a56cbaeb9e06cd5580772138be519fc6e740b81db586d5d1910c
     # via
     #   -r requirements/base.in
     #   django-ses
-botocore==1.38.8 \
-    --hash=sha256:68d739300cc94232373517b27c5570de6ae6d809a2db644f30219f5c8e0371ce \
-    --hash=sha256:f6ae08a56fe94e18d2aa223611a3b5e94123315d0cb3cb85764b029b2326c710
+botocore==1.38.10 \
+    --hash=sha256:5244454bb9e8fbb6510145d1554e82fd243e8583507d83077ecf4f8efb66cb46 \
+    --hash=sha256:c531c13803e0fad5b395c5ccab4c11ac88acfccde71c9b998df6fa841392a8fc
     # via
     #   boto3
     #   s3transfer
@@ -273,9 +273,9 @@ dj-database-url==2.3.0 \
     --hash=sha256:ae52e8e634186b57e5a45e445da5dc407a819c2ceed8a53d1fac004cc5288787 \
     --hash=sha256:bb0d414ba0ac5cd62773ec7f86f8cc378a9dbb00a80884c2fc08cc570452521e
     # via -r requirements/base.in
-django==5.2 \
-    --hash=sha256:1a47f7a7a3d43ce64570d350e008d2949abe8c7e21737b351b6a1611277c6d89 \
-    --hash=sha256:91ceed4e3a6db5aedced65e3c8f963118ea9ba753fc620831c77074e620e7d83
+django==5.2.1 \
+    --hash=sha256:57fe1f1b59462caed092c80b3dd324fd92161b620d59a9ba9181c34746c97284 \
+    --hash=sha256:a9b680e84f9a0e71da83e399f1e922e1ab37b2173ced046b541c72e1589a5961
     # via
     #   -r requirements/base.in
     #   dj-database-url
@@ -677,9 +677,9 @@ profilehooks==1.13.0 \
 promise==2.3 \
     --hash=sha256:dfd18337c523ba4b6a58801c164c1904a9d4d1b1747c7d5dbf45b693a49d93d0
     # via graphene-django
-psycopg==3.2.6 \
-    --hash=sha256:16fa094efa2698f260f2af74f3710f781e4a6f226efe9d1fd0c37f384639ed8a \
-    --hash=sha256:f3ff5488525890abb0566c429146add66b329e20d6d4835662b920cbbf90ac58
+psycopg==3.2.7 \
+    --hash=sha256:9afa609c7ebf139827a38c0bf61be9c024a3ed743f56443de9d38e1efc260bf3 \
+    --hash=sha256:d39747d2d5b9658b69fa462ad21d31f1ba4a5722ad1d0cb952552bc0b4125451
     # via
     #   -r requirements/base.in
     #   soil-id
