@@ -26,8 +26,6 @@ from apps.soil_id.graphql.soil_id.types import (
     EcologicalSite,
     LABColorInput,
     LandCapabilityClass,
-    LocationBasedSoilMatch,
-    LocationBasedSoilMatches,
     SoilIdDepthDependentData,
     SoilIdFailure,
     SoilIdFailureReason,
@@ -132,26 +130,6 @@ def resolve_soil_match_info(score: float, rank: str):
     return SoilMatchInfo(score=score, rank=int(rank) - 1)
 
 
-def resolve_location_based_soil_match(soil_match: dict):
-    soil_id = soil_match["id"]
-    site_data = soil_match["site"]["siteData"]
-
-    return LocationBasedSoilMatch(
-        data_source=site_data["dataSource"],
-        distance_to_nearest_map_unit_m=site_data["minCompDistance"],
-        match=resolve_soil_match_info(soil_id["score_loc"], soil_id["rank_loc"]),
-        soil_info=resolve_soil_info(soil_match),
-    )
-
-
-def resolve_location_based_soil_matches(soil_list_json: dict):
-    matches = []
-    for match in soil_list_json["soilList"]:
-        if match["id"]["rank_loc"] != "Not Displayed":
-            matches.append(resolve_location_based_soil_match(match))
-    return LocationBasedSoilMatches(matches=matches)
-
-
 def resolve_list_output_failure(list_output: SoilListOutputData | str):
     if isinstance(list_output, SoilListOutputData):
         return None
@@ -187,19 +165,6 @@ def get_cached_list_soils_output(latitude, longitude):
         return list_output
     else:
         return cached_result
-
-
-def resolve_location_based_result(_parent, _info, latitude: float, longitude: float):
-    try:
-        list_output = get_cached_list_soils_output(latitude=latitude, longitude=longitude)
-
-        if isinstance(list_output, str):
-            return SoilIdFailure(reason=list_output)
-
-        return resolve_location_based_soil_matches(list_output.soil_list_json)
-    except Exception:
-        logger.error(traceback.format_exc())
-        return SoilIdFailure(reason=SoilIdFailureReason.ALGORITHM_FAILURE)
 
 
 def resolve_data_based_soil_match(soil_matches: list[dict], ranked_match: dict):
