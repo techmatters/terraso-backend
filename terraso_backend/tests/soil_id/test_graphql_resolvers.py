@@ -308,7 +308,7 @@ def test_resolve_data_based_soil_match():
 
 def test_resolve_data_based_soil_matches():
     result = resolve_data_based_soil_matches(
-        {"soilList": sample_soil_list_json}, {"soilRank": sample_rank_json}
+        SoilIdCache.DataRegion.GLOBAL, {"soilList": sample_soil_list_json}, {"soilRank": sample_rank_json}
     )
 
     assert len(result.matches) == 2
