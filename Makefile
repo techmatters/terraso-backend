@@ -120,6 +120,7 @@ bash:
 # 185Qjb9pJJn4AzOissiTz283tINrDqgI0: gsmsoilmu_a_us.sbn
 # 1P3xl1YRlfcMjfO_4PM39tkrrlL3hoLzv: gsmsoilmu_a_us.prj
 # 1K0GkqxhZiVUND6yfFmaI7tYanLktekyp: gsmsoilmu_a_us.dbf
+# 1z7foFFHv_mTsuxMYnfOQRvXT5LKYlYFN: SoilID_US_Areas.shz
 download-soil-data:
 	mkdir -p Data
 	cd Data; \
@@ -129,7 +130,8 @@ download-soil-data:
 	gdown 1asGnnqe0zI2v8xuOszlsNmZkOSl7cJ2n; \
 	gdown 185Qjb9pJJn4AzOissiTz283tINrDqgI0; \
 	gdown 1P3xl1YRlfcMjfO_4PM39tkrrlL3hoLzv; \
-	gdown 1K0GkqxhZiVUND6yfFmaI7tYanLktekyp \
+	gdown 1K0GkqxhZiVUND6yfFmaI7tYanLktekyp; \
+	gdown 1z7foFFHv_mTsuxMYnfOQRvXT5LKYlYFN \
 
 ${VIRTUAL_ENV}/scripts/ruff:
 	uv pip install ruff
