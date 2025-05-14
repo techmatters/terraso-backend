@@ -19,8 +19,6 @@ from apps.soil_id.graphql.soil_id.schema import (
     DataBasedSoilMatches,
     EcologicalSite,
     LandCapabilityClass,
-    LocationBasedSoilMatch,
-    LocationBasedSoilMatches,
     SoilIdDepthDependentData,
     SoilIdSoilData,
     SoilInfo,
@@ -83,23 +81,6 @@ sample_soil_infos = [
         ),
     ),
 ]
-
-dummy_location_matches = LocationBasedSoilMatches(
-    matches=[
-        LocationBasedSoilMatch(
-            data_source="SSURGO",
-            distance_to_nearest_map_unit_m=0.0,
-            match=SoilMatchInfo(score=1.0, rank=0),
-            soil_info=sample_soil_infos[0],
-        ),
-        LocationBasedSoilMatch(
-            data_source="STATSGO",
-            distance_to_nearest_map_unit_m=50.0,
-            match=SoilMatchInfo(score=0.5, rank=1),
-            soil_info=sample_soil_infos[1],
-        ),
-    ]
-)
 
 dummy_data_matches = DataBasedSoilMatches(
     matches=[

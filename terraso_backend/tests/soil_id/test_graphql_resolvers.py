@@ -3,8 +3,6 @@ from apps.soil_id.graphql.soil_id.resolvers import (
     resolve_data_based_soil_matches,
     resolve_ecological_site,
     resolve_land_capability_class,
-    resolve_location_based_soil_match,
-    resolve_location_based_soil_matches,
     resolve_rock_fragment_volume,
     resolve_soil_data,
     resolve_soil_info,
@@ -295,21 +293,6 @@ def test_resolve_soil_match_info():
 
     assert result.score == 0.5
     assert result.rank == 0
-
-
-def test_resolve_location_based_soil_match():
-    result = resolve_location_based_soil_match(sample_soil_list_json[0])
-
-    assert result.data_source == "SSURGO"
-    assert result.distance_to_nearest_map_unit_m == 0.0
-    assert result.match.rank == 0
-    assert result.soil_info.soil_series.name == "Randall"
-
-
-def test_resolve_location_based_soil_matches():
-    result = resolve_location_based_soil_matches({"soilList": sample_soil_list_json})
-
-    assert len(result.matches) == 2
 
 
 def test_resolve_data_based_soil_match():

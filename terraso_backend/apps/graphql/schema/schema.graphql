@@ -80,26 +80,15 @@ type Query {
 
 """Soil ID algorithm queries."""
 type SoilId {
-  """
-  NOTE: For now, prefer using the dataBasedSoilMatches endpoint with empty input data over locationBasedSoilMatches, as they are inconsistent with each other due to an unresolved upstream algorithm bug: https://github.com/techmatters/soil-id-algorithm/issues/126
-  """
-  locationBasedSoilMatches(latitude: Float!, longitude: Float!): LocationBasedResult!
   dataBasedSoilMatches(latitude: Float!, longitude: Float!, data: SoilIdInputData!): DataBasedResult!
 }
 
-union LocationBasedResult = LocationBasedSoilMatches | SoilIdFailure
 
-"""A ranked group of soil matches based solely on a coordinate pair."""
-type LocationBasedSoilMatches {
-  matches: [LocationBasedSoilMatch!]!
 }
 
-"""A soil match based solely on a coordinate pair."""
-type LocationBasedSoilMatch {
   dataSource: String!
   distanceToNearestMapUnitM: Float!
   soilInfo: SoilInfo!
-  match: SoilMatchInfo!
 }
 
 """Provides information about soil at a particular location."""
@@ -224,25 +213,6 @@ type SoilIdFailure {
 enum SoilIdFailureReason {
   DATA_UNAVAILABLE
   ALGORITHM_FAILURE
-}
-
-union DataBasedResult = DataBasedSoilMatches | SoilIdFailure
-
-"""
-A ranked group of soil matches based on a coordinate pair and soil data.
-"""
-type DataBasedSoilMatches {
-  matches: [DataBasedSoilMatch!]!
-}
-
-"""A soil match based on a coordinate pair and soil data."""
-type DataBasedSoilMatch {
-  dataSource: String!
-  distanceToNearestMapUnitM: Float!
-  soilInfo: SoilInfo!
-  locationMatch: SoilMatchInfo!
-  dataMatch: SoilMatchInfo!
-  combinedMatch: SoilMatchInfo!
 }
 
 """Soil data provided to the soil ID algorithm."""
