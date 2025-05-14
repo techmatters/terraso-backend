@@ -89,18 +89,6 @@ class SoilMatch(graphene.ObjectType):
     soil_info = graphene.Field(SoilInfo, required=True)
 
 
-class LocationBasedSoilMatch(SoilMatch):
-    """A soil match based solely on a coordinate pair."""
-
-    match = graphene.Field(SoilMatchInfo, required=True)
-
-
-class LocationBasedSoilMatches(graphene.ObjectType):
-    """A ranked group of soil matches based solely on a coordinate pair."""
-
-    matches = graphene.List(graphene.NonNull(LocationBasedSoilMatch), required=True)
-
-
 class SoilIdFailureReason(graphene.Enum):
     DATA_UNAVAILABLE = "DATA_UNAVAILABLE"
     ALGORITHM_FAILURE = "ALGORITHM_FAILURE"
@@ -108,11 +96,6 @@ class SoilIdFailureReason(graphene.Enum):
 
 class SoilIdFailure(graphene.ObjectType):
     reason = graphene.Field(SoilIdFailureReason, required=True)
-
-
-class LocationBasedResult(graphene.Union):
-    class Meta:
-        types = (LocationBasedSoilMatches, SoilIdFailure)
 
 
 class DataBasedSoilMatch(SoilMatch):

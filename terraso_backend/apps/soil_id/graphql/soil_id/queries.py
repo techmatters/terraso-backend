@@ -17,27 +17,16 @@
 import graphene
 
 from apps.soil_id.graphql.soil_id.resolvers import (
-    resolve_data_based_result,
-    resolve_location_based_result,
+    resolve_data_based_result
 )
 from apps.soil_id.graphql.soil_id.types import (
     DataBasedResult,
-    LocationBasedResult,
-    SoilIdInputData,
+    SoilIdInputData
 )
 
 
 class SoilId(graphene.ObjectType):
     """Soil ID algorithm queries."""
-
-    location_based_soil_matches = graphene.Field(
-        graphene.NonNull(LocationBasedResult),
-        latitude=graphene.Float(required=True),
-        longitude=graphene.Float(required=True),
-        resolver=resolve_location_based_result,
-        description="NOTE: For now, prefer using the dataBasedSoilMatches endpoint with empty input data over locationBasedSoilMatches, as they are inconsistent with each other due to an unresolved upstream algorithm bug: https://github.com/techmatters/soil-id-algorithm/issues/126",  # noqa E501
-    )
-
     data_based_soil_matches = graphene.Field(
         graphene.NonNull(DataBasedResult),
         latitude=graphene.Float(required=True),
