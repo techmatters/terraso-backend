@@ -31,7 +31,7 @@ class SoilId(graphene.ObjectType):
         graphene.NonNull(DataBasedResult),
         latitude=graphene.Float(required=True),
         longitude=graphene.Float(required=True),
-        data=graphene.Argument(SoilIdInputData, required=True),
+        data=graphene.Argument(SoilIdInputData),
         resolver=resolve_data_based_result,
     )
 
