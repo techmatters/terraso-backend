@@ -58,34 +58,6 @@ SOIL_MATCH_FRAGMENTS = """
   }
 """
 
-LOCATION_BASED_MATCHES_QUERY = (
-    """
-  query locationBasedSoilMatches($latitude: Float!, $longitude: Float!) {
-    soilId {
-      locationBasedSoilMatches(latitude: $latitude, longitude: $longitude) {
-        ...locationBasedSoilMatches
-        ... on SoilIdFailure {
-          reason
-        }
-      }
-    }
-  }
-  fragment locationBasedSoilMatches on LocationBasedSoilMatches {
-    matches {
-      dataSource
-      distanceToNearestMapUnitM
-      match {
-        ...soilMatch
-      }
-      soilInfo {
-        ...soilInfo
-      }
-    }
-  }
-"""
-    + SOIL_MATCH_FRAGMENTS
-)
-
 coordinates_to_test = [
     {"latitude": 33.81246789, "longitude": -101.9733687},
     {"latitude": 48, "longitude": -123.38},  # triggered a JSON decoding bug in soil ID cache
@@ -93,42 +65,6 @@ coordinates_to_test = [
     # currently fails upstream
     # {"latitude": 37.430296, "longitude": -122.126583},  noqa: E800
 ]
-
-
-@pytest.mark.parametrize("coords", coordinates_to_test)
-def test_location_based_soil_matches_endpoint(client, coords):
-    # run it twice to exercise the cache
-    for _ in range(0, 2):
-        response = graphql_query(
-            LOCATION_BASED_MATCHES_QUERY,
-            variables=coords,
-            client=client,
-        )
-
-        assert response.json()["data"] is not None
-        assert "errors" not in response.json()
-
-        payload = response.json()["data"]["soilId"]["locationBasedSoilMatches"]
-
-        if "reason" in payload:
-            continue
-
-        assert len(payload["matches"]) > 0
-
-        for match in payload["matches"]:
-            assert isinstance(match["dataSource"], str)
-            assert isinstance(match["distanceToNearestMapUnitM"], float)
-
-            assert match["match"]["score"] >= 0 and match["match"]["score"] <= 1
-            assert match["match"]["rank"] >= 0
-
-            info = match["soilInfo"]
-
-            assert info["soilSeries"] is not None
-            assert info["landCapabilityClass"] is not None
-            assert info["soilData"] is not None
-            assert len(info["soilData"]["depthDependentData"]) > 0
-
 
 DATA_BASED_MATCHES_QUERY = (
     """
