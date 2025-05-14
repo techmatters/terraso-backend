@@ -80,31 +80,50 @@ type Query {
 
 """Soil ID algorithm queries."""
 type SoilId {
-  dataBasedSoilMatches(latitude: Float!, longitude: Float!, data: SoilIdInputData!): DataBasedResult!
+  dataBasedSoilMatches(latitude: Float!, longitude: Float!, data: SoilIdInputData): DataBasedResult!
 }
 
+union DataBasedResult = DataBasedSoilMatches | SoilIdFailure
 
+"""
+A ranked group of soil matches based on a coordinate pair and soil data.
+"""
+type DataBasedSoilMatches {
+  dataRegion: SoilIdDataRegionChoices!
+  matches: [DataBasedSoilMatch!]!
 }
 
+"""An enumeration."""
+enum SoilIdDataRegionChoices {
+  US
+  GLOBAL
+}
+
+"""A soil match based on a coordinate pair and soil data."""
+type DataBasedSoilMatch {
   dataSource: String!
   distanceToNearestMapUnitM: Float!
   soilInfo: SoilInfo!
+  locationMatch: SoilMatchInfo!
+  dataMatch: SoilMatchInfo!
+  combinedMatch: SoilMatchInfo!
 }
 
 """Provides information about soil at a particular location."""
 type SoilInfo {
   soilSeries: SoilSeries!
   ecologicalSite: EcologicalSite
-  landCapabilityClass: LandCapabilityClass!
+  landCapabilityClass: LandCapabilityClass
   soilData: SoilIdSoilData!
 }
 
 """Information about a soil series."""
 type SoilSeries {
   name: String!
-  taxonomySubgroup: String!
+  taxonomySubgroup: String
   description: String!
-  fullDescriptionUrl: String!
+  management: String
+  fullDescriptionUrl: String
 }
 
 """Information about an ecological site."""
