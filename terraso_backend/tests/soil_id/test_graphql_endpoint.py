@@ -58,14 +58,6 @@ SOIL_MATCH_FRAGMENTS = """
   }
 """
 
-coordinates_to_test = [
-    {"latitude": 33.81246789, "longitude": -101.9733687},
-    {"latitude": 48, "longitude": -123.38},  # triggered a JSON decoding bug in soil ID cache
-    {"latitude": 49, "longitude": -123.38},  # triggers a DATA_UNAVAILABLE
-    # currently fails upstream
-    # {"latitude": 37.430296, "longitude": -122.126583},  noqa: E800
-]
-
 DATA_BASED_MATCHES_QUERY = (
     """
   query dataBasedSoilMatches($latitude: Float!, $longitude: Float!, $data: SoilIdInputData!) {
@@ -79,6 +71,7 @@ DATA_BASED_MATCHES_QUERY = (
     }
   }
   fragment dataBasedSoilMatches on DataBasedSoilMatches {
+    dataRegion
     matches {
       dataSource
       distanceToNearestMapUnitM
@@ -100,9 +93,18 @@ DATA_BASED_MATCHES_QUERY = (
     + SOIL_MATCH_FRAGMENTS
 )
 
+us_coordinates = [
+    {"latitude": 33.81246789, "longitude": -101.9733687},
+    {"latitude": 48, "longitude": -123.38},  # triggered a JSON decoding bug in soil ID cache
+    # currently fails upstream
+    # {"latitude": 37.430296, "longitude": -122.126583},  noqa: E800
+]
 
-@pytest.mark.parametrize("coords", coordinates_to_test)
-def test_data_based_soil_matches_endpoint(client, coords):
+us_tests = [pytest.param(coords, with_data, id=f"coords{idx} {"with" if with_data else "without"} data") for idx, coords in enumerate(us_coordinates) for with_data in [True, False]]
+
+@pytest.mark.integration
+@pytest.mark.parametrize("coords, with_data", us_tests)
+def test_us_integration(client, coords, with_data):
     # run it twice to exercise the cache
     for _ in range(0, 2):
         response = graphql_query(
@@ -110,7 +112,7 @@ def test_data_based_soil_matches_endpoint(client, coords):
             variables={
                 "latitude": coords["latitude"],
                 "longitude": coords["longitude"],
-                "data": {
+                "data": {"depthDependentData": []} if not with_data else {
                     "slope": 0.5,
                     "depthDependentData": [
                         {
@@ -141,8 +143,9 @@ def test_data_based_soil_matches_endpoint(client, coords):
 
             match_kinds = ["locationMatch", "dataMatch", "combinedMatch"]
             for kind in match_kinds:
-                assert match[kind]["score"] >= 0 and match[kind]["score"] <= 1
-                assert match[kind]["rank"] >= 0
+                if match[kind] is not None:
+                    assert match[kind]["score"] >= 0 and match[kind]["score"] <= 1
+                    assert match[kind]["rank"] >= 0
 
             info = match["soilInfo"]
 

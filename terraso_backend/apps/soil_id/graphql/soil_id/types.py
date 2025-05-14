@@ -20,7 +20,9 @@ from apps.soil_id.graphql.soil_data.queries import (
     SoilDataNode,
 )
 from apps.soil_id.graphql.types import DepthInterval, DepthIntervalInput
+from apps.soil_id.models.soil_id_cache import SoilIdCache
 
+DataRegion = graphene.Enum.from_enum(SoilIdCache.DataRegion, "SoilIdDataRegionChoices")
 
 class EcologicalSite(graphene.ObjectType):
     """Information about an ecological site."""
@@ -34,9 +36,9 @@ class SoilSeries(graphene.ObjectType):
     """Information about a soil series."""
 
     name = graphene.String(required=True)
-    taxonomy_subgroup = graphene.String(required=True)
-    description = graphene.String(required=True)
-    full_description_url = graphene.String(required=True)
+    taxonomy_subgroup = graphene.String()
+    description = graphene.String()
+    full_description_url = graphene.String()
 
 
 class LandCapabilityClass(graphene.ObjectType):
@@ -66,8 +68,8 @@ class SoilInfo(graphene.ObjectType):
     """Provides information about soil at a particular location."""
 
     soil_series = graphene.Field(SoilSeries, required=True)
-    ecological_site = graphene.Field(EcologicalSite, required=False)
-    land_capability_class = graphene.Field(LandCapabilityClass, required=True)
+    ecological_site = graphene.Field(EcologicalSite)
+    land_capability_class = graphene.Field(LandCapabilityClass)
     soil_data = graphene.Field(SoilIdSoilData, required=True)
 
 
@@ -103,13 +105,14 @@ class DataBasedSoilMatch(SoilMatch):
 
     soil_info = graphene.Field(SoilInfo, required=True)
     location_match = graphene.Field(SoilMatchInfo, required=True)
-    data_match = graphene.Field(SoilMatchInfo, required=True)
-    combined_match = graphene.Field(SoilMatchInfo, required=True)
+    data_match = graphene.Field(SoilMatchInfo)
+    combined_match = graphene.Field(SoilMatchInfo)
 
 
 class DataBasedSoilMatches(graphene.ObjectType):
     """A ranked group of soil matches based on a coordinate pair and soil data."""
 
+    data_region = DataRegion(required=True)
     matches = graphene.List(graphene.NonNull(DataBasedSoilMatch), required=True)
 
 
