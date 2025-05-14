@@ -129,7 +129,9 @@ download-soil-data:
 	gdown 1asGnnqe0zI2v8xuOszlsNmZkOSl7cJ2n; \
 	gdown 185Qjb9pJJn4AzOissiTz283tINrDqgI0; \
 	gdown 1P3xl1YRlfcMjfO_4PM39tkrrlL3hoLzv; \
-	gdown 1K0GkqxhZiVUND6yfFmaI7tYanLktekyp \
+	gdown 1K0GkqxhZiVUND6yfFmaI7tYanLktekyp; \
+	gdown 1c6EZwKAJvtkyxZsCzLM4ObmMi8mYbqds; \
+	gdown 1z7foFFHv_mTsuxMYnfOQRvXT5LKYlYFN \
 
 ${VIRTUAL_ENV}/scripts/ruff:
 	uv pip install ruff
