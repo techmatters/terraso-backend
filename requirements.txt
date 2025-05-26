@@ -1009,9 +1009,9 @@ threadpoolctl==3.6.0 \
     --hash=sha256:43a0b8fd5a2928500110039e43a5eed8480b918967083ea48dc3ab9f13c4a7fb \
     --hash=sha256:8ab8b4aa3491d812b623328249fab5302a68d2d71745c8a4c719a2fcaba9f44e
     # via scikit-learn
-tifffile==2025.5.10 \
-    --hash=sha256:018335d34283aa3fd8c263bae5c3c2b661ebc45548fde31504016fcae7bf1103 \
-    --hash=sha256:e37147123c0542d67bc37ba5cdd67e12ea6fbe6e86c52bee037a9eb6a064e5ad
+tifffile==2025.5.24 \
+    --hash=sha256:2d913e41356425a2eeb4dc06dcc7286193cfa65ae1dedb5f51f04f60cf06713d \
+    --hash=sha256:b19612ba5d88d8fb206fe3677ab32ac5c1947a3c35a67176fe456663f8a7bc66
     # via scikit-image
 typing-extensions==4.13.2 \
     --hash=sha256:a439e7c04b49fec3e5d3e2beaa21755cadbbdc391694e28ccdd36ca4a1408f8c \
