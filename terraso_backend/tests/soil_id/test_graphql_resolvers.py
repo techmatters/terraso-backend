@@ -9,6 +9,7 @@ from apps.soil_id.graphql.soil_id.resolvers import (
     resolve_soil_match_info,
     resolve_texture,
 )
+from apps.soil_id.models.soil_id_cache import SoilIdCache
 
 sample_soil_list_json = [
     {
