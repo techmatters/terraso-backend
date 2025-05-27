@@ -126,7 +126,7 @@ def resolve_soil_info(soil_match: dict):
     taxonomy_subgroup = site_data["taxsubgrp"] if "taxsubgrp" in site_data else None
     full_description_url = site_data["sdeURL"] if "sdeURL" in site_data else None
     description = soil_match["site"]["siteDescription"]
-    if description is dict:
+    if isinstance(description, dict):
         management = description["Management_en"]
         description = description["Description_en"]
     else:

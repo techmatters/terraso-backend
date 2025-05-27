@@ -32,6 +32,7 @@ SOIL_MATCH_FRAGMENTS = """
       name
       taxonomySubgroup
       description
+      management
       fullDescriptionUrl
     }
     ecologicalSite {
