@@ -105,8 +105,8 @@ type DataBasedSoilMatch {
   distanceToNearestMapUnitM: Float!
   soilInfo: SoilInfo!
   locationMatch: SoilMatchInfo!
-  dataMatch: SoilMatchInfo!
-  combinedMatch: SoilMatchInfo!
+  dataMatch: SoilMatchInfo
+  combinedMatch: SoilMatchInfo
 }
 
 """Provides information about soil at a particular location."""

@@ -212,14 +212,22 @@ def resolve_data_based_soil_match(data_region: SoilIdCache.DataRegion, soil_matc
     else:
         data_source = site_data["dataSource"]
 
+    if ranked_match["score_data"] and ranked_match["rank_data"]:
+        data_match = resolve_soil_match_info(ranked_match["score_data"], ranked_match["rank_data"])
+    else:
+        data_match = None
+    
+    if ranked_match["score_data_loc"] and ranked_match["rank_data_loc"]:
+        combined_match = resolve_soil_match_info(ranked_match["score_data_loc"], ranked_match["rank_data_loc"])
+    else:
+        combined_match = None
+
     return DataBasedSoilMatch(
         data_source=data_source,
         distance_to_nearest_map_unit_m=site_data["minCompDistance"],
         location_match=resolve_soil_match_info(ranked_match["score_loc"], ranked_match["rank_loc"]),
-        data_match=resolve_soil_match_info(ranked_match["score_data"], ranked_match["rank_data"]),
-        combined_match=resolve_soil_match_info(
-            ranked_match["score_data_loc"], ranked_match["rank_data_loc"]
-        ),
+        data_match=data_match,
+        combined_match=combined_match,
         soil_info=resolve_soil_info(soil_match),
     )
 

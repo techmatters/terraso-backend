@@ -106,8 +106,8 @@ class DataBasedSoilMatch(SoilMatch):
 
     soil_info = graphene.Field(SoilInfo, required=True)
     location_match = graphene.Field(SoilMatchInfo, required=True)
-    data_match = graphene.Field(SoilMatchInfo, required=True)
-    combined_match = graphene.Field(SoilMatchInfo, required=True)
+    data_match = graphene.Field(SoilMatchInfo)
+    combined_match = graphene.Field(SoilMatchInfo)
 
 
 class DataBasedSoilMatches(graphene.ObjectType):
