@@ -464,9 +464,9 @@ mixer==7.2.2 \
     --hash=sha256:8089b8e2d00288c77e622936198f5dd03c8ac1603a1530a4f870dc213363b2ae \
     --hash=sha256:9b3f1a261b56d8f2394f39955f83adbc7ff3ab4bb1065ebfec19a10d3e8501e0
     # via -r requirements/dev.in
-moto==5.1.4 \
-    --hash=sha256:9a19d7a64c3f03824389cfbd478b64c82bd4d8da21b242a34259360d66cd108b \
-    --hash=sha256:b339c3514f2986ebefa465671b688bdbf51796705702214b1bad46490b68507a
+moto==5.1.5 \
+    --hash=sha256:42b362ea9a16181e8e7b615ac212c294b882f020e9ae02f01230f167926df84e \
+    --hash=sha256:866ae85eb5efe11a78f991127531878fd7f49177eb4a6680f47060430eb8932d
     # via -r requirements/dev.in
 nodeenv==1.9.1 \
     --hash=sha256:6ec12890a2dab7946721edbfbcd91f3319c6ccc9aec47be7c7e6b7011ee6645f \
