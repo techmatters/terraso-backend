@@ -20,15 +20,15 @@ attrs==25.3.0 \
     #   cattrs
     #   fiona
     #   requests-cache
-boto3==1.38.24 \
-    --hash=sha256:1f95ec3ac88ae6381fa0409e4c2ad0a41f0caf5fd6d8ef45a9525406a3f58b18 \
-    --hash=sha256:abdb8c760543e9c22026320e62e2934762b0c4ac4f42e8ea2a756f2d489b3135
+boto3==1.38.28 \
+    --hash=sha256:1bbf770339d294c91dd396ac90588753d89b9fdd63496edc9bc6f710f24ed25a \
+    --hash=sha256:69395075d54be4552719ccadad9f65a3dee5bb3751701e8851d65d71974a791d
     # via
     #   -r requirements/base.in
     #   django-ses
-botocore==1.38.27 \
-    --hash=sha256:9788f7efe974328a38cbade64cc0b1e67d27944b899f88cb786ae362973133b6 \
-    --hash=sha256:a785d5e9a5eda88ad6ab9ed8b87d1f2ac409d0226bba6ff801c55359e94d91a8
+botocore==1.38.28 \
+    --hash=sha256:515e1a535a27f17e1381aec1fb48eaa2c2308258c4db0bfd09e4f1cd1f239c44 \
+    --hash=sha256:63d5977a10a375c3fc11c8e15e1ae5a4daaf450af135d55c170cc537648edf25
     # via
     #   boto3
     #   s3transfer
@@ -269,9 +269,9 @@ cryptography==45.0.3 \
     # via
     #   jwcrypto
     #   pyjwt
-dj-database-url==2.3.0 \
-    --hash=sha256:ae52e8e634186b57e5a45e445da5dc407a819c2ceed8a53d1fac004cc5288787 \
-    --hash=sha256:bb0d414ba0ac5cd62773ec7f86f8cc378a9dbb00a80884c2fc08cc570452521e
+dj-database-url==3.0.0 \
+    --hash=sha256:749a7a42d88d6c741c1d2f4ab24c2ae0d5cd12f00f2d1d55ff9f5fadabe8a2c3 \
+    --hash=sha256:cbb84b2e3f372460b1e43692bf9fdc0c32e78930ee101db470cba56105fca1e5
     # via -r requirements/base.in
 django==5.2.1 \
     --hash=sha256:57fe1f1b59462caed092c80b3dd324fd92161b620d59a9ba9181c34746c97284 \
@@ -364,9 +364,9 @@ fiona==1.10.1 \
 gdal==3.9.3 \
     --hash=sha256:b4026010883b37d159fa43aee3ecb28bb466bd9d7e085c4d623d858edd6c62b9
     # via soil-id
-geopandas==1.0.1 \
-    --hash=sha256:01e147d9420cc374d26f51fc23716ac307f32b49406e4bd8462c07e82ed1d3d6 \
-    --hash=sha256:b8bf70a5534588205b7a56646e2082fb1de9a03599651b3d80c99ea4c2ca08ab
+geopandas==1.1.0 \
+    --hash=sha256:b19b18bdc736ee05b237f5e9184211c452768a4c883f7d7f8421b0cbe1da5875 \
+    --hash=sha256:d176b084170539044ce7554a1219a4433fa1bfba94035b5a519c8986330e429e
     # via
     #   -r requirements/base.in
     #   soil-id
@@ -437,9 +437,9 @@ lazy-loader==0.4 \
     --hash=sha256:342aa8e14d543a154047afb4ba8ef17f5563baad3fc610d7b15b213b0f119efc \
     --hash=sha256:47c75182589b91a4e1a85a136c074285a5ad4d9f39c63e0d7fb76391c4574cd1
     # via scikit-image
-networkx==3.4.2 \
-    --hash=sha256:307c3669428c5362aab27c8a1260aa8f47c4e91d3891f48be0141738d8d053e1 \
-    --hash=sha256:df5d4365b724cf81b8c6a7312509d0c22386097011ad1abe274afd5e9d3bbc5f
+networkx==3.5 \
+    --hash=sha256:0030d386a9a06dee3565298b4a734b68589749a544acbb6c412dc9e2489ec6ec \
+    --hash=sha256:d4c6f9cf81f52d69230866796b82afbccdec3db7ae4fbd1b65ea750feed50037
     # via scikit-image
 numpy==2.2.6 \
     --hash=sha256:038613e9fb8c72b0a41f025a7e4c3f0b7a1b5d768ece4796b674c8f3fe13efff \
@@ -1013,10 +1013,11 @@ tifffile==2025.6.1 \
     --hash=sha256:63cff7cf7305c26e3f3451c0b05fd95a09252beef4f1663227d4b70cb75c5fdb \
     --hash=sha256:ff7163f1aaea519b769a2ac77c43be69e7d83e5b5d5d6a676497399de50535e5
     # via scikit-image
-typing-extensions==4.13.2 \
-    --hash=sha256:a439e7c04b49fec3e5d3e2beaa21755cadbbdc391694e28ccdd36ca4a1408f8c \
-    --hash=sha256:e6c81219bd689f51865d9e372991c540bda33a0379d5573cddb9a3a23f7caaef
+typing-extensions==4.14.0 \
+    --hash=sha256:8676b788e32f02ab42d9e7c61324048ae4c6d844a399eebace3d4979d75ceef4 \
+    --hash=sha256:a1514509136dd0b477638fc68d6a91497af5076466ad0fa6c338e44e359944af
     # via
+    #   cattrs
     #   dj-database-url
     #   graphene
     #   jwcrypto
