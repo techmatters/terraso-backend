@@ -361,8 +361,8 @@ fiona==1.10.1 \
     --hash=sha256:fa7e7e5ad252ef29905384bf92e7d14dd5374584b525632652c2ab8925304670 \
     --hash=sha256:fc7366f99bdc18ec99441b9e50246fdf5e72923dc9cbb00267b2bf28edd142ba
     # via -r requirements/base.in
-gdal==3.9.3 \
-    --hash=sha256:b4026010883b37d159fa43aee3ecb28bb466bd9d7e085c4d623d858edd6c62b9
+gdal==3.10.3 \
+    --hash=sha256:b5550650daeeae8e41091581d9aea7d75a9f15b0ebbeb8c96e37458fa02264cd
     # via soil-id
 geopandas==1.1.0 \
     --hash=sha256:b19b18bdc736ee05b237f5e9184211c452768a4c883f7d7f8421b0cbe1da5875 \
@@ -990,8 +990,8 @@ sniffio==1.3.1 \
     --hash=sha256:2f6da418d1f1e0fddd844478f41680e794e6051915791a034ff65e5f100525a2 \
     --hash=sha256:f4324edc670a0f49750a81b895f35c3adb843cca46f0530f79fc1babb23789dc
     # via anyio
-soil-id @ https://github.com/techmatters/soil-id-algorithm/archive/f5475dc.zip \
-    --hash=sha256:59876aad7960545d55df2b4d48cadcac6b74d4ffb087e6043a068bd6ffc38a0e
+soil-id @ https://github.com/techmatters/soil-id-algorithm/archive/a131028.zip \
+    --hash=sha256:8d1edcec0a84f077f034a7eb6e1011c905fd7fd8aefcd65c6a1568d085891219
     # via -r requirements/base.in
 sqlparse==0.5.3 \
     --hash=sha256:09f67787f56a0b16ecdbde1bfc7f5d9c3371ca683cfeaa8e6ff60b4807ec9272 \
