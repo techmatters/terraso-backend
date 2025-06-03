@@ -178,7 +178,7 @@ def get_cached_list_soils_output(latitude, longitude):
         elif data_region == SoilIdCache.DataRegion.US:
             list_output = us_soil.list_soils(lat=latitude, lon=longitude)
         elif data_region == SoilIdCache.DataRegion.GLOBAL:
-            list_output = global_soil.list_soils_global(lat=latitude, lon=longitude, connection=connection.connection, buffer_dist=10000)
+            list_output = global_soil.list_soils_global(lat=latitude, lon=longitude, connection=connection.connection, buffer_dist=100000)
         else:
             raise ValueError(f"Unknown data region: {data_region}")
 
