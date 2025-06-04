@@ -51,6 +51,9 @@ lint: check_api_schema
 lock:
 	CUSTOM_COMPILE_COMMAND="make lock" uv pip compile --upgrade --generate-hashes --emit-build-options requirements/base.in requirements/deploy.in -o requirements.txt
 
+lock-package:
+	CUSTOM_COMPILE_COMMAND="make lock" uv pip compile --upgrade-package $(PACKAGE) --generate-hashes --emit-build-options requirements/base.in requirements/deploy.in -o requirements.txt
+
 lock-dev:
 	CUSTOM_COMPILE_COMMAND="make lock-dev" uv pip compile --upgrade --generate-hashes --emit-build-options requirements/dev.in -o requirements-dev.txt
 
