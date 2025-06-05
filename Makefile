@@ -123,7 +123,6 @@ bash:
 # 185Qjb9pJJn4AzOissiTz283tINrDqgI0: gsmsoilmu_a_us.sbn
 # 1P3xl1YRlfcMjfO_4PM39tkrrlL3hoLzv: gsmsoilmu_a_us.prj
 # 1K0GkqxhZiVUND6yfFmaI7tYanLktekyp: gsmsoilmu_a_us.dbf
-# 1c6EZwKAJvtkyxZsCzLM4ObmMi8mYbqds: HWSD_global_noWater_no_country.shz
 # 1z7foFFHv_mTsuxMYnfOQRvXT5LKYlYFN: SoilID_US_Areas.shz
 download-soil-data:
 	mkdir -p Data
@@ -135,7 +134,6 @@ download-soil-data:
 	gdown 185Qjb9pJJn4AzOissiTz283tINrDqgI0; \
 	gdown 1P3xl1YRlfcMjfO_4PM39tkrrlL3hoLzv; \
 	gdown 1K0GkqxhZiVUND6yfFmaI7tYanLktekyp; \
-	gdown 1c6EZwKAJvtkyxZsCzLM4ObmMi8mYbqds; \
 	gdown 1z7foFFHv_mTsuxMYnfOQRvXT5LKYlYFN \
 
 ${VIRTUAL_ENV}/scripts/ruff:
