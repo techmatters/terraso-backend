@@ -129,25 +129,16 @@ def resolve_soil_info(soil_match: dict):
     if isinstance(site_description, dict):
         description = site_description["Description_en"]
         management = site_description["Management_en"]
-        name_ES = site_description["WRB_tax_es"]
-        description_ES = site_description["Description_es"]
-        management_ES = site_description["Management_es"]
     else:
         description = None
         management = None
-        name_ES = None
-        description_ES = None
-        management_ES = NONE
 
     return SoilInfo(
         soil_series=SoilSeries(
             name=soil_id["component"],
-            name_ES=name_ES,
             taxonomy_subgroup=taxonomy_subgroup,
             description=description,
-            description_ES=description_ES,
             management=management,
-            management_ES=management_ES,
             full_description_url=full_description_url,
         ),
         land_capability_class=resolve_land_capability_class(site_data),

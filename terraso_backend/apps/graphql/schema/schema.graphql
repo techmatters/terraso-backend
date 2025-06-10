@@ -117,11 +117,14 @@ type SoilInfo {
   soilData: SoilIdSoilData!
 }
 
-"""Information about a soil series."""
+"""
+Information about a soil series. 
+For global data regions, we expect description and management to come from client.
+"""
 type SoilSeries {
   name: String!
   taxonomySubgroup: String
-  description: String!
+  description: String
   management: String
   fullDescriptionUrl: String
 }

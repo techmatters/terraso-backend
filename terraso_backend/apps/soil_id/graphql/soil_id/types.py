@@ -33,15 +33,13 @@ class EcologicalSite(graphene.ObjectType):
 
 
 class SoilSeries(graphene.ObjectType):
-    """Information about a soil series."""
+    """Information about a soil series. 
+    For global data regions, we expect description and management to come from client."""
 
     name = graphene.String(required=True)
-    name_ES = graphene.String()
     taxonomy_subgroup = graphene.String()
     description = graphene.String()
-    description_ES = graphene.String()
     management = graphene.String()
-    management_ES = graphene.String()
     full_description_url = graphene.String()
 
 
