@@ -37,7 +37,7 @@ class SoilSeries(graphene.ObjectType):
 
     name = graphene.String(required=True)
     taxonomy_subgroup = graphene.String()
-    description = graphene.String(required=True)
+    description = graphene.String()
     management = graphene.String()
     full_description_url = graphene.String()
 

@@ -64,7 +64,6 @@ SOIL_MATCH_FRAGMENTS = """
 coordinates_to_test = [
     {"latitude": 33.81246789, "longitude": -101.9733687},
     {"latitude": 48, "longitude": -123.38},  # triggered a JSON decoding bug in soil ID cache
-    {"latitude": 49, "longitude": -123.38},  # triggers a DATA_UNAVAILABLE
     # currently fails upstream
     # {"latitude": 37.430296, "longitude": -122.126583},  noqa: E800
 ]
@@ -135,8 +134,7 @@ def test_us_integration(client, coords):
 
         payload = response.json()["data"]["soilId"]["dataBasedSoilMatches"]
 
-        if "reason" in payload:
-            continue
+        assert "reason" not in payload
 
         assert payload["dataRegion"] == "US"
         assert len(payload["matches"]) > 0

@@ -121,7 +121,7 @@ type SoilInfo {
 type SoilSeries {
   name: String!
   taxonomySubgroup: String
-  description: String!
+  description: String
   management: String
   fullDescriptionUrl: String
 }
