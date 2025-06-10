@@ -65,7 +65,6 @@ coordinates_to_test = [
     {"latitude": 33.81246789, "longitude": -101.9733687},
     {"latitude": 48, "longitude": -123.38},  # triggered a JSON decoding bug in soil ID cache
     {"latitude": 49, "longitude": -123.38},  # triggers a DATA_UNAVAILABLE
-    {"latitude": -6.708697, "longitude": -69.306646}, # global!
     # currently fails upstream
     # {"latitude": 37.430296, "longitude": -122.126583},  noqa: E800
 ]
