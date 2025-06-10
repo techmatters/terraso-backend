@@ -238,17 +238,39 @@ def test_resolve_soil_data():
 
 
 def test_resolve_ecological_site():
-    assert resolve_ecological_site({"ecoclassid": "", "ecoclassname": "", "edit_url": ""}) is None
-    assert (
-        resolve_ecological_site({"ecoclassid": [""], "ecoclassname": [""], "edit_url": [""]})
-        is None
-    )
+    assert resolve_ecological_site({}) is None
+    assert resolve_ecological_site(
+        {
+            "esd": {
+                "ESD": {
+                    "ecoclassid": "",
+                    "ecoclassname": "",
+                    "edit_url": "",
+                }
+            }
+        }
+    ) is None
+    assert resolve_ecological_site(
+        {
+            "esd": {
+                "ESD": {
+                    "ecoclassid": [""],
+                    "ecoclassname": [""],
+                    "edit_url": [""],
+                }
+            }
+        }
+    ) is None
 
     result = resolve_ecological_site(
         {
-            "ecoclassid": ["AX001X02X001"],
-            "ecoclassname": ["Mesic Udic Riparian Forest"],
-            "edit_url": [""],
+            "esd": {
+                "ESD": {
+                    "ecoclassid": ["AX001X02X001"],
+                    "ecoclassname": ["Mesic Udic Riparian Forest"],
+                    "edit_url": [""],
+                }
+            }
         }
     )
 
