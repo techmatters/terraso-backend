@@ -1,6 +1,6 @@
 services:
   web:
-    image: techmatters/terraso_backend
+    image: '${TERRASO_BACKEND_WEB_DOCKER_IMAGE:-techmatters/terraso_backend}'
     build:
       context: .
       dockerfile: Dockerfile.dev
@@ -14,7 +14,7 @@ services:
     tty: true
 
   db:
-    image: 'postgis/postgis:16-master'
+    image: postgis/postgis:16-master
     labels:
       org.techmatters.project: terraso_backend
     env_file: .env
@@ -34,5 +34,18 @@ services:
       start_period: 3s
       retries: 3
 
+  soil-id-db:
+    image: ghcr.io/techmatters/soil-id-db:latest
+    environment:
+      - POSTGRES_DB=soil_id
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    healthcheck:
+      test: pg_isready -U postgres -d soil_id
+      interval: 3s
+      timeout: 5s
+      start_period: 3s
+      retries: 3
+  
 volumes:
   postgresql_data:

@@ -13,7 +13,9 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see https://www.gnu.org/licenses/.
 
+import os
 
+import pandas
 import pytest
 import structlog
 from graphene_django.utils.testing import graphql_query
@@ -104,8 +106,9 @@ DATA_BASED_MATCHES_QUERY = (
 )
 
 
+@pytest.mark.integration
 @pytest.mark.parametrize("coords", coordinates_to_test)
-def test_data_based_soil_matches_endpoint(client, coords):
+def test_us_integration(client, coords):
     # run it twice to exercise the cache
     for _ in range(0, 2):
         response = graphql_query(
@@ -136,6 +139,7 @@ def test_data_based_soil_matches_endpoint(client, coords):
         if "reason" in payload:
             continue
 
+        assert payload["dataRegion"] == "US"
         assert len(payload["matches"]) > 0
 
         for match in payload["matches"]:
@@ -153,3 +157,88 @@ def test_data_based_soil_matches_endpoint(client, coords):
             assert info["landCapabilityClass"] is not None
             assert info["soilData"] is not None
             assert len(info["soilData"]["depthDependentData"]) > 0
+
+
+test_data_df = pandas.read_csv(
+    os.path.join(os.path.dirname(__file__), "global_pedon_test_dataset.csv")
+)
+sampled_ids = ['LY0001', 'CN0059', 'AU0013', 'ES0016', 'JO0018', 'PH0032', 'MZ0058', 'KE0232', 'GA0014', 'IN0047']
+
+random_pedons_df = test_data_df[test_data_df["ID"].isin(sampled_ids)]
+pedons = random_pedons_df.groupby("ID")
+
+def transform_texture(texture):
+  return texture.upper().replace(" ", "_")
+
+def transform_rfv(rfv):
+    if 0 <= rfv < 2:
+        return "VOLUME_0_1"
+    elif 2 <= rfv < 16:
+        return "VOLUME_1_15"
+    elif 16 <= rfv < 36:
+        return "VOLUME_15_35"
+    elif 36 <= rfv < 61:
+        return "VOLUME_35_60"
+    elif 61 <= rfv <= 100:
+        return "VOLUME_60"
+    else:
+        return None
+
+@pytest.mark.integration
+@pytest.mark.parametrize("pedon_id, pedon", pedons)
+def test_global_integration(client, pedon_id, pedon):
+    depth_dependent_data = []
+
+    for i, row in pedon.iterrows():
+        entry = {
+            "depthInterval": {
+                "start": row["TOPDEP"],
+                "end": row["BOTDEP"]
+            },
+            "texture": transform_texture(row["textClass"]),
+            "rockFragmentVolume": transform_rfv(row["RFV"]),
+            "colorLAB": {
+                "L": row["L"],
+                "A": row["A"],
+                "B": row["B"]
+            }
+        }
+        depth_dependent_data.append(entry)
+
+    response = graphql_query(
+        DATA_BASED_MATCHES_QUERY,
+        variables={
+            "latitude": pedon["Y_LatDD"].values[0],
+            "longitude": pedon["X_LonDD"].values[0],
+            "data": {
+                "depthDependentData": depth_dependent_data,
+            },
+        },
+        client=client,
+    )
+
+    assert response.json()["data"] is not None
+    assert "errors" not in response.json()
+
+    payload = response.json()["data"]["soilId"]["dataBasedSoilMatches"]
+
+    assert "reason" not in payload
+    assert payload["dataRegion"] == "GLOBAL"
+
+    assert len(payload["matches"]) > 0
+
+
+    for match in payload["matches"]:
+        assert isinstance(match["dataSource"], str)
+        assert isinstance(match["distanceToNearestMapUnitM"], float)
+
+        match_kinds = ["locationMatch", "dataMatch", "combinedMatch"]
+        for kind in match_kinds:
+            assert match[kind]["score"] >= 0 and match[kind]["score"] <= 1
+            assert match[kind]["rank"] >= 0
+
+        info = match["soilInfo"]
+
+        assert info["soilSeries"] is not None
+        assert info["soilData"] is not None
+        assert len(info["soilData"]["depthDependentData"]) > 0

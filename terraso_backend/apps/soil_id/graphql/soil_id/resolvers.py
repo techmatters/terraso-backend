@@ -17,7 +17,7 @@ import math
 import traceback
 from typing import Optional
 
-from django.db import connection
+import psycopg
 import structlog
 from soil_id import us_soil
 from soil_id import global_soil
@@ -42,12 +42,20 @@ from apps.soil_id.graphql.types import DepthInterval
 from apps.soil_id.models.depth_dependent_soil_data import DepthDependentSoilData
 from apps.soil_id.models.soil_data import SoilData
 from apps.soil_id.models.soil_id_cache import SoilIdCache
+from config.settings import SOIL_ID_DATABASE_URL
 
 logger = structlog.get_logger(__name__)
 
+_soil_id_database_connection = None
+def soil_id_database_connection():
+    global _soil_id_database_connection
+    if _soil_id_database_connection is None:
+        _soil_id_database_connection = psycopg.connect(SOIL_ID_DATABASE_URL)
+
+    return _soil_id_database_connection
 
 def resolve_texture(texture: str | float):
-    if not isinstance(texture, str) or texture == "":
+    if not isinstance(texture, str) or texture == "" or texture.upper() == "UNKNOWN":
         return None
     return texture.upper().replace(" ", "_")
 
@@ -178,7 +186,7 @@ def get_cached_list_soils_output(latitude, longitude):
         elif data_region == SoilIdCache.DataRegion.US:
             list_output = us_soil.list_soils(lat=latitude, lon=longitude)
         elif data_region == SoilIdCache.DataRegion.GLOBAL:
-            list_output = global_soil.list_soils_global(lat=latitude, lon=longitude, connection=connection.connection, buffer_dist=100000)
+            list_output = global_soil.list_soils_global(lat=latitude, lon=longitude, connection=soil_id_database_connection(), buffer_dist=100000)
         else:
             raise ValueError(f"Unknown data region: {data_region}")
 
@@ -377,7 +385,7 @@ def resolve_data_based_result(
                 lat=latitude,
                 lon=longitude,
                 list_output_data=list_output,
-                connection=connection.connection,
+                connection=soil_id_database_connection(),
                 **parse_rank_soils_input_data(data, data_region),
             )
         else:
