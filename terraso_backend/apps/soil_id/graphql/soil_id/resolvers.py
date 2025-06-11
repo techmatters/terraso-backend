@@ -174,7 +174,6 @@ def get_cached_list_soils_output(latitude, longitude):
 
     if cached_result is None:
         data_region = parse_data_region(find_region_for_location(lat=latitude, lon=longitude))
-        print("DATA REGION: ", data_region)
         if data_region is None:
             list_output = 'DATA_UNAVAILABLE'
         elif data_region == SoilIdCache.DataRegion.US:
@@ -216,10 +215,8 @@ def resolve_data_based_soil_match(data_region: SoilIdCache.DataRegion, soil_matc
 
     if ranked_match["score_data"] and ranked_match["rank_data"]:
         data_match = resolve_soil_match_info(ranked_match["score_data"], ranked_match["rank_data"])
-        print("DATA MATCH: ", data_match)
     else:
         data_match = None
-        print("DATA MATCH: None")
     
     if ranked_match["score_data_loc"] and ranked_match["rank_data_loc"]:
         combined_match = resolve_soil_match_info(ranked_match["score_data_loc"], ranked_match["rank_data_loc"])
@@ -361,7 +358,6 @@ def resolve_data_based_soil_matches(data_region: SoilIdCache.DataRegion, soil_li
 def resolve_data_based_result(
     _parent, _info, latitude: float, longitude: float, data: Optional[SoilIdInputData] = None
 ):
-    print("-------> QUERY:\n", latitude, ", ", longitude, '\ndata: ', data)
     try:
         cached_result = get_cached_list_soils_output(latitude=latitude, longitude=longitude)
 
