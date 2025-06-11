@@ -16,17 +16,13 @@
 
 import graphene
 
-from apps.soil_id.graphql.soil_id.resolvers import (
-    resolve_data_based_result
-)
-from apps.soil_id.graphql.soil_id.types import (
-    DataBasedResult,
-    SoilIdInputData
-)
+from apps.soil_id.graphql.soil_id.resolvers import resolve_data_based_result
+from apps.soil_id.graphql.soil_id.types import DataBasedResult, SoilIdInputData
 
 
 class SoilId(graphene.ObjectType):
     """Soil ID algorithm queries."""
+
     data_based_soil_matches = graphene.Field(
         graphene.NonNull(DataBasedResult),
         latitude=graphene.Float(required=True),

@@ -47,12 +47,15 @@ from config.settings import SOIL_ID_DATABASE_URL
 logger = structlog.get_logger(__name__)
 
 _soil_id_database_connection = None
+
+
 def soil_id_database_connection():
     global _soil_id_database_connection
     if _soil_id_database_connection is None:
         _soil_id_database_connection = psycopg.connect(SOIL_ID_DATABASE_URL)
 
     return _soil_id_database_connection
+
 
 def resolve_texture(texture: str | float):
     if not isinstance(texture, str) or texture == "" or texture.upper() == "UNKNOWN":
@@ -81,15 +84,21 @@ def resolve_soil_data(soil_match) -> SoilIdSoilData:
     depth_dependent_data = []
 
     for id, bottom_depth in sorted(bottom_depths.items(), key=lambda item: item[1]):
-        depth_dependent_data.append(SoilIdDepthDependentData(
-            depth_interval=DepthInterval(start=prev_depth, end=bottom_depth),
-            texture=resolve_texture(soil_match["texture"][id]),
-            rock_fragment_volume=resolve_rock_fragment_volume(soil_match["rock_fragments"][id]),
-            munsell_color_string=soil_match["munsell"][id] if "munsell" in soil_match else None,
-        ))
+        depth_dependent_data.append(
+            SoilIdDepthDependentData(
+                depth_interval=DepthInterval(start=prev_depth, end=bottom_depth),
+                texture=resolve_texture(soil_match["texture"][id]),
+                rock_fragment_volume=resolve_rock_fragment_volume(soil_match["rock_fragments"][id]),
+                munsell_color_string=soil_match["munsell"][id] if "munsell" in soil_match else None,
+            )
+        )
         prev_depth = bottom_depth
 
-    slope = soil_match["site"]["siteData"]["slope"] if "slope" in soil_match["site"]["siteData"] else None
+    slope = (
+        soil_match["site"]["siteData"]["slope"]
+        if "slope" in soil_match["site"]["siteData"]
+        else None
+    )
     if slope == "":
         slope = None
 
@@ -151,18 +160,23 @@ def resolve_soil_info(soil_match: dict):
 
 
 def resolve_soil_match_info(score: Optional[float], rank: Optional[str]):
-    if score is None or rank is None or rank == '':
+    if score is None or rank is None or rank == "":
         return None
     return SoilMatchInfo(score=score, rank=int(rank) - 1)
 
 
-def resolve_list_output_failure(list_output: us_soil.SoilListOutputData | global_soil.SoilListOutputData | str):
-    if isinstance(list_output, us_soil.SoilListOutputData) or isinstance(list_output, global_soil.SoilListOutputData):
+def resolve_list_output_failure(
+    list_output: us_soil.SoilListOutputData | global_soil.SoilListOutputData | str,
+):
+    if isinstance(list_output, us_soil.SoilListOutputData) or isinstance(
+        list_output, global_soil.SoilListOutputData
+    ):
         return None
     elif isinstance(list_output, str):
         return SoilIdFailureReason.DATA_UNAVAILABLE
     else:
         return SoilIdFailureReason.ALGORITHM_FAILURE
+
 
 def clean_soil_list_json(obj):
     if isinstance(obj, float) and math.isnan(obj):
@@ -180,11 +194,16 @@ def get_cached_list_soils_output(latitude, longitude):
     if cached_result is None:
         data_region = parse_data_region(find_region_for_location(lat=latitude, lon=longitude))
         if data_region is None:
-            list_output = 'DATA_UNAVAILABLE'
+            list_output = "DATA_UNAVAILABLE"
         elif data_region == SoilIdCache.DataRegion.US:
             list_output = us_soil.list_soils(lat=latitude, lon=longitude)
         elif data_region == SoilIdCache.DataRegion.GLOBAL:
-            list_output = global_soil.list_soils_global(lat=latitude, lon=longitude, connection=soil_id_database_connection(), buffer_dist=30000)
+            list_output = global_soil.list_soils_global(
+                lat=latitude,
+                lon=longitude,
+                connection=soil_id_database_connection(),
+                buffer_dist=30000,
+            )
         else:
             raise ValueError(f"Unknown data region: {data_region}")
 
@@ -195,7 +214,9 @@ def get_cached_list_soils_output(latitude, longitude):
         else:
             list_output.soil_list_json = clean_soil_list_json(list_output.soil_list_json)
 
-        SoilIdCache.save_data(latitude=latitude, longitude=longitude, data=list_output, data_region=data_region)
+        SoilIdCache.save_data(
+            latitude=latitude, longitude=longitude, data=list_output, data_region=data_region
+        )
 
         if failure_reason is not None:
             return list_output
@@ -205,7 +226,9 @@ def get_cached_list_soils_output(latitude, longitude):
         return cached_result
 
 
-def resolve_data_based_soil_match(data_region: SoilIdCache.DataRegion, soil_matches: list[dict], ranked_match: dict):
+def resolve_data_based_soil_match(
+    data_region: SoilIdCache.DataRegion, soil_matches: list[dict], ranked_match: dict
+):
     soil_match = [
         match
         for match in soil_matches
@@ -228,6 +251,7 @@ def resolve_data_based_soil_match(data_region: SoilIdCache.DataRegion, soil_matc
         ),
         soil_info=resolve_soil_info(soil_match),
     )
+
 
 def parse_data_region(data_region: Optional[str]):
     if data_region is None:
@@ -275,7 +299,9 @@ def parse_surface_cracks(surface_cracks: SoilData.SurfaceCracks):
     return surface_cracks == SoilData.SurfaceCracks.DEEP_VERTICAL_CRACKING
 
 
-def parse_rank_soils_input_data(data: Optional[SoilIdInputData], data_region: SoilIdCache.DataRegion):
+def parse_rank_soils_input_data(
+    data: Optional[SoilIdInputData], data_region: SoilIdCache.DataRegion
+):
     # TODO: pass in values for elevation and bedrock
     inputs = {
         "soilHorizon": [],
@@ -313,7 +339,9 @@ def parse_rank_soils_input_data(data: Optional[SoilIdInputData], data_region: So
     return inputs
 
 
-def resolve_data_based_soil_matches(data_region: SoilIdCache.DataRegion, soil_list_json: dict, rank_json: dict):
+def resolve_data_based_soil_matches(
+    data_region: SoilIdCache.DataRegion, soil_list_json: dict, rank_json: dict
+):
     ranked_matches = []
     for ranked_match in rank_json["soilRank"]:
         rankValues = [
@@ -360,7 +388,8 @@ def resolve_data_based_result(
 
         return resolve_data_based_soil_matches(
             data_region=data_region,
-            soil_list_json=list_output.soil_list_json, rank_json=rank_output
+            soil_list_json=list_output.soil_list_json,
+            rank_json=rank_output,
         )
     except Exception:
         logger.error(traceback.format_exc())

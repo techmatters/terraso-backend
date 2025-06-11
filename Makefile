@@ -47,6 +47,7 @@ install-dev:
 
 lint: check_api_schema
 	$(DC_RUN_CMD) ruff check terraso_backend
+	$(DC_RUN_CMD) ruff format terraso_backend --diff
 
 lock:
 	CUSTOM_COMPILE_COMMAND="make lock" uv pip compile --upgrade --generate-hashes --emit-build-options requirements/base.in requirements/deploy.in -o requirements.txt

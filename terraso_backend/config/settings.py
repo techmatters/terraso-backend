@@ -132,7 +132,7 @@ SOIL_ID_DATABASE_URL = config("SOIL_ID_DATABASE_URL", default=PRIMARY_DATABASE_U
 
 DATABASES = {
     "default": parse_db_url(PRIMARY_DATABASE_URL),
- }
+}
 DATABASES = {
     "default": config("DATABASE_URL", default=default_dburl, cast=parse_db_url),
 }
