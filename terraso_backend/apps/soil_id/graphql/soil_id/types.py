@@ -24,6 +24,7 @@ from apps.soil_id.models.soil_id_cache import SoilIdCache
 
 DataRegion = graphene.Enum.from_enum(SoilIdCache.DataRegion, "SoilIdDataRegionChoices")
 
+
 class EcologicalSite(graphene.ObjectType):
     """Information about an ecological site."""
 

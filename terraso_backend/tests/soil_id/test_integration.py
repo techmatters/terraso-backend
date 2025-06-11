@@ -159,13 +159,26 @@ def test_us_integration(client, coords):
 test_data_df = pandas.read_csv(
     os.path.join(os.path.dirname(__file__), "global_pedon_test_dataset.csv")
 )
-sampled_ids = ['LY0001', 'CN0059', 'AU0013', 'ES0016', 'JO0018', 'PH0032', 'MZ0058', 'KE0232', 'GA0014', 'IN0047']
+sampled_ids = [
+    "LY0001",
+    "CN0059",
+    "AU0013",
+    "ES0016",
+    "JO0018",
+    "PH0032",
+    "MZ0058",
+    "KE0232",
+    "GA0014",
+    "IN0047",
+]
 
 random_pedons_df = test_data_df[test_data_df["ID"].isin(sampled_ids)]
 pedons = random_pedons_df.groupby("ID")
 
+
 def transform_texture(texture):
-  return texture.upper().replace(" ", "_")
+    return texture.upper().replace(" ", "_")
+
 
 def transform_rfv(rfv):
     if 0 <= rfv < 2:
@@ -181,6 +194,7 @@ def transform_rfv(rfv):
     else:
         return None
 
+
 @pytest.mark.integration
 @pytest.mark.parametrize("pedon_id, pedon", pedons)
 def test_global_integration(client, pedon_id, pedon):
@@ -188,17 +202,10 @@ def test_global_integration(client, pedon_id, pedon):
 
     for i, row in pedon.iterrows():
         entry = {
-            "depthInterval": {
-                "start": row["TOPDEP"],
-                "end": row["BOTDEP"]
-            },
+            "depthInterval": {"start": row["TOPDEP"], "end": row["BOTDEP"]},
             "texture": transform_texture(row["textClass"]),
             "rockFragmentVolume": transform_rfv(row["RFV"]),
-            "colorLAB": {
-                "L": row["L"],
-                "A": row["A"],
-                "B": row["B"]
-            }
+            "colorLAB": {"L": row["L"], "A": row["A"], "B": row["B"]},
         }
         depth_dependent_data.append(entry)
 
@@ -223,7 +230,6 @@ def test_global_integration(client, pedon_id, pedon):
     assert payload["dataRegion"] == "GLOBAL"
 
     assert len(payload["matches"]) > 0
-
 
     for match in payload["matches"]:
         assert isinstance(match["dataSource"], str)
