@@ -24,7 +24,7 @@ from apps.core.models.commons import BaseModel
 class SoilIdCache(BaseModel):
     latitude = models.FloatField()
     longitude = models.FloatField()
-    
+
     class DataRegion(models.TextChoices):
         US = "US"
         GLOBAL = "GLOBAL"
@@ -48,7 +48,13 @@ class SoilIdCache(BaseModel):
         return round(coord, 6)
 
     @classmethod
-    def save_data(cls, latitude: float, longitude: float, data: SoilListOutputData | str, data_region: Optional[DataRegion]):
+    def save_data(
+        cls,
+        latitude: float,
+        longitude: float,
+        data: SoilListOutputData | str,
+        data_region: Optional[DataRegion],
+    ):
         if isinstance(data, str):
             data_to_save = {"failure_reason": data}
         else:
