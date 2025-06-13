@@ -276,15 +276,13 @@ def parse_data_region(data_region: Optional[str]):
         raise ValueError(f"Unknown data region: {data_region}")
 
 
-def parse_texture(texture: Optional[DepthDependentSoilData.Texture]):
+def parse_texture(texture):
     if texture is None:
         return None
     return texture.value.replace("_", " ").lower()
 
 
-def parse_rock_fragment_volume(
-    rock_fragment_volume: Optional[DepthDependentSoilData.RockFragmentVolume],
-):
+def parse_rock_fragment_volume(rock_fragment_volume):
     if rock_fragment_volume is None:
         return None
     elif rock_fragment_volume.value == DepthDependentSoilData.RockFragmentVolume.VOLUME_0_1.value:
