@@ -287,13 +287,13 @@ def parse_rock_fragment_volume(
 ):
     if rock_fragment_volume is None:
         return None
-    elif rock_fragment_volume == DepthDependentSoilData.RockFragmentVolume.VOLUME_0_1:
+    elif rock_fragment_volume.value == DepthDependentSoilData.RockFragmentVolume.VOLUME_0_1.value:
         return "0-1%"
-    elif rock_fragment_volume == DepthDependentSoilData.RockFragmentVolume.VOLUME_1_15:
+    elif rock_fragment_volume.value == DepthDependentSoilData.RockFragmentVolume.VOLUME_1_15.value:
         return "1-15%"
-    elif rock_fragment_volume == DepthDependentSoilData.RockFragmentVolume.VOLUME_15_35:
+    elif rock_fragment_volume.value == DepthDependentSoilData.RockFragmentVolume.VOLUME_15_35.value:
         return "15-35%"
-    elif rock_fragment_volume == DepthDependentSoilData.RockFragmentVolume.VOLUME_35_60:
+    elif rock_fragment_volume.value == DepthDependentSoilData.RockFragmentVolume.VOLUME_35_60.value:
         return "35-60%"
     else:
         return ">60%"
