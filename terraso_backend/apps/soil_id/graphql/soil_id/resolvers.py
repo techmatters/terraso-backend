@@ -204,7 +204,7 @@ def get_cached_list_soils_output(latitude, longitude):
                 lat=latitude,
                 lon=longitude,
                 connection=soil_id_database_connection(),
-                buffer_dist=100000,
+                buffer_dist=30000,
             )
         else:
             raise ValueError(f"Unknown data region: {data_region}")
