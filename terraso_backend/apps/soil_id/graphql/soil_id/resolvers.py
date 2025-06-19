@@ -243,12 +243,12 @@ def resolve_data_based_soil_match(
     else:
         data_source = site_data["dataSource"]
 
-    if ranked_match["score_data"] and ranked_match["rank_data"]:
+    if ranked_match["score_data"] is not None and ranked_match["rank_data"] is not None:
         data_match = resolve_soil_match_info(ranked_match["score_data"], ranked_match["rank_data"])
     else:
         data_match = None
 
-    if ranked_match["score_data_loc"] and ranked_match["rank_data_loc"]:
+    if ranked_match["score_data_loc"] is not None and ranked_match["rank_data_loc"] is not None:
         combined_match = resolve_soil_match_info(
             ranked_match["score_data_loc"], ranked_match["rank_data_loc"]
         )
@@ -327,13 +327,8 @@ def parse_rank_soils_input_data(
         inputs["pElev"] = None
         inputs["pSlope"] = None
 
-    if data_region == SoilIdCache.DataRegion.US:
-        inputs["horizonDepth"] = []
-    elif data_region == SoilIdCache.DataRegion.GLOBAL:
-        inputs["topDepth"] = []
-        inputs["bottomDepth"] = []
-    else:
-        raise ValueError(f"Unknown data region: {data_region}")
+    inputs["topDepth"] = []
+    inputs["bottomDepth"] = []
 
     if data is None:
         return inputs
@@ -344,28 +339,10 @@ def parse_rank_soils_input_data(
         inputs["pSlope"] = data.slope
 
     depths = data.depth_dependent_data
-    if len(depths) > 0 and depths[0].depth_interval.start != 0:
-        if data_region == SoilIdCache.DataRegion.US:
-            inputs["horizonDepth"].append(depths[0].depth_interval.end)
-        elif data_region == SoilIdCache.DataRegion.GLOBAL:
-            inputs["topDepth"].append(depths[0].depth_interval.start)
-            inputs["bottomDepth"].append(depths[0].depth_interval.end)
-        else:
-            raise ValueError(f"Unknown data region: {data_region}")
-
-        inputs["soilHorizon"].append(None)
-        inputs["rfvDepth"].append(None)
-        inputs["lab_Color"].append(None)
-        depths = depths[1:]
 
     for depth in depths:
-        if data_region == SoilIdCache.DataRegion.US:
-            inputs["horizonDepth"].append(depth.depth_interval.end)
-        elif data_region == SoilIdCache.DataRegion.GLOBAL:
-            inputs["topDepth"].append(depth.depth_interval.start)
-            inputs["bottomDepth"].append(depth.depth_interval.end)
-        else:
-            raise ValueError(f"Unknown data region: {data_region}")
+        inputs["topDepth"].append(depth.depth_interval.start)
+        inputs["bottomDepth"].append(depth.depth_interval.end)
 
         inputs["soilHorizon"].append(parse_texture(depth.texture))
         inputs["rfvDepth"].append(parse_rock_fragment_volume(depth.rock_fragment_volume))
