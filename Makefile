@@ -126,6 +126,9 @@ test_ci_integration: clean
 connect_db:
 	docker compose $(DC_FILE_ARG) exec db psql -U postgres -d terraso_backend
 
+connect_soil_id_db:
+	docker compose $(DC_FILE_ARG) exec soil-id-db psql -U postgres -d soil_id
+
 bash:
 	$(DC_RUN_CMD) bash
 
@@ -152,12 +155,3 @@ download-soil-data:
 
 ${VIRTUAL_ENV}/scripts/ruff:
 	uv pip install ruff
-
-SOIL_ID_DATABASE_URL ?= DATABASE_URL
-SOIL_ID_DATABASE_DUMP_FILE ?= Data/soil_id_db.dump
-
-dump_soil_id_db:
-	pg_dump -Fc $(SOIL_ID_DATABASE_URL)  -t hwsd2_segment -t hwsd2_data -t landpks_munsell_rgb_lab -t normdist1 -t normdist2 -t wise_soil_data -t wrb2006_to_fao90 -t wrb_fao90_desc -f $(SOIL_ID_DATABASE_DUMP_FILE)
-
-restore_soil_id_db:
-	pg_restore -d $(SOIL_ID_DATABASE_URL) $(SOIL_ID_DATABASE_DUMP_FILE)

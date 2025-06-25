@@ -40,6 +40,8 @@ services:
       - POSTGRES_DB=soil_id
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
+    ports:
+      - '${SOIL_ID_DATABASE_EXTERNAL_PORT}:5432'
     healthcheck:
       test: pg_isready -U postgres -d soil_id
       interval: 3s
