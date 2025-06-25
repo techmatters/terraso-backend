@@ -240,24 +240,24 @@ def parse_data_region(data_region: Optional[str]):
         raise ValueError(f"Unknown data region: {data_region}")
 
 
-def parse_texture(texture: Optional[DepthDependentSoilData.Texture]):
+# Argument type hint would be DepthDependentSoilDataNode.texture_enum() if that were allowed :)
+def parse_texture(texture):
     if texture is None:
         return None
     return texture.value.replace("_", " ").lower()
 
 
-def parse_rock_fragment_volume(
-    rock_fragment_volume: Optional[DepthDependentSoilData.RockFragmentVolume],
-):
+# Argument type hint would be DepthDependentSoilDataNode.rock_fragment_volume_enum() if that were allowed :)
+def parse_rock_fragment_volume(rock_fragment_volume):
     if rock_fragment_volume is None:
         return None
-    elif rock_fragment_volume == DepthDependentSoilData.RockFragmentVolume.VOLUME_0_1:
+    elif rock_fragment_volume.value == DepthDependentSoilData.RockFragmentVolume.VOLUME_0_1.value:
         return "0-1%"
-    elif rock_fragment_volume == DepthDependentSoilData.RockFragmentVolume.VOLUME_1_15:
+    elif rock_fragment_volume.value == DepthDependentSoilData.RockFragmentVolume.VOLUME_1_15.value:
         return "1-15%"
-    elif rock_fragment_volume == DepthDependentSoilData.RockFragmentVolume.VOLUME_15_35:
+    elif rock_fragment_volume.value == DepthDependentSoilData.RockFragmentVolume.VOLUME_15_35.value:
         return "15-35%"
-    elif rock_fragment_volume == DepthDependentSoilData.RockFragmentVolume.VOLUME_35_60:
+    elif rock_fragment_volume.value == DepthDependentSoilData.RockFragmentVolume.VOLUME_35_60.value:
         return "35-60%"
     else:
         return ">60%"
