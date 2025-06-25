@@ -12,6 +12,7 @@ from apps.soil_id.graphql.soil_id.resolvers import (
 )
 from apps.soil_id.models.soil_id_cache import SoilIdCache
 from apps.soil_id.models.depth_dependent_soil_data import DepthDependentSoilData
+from apps.soil_id.graphql.soil_data.queries import DepthDependentSoilDataNode
 
 
 sample_soil_list_json = [
@@ -356,12 +357,29 @@ def test_resolve_data_based_soil_matches():
     assert len(result.matches) == 2
 
 
-def test_parse_rock_fragment_volume(): 
-    # Is there something we can import to use the same type as the product code?
-    # assert parse_rock_fragment_volume(SoilIdDepthDependentSoilDataRockFragmentVolumeChoices.VOLUME_0_1) == "0-1%"
-    assert parse_rock_fragment_volume(DepthDependentSoilData.RockFragmentVolume.VOLUME_0_1) == "0-1%"
-    assert parse_rock_fragment_volume(DepthDependentSoilData.RockFragmentVolume.VOLUME_1_15) == "1-15%"
-    assert parse_rock_fragment_volume(DepthDependentSoilData.RockFragmentVolume.VOLUME_15_35) == "15-35%"
-    assert parse_rock_fragment_volume(DepthDependentSoilData.RockFragmentVolume.VOLUME_35_60) == "35-60%"
+def test_parse_rock_fragment_volume():
+    RockFragmentVolumeEnum = DepthDependentSoilDataNode.rock_fragment_volume_enum()
+
+    assert parse_rock_fragment_volume(RockFragmentVolumeEnum.VOLUME_0_1) == "0-1%"
+    assert parse_rock_fragment_volume(RockFragmentVolumeEnum.VOLUME_1_15) == "1-15%"
+    assert parse_rock_fragment_volume(RockFragmentVolumeEnum.VOLUME_15_35) == "15-35%"
+    assert parse_rock_fragment_volume(RockFragmentVolumeEnum.VOLUME_35_60) == "35-60%"
+    assert parse_rock_fragment_volume(RockFragmentVolumeEnum.VOLUME_60) == ">60%"
+
+    assert (
+        parse_rock_fragment_volume(DepthDependentSoilData.RockFragmentVolume.VOLUME_0_1) == "0-1%"
+    )
+    assert (
+        parse_rock_fragment_volume(DepthDependentSoilData.RockFragmentVolume.VOLUME_1_15) == "1-15%"
+    )
+    assert (
+        parse_rock_fragment_volume(DepthDependentSoilData.RockFragmentVolume.VOLUME_15_35)
+        == "15-35%"
+    )
+    assert (
+        parse_rock_fragment_volume(DepthDependentSoilData.RockFragmentVolume.VOLUME_35_60)
+        == "35-60%"
+    )
     assert parse_rock_fragment_volume(DepthDependentSoilData.RockFragmentVolume.VOLUME_60) == ">60%"
+
     assert parse_rock_fragment_volume(None) is None

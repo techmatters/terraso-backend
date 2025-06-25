@@ -276,12 +276,14 @@ def parse_data_region(data_region: Optional[str]):
         raise ValueError(f"Unknown data region: {data_region}")
 
 
+# Argument type hint would be DepthDependentSoilDataNode.texture_enum() if that were allowed :)
 def parse_texture(texture):
     if texture is None:
         return None
     return texture.value.replace("_", " ").lower()
 
 
+# Argument type hint would be DepthDependentSoilDataNode.rock_fragment_volume_enum() if that were allowed :)
 def parse_rock_fragment_volume(rock_fragment_volume):
     if rock_fragment_volume is None:
         return None
