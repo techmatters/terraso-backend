@@ -163,7 +163,9 @@ def resolve_soil_info(soil_match: dict):
     )
 
 
-def resolve_soil_match_info(score: float, rank: str):
+def resolve_soil_match_info(score: Optional[float], rank: Optional[str]):
+    if score is None or rank is None or rank == '':
+        return None
     return SoilMatchInfo(score=score, rank=int(rank) - 1)
 
 
@@ -243,24 +245,14 @@ def resolve_data_based_soil_match(
     else:
         data_source = site_data["dataSource"]
 
-    if ranked_match["score_data"] is not None and ranked_match["rank_data"] is not None:
-        data_match = resolve_soil_match_info(ranked_match["score_data"], ranked_match["rank_data"])
-    else:
-        data_match = None
-
-    if ranked_match["score_data_loc"] is not None and ranked_match["rank_data_loc"] is not None:
-        combined_match = resolve_soil_match_info(
-            ranked_match["score_data_loc"], ranked_match["rank_data_loc"]
-        )
-    else:
-        combined_match = None
-
     return DataBasedSoilMatch(
         data_source=data_source,
         distance_to_nearest_map_unit_m=site_data["minCompDistance"],
         location_match=resolve_soil_match_info(ranked_match["score_loc"], ranked_match["rank_loc"]),
-        data_match=data_match,
-        combined_match=combined_match,
+        data_match=resolve_soil_match_info(ranked_match["score_data"], ranked_match["rank_data"]),
+        combined_match=resolve_soil_match_info(
+            ranked_match["score_data_loc"], ranked_match["rank_data_loc"]
+        ),
         soil_info=resolve_soil_info(soil_match),
     )
 
