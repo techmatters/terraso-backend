@@ -12,13 +12,13 @@ beautifulsoup4==4.13.4 \
     --hash=sha256:9bbbb14bfde9d79f38b8cd5f8c7c85f4b8f2523190ebed90e950a8dea4cb1c4b \
     --hash=sha256:dbb3c4e1ceae6aefebdaf2423247260cd062430a410e38c66f2baa50a8437195
     # via gdown
-boto3==1.38.28 \
-    --hash=sha256:1bbf770339d294c91dd396ac90588753d89b9fdd63496edc9bc6f710f24ed25a \
-    --hash=sha256:69395075d54be4552719ccadad9f65a3dee5bb3751701e8851d65d71974a791d
+boto3==1.39.1 \
+    --hash=sha256:3f89d6f05ab7d3a6f6807b45e9456a1a0db53bb47b1758cf5e0a3479cdd6d734 \
+    --hash=sha256:beb945ec1ab4bb48d39640ce7d3054b7e4ab2020ef3259034c039195ae04b2f7
     # via moto
-botocore==1.38.46 \
-    --hash=sha256:8798e5a418c27cf93195b077153644aea44cb171fcd56edc1ecebaa1e49e226e \
-    --hash=sha256:89ca782ffbf2e8769ca9c89234cfa5ca577f1987d07d913ee3c68c4776b1eb5b
+botocore==1.39.1 \
+    --hash=sha256:912d518ac3096460e54d2cf80899943a521a586fd5c075568e807f3c35623318 \
+    --hash=sha256:ac829b46b30bd837392c9792cdf63b44d290a4691c028b5e66ab471ced1b8305
     # via
     #   boto3
     #   moto
@@ -368,9 +368,9 @@ ipdb==0.13.13 \
     --hash=sha256:45529994741c4ab6d2388bfa5d7b725c2cf7fe9deffabdb8a6113aa5ed449ed4 \
     --hash=sha256:e3ac6018ef05126d442af680aad863006ec19d02290561ac88b8b1c0b0cfc726
     # via -r requirements/dev.in
-ipython==9.3.0 \
-    --hash=sha256:1a0b6dd9221a1f5dddf725b57ac0cb6fddc7b5f470576231ae9162b9b3455a04 \
-    --hash=sha256:79eb896f9f23f50ad16c3bc205f686f6e030ad246cc309c6279a242b14afe9d8
+ipython==9.4.0 \
+    --hash=sha256:25850f025a446d9b359e8d296ba175a36aedd32e83ca9b5060430fe16801f066 \
+    --hash=sha256:c033c6d4e7914c3d9768aabe76bbe87ba1dc66a92a05db6bfa1125d81f2ee270
     # via ipdb
 ipython-pygments-lexers==1.1.1 \
     --hash=sha256:09c0138009e56b6854f9535736f4171d855c8c08a563a0dcd8022f78355c7e81 \
@@ -495,7 +495,9 @@ platformdirs==4.3.8 \
 pluggy==1.6.0 \
     --hash=sha256:7dcc130b76258d33b90f61b658791dede3486c3e6bfb003ee5c9bfb396dd22f3 \
     --hash=sha256:e920276dd6813095e9377c0bc5566d94c932c33b27a3e3945d8389c374dd4746
-    # via pytest
+    # via
+    #   pytest
+    #   pytest-cov
 ply==3.11 \
     --hash=sha256:00c7c1aaa88358b9c765b6d3000c6eec0ba42abca5351b095321aef446081da3 \
     --hash=sha256:096f9b8350b65ebd2fd1346b12452efe5b9607f7482813ffca50c22722a807ce
@@ -612,9 +614,9 @@ pyyaml==6.0.2 \
     # via
     #   pre-commit
     #   responses
-requests==2.32.3 \
-    --hash=sha256:55365417734eb18255590a9ff9eb97e9e1da868d4ccd6402399eaf68af20a760 \
-    --hash=sha256:70761cfe03c773ceb22aa2f671b4757976145175cdfca038c02654d061d6dcc6
+requests==2.32.4 \
+    --hash=sha256:27babd3cda2a6d50b30443204ee89830707d396671944c998b5975b031ac2b2c \
+    --hash=sha256:27d0316682c8a29834d3264820024b62a36942083d52caf2f14c0591336d3422
     # via
     #   gdown
     #   moto
