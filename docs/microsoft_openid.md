@@ -32,4 +32,8 @@ openssl x509 -req -sha256 -days 365 -in server.csr -signkey server.key -out serv
 
 ## Uploading certificate
 
-Now you can upload the certificate to Azure. Note down the certificate thumbprint, as this is an env variable that needs to be added as well.
+Upload the certificate to Azure. Note the certificate thumbprint.
+
+In Render, update
+- MICROSOFT_CERTIFICATE_THUMBPRINT (from Azure)
+- MICROSOFT_PRIVATE_KEY (contents of `server.key`)
