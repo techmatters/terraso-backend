@@ -127,6 +127,12 @@ LOCALE_PATHS = (os.path.join(BASE_DIR, "locale"),)
 WSGI_APPLICATION = "config.wsgi.application"
 
 default_dburl = "sqlite:///" + os.path.join(BASE_DIR, "db.sqlite3")
+PRIMARY_DATABASE_URL = config("DATABASE_URL", default=default_dburl)
+SOIL_ID_DATABASE_URL = config("SOIL_ID_DATABASE_URL", default=PRIMARY_DATABASE_URL)
+
+DATABASES = {
+    "default": parse_db_url(PRIMARY_DATABASE_URL),
+ }
 DATABASES = {
     "default": config("DATABASE_URL", default=default_dburl, cast=parse_db_url),
 }
