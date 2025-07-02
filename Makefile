@@ -1,6 +1,6 @@
 DC_ENV ?= dev
 DC_FILE_ARG = -f docker-compose.$(DC_ENV).yml
-DC_RUN_CMD = docker compose $(DC_FILE_ARG) run --quiet-pull --rm web
+DC_RUN_CMD ?= docker compose $(DC_FILE_ARG) run --quiet-pull --rm web
 
 ifeq ($(DC_ENV),ci)
 	UV_FLAGS = "--system"
@@ -8,10 +8,10 @@ endif
 
 SCHEMA_BUILD_CMD = $(DC_RUN_CMD) python terraso_backend/manage.py graphql_schema --schema apps.graphql.schema.schema.schema --out=-.graphql
 SCHEMA_BUILD_FILE = terraso_backend/apps/graphql/schema/schema.graphql
-api_schema: check_rebuild
+api_schema:
 	$(SCHEMA_BUILD_CMD) > $(SCHEMA_BUILD_FILE)
 
-check_api_schema: check_rebuild
+check_api_schema:
 	$(SCHEMA_BUILD_CMD) | diff $(SCHEMA_BUILD_FILE) -
 
 api_docs: api_schema
@@ -46,7 +46,7 @@ install-dev:
 	uv pip install -r requirements-dev.txt $(UV_FLAGS)
 
 lint: check_api_schema
-	ruff check terraso_backend
+	$(DC_RUN_CMD) ruff check terraso_backend
 
 lock:
 	CUSTOM_COMPILE_COMMAND="make lock" uv pip compile --upgrade --generate-hashes --emit-build-options requirements/base.in requirements/deploy.in -o requirements.txt
@@ -98,19 +98,35 @@ start-%:
 stop:
 	@docker compose $(DC_FILE_ARG) stop
 
-test: clean check_rebuild compile-translations
+test_unit: clean check_rebuild compile-translations
 	if [ -z "$(PATTERN)" ]; then \
-		$(DC_RUN_CMD) pytest terraso_backend; \
+		$(DC_RUN_CMD) pytest terraso_backend -m "not integration"; \
 	else \
-		$(DC_RUN_CMD) pytest terraso_backend -k $(PATTERN); \
+		$(DC_RUN_CMD) pytest terraso_backend -m "not integration" -k $(PATTERN); \
 	fi
 
-test-ci: clean
+test_integration: clean check_rebuild compile-translations
+	if [ -z "$(PATTERN)" ]; then \
+		$(DC_RUN_CMD) pytest terraso_backend -m integration; \
+	else \
+		$(DC_RUN_CMD) pytest terraso_backend -m integration -k $(PATTERN); \
+	fi
+
+test: test_unit test_integration
+
+test_ci_unit: clean
 	# Same action as 'test' but avoiding to create test cache
-	$(DC_RUN_CMD) pytest -p no:cacheprovider terraso_backend
+	$(DC_RUN_CMD) pytest -p no:cacheprovider terraso_backend -m "not integration"
+
+test_ci_integration: clean
+	# Same action as 'test' but avoiding to create test cache
+	$(DC_RUN_CMD) pytest -p no:cacheprovider terraso_backend -m integration
 
 connect_db:
 	docker compose $(DC_FILE_ARG) exec db psql -U postgres -d terraso_backend
+
+connect_soil_id_db:
+	docker compose $(DC_FILE_ARG) exec soil-id-db psql -U postgres -d soil_id
 
 bash:
 	$(DC_RUN_CMD) bash
