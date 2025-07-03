@@ -1,16 +1,19 @@
 from apps.soil_id.graphql.soil_id.resolvers import (
+    parse_rock_fragment_volume,
     resolve_data_based_soil_match,
     resolve_data_based_soil_matches,
     resolve_ecological_site,
     resolve_land_capability_class,
-    resolve_location_based_soil_match,
-    resolve_location_based_soil_matches,
     resolve_rock_fragment_volume,
     resolve_soil_data,
     resolve_soil_info,
     resolve_soil_match_info,
     resolve_texture,
 )
+from apps.soil_id.models.soil_id_cache import SoilIdCache
+from apps.soil_id.models.depth_dependent_soil_data import DepthDependentSoilData
+from apps.soil_id.graphql.soil_data.queries import DepthDependentSoilDataNode
+
 
 sample_soil_list_json = [
     {
@@ -239,17 +242,45 @@ def test_resolve_soil_data():
 
 
 def test_resolve_ecological_site():
-    assert resolve_ecological_site({"ecoclassid": "", "ecoclassname": "", "edit_url": ""}) is None
+    assert resolve_ecological_site({}) is None
     assert (
-        resolve_ecological_site({"ecoclassid": [""], "ecoclassname": [""], "edit_url": [""]})
+        resolve_ecological_site(
+            {
+                "esd": {
+                    "ESD": {
+                        "ecoclassid": "",
+                        "ecoclassname": "",
+                        "edit_url": "",
+                    }
+                }
+            }
+        )
+        is None
+    )
+    assert (
+        resolve_ecological_site(
+            {
+                "esd": {
+                    "ESD": {
+                        "ecoclassid": [""],
+                        "ecoclassname": [""],
+                        "edit_url": [""],
+                    }
+                }
+            }
+        )
         is None
     )
 
     result = resolve_ecological_site(
         {
-            "ecoclassid": ["AX001X02X001"],
-            "ecoclassname": ["Mesic Udic Riparian Forest"],
-            "edit_url": [""],
+            "esd": {
+                "ESD": {
+                    "ecoclassid": ["AX001X02X001"],
+                    "ecoclassname": ["Mesic Udic Riparian Forest"],
+                    "edit_url": [""],
+                }
+            }
         }
     )
 
@@ -297,23 +328,10 @@ def test_resolve_soil_match_info():
     assert result.rank == 0
 
 
-def test_resolve_location_based_soil_match():
-    result = resolve_location_based_soil_match(sample_soil_list_json[0])
-
-    assert result.data_source == "SSURGO"
-    assert result.distance_to_nearest_map_unit_m == 0.0
-    assert result.match.rank == 0
-    assert result.soil_info.soil_series.name == "Randall"
-
-
-def test_resolve_location_based_soil_matches():
-    result = resolve_location_based_soil_matches({"soilList": sample_soil_list_json})
-
-    assert len(result.matches) == 2
-
-
 def test_resolve_data_based_soil_match():
-    result = resolve_data_based_soil_match(sample_soil_list_json, sample_rank_json[0])
+    result = resolve_data_based_soil_match(
+        SoilIdCache.DataRegion.US, sample_soil_list_json, sample_rank_json[0]
+    )
 
     assert result.data_source == "SSURGO"
     assert result.distance_to_nearest_map_unit_m == 0.0
@@ -322,10 +340,46 @@ def test_resolve_data_based_soil_match():
     assert result.combined_match.rank == 1
     assert result.soil_info.soil_series.name == "Randall"
 
+    result = resolve_data_based_soil_match(
+        SoilIdCache.DataRegion.GLOBAL, sample_soil_list_json, sample_rank_json[0]
+    )
+
+    assert result.data_source == "HWSD"
+
 
 def test_resolve_data_based_soil_matches():
     result = resolve_data_based_soil_matches(
-        {"soilList": sample_soil_list_json}, {"soilRank": sample_rank_json}
+        SoilIdCache.DataRegion.GLOBAL,
+        {"soilList": sample_soil_list_json},
+        {"soilRank": sample_rank_json},
     )
 
     assert len(result.matches) == 2
+
+
+def test_parse_rock_fragment_volume():
+    RockFragmentVolumeEnum = DepthDependentSoilDataNode.rock_fragment_volume_enum()
+
+    assert parse_rock_fragment_volume(RockFragmentVolumeEnum.VOLUME_0_1) == "0-1%"
+    assert parse_rock_fragment_volume(RockFragmentVolumeEnum.VOLUME_1_15) == "1-15%"
+    assert parse_rock_fragment_volume(RockFragmentVolumeEnum.VOLUME_15_35) == "15-35%"
+    assert parse_rock_fragment_volume(RockFragmentVolumeEnum.VOLUME_35_60) == "35-60%"
+    assert parse_rock_fragment_volume(RockFragmentVolumeEnum.VOLUME_60) == ">60%"
+
+    assert (
+        parse_rock_fragment_volume(DepthDependentSoilData.RockFragmentVolume.VOLUME_0_1) == "0-1%"
+    )
+    assert (
+        parse_rock_fragment_volume(DepthDependentSoilData.RockFragmentVolume.VOLUME_1_15) == "1-15%"
+    )
+    assert (
+        parse_rock_fragment_volume(DepthDependentSoilData.RockFragmentVolume.VOLUME_15_35)
+        == "15-35%"
+    )
+    assert (
+        parse_rock_fragment_volume(DepthDependentSoilData.RockFragmentVolume.VOLUME_35_60)
+        == "35-60%"
+    )
+    assert parse_rock_fragment_volume(DepthDependentSoilData.RockFragmentVolume.VOLUME_60) == ">60%"
+
+    assert parse_rock_fragment_volume(None) is None

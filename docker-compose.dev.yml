@@ -8,10 +8,17 @@ services:
     depends_on:
       db:
         condition: service_healthy
+      soil-id-db:
+        condition: service_healthy
   db:
     extends:
       file: docker-compose.base.yml
       service: db
+  
+  soil-id-db:
+    extends:
+      file: docker-compose.base.yml
+      service: soil-id-db
 
 volumes:
   postgresql_data:

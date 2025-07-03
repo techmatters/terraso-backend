@@ -10,56 +10,126 @@ on:
     branches:
       - main
 
+permissions:
+  contents: read
+  packages: read
+
 jobs:
+  build-image:
+    runs-on: ubuntu-latest
+    permissions:
+      packages: write
+    outputs:
+      image-tag: ${{ steps.meta.outputs.image-tag }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Extract Git SHA
+        id: meta
+        run: echo "image-tag=ci-${GITHUB_SHA::7}" >> "$GITHUB_OUTPUT"
+
+      - name: Login to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push base Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: Dockerfile
+          tags: ghcr.io/techmatters/terraso-backend-ci:${{ steps.meta.outputs.image-tag }}
+          push: true
+          cache-from: |
+            type=gha,scope=base
+            type=registry,ref=ghcr.io/techmatters/terraso-backend-ci:cache
+          cache-to: |
+            type=gha,mode=max,scope=base
+            type=registry,ref=ghcr.io/techmatters/terraso-backend-ci:cache,mode=max
+
+      - name: Build and push dev Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: Dockerfile.dev
+          tags: ghcr.io/techmatters/terraso-backend-ci-dev:${{ steps.meta.outputs.image-tag }}
+          push: true
+          cache-from: |
+            type=gha,scope=dev          
+            type=registry,ref=ghcr.io/techmatters/terraso-backend-ci-dev:cache
+            type=registry,ref=ghcr.io/techmatters/terraso-backend-ci:cache
+          cache-to: |
+            type=gha,mode=max,scope=dev
+            type=registry,ref=ghcr.io/techmatters/terraso-backend-ci-dev:cache,mode=max
+          build-args: |
+            BASE_IMAGE=ghcr.io/techmatters/terraso-backend-ci:${{ steps.meta.outputs.image-tag }}
+
   lint:
     runs-on: ubuntu-latest
+    needs: build-image
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.13.3'
-
-      - name: Install uv
-        uses: astral-sh/setup-uv@v6
-        with:
-          enable-cache: true
-          cache-dependency-glob: 'requirements**.txt'
-
-      - name: Install Python dependencies for CI
-        run: make install-dev DC_ENV=ci
-
-      - name: Build base Docker image
+      - name: Set up env
         run: |
           cp .env.sample .env
           echo "SENTRY_DSN=${{ secrets.SENTRY_DSN }}" >> .env
-          make build DC_ENV=ci
+      
+      - name: Login to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Run lint checks
-        run: make lint
+        env:
+          TERRASO_BACKEND_WEB_DOCKER_IMAGE: ghcr.io/techmatters/terraso-backend-ci-dev:${{ needs.build-image.outputs.image-tag }}
+        run: make lint DC_ENV=ci
 
-  build-and-test:
+  test-unit:
     runs-on: ubuntu-latest
-    needs: lint
-
+    needs: build-image
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Build base Docker image
+      - name: Login to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Set up env
         run: |
           cp .env.sample .env
           echo "SENTRY_DSN=${{ secrets.SENTRY_DSN }}" >> .env
-          make build DC_ENV=ci
 
+      - name: Run tests using built Docker image
+        env:
+          TERRASO_BACKEND_WEB_DOCKER_IMAGE: ghcr.io/techmatters/terraso-backend-ci-dev:${{ needs.build-image.outputs.image-tag }}
+        run: make test_ci_unit DC_ENV=ci
+
+  test-integration:
+    runs-on: ubuntu-latest
+    needs: build-image
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      
       - name: Restore data cache
         uses: actions/cache@v4
         with:
           path: Data/
-          key: ${{ runner.os }}-data-${{ hashFiles('*') }}
-          restore-keys: ${{ runner.os }}-data-
+          key: ${{ runner.os }}-soil-data-${{ hashFiles('*') }}
+          restore-keys: ${{ runner.os }}-soil-data-
 
       - name: Setup Python
         if: ${{ hashFiles('Data/*') == '' }}
@@ -68,6 +138,7 @@ jobs:
           python-version: '3.13.3'
 
       - name: Install uv
+        if: ${{ hashFiles('Data/*') == '' }}
         uses: astral-sh/setup-uv@v6
         with:
           enable-cache: true
@@ -79,5 +150,20 @@ jobs:
           make install-dev DC_ENV=ci
           make download-soil-data
 
-      - name: Run tests using built Docker image
-        run: make test-ci DC_ENV=ci
+      - name: Login to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: set up env
+        run: |
+          cp .env.sample .env
+          echo "SENTRY_DSN=${{ secrets.SENTRY_DSN }}" >> .env
+          echo "SOIL_ID_DATABASE_URL=postgresql://postgres:postgres@soil-id-db:5432/soil_id" >> .env
+      
+      - name: Run integration tests
+        env:
+          TERRASO_BACKEND_WEB_DOCKER_IMAGE: ghcr.io/techmatters/terraso-backend-ci-dev:${{ needs.build-image.outputs.image-tag }}
+        run: make test_ci_integration DC_ENV=ci
