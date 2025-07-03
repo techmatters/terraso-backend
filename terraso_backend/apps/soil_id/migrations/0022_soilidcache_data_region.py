@@ -4,7 +4,7 @@ from django.db import migrations, models
 
 def update_rows(apps, schema_editor):
     SoilIdCache = apps.get_model("soil_id", "SoilIdCache")
-    SoilIdCache.objects.filter(failure_reason__isnull=True).update(data_region="US")
+    SoilIdCache.objects.all().delete()
 
 class Migration(migrations.Migration):
 

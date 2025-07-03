@@ -42,7 +42,7 @@ from apps.soil_id.graphql.types import DepthInterval
 from apps.soil_id.models.depth_dependent_soil_data import DepthDependentSoilData
 from apps.soil_id.models.soil_data import SoilData
 from apps.soil_id.models.soil_id_cache import SoilIdCache
-from config.settings import SOIL_ID_DATABASE_URL
+from config.settings import GLOBAL_SOIL_ID_BUFFER_DISTANCE, SOIL_ID_DATABASE_URL
 
 logger = structlog.get_logger(__name__)
 
@@ -188,7 +188,7 @@ def clean_soil_list_json(obj):
     return obj
 
 
-def get_cached_list_soils_output(latitude, longitude):
+def get_list_soils_output(latitude, longitude):
     cached_result = SoilIdCache.get_data(latitude=latitude, longitude=longitude)
 
     if cached_result is None:
@@ -202,7 +202,7 @@ def get_cached_list_soils_output(latitude, longitude):
                 lat=latitude,
                 lon=longitude,
                 connection=soil_id_database_connection(),
-                buffer_dist=30000,
+                buffer_dist=GLOBAL_SOIL_ID_BUFFER_DISTANCE,
             )
         else:
             raise ValueError(f"Unknown data region: {data_region}")
@@ -213,10 +213,9 @@ def get_cached_list_soils_output(latitude, longitude):
             list_output = failure_reason.value
         else:
             list_output.soil_list_json = clean_soil_list_json(list_output.soil_list_json)
-
-        SoilIdCache.save_data(
-            latitude=latitude, longitude=longitude, data=list_output, data_region=data_region
-        )
+            SoilIdCache.save_data(
+                latitude=latitude, longitude=longitude, data=list_output, data_region=data_region
+            )
 
         if failure_reason is not None:
             return list_output
@@ -304,6 +303,8 @@ def parse_rank_soils_input_data(
 ):
     # TODO: pass in values for elevation and bedrock
     inputs = {
+        "topDepth": [],
+        "bottomDepth": [],
         "soilHorizon": [],
         "rfvDepth": [],
         "lab_Color": [],
@@ -314,9 +315,6 @@ def parse_rank_soils_input_data(
     if data_region == SoilIdCache.DataRegion.US:
         inputs["pElev"] = None
         inputs["pSlope"] = None
-
-    inputs["topDepth"] = []
-    inputs["bottomDepth"] = []
 
     if data is None:
         return inputs
@@ -361,12 +359,12 @@ def resolve_data_based_result(
     _parent, _info, latitude: float, longitude: float, data: Optional[SoilIdInputData] = None
 ):
     try:
-        cached_result = get_cached_list_soils_output(latitude=latitude, longitude=longitude)
+        list_result = get_list_soils_output(latitude=latitude, longitude=longitude)
 
-        if isinstance(cached_result, str):
-            return SoilIdFailure(reason=cached_result)
+        if isinstance(list_result, str):
+            return SoilIdFailure(reason=list_result)
 
-        data_region, list_output = cached_result
+        data_region, list_output = list_result
 
         if data_region == SoilIdCache.DataRegion.US:
             rank_output = us_soil.rank_soils(
@@ -383,6 +381,8 @@ def resolve_data_based_result(
                 connection=soil_id_database_connection(),
                 **parse_rank_soils_input_data(data, data_region),
             )
+        elif data_region is None:
+            return SoilIdFailure(reason=SoilIdFailureReason.DATA_UNAVAILABLE)
         else:
             raise ValueError(f"Unknown data region: {data_region}")
 

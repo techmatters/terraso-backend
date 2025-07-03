@@ -133,9 +133,6 @@ SOIL_ID_DATABASE_URL = config("SOIL_ID_DATABASE_URL", default=PRIMARY_DATABASE_U
 DATABASES = {
     "default": parse_db_url(PRIMARY_DATABASE_URL),
 }
-DATABASES = {
-    "default": config("DATABASE_URL", default=default_dburl, cast=parse_db_url),
-}
 
 AUTHENTICATION_BACKENDS = (
     "rules.permissions.ObjectPermissionBackend",
@@ -446,4 +443,9 @@ HUBSPOT_ACCOUNT_DELETION_FORM_ID = config("HUBSPOT_ACCOUNT_DELETION_FORM_ID", de
 HUBSPOT_ACCOUNT_DELETION_FORM_API_URL = (
     f"https://api.hsforms.com/submissions/v3/integration/submit/"
     f"{HUBSPOT_PORTAL_ID}/{HUBSPOT_ACCOUNT_DELETION_FORM_ID}"
+)
+
+# 30,000 seemed to be the goldilocks between high enough to pull in a decent number of soils, but not so high that it killed perf / pulled in too many soils. We also tried 10,000 and 100,000.
+GLOBAL_SOIL_ID_BUFFER_DISTANCE = config(
+    "GLOBAL_SOIL_ID_BUFFER_DISTANCE", default="30000", cast=config.eval
 )

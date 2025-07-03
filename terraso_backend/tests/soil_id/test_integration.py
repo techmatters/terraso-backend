@@ -102,11 +102,10 @@ us_coordinates = [
     # {"latitude": 37.430296, "longitude": -122.126583},  noqa: E800
 ]
 
-us_tests = [
-    pytest.param(coords, with_data, id=f"coords{idx} {'with' if with_data else 'without'} data")
-    for idx, coords in enumerate(us_coordinates)
-    for with_data in [True, False]
-]
+us_tests = []
+for idx, coords in enumerate(us_coordinates):
+    us_tests.append(pytest.param(coords, True, id=f"coords{idx} with data"))
+    us_tests.append(pytest.param(coords, False, id=f"coords{idx} without data"))
 
 
 @pytest.mark.integration
