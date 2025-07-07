@@ -361,8 +361,8 @@ fiona==1.10.1 \
     --hash=sha256:fa7e7e5ad252ef29905384bf92e7d14dd5374584b525632652c2ab8925304670 \
     --hash=sha256:fc7366f99bdc18ec99441b9e50246fdf5e72923dc9cbb00267b2bf28edd142ba
     # via -r requirements/base.in
-gdal==3.10.3 \
-    --hash=sha256:b5550650daeeae8e41091581d9aea7d75a9f15b0ebbeb8c96e37458fa02264cd
+gdal==3.11.1 \
+    --hash=sha256:c67b13ba0f26a2e0e6594036a35a3d1ed28258a1ce87869f36ffb044f7c2d9af
     # via soil-id
 geopandas==1.1.1 \
     --hash=sha256:1745713f64d095c43e72e08e753dbd271678254b24f2e01db8cdb8debe1d293d \
