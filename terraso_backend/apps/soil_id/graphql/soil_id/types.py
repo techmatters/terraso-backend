@@ -61,7 +61,7 @@ class SoilIdDepthDependentData(graphene.ObjectType):
 class SoilIdSoilData(graphene.ObjectType):
     """Soil data associated with a soil match output by the soil algorithm."""
 
-    slope = graphene.Float()
+    slope = graphene.Float(description="US only")
     depth_dependent_data = graphene.List(graphene.NonNull(SoilIdDepthDependentData), required=True)
 
 
@@ -69,8 +69,8 @@ class SoilInfo(graphene.ObjectType):
     """Provides information about soil at a particular location."""
 
     soil_series = graphene.Field(SoilSeries, required=True)
-    ecological_site = graphene.Field(EcologicalSite)
-    land_capability_class = graphene.Field(LandCapabilityClass)
+    ecological_site = graphene.Field(EcologicalSite, description="US only")
+    land_capability_class = graphene.Field(LandCapabilityClass, description="US only")
     soil_data = graphene.Field(SoilIdSoilData, required=True)
 
 

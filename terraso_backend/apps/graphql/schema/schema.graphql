@@ -112,7 +112,11 @@ type DataBasedSoilMatch {
 """Provides information about soil at a particular location."""
 type SoilInfo {
   soilSeries: SoilSeries!
+
+  """US only"""
   ecologicalSite: EcologicalSite
+
+  """US only"""
   landCapabilityClass: LandCapabilityClass
   soilData: SoilIdSoilData!
 }
@@ -140,6 +144,7 @@ type LandCapabilityClass {
 
 """Soil data associated with a soil match output by the soil algorithm."""
 type SoilIdSoilData {
+  """US only"""
   slope: Float
   depthDependentData: [SoilIdDepthDependentData!]!
 }
