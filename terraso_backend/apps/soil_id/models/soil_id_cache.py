@@ -16,6 +16,7 @@
 
 from django.db import models
 from soil_id.us_soil import SoilListOutputData
+from typing import Optional
 
 from apps.core.models.commons import BaseModel
 
@@ -23,6 +24,13 @@ from apps.core.models.commons import BaseModel
 class SoilIdCache(BaseModel):
     latitude = models.FloatField()
     longitude = models.FloatField()
+
+    class DataRegion(models.TextChoices):
+        US = "US"
+        GLOBAL = "GLOBAL"
+
+    data_region = models.CharField(choices=DataRegion.choices, null=True)
+
     failure_reason = models.TextField(null=True)
     soil_list_json = models.JSONField(null=True)
     rank_data_csv = models.TextField(null=True)
@@ -40,7 +48,13 @@ class SoilIdCache(BaseModel):
         return round(coord, 6)
 
     @classmethod
-    def save_data(cls, latitude: float, longitude: float, data: SoilListOutputData | str):
+    def save_data(
+        cls,
+        latitude: float,
+        longitude: float,
+        data: SoilListOutputData | str,
+        data_region: Optional[DataRegion],
+    ):
         if isinstance(data, str):
             data_to_save = {"failure_reason": data}
         else:
@@ -48,6 +62,7 @@ class SoilIdCache(BaseModel):
                 "soil_list_json": data.soil_list_json,
                 "rank_data_csv": data.rank_data_csv,
                 "map_unit_component_data_csv": data.map_unit_component_data_csv,
+                "data_region": data_region,
             }
 
         cls.objects.update_or_create(
@@ -65,7 +80,7 @@ class SoilIdCache(BaseModel):
             if prev_result.failure_reason is not None:
                 return prev_result.failure_reason
 
-            return SoilListOutputData(
+            return prev_result.data_region, SoilListOutputData(
                 soil_list_json=prev_result.soil_list_json,
                 rank_data_csv=prev_result.rank_data_csv,
                 map_unit_component_data_csv=prev_result.map_unit_component_data_csv,

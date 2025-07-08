@@ -1,6 +1,6 @@
 DC_ENV ?= dev
 DC_FILE_ARG = -f docker-compose.$(DC_ENV).yml
-DC_RUN_CMD = docker compose $(DC_FILE_ARG) run --quiet-pull --rm web
+DC_RUN_CMD ?= docker compose $(DC_FILE_ARG) run --quiet-pull --rm web
 
 ifeq ($(DC_ENV),ci)
 	UV_FLAGS = "--system"
@@ -8,10 +8,10 @@ endif
 
 SCHEMA_BUILD_CMD = $(DC_RUN_CMD) python terraso_backend/manage.py graphql_schema --schema apps.graphql.schema.schema.schema --out=-.graphql
 SCHEMA_BUILD_FILE = terraso_backend/apps/graphql/schema/schema.graphql
-api_schema: check_rebuild
+api_schema:
 	$(SCHEMA_BUILD_CMD) > $(SCHEMA_BUILD_FILE)
 
-check_api_schema: check_rebuild
+check_api_schema:
 	$(SCHEMA_BUILD_CMD) | diff $(SCHEMA_BUILD_FILE) -
 
 api_docs: api_schema
@@ -46,10 +46,14 @@ install-dev:
 	uv pip install -r requirements-dev.txt $(UV_FLAGS)
 
 lint: check_api_schema
-	ruff check terraso_backend
+	$(DC_RUN_CMD) ruff check terraso_backend
+	$(DC_RUN_CMD) ruff format terraso_backend --diff
 
 lock:
 	CUSTOM_COMPILE_COMMAND="make lock" uv pip compile --upgrade --generate-hashes --emit-build-options requirements/base.in requirements/deploy.in -o requirements.txt
+
+lock-package:
+	CUSTOM_COMPILE_COMMAND="make lock" uv pip compile --upgrade-package $(PACKAGE) --generate-hashes --emit-build-options requirements/base.in requirements/deploy.in -o requirements.txt
 
 lock-dev:
 	CUSTOM_COMPILE_COMMAND="make lock-dev" uv pip compile --upgrade --generate-hashes --emit-build-options requirements/dev.in -o requirements-dev.txt
@@ -95,31 +99,51 @@ start-%:
 stop:
 	@docker compose $(DC_FILE_ARG) stop
 
-test: clean check_rebuild compile-translations
+test_unit: clean check_rebuild compile-translations
 	if [ -z "$(PATTERN)" ]; then \
-		$(DC_RUN_CMD) pytest terraso_backend; \
+		$(DC_RUN_CMD) pytest terraso_backend -m "not integration"; \
 	else \
-		$(DC_RUN_CMD) pytest terraso_backend -k $(PATTERN); \
+		$(DC_RUN_CMD) pytest terraso_backend -m "not integration" -k $(PATTERN); \
 	fi
 
-test-ci: clean
+test_integration: clean check_rebuild compile-translations
+	if [ -z "$(PATTERN)" ]; then \
+		$(DC_RUN_CMD) pytest terraso_backend -m integration; \
+	else \
+		$(DC_RUN_CMD) pytest terraso_backend -m integration -k $(PATTERN); \
+	fi
+
+test: test_unit test_integration
+
+test_ci_unit: clean
 	# Same action as 'test' but avoiding to create test cache
-	$(DC_RUN_CMD) pytest -p no:cacheprovider terraso_backend
+	$(DC_RUN_CMD) pytest -p no:cacheprovider terraso_backend -m "not integration"
+
+test_ci_integration: clean
+	# Same action as 'test' but avoiding to create test cache
+	$(DC_RUN_CMD) pytest -p no:cacheprovider terraso_backend -m integration
 
 connect_db:
 	docker compose $(DC_FILE_ARG) exec db psql -U postgres -d terraso_backend
 
+connect_soil_id_db:
+	docker compose $(DC_FILE_ARG) exec soil-id-db psql -U postgres -d soil_id
+
 bash:
 	$(DC_RUN_CMD) bash
 
-# Donwload Munsell CSV, SHX, SHP, SBX, SBN, PRJ, DBF
-# 1tN23iVe6X1fcomcfveVp4w3Pwd0HJuTe: LandPKS_munsell_rgb_lab.csv
-# 1WUa9e3vTWPi6G8h4OI3CBUZP5y7tf1Li: gsmsoilmu_a_us.shx
-# 1l9MxC0xENGmI_NmGlBY74EtlD6SZid_a: gsmsoilmu_a_us.shp
-# 1asGnnqe0zI2v8xuOszlsNmZkOSl7cJ2n: gsmsoilmu_a_us.sbx
-# 185Qjb9pJJn4AzOissiTz283tINrDqgI0: gsmsoilmu_a_us.sbn
-# 1P3xl1YRlfcMjfO_4PM39tkrrlL3hoLzv: gsmsoilmu_a_us.prj
-# 1K0GkqxhZiVUND6yfFmaI7tYanLktekyp: gsmsoilmu_a_us.dbf
+# Download data files needed for soil ID
+# They're stored in Google Drive here: https://drive.google.com/drive/folders/1s1jNPyYCHy7FfWAhqmOBDliklzvfnKO_
+# We'd like to remove the need for this step, which is tracked upstream here: https://github.com/techmatters/soil-id-algorithm/issues/51
+# List of files:
+#   1tN23iVe6X1fcomcfveVp4w3Pwd0HJuTe: LandPKS_munsell_rgb_lab.csv
+#   1WUa9e3vTWPi6G8h4OI3CBUZP5y7tf1Li: gsmsoilmu_a_us.shx
+#   1l9MxC0xENGmI_NmGlBY74EtlD6SZid_a: gsmsoilmu_a_us.shp
+#   1asGnnqe0zI2v8xuOszlsNmZkOSl7cJ2n: gsmsoilmu_a_us.sbx
+#   185Qjb9pJJn4AzOissiTz283tINrDqgI0: gsmsoilmu_a_us.sbn
+#   1P3xl1YRlfcMjfO_4PM39tkrrlL3hoLzv: gsmsoilmu_a_us.prj
+#   1K0GkqxhZiVUND6yfFmaI7tYanLktekyp: gsmsoilmu_a_us.dbf
+#   1z7foFFHv_mTsuxMYnfOQRvXT5LKYlYFN: SoilID_US_Areas.shz
 download-soil-data:
 	mkdir -p Data
 	cd Data; \
@@ -129,7 +153,8 @@ download-soil-data:
 	gdown 1asGnnqe0zI2v8xuOszlsNmZkOSl7cJ2n; \
 	gdown 185Qjb9pJJn4AzOissiTz283tINrDqgI0; \
 	gdown 1P3xl1YRlfcMjfO_4PM39tkrrlL3hoLzv; \
-	gdown 1K0GkqxhZiVUND6yfFmaI7tYanLktekyp \
+	gdown 1K0GkqxhZiVUND6yfFmaI7tYanLktekyp; \
+	gdown 1z7foFFHv_mTsuxMYnfOQRvXT5LKYlYFN \
 
 ${VIRTUAL_ENV}/scripts/ruff:
 	uv pip install ruff

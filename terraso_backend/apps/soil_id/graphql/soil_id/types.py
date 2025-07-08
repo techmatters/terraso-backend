@@ -20,6 +20,9 @@ from apps.soil_id.graphql.soil_data.queries import (
     SoilDataNode,
 )
 from apps.soil_id.graphql.types import DepthInterval, DepthIntervalInput
+from apps.soil_id.models.soil_id_cache import SoilIdCache
+
+DataRegion = graphene.Enum.from_enum(SoilIdCache.DataRegion, "SoilIdDataRegionChoices")
 
 
 class EcologicalSite(graphene.ObjectType):
@@ -34,9 +37,9 @@ class SoilSeries(graphene.ObjectType):
     """Information about a soil series."""
 
     name = graphene.String(required=True)
-    taxonomy_subgroup = graphene.String(required=True)
-    description = graphene.String(required=True)
-    full_description_url = graphene.String(required=True)
+    taxonomy_subgroup = graphene.String()
+    description = graphene.String()
+    full_description_url = graphene.String()
 
 
 class LandCapabilityClass(graphene.ObjectType):
@@ -58,7 +61,7 @@ class SoilIdDepthDependentData(graphene.ObjectType):
 class SoilIdSoilData(graphene.ObjectType):
     """Soil data associated with a soil match output by the soil algorithm."""
 
-    slope = graphene.Float()
+    slope = graphene.Float(description="US only")
     depth_dependent_data = graphene.List(graphene.NonNull(SoilIdDepthDependentData), required=True)
 
 
@@ -66,8 +69,8 @@ class SoilInfo(graphene.ObjectType):
     """Provides information about soil at a particular location."""
 
     soil_series = graphene.Field(SoilSeries, required=True)
-    ecological_site = graphene.Field(EcologicalSite, required=False)
-    land_capability_class = graphene.Field(LandCapabilityClass, required=True)
+    ecological_site = graphene.Field(EcologicalSite, description="US only")
+    land_capability_class = graphene.Field(LandCapabilityClass, description="US only")
     soil_data = graphene.Field(SoilIdSoilData, required=True)
 
 
@@ -89,18 +92,6 @@ class SoilMatch(graphene.ObjectType):
     soil_info = graphene.Field(SoilInfo, required=True)
 
 
-class LocationBasedSoilMatch(SoilMatch):
-    """A soil match based solely on a coordinate pair."""
-
-    match = graphene.Field(SoilMatchInfo, required=True)
-
-
-class LocationBasedSoilMatches(graphene.ObjectType):
-    """A ranked group of soil matches based solely on a coordinate pair."""
-
-    matches = graphene.List(graphene.NonNull(LocationBasedSoilMatch), required=True)
-
-
 class SoilIdFailureReason(graphene.Enum):
     DATA_UNAVAILABLE = "DATA_UNAVAILABLE"
     ALGORITHM_FAILURE = "ALGORITHM_FAILURE"
@@ -110,23 +101,19 @@ class SoilIdFailure(graphene.ObjectType):
     reason = graphene.Field(SoilIdFailureReason, required=True)
 
 
-class LocationBasedResult(graphene.Union):
-    class Meta:
-        types = (LocationBasedSoilMatches, SoilIdFailure)
-
-
 class DataBasedSoilMatch(SoilMatch):
     """A soil match based on a coordinate pair and soil data."""
 
     soil_info = graphene.Field(SoilInfo, required=True)
     location_match = graphene.Field(SoilMatchInfo, required=True)
-    data_match = graphene.Field(SoilMatchInfo, required=True)
-    combined_match = graphene.Field(SoilMatchInfo, required=True)
+    data_match = graphene.Field(SoilMatchInfo)
+    combined_match = graphene.Field(SoilMatchInfo)
 
 
 class DataBasedSoilMatches(graphene.ObjectType):
     """A ranked group of soil matches based on a coordinate pair and soil data."""
 
+    data_region = DataRegion(required=True)
     matches = graphene.List(graphene.NonNull(DataBasedSoilMatch), required=True)
 
 
