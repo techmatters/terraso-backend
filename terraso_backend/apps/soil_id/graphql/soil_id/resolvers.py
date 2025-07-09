@@ -240,14 +240,18 @@ def resolve_data_based_soil_match(
     else:
         data_source = site_data["dataSource"]
 
+    location_match = resolve_soil_match_info(ranked_match["score_loc"], ranked_match["rank_loc"])
+    combined_match = (
+        resolve_soil_match_info(ranked_match["score_data_loc"], ranked_match["rank_data_loc"])
+        or location_match
+    )
+
     return DataBasedSoilMatch(
         data_source=data_source,
         distance_to_nearest_map_unit_m=site_data["minCompDistance"],
-        location_match=resolve_soil_match_info(ranked_match["score_loc"], ranked_match["rank_loc"]),
+        location_match=location_match,
         data_match=resolve_soil_match_info(ranked_match["score_data"], ranked_match["rank_data"]),
-        combined_match=resolve_soil_match_info(
-            ranked_match["score_data_loc"], ranked_match["rank_data_loc"]
-        ),
+        combined_match=combined_match,
         soil_info=resolve_soil_info(soil_match),
     )
 
