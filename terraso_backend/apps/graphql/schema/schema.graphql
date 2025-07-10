@@ -80,13 +80,16 @@ type Query {
 
 """Soil ID algorithm queries."""
 type SoilId {
+  """DEPRECATED"""
   dataBasedSoilMatches(latitude: Float!, longitude: Float!, data: SoilIdInputData): DataBasedResult!
+  soilMatches(latitude: Float!, longitude: Float!, data: SoilIdInputData): SoilIdResult!
 }
 
+"""DEPRECATED"""
 union DataBasedResult = DataBasedSoilMatches | SoilIdFailure
 
 """
-A ranked group of soil matches based on a coordinate pair and soil data.
+DEPRECATED: A ranked group of soil matches based on a coordinate pair and soil data.
 """
 type DataBasedSoilMatches {
   dataRegion: SoilIdDataRegionChoices!
@@ -99,7 +102,7 @@ enum SoilIdDataRegionChoices {
   GLOBAL
 }
 
-"""A soil match based on a coordinate pair and soil data."""
+"""DEPRECATED: A soil match based on a coordinate pair and soil data."""
 type DataBasedSoilMatch {
   dataSource: String!
   distanceToNearestMapUnitM: Float!
@@ -274,6 +277,26 @@ input LABColorInput {
   L: Float!
   A: Float!
   B: Float!
+}
+
+union SoilIdResult = SoilMatches | SoilIdFailure
+
+"""
+A ranked group of soil matches based on a coordinate pair and soil data.
+"""
+type SoilMatches {
+  dataRegion: SoilIdDataRegionChoices!
+  matches: [SoilMatch!]!
+}
+
+"""A soil match based on a coordinate pair and soil data."""
+type SoilMatch {
+  dataSource: String!
+  distanceToNearestMapUnitM: Float!
+  soilInfo: SoilInfo!
+  locationMatch: SoilMatchInfo!
+  dataMatch: SoilMatchInfo
+  combinedMatch: SoilMatchInfo
 }
 
 type GroupNode implements Node {

@@ -7,7 +7,9 @@ from apps.soil_id.graphql.soil_id.resolvers import (
     resolve_rock_fragment_volume,
     resolve_soil_data,
     resolve_soil_info,
+    resolve_soil_match,
     resolve_soil_match_info,
+    resolve_soil_matches,
     resolve_texture,
 )
 from apps.soil_id.models.soil_id_cache import SoilIdCache
@@ -178,10 +180,10 @@ sample_rank_json = [
         "name": "Acuff1",
         "component": "Acuff",
         "componentID": 24140822,
-        "score_data_loc": 0.29,
-        "rank_data_loc": "1",
-        "score_data": 0.927,
-        "rank_data": "1",
+        "score_data_loc": None,
+        "rank_data_loc": None,
+        "score_data": None,
+        "rank_data": None,
         "score_loc": 0.517,
         "rank_loc": "2",
         "componentData": "Data Complete",
@@ -328,8 +330,8 @@ def test_resolve_soil_match_info():
     assert result.rank == 0
 
 
-def test_resolve_data_based_soil_match():
-    result = resolve_data_based_soil_match(
+def test_resolve_soil_match():
+    result = resolve_soil_match(
         SoilIdCache.DataRegion.US, sample_soil_list_json, sample_rank_json[0]
     )
 
@@ -340,16 +342,52 @@ def test_resolve_data_based_soil_match():
     assert result.combined_match.rank == 1
     assert result.soil_info.soil_series.name == "Randall"
 
-    result = resolve_data_based_soil_match(
-        SoilIdCache.DataRegion.GLOBAL, sample_soil_list_json, sample_rank_json[0]
+    result = resolve_soil_match(
+        SoilIdCache.DataRegion.GLOBAL, sample_soil_list_json, sample_rank_json[1]
     )
 
     assert result.data_source == "HWSD"
+    assert result.distance_to_nearest_map_unit_m == 90.0
+    assert result.data_match is None
+    assert result.combined_match is None
 
 
+# DEPRECATED
+def test_resolve_data_based_soil_match():
+    result = resolve_data_based_soil_match(sample_soil_list_json, sample_rank_json[0])
+
+    assert result.data_source == "SSURGO"
+    assert result.distance_to_nearest_map_unit_m == 0.0
+    assert result.data_match.rank == 1
+    assert result.location_match.rank == 0
+    assert result.combined_match.rank == 1
+    assert result.soil_info.soil_series.name == "Randall"
+
+    result = resolve_data_based_soil_match(sample_soil_list_json, sample_rank_json[1])
+
+    assert result.data_source == "SSURGO"
+    assert result.distance_to_nearest_map_unit_m == 90.0
+    assert result.data_match.score == 0.5
+    assert result.data_match.rank == 0
+    assert result.location_match.rank == 1
+    assert result.combined_match.rank == result.location_match.rank
+    assert result.combined_match.score == result.location_match.score
+    assert result.soil_info.soil_series.name == "Acuff"
+
+
+def test_resolve_soil_matches():
+    result = resolve_soil_matches(
+        SoilIdCache.DataRegion.GLOBAL,
+        {"soilList": sample_soil_list_json},
+        {"soilRank": sample_rank_json},
+    )
+
+    assert len(result.matches) == 2
+
+
+# DEPRECATED
 def test_resolve_data_based_soil_matches():
     result = resolve_data_based_soil_matches(
-        SoilIdCache.DataRegion.GLOBAL,
         {"soilList": sample_soil_list_json},
         {"soilRank": sample_rank_json},
     )

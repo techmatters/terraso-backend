@@ -16,8 +16,8 @@
 
 import graphene
 
-from apps.soil_id.graphql.soil_id.resolvers import resolve_data_based_result
-from apps.soil_id.graphql.soil_id.types import DataBasedResult, SoilIdInputData
+from apps.soil_id.graphql.soil_id.resolvers import resolve_data_based_result, resolve_soil_id_result
+from apps.soil_id.graphql.soil_id.types import DataBasedResult, SoilIdResult, SoilIdInputData
 
 
 class SoilId(graphene.ObjectType):
@@ -29,6 +29,15 @@ class SoilId(graphene.ObjectType):
         longitude=graphene.Float(required=True),
         data=graphene.Argument(SoilIdInputData),
         resolver=resolve_data_based_result,
+        description="DEPRECATED",
+    )
+
+    soil_matches = graphene.Field(
+        graphene.NonNull(SoilIdResult),
+        latitude=graphene.Float(required=True),
+        longitude=graphene.Float(required=True),
+        data=graphene.Argument(SoilIdInputData),
+        resolver=resolve_soil_id_result,
     )
 
 
