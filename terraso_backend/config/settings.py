@@ -269,6 +269,7 @@ if WEB_CLIENT_PORT != 443:
 LOGIN_URL = f"{WEB_CLIENT_URL}/account"
 AUTH_COOKIE_DOMAIN = config("AUTH_COOKIE_DOMAIN", default="")
 CORS_ORIGIN_WHITELIST = config("CORS_ORIGIN_WHITELIST", default=[], cast=config.list)
+CORS_ALLOWED_ORIGIN_REGEXES = config("CORS_ALLOWED_ORIGIN_REGEXES", default=[], cast=config.list)
 
 API_ENDPOINT = config("API_ENDPOINT", default="")
 

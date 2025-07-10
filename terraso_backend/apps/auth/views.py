@@ -13,7 +13,9 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see https://www.gnu.org/licenses/.
 
+import binascii
 import functools
+import base64
 import json
 from typing import Optional
 from urllib.parse import urlparse
@@ -75,16 +77,28 @@ class AbstractCallbackView(View):
     def get(self, request, *args, **kwargs):
         self.authorization_code = self.request.GET.get("code")
         self.error = self.request.GET.get("error")
-        self.state = self.request.GET.get("state", "")
+        self.state = self._decode_state(self.request.GET.get("state", ""))
 
         return self.process_callback(request)
 
     def post(self, request, *args, **kwargs):
         self.authorization_code = self.request.POST.get("code")
         self.error = self.request.POST.get("error")
-        self.state = self.request.POST.get("state", "")
+        self.state = self._decode_state(self.request.POST.get("state", ""))
 
         return self.process_callback(request)
+
+    @classmethod
+    def _decode_state(cls, state):
+        try:
+            return json.loads(base64.b64decode(state).decode("utf-8"))
+        except (UnicodeDecodeError, json.JSONDecodeError, binascii.Error):
+            # probably an old client trying to just send a redirect uri directly
+            return {"redirectUrl": state, "origin": settings.WEB_CLIENT_URL}
+
+    @classmethod
+    def _encode_state(cls, state):
+        return base64.b64encode(json.dumps(state).encode("utf-8")).decode("utf-8")
 
     @classmethod
     def _check_cookie(cls, cookie):
@@ -114,7 +128,8 @@ class AbstractCallbackView(View):
             logger.exception("Error attempting create access and refresh tokens")
             return HttpResponse(f"Error: {exc}", status=400)
 
-        redirect_uri = f"{settings.WEB_CLIENT_URL}/{self.state}"
+        origin = self.state["origin"]
+        redirect_uri = self.state["redirectUrl"]
         if cookie := req.get_signed_cookie(
             OAUTH_COOKIE_NAME, None, max_age=OAUTH_COOKIE_MAX_AGE_SECONDS
         ):
@@ -122,10 +137,24 @@ class AbstractCallbackView(View):
             # redirecting the user to this URI will start our OAuth process
             if self._check_cookie(cookie):
                 redirect_uri = cookie
-        response = HttpResponseRedirect(redirect_uri)
+
+        # Get the domain from the redirect URI or use configured domain
+        redirect_domain = urlparse(origin).hostname
+        if settings.ENV == "production" or redirect_domain == settings.WEB_CLIENT_DOMAIN:
+            response = HttpResponseRedirect(f"{origin}/{redirect_uri}")
+            response.set_cookie("atoken", access_token, domain=settings.AUTH_COOKIE_DOMAIN)
+            response.set_cookie("rtoken", refresh_token, domain=settings.AUTH_COOKIE_DOMAIN)
+        else:
+            state = self._encode_state(
+                {
+                    "atoken": access_token,
+                    "rtoken": refresh_token,
+                    "redirectUrl": redirect_uri,
+                }
+            )
+            response = HttpResponseRedirect(f"{origin}/account/auth-callback?state={state}")
         response.delete_cookie("oauth")
-        response.set_cookie("atoken", access_token, domain=settings.AUTH_COOKIE_DOMAIN)
-        response.set_cookie("rtoken", refresh_token, domain=settings.AUTH_COOKIE_DOMAIN)
+
         if created_with_service:
             # Set samesite to avoid warnings
             plausible_service = PlausibleService()
