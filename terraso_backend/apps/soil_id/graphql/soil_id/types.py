@@ -81,7 +81,7 @@ class SoilMatchInfo(graphene.ObjectType):
     rank = graphene.Int(required=True)
 
 
-class SoilMatch(graphene.ObjectType):
+class AbstractSoilMatch(graphene.ObjectType):
     """Base class for location/data based soil matches."""
 
     class Meta:
@@ -101,7 +101,16 @@ class SoilIdFailure(graphene.ObjectType):
     reason = graphene.Field(SoilIdFailureReason, required=True)
 
 
-class DataBasedSoilMatch(SoilMatch):
+class DataBasedSoilMatch(AbstractSoilMatch):
+    """DEPRECATED: A soil match based on a coordinate pair and soil data."""
+
+    soil_info = graphene.Field(SoilInfo, required=True)
+    location_match = graphene.Field(SoilMatchInfo, required=True)
+    data_match = graphene.Field(SoilMatchInfo)
+    combined_match = graphene.Field(SoilMatchInfo)
+
+
+class SoilMatch(AbstractSoilMatch):
     """A soil match based on a coordinate pair and soil data."""
 
     soil_info = graphene.Field(SoilInfo, required=True)
@@ -111,15 +120,29 @@ class DataBasedSoilMatch(SoilMatch):
 
 
 class DataBasedSoilMatches(graphene.ObjectType):
-    """A ranked group of soil matches based on a coordinate pair and soil data."""
+    """DEPRECATED: A ranked group of soil matches based on a coordinate pair and soil data."""
 
     data_region = DataRegion(required=True)
     matches = graphene.List(graphene.NonNull(DataBasedSoilMatch), required=True)
 
 
+class SoilMatches(graphene.ObjectType):
+    """A ranked group of soil matches based on a coordinate pair and soil data."""
+
+    data_region = DataRegion(required=True)
+    matches = graphene.List(graphene.NonNull(SoilMatch), required=True)
+
+
 class DataBasedResult(graphene.Union):
+    """DEPRECATED"""
+
     class Meta:
         types = (DataBasedSoilMatches, SoilIdFailure)
+
+
+class SoilIdResult(graphene.Union):
+    class Meta:
+        types = (SoilMatches, SoilIdFailure)
 
 
 class LABColorInput(graphene.InputObjectType):

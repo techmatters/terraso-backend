@@ -35,7 +35,9 @@ from apps.soil_id.graphql.soil_id.types import (
     SoilIdInputData,
     SoilIdSoilData,
     SoilInfo,
+    SoilMatch,
     SoilMatchInfo,
+    SoilMatches,
     SoilSeries,
 )
 from apps.soil_id.graphql.types import DepthInterval
@@ -225,7 +227,34 @@ def get_list_soils_output(latitude, longitude):
         return cached_result
 
 
-def resolve_data_based_soil_match(
+# DEPRECATED
+def resolve_data_based_soil_match(soil_matches: list[dict], ranked_match: dict):
+    soil_match = [
+        match
+        for match in soil_matches
+        if int(match["site"]["siteData"]["componentID"]) == ranked_match["componentID"]
+    ][0]
+    site_data = soil_match["site"]["siteData"]
+
+    data_source = site_data["dataSource"]
+
+    location_match = resolve_soil_match_info(ranked_match["score_loc"], ranked_match["rank_loc"])
+    data_match = resolve_soil_match_info(ranked_match["score_data"], ranked_match["rank_data"])
+    combined_match = resolve_soil_match_info(
+        ranked_match["score_data_loc"], ranked_match["rank_data_loc"]
+    )
+
+    return DataBasedSoilMatch(
+        data_source=data_source,
+        distance_to_nearest_map_unit_m=site_data["minCompDistance"],
+        location_match=location_match,
+        data_match=data_match or SoilMatchInfo(score=0.5, rank=0),
+        combined_match=combined_match or location_match,
+        soil_info=resolve_soil_info(soil_match),
+    )
+
+
+def resolve_soil_match(
     data_region: SoilIdCache.DataRegion, soil_matches: list[dict], ranked_match: dict
 ):
     soil_match = [
@@ -240,18 +269,14 @@ def resolve_data_based_soil_match(
     else:
         data_source = site_data["dataSource"]
 
-    location_match = resolve_soil_match_info(ranked_match["score_loc"], ranked_match["rank_loc"])
-    combined_match = (
-        resolve_soil_match_info(ranked_match["score_data_loc"], ranked_match["rank_data_loc"])
-        or location_match
-    )
-
-    return DataBasedSoilMatch(
+    return SoilMatch(
         data_source=data_source,
         distance_to_nearest_map_unit_m=site_data["minCompDistance"],
-        location_match=location_match,
+        location_match=resolve_soil_match_info(ranked_match["score_loc"], ranked_match["rank_loc"]),
         data_match=resolve_soil_match_info(ranked_match["score_data"], ranked_match["rank_data"]),
-        combined_match=combined_match,
+        combined_match=resolve_soil_match_info(
+            ranked_match["score_data_loc"], ranked_match["rank_data_loc"]
+        ),
         soil_info=resolve_soil_info(soil_match),
     )
 
@@ -341,7 +366,24 @@ def parse_rank_soils_input_data(
     return inputs
 
 
-def resolve_data_based_soil_matches(
+# DEPRECATED
+def resolve_data_based_soil_matches(soil_list_json: dict, rank_json: dict):
+    ranked_matches = []
+    for ranked_match in rank_json["soilRank"]:
+        rankValues = [
+            ranked_match["rank_loc"],
+            ranked_match["rank_data"],
+            ranked_match["rank_data_loc"],
+        ]
+        if all([value != "Not Displayed" for value in rankValues]):
+            ranked_matches.append(
+                resolve_data_based_soil_match(soil_list_json["soilList"], ranked_match)
+            )
+
+    return DataBasedSoilMatches(matches=ranked_matches)
+
+
+def resolve_soil_matches(
     data_region: SoilIdCache.DataRegion, soil_list_json: dict, rank_json: dict
 ):
     ranked_matches = []
@@ -353,13 +395,48 @@ def resolve_data_based_soil_matches(
         ]
         if all([value != "Not Displayed" for value in rankValues]):
             ranked_matches.append(
-                resolve_data_based_soil_match(data_region, soil_list_json["soilList"], ranked_match)
+                resolve_soil_match(data_region, soil_list_json["soilList"], ranked_match)
             )
 
-    return DataBasedSoilMatches(data_region=data_region, matches=ranked_matches)
+    return SoilMatches(data_region=data_region, matches=ranked_matches)
 
 
+# DEPRECATED
 def resolve_data_based_result(
+    _parent, _info, latitude: float, longitude: float, data: Optional[SoilIdInputData] = None
+):
+    try:
+        list_result = get_list_soils_output(latitude=latitude, longitude=longitude)
+
+        if isinstance(list_result, str):
+            return SoilIdFailure(reason=list_result)
+
+        data_region, list_output = list_result
+
+        if data_region == SoilIdCache.DataRegion.US:
+            rank_output = us_soil.rank_soils(
+                lat=latitude,
+                lon=longitude,
+                list_output_data=list_output,
+                **parse_rank_soils_input_data(data, data_region),
+            )
+        elif data_region == SoilIdCache.DataRegion.GLOBAL:
+            return SoilIdFailure(reason=SoilIdFailureReason.DATA_UNAVAILABLE)
+        elif data_region is None:
+            return SoilIdFailure(reason=SoilIdFailureReason.DATA_UNAVAILABLE)
+        else:
+            raise ValueError(f"Unknown data region: {data_region}")
+
+        return resolve_data_based_soil_matches(
+            soil_list_json=list_output.soil_list_json,
+            rank_json=rank_output,
+        )
+    except Exception:
+        logger.error(traceback.format_exc())
+        return SoilIdFailure(reason=SoilIdFailureReason.ALGORITHM_FAILURE)
+
+
+def resolve_soil_id_result(
     _parent, _info, latitude: float, longitude: float, data: Optional[SoilIdInputData] = None
 ):
     try:
@@ -390,7 +467,7 @@ def resolve_data_based_result(
         else:
             raise ValueError(f"Unknown data region: {data_region}")
 
-        return resolve_data_based_soil_matches(
+        return resolve_soil_matches(
             data_region=data_region,
             soil_list_json=list_output.soil_list_json,
             rank_json=rank_output,

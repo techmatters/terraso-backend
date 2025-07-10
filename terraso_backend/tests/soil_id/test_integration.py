@@ -60,6 +60,7 @@ SOIL_MATCH_FRAGMENTS = """
   }
 """
 
+# DEPRECATED
 DATA_BASED_MATCHES_QUERY = (
     """
   query dataBasedSoilMatches($latitude: Float!, $longitude: Float!, $data: SoilIdInputData!) {
@@ -73,6 +74,40 @@ DATA_BASED_MATCHES_QUERY = (
     }
   }
   fragment dataBasedSoilMatches on DataBasedSoilMatches {
+    matches {
+      dataSource
+      distanceToNearestMapUnitM
+      locationMatch {
+        ...soilMatch
+      }
+      dataMatch {
+        ...soilMatch
+      }
+      combinedMatch {
+        ...soilMatch
+      }
+      soilInfo {
+        ...soilInfo
+      }
+    }
+  }
+"""
+    + SOIL_MATCH_FRAGMENTS
+)
+
+SOIL_ID_MATCHES_QUERY = (
+    """
+  query soilMatches($latitude: Float!, $longitude: Float!, $data: SoilIdInputData!) {
+    soilId {
+      soilMatches(latitude: $latitude, longitude: $longitude, data: $data) {
+        ...soilMatches
+        ... on SoilIdFailure {
+          reason
+        }
+      }
+    }
+  }
+  fragment soilMatches on SoilMatches {
     dataRegion
     matches {
       dataSource
@@ -114,6 +149,62 @@ def test_us_integration(client, coords, with_data):
     # run it twice to exercise the cache
     for _ in range(0, 2):
         response = graphql_query(
+            SOIL_ID_MATCHES_QUERY,
+            variables={
+                "latitude": coords["latitude"],
+                "longitude": coords["longitude"],
+                "data": {"depthDependentData": []}
+                if not with_data
+                else {
+                    "slope": 0.5,
+                    "depthDependentData": [
+                        {
+                            "depthInterval": {"start": 0, "end": 10},
+                            "texture": "CLAY",
+                            "rockFragmentVolume": "VOLUME_0_1",
+                            "colorLAB": {"L": 20, "A": 30, "B": 40},
+                        }
+                    ],
+                },
+            },
+            client=client,
+        )
+
+        assert response.json()["data"] is not None
+        assert "errors" not in response.json()
+
+        payload = response.json()["data"]["soilId"]["soilMatches"]
+
+        assert "reason" not in payload
+
+        assert payload["dataRegion"] == "US"
+        assert len(payload["matches"]) > 0
+
+        for match in payload["matches"]:
+            assert isinstance(match["dataSource"], str)
+            assert isinstance(match["distanceToNearestMapUnitM"], float)
+
+            match_kinds = ["locationMatch", "dataMatch", "combinedMatch"]
+            for kind in match_kinds:
+                if match[kind] is not None:
+                    assert match[kind]["score"] >= 0 and match[kind]["score"] <= 1
+                    assert match[kind]["rank"] >= 0
+
+            info = match["soilInfo"]
+
+            assert info["soilSeries"] is not None
+            assert info["landCapabilityClass"] is not None
+            assert info["soilData"] is not None
+            assert len(info["soilData"]["depthDependentData"]) > 0
+
+
+# DEPRECATED
+@pytest.mark.integration
+@pytest.mark.parametrize("coords, with_data", us_tests)
+def test_us_integration_old_endpoint(client, coords, with_data):
+    # run it twice to exercise the cache
+    for _ in range(0, 2):
+        response = graphql_query(
             DATA_BASED_MATCHES_QUERY,
             variables={
                 "latitude": coords["latitude"],
@@ -141,8 +232,8 @@ def test_us_integration(client, coords, with_data):
         payload = response.json()["data"]["soilId"]["dataBasedSoilMatches"]
 
         assert "reason" not in payload
+        assert "dataRegion" not in payload
 
-        assert payload["dataRegion"] == "US"
         assert len(payload["matches"]) > 0
 
         for match in payload["matches"]:
@@ -151,9 +242,8 @@ def test_us_integration(client, coords, with_data):
 
             match_kinds = ["locationMatch", "dataMatch", "combinedMatch"]
             for kind in match_kinds:
-                if match[kind] is not None:
-                    assert match[kind]["score"] >= 0 and match[kind]["score"] <= 1
-                    assert match[kind]["rank"] >= 0
+                assert match[kind]["score"] >= 0 and match[kind]["score"] <= 1
+                assert match[kind]["rank"] >= 0
 
             info = match["soilInfo"]
 
@@ -217,7 +307,7 @@ def test_global_integration(client, pedon_id, pedon):
         depth_dependent_data.append(entry)
 
     response = graphql_query(
-        DATA_BASED_MATCHES_QUERY,
+        SOIL_ID_MATCHES_QUERY,
         variables={
             "latitude": pedon["Y_LatDD"].values[0],
             "longitude": pedon["X_LonDD"].values[0],
@@ -231,7 +321,7 @@ def test_global_integration(client, pedon_id, pedon):
     assert response.json()["data"] is not None
     assert "errors" not in response.json()
 
-    payload = response.json()["data"]["soilId"]["dataBasedSoilMatches"]
+    payload = response.json()["data"]["soilId"]["soilMatches"]
 
     assert "reason" not in payload
     assert payload["dataRegion"] == "GLOBAL"
@@ -252,3 +342,39 @@ def test_global_integration(client, pedon_id, pedon):
         assert info["soilSeries"] is not None
         assert info["soilData"] is not None
         assert len(info["soilData"]["depthDependentData"]) > 0
+
+
+# DEPRECATED
+@pytest.mark.integration
+@pytest.mark.parametrize("pedon_id, pedon", pedons)
+def test_global_integration_old_endpoint(client, pedon_id, pedon):
+    depth_dependent_data = []
+
+    for i, row in pedon.iterrows():
+        entry = {
+            "depthInterval": {"start": row["TOPDEP"], "end": row["BOTDEP"]},
+            "texture": transform_texture(row["textClass"]),
+            "rockFragmentVolume": transform_rfv(row["RFV"]),
+            "colorLAB": {"L": row["L"], "A": row["A"], "B": row["B"]},
+        }
+        depth_dependent_data.append(entry)
+
+    response = graphql_query(
+        DATA_BASED_MATCHES_QUERY,
+        variables={
+            "latitude": pedon["Y_LatDD"].values[0],
+            "longitude": pedon["X_LonDD"].values[0],
+            "data": {
+                "depthDependentData": depth_dependent_data,
+            },
+        },
+        client=client,
+    )
+
+    assert response.json()["data"] is not None
+    assert "errors" not in response.json()
+
+    payload = response.json()["data"]["soilId"]["dataBasedSoilMatches"]
+
+    assert "reason" in payload
+    assert payload["reason"] == "DATA_UNAVAILABLE"
