@@ -321,10 +321,15 @@ def parse_color_LAB(color_LAB: Optional[LABColorInput]):
     return [color_LAB.L, color_LAB.A, color_LAB.B]
 
 
+# Argument type hint would be SoilDataNode.surface_cracks_enum() if that were allowed
+# which for some reason is different than SoilData.SurfaceCracks...
+# Probably related, surface_cracks == SoilData.SurfaceCracks.DEEP_VERTICAL_CRACKS
+# (without the .value) evaluates to false even when it's set to Deep Vertical Cracks
+# This seems the case for all the enums
 def parse_surface_cracks(surface_cracks: SoilData.SurfaceCracks):
     if surface_cracks is None:
         return None
-    return surface_cracks == SoilData.SurfaceCracks.DEEP_VERTICAL_CRACKING
+    return surface_cracks.value == SoilData.SurfaceCracks.DEEP_VERTICAL_CRACKS.value
 
 
 def parse_rank_soils_input_data(
