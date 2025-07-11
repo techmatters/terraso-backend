@@ -1,5 +1,6 @@
 from apps.soil_id.graphql.soil_id.resolvers import (
     parse_rock_fragment_volume,
+    parse_surface_cracks,
     resolve_data_based_soil_match,
     resolve_data_based_soil_matches,
     resolve_ecological_site,
@@ -14,7 +15,8 @@ from apps.soil_id.graphql.soil_id.resolvers import (
 )
 from apps.soil_id.models.soil_id_cache import SoilIdCache
 from apps.soil_id.models.depth_dependent_soil_data import DepthDependentSoilData
-from apps.soil_id.graphql.soil_data.queries import DepthDependentSoilDataNode
+from apps.soil_id.graphql.soil_data.queries import DepthDependentSoilDataNode, SoilDataNode
+from apps.soil_id.models.soil_data import SoilData
 
 
 sample_soil_list_json = [
@@ -421,3 +423,15 @@ def test_parse_rock_fragment_volume():
     assert parse_rock_fragment_volume(DepthDependentSoilData.RockFragmentVolume.VOLUME_60) == ">60%"
 
     assert parse_rock_fragment_volume(None) is None
+
+
+def test_parse_surface_cracks():
+    SurfaceCracksEnum = SoilDataNode.surface_cracks_enum()
+
+    assert parse_surface_cracks(SurfaceCracksEnum.NO_CRACKING) is False
+    assert parse_surface_cracks(SurfaceCracksEnum.SURFACE_CRACKING_ONLY) is False
+    assert parse_surface_cracks(SurfaceCracksEnum.DEEP_VERTICAL_CRACKS) is True
+
+    assert parse_surface_cracks(SoilData.SurfaceCracks.NO_CRACKING) is False
+    assert parse_surface_cracks(SoilData.SurfaceCracks.SURFACE_CRACKING_ONLY) is False
+    assert parse_surface_cracks(SoilData.SurfaceCracks.DEEP_VERTICAL_CRACKS) is True
