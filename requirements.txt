@@ -20,15 +20,15 @@ attrs==25.3.0 \
     #   cattrs
     #   fiona
     #   requests-cache
-boto3==1.39.3 \
-    --hash=sha256:056cfa2440fe1a157a7c2be897c749c83e1a322144aa4dad889f2fca66571019 \
-    --hash=sha256:0a367106497649ae3d8a7b571b8c3be01b7b935a0fe303d4cc2574ed03aecbb4
+boto3==1.39.4 \
+    --hash=sha256:6c955729a1d70181bc8368e02a7d3f350884290def63815ebca8408ee6d47571 \
+    --hash=sha256:f8e9534b429121aa5c5b7c685c6a94dd33edf14f87926e9a182d5b50220ba284
     # via
     #   -r requirements/base.in
     #   django-ses
-botocore==1.39.3 \
-    --hash=sha256:66a81cfac18ad5e9f47696c73fdf44cdbd8f8ca51ab3fca1effca0aabf61f02f \
-    --hash=sha256:da8f477e119f9f8a3aaa8b3c99d9c6856ed0a243680aa3a3fbbfc15a8d4093fb
+botocore==1.39.4 \
+    --hash=sha256:c41e167ce01cfd1973c3fa9856ef5244a51ddf9c82cb131120d8617913b6812a \
+    --hash=sha256:e662ac35c681f7942a93f2ec7b4cde8f8b56dd399da47a79fa3e370338521a56
     # via
     #   boto3
     #   s3transfer
@@ -36,9 +36,9 @@ cattrs==25.1.1 \
     --hash=sha256:1b40b2d3402af7be79a7e7e097a9b4cd16d4c06e6d526644b0b26a063a1cc064 \
     --hash=sha256:c914b734e0f2d59e5b720d145ee010f1fd9a13ee93900922a2f3f9d593b8382c
     # via requests-cache
-certifi==2025.6.15 \
-    --hash=sha256:2e0c7ce7cb5d8f8634ca55d2ba7e6ec2689a2fd6537d8dec1296a477a4910057 \
-    --hash=sha256:d747aa5a8b9bbbb1bb8c22bb13e22bd1f18e9796defa16bab421f7f7a317323b
+certifi==2025.7.14 \
+    --hash=sha256:6b31f564a415d79ee77df69d757bb49a5bb53bd9f756cbbe24394ffd6fc1f4b2 \
+    --hash=sha256:8ea99dbdfaaf2ba2f9bac77b9249ef62ec5218e7c2b2e903378ed5fccf765995
     # via
     #   fiona
     #   httpcore
@@ -937,9 +937,9 @@ scipy==1.16.0 \
     #   scikit-image
     #   scikit-learn
     #   soil-id
-sentry-sdk==2.32.0 \
-    --hash=sha256:6cf51521b099562d7ce3606da928c473643abe99b00ce4cb5626ea735f4ec345 \
-    --hash=sha256:9016c75d9316b0f6921ac14c8cd4fb938f26002430ac5be9945ab280f78bec6b
+sentry-sdk==2.33.0 \
+    --hash=sha256:a762d3f19a1c240e16c98796f2a5023f6e58872997d5ae2147ac3ed378b23ec2 \
+    --hash=sha256:cdceed05e186846fdf80ceea261fe0a11ebc93aab2f228ed73d076a07804152e
     # via -r requirements/base.in
 shapely==2.1.1 \
     --hash=sha256:04e4c12a45a1d70aeb266618d8cf81a2de9c4df511b63e105b90bfdfb52146de \
