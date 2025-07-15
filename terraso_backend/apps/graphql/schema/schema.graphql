@@ -747,7 +747,22 @@ type VisualizationConfigNodeEdge {
   cursor: String!
 }
 
-union TargetNode = GroupNode | LandscapeNode
+union TargetNode = GroupNode | LandscapeNode | StoryMapNode
+
+type StoryMapNode implements Node {
+  id: ID!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  slug: String!
+  storyMapId: String!
+  title: String!
+  createdBy: UserNode
+  configuration: JSONString
+  publishedConfiguration: JSONString
+  isPublished: Boolean!
+  publishedAt: DateTime
+  membershipList: CollaborationMembershipListNode
+}
 
 type GroupNodeConnection {
   """Pagination data for this connection."""
@@ -819,21 +834,6 @@ type DataEntryNodeEdge {
 
   """A cursor for use in pagination"""
   cursor: String!
-}
-
-type StoryMapNode implements Node {
-  id: ID!
-  createdAt: DateTime!
-  updatedAt: DateTime!
-  slug: String!
-  storyMapId: String!
-  title: String!
-  createdBy: UserNode
-  configuration: JSONString
-  publishedConfiguration: JSONString
-  isPublished: Boolean!
-  publishedAt: DateTime
-  membershipList: CollaborationMembershipListNode
 }
 
 type StoryMapNodeConnection {
