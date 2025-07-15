@@ -141,9 +141,19 @@ class AbstractCallbackView(View):
         # Get the domain from the redirect URI or use configured domain
         redirect_domain = urlparse(origin).hostname
         if settings.ENV == "production" or redirect_domain == settings.WEB_CLIENT_DOMAIN:
-            response = HttpResponseRedirect(f"{origin}/{redirect_uri}")
-            response.set_cookie("atoken", access_token, domain=settings.AUTH_COOKIE_DOMAIN)
-            response.set_cookie("rtoken", refresh_token, domain=settings.AUTH_COOKIE_DOMAIN)
+            response = HttpResponseRedirect(f"{settings.WEB_CLIENT_URL}/{redirect_uri}")
+            response.set_cookie(
+                "atoken",
+                access_token,
+                secure=settings.ENV != "development",
+                domain=settings.AUTH_COOKIE_DOMAIN,
+            )
+            response.set_cookie(
+                "rtoken",
+                refresh_token,
+                secure=settings.ENV != "development",
+                domain=settings.AUTH_COOKIE_DOMAIN,
+            )
         else:
             state = self._encode_state(
                 {
