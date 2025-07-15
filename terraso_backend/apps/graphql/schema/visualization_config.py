@@ -35,6 +35,7 @@ from apps.shared_data.visualization_tileset_tasks import (
     start_create_mapbox_tileset_task,
     start_remove_mapbox_tileset_task,
 )
+from apps.story_map.models.story_maps import StoryMap
 
 from ..exceptions import GraphQLNotFoundException
 from .commons import BaseDeleteMutation, BaseWriteMutation, TerrasoConnection
@@ -117,20 +118,20 @@ class VisualizationConfigNode(DjangoObjectType):
 
         user_pk = getattr(info.context.user, "pk", False)
 
-        user_groups_ids = Subquery(
-            Group.objects.filter(
-                membership_list__memberships__deleted_at__isnull=True,
-                membership_list__memberships__user__id=user_pk,
-                membership_list__memberships__membership_status=CollaborationMembership.APPROVED,
-            ).values("id")
+        [group_subquery, landscape_subquery, storymap_subquery] = [
+            Subquery(
+                model.objects.filter(
+                    membership_list__memberships__deleted_at__isnull=True,
+                    membership_list__memberships__user__id=user_pk,
+                    membership_list__memberships__membership_status=CollaborationMembership.APPROVED,
+                ).values("id")
+            )
+            for model in [Group, Landscape, StoryMap]
+        ]
+        storymap_owner_query = Subquery(
+            StoryMap.objects.filter(created_by__id=user_pk).values("id")
         )
-        user_landscape_ids = Subquery(
-            Landscape.objects.filter(
-                membership_list__memberships__deleted_at__isnull=True,
-                membership_list__memberships__user__id=user_pk,
-                membership_list__memberships__membership_status=CollaborationMembership.APPROVED,
-            ).values("id")
-        )
+
         return (
             queryset.prefetch_related(
                 Prefetch(
@@ -147,11 +148,19 @@ class VisualizationConfigNode(DjangoObjectType):
             )
             .filter(
                 Q(
-                    data_entry__shared_resources__target_object_id__in=user_groups_ids,
+                    data_entry__shared_resources__target_object_id__in=group_subquery,
                     data_entry__deleted_at__isnull=True,
                 )
                 | Q(
-                    data_entry__shared_resources__target_object_id__in=user_landscape_ids,
+                    data_entry__shared_resources__target_object_id__in=landscape_subquery,
+                    data_entry__deleted_at__isnull=True,
+                )
+                | Q(
+                    data_entry__shared_resources__target_object_id__in=storymap_subquery,
+                    data_entry__deleted_at__isnull=True,
+                )
+                | Q(
+                    data_entry__shared_resources__target_object_id__in=storymap_owner_query,
                     data_entry__deleted_at__isnull=True,
                 )
             )
@@ -187,27 +196,33 @@ class VisualizationConfigAddMutation(BaseWriteMutation):
         description = graphene.String()
         configuration = graphene.JSONString()
         data_entry_id = graphene.ID(required=True)
-        ownerId = graphene.ID(required=True)
-        ownerType = graphene.String(required=True)
+        owner_id = graphene.ID(required=True)
+        owner_type = graphene.String(required=True)
 
     @classmethod
     @transaction.atomic
     def mutate_and_get_payload(cls, root, info, **kwargs):
         user = info.context.user
 
-        content_type = ContentType.objects.get(app_label="core", model=kwargs["ownerType"])
-        model_class = content_type.model_class()
+        model_class = VisualizationConfig.get_target_model_class_from_type_name(
+            kwargs["owner_type"]
+        )
+
+        if model_class is None:
+            logger.error("Invalid target_type provided when adding visualizationConfig")
+            raise GraphQLNotFoundException(field="ownerId", model_name=VisualizationConfig.__name__)
+
         try:
-            owner = model_class.objects.get(id=kwargs["ownerId"])
-        except Group.DoesNotExist:
+            owner = model_class.objects.get(id=kwargs["owner_id"])
+        except model_class.DoesNotExist:
             logger.error(
                 "Target not found when adding a VisualizationConfig",
                 extra={
-                    "targetId": kwargs["targetId"],
-                    "targetType": kwargs["targetType"],
+                    "owner_id": kwargs["owner_id"],
+                    "owner_type": kwargs["owner_type"],
                 },
             )
-            raise GraphQLNotFoundException(field="target")
+            raise GraphQLNotFoundException(field="owner_id")
 
         try:
             data_entry = DataEntry.objects.get(id=kwargs["data_entry_id"])
