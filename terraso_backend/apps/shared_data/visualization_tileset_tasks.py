@@ -18,6 +18,9 @@ import json
 import threading
 
 import pandas
+from apps.core.models.landscapes import Landscape
+from apps.core.models.groups import Group
+from apps.story_map.models.story_maps import StoryMap
 import structlog
 from django.conf import settings
 
@@ -75,7 +78,13 @@ def remove_mapbox_tileset(tileset_id):
 
 
 def get_owner_name(visualization):
-    return visualization.owner.name if visualization.owner else "Unknown"
+    if visualization.owner is Landscape:
+        return visualization.owner.name
+    elif visualization.owner is Group:
+        return visualization.owner.name
+    elif visualization.owner is StoryMap:
+        return visualization.owner.title
+    return "Unknown"
 
 
 def _get_geojson_from_dataset(data_entry, visualization):

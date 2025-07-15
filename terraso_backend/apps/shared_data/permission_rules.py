@@ -36,6 +36,10 @@ def is_target_manager(user, target):
 
 
 def is_target_member(user, target):
+    if target.created_by == user:
+        return True
+    if target.membership_list is None:
+        return False
     return target.membership_list.memberships.approved_only().filter(user=user).exists()
 
 
