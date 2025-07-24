@@ -17,9 +17,9 @@ import binascii
 import functools
 import base64
 import json
+import re
 from typing import Optional
 from urllib.parse import urlparse
-
 import httpx
 import structlog
 from django.conf import settings
@@ -73,32 +73,52 @@ class MicrosoftAuthorizeView(AbstractAuthorizeView):
         return MicrosoftProvider
 
 
+# state is passed through the OAuth process via a base64 encoded JSON object.
+# the callback view expects to receive a redirectUrl and origin.
+# on production and staging, it redirects to that URL and sets access tokens on cookies.
+# in preview environments, it redirects to $origin/account/auth-callback and provides the
+# access tokens and redirectUrl in the state parameter.
 class AbstractCallbackView(View):
     def get(self, request, *args, **kwargs):
         self.authorization_code = self.request.GET.get("code")
         self.error = self.request.GET.get("error")
-        self.state = self._decode_state(self.request.GET.get("state", ""))
+        self.state = self.decode_state(self.request.GET.get("state", ""))
 
         return self.process_callback(request)
 
     def post(self, request, *args, **kwargs):
         self.authorization_code = self.request.POST.get("code")
         self.error = self.request.POST.get("error")
-        self.state = self._decode_state(self.request.POST.get("state", ""))
+        self.state = self.decode_state(self.request.POST.get("state", ""))
 
         return self.process_callback(request)
 
     @classmethod
-    def _decode_state(cls, state):
+    def decode_state(cls, state):
+        if state == "":
+            return {"redirectUrl": "/", "origin": settings.WEB_CLIENT_URL}
+
         try:
             return json.loads(base64.b64decode(state).decode("utf-8"))
         except (UnicodeDecodeError, json.JSONDecodeError, binascii.Error):
             # probably an old client trying to just send a redirect uri directly
-            return {"redirectUrl": state, "origin": settings.WEB_CLIENT_URL}
+            # we can remove this in future
+            return {"redirectUrl": "state", "origin": settings.WEB_CLIENT_URL}
 
     @classmethod
-    def _encode_state(cls, state):
+    def encode_state(cls, state):
         return base64.b64encode(json.dumps(state).encode("utf-8")).decode("utf-8")
+
+    @classmethod
+    def is_trusted_origin(cls, url):
+        if url in settings.CORS_ORIGIN_WHITELIST:
+            return True
+
+        for pattern in settings.CORS_ALLOWED_ORIGIN_REGEXES:
+            if re.match(pattern, url):
+                return True
+
+        return False
 
     @classmethod
     def _check_cookie(cls, cookie):
@@ -138,9 +158,17 @@ class AbstractCallbackView(View):
             if self._check_cookie(cookie):
                 redirect_uri = cookie
 
-        # Get the domain from the redirect URI or use configured domain
         redirect_domain = urlparse(origin).hostname
-        if settings.ENV == "production" or redirect_domain == settings.WEB_CLIENT_DOMAIN:
+
+        if not self.is_trusted_origin(origin):
+            # we never expect web clients to attempt to login from an untrusted origin.
+            # this is a very suspcicious scenario.
+            logger.error(
+                f"Potentially malicious login redirect URL received: {origin}/{redirect_uri}"
+            )
+            return HttpResponse(f"Invalid login redirect URL: {origin}/{redirect_uri}", status=400)
+        elif settings.ENV == "production" or redirect_domain == settings.WEB_CLIENT_DOMAIN:
+            # on production, or on staging/local development when queried from the canonical web client URL.
             response = HttpResponseRedirect(f"{settings.WEB_CLIENT_URL}/{redirect_uri}")
             response.set_cookie(
                 "atoken",
@@ -155,7 +183,8 @@ class AbstractCallbackView(View):
                 domain=settings.AUTH_COOKIE_DOMAIN,
             )
         else:
-            state = self._encode_state(
+            # on staging/development, if the origin is trusted
+            state = self.encode_state(
                 {
                     "atoken": access_token,
                     "rtoken": refresh_token,
@@ -163,7 +192,6 @@ class AbstractCallbackView(View):
                 }
             )
             response = HttpResponseRedirect(f"{origin}/account/auth-callback?state={state}")
-        response.delete_cookie("oauth")
 
         if created_with_service:
             # Set samesite to avoid warnings
