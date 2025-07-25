@@ -124,6 +124,7 @@ class StoryMapNode(DjangoObjectType):
         is_member = self.membership_list and self.membership_list.is_member(info.context.user)
 
         if is_owner or is_member:
+            self.membership_list._can_view_memberships = is_owner
             return self.membership_list
 
         return None
