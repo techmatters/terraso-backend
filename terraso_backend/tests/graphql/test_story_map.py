@@ -207,7 +207,7 @@ def test_story_maps_published_media_signed_url(
 def test_story_map_owner_can_see_memberships_without_being_member(client_query, users):
     owner = users[0]
     collaborator = users[2]
-    
+
     story_map = mixer.blend(StoryMap, created_by=owner, is_published=False)
     membership_list = mixer.blend(
         MembershipList,
@@ -216,15 +216,15 @@ def test_story_map_owner_can_see_memberships_without_being_member(client_query, 
     )
     story_map.membership_list = membership_list
     story_map.save()
-    
+
     mixer.blend(
         Membership,
         membership_list=membership_list,
         user=collaborator,
         user_role="editor",
-        membership_status="pending"
+        membership_status="pending",
     )
-    
+
     response = client_query(
         """
         query StoryMapWithMemberships($id: ID!) {
@@ -244,10 +244,10 @@ def test_story_map_owner_can_see_memberships_without_being_member(client_query, 
         """,
         variables={"id": str(story_map.pk)},
     )
-    
+
     story_map_data = response.json()["data"]["storyMap"]
     memberships = story_map_data["membershipList"]["memberships"]["edges"]
-    
+
     assert len(memberships) == 1
     assert memberships[0]["node"]["user"]["email"] == collaborator.email
     assert memberships[0]["node"]["membershipStatus"] == "PENDING"
