@@ -15,8 +15,11 @@
 
 import json
 from unittest import mock
+from urllib.parse import parse_qs, urlparse
 
+from apps.auth.views import GoogleCallbackView
 import pytest
+from django.test import override_settings
 from django.urls import reverse
 from httpx import Response
 from mixer.backend.django import mixer
@@ -64,6 +67,104 @@ def test_get_google_callback(client, access_tokens_google, respx_mock):
     assert response.cookies.get("atoken")
     assert response.cookies.get("rtoken")
     assert response.cookies.get("sessionid")
+
+
+@override_settings(ENV="production")
+def test_get_google_callback_evil_redirect_domain_rejected_on_prod(
+    client, access_tokens_google, respx_mock
+):
+    respx_mock.post(GoogleProvider.GOOGLE_TOKEN_URI).mock(
+        return_value=Response(200, json=access_tokens_google)
+    )
+    url = reverse("terraso_auth:google-callback")
+    response = client.get(
+        url,
+        {
+            "code": "testing-code-google-auth",
+            "state": GoogleCallbackView.encode_state(
+                {"origin": "https://evil.com", "redirectUrl": "/gimme-tokens"}
+            ),
+        },
+    )
+
+    assert response.status_code == 400
+    assert "Invalid login redirect" in response.content.decode()
+
+
+def test_get_google_callback_evil_redirect_domain_rejected_by_CORS(
+    client, access_tokens_google, respx_mock
+):
+    respx_mock.post(GoogleProvider.GOOGLE_TOKEN_URI).mock(
+        return_value=Response(200, json=access_tokens_google)
+    )
+    url = reverse("terraso_auth:google-callback")
+
+    response = client.get(
+        url,
+        {
+            "code": "testing-code-google-auth",
+            "state": GoogleCallbackView.encode_state(
+                {"origin": "https://evil.com", "redirectUrl": "/gimme-tokens"}
+            ),
+        },
+    )
+
+    assert response.status_code == 400
+    assert "Invalid login redirect" in response.content.decode()
+
+
+@override_settings(CORS_ORIGIN_WHITELIST=["https://other.com"])
+def test_get_google_callback_redirect_domain_allowed_by_CORS(
+    client, access_tokens_google, respx_mock
+):
+    respx_mock.post(GoogleProvider.GOOGLE_TOKEN_URI).mock(
+        return_value=Response(200, json=access_tokens_google)
+    )
+    url = reverse("terraso_auth:google-callback")
+
+    response = client.get(
+        url,
+        {
+            "code": "testing-code-google-auth",
+            "state": GoogleCallbackView.encode_state(
+                {"origin": "https://other.com", "redirectUrl": "/tools"}
+            ),
+        },
+    )
+
+    assert response.status_code == 302
+    parsed_url = urlparse(response.url)
+    assert parsed_url.hostname == "other.com"
+    assert parsed_url.path == "/account/auth-callback"
+    state = GoogleCallbackView.decode_state(parse_qs(parsed_url.query)["state"][0])
+    assert state["redirectUrl"] == "/tools"
+
+
+@override_settings(CORS_ALLOWED_ORIGIN_REGEXES=["https://.*\.onrender\.com"])
+def test_get_google_callback_redirect_domain_allowed_by_CORS_regex(
+    client, access_tokens_google, respx_mock
+):
+    respx_mock.post(GoogleProvider.GOOGLE_TOKEN_URI).mock(
+        return_value=Response(200, json=access_tokens_google)
+    )
+    url = reverse("terraso_auth:google-callback")
+
+    response = client.get(
+        url,
+        {
+            "code": "testing-code-google-auth",
+            "state": GoogleCallbackView.encode_state(
+                {"origin": "https://test-pr-1.onrender.com", "redirectUrl": "/tools"}
+            ),
+        },
+    )
+
+    assert response.status_code == 302
+    parsed_url = urlparse(response.url)
+    assert parsed_url.hostname == "test-pr-1.onrender.com"
+    assert parsed_url.path == "/account/auth-callback"
+    state = GoogleCallbackView.decode_state(parse_qs(parsed_url.query)["state"][0])
+    assert state["redirectUrl"] == "/tools"
 
 
 def test_get_google_callback_without_code(client):
