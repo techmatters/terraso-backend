@@ -93,6 +93,14 @@ class MembershipListNodeMixin:
             if len(self.account_memberships):
                 return self.memberships
             return self.memberships.none()
+
+        permissions = getattr(info.context, "membership_permissions", {})
+        membership_permissions = permissions.get(self.pk, {})
+        is_owner = membership_permissions.get("is_owner", False)
+
+        if is_owner:
+            return self.memberships
+
         user = info.context.user
         is_member = self.is_member(user)
 
