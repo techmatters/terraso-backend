@@ -20,7 +20,6 @@ from pathlib import Path
 import rules
 import structlog
 from config.settings import DATA_ENTRY_ACCEPTED_EXTENSIONS, MEDIA_UPLOAD_MAX_FILE_SIZE
-from django.contrib.contenttypes.models import ContentType
 from django.db import transaction
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.views import View
@@ -33,7 +32,6 @@ from apps.storage.file_utils import has_multiple_files, is_file_upload_oversized
 
 from .forms import DataEntryForm
 from .models import DataEntry
-from .models.data_entries import VALID_TARGET_TYPES
 
 logger = structlog.get_logger(__name__)
 
@@ -80,7 +78,9 @@ class DataEntryFileUploadView(AuthenticationRequiredMixin, FormView):
         form_data["entry_type"] = DataEntry.ENTRY_TYPE_FILE
         target_type = form_data.pop("target_type")[0]
         target_slug = form_data.pop("target_slug")[0]
-        if target_type not in VALID_TARGET_TYPES:
+
+        model_class = DataEntry.get_target_model_class_from_type_name(target_type)
+        if model_class is None:
             logger.error("Invalid target_type provided when adding dataEntry")
             return get_json_response_error(
                 [
@@ -90,9 +90,6 @@ class DataEntryFileUploadView(AuthenticationRequiredMixin, FormView):
                     )
                 ]
             )
-
-        content_type = ContentType.objects.get(app_label="core", model=target_type)
-        model_class = content_type.model_class()
 
         try:
             target = model_class.objects.get(slug=target_slug)
@@ -105,7 +102,7 @@ class DataEntryFileUploadView(AuthenticationRequiredMixin, FormView):
                 [
                     ErrorMessage(
                         code="Target not found when adding dataEntry",
-                        context=ErrorContext(model="DataEntry", field="target_type"),
+                        context=ErrorContext(model="DataEntry", field="target"),
                     )
                 ]
             )
