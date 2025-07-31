@@ -55,7 +55,7 @@ def get_rows_from_file(data_entry):
         return [row for row in reader]
     elif type.startswith("xls"):
         file = data_entry_upload_service.get_file(data_entry.s3_object_name, "rb")
-        df = pandas.read_excel(file)
+        df = pandas.read_excel(file, dtype=str)
         rows = df.values.tolist()
         return [df.columns.tolist()] + rows
     else:
