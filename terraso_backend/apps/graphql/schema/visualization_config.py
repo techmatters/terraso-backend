@@ -32,6 +32,7 @@ from apps.graphql.schema.data_entries import DataEntryNode
 from apps.shared_data.models.data_entries import DataEntry
 from apps.shared_data.models.visualization_config import VisualizationConfig
 from apps.shared_data.visualization_tileset_tasks import (
+    get_geojson_from_data_entry,
     start_create_mapbox_tileset_task,
     start_remove_mapbox_tileset_task,
 )
@@ -89,6 +90,7 @@ class VisualizationConfigNode(DjangoObjectType):
     id = graphene.ID(source="pk", required=True)
     owner = graphene.Field(OwnerNode)
     data_entry = graphene.Field(DataEntryNode)
+    geojson = graphene.JSONString()
 
     class Meta:
         model = VisualizationConfig
@@ -184,6 +186,15 @@ class VisualizationConfigNode(DjangoObjectType):
                 self.save()
 
         return self.mapbox_tileset_id
+
+    def resolve_geojson(self, info):
+        if (
+            self.mapbox_tileset_id is not None
+            and self.mapbox_tileset_status == VisualizationConfig.MAPBOX_TILESET_READY
+        ):
+            return None
+
+        return get_geojson_from_data_entry(self.data_entry, self)
 
 
 class VisualizationConfigAddMutation(BaseWriteMutation):
