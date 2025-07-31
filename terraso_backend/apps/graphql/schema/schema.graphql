@@ -676,6 +676,7 @@ type VisualizationConfigNode implements Node {
   mapboxTilesetStatus: SharedDataVisualizationConfigMapboxTilesetStatusChoices!
   owner: OwnerNode
   dataEntry: DataEntryNode
+  geojson: JSONString
 }
 
 """
