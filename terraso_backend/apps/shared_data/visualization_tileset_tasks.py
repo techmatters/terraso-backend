@@ -160,7 +160,7 @@ def _get_geojson_from_gis(data_entry):
     return parse_file_to_geojson(file)
 
 
-def _get_geojson_from_data_entry(data_entry, visualization):
+def get_geojson_from_data_entry(data_entry, visualization):
     is_dataset = f".{data_entry.resource_type}" in settings.DATA_ENTRY_SPREADSHEET_TYPES.keys()
     is_gis = f".{data_entry.resource_type}" in settings.DATA_ENTRY_GIS_TYPES.keys()
 
@@ -181,7 +181,7 @@ def create_mapbox_tileset(visualization_id):
     remove_mapbox_tileset(visualization.mapbox_tileset_id)
 
     try:
-        geojson = _get_geojson_from_data_entry(data_entry, visualization)
+        geojson = get_geojson_from_data_entry(data_entry, visualization)
         logger.info(
             "Geojson generated for mapbox tileset",
             visualization_id=visualization_id,

@@ -22,8 +22,11 @@ from graphene import relay
 from graphene_django import DjangoObjectType
 
 from apps.graphql.exceptions import GraphQLNotAllowedException
+from apps.shared_data.models.visualization_config import VisualizationConfig
+from apps.shared_data.visualization_tileset_tasks import get_geojson_from_data_entry
 from apps.story_map.models.story_maps import StoryMap
 from apps.story_map.services import story_map_media_upload_service
+from django.core.exceptions import ValidationError
 
 from .commons import BaseDeleteMutation, TerrasoConnection
 from .constants import MutationTypes
@@ -47,6 +50,25 @@ def _resolve_configuration(story_map, info, field):
             if media and "url" in media and media["type"].startswith(("image", "audio", "video")):
                 signed_url = story_map_media_upload_service.get_signed_url(media["url"])
                 chapter["media"]["signedUrl"] = signed_url
+
+    if "dataLayers" in config:
+        needs_geojson = []
+        for id, layer in config["dataLayers"].items():
+            if layer["mapboxTilesetId"] is None or layer["mapboxTilesetStatus"] != "READY":
+                needs_geojson.append(id)
+
+        visualization_configs = VisualizationConfig.objects.filter(
+            id__in=needs_geojson
+        ).prefetch_related("data_entry")
+
+        for visualization_config in visualization_configs:
+            try:
+                geojson = get_geojson_from_data_entry(
+                    visualization_config.data_entry, visualization_config
+                )
+            except ValidationError:
+                geojson = None
+            config["dataLayers"][str(visualization_config.id)]["geojson"] = geojson
 
     return config
 
