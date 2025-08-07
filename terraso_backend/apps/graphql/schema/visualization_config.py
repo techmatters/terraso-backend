@@ -29,6 +29,7 @@ from apps.core.gis.mapbox import get_publish_status
 from apps.core.models import Group, Landscape, SharedResource
 from apps.graphql.exceptions import GraphQLNotAllowedException
 from apps.graphql.schema.data_entries import DataEntryNode
+from apps.graphql.schema.story_maps import StoryMapNode
 from apps.shared_data.models.data_entries import DataEntry
 from apps.shared_data.models.visualization_config import VisualizationConfig
 from apps.shared_data.visualization_tileset_tasks import (
@@ -61,6 +62,7 @@ class VisualizationConfigFilterSet(django_filters.FilterSet):
             "slug": ["exact", "icontains"],
             "readable_id": ["exact"],
             "data_entry__shared_resources__target_object_id": ["exact"],
+            "owner_object_id": ["exact"],
         }
 
     def filter_data_entry_shared_resources_target_slug(self, queryset, name, value):
@@ -83,7 +85,7 @@ class VisualizationConfigFilterSet(django_filters.FilterSet):
 
 class OwnerNode(graphene.Union):
     class Meta:
-        types = (GroupNode, LandscapeNode)
+        types = (GroupNode, LandscapeNode, StoryMapNode)
 
 
 class VisualizationConfigNode(DjangoObjectType):

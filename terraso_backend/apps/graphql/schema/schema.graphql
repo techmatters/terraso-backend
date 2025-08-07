@@ -40,7 +40,7 @@ type Query {
     """The ID of the object"""
     id: ID!
   ): VisualizationConfigNode!
-  visualizationConfigs(offset: Int, before: String, after: String, first: Int, last: Int, slug: String, slug_Icontains: String, readableId: String, dataEntry_SharedResources_TargetObjectId: UUID, dataEntry_SharedResources_Target_Slug: String, dataEntry_SharedResources_TargetContentType: String): VisualizationConfigNodeConnection
+  visualizationConfigs(offset: Int, before: String, after: String, first: Int, last: Int, slug: String, slug_Icontains: String, readableId: String, dataEntry_SharedResources_TargetObjectId: UUID, ownerObjectId: UUID, dataEntry_SharedResources_Target_Slug: String, dataEntry_SharedResources_TargetContentType: String): VisualizationConfigNodeConnection
   taxonomyTerm(
     """The ID of the object"""
     id: ID!
@@ -695,7 +695,22 @@ enum SharedDataVisualizationConfigMapboxTilesetStatusChoices {
   READY
 }
 
-union OwnerNode = GroupNode | LandscapeNode
+union OwnerNode = GroupNode | LandscapeNode | StoryMapNode
+
+type StoryMapNode implements Node {
+  id: ID!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  slug: String!
+  storyMapId: String!
+  title: String!
+  createdBy: UserNode
+  configuration: JSONString
+  publishedConfiguration: JSONString
+  isPublished: Boolean!
+  publishedAt: DateTime
+  membershipList: CollaborationMembershipListNode
+}
 
 type DataEntryNode implements Node {
   createdAt: DateTime!
@@ -708,7 +723,7 @@ type DataEntryNode implements Node {
   """"""
   size: BigInt
   createdBy: UserNode
-  visualizations(offset: Int, before: String, after: String, first: Int, last: Int, slug: String, slug_Icontains: String, readableId: String, dataEntry_SharedResources_TargetObjectId: UUID, dataEntry_SharedResources_Target_Slug: String, dataEntry_SharedResources_TargetContentType: String): VisualizationConfigNodeConnection!
+  visualizations(offset: Int, before: String, after: String, first: Int, last: Int, slug: String, slug_Icontains: String, readableId: String, dataEntry_SharedResources_TargetObjectId: UUID, ownerObjectId: UUID, dataEntry_SharedResources_Target_Slug: String, dataEntry_SharedResources_TargetContentType: String): VisualizationConfigNodeConnection!
   id: ID!
   sharedResources(offset: Int, before: String, after: String, first: Int, last: Int, source_DataEntry_ResourceType_In: [String]): SharedResourceNodeConnection
   geojson: JSONString
@@ -749,21 +764,6 @@ type VisualizationConfigNodeEdge {
 }
 
 union TargetNode = GroupNode | LandscapeNode | StoryMapNode
-
-type StoryMapNode implements Node {
-  id: ID!
-  createdAt: DateTime!
-  updatedAt: DateTime!
-  slug: String!
-  storyMapId: String!
-  title: String!
-  createdBy: UserNode
-  configuration: JSONString
-  publishedConfiguration: JSONString
-  isPublished: Boolean!
-  publishedAt: DateTime
-  membershipList: CollaborationMembershipListNode
-}
 
 type GroupNodeConnection {
   """Pagination data for this connection."""
