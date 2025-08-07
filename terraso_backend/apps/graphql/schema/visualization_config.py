@@ -37,6 +37,7 @@ from apps.shared_data.visualization_tileset_tasks import (
     start_create_mapbox_tileset_task,
     start_remove_mapbox_tileset_task,
 )
+from apps.graphql.schema.story_maps import StoryMapNode
 
 from ..exceptions import GraphQLNotFoundException
 from .commons import BaseDeleteMutation, BaseWriteMutation, TerrasoConnection
@@ -61,6 +62,7 @@ class VisualizationConfigFilterSet(django_filters.FilterSet):
             "slug": ["exact", "icontains"],
             "readable_id": ["exact"],
             "data_entry__shared_resources__target_object_id": ["exact"],
+            "owner_object_id": ["exact"],
         }
 
     def filter_data_entry_shared_resources_target_slug(self, queryset, name, value):
@@ -83,7 +85,7 @@ class VisualizationConfigFilterSet(django_filters.FilterSet):
 
 class OwnerNode(graphene.Union):
     class Meta:
-        types = (GroupNode, LandscapeNode)
+        types = (GroupNode, LandscapeNode, StoryMapNode)
 
 
 class VisualizationConfigNode(DjangoObjectType):
