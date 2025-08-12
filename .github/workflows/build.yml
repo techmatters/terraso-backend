@@ -80,7 +80,7 @@ jobs:
         run: |
           cp .env.sample .env
           echo "SENTRY_DSN=${{ secrets.SENTRY_DSN }}" >> .env
-      
+
       - name: Login to GHCR
         uses: docker/login-action@v3
         with:
@@ -106,7 +106,7 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-      
+
       - name: Set up env
         run: |
           cp .env.sample .env
@@ -123,7 +123,7 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v5
-      
+
       - name: Restore data cache
         uses: actions/cache@v4
         with:
@@ -135,7 +135,7 @@ jobs:
         if: ${{ hashFiles('Data/*') == '' }}
         uses: actions/setup-python@v5
         with:
-          python-version: '3.13.3'
+          python-version: '3.13.6'
 
       - name: Install uv
         if: ${{ hashFiles('Data/*') == '' }}
@@ -156,13 +156,13 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-      
+
       - name: set up env
         run: |
           cp .env.sample .env
           echo "SENTRY_DSN=${{ secrets.SENTRY_DSN }}" >> .env
           echo "SOIL_ID_DATABASE_URL=postgresql://postgres:postgres@soil-id-db:5432/soil_id" >> .env
-      
+
       - name: Run integration tests
         env:
           TERRASO_BACKEND_WEB_DOCKER_IMAGE: ghcr.io/techmatters/terraso-backend-ci-dev:${{ needs.build-image.outputs.image-tag }}
