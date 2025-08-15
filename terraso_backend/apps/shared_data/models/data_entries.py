@@ -17,13 +17,16 @@ from django.contrib.contenttypes.fields import GenericRelation
 from django.db import models
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
+from apps.core.models.groups import Group
+from apps.core.models.landscapes import Landscape
+from apps.story_map.models.story_maps import StoryMap
 from safedelete.models import SOFT_DELETE
 
 from apps.core.models import BaseModel, SharedResource, User
 from apps.shared_data import permission_rules as perm_rules
 from apps.shared_data.services import DataEntryFileStorage
 
-VALID_TARGET_TYPES = ["group", "landscape"]
+VALID_TARGET_TYPES = [(Group, "group"), (Landscape, "landscape"), (StoryMap, "story_map")]
 
 data_entry_file_storage = DataEntryFileStorage(custom_domain=None)
 
@@ -139,3 +142,10 @@ class DataEntry(BaseModel):
         if entry_type and entry_type.lower() == cls.ENTRY_TYPE_FILE:
             return cls.ENTRY_TYPE_FILE
         return cls.ENTRY_TYPE_LINK
+
+    @classmethod
+    def get_target_model_class_from_type_name(cls, type_name):
+        for model, name in VALID_TARGET_TYPES:
+            if name == type_name:
+                return model
+        return None
