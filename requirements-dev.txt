@@ -12,13 +12,13 @@ beautifulsoup4==4.13.4 \
     --hash=sha256:9bbbb14bfde9d79f38b8cd5f8c7c85f4b8f2523190ebed90e950a8dea4cb1c4b \
     --hash=sha256:dbb3c4e1ceae6aefebdaf2423247260cd062430a410e38c66f2baa50a8437195
     # via gdown
-boto3==1.39.10 \
-    --hash=sha256:5b2aa5b7d075491c7c6cb539255a44f0ebd70ffc540e32dfd56eb8a361390e5e \
-    --hash=sha256:62a1623c8c9495625c88778869b75b692a7ef226fcbb96ea58365b9f043a2ae2
+boto3==1.40.13 \
+    --hash=sha256:7ff74221328868c5f7dcd7a9b959e7b882c1ab1b04cc9df868ea70de7d8bd004 \
+    --hash=sha256:b43110b6ad30e683fab769b4c5659b6b0606afa535627de831f7181306009d5e
     # via moto
-botocore==1.39.15 \
-    --hash=sha256:2aa29a717f14f8c7ca058c2e297aaed0aa10ecea24b91514eee802814d1b7600 \
-    --hash=sha256:eb9cfe918ebfbfb8654e1b153b29f0c129d586d2c0d7fb4032731d49baf04cff
+botocore==1.40.13 \
+    --hash=sha256:5bf7334d6a0a87a907d607b115710bede2440376cefa8c33b0d99571fb226d87 \
+    --hash=sha256:d7003526a9169e8ab3566db2227cf0b85d9e689e9ff97f2803c629a8e4624fb5
     # via
     #   boto3
     #   moto
@@ -622,9 +622,9 @@ pyyaml==6.0.2 \
     # via
     #   pre-commit
     #   responses
-requests==2.32.4 \
-    --hash=sha256:27babd3cda2a6d50b30443204ee89830707d396671944c998b5975b031ac2b2c \
-    --hash=sha256:27d0316682c8a29834d3264820024b62a36942083d52caf2f14c0591336d3422
+requests==2.32.5 \
+    --hash=sha256:2462f94637a34fd532264295e186976db0f5d453d1cdd31473c85a6a161affb6 \
+    --hash=sha256:dbba0bac56e100853db0ea71b82b4dfd5fe2bf6d3754a8893c3af500cec7d7cf
     # via
     #   gdown
     #   moto
