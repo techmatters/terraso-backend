@@ -15,8 +15,7 @@ RUN echo 'Package: libgdal-dev gdal-bin\nPin: release a=testing\nPin-Priority: 9
 
 RUN apt-get update && \
     apt-get install -q -y --no-install-recommends \
-                     build-essential libpq-dev dnsutils libmagic-dev mailcap \
-                     gettext software-properties-common \
+                     build-essential libpq-dev dnsutils libmagic-dev mailcap gettext \
                      libkml-dev libgdal-dev gdal-bin unzip curl ca-certificates && \
     curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip" && \
     unzip awscliv2.zip && \
