@@ -1,4 +1,4 @@
-FROM python:3.13.6-slim-bookworm
+FROM python:3.13.7-slim-trixie
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
 
 RUN adduser --disabled-password terraso
