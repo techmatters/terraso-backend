@@ -1,4 +1,4 @@
-FROM python:3.13.6-slim-bookworm
+FROM python:3.13.7-slim-trixie
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
 
 RUN adduser --disabled-password terraso
@@ -9,14 +9,13 @@ ENV AWS_CLI_VERSION=2.8.12
 
 # Add testing sources and pin the GDAL packages to testing
 # Allows us to get 3.10.x versions of GDAL
-RUN sed 's/bookworm/testing/g' /etc/apt/sources.list.d/debian.sources >  /etc/apt/sources.list.d/testing.sources
+RUN sed 's/trixie/testing/g' /etc/apt/sources.list.d/debian.sources >  /etc/apt/sources.list.d/testing.sources
 
 RUN echo 'Package: libgdal-dev gdal-bin\nPin: release a=testing\nPin-Priority: 900' > /etc/apt/preferences.d/gdal-testing
 
 RUN apt-get update && \
     apt-get install -q -y --no-install-recommends \
-                     build-essential libpq-dev dnsutils libmagic-dev mailcap \
-                     gettext software-properties-common \
+                     build-essential libpq-dev dnsutils libmagic-dev mailcap gettext \
                      libkml-dev libgdal-dev gdal-bin unzip curl ca-certificates && \
     curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip" && \
     unzip awscliv2.zip && \
