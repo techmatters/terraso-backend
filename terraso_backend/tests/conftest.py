@@ -20,7 +20,6 @@ import pytest
 from django.test.client import Client
 from mixer.backend.django import mixer
 from pyproj import CRS, Transformer
-from tests.utils import add_soil_data_to_site
 
 from apps.auth.services import JWTService
 from apps.collaboration.models import Membership
@@ -28,6 +27,7 @@ from apps.core.gis.utils import DEFAULT_CRS
 from apps.core.models import User
 from apps.project_management.collaboration_roles import ProjectRole
 from apps.project_management.models import Project, Site
+from tests.utils import add_soil_data_to_site
 
 pytestmark = pytest.mark.django_db
 

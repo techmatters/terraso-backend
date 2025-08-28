@@ -13,13 +13,14 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see https://www.gnu.org/licenses/.
 
+import base64
 import binascii
 import functools
-import base64
 import json
 import re
 from typing import Optional
 from urllib.parse import urlparse
+
 import httpx
 import structlog
 from django.conf import settings
