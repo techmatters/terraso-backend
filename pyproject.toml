@@ -2,15 +2,17 @@
 name = "terraso_backend"
 readme = "README.md"
 version = "1.0"
-license = {file = "LICENSE"}
+license = { file = "LICENSE" }
 requires-python = ">=3.12"
 
 [tool.ruff]
 exclude = ["migrations"]
 line-length = 100
+required-version = ">=0.12.11"
 
 [tool.ruff.lint.isort]
 known-first-party = ["apps"]
 
 [tool.ruff.lint]
+extend-select = ["I"]
 extend-ignore = ["E203"]
