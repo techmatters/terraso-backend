@@ -14,6 +14,9 @@ services:
     tty: true
 
   db:
+    # We can remove the 'platform' line if postgis makes an official multi-platform build available
+    # See https://hub.docker.com/r/postgis/postgis/tags
+    platform: linux/amd64
     image: postgis/postgis:16-master
     labels:
       org.techmatters.project: terraso_backend
