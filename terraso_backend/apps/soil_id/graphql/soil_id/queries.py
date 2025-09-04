@@ -17,7 +17,7 @@
 import graphene
 
 from apps.soil_id.graphql.soil_id.resolvers import resolve_data_based_result, resolve_soil_id_result
-from apps.soil_id.graphql.soil_id.types import DataBasedResult, SoilIdResult, SoilIdInputData
+from apps.soil_id.graphql.soil_id.types import DataBasedResult, SoilIdInputData, SoilIdResult
 
 
 class SoilId(graphene.ObjectType):

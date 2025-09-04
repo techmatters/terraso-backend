@@ -19,8 +19,8 @@ from typing import Optional
 
 import psycopg
 import structlog
-from soil_id import us_soil
-from soil_id import global_soil
+from config.settings import GLOBAL_SOIL_ID_BUFFER_DISTANCE, SOIL_ID_DATABASE_URL
+from soil_id import global_soil, us_soil
 from soil_id.utils import find_region_for_location
 
 from apps.soil_id.graphql.soil_id.types import (
@@ -36,15 +36,14 @@ from apps.soil_id.graphql.soil_id.types import (
     SoilIdSoilData,
     SoilInfo,
     SoilMatch,
-    SoilMatchInfo,
     SoilMatches,
+    SoilMatchInfo,
     SoilSeries,
 )
 from apps.soil_id.graphql.types import DepthInterval
 from apps.soil_id.models.depth_dependent_soil_data import DepthDependentSoilData
 from apps.soil_id.models.soil_data import SoilData
 from apps.soil_id.models.soil_id_cache import SoilIdCache
-from config.settings import GLOBAL_SOIL_ID_BUFFER_DISTANCE, SOIL_ID_DATABASE_URL
 
 logger = structlog.get_logger(__name__)
 

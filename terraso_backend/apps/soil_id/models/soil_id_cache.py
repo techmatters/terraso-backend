@@ -14,9 +14,10 @@
 # along with this program. If not, see https://www.gnu.org/licenses/.
 
 
+from typing import Optional
+
 from django.db import models
 from soil_id.us_soil import SoilListOutputData
-from typing import Optional
 
 from apps.core.models.commons import BaseModel
 

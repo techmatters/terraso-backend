@@ -18,11 +18,11 @@ import pytest
 import structlog
 from graphene_django.utils.testing import graphql_query
 from mixer.backend.django import mixer
-from tests.utils import match_json
 
 from apps.core.models import User
 from apps.project_management.collaboration_roles import ProjectRole
 from apps.project_management.models import Project, Site
+from tests.utils import match_json
 
 pytestmark = pytest.mark.django_db
 

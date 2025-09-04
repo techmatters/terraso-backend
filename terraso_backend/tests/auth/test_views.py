@@ -17,7 +17,6 @@ import json
 from unittest import mock
 from urllib.parse import parse_qs, urlparse
 
-from apps.auth.views import GoogleCallbackView
 import pytest
 from django.test import override_settings
 from django.urls import reverse
@@ -28,6 +27,7 @@ from oauth2_provider.views import UserInfoView
 
 from apps.auth.providers import AppleProvider, GoogleProvider
 from apps.auth.services import JWTService
+from apps.auth.views import GoogleCallbackView
 from apps.core.models import User
 
 pytestmark = pytest.mark.django_db

@@ -20,7 +20,6 @@ import pytest
 import structlog
 from graphene_django.utils.testing import graphql_query
 from mixer.backend.django import mixer
-from tests.utils import match_json
 
 from apps.core.formatters import from_camel_to_snake_case
 from apps.core.models import User
@@ -33,6 +32,7 @@ from apps.soil_id.models import (
     SoilDataDepthInterval,
 )
 from apps.soil_id.models.soil_data_history import SoilDataHistory
+from tests.utils import match_json
 
 pytestmark = pytest.mark.django_db
 
