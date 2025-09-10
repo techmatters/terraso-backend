@@ -1,5 +1,6 @@
 services:
   web:
+    # platform: linux/amd64
     extends:
       file: docker-compose.base.yml
       service: web
@@ -11,11 +12,13 @@ services:
       soil-id-db:
         condition: service_healthy
   db:
+    # platform: linux/amd64
     extends:
       file: docker-compose.base.yml
       service: db
-  
+
   soil-id-db:
+    # platform: linux/amd64
     extends:
       file: docker-compose.base.yml
       service: soil-id-db
