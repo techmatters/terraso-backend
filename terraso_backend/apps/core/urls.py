@@ -15,6 +15,7 @@
 
 from django.urls import path
 from django.views.decorators.csrf import csrf_exempt
+from . import views
 
 from apps.auth.middleware import auth_optional
 from apps.core.views import (
@@ -38,4 +39,9 @@ urlpatterns = [
         csrf_exempt(auth_optional(LandscapeExportView.as_view())),
         name="landscape-export",
     ),
+    path(
+        "downloads", 
+        csrf_exempt(auth_optional(views.simple_report)), 
+        name="simple-report"
+    )
 ]
