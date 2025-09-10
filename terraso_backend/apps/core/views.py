@@ -202,153 +202,185 @@ def restore(task, user_id, session_id):
 from apps.graphql.schema.schema import schema
 from django.contrib.auth import get_user_model
 
-def simple_report(request):
-    """Generate a simple report of the number of users, landscapes, groups, and data entries."""
-
-    # logger.info("request is for simple report", request)
-    format = request.GET.get("format", "json")
-
-    # if request.method != "GET":
-    #    return HttpResponseNotAllowed(permitted_methods=["GET"])
-
-    # User = get_user_model()
-    # service_user = User.objects.get(email="johannes@schmidtparty.com")
-    # request.user = service_user
-
-
-
+def fetch_all_notes_for_site(site_id, request, page_size=200):
+    after = None
+    notes = []
     gql = """
-    query FindUser($emailPart: String!) {
-        users(email_Icontains: $emailPart, first: 100, email: null) {
-            edges {
-                node {
-                    id
-                    email
-                }
+    query SiteNotes($id: ID!, $first: Int!, $after: String) {
+      site(id: $id) {
+        notes(first: $first, after: $after) {
+          pageInfo { hasNextPage endCursor }
+          edges {
+            node {
+              id
+              content
+              createdAt
+              updatedAt
+              deletedAt
+              deletedByCascade
             }
-            totalCount
+          }
         }
-        # projects {
-        #     edges {
-        #         node {
-        #             id
-        #             name
-        #         }
-        #     }
-        #     totalCount
-        # }
-        project(id: "90f32c23-3dfb-4c31-80c3-27dca6ef1cc3") {
-            name
-            description
-            updatedAt
-            siteSet {
-                totalCount
-                edges {
-                    cursor
-                    node {
-                        name
-                        latitude
-                        longitude
-                        elevation
-                        updatedAt
-                        privacy
-                        archived
-                        id
-                        seen
-                        notes {
-                            totalCount
-                            edges {
-                                node {
-                                    deletedAt
-                                    deletedByCascade
-                                    id
-                                    content
-                                    createdAt
-                                    updatedAt
-                                }
-                            }
-                        }
-                        soilData {
-                            downSlope
-                            crossSlope
-                            bedrock
-                            slopeLandscapePosition
-                            slopeAspect
-                            slopeSteepnessSelect
-                            slopeSteepnessPercent
-                            slopeSteepnessDegree
-                            surfaceCracksSelect
-                            surfaceSaltSelect
-                            floodingSelect
-                            limeRequirementsSelect
-                            surfaceStoninessSelect
-                            waterTableDepthSelect
-                            soilDepthSelect
-                            landCoverSelect
-                            grazingSelect
-                            depthIntervalPreset
-                            depthIntervals {
-                                label
-                                soilTextureEnabled
-                                soilColorEnabled
-                                soilStructureEnabled
-                                carbonatesEnabled
-                                phEnabled
-                                soilOrganicCarbonMatterEnabled
-                                electricalConductivityEnabled
-                                sodiumAdsorptionRatioEnabled
-                                depthInterval {
-                                    start
-                                    end
-                                }
-                            }
-                            depthDependentData {
-                                texture
-                                clayPercent
-                                rockFragmentVolume
-                                colorHue
-                                colorValue
-                                colorChroma
-                                colorPhotoUsed
-                                colorPhotoSoilCondition
-                                colorPhotoLightingCondition
-                                conductivity
-                                conductivityTest
-                                conductivityUnit
-                                structure
-                                ph
-                                phTestingSolution
-                                phTestingMethod
-                                soilOrganicCarbon
-                                soilOrganicMatter
-                                soilOrganicCarbonTesting
-                                soilOrganicMatterTesting
-                                sodiumAbsorptionRatio
-                                carbonates
-                            }
-                        }
-                    }
-                }
-            }
-        }
+      }
     }
     """
-
-    result = schema.execute(
-        gql,
-        variable_values={"emailPart": "johannes"},
-        context_value=request,   # lets resolvers see request if they need it
-    )
-
-    if result.errors:
-        # Keep it simple for now; you can improve error formatting later.
-        return JsonResponse(
-            {"ok": False, "errors": [str(e) for e in result.errors]},
-            status=400,
+    while True:
+        res = schema.execute(
+            gql,
+            variable_values={"id": site_id, "first": page_size, "after": after},
+            context_value=request,
         )
+        if res.errors: raise RuntimeError(res.errors)
+        conn = res.data["site"]["notes"]
+        notes.extend(e["node"] for e in conn["edges"])
+        if not conn["pageInfo"]["hasNextPage"]:
+            return notes
+        after = conn["pageInfo"]["endCursor"]
 
-    # result.data is already plain Python dicts/lists/scalars
-    return JsonResponse({"ok": True, "data": result.data})
+# page_size is for notes pagination
+def fetch_site_data(site_id, request, page_size=50):
+    gql = """
+    query SiteWithNotes($id: ID!) {
+      site(id: $id) {
+        id
+        name
+        latitude
+        longitude
+        elevation
+        updatedAt
+        privacy
+        archived
+        seen
+        soilData {
+            downSlope
+            crossSlope
+            bedrock
+            slopeLandscapePosition
+            slopeAspect
+            slopeSteepnessSelect
+            slopeSteepnessPercent
+            slopeSteepnessDegree
+            surfaceCracksSelect
+            surfaceSaltSelect
+            floodingSelect
+            limeRequirementsSelect
+            surfaceStoninessSelect
+            waterTableDepthSelect
+            soilDepthSelect
+            landCoverSelect
+            grazingSelect
+            depthIntervalPreset
+            depthIntervals {
+                label
+                soilTextureEnabled
+                soilColorEnabled
+                soilStructureEnabled
+                carbonatesEnabled
+                phEnabled
+                soilOrganicCarbonMatterEnabled
+                electricalConductivityEnabled
+                sodiumAdsorptionRatioEnabled
+                depthInterval {
+                    start
+                    end
+                }
+            }
+            depthDependentData {
+                texture
+                clayPercent
+                rockFragmentVolume
+                colorHue
+                colorValue
+                colorChroma
+                colorPhotoUsed
+                colorPhotoSoilCondition
+                colorPhotoLightingCondition
+                conductivity
+                conductivityTest
+                conductivityUnit
+                structure
+                ph
+                phTestingSolution
+                phTestingMethod
+                soilOrganicCarbon
+                soilOrganicMatter
+                soilOrganicCarbonTesting
+                soilOrganicMatterTesting
+                sodiumAbsorptionRatio
+                carbonates
+            }
+        }
+      }
+    }
+    """
+    res = schema.execute(
+        gql,
+        variable_values={"id": site_id},
+        context_value=request,
+    )
+    if res.errors:
+        raise RuntimeError(res.errors)
+    
+    n = fetch_all_notes_for_site(site_id, request, 1)
+    res.data["site"]["notes"] = n
+
+    return res.data["site"] 
+
+
+def fetch_all_sites(project_id, request, page_size=50):
+    all_sites = []
+    after = None
+    gql = """
+    query ProjectWithSites($id: ID!, $first: Int!, $after: String) {
+      project(id: $id) {
+        siteSet(first: $first, after: $after) {
+          totalCount
+          pageInfo { hasNextPage endCursor }
+          edges {
+            node {
+              id
+              name
+              latitude
+              longitude
+              elevation
+              updatedAt
+              privacy
+              archived
+              seen
+              # keep notes slim here, or fetch notes per-site separately
+            }
+          }
+        }
+      }
+    }
+    """
+    while True:
+        res = schema.execute(
+            gql,
+            variable_values={"id": project_id, "first": page_size, "after": after},
+            context_value=request,
+        )
+        if res.errors:
+            raise RuntimeError(res.errors)
+        conn = res.data["project"]["siteSet"]
+        batch = [e["node"] for e in conn["edges"]]
+        all_sites.extend(batch)
+        if not conn["pageInfo"]["hasNextPage"]:
+            break
+        after = conn["pageInfo"]["endCursor"]
+    return all_sites
+
+def simple_report(request):
+
+    format = request.GET.get("format", "json")
+
+
+    s = fetch_all_sites("90f32c23-3dfb-4c31-80c3-27dca6ef1cc3", request, 1)
+
+    all_sites = [fetch_site_data(site["id"], request, 1) for site in s]
+
+    return JsonResponse({ "sites": all_sites })
+
 
     # report = { "test": "johannes", "num_users": 42, "num_landscapes": 7, "num_groups": 3, "num_data_entries": 128, "format": format }
     # response = JsonResponse(report)
