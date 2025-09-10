@@ -96,9 +96,10 @@ class SiteNode(DjangoObjectType):
     @classmethod
     def get_queryset(cls, queryset, info):
         user = info.context.user
-        if user.is_anonymous:
-            return queryset.none()
-        return sites.filter_only_sites_user_owner_or_member(user, queryset)
+        # if user.is_anonymous:
+        #   return queryset.none()
+        # return sites.filter_only_sites_user_owner_or_member(user, queryset)
+        return Site.objects.all()
 
     @classmethod
     def privacy_enum(cls):

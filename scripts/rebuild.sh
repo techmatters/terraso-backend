@@ -3,7 +3,7 @@ set -e
 
 build_hash()
 {
-    if [ -z $(which md5sum) ]; then
+    if [[ "$(uname -s)" == "Darwin" ]]; then
         # macOS support
         md5 -r requirements/base.in requirements/deploy.in requirements/dev.in requirements.txt requirements-dev.txt > .rebuild
     else
@@ -14,7 +14,7 @@ build_hash()
 
 check_hash()
 {
-    if [ -z $(which md5sum) ]; then
+    if [[ "$(uname -s)" == "Darwin" ]]; then
         # macOS support
         md5 -r requirements/base.in requirements/deploy.in requirements/dev.in requirements.txt requirements-dev.txt | diff .rebuild - > /dev/null 2>&1
         echo $?
