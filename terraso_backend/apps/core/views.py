@@ -197,3 +197,161 @@ def restore(task, user_id, session_id):
         task.status = "finished"
     finally:
         task.save()
+
+# from apps.graphql.schema.schema.schema import schema
+from apps.graphql.schema.schema import schema
+from django.contrib.auth import get_user_model
+
+def simple_report(request):
+    """Generate a simple report of the number of users, landscapes, groups, and data entries."""
+
+    # logger.info("request is for simple report", request)
+    format = request.GET.get("format", "json")
+
+    # if request.method != "GET":
+    #    return HttpResponseNotAllowed(permitted_methods=["GET"])
+
+    # User = get_user_model()
+    # service_user = User.objects.get(email="johannes@schmidtparty.com")
+    # request.user = service_user
+
+
+
+    gql = """
+    query FindUser($emailPart: String!) {
+        users(email_Icontains: $emailPart, first: 100, email: null) {
+            edges {
+                node {
+                    id
+                    email
+                }
+            }
+            totalCount
+        }
+        # projects {
+        #     edges {
+        #         node {
+        #             id
+        #             name
+        #         }
+        #     }
+        #     totalCount
+        # }
+        project(id: "90f32c23-3dfb-4c31-80c3-27dca6ef1cc3") {
+            name
+            description
+            updatedAt
+            siteSet {
+                totalCount
+                edges {
+                    cursor
+                    node {
+                        name
+                        latitude
+                        longitude
+                        elevation
+                        updatedAt
+                        privacy
+                        archived
+                        id
+                        seen
+                        notes {
+                            totalCount
+                            edges {
+                                node {
+                                    deletedAt
+                                    deletedByCascade
+                                    id
+                                    content
+                                    createdAt
+                                    updatedAt
+                                }
+                            }
+                        }
+                        soilData {
+                            downSlope
+                            crossSlope
+                            bedrock
+                            slopeLandscapePosition
+                            slopeAspect
+                            slopeSteepnessSelect
+                            slopeSteepnessPercent
+                            slopeSteepnessDegree
+                            surfaceCracksSelect
+                            surfaceSaltSelect
+                            floodingSelect
+                            limeRequirementsSelect
+                            surfaceStoninessSelect
+                            waterTableDepthSelect
+                            soilDepthSelect
+                            landCoverSelect
+                            grazingSelect
+                            depthIntervalPreset
+                            depthIntervals {
+                                label
+                                soilTextureEnabled
+                                soilColorEnabled
+                                soilStructureEnabled
+                                carbonatesEnabled
+                                phEnabled
+                                soilOrganicCarbonMatterEnabled
+                                electricalConductivityEnabled
+                                sodiumAdsorptionRatioEnabled
+                                depthInterval {
+                                    start
+                                    end
+                                }
+                            }
+                            depthDependentData {
+                                texture
+                                clayPercent
+                                rockFragmentVolume
+                                colorHue
+                                colorValue
+                                colorChroma
+                                colorPhotoUsed
+                                colorPhotoSoilCondition
+                                colorPhotoLightingCondition
+                                conductivity
+                                conductivityTest
+                                conductivityUnit
+                                structure
+                                ph
+                                phTestingSolution
+                                phTestingMethod
+                                soilOrganicCarbon
+                                soilOrganicMatter
+                                soilOrganicCarbonTesting
+                                soilOrganicMatterTesting
+                                sodiumAbsorptionRatio
+                                carbonates
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    """
+
+    result = schema.execute(
+        gql,
+        variable_values={"emailPart": "johannes"},
+        context_value=request,   # lets resolvers see request if they need it
+    )
+
+    if result.errors:
+        # Keep it simple for now; you can improve error formatting later.
+        return JsonResponse(
+            {"ok": False, "errors": [str(e) for e in result.errors]},
+            status=400,
+        )
+
+    # result.data is already plain Python dicts/lists/scalars
+    return JsonResponse({"ok": True, "data": result.data})
+
+    # report = { "test": "johannes", "num_users": 42, "num_landscapes": 7, "num_groups": 3, "num_data_entries": 128, "format": format }
+    # response = JsonResponse(report)
+    # response["Content-Disposition"] = 'attachment; filename="simple_report.json"'
+    # return response
+    # return HttpResponse("<h1>this is a test</h1")

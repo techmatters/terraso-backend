@@ -175,6 +175,12 @@ OAUTH2_PROVIDER = {
     "REQUEST_APPROVAL_PROMPT": "auto",
 }
 
+# settings.py
+LOGIN_EXEMPT_URLS = [
+    r"^downloads$",            # /downloads
+    r"^downloads/$",
+]
+
 LANGUAGE_CODE = "en-us"
 DEFAULT_LANGUAGE_CODE = LANGUAGE_CODE
 LANGUAGES = [
