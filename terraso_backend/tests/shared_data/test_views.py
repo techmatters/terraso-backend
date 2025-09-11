@@ -83,11 +83,12 @@ def test_create_data_entry_successfully(
     assert "id" in response_data
     assert "url" in response_data
     assert response_data["size"]
-    assert len(response_data["shared_resources"]) == 1
+
+    assert len(response_data["sharedResources"]) == 1
     if "landscape" == data_entry_payload["target_type"]:
-        assert str(landscape.id) in response_data["shared_resources"]
+        assert str(landscape.id) in response_data["sharedResources"]
     if "group" == data_entry_payload["target_type"]:
-        assert str(group.id) in response_data["shared_resources"]
+        assert str(group.id) in response_data["sharedResources"]
 
 
 @pytest.mark.parametrize("data_entry_payload", ["group", "landscape"], indirect=True)
