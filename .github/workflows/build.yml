@@ -135,7 +135,7 @@ jobs:
         if: ${{ hashFiles('Data/*') == '' }}
         uses: actions/setup-python@v6
         with:
-          python-version: '3.13.6'
+          python-version: '3.13.7'
 
       - name: Install uv
         if: ${{ hashFiles('Data/*') == '' }}
