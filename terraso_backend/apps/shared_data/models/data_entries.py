@@ -123,13 +123,13 @@ class DataEntry(BaseModel):
         return dict(
             id=str(self.id),
             name=self.name,
-            entry_type=self.entry_type,
+            entryType=self.entry_type,
             description=self.description,
             url=self.signed_url,
-            resource_type=self.resource_type,
+            resourceType=self.resource_type,
             size=self.size,
-            created_by=str(self.created_by.id),
-            shared_resources=[
+            createdBy=str(self.created_by.id),
+            sharedResources=[
                 str(shared_resource.target.id) for shared_resource in self.shared_resources.all()
             ],
         )
