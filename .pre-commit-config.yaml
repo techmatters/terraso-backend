@@ -11,15 +11,20 @@ repos:
             entry: make check_api_schema
             pass_filenames: false
 
-    - repo: https://github.com/astral-sh/ruff-pre-commit
-      rev: v0.9.8
+    - repo: https://gitlab.com/vojko.pribudic.foss/pre-commit-update
+      rev: v0.8.0
       hooks:
-          - id: ruff
+          - id: pre-commit-update
+
+    - repo: https://github.com/astral-sh/ruff-pre-commit
+      rev: v0.12.11
+      hooks:
+          - id: ruff-check
             args: [--fix]
           - id: ruff-format
 
     - repo: https://github.com/compilerla/conventional-pre-commit
-      rev: v4.0.0
+      rev: v4.2.0
       hooks:
           - id: conventional-pre-commit
             stages: [commit-msg]
