@@ -251,7 +251,7 @@ class BaseWriteMutation(BaseAuthenticatedMutation):
         error_str = str(exc).lower()
 
         # Check for unique constraint violations
-        if any(keyword in error_str for keyword in ["unique", "duplicate", "already exists"]):
+        if "unique constraint" in error_str:
             return f"This {model_class.__name__} already exists", "unique"
 
         # Generic integrity error fallback for all other constraint types
