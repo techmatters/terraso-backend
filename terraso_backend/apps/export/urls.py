@@ -24,8 +24,13 @@ app_name = "apps.export"
 
 urlpatterns = [
     path(
-        "report",
-        csrf_exempt(auth_optional(views.simple_report)),
-        name="simple-report",
+        "project/<str:project_id>/<str:project_name>.<str:format>",
+        csrf_exempt(auth_optional(views.project_export)),
+        name="project-export",
+    ),
+    path(
+        "site/<str:site_id>/<str:site_name>.<str:format>",
+        csrf_exempt(auth_optional(views.site_export)),
+        name="site-export",
     ),
 ]
