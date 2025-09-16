@@ -73,6 +73,7 @@ INSTALLED_APPS = [
     "apps.e2e_tests",
     "apps.soil_id",
     "apps.collaboration",
+    "apps.export",
 ]
 
 # Used for sitemap generation.
