@@ -13,27 +13,42 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see https://www.gnu.org/licenses/.
 
+from urllib.parse import unquote
+
 from django.contrib.auth import get_user_model
-from django.http import HttpResponse, JsonResponse
+from django.http import HttpResponse, JsonResponse, HttpResponseBadRequest
 
 from .formatters import sites_to_csv
 from .services import fetch_all_sites, fetch_site_data
 from .transformers import transform_site_data
 
 
-def simple_report(request):
-    format = request.GET.get("format", "csv")
-    # project_id = request.GET.get("project_id", "90f32c23-3dfb-4c31-80c3-27dca6ef1cc3") # johannes local
-    project_id = request.GET.get("project_id", "860ec581-3bdb-4846-a149-222d7991e866")  # derek server
-    # user_id = request.GET.get("user_id", "4f2301b4-208f-45f9-98e1-7bac2610c231") # johannes local
-    user_id = request.GET.get("user_id", "f8953ff0-6398-49b0-a246-92568fc7d804")  # derek server
+def _export_sites_response(all_sites, format, filename):
+    """Helper function to generate export response for a list of sites."""
+    # Validate format parameter
+    if format not in ["csv", "json"]:
+        return HttpResponseBadRequest(f"Unsupported format: {format}")
 
+    # Decode URL-encoded characters in filename (e.g., %20 -> space)
+    decoded_filename = unquote(filename)
+
+    if format == "json":
+        response = JsonResponse({"sites": all_sites})
+        response["Content-Disposition"] = f'attachment; filename="{decoded_filename}.{format}"'
+        return response
+
+    response = HttpResponse(sites_to_csv(all_sites), content_type="text/csv")
+    response["Content-Disposition"] = f'attachment; filename="{decoded_filename}.{format}"'
+    return response
+
+
+def project_export(request, project_id, project_name, format):
     # getting list of projects for a user requires authentication
     User = get_user_model()
     service_user = User.objects.get(email="derek@techmatters.org")
     request.user = service_user
 
-    # Fetch all sites for the project
+    # Fetch all sites for the project using the ID
     sites_list = fetch_all_sites(project_id, request, 1)
 
     # Fetch detailed data for each site and transform it
@@ -43,7 +58,18 @@ def simple_report(request):
         transformed_site = transform_site_data(site_data, request, 50)
         all_sites.append(transformed_site)
 
-    if format == "json":
-        return JsonResponse({"sites": all_sites})
+    return _export_sites_response(all_sites, format, project_name)
 
-    return HttpResponse(sites_to_csv(all_sites), content_type="text/csv")
+
+def site_export(request, site_id, site_name, format):
+    # getting list of projects for a user requires authentication
+    User = get_user_model()
+    service_user = User.objects.get(email="derek@techmatters.org")
+    request.user = service_user
+
+    # Fetch detailed data for the specific site using the ID
+    site_data = fetch_site_data(site_id, request, 1)
+    transformed_site = transform_site_data(site_data, request, 50)
+    all_sites = [transformed_site]
+
+    return _export_sites_response(all_sites, format, site_name)
