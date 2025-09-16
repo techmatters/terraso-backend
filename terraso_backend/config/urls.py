@@ -77,4 +77,5 @@ urlpatterns = [
     path("shared-data/", include("apps.shared_data.urls", namespace="shared_data")),
     path("story-map/", include("apps.story_map.urls", namespace="story_map")),
     path("web-client/", include("apps.web_client.urls", namespace="web_client")),
+    path("export/", include("apps.export.urls", namespace="export")),
 ]
