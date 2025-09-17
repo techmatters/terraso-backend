@@ -221,3 +221,118 @@ def fetch_all_sites(project_id, request, page_size=50):
             break
         after = conn["pageInfo"]["endCursor"]
     return all_sites
+
+
+def fetch_soil_id(latitude, longitude, data, request):
+    gql = """
+    query SoilId($latitude: Float!, $longitude: Float!, $data: SoilIdInputData) {
+        soilId {
+            soilMatches(latitude: $latitude,longitude: $longitude, data: $data) {
+                ... on SoilIdFailure {
+                    reason
+                }
+                ... on SoilMatches {
+                    dataRegion
+                    
+                    matches {
+                        combinedMatch {
+                            rank
+                            score
+                        }
+                        dataMatch {
+                            rank
+                            score
+                        }
+                        locationMatch {
+                            rank
+                            score
+                        }
+                        dataSource
+                        soilInfo {
+                            ecologicalSite {
+                                id
+                                name
+                                url
+                            }
+                            landCapabilityClass {
+                                capabilityClass
+                                subClass
+                            }
+                            soilData {
+                                depthDependentData {
+                                    depthInterval {
+                                        start
+                                        end
+                                    }
+                                    munsellColorString
+                                    rockFragmentVolume
+                                    texture
+                                }
+                                slope
+                            }
+                            soilSeries {
+                                name
+                                taxonomySubgroup
+                                description
+                                fullDescriptionUrl
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    """
+    gql = """
+    query SoilId($latitude: Float!, $longitude: Float!) {
+        soilId {
+            soilMatches(latitude: $latitude, longitude: $longitude, data: {slope:15, surfaceCracks:NO_CRACKING, depthDependentData: []}) {
+                ... on SoilMatches {
+                    dataRegion
+                    matches {
+                        dataSource
+                        distanceToNearestMapUnitM
+                        soilInfo {
+                            soilSeries {
+                                name
+                                taxonomySubgroup
+                                description
+                                fullDescriptionUrl
+                            }
+                            ecologicalSite {
+                                name
+                                id
+                                url
+                            }
+                            landCapabilityClass {
+                                capabilityClass
+                                subClass
+                            }
+                            soilData {
+                                slope
+                                depthDependentData {
+                                    texture
+                                    rockFragmentVolume
+                                    munsellColorString
+                                }
+                            }
+                        }
+                    }
+                }
+                ... on SoilIdFailure {
+                    reason
+                }
+            }
+        }
+    }
+    """
+
+
+    res = schema.execute(
+        gql,
+        variable_values={"latitude": latitude, "longitude": longitude},
+        context_value=request,
+    )
+    if res.errors:
+        raise RuntimeError(res.errors)
+    return res.data; 
