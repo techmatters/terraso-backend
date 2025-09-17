@@ -19,7 +19,7 @@ from django.contrib.auth import get_user_model
 from django.http import HttpResponse, JsonResponse, HttpResponseBadRequest
 
 from .formatters import sites_to_csv
-from .services import fetch_all_sites, fetch_site_data
+from .services import fetch_all_sites, fetch_site_data, fetch_soil_id
 from .transformers import transform_site_data
 
 
@@ -47,6 +47,23 @@ def project_export(request, project_id, project_name, format):
     User = get_user_model()
     service_user = User.objects.get(email="derek@techmatters.org")
     request.user = service_user
+
+    soil_id = fetch_soil_id(41.6621642396362, 41.6621642396362, {
+        "slope": 15,
+        "surfaceCracks": "NO_CRACKING",
+        "depthDependentData": [
+            {
+                "depthInterval": {
+                    "start": 0,
+                    "end": 5
+                },
+                "texture": "SANDY_LOAM",
+                "rockFragmentVolume": "VOLUME_1_15",
+                "colorLAB": { "L": 0.4, "A": 0.7, "B": 0.5 }
+            }
+        ]
+    }, request)
+    return JsonResponse({"soildatahere": soil_id})
 
     # Fetch all sites for the project using the ID
     sites_list = fetch_all_sites(project_id, request, 1)
