@@ -223,18 +223,71 @@ def fetch_all_sites(project_id, request, page_size=50):
     return all_sites
 
 
-def fetch_soil_id(latitude, longitude, data, request):
+def fetch_soil_id(site, request):
+    # Fetch soil ID data for a site using its coordinate and soil data.
+    latitude = site.get("latitude")
+    longitude = site.get("longitude")
+
+    if not latitude or not longitude:
+        return {"error": "Site missing latitude or longitude"}
+
+    # Extract soil data from the site
+    soil_data = site.get("soilData", {})
+
+    # Build the data structure for soil ID query
+    data = {
+        "slope": soil_data.get("slopeSteepnessDegree"),
+        "surfaceCracks": soil_data.get("surfaceCracksSelect", "NO_CRACKING"),
+        "depthDependentData": []
+    }
+
+    # Process depth intervals and depth-dependent data
+    depth_intervals = soil_data.get("depthIntervals", [])
+    depth_dependent_data = soil_data.get("depthDependentData", [])
+
+    for interval, depth_data in zip(depth_intervals, depth_dependent_data):
+        depth_entry = {
+            "depthInterval": {
+                "start": interval.get("depthInterval", {}).get("start"),
+                "end": interval.get("depthInterval", {}).get("end")
+            }
+        }
+
+        # Add texture if available
+        if depth_data.get("texture"):
+            depth_entry["texture"] = depth_data["texture"]
+
+        # Add rock fragment volume if available
+        if depth_data.get("rockFragmentVolume"):
+            depth_entry["rockFragmentVolume"] = depth_data["rockFragmentVolume"]
+
+        # Convert Munsell color to LAB color if available
+        if (depth_data.get("colorHue") is not None and
+            depth_data.get("colorValue") is not None and
+            depth_data.get("colorChroma") is not None):
+            # For now, we'll use placeholder LAB values
+            # In a real implementation, you'd convert Munsell to LAB
+            depth_entry["colorLAB"] = {
+                "L": depth_data.get("colorValue", 0) * 10,  # Rough conversion
+                "A": 0.0,  # Placeholder
+                "B": depth_data.get("colorChroma", 0) * 2  # Rough conversion
+            }
+
+        data["depthDependentData"].append(depth_entry)
+
+
+    # print("query SoilID Latitude ", latitude, "Longitude ", longitude, "Data ", data)
+
+    # GraphQL query
     gql = """
     query SoilId($latitude: Float!, $longitude: Float!, $data: SoilIdInputData) {
         soilId {
-            soilMatches(latitude: $latitude,longitude: $longitude, data: $data) {
-                ... on SoilIdFailure {
-                    reason
-                }
+            soilMatches(latitude: $latitude, longitude: $longitude, data: $data) {
                 ... on SoilMatches {
                     dataRegion
-                    
                     matches {
+                        dataSource
+                        distanceToNearestMapUnitM
                         combinedMatch {
                             rank
                             score
@@ -247,11 +300,16 @@ def fetch_soil_id(latitude, longitude, data, request):
                             rank
                             score
                         }
-                        dataSource
                         soilInfo {
-                            ecologicalSite {
-                                id
+                            soilSeries {
                                 name
+                                taxonomySubgroup
+                                description
+                                fullDescriptionUrl
+                            }
+                            ecologicalSite {
+                                name
+                                id
                                 url
                             }
                             landCapabilityClass {
@@ -259,58 +317,12 @@ def fetch_soil_id(latitude, longitude, data, request):
                                 subClass
                             }
                             soilData {
+                                slope
                                 depthDependentData {
                                     depthInterval {
                                         start
                                         end
                                     }
-                                    munsellColorString
-                                    rockFragmentVolume
-                                    texture
-                                }
-                                slope
-                            }
-                            soilSeries {
-                                name
-                                taxonomySubgroup
-                                description
-                                fullDescriptionUrl
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-    """
-    gql = """
-    query SoilId($latitude: Float!, $longitude: Float!) {
-        soilId {
-            soilMatches(latitude: $latitude, longitude: $longitude, data: {slope:15, surfaceCracks:NO_CRACKING, depthDependentData: []}) {
-                ... on SoilMatches {
-                    dataRegion
-                    matches {
-                        dataSource
-                        distanceToNearestMapUnitM
-                        soilInfo {
-                            soilSeries {
-                                name
-                                taxonomySubgroup
-                                description
-                                fullDescriptionUrl
-                            }
-                            ecologicalSite {
-                                name
-                                id
-                                url
-                            }
-                            landCapabilityClass {
-                                capabilityClass
-                                subClass
-                            }
-                            soilData {
-                                slope
-                                depthDependentData {
                                     texture
                                     rockFragmentVolume
                                     munsellColorString
@@ -327,12 +339,11 @@ def fetch_soil_id(latitude, longitude, data, request):
     }
     """
 
-
     res = schema.execute(
         gql,
-        variable_values={"latitude": latitude, "longitude": longitude},
+        variable_values={"latitude": latitude, "longitude": longitude, "data": data},
         context_value=request,
     )
     if res.errors:
         raise RuntimeError(res.errors)
-    return res.data; 
+    return res.data 

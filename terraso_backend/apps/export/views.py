@@ -48,22 +48,37 @@ def project_export(request, project_id, project_name, format):
     service_user = User.objects.get(email="derek@techmatters.org")
     request.user = service_user
 
-    soil_id = fetch_soil_id(41.6621642396362, 41.6621642396362, {
-        "slope": 15,
-        "surfaceCracks": "NO_CRACKING",
-        "depthDependentData": [
-            {
-                "depthInterval": {
-                    "start": 0,
-                    "end": 5
-                },
-                "texture": "SANDY_LOAM",
-                "rockFragmentVolume": "VOLUME_1_15",
-                "colorLAB": { "L": 0.4, "A": 0.7, "B": 0.5 }
-            }
-        ]
-    }, request)
-    return JsonResponse({"soildatahere": soil_id})
+    # """ 
+    # # Test fetch_soil_id with a sample site
+    # test_site = {
+    #     "latitude": 41.6621642396362,
+    #     "longitude": 41.6621642396362,
+    #     "soilData": {
+    #         "slopeSteepnessDegree": 15,
+    #         "surfaceCracksSelect": "NO_CRACKING",
+    #         "depthIntervals": [
+    #             {
+    #                 "depthInterval": {
+    #                     "start": 0,
+    #                     "end": 5
+    #                 }
+    #             }
+    #         ],
+    #         "depthDependentData": [
+    #             {
+    #                 "texture": "SANDY_LOAM",
+    #                 "rockFragmentVolume": "VOLUME_1_15",
+    #                 "colorHue": 25.0,
+    #                 "colorValue": 4.0,
+    #                 "colorChroma": 6.0
+    #             }
+    #         ]
+    #     }
+    # }
+    # """
+    #
+    # soil_id = fetch_soil_id(test_site, request)
+    # return JsonResponse({"soildata": soil_id})
 
     # Fetch all sites for the project using the ID
     sites_list = fetch_all_sites(project_id, request, 1)
@@ -73,7 +88,11 @@ def project_export(request, project_id, project_name, format):
     for site in sites_list:
         site_data = fetch_site_data(site["id"], request, 1)
         transformed_site = transform_site_data(site_data, request, 50)
+        transformed_site["soil_id"] = fetch_soil_id(transformed_site, request)
         all_sites.append(transformed_site)
+
+    # Sort sites by name
+    all_sites.sort(key=lambda site: site.get("name", ""))
 
     return _export_sites_response(all_sites, format, project_name)
 
@@ -87,6 +106,7 @@ def site_export(request, site_id, site_name, format):
     # Fetch detailed data for the specific site using the ID
     site_data = fetch_site_data(site_id, request, 1)
     transformed_site = transform_site_data(site_data, request, 50)
+    transformed_site["soil_id"] = fetch_soil_id(transformed_site, request)
     all_sites = [transformed_site]
 
     return _export_sites_response(all_sites, format, site_name)
