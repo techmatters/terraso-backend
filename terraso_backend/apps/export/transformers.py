@@ -211,7 +211,7 @@ def hide_site_id(site):
 def replace_rock_fragment_volume_strings(depth_dependent_data):
     for d in depth_dependent_data:
         if d.get("rockFragmentVolume"):
-            d["rockFragmentVolume"] = rock_fragment_volume.get(
+            d["rockFragmentVolume_string"] = rock_fragment_volume.get(
                 d.get("rockFragmentVolume"), d.get("rockFragmentVolume")
             )
 
@@ -219,12 +219,12 @@ def replace_rock_fragment_volume_strings(depth_dependent_data):
 def replace_soil_texture_strings(depth_dependent_data):
     for d in depth_dependent_data:
         if d.get("texture"):
-            d["texture"] = soil_texture.get(d.get("texture"), d.get("texture"))
+            d["texture_string"] = soil_texture.get(d.get("texture"), d.get("texture"))
 
 
 def replace_surface_cracking_strings(soil_data):
     if soil_data.get("surfaceCracksSelect"):
-        soil_data["surfaceCracksSelect"] = vertical_cracking.get(
+        soil_data["surfaceCracksString"] = vertical_cracking.get(
             soil_data.get("surfaceCracksSelect"), soil_data.get("surfaceCracksSelect")
         )
 
@@ -280,16 +280,55 @@ def flatten_note(note):
 
 
 def flatten_site(site: dict) -> dict:
-    """Returns n rows of flattened data, one per depth interval"""
+    # Returns n rows of flattened data, one per depth interval
+
+    print("in flatten_site for site", site["id"])
+
     soil_data = site.get("soilData", {})
     notes = site.get("notes")
     rows = []
 
     flattened_notes = [flatten_note(note) for note in notes] if notes else []
 
-    for depth_interval, depth_dependent_data in zip(
-        soil_data.get("depthIntervals", []), soil_data.get("depthDependentData", [])
-    ):
+    depth_intervals = soil_data.get("depthIntervals", [])
+    depth_dependent_data = soil_data.get("depthDependentData", [])
+
+    # print("depth intervals", depth_intervals, "depth dependent data", depth_dependent_data)
+
+    # Create zip pairs, ensuring at least one row
+    depth_pairs = list(zip(depth_intervals, depth_dependent_data))
+    if not depth_pairs:
+        depth_pairs = [(None, None)]
+        print("No depth pairs for site", site["id"])
+
+    user_selected_soil = site.get("soilMetadata", {}).get("selectedSoilId")
+
+    # Find matching soil info if user selected a soil
+    # print("looking for user selected soil", user_selected_soil)
+    matching_soil_info = None
+    lcc_class = None
+    ecological_site = None
+    if user_selected_soil:
+        soil_id_data = site.get("soil_id", {})
+        soil_matches = soil_id_data.get("soilId", {}).get("soilMatches", {})
+        if isinstance(soil_matches, dict) and "matches" in soil_matches:
+            for match in soil_matches["matches"]:
+                soil_series_name = match.get("soilInfo", {}).get("soilSeries", {}).get("name")
+                if soil_series_name == user_selected_soil:
+                    matching_soil_info = match.get("soilInfo")
+                    print(f"Found matching soil info for {user_selected_soil}")
+                    print("matching_soil_info is", matching_soil_info)
+                    lcc_info = matching_soil_info.get("landCapabilityClass")
+                    if lcc_info:
+                        lcc_class = lcc_info.get("capabilityClass", "") + lcc_info.get("subClass", "")
+                    else:
+                        lcc_class = None
+                    ecological_site_info = matching_soil_info.get("ecologicalSite")
+                    ecological_site = ecological_site_info.get("name") if ecological_site_info else None
+                    break
+
+    for depth_interval, depth_dependent_data_item in depth_pairs:
+        print("adding a row for site", site["id"], "depth interval", depth_interval)
         flat = {
             "id": site["id"],
             "name": site["name"],
@@ -300,16 +339,18 @@ def flatten_site(site: dict) -> dict:
             "updatedAt": site["updatedAt"],
             "slopeSteepnessDegree": soil_data.get("slopeSteepnessDegree"),
             "downSlope": soil_data.get("downSlope"),
-            "surfaceCracksSelect": soil_data.get("surfaceCracksSelect"),
+            "surfaceCracks": soil_data.get("surfaceCracksString"),
             "notes": ";".join(flattened_notes),
-            "user-selected-soil": site.get("soilMetadata", {}).get("selectedSoilId"),
+            "user-selected-soil": user_selected_soil,
+            "lcc-class": lcc_class,
+            "ecological-site": ecological_site,
             # depth interval specific data
-            "depth-label": depth_interval.get("label"),
-            "depth-start": depth_interval.get("depthInterval").get("start"),
-            "depth-end": depth_interval.get("depthInterval").get("end"),
-            "depth-rockFragmentVolume": depth_dependent_data.get("rockFragmentVolume"),
-            "depth-texture": depth_dependent_data.get("texture"),
-            "depth-color": depth_dependent_data.get("colorMunsell"),  # added earlier
+            "depth-label": depth_interval.get("label") if depth_interval else None,
+            "depth-start": depth_interval.get("depthInterval", {}).get("start") if depth_interval else None,
+            "depth-end": depth_interval.get("depthInterval", {}).get("end") if depth_interval else None,
+            "depth-rockFragmentVolume": depth_dependent_data_item.get("rockFragmentVolume_string") if depth_dependent_data_item else None,
+            "depth-texture": depth_dependent_data_item.get("texture_string") if depth_dependent_data_item else None,
+            "depth-color": depth_dependent_data_item.get("colorMunsell") if depth_dependent_data_item else None,
         }
         rows.append(flat)
 
