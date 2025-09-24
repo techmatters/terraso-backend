@@ -19,7 +19,7 @@ from graphene_django import DjangoObjectType
 
 from apps.graphql.schema.commons import data_model_excluded_fields
 from apps.graphql.schema.sites import SiteNode
-from apps.soil_id.models.soil_metadata import SoilMetadata
+from apps.soil_id.models.soil_metadata import SoilMetadata, UserMatchRating
 
 
 class SoilMetadataNode(DjangoObjectType):
@@ -27,4 +27,10 @@ class SoilMetadataNode(DjangoObjectType):
 
     class Meta:
         model = SoilMetadata
+        exclude = data_model_excluded_fields()
+
+
+class UserMatchRatingNode(DjangoObjectType):
+    class Meta:
+        model = UserMatchRating
         exclude = data_model_excluded_fields()
