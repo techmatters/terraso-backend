@@ -27,6 +27,8 @@ from .soil_data_history import SoilDataHistory
 from .soil_id_cache import SoilIdCache
 from .soil_metadata import SoilMetadata
 
+# TODO-cknipe: What goes in here or not?
+
 __all__ = [
     "SoilData",
     "SoilMetadata",
@@ -39,4 +41,5 @@ __all__ = [
     "DepthIntervalPreset",
     "SoilIdCache",
     "SoilDataHistory",
+    "UserMatchRating",
 ]

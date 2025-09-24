@@ -1565,6 +1565,25 @@ enum SoilIdDepthDependentSoilDataCarbonatesChoices {
 type SoilMetadataNode {
   site: SiteNode!
   selectedSoilId: String
+  userMatchRatings: [UserMatchRatingNode!]!
+}
+
+type UserMatchRatingNode {
+  soilMetadata: SoilMetadataNode!
+  matchId: String!
+  userRating: SoilIdUserMatchRatingUserRatingChoices!
+}
+
+"""An enumeration."""
+enum SoilIdUserMatchRatingUserRatingChoices {
+  """Selected"""
+  SELECTED
+
+  """Rejected"""
+  REJECTED
+
+  """Unsure"""
+  UNSURE
 }
 
 type ProjectSoilSettingsNode {
