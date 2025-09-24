@@ -13,6 +13,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see https://www.gnu.org/licenses/.
 
+from apps.graphql.schema.story_maps import StoryMapNode
 import graphene
 import rules
 import structlog
@@ -41,7 +42,7 @@ class SourceNode(graphene.Union):
 
 class TargetNode(graphene.Union):
     class Meta:
-        types = (GroupNode, LandscapeNode)
+        types = (GroupNode, LandscapeNode, StoryMapNode)
 
 
 class SharedResourceNode(DjangoObjectType):
