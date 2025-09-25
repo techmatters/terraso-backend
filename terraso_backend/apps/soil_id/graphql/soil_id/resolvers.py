@@ -58,13 +58,13 @@ def soil_id_database_connection():
     return _soil_id_database_connection
 
 
-def resolve_texture(texture: str | float):
+def resolve_texture(texture: Optional[str | float]):
     if not isinstance(texture, str) or texture == "" or texture.upper() == "UNKNOWN":
         return None
     return texture.upper().replace(" ", "_")
 
 
-def resolve_rock_fragment_volume(rock_fragment_volume: int | float | str):
+def resolve_rock_fragment_volume(rock_fragment_volume: Optional[int | float | str]):
     if not (isinstance(rock_fragment_volume, float) or isinstance(rock_fragment_volume, int)):
         return None
     elif rock_fragment_volume <= 1:
@@ -88,9 +88,13 @@ def resolve_soil_data(soil_match) -> SoilIdSoilData:
         depth_dependent_data.append(
             SoilIdDepthDependentData(
                 depth_interval=DepthInterval(start=prev_depth, end=bottom_depth),
-                texture=resolve_texture(soil_match["texture"][id]),
-                rock_fragment_volume=resolve_rock_fragment_volume(soil_match["rock_fragments"][id]),
-                munsell_color_string=soil_match["munsell"][id] if "munsell" in soil_match else None,
+                texture=resolve_texture(soil_match["texture"].get(id)),
+                rock_fragment_volume=resolve_rock_fragment_volume(
+                    soil_match["rock_fragments"].get(id)
+                ),
+                munsell_color_string=soil_match["munsell"].get(id)
+                if "munsell" in soil_match
+                else None,
             )
         )
         prev_depth = bottom_depth
