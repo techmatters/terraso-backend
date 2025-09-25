@@ -241,10 +241,14 @@ def resolve_data_based_soil_match(soil_matches: list[dict], ranked_match: dict):
 
     data_source = site_data["dataSource"]
 
-    location_match = resolve_soil_match_info(ranked_match["score_loc"], ranked_match["rank_loc"])
-    data_match = resolve_soil_match_info(ranked_match["score_data"], ranked_match["rank_data"])
+    location_match = resolve_soil_match_info(
+        ranked_match["score_loc_group"], ranked_match["rank_loc_group"]
+    )
+    data_match = resolve_soil_match_info(
+        ranked_match["score_data"], ranked_match["rank_data_group"]
+    )
     combined_match = resolve_soil_match_info(
-        ranked_match["score_data_loc"], ranked_match["rank_data_loc"]
+        ranked_match["score_data_loc"], ranked_match["rank_data_loc_group"]
     )
 
     return DataBasedSoilMatch(
@@ -382,12 +386,7 @@ def parse_rank_soils_input_data(
 def resolve_data_based_soil_matches(soil_list_json: dict, rank_json: dict):
     ranked_matches = []
     for ranked_match in rank_json["soilRank"]:
-        rankValues = [
-            ranked_match["rank_loc"],
-            ranked_match["rank_data"],
-            ranked_match["rank_data_loc"],
-        ]
-        if all([value != "Not Displayed" for value in rankValues]):
+        if not ranked_match["not_displayed"]:
             ranked_matches.append(
                 resolve_data_based_soil_match(soil_list_json["soilList"], ranked_match)
             )
