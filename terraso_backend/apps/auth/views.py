@@ -182,6 +182,12 @@ class AbstractCallbackView(View):
                 secure=settings.ENV != "development",
                 domain=settings.AUTH_COOKIE_DOMAIN,
             )
+            response.set_cookie(
+                "is_new_account",
+                str(is_first_login).lower(),
+                secure=settings.ENV != "development",
+                domain=settings.AUTH_COOKIE_DOMAIN,
+            )
         else:
             # on staging/development, if the origin is trusted
             state = self.encode_state(
@@ -189,6 +195,7 @@ class AbstractCallbackView(View):
                     "atoken": access_token,
                     "rtoken": refresh_token,
                     "redirectUrl": redirect_uri,
+                    "is_new_account": is_first_login,
                 }
             )
             response = HttpResponseRedirect(f"{origin}/account/auth-callback?state={state}")
@@ -302,6 +309,7 @@ class RefreshAccessTokenView(View):
             {
                 "access_token": access_token,
                 "refresh_token": refresh_token,
+                "is_new_account": False,  # Always false for token refresh
             }
         )
 
@@ -379,6 +387,7 @@ class TokenExchangeView(View):
         resp_payload = {
             "rtoken": refresh_token,
             "atoken": access_token,
+            "is_new_account": created,
         }
 
         if created:
