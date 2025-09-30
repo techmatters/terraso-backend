@@ -218,7 +218,7 @@ class BaseWriteMutation(BaseAuthenticatedMutation):
             )
         except IntegrityError as exc:
             logger.info(
-                "Attempt to mutate a model, but integrity constraint violated",
+                "Attempt to mutate a model, but an integrity was constraint violated",
                 extra={"model": cls.model_class.__name__, "integrity_error": exc},
             )
 
