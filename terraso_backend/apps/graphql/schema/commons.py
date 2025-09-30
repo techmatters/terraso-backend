@@ -225,7 +225,7 @@ class BaseWriteMutation(BaseAuthenticatedMutation):
             # Analyze the integrity error to determine the specific type
             error_message, error_code = cls._parse_integrity_error(exc, cls.model_class)
 
-            # It's not trivial identify the exact field(s) that originated the integrity error
+            # It's not trivial to identify the exact field(s) that originated the integrity error
             validation_error = ValidationError(
                 message={
                     NON_FIELD_ERRORS: ValidationError(
