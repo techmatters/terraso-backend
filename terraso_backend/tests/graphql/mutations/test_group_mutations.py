@@ -341,6 +341,7 @@ def test_unique_constraint_error_from_client(client_query, groups):
 
 def test_other_integrity_error_from_client(client_query, groups, monkeypatch):
     from django.db import IntegrityError
+
     from apps.core.models import Group
 
     mock_integrity_error = IntegrityError("violates foreign key constraint 'fk_group_parent_id'")
