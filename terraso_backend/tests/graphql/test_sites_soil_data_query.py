@@ -26,7 +26,8 @@ pytestmark = pytest.mark.django_db
 def test_query_site_soil_data_fields(client, user):
     site = mixer.blend(Site, owner=user, name="name")
     (SoilData.objects.create(site=site, bedrock=1),)
-    (SoilMetadata.objects.create(site=site, selected_soil_id="a"),)
+    # Create SoilMetadata with user_ratings instead of selected_soil_id
+    (SoilMetadata.objects.create(site=site, user_ratings={"a": "SELECTED"}),)
 
     query = """
     {
@@ -48,3 +49,77 @@ def test_query_site_soil_data_fields(client, user):
     assert site_json["soilMetadata"] is not None
     assert site_json["soilData"]["bedrock"] == 1
     assert site_json["soilMetadata"]["selectedSoilId"] == "a"
+
+
+def test_query_site_soil_metadata_user_ratings(client, user):
+    """Test that new user_ratings field works correctly"""
+    site = mixer.blend(Site, owner=user, name="name")
+    SoilMetadata.objects.create(
+        site=site, user_ratings={"soil_match_123": "SELECTED", "soil_match_456": "REJECTED"}
+    )
+
+    query = """
+    {
+      site(id: "%s") {
+        soilMetadata {
+          selectedSoilId
+          userRatings {
+            soilMatchId
+            rating
+          }
+        }
+      }
+    }
+    """
+    client.force_login(user)
+
+    response = graphql_query(query % site.id, client=client)
+
+    assert "errors" not in response.json()
+    metadata = response.json()["data"]["site"]["soilMetadata"]
+
+    # Backwards compatible selectedSoilId should return the SELECTED one
+    assert metadata["selectedSoilId"] == "soil_match_123"
+
+    # New userRatings field should contain both ratings
+    user_ratings = metadata["userRatings"]
+    assert len(user_ratings) == 2
+
+    # TODO-cknipe: Don't bother turning this into a dict
+    ratings_dict = {r["soilMatchId"]: r["rating"] for r in user_ratings}
+    assert ratings_dict["soil_match_123"] == "SELECTED"
+    assert ratings_dict["soil_match_456"] == "REJECTED"
+
+
+def test_query_site_soil_metadata_no_selection(client, user):
+    """Test that selectedSoilId returns null when nothing is selected"""
+    site = mixer.blend(Site, owner=user, name="name")
+    SoilMetadata.objects.create(site=site, user_ratings={"soil_match_789": "UNSURE"})
+
+    query = """
+    {
+      site(id: "%s") {
+        soilMetadata {
+          selectedSoilId
+          userRatings {
+            soilMatchId
+            rating
+          }
+        }
+      }
+    }
+    """
+    client.force_login(user)
+
+    response = graphql_query(query % site.id, client=client)
+
+    assert "errors" not in response.json()
+    metadata = response.json()["data"]["site"]["soilMetadata"]
+
+    # No SELECTED rating, so selectedSoilId should be null
+    assert metadata["selectedSoilId"] is None
+
+    # But userRatings should still have the UNSURE rating
+    assert len(metadata["userRatings"]) == 1
+    assert metadata["userRatings"][0]["soilMatchId"] == "soil_match_789"
+    assert metadata["userRatings"][0]["rating"] == "UNSURE"
