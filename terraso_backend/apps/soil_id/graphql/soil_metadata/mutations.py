@@ -44,6 +44,27 @@ class SoilMetadataUpdateMutation(BaseWriteMutation):
         if not hasattr(site, "soil_metadata"):
             site.soil_metadata = SoilMetadata()
 
+        # TODO-cknipe: Go over this
+
+        # Handle backwards compatibility between selected_soil_id and user_ratings
+        selected_soil_id = kwargs.pop("selected_soil_id", None)
+        user_ratings = kwargs.pop("user_ratings", None)
+
+        # If old client sends selected_soil_id, sync it to user_ratings
+        if selected_soil_id is not None:
+            site.soil_metadata.set_selected_soil_id(selected_soil_id)
+
+        # If new client sends user_ratings, update the user_ratings field
+        if user_ratings is not None:
+            # Convert list of UserRatingInput to dict
+            ratings_dict = {rating["soil_match_id"]: rating["rating"] for rating in user_ratings}
+            site.soil_metadata.user_ratings = ratings_dict
+
+            # Sync the selected soil ID for backwards compatibility
+            # Find the SELECTED rating and update selected_soil_id
+            selected_id = site.soil_metadata.get_selected_soil_id()
+            site.soil_metadata.selected_soil_id = selected_id
+
         kwargs["model_instance"] = site.soil_metadata
 
         with transaction.atomic():

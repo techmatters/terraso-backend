@@ -19,12 +19,42 @@ from graphene_django import DjangoObjectType
 
 from apps.graphql.schema.commons import data_model_excluded_fields
 from apps.graphql.schema.sites import SiteNode
+from apps.soil_id.graphql.soil_metadata.types import UserMatchRatingEnum
 from apps.soil_id.models.soil_metadata import SoilMetadata
+
+
+class UserRatingEntry(graphene.ObjectType):
+    """Represents a single user rating entry in the response"""
+
+    soil_match_id = graphene.String(required=True)
+    rating = graphene.Field(UserMatchRatingEnum, required=True)
 
 
 class SoilMetadataNode(DjangoObjectType):
     site = graphene.Field(SiteNode, source="soil_metadata__site", required=True)
 
+    # Backwards compatible: derive from user_ratings
+    selected_soil_id = graphene.String()
+
+    # New field: expose user_ratings as a list
+    user_ratings = graphene.List(UserRatingEntry, required=True)
+
     class Meta:
         model = SoilMetadata
         exclude = data_model_excluded_fields()
+
+    def resolve_selected_soil_id(self, info):
+        """
+        Returns the soil_match_id marked as SELECTED in user_ratings.
+        Maintains backwards compatibility for older clients.
+        """
+        return self.get_selected_soil_id()
+
+    def resolve_user_ratings(self, info):
+        """
+        Returns user_ratings as a list of UserRatingEntry objects.
+        """
+        return [
+            UserRatingEntry(soil_match_id=soil_match_id, rating=rating)
+            for soil_match_id, rating in self.user_ratings.items()
+        ]
