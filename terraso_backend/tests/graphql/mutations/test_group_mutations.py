@@ -311,3 +311,65 @@ def test_groups_delete_by_anonymous_user(client_query_no_token, groups):
 
     assert "errors" in response["data"]["deleteGroup"]
     assert "unauthorized" in response["data"]["deleteGroup"]["errors"][0]["message"]
+
+
+def test_unique_constraint_error_from_client(client_query, groups):
+    existing_group_name = groups[0].name
+
+    response = client_query(
+        """
+        mutation addGroup($input: GroupAddMutationInput!){
+          addGroup(input: $input) {
+            group {
+              id
+              name
+            }
+            errors
+          }
+        }
+        """,
+        variables={"input": {"name": existing_group_name}},
+    )
+
+    json_response = response.json()
+    assert "errors" in json_response["data"]["addGroup"]
+
+    error_result = json_response["data"]["addGroup"]["errors"][0]
+    error_message = json.loads(error_result["message"])[0]
+    assert error_message["code"] == "unique"
+
+
+def test_other_integrity_error_from_client(client_query, groups, monkeypatch):
+    from django.db import IntegrityError
+
+    from apps.core.models import Group
+
+    mock_integrity_error = IntegrityError("violates foreign key constraint 'fk_group_parent_id'")
+
+    def mock_save(self, *args, **kwargs):
+        raise mock_integrity_error
+
+    monkeypatch.setattr(Group, "save", mock_save)
+
+    response = client_query(
+        """
+        mutation addGroup($input: GroupAddMutationInput!){
+          addGroup(input: $input) {
+            group {
+              id
+              name
+            }
+            errors
+          }
+        }
+        """,
+        variables={"input": {"name": "Test Group With Foreign Key Error"}},
+    )
+
+    json_response = response.json()
+    assert "errors" in json_response["data"]["addGroup"]
+
+    error_result = json_response["data"]["addGroup"]["errors"][0]
+    error_message = json.loads(error_result["message"])[0]
+    assert error_message["code"] == "integrity_error"
+    assert error_message["context"]["model"] == "Group"
