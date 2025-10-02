@@ -85,7 +85,6 @@ def test_query_site_soil_metadata_user_ratings(client, user):
     user_ratings = metadata["userRatings"]
     assert len(user_ratings) == 2
 
-    # TODO-cknipe: Don't bother turning this into a dict
     ratings_dict = {r["soilMatchId"]: r["rating"] for r in user_ratings}
     assert ratings_dict["soil_match_123"] == "SELECTED"
     assert ratings_dict["soil_match_456"] == "REJECTED"
