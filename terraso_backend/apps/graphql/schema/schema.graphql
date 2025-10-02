@@ -1564,7 +1564,21 @@ enum SoilIdDepthDependentSoilDataCarbonatesChoices {
 
 type SoilMetadataNode {
   site: SiteNode!
+  userRatings: [UserRatingEntry]!
   selectedSoilId: String
+}
+
+"""Represents a single user rating entry in the response"""
+type UserRatingEntry {
+  soilMatchId: String!
+  rating: UserMatchRating!
+}
+
+"""An enumeration."""
+enum UserMatchRating {
+  SELECTED
+  REJECTED
+  UNSURE
 }
 
 type ProjectSoilSettingsNode {
@@ -2446,8 +2460,15 @@ type SoilMetadataUpdateMutationPayload {
 
 input SoilMetadataUpdateMutationInput {
   selectedSoilId: String
+  userRatings: [UserRatingInput]
   siteId: ID!
   clientMutationId: String
+}
+
+"""Input type for a single user rating entry"""
+input UserRatingInput {
+  soilMatchId: String!
+  rating: UserMatchRating!
 }
 
 type ProjectSoilSettingsUpdateMutationPayload {
