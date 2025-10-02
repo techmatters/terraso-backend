@@ -377,9 +377,9 @@ executing==2.2.1 \
     --hash=sha256:3632cc370565f6648cc328b32435bd120a1e4ebb20c77e3fdde9a13cd1e533c4 \
     --hash=sha256:760643d3452b4d777d295bb167ccc74c64a81df23fb5e08eff250c425a4b2017
     # via stack-data
-faker==12.0.1 \
-    --hash=sha256:1dc2811f20e163892fefe7006f2ce00778f8099a40aee265bfa60a13400de63d \
-    --hash=sha256:aa7103805ae793277abbb85da9f6f05e76a1a295a9384a8e17c2fba2b3a690cb
+faker==37.8.0 \
+    --hash=sha256:090bb5abbec2b30949a95ce1ba6b20d1d0ed222883d63483a0d4be4a970d6fb8 \
+    --hash=sha256:b08233118824423b5fc239f7dd51f145e7018082b4164f8da6a9994e1f1ae793
     # via mixer
 filelock==3.19.1 \
     --hash=sha256:66eda1888b0171c998b35be2bcc0f6d75c388a7ce20c3f3f37aa8e96c2dddf58 \
