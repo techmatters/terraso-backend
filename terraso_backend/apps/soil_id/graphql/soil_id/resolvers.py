@@ -58,13 +58,13 @@ def soil_id_database_connection():
     return _soil_id_database_connection
 
 
-def resolve_texture(texture: str | float):
+def resolve_texture(texture: Optional[str | float]):
     if not isinstance(texture, str) or texture == "" or texture.upper() == "UNKNOWN":
         return None
     return texture.upper().replace(" ", "_")
 
 
-def resolve_rock_fragment_volume(rock_fragment_volume: int | float | str):
+def resolve_rock_fragment_volume(rock_fragment_volume: Optional[int | float | str]):
     if not (isinstance(rock_fragment_volume, float) or isinstance(rock_fragment_volume, int)):
         return None
     elif rock_fragment_volume <= 1:
@@ -88,9 +88,13 @@ def resolve_soil_data(soil_match) -> SoilIdSoilData:
         depth_dependent_data.append(
             SoilIdDepthDependentData(
                 depth_interval=DepthInterval(start=prev_depth, end=bottom_depth),
-                texture=resolve_texture(soil_match["texture"][id]),
-                rock_fragment_volume=resolve_rock_fragment_volume(soil_match["rock_fragments"][id]),
-                munsell_color_string=soil_match["munsell"][id] if "munsell" in soil_match else None,
+                texture=resolve_texture(soil_match["texture"].get(id)),
+                rock_fragment_volume=resolve_rock_fragment_volume(
+                    soil_match["rock_fragments"].get(id)
+                ),
+                munsell_color_string=soil_match["munsell"].get(id)
+                if "munsell" in soil_match
+                else None,
             )
         )
         prev_depth = bottom_depth
@@ -161,7 +165,7 @@ def resolve_soil_info(soil_match: dict):
 
 
 def resolve_soil_match_info(score: Optional[float], rank: Optional[str]):
-    if score is None or rank is None or rank == "":
+    if score is None or rank is None:
         return None
     return SoilMatchInfo(score=score, rank=int(rank) - 1)
 
@@ -237,10 +241,14 @@ def resolve_data_based_soil_match(soil_matches: list[dict], ranked_match: dict):
 
     data_source = site_data["dataSource"]
 
-    location_match = resolve_soil_match_info(ranked_match["score_loc"], ranked_match["rank_loc"])
-    data_match = resolve_soil_match_info(ranked_match["score_data"], ranked_match["rank_data"])
+    location_match = resolve_soil_match_info(
+        ranked_match["score_loc_group"], ranked_match["rank_loc_group"]
+    )
+    data_match = resolve_soil_match_info(
+        ranked_match["score_data"], ranked_match["rank_data_group"]
+    )
     combined_match = resolve_soil_match_info(
-        ranked_match["score_data_loc"], ranked_match["rank_data_loc"]
+        ranked_match["score_data_loc"], ranked_match["rank_data_loc_group"]
     )
 
     return DataBasedSoilMatch(
@@ -271,10 +279,14 @@ def resolve_soil_match(
     return SoilMatch(
         data_source=data_source,
         distance_to_nearest_map_unit_m=site_data["minCompDistance"],
-        location_match=resolve_soil_match_info(ranked_match["score_loc"], ranked_match["rank_loc"]),
-        data_match=resolve_soil_match_info(ranked_match["score_data"], ranked_match["rank_data"]),
+        location_match=resolve_soil_match_info(
+            ranked_match["score_loc_group"], ranked_match["rank_loc_group"]
+        ),
+        data_match=resolve_soil_match_info(
+            ranked_match["score_data"], ranked_match["rank_data_group"]
+        ),
         combined_match=resolve_soil_match_info(
-            ranked_match["score_data_loc"], ranked_match["rank_data_loc"]
+            ranked_match["score_data_loc"], ranked_match["rank_data_loc_group"]
         ),
         soil_info=resolve_soil_info(soil_match),
     )
@@ -374,12 +386,7 @@ def parse_rank_soils_input_data(
 def resolve_data_based_soil_matches(soil_list_json: dict, rank_json: dict):
     ranked_matches = []
     for ranked_match in rank_json["soilRank"]:
-        rankValues = [
-            ranked_match["rank_loc"],
-            ranked_match["rank_data"],
-            ranked_match["rank_data_loc"],
-        ]
-        if all([value != "Not Displayed" for value in rankValues]):
+        if not ranked_match["not_displayed"]:
             ranked_matches.append(
                 resolve_data_based_soil_match(soil_list_json["soilList"], ranked_match)
             )
@@ -392,12 +399,7 @@ def resolve_soil_matches(
 ):
     ranked_matches = []
     for ranked_match in rank_json["soilRank"]:
-        rankValues = [
-            ranked_match["rank_loc"],
-            ranked_match["rank_data"],
-            ranked_match["rank_data_loc"],
-        ]
-        if all([value != "Not Displayed" for value in rankValues]):
+        if not ranked_match["not_displayed"]:
             ranked_matches.append(
                 resolve_soil_match(data_region, soil_list_json["soilList"], ranked_match)
             )
