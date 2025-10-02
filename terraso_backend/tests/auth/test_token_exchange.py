@@ -146,3 +146,36 @@ def test_token_exchange_bad_id_token(payload_update, client, private_key, payloa
     contents = resp.json()
     assert "token_error" in contents
     assert not User.objects.filter(email="test@example.org").exists()
+
+
+def test_token_exchange_is_new_account_true(client, private_key, payload):
+    """Test that is_new_account is True when creating a new user"""
+    payload["email"] = "newuser@example.org"
+    resp = client.post(
+        reverse("apps.auth:token-exchange"),
+        content_type="application/json",
+        data={"jwt": sign_payload(payload, private_key), "provider": "example"},
+    )
+    contents = resp.json()
+    assert contents["is_new_account"] is True
+    assert User.objects.filter(email="newuser@example.org").exists()
+
+
+def test_token_exchange_is_new_account_false(client, private_key, payload):
+    """Test that is_new_account is False when user already exists"""
+    payload["email"] = "existinguser@example.org"
+    # Create user first
+    User.objects.create(
+        email="existinguser@example.org",
+        first_name="test",
+        last_name="user",
+    )
+
+    resp = client.post(
+        reverse("apps.auth:token-exchange"),
+        content_type="application/json",
+        data={"jwt": sign_payload(payload, private_key), "provider": "example"},
+    )
+    contents = resp.json()
+    assert contents["is_new_account"] is False
+    assert User.objects.filter(email="existinguser@example.org").count() == 1
