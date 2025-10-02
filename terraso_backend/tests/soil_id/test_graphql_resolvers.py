@@ -1,3 +1,5 @@
+import pytest
+
 from apps.soil_id.graphql.soil_data.queries import DepthDependentSoilDataNode, SoilDataNode
 from apps.soil_id.graphql.soil_id.resolvers import (
     parse_rock_fragment_volume,
@@ -164,44 +166,67 @@ sample_soil_list_json = [
     },
 ]
 
-sample_rank_json = [
-    {
-        "name": "Randall",
-        "component": "Randall",
-        "componentID": 24140424,
-        "score_data_loc": 0.21,
-        "rank_data_loc": "2",
-        "score_data": 0.5,
-        "rank_data": "2",
-        "score_loc": 1.0,
-        "rank_loc": "1",
-        "componentData": "Data Complete",
-    },
-    {
-        "name": "Acuff1",
-        "component": "Acuff",
-        "componentID": 24140822,
-        "score_data_loc": None,
-        "rank_data_loc": None,
-        "score_data": None,
-        "rank_data": None,
-        "score_loc": 0.517,
-        "rank_loc": "2",
-        "componentData": "Data Complete",
-    },
-    {
-        "name": "Acuff2",
-        "component": "Acuff",
-        "componentID": 24140753,
-        "score_data_loc": 0.211,
-        "rank_data_loc": "Not Displayed",
-        "score_data": 0.898,
-        "rank_data": "Not Displayed",
-        "score_loc": 0.517,
-        "rank_loc": "Not Displayed",
-        "componentData": "Data Complete",
-    },
-]
+
+def generate_sample_rank_json(location_only: bool):
+    return [
+        {
+            "name": "Randall",
+            "component": "Randall",
+            "componentID": 24140424,
+            "not_displayed": False,
+            "score_data_loc": None if location_only else 0.6,
+            "rank_data_loc": None if location_only else "2",
+            "score_data": None if location_only else 0.2,
+            "rank_data": None if location_only else "2",
+            "score_loc": 1.0,
+            "rank_loc": "1",
+            "score_data_loc_group": None if location_only else 0.6,
+            "rank_data_loc_group": None if location_only else "2",
+            "score_data_group": None if location_only else 0.2,
+            "rank_data_group": None if location_only else "2",
+            "score_loc_group": 1.0,
+            "rank_loc_group": "1",
+            "componentData": "Location data only" if location_only else "Data Complete",
+        },
+        {
+            "name": "Acuff1",
+            "component": "Acuff",
+            "componentID": 24140822,
+            "not_displayed": not location_only,
+            "score_data_loc": None if location_only else 0.408,
+            "rank_data_loc": None if location_only else "Not Displayed",
+            "score_data": None if location_only else 0.3,
+            "rank_data": None if location_only else "Not Displayed",
+            "score_loc": 0.517,
+            "rank_loc": "2",
+            "score_data_loc_group": None if location_only else 0.708,
+            "rank_data_loc_group": None if location_only else "1",
+            "score_data_group": None if location_only else 0.899,
+            "rank_data_group": None if location_only else "1",
+            "score_loc_group": 0.517,
+            "rank_loc_group": "2",
+            "componentData": "Location data only" if location_only else "Data Complete",
+        },
+        {
+            "name": "Acuff2",
+            "component": "Acuff",
+            "componentID": 24140753,
+            "not_displayed": location_only,
+            "score_data_loc": None if location_only else 0.708,
+            "rank_data_loc": None if location_only else "1",
+            "score_data": None if location_only else 0.899,
+            "rank_data": None if location_only else "1",
+            "score_loc": 0.517,
+            "rank_loc": "Not Displayed",
+            "score_data_loc_group": None if location_only else 0.708,
+            "rank_data_loc_group": None if location_only else "1",
+            "score_data_group": None if location_only else 0.899,
+            "rank_data_group": None if location_only else "1",
+            "score_loc_group": 0.517,
+            "rank_loc_group": "2",
+            "componentData": "Location data only" if location_only else "Data Complete",
+        },
+    ]
 
 
 def test_resolve_texture():
@@ -333,7 +358,9 @@ def test_resolve_soil_match_info():
 
 def test_resolve_soil_match():
     result = resolve_soil_match(
-        SoilIdCache.DataRegion.US, sample_soil_list_json, sample_rank_json[0]
+        SoilIdCache.DataRegion.US,
+        sample_soil_list_json,
+        generate_sample_rank_json(location_only=False)[0],
     )
 
     assert result.data_source == "SSURGO"
@@ -344,7 +371,9 @@ def test_resolve_soil_match():
     assert result.soil_info.soil_series.name == "Randall"
 
     result = resolve_soil_match(
-        SoilIdCache.DataRegion.GLOBAL, sample_soil_list_json, sample_rank_json[1]
+        SoilIdCache.DataRegion.GLOBAL,
+        sample_soil_list_json,
+        generate_sample_rank_json(location_only=True)[1],
     )
 
     assert result.data_source == "HWSD"
@@ -355,7 +384,9 @@ def test_resolve_soil_match():
 
 # DEPRECATED
 def test_resolve_data_based_soil_match():
-    result = resolve_data_based_soil_match(sample_soil_list_json, sample_rank_json[0])
+    result = resolve_data_based_soil_match(
+        sample_soil_list_json, generate_sample_rank_json(location_only=False)[0]
+    )
 
     assert result.data_source == "SSURGO"
     assert result.distance_to_nearest_map_unit_m == 0.0
@@ -364,7 +395,9 @@ def test_resolve_data_based_soil_match():
     assert result.combined_match.rank == 1
     assert result.soil_info.soil_series.name == "Randall"
 
-    result = resolve_data_based_soil_match(sample_soil_list_json, sample_rank_json[1])
+    result = resolve_data_based_soil_match(
+        sample_soil_list_json, generate_sample_rank_json(location_only=True)[1]
+    )
 
     assert result.data_source == "SSURGO"
     assert result.distance_to_nearest_map_unit_m == 90.0
@@ -376,21 +409,23 @@ def test_resolve_data_based_soil_match():
     assert result.soil_info.soil_series.name == "Acuff"
 
 
-def test_resolve_soil_matches():
+@pytest.mark.parametrize("location_only", [True, False])
+def test_resolve_soil_matches(location_only):
     result = resolve_soil_matches(
         SoilIdCache.DataRegion.GLOBAL,
         {"soilList": sample_soil_list_json},
-        {"soilRank": sample_rank_json},
+        {"soilRank": generate_sample_rank_json(location_only)},
     )
 
     assert len(result.matches) == 2
 
 
 # DEPRECATED
-def test_resolve_data_based_soil_matches():
+@pytest.mark.parametrize("location_only", [True, False])
+def test_resolve_data_based_soil_matches(location_only):
     result = resolve_data_based_soil_matches(
         {"soilList": sample_soil_list_json},
-        {"soilRank": sample_rank_json},
+        {"soilRank": generate_sample_rank_json(location_only)},
     )
 
     assert len(result.matches) == 2
