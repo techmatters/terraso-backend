@@ -16,10 +16,9 @@
 import graphene
 from graphene import Enum
 
-from apps.soil_id.models.soil_metadata import UserMatchRating
+from apps.soil_id.models.soil_metadata import SoilMetadata
 
-# GraphQL Enum for UserMatchRating
-UserMatchRatingEnum = Enum.from_enum(UserMatchRating)
+UserMatchRatingEnum = Enum.from_enum(SoilMetadata.UserMatchRating)
 
 
 class UserRatingInput(graphene.InputObjectType):

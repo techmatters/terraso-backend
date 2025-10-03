@@ -19,18 +19,13 @@ from apps.core.models.commons import BaseModel
 from apps.project_management.models.sites import Site
 
 
-class UserMatchRating(models.TextChoices):
-    SELECTED = "SELECTED"
-    REJECTED = "REJECTED"
-    UNSURE = "UNSURE"
-
-
 class SoilMetadata(BaseModel):
     site = models.OneToOneField(Site, on_delete=models.CASCADE, related_name="soil_metadata")
 
-    # Deprecated: kept for backwards compatibility with older clients
-    # New clients should use user_ratings instead
-    # selected_soil_id = models.CharField(blank=True, null=True)
+    class UserMatchRating(models.TextChoices):
+        SELECTED = "SELECTED"
+        REJECTED = "REJECTED"
+        UNSURE = "UNSURE"
 
     # Maps soil_match_id (string) to rating (UserMatchRating value)
     # Example: {"soil_match_123": "SELECTED", "soil_match_456": "REJECTED"}
@@ -44,7 +39,7 @@ class SoilMetadata(BaseModel):
         Used for backwards compatibility with older clients.
         """
         for soil_match_id, rating in self.user_ratings.items():
-            if rating == UserMatchRating.SELECTED:
+            if rating == SoilMetadata.UserMatchRating.SELECTED:
                 return soil_match_id
         return None
 
@@ -65,14 +60,18 @@ class SoilMetadata(BaseModel):
         if soil_match_id is None or soil_match_id == "":
             # Remove all SELECTED ratings
             self.user_ratings = {
-                k: v for k, v in self.user_ratings.items() if v != UserMatchRating.SELECTED
+                k: v
+                for k, v in self.user_ratings.items()
+                if v != SoilMetadata.UserMatchRating.SELECTED
             }
         else:
             # Remove any existing SELECTED ratings and add the new one
             self.user_ratings = {
-                k: v for k, v in self.user_ratings.items() if v != UserMatchRating.SELECTED
+                k: v
+                for k, v in self.user_ratings.items()
+                if v != SoilMetadata.UserMatchRating.SELECTED
             }
-            self.user_ratings[soil_match_id] = UserMatchRating.SELECTED
+            self.user_ratings[soil_match_id] = SoilMetadata.UserMatchRating.SELECTED
 
     class Meta(BaseModel.Meta):
         verbose_name_plural = "soil metadata"
