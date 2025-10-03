@@ -46,12 +46,12 @@ class SoilMetadataUpdateMutation(BaseWriteMutation):
 
         # Old client: update via selected_soil_id
         if "selected_soil_id" in kwargs:
-            selected_soil_id = kwargs.pop("selected_soil_id")
+            selected_soil_id = kwargs.get("selected_soil_id")
             site.soil_metadata.set_selected_soil_id(selected_soil_id)
 
         # New client: update via user_ratings
         if "user_ratings" in kwargs:
-            user_ratings = kwargs.pop("user_ratings")
+            user_ratings = kwargs.get("user_ratings")
 
             # Convert list of UserRatingInput to dict
             ratings_dict = {rating["soil_match_id"]: rating["rating"] for rating in user_ratings}
