@@ -218,17 +218,19 @@ class BaseWriteMutation(BaseAuthenticatedMutation):
             )
         except IntegrityError as exc:
             logger.info(
-                "Attempt to mutate an model, but it's not unique",
+                "Attempt to mutate a model, but an integrity was constraint violated",
                 extra={"model": cls.model_class.__name__, "integrity_error": exc},
             )
 
-            # It's not trivial identify the exact field(s) that originated the integrity errror
-            # here, so we identify the error as NON_FIELD_ERROR with the unique code.
+            # Analyze the integrity error to determine the specific type
+            error_message, error_code = cls._parse_integrity_error(exc, cls.model_class)
+
+            # It's not trivial to identify the exact field(s) that originated the integrity error
             validation_error = ValidationError(
                 message={
                     NON_FIELD_ERRORS: ValidationError(
-                        message=f"This {cls.model_class.__name__} already exists",
-                        code="unique",
+                        message=error_message,
+                        code=error_code,
                     )
                 },
             )
@@ -243,6 +245,17 @@ class BaseWriteMutation(BaseAuthenticatedMutation):
     @classmethod
     def is_update(cls, data):
         return "id" in data
+
+    @classmethod
+    def _parse_integrity_error(cls, exc: IntegrityError, model_class):
+        error_str = str(exc).lower()
+
+        # Check for unique constraint violations
+        if "unique constraint" in error_str:
+            return f"This {model_class.__name__} already exists", "unique"
+
+        # Generic integrity error fallback for all other constraint types
+        return f"Data integrity error in {model_class.__name__}", "integrity_error"
 
     @staticmethod
     def assign_graphql_fields_to_model_instance(
