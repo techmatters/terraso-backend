@@ -1111,9 +1111,9 @@ threadpoolctl==3.6.0 \
     --hash=sha256:43a0b8fd5a2928500110039e43a5eed8480b918967083ea48dc3ab9f13c4a7fb \
     --hash=sha256:8ab8b4aa3491d812b623328249fab5302a68d2d71745c8a4c719a2fcaba9f44e
     # via scikit-learn
-tifffile==2025.9.20 \
-    --hash=sha256:549dda2f2c65cc63b3d946942b9b43c09ae50caaae0aa7ea3d91a915acd45444 \
-    --hash=sha256:a0fed4c613ff728979cb6abfd40832b6f36dc9da8183e52840418a25a00552eb
+tifffile==2025.10.4 \
+    --hash=sha256:2e437c16ab211be5bcdc79f71b4907359115f1f83b5d919e7c297c29725d3e38 \
+    --hash=sha256:7687d691e49026053181470cec70fa9250e3a586b2041041297e38b10bbd34e1
     # via scikit-image
 typing-extensions==4.15.0 \
     --hash=sha256:0cea48d173cc12fa28ecabc3b837ea3cf6f38c6d1136f85cbaaf598984861466 \
