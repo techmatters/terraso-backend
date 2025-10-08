@@ -89,6 +89,9 @@ class SoilMetadataAdmin(admin.ModelAdmin):
         """Display the selected soil ID from user_ratings for backwards compatibility"""
         return obj.selected_soil_id
 
+    def admin_warning(self, obj):
+        return '^^ WARNING! ^^ \nUser ratings does not enforce proper formatting.\n Format like:\n{"Humic nitisols": "REJECTED", "Haplic nitisols": "SELECTED", "Eutric cambisols": "UNSURE"}'
+
     list_display = ["site_name", "site_owner", "selected_soil_display"]
     search_fields = ["site__name", "site__owner__email"]
-    readonly_fields = ["user_ratings", "selected_soil_display"]
+    readonly_fields = ["admin_warning", "selected_soil_display"]

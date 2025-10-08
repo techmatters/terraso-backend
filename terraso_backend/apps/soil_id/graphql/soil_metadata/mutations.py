@@ -15,6 +15,7 @@
 
 import graphene
 from django.db import transaction
+from django.forms import ValidationError
 
 from apps.graphql.schema.commons import BaseWriteMutation
 from apps.graphql.schema.constants import MutationTypes
@@ -44,21 +45,41 @@ class SoilMetadataUpdateMutation(BaseWriteMutation):
         if not hasattr(site, "soil_metadata"):
             site.soil_metadata = SoilMetadata()
 
-        # Old client: update via selected_soil_id
-        if "selected_soil_id" in kwargs:
-            selected_soil_id = kwargs.get("selected_soil_id")
-            site.soil_metadata.set_selected_soil_id(selected_soil_id)
-
-        # New client: update via user_ratings
-        if "user_ratings" in kwargs:
-            user_ratings = kwargs.get("user_ratings")
-
-            # Convert list of UserRatingInput to dict
-            ratings_dict = {rating["soil_match_id"]: rating["rating"] for rating in user_ratings}
-            site.soil_metadata.user_ratings = ratings_dict
-
-        kwargs["model_instance"] = site.soil_metadata
-
         with transaction.atomic():
+            # Old client: update via selected_soil_id
+            if "selected_soil_id" in kwargs:
+                selected_soil_id = kwargs.pop("selected_soil_id")
+                site.soil_metadata.set_selected_soil_id(selected_soil_id)
+
+            # New client: update via user_ratings
+            if "user_ratings" in kwargs:
+                input_user_ratings = kwargs.pop("user_ratings")
+
+                input_ratings_dict = {
+                    rating["soil_match_id"]: rating["rating"].value for rating in input_user_ratings
+                }
+
+                input_selected_soils = [
+                    soil_match_id
+                    for soil_match_id, rating in input_ratings_dict.items()
+                    if rating == SoilMetadata.UserMatchRating.SELECTED.value
+                ]
+                if len(input_selected_soils) > 1:
+                    raise ValidationError(
+                        f"There should only be a single selected soil, but found {len(input_selected_soils)}: "
+                        f"{', '.join(input_selected_soils)}"
+                    )
+                # If there is a selected soil in the new ratings, remove any existing SELECTED ratings
+                if input_selected_soils:
+                    site.soil_metadata.user_ratings = {
+                        soil_match_id: rating
+                        for soil_match_id, rating in site.soil_metadata.user_ratings.items()
+                        if rating != SoilMetadata.UserMatchRating.SELECTED.value
+                    }
+
+                site.soil_metadata.user_ratings = (
+                    site.soil_metadata.user_ratings | input_ratings_dict
+                )
+            kwargs["model_instance"] = site.soil_metadata
             result = super().mutate_and_get_payload(root, info, **kwargs)
         return result

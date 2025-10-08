@@ -62,16 +62,16 @@ class SoilMetadata(BaseModel):
             self.user_ratings = {
                 k: v
                 for k, v in self.user_ratings.items()
-                if v != SoilMetadata.UserMatchRating.SELECTED
+                if v != SoilMetadata.UserMatchRating.SELECTED.value
             }
         else:
             # Remove any existing SELECTED ratings and add the new one
             self.user_ratings = {
                 k: v
                 for k, v in self.user_ratings.items()
-                if v != SoilMetadata.UserMatchRating.SELECTED
+                if v != SoilMetadata.UserMatchRating.SELECTED.value
             }
-            self.user_ratings[soil_match_id] = SoilMetadata.UserMatchRating.SELECTED
+            self.user_ratings[soil_match_id] = SoilMetadata.UserMatchRating.SELECTED.value
 
     class Meta(BaseModel.Meta):
         verbose_name_plural = "soil metadata"
