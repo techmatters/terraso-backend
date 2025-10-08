@@ -16,12 +16,12 @@ repos:
     hooks:
     -   id: pre-commit-update
 
-    - repo: https://github.com/astral-sh/ruff-pre-commit
-      rev: v0.14.0
-      hooks:
-          - id: ruff-check
-            args: [--fix]
-          - id: ruff-format
+-   repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.14.0
+    hooks:
+    -   id: ruff-check
+        args: [--fix]
+    -   id: ruff-format
 
 -   repo: https://github.com/compilerla/conventional-pre-commit
     rev: v4.2.0
