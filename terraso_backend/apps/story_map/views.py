@@ -160,6 +160,13 @@ class StoryMapUpdateView(AuthenticationRequiredMixin, FormView):
                 signed_url = story_map_media_upload_service.get_signed_url(media["url"])
                 chapter["media"]["signedUrl"] = signed_url
 
+        # Add signed URL for featured image
+        if story_map.configuration.get("featuredImage"):
+            featured_image = story_map.configuration["featuredImage"]
+            if "url" in featured_image:
+                signed_url = story_map_media_upload_service.get_signed_url(featured_image["url"])
+                story_map.configuration["featuredImage"]["signedUrl"] = signed_url
+
         return JsonResponse(story_map.to_dict(), status=201)
 
 
@@ -182,6 +189,26 @@ def handle_config_media(new_config, story_map, request):
                     )
                     chapter["media"] = {"url": url, "type": media["type"]}
 
+    # Handle featured image upload
+    if "featuredImage" in new_config:
+        featured_image = new_config["featuredImage"]
+        if featured_image and "contentId" in featured_image:
+            file_id = featured_image["contentId"]
+            matching_file = next(
+                (file for file in request.FILES.getlist("files") if file.name == file_id), None
+            )
+            if matching_file:
+                url = story_map_media_upload_service.upload_file_get_path(
+                    str(request.user.id),
+                    matching_file,
+                    file_name=uuid.uuid4(),
+                )
+                new_featured_image = {"url": url}
+                # Preserve description if present
+                if "description" in featured_image:
+                    new_featured_image["description"] = featured_image["description"]
+                new_config["featuredImage"] = new_featured_image
+
     if (current_config is None) or (not current_config.get("chapters")):
         return new_config
 
@@ -202,6 +229,17 @@ def handle_config_media(new_config, story_map, request):
         for chapter in all_active_chapters
         if chapter.get("media") and "url" in chapter["media"]
     ]
+
+    # Track featured image URLs for cleanup
+    if current_config.get("featuredImage") and "url" in current_config["featuredImage"]:
+        current_media.append(current_config["featuredImage"]["url"])
+
+    if new_config.get("featuredImage") and "url" in new_config["featuredImage"]:
+        new_media.append(new_config["featuredImage"]["url"])
+
+    if current_published_config and current_published_config.get("featuredImage"):
+        if "url" in current_published_config["featuredImage"]:
+            new_media.append(current_published_config["featuredImage"]["url"])
 
     for media_path in current_media:
         if media_path not in new_media:
