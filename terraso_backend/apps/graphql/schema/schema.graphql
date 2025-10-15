@@ -1688,6 +1688,7 @@ type Mutations {
   updateSoilDataDepthInterval(input: SoilDataUpdateDepthIntervalMutationInput!): SoilDataUpdateDepthIntervalMutationPayload! @deprecated(reason: "Use push_soil_data instead.")
   deleteSoilDataDepthInterval(input: SoilDataDeleteDepthIntervalMutationInput!): SoilDataDeleteDepthIntervalMutationPayload! @deprecated(reason: "Use push_soil_data instead.")
   updateSoilMetadata(input: SoilMetadataUpdateMutationInput!): SoilMetadataUpdateMutationPayload!
+  pushSoilMetadata(input: SoilMetadataPushInput!): SoilMetadataPushPayload!
   updateProjectSoilSettings(input: ProjectSoilSettingsUpdateMutationInput!): ProjectSoilSettingsUpdateMutationPayload!
   updateProjectSoilSettingsDepthInterval(input: ProjectSoilSettingsUpdateDepthIntervalMutationInput!): ProjectSoilSettingsUpdateDepthIntervalMutationPayload!
   deleteProjectSoilSettingsDepthInterval(input: ProjectSoilSettingsDeleteDepthIntervalMutationInput!): ProjectSoilSettingsDeleteDepthIntervalMutationPayload!
@@ -2469,6 +2470,47 @@ input SoilMetadataUpdateMutationInput {
 input UserRatingInput {
   soilMatchId: String!
   rating: UserMatchRating!
+}
+
+type SoilMetadataPushPayload {
+  errors: GenericScalar
+  results: [SoilMetadataPushEntry!]!
+  clientMutationId: String
+}
+
+type SoilMetadataPushEntry {
+  siteId: ID!
+  result: SoilMetadataPushEntryResult!
+}
+
+union SoilMetadataPushEntryResult = SoilMetadataPushEntrySuccess | SoilMetadataPushEntryFailure
+
+type SoilMetadataPushEntrySuccess {
+  soilMetadata: SoilMetadataNode!
+}
+
+type SoilMetadataPushEntryFailure {
+  reason: SoilMetadataPushFailureReason!
+}
+
+enum SoilMetadataPushFailureReason {
+  DOES_NOT_EXIST
+  NOT_ALLOWED
+  INVALID_DATA
+}
+
+input SoilMetadataPushInput {
+  soilMetadataEntries: [SoilMetadataPushInputEntry!]!
+  clientMutationId: String
+}
+
+input SoilMetadataPushInputEntry {
+  siteId: ID!
+  soilMetadata: SoilMetadataPushInputSoilMetadata!
+}
+
+input SoilMetadataPushInputSoilMetadata {
+  userRatings: [UserRatingInput!]!
 }
 
 type ProjectSoilSettingsUpdateMutationPayload {

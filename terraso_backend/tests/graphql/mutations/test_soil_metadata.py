@@ -195,3 +195,182 @@ def test_update_user_ratings_with_prior_ratings(client, user, site):
         "soil_4": "REJECTED",  # Added
         "soil_5": "UNSURE",  # added
     }
+
+
+PUSH_SOIL_METADATA_QUERY = """
+    mutation PushSoilMetadataMutation($input: SoilMetadataPushInput!) {
+        pushSoilMetadata(input: $input) {
+            results {
+                siteId
+                result {
+                    __typename
+                    ... on SoilMetadataPushEntryFailure {
+                        reason
+                    }
+                    ... on SoilMetadataPushEntrySuccess {
+                        soilMetadata {
+                            userRatings {
+                                soilMatchId
+                                rating
+                            }
+                        }
+                    }
+                }
+            }
+            errors
+        }
+    }
+"""
+
+
+def test_push_soil_metadata_success(client, user, site):
+    """Test that pushing soil metadata replaces user_ratings entirely"""
+    client.force_login(user)
+
+    # Create existing metadata with some ratings
+    SoilMetadata.objects.create(site=site, user_ratings={"soil_1": "UNSURE", "soil_2": "REJECTED"})
+
+    new_data = {
+        "soilMetadataEntries": [
+            {
+                "siteId": str(site.id),
+                "soilMetadata": {
+                    "userRatings": [
+                        {"soilMatchId": "soil_3", "rating": "SELECTED"},
+                        {"soilMatchId": "soil_4", "rating": "REJECTED"},
+                    ]
+                },
+            }
+        ]
+    }
+
+    response = graphql_query(PUSH_SOIL_METADATA_QUERY, input_data=new_data, client=client)
+
+    assert response.json()["data"]["pushSoilMetadata"]["errors"] is None
+    result = response.json()["data"]["pushSoilMetadata"]["results"][0]
+    assert result["result"]["__typename"] == "SoilMetadataPushEntrySuccess"
+
+    site.refresh_from_db()
+
+    # Verify that user_ratings were completely replaced
+    assert site.soil_metadata.user_ratings == {
+        "soil_3": "SELECTED",
+        "soil_4": "REJECTED",
+    }
+
+
+def test_push_soil_metadata_multiple_selected_fails(client, user, site):
+    """Test that multiple SELECTED ratings fail validation"""
+    client.force_login(user)
+
+    new_data = {
+        "soilMetadataEntries": [
+            {
+                "siteId": str(site.id),
+                "soilMetadata": {
+                    "userRatings": [
+                        {"soilMatchId": "soil_1", "rating": "SELECTED"},
+                        {"soilMatchId": "soil_2", "rating": "SELECTED"},
+                    ]
+                },
+            }
+        ]
+    }
+
+    response = graphql_query(PUSH_SOIL_METADATA_QUERY, input_data=new_data, client=client)
+
+    result = response.json()["data"]["pushSoilMetadata"]["results"][0]
+    assert result["result"]["__typename"] == "SoilMetadataPushEntryFailure"
+    assert result["result"]["reason"] == "INVALID_DATA"
+
+
+def test_push_soil_metadata_not_allowed(client, site):
+    """Test that users without permission cannot push soil metadata"""
+    unauthorized_user = mixer.blend(User)
+    client.force_login(unauthorized_user)
+
+    new_data = {
+        "soilMetadataEntries": [
+            {
+                "siteId": str(site.id),
+                "soilMetadata": {
+                    "userRatings": [
+                        {"soilMatchId": "soil_1", "rating": "SELECTED"},
+                    ]
+                },
+            }
+        ]
+    }
+
+    response = graphql_query(PUSH_SOIL_METADATA_QUERY, input_data=new_data, client=client)
+
+    result = response.json()["data"]["pushSoilMetadata"]["results"][0]
+    assert result["result"]["__typename"] == "SoilMetadataPushEntryFailure"
+    assert result["result"]["reason"] == "NOT_ALLOWED"
+
+
+def test_push_soil_metadata_site_does_not_exist(client, user):
+    """Test that pushing to a non-existent site fails"""
+    client.force_login(user)
+
+    new_data = {
+        "soilMetadataEntries": [
+            {
+                "siteId": "does-not-exist",
+                "soilMetadata": {
+                    "userRatings": [
+                        {"soilMatchId": "soil_1", "rating": "SELECTED"},
+                    ]
+                },
+            }
+        ]
+    }
+
+    response = graphql_query(PUSH_SOIL_METADATA_QUERY, input_data=new_data, client=client)
+
+    result = response.json()["data"]["pushSoilMetadata"]["results"][0]
+    assert result["result"]["__typename"] == "SoilMetadataPushEntryFailure"
+    assert result["result"]["reason"] == "DOES_NOT_EXIST"
+
+
+def test_push_soil_metadata_multiple_sites(client, user):
+    """Test that pushing to multiple sites in one request works correctly"""
+    site1 = mixer.blend(Site, owner=user)
+    site2 = mixer.blend(Site, owner=user)
+
+    client.force_login(user)
+
+    new_data = {
+        "soilMetadataEntries": [
+            {
+                "siteId": str(site1.id),
+                "soilMetadata": {
+                    "userRatings": [
+                        {"soilMatchId": "soil_1", "rating": "SELECTED"},
+                    ]
+                },
+            },
+            {
+                "siteId": str(site2.id),
+                "soilMetadata": {
+                    "userRatings": [
+                        {"soilMatchId": "soil_2", "rating": "REJECTED"},
+                        {"soilMatchId": "soil_3", "rating": "UNSURE"},
+                    ]
+                },
+            },
+        ]
+    }
+
+    response = graphql_query(PUSH_SOIL_METADATA_QUERY, input_data=new_data, client=client)
+
+    assert response.json()["data"]["pushSoilMetadata"]["errors"] is None
+    results = response.json()["data"]["pushSoilMetadata"]["results"]
+    assert len(results) == 2
+    assert all(r["result"]["__typename"] == "SoilMetadataPushEntrySuccess" for r in results)
+
+    site1.refresh_from_db()
+    site2.refresh_from_db()
+
+    assert site1.soil_metadata.user_ratings == {"soil_1": "SELECTED"}
+    assert site2.soil_metadata.user_ratings == {"soil_2": "REJECTED", "soil_3": "UNSURE"}
