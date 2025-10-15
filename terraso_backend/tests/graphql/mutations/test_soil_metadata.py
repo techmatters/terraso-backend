@@ -316,7 +316,7 @@ def test_push_soil_metadata_site_does_not_exist(client, user):
     new_data = {
         "soilMetadataEntries": [
             {
-                "siteId": "does-not-exist",
+                "siteId": "00000000-0000-0000-0000-000000000000",
                 "soilMetadata": {
                     "userRatings": [
                         {"soilMatchId": "soil_1", "rating": "SELECTED"},
