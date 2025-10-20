@@ -14,7 +14,23 @@
 # along with this program. If not, see https://www.gnu.org/licenses/.
 
 import graphene
+from graphene import Enum
+
+from apps.soil_id.models.soil_metadata import SoilMetadata
+
+UserMatchRatingEnum = Enum.from_enum(SoilMetadata.UserMatchRating)
+
+
+class UserRatingInput(graphene.InputObjectType):
+    """Input type for a single user rating entry"""
+
+    soil_match_id = graphene.String(required=True)
+    rating = graphene.Field(UserMatchRatingEnum, required=True)
 
 
 class SoilMetadataInputs:
+    # Deprecated: kept for backwards compatibility with older clients
     selected_soil_id = graphene.String()
+
+    # New field: list of user ratings for soil matches
+    user_ratings = graphene.List(UserRatingInput)
