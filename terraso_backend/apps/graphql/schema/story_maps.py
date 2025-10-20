@@ -48,6 +48,12 @@ def _resolve_configuration(story_map, info, field):
                 signed_url = story_map_media_upload_service.get_signed_url(media["url"])
                 chapter["media"]["signedUrl"] = signed_url
 
+    if "featuredImage" in config:
+        featured_image = config["featuredImage"]
+        if featured_image and "url" in featured_image:
+            signed_url = story_map_media_upload_service.get_signed_url(featured_image["url"])
+            config["featuredImage"]["signedUrl"] = signed_url
+
     return config
 
 
