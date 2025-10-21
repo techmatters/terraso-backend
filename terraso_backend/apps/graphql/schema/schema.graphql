@@ -1684,7 +1684,8 @@ type Mutations {
   markProjectSeen(input: ProjectMarkSeenMutationInput!): ProjectMarkSeenMutationPayload!
   updateSoilData(input: SoilDataUpdateMutationInput!): SoilDataUpdateMutationPayload! @deprecated(reason: "Use push_soil_data instead.")
   updateDepthDependentSoilData(input: DepthDependentSoilDataUpdateMutationInput!): DepthDependentSoilDataUpdateMutationPayload! @deprecated(reason: "Use push_soil_data instead.")
-  pushSoilData(input: SoilDataPushInput!): SoilDataPushPayload!
+  pushSoilData(input: SoilDataPushInput!): SoilDataPushPayload! @deprecated(reason: "Use push_site_data instead.")
+  pushSiteData(input: SiteDataPushInput!): SiteDataPushPayload!
   updateSoilDataDepthInterval(input: SoilDataUpdateDepthIntervalMutationInput!): SoilDataUpdateDepthIntervalMutationPayload! @deprecated(reason: "Use push_soil_data instead.")
   deleteSoilDataDepthInterval(input: SoilDataDeleteDepthIntervalMutationInput!): SoilDataDeleteDepthIntervalMutationPayload! @deprecated(reason: "Use push_soil_data instead.")
   updateSoilMetadata(input: SoilMetadataUpdateMutationInput!): SoilMetadataUpdateMutationPayload!
@@ -2416,6 +2417,58 @@ input SoilDataPushInputDepthInterval {
   electricalConductivityEnabled: Boolean
   sodiumAdsorptionRatioEnabled: Boolean
   soilStructureEnabled: Boolean
+}
+
+type SiteDataPushPayload {
+  errors: GenericScalar
+  soilDataResults: [SoilDataPushEntry!]
+  soilDataError: String
+  soilMetadataResults: [SoilMetadataPushEntry!]
+  soilMetadataError: String
+  clientMutationId: String
+}
+
+type SoilMetadataPushEntry {
+  siteId: ID!
+  result: SoilMetadataPushEntryResult!
+}
+
+union SoilMetadataPushEntryResult = SoilMetadataPushEntrySuccess | SoilMetadataPushEntryFailure
+
+type SoilMetadataPushEntrySuccess {
+  soilMetadata: SoilMetadataNode!
+}
+
+type SoilMetadataPushEntryFailure {
+  reason: SoilMetadataPushFailureReason!
+}
+
+enum SoilMetadataPushFailureReason {
+  DOES_NOT_EXIST
+  NOT_ALLOWED
+  INVALID_DATA
+}
+
+input SiteDataPushInput {
+  soilDataEntries: [SoilDataPushInputEntry!] = null
+  soilMetadataEntries: [SoilMetadataPushInputEntry!] = null
+  clientMutationId: String
+}
+
+input SoilMetadataPushInputEntry {
+  siteId: ID!
+  userRatings: [UserRatingInputEntry!]!
+}
+
+input UserRatingInputEntry {
+  soilMatchId: String!
+  rating: UserMatchRatingGraphene!
+}
+
+enum UserMatchRatingGraphene {
+  SELECTED
+  REJECTED
+  UNSURE
 }
 
 type SoilDataUpdateDepthIntervalMutationPayload {
