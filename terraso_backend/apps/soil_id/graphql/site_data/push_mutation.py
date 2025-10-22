@@ -54,7 +54,6 @@ class SiteDataPush(BaseWriteMutation):
         soil_data_entries = kwargs.get("soil_data_entries", [])
         soil_metadata_entries = kwargs.get("soil_metadata_entries", [])
 
-        # Validate at least one is provided
         if not soil_data_entries and not soil_metadata_entries:
             raise ValidationError(
                 "At least one of soilDataEntries or soilMetadataEntries must be provided"
@@ -70,7 +69,6 @@ class SiteDataPush(BaseWriteMutation):
         if soil_data_entries:
             soil_data_results = []
             try:
-                # Use separate transactions like SoilDataPush does
                 with transaction.atomic():
                     history_entries = SoilDataPush.log_soil_data_push(user, soil_data_entries)
 

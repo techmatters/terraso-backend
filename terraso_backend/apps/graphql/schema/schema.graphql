@@ -2457,18 +2457,13 @@ input SiteDataPushInput {
 
 input SoilMetadataPushInputEntry {
   siteId: ID!
-  userRatings: [UserRatingInputEntry!]!
+  userRatings: [UserRatingInput!]!
 }
 
-input UserRatingInputEntry {
+"""Input type for a single user rating entry"""
+input UserRatingInput {
   soilMatchId: String!
-  rating: UserMatchRatingGraphene!
-}
-
-enum UserMatchRatingGraphene {
-  SELECTED
-  REJECTED
-  UNSURE
+  rating: UserMatchRating!
 }
 
 type SoilDataUpdateDepthIntervalMutationPayload {
@@ -2516,12 +2511,6 @@ input SoilMetadataUpdateMutationInput {
   userRatings: [UserRatingInput]
   siteId: ID!
   clientMutationId: String
-}
-
-"""Input type for a single user rating entry"""
-input UserRatingInput {
-  soilMatchId: String!
-  rating: UserMatchRating!
 }
 
 type ProjectSoilSettingsUpdateMutationPayload {

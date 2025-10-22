@@ -23,6 +23,7 @@ from apps.project_management.models.sites import Site
 from apps.project_management.permission_rules import Context
 from apps.project_management.permission_table import SiteAction, check_site_permission
 from apps.soil_id.graphql.soil_metadata.queries import SoilMetadataNode
+from apps.soil_id.graphql.soil_metadata.types import UserRatingInput
 from apps.soil_id.models.soil_metadata import SoilMetadata
 
 logger = structlog.get_logger(__name__)
@@ -52,22 +53,9 @@ class SoilMetadataPushEntry(graphene.ObjectType):
     result = graphene.Field(SoilMetadataPushEntryResult, required=True)
 
 
-class UserMatchRatingGraphene(graphene.Enum):
-    SELECTED = "SELECTED"
-    REJECTED = "REJECTED"
-    UNSURE = "UNSURE"
-
-
-class UserRatingInputEntry(graphene.InputObjectType):
-    soil_match_id = graphene.String(required=True)
-    rating = graphene.Field(UserMatchRatingGraphene, required=True)
-
-
 class SoilMetadataPushInputEntry(graphene.InputObjectType):
     site_id = graphene.ID(required=True)
-    user_ratings = graphene.Field(
-        graphene.List(graphene.NonNull(UserRatingInputEntry)), required=True
-    )
+    user_ratings = graphene.Field(graphene.List(graphene.NonNull(UserRatingInput)), required=True)
 
 
 class SoilMetadataPush(BaseWriteMutation):
