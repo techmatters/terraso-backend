@@ -82,6 +82,29 @@ class SoilMetadataPush(BaseWriteMutation):
         return site.soil_metadata, None
 
     @staticmethod
+    def convert_and_validate_user_ratings(user_ratings_input: list[dict]) -> dict[str, str]:
+        """
+        Converts user ratings input to a dictionary and validates that at most
+        one rating has SELECTED status
+        """
+        user_ratings_dict = {}
+        selected_count = 0
+        for rating_entry in user_ratings_input:
+            soil_match_id = rating_entry["soil_match_id"]
+            rating_value = rating_entry["rating"]
+            if hasattr(rating_value, "value"):
+                rating_str = rating_value.value
+            else:
+                raise ValidationError("Unrecognized rating value")
+            if rating_str == "SELECTED":
+                selected_count += 1
+            user_ratings_dict[soil_match_id] = rating_str
+        if selected_count > 1:
+            raise ValidationError("Only a single selected soil is allowed across all user ratings")
+
+        return user_ratings_dict
+
+    @staticmethod
     def mutate_and_get_entry_result(user: User, soil_metadata_entry: dict):
         site_id = soil_metadata_entry["site_id"]
         user_ratings_input = soil_metadata_entry["user_ratings"]
@@ -95,29 +118,9 @@ class SoilMetadataPush(BaseWriteMutation):
                     site_id=site_id, result=SoilMetadataPushEntryFailure(reason=reason)
                 )
 
-            # Convert input to dict format and validate
-            user_ratings_dict = {}
-            selected_count = 0
-            for rating_entry in user_ratings_input:
-                soil_match_id = rating_entry["soil_match_id"]
-                rating_value = rating_entry["rating"]
-
-                # Convert enum to string value if needed
-                if hasattr(rating_value, "value"):
-                    rating_str = rating_value.value
-                else:
-                    rating_str = str(rating_value)
-
-                if rating_str == "SELECTED":
-                    selected_count += 1
-
-                user_ratings_dict[soil_match_id] = rating_str
-
-            # Validate only one SELECTED rating
-            if selected_count > 1:
-                raise ValidationError(
-                    "Only a single selected soil is allowed across all user ratings"
-                )
+            user_ratings_dict = SoilMetadataPush.convert_and_validate_user_ratings(
+                user_ratings_input
+            )
 
             # Completely replace user_ratings (not merge)
             soil_metadata.user_ratings = user_ratings_dict
