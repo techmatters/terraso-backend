@@ -15,7 +15,6 @@
 
 import graphene
 import structlog
-from django.db import transaction
 from django.forms import ValidationError
 
 from apps.graphql.schema.commons import BaseWriteMutation
@@ -34,6 +33,15 @@ logger = structlog.get_logger(__name__)
 
 
 class SiteDataPush(BaseWriteMutation):
+    """
+    To enable offline functionality.
+    Pushes at least one of the following sub-mutations:
+    - soil data
+    - soil metadata (fully replaces user ratings)
+
+    Partial updates are possible, if failure happens at the level of a sub-mutation, or more granularly within the sub-mutation.
+    """
+
     soil_data_results = graphene.Field(
         graphene.List(graphene.NonNull(SoilDataPushEntry)), required=False
     )
@@ -59,43 +67,29 @@ class SiteDataPush(BaseWriteMutation):
                 "At least one of soilDataEntries or soilMetadataEntries must be provided"
             )
 
-        user = info.context.user
         soil_data_results = None
         soil_data_error = None
         soil_metadata_results = None
         soil_metadata_error = None
 
-        # Process soil_data entries with separate error handling
         if soil_data_entries:
-            soil_data_results = []
             try:
-                with transaction.atomic():
-                    history_entries = SoilDataPush.log_soil_data_push(user, soil_data_entries)
-
-                with transaction.atomic():
-                    for entry, history_entry in zip(soil_data_entries, history_entries):
-                        soil_data_results.append(
-                            SoilDataPush.mutate_and_get_entry_result(
-                                user=user, soil_data_entry=entry, history_entry=history_entry
-                            )
-                        )
+                result = SoilDataPush.mutate_and_get_payload(
+                    root, info, soil_data_entries=soil_data_entries
+                )
+                soil_data_results = result.results
             except Exception as e:
-                logger.exception("Unexpected error processing soil data entries")
+                logger.exception("Unexpected error pushing soil data entries")
                 soil_data_error = str(e)
 
-        # Process soil_metadata entries with separate error handling
         if soil_metadata_entries:
-            soil_metadata_results = []
             try:
-                with transaction.atomic():
-                    for entry in soil_metadata_entries:
-                        soil_metadata_results.append(
-                            SoilMetadataPush.mutate_and_get_entry_result(
-                                user=user, soil_metadata_entry=entry
-                            )
-                        )
+                result = SoilMetadataPush.mutate_and_get_payload(
+                    root, info, soil_metadata_entries=soil_metadata_entries
+                )
+                soil_metadata_results = result.results
             except Exception as e:
-                logger.exception("Unexpected error processing soil metadata entries")
+                logger.exception("Unexpected error pushing soil metadata entries")
                 soil_metadata_error = str(e)
 
         return cls(

@@ -1685,6 +1685,15 @@ type Mutations {
   updateSoilData(input: SoilDataUpdateMutationInput!): SoilDataUpdateMutationPayload! @deprecated(reason: "Use push_site_data instead.")
   updateDepthDependentSoilData(input: DepthDependentSoilDataUpdateMutationInput!): DepthDependentSoilDataUpdateMutationPayload! @deprecated(reason: "Use push_site_data instead.")
   pushSoilData(input: SoilDataPushInput!): SoilDataPushPayload! @deprecated(reason: "Use push_site_data instead.")
+
+  """
+  To enable offline functionality.
+  Pushes at least one of the following sub-mutations:
+  - soil data
+  - soil metadata (fully replaces user ratings)
+  
+  Partial updates are possible, if failure happens at the level of a sub-mutation, or more granularly within the sub-mutation.
+  """
   pushSiteData(input: SiteDataPushInput!): SiteDataPushPayload!
   updateSoilDataDepthInterval(input: SoilDataUpdateDepthIntervalMutationInput!): SoilDataUpdateDepthIntervalMutationPayload! @deprecated(reason: "Use push_site_data instead.")
   deleteSoilDataDepthInterval(input: SoilDataDeleteDepthIntervalMutationInput!): SoilDataDeleteDepthIntervalMutationPayload! @deprecated(reason: "Use push_site_data instead.")
@@ -2419,6 +2428,14 @@ input SoilDataPushInputDepthInterval {
   soilStructureEnabled: Boolean
 }
 
+"""
+To enable offline functionality.
+Pushes at least one of the following sub-mutations:
+- soil data
+- soil metadata (fully replaces user ratings)
+
+Partial updates are possible, if failure happens at the level of a sub-mutation, or more granularly within the sub-mutation.
+"""
 type SiteDataPushPayload {
   errors: GenericScalar
   soilDataResults: [SoilDataPushEntry!]
