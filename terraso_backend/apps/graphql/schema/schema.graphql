@@ -1682,12 +1682,12 @@ type Mutations {
   deleteUserFromProject(input: ProjectDeleteUserMutationInput!): ProjectDeleteUserMutationPayload!
   updateUserRoleInProject(input: ProjectUpdateUserRoleMutationInput!): ProjectUpdateUserRoleMutationPayload!
   markProjectSeen(input: ProjectMarkSeenMutationInput!): ProjectMarkSeenMutationPayload!
-  updateSoilData(input: SoilDataUpdateMutationInput!): SoilDataUpdateMutationPayload! @deprecated(reason: "Use push_soil_data instead.")
-  updateDepthDependentSoilData(input: DepthDependentSoilDataUpdateMutationInput!): DepthDependentSoilDataUpdateMutationPayload! @deprecated(reason: "Use push_soil_data instead.")
+  updateSoilData(input: SoilDataUpdateMutationInput!): SoilDataUpdateMutationPayload! @deprecated(reason: "Use push_site_data instead.")
+  updateDepthDependentSoilData(input: DepthDependentSoilDataUpdateMutationInput!): DepthDependentSoilDataUpdateMutationPayload! @deprecated(reason: "Use push_site_data instead.")
   pushSoilData(input: SoilDataPushInput!): SoilDataPushPayload! @deprecated(reason: "Use push_site_data instead.")
   pushSiteData(input: SiteDataPushInput!): SiteDataPushPayload!
-  updateSoilDataDepthInterval(input: SoilDataUpdateDepthIntervalMutationInput!): SoilDataUpdateDepthIntervalMutationPayload! @deprecated(reason: "Use push_soil_data instead.")
-  deleteSoilDataDepthInterval(input: SoilDataDeleteDepthIntervalMutationInput!): SoilDataDeleteDepthIntervalMutationPayload! @deprecated(reason: "Use push_soil_data instead.")
+  updateSoilDataDepthInterval(input: SoilDataUpdateDepthIntervalMutationInput!): SoilDataUpdateDepthIntervalMutationPayload! @deprecated(reason: "Use push_site_data instead.")
+  deleteSoilDataDepthInterval(input: SoilDataDeleteDepthIntervalMutationInput!): SoilDataDeleteDepthIntervalMutationPayload! @deprecated(reason: "Use push_site_data instead.")
   updateSoilMetadata(input: SoilMetadataUpdateMutationInput!): SoilMetadataUpdateMutationPayload!
   updateProjectSoilSettings(input: ProjectSoilSettingsUpdateMutationInput!): ProjectSoilSettingsUpdateMutationPayload!
   updateProjectSoilSettingsDepthInterval(input: ProjectSoilSettingsUpdateDepthIntervalMutationInput!): ProjectSoilSettingsUpdateDepthIntervalMutationPayload!
