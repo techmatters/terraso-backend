@@ -1682,11 +1682,21 @@ type Mutations {
   deleteUserFromProject(input: ProjectDeleteUserMutationInput!): ProjectDeleteUserMutationPayload!
   updateUserRoleInProject(input: ProjectUpdateUserRoleMutationInput!): ProjectUpdateUserRoleMutationPayload!
   markProjectSeen(input: ProjectMarkSeenMutationInput!): ProjectMarkSeenMutationPayload!
-  updateSoilData(input: SoilDataUpdateMutationInput!): SoilDataUpdateMutationPayload! @deprecated(reason: "Use push_soil_data instead.")
-  updateDepthDependentSoilData(input: DepthDependentSoilDataUpdateMutationInput!): DepthDependentSoilDataUpdateMutationPayload! @deprecated(reason: "Use push_soil_data instead.")
-  pushSoilData(input: SoilDataPushInput!): SoilDataPushPayload!
-  updateSoilDataDepthInterval(input: SoilDataUpdateDepthIntervalMutationInput!): SoilDataUpdateDepthIntervalMutationPayload! @deprecated(reason: "Use push_soil_data instead.")
-  deleteSoilDataDepthInterval(input: SoilDataDeleteDepthIntervalMutationInput!): SoilDataDeleteDepthIntervalMutationPayload! @deprecated(reason: "Use push_soil_data instead.")
+  updateSoilData(input: SoilDataUpdateMutationInput!): SoilDataUpdateMutationPayload! @deprecated(reason: "Use push_site_data instead.")
+  updateDepthDependentSoilData(input: DepthDependentSoilDataUpdateMutationInput!): DepthDependentSoilDataUpdateMutationPayload! @deprecated(reason: "Use push_site_data instead.")
+  pushSoilData(input: SoilDataPushInput!): SoilDataPushPayload! @deprecated(reason: "Use push_site_data instead.")
+
+  """
+  To enable offline functionality.
+  Pushes at least one of the following sub-mutations:
+  - soil data
+  - soil metadata (fully replaces user ratings)
+  
+  Partial updates are possible, if failure happens at the level of a sub-mutation, or more granularly within the sub-mutation.
+  """
+  pushSiteData(input: SiteDataPushInput!): SiteDataPushPayload!
+  updateSoilDataDepthInterval(input: SoilDataUpdateDepthIntervalMutationInput!): SoilDataUpdateDepthIntervalMutationPayload! @deprecated(reason: "Use push_site_data instead.")
+  deleteSoilDataDepthInterval(input: SoilDataDeleteDepthIntervalMutationInput!): SoilDataDeleteDepthIntervalMutationPayload! @deprecated(reason: "Use push_site_data instead.")
   updateSoilMetadata(input: SoilMetadataUpdateMutationInput!): SoilMetadataUpdateMutationPayload!
   updateProjectSoilSettings(input: ProjectSoilSettingsUpdateMutationInput!): ProjectSoilSettingsUpdateMutationPayload!
   updateProjectSoilSettingsDepthInterval(input: ProjectSoilSettingsUpdateDepthIntervalMutationInput!): ProjectSoilSettingsUpdateDepthIntervalMutationPayload!
@@ -2418,6 +2428,61 @@ input SoilDataPushInputDepthInterval {
   soilStructureEnabled: Boolean
 }
 
+"""
+To enable offline functionality.
+Pushes at least one of the following sub-mutations:
+- soil data
+- soil metadata (fully replaces user ratings)
+
+Partial updates are possible, if failure happens at the level of a sub-mutation, or more granularly within the sub-mutation.
+"""
+type SiteDataPushPayload {
+  errors: GenericScalar
+  soilDataResults: [SoilDataPushEntry!]
+  soilDataError: String
+  soilMetadataResults: [SoilMetadataPushEntry!]
+  soilMetadataError: String
+  clientMutationId: String
+}
+
+type SoilMetadataPushEntry {
+  siteId: ID!
+  result: SoilMetadataPushEntryResult!
+}
+
+union SoilMetadataPushEntryResult = SoilMetadataPushEntrySuccess | SoilMetadataPushEntryFailure
+
+type SoilMetadataPushEntrySuccess {
+  soilMetadata: SoilMetadataNode!
+}
+
+type SoilMetadataPushEntryFailure {
+  reason: SoilMetadataPushFailureReason!
+}
+
+enum SoilMetadataPushFailureReason {
+  DOES_NOT_EXIST
+  NOT_ALLOWED
+  INVALID_DATA
+}
+
+input SiteDataPushInput {
+  soilDataEntries: [SoilDataPushInputEntry!] = null
+  soilMetadataEntries: [SoilMetadataPushInputEntry!] = null
+  clientMutationId: String
+}
+
+input SoilMetadataPushInputEntry {
+  siteId: ID!
+  userRatings: [UserRatingInput!]!
+}
+
+"""Input type for a single user rating entry"""
+input UserRatingInput {
+  soilMatchId: String!
+  rating: UserMatchRating!
+}
+
 type SoilDataUpdateDepthIntervalMutationPayload {
   errors: GenericScalar
   soilData: SoilDataNode
@@ -2463,12 +2528,6 @@ input SoilMetadataUpdateMutationInput {
   userRatings: [UserRatingInput]
   siteId: ID!
   clientMutationId: String
-}
-
-"""Input type for a single user rating entry"""
-input UserRatingInput {
-  soilMatchId: String!
-  rating: UserMatchRating!
 }
 
 type ProjectSoilSettingsUpdateMutationPayload {
