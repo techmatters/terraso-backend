@@ -13,6 +13,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see https://www.gnu.org/licenses/.
 
+import json
 from unittest import mock
 
 import pytest
@@ -187,8 +188,20 @@ def test_story_map_by_membership_email_not_filter(client_query, story_map_user_m
 def test_story_maps_published_media_signed_url(
     mocked_get_signed_url, client_query, story_maps, users
 ):
+    mixer.blend(
+        StoryMap,
+        created_by=users[0],
+        is_published=True,
+        published_configuration={
+            "title": "Published with Featured Image",
+            "featuredImage": {"url": "test_featured_url", "type": "image/jpeg"},
+            "chapters": [{"media": {"type": "image", "url": "test_chapter_url"}}],
+        },
+        configuration={"title": "Draft"},
+    )
+
     mocked_get_signed_url.return_value = "signed_url"
-    client_query(
+    response = client_query(
         """
         {storyMaps {
           edges {
@@ -201,7 +214,21 @@ def test_story_maps_published_media_signed_url(
         """
     )
 
-    mocked_get_signed_url.assert_called()
+    assert mocked_get_signed_url.call_count >= 2
+
+    story_maps_data = response.json()["data"]["storyMaps"]["edges"]
+    featured_story = next(
+        (
+            edge["node"]
+            for edge in story_maps_data
+            if edge["node"]["publishedConfiguration"]
+            and json.loads(edge["node"]["publishedConfiguration"]).get("featuredImage")
+        ),
+        None,
+    )
+    assert featured_story is not None
+    published_config = json.loads(featured_story["publishedConfiguration"])
+    assert published_config["featuredImage"]["signedUrl"] == "signed_url"
 
 
 def test_story_map_owner_can_see_memberships_without_being_member(client_query, users):
