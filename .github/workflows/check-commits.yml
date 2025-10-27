@@ -17,4 +17,4 @@ jobs:
         uses: actions/checkout@v5
 
       - name: Check for Conventional Commits
-        uses: agenthunt/conventional-commit-checker-action@v2.0.0
+        uses: agenthunt/conventional-commit-checker-action@v2.0.1
