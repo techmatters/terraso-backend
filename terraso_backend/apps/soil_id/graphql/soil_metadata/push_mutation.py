@@ -59,6 +59,10 @@ class SoilMetadataPushInputEntry(graphene.InputObjectType):
 
 
 class SoilMetadataPush(BaseWriteMutation):
+    """
+    Note: as of 2025-10 this mutation is not exposed on its own; it is only used as part of SiteDataPush (similar to how SiteDataPush uses SoilDataPush).
+    """
+
     results = graphene.Field(graphene.List(graphene.NonNull(SoilMetadataPushEntry)), required=True)
 
     class Input:
@@ -91,11 +95,7 @@ class SoilMetadataPush(BaseWriteMutation):
         selected_count = 0
         for rating_entry in user_ratings_input:
             soil_match_id = rating_entry["soil_match_id"]
-            rating_value = rating_entry["rating"]
-            if hasattr(rating_value, "value"):
-                rating_str = rating_value.value
-            else:
-                raise ValidationError("Unrecognized rating value")
+            rating_str = rating_entry["rating"].value
             if rating_str == "SELECTED":
                 selected_count += 1
             user_ratings_dict[soil_match_id] = rating_str
