@@ -13,14 +13,18 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see https://www.gnu.org/licenses/.
 
+from decimal import Decimal
+
 import pytest
 import structlog
 from graphene_django.utils.testing import graphql_query
 from mixer.backend.django import mixer
 
+from apps.core.formatters import from_camel_to_snake_case
 from apps.core.models import User
 from apps.project_management.models.sites import Site
 from apps.soil_id.models.soil_data import SoilData
+from apps.soil_id.models.soil_data_history import SoilDataHistory
 from apps.soil_id.models.soil_metadata import SoilMetadata
 
 pytestmark = pytest.mark.django_db
@@ -439,3 +443,429 @@ def test_push_site_data_with_multiple_sites(client, user):
         "soil_3b": "REJECTED",
         "soil_3c": "SELECTED",
     }
+
+
+# ----- Soil data changes only ------
+# Tests from test_soil_data.py but with the new non-deprecated endpoint
+PUSH_SOIL_DATA_QUERY = """
+    mutation PushSiteDataMutation($input: SiteDataPushInput!) {
+        pushSiteData(input: $input) {
+            soilDataResults {
+                siteId
+                result {
+                    __typename
+                    ... on SoilDataPushEntryFailure {
+                        reason
+                    }
+                    ... on SoilDataPushEntrySuccess {
+                        soilData {
+                            slopeAspect
+                            downSlope
+                            crossSlope
+                            bedrock
+                            slopeLandscapePosition
+                            slopeSteepnessSelect
+                            slopeSteepnessPercent
+                            slopeSteepnessDegree
+                            surfaceCracksSelect
+                            surfaceSaltSelect
+                            floodingSelect
+                            limeRequirementsSelect
+                            surfaceStoninessSelect
+                            waterTableDepthSelect
+                            soilDepthSelect
+                            landCoverSelect
+                            grazingSelect
+                            depthIntervalPreset
+                            depthDependentData {
+                                depthInterval {
+                                    start
+                                    end
+                                }
+                                clayPercent
+                                texture
+                                rockFragmentVolume
+                                colorHue
+                                colorValue
+                                colorChroma
+                                colorPhotoUsed
+                                colorPhotoSoilCondition
+                                colorPhotoLightingCondition
+                                conductivity
+                                conductivityTest
+                                conductivityUnit
+                                structure
+                                ph
+                                phTestingSolution
+                                phTestingMethod
+                                soilOrganicCarbon
+                                soilOrganicMatter
+                                soilOrganicCarbonTesting
+                                soilOrganicMatterTesting
+                                sodiumAbsorptionRatio
+                                carbonates
+                            }
+                            depthIntervals {
+                                depthInterval {
+                                    start
+                                    end
+                                }
+                                label
+                                soilTextureEnabled
+                                soilColorEnabled
+                                carbonatesEnabled
+                                phEnabled
+                                soilOrganicCarbonMatterEnabled
+                                electricalConductivityEnabled
+                                sodiumAdsorptionRatioEnabled
+                                soilStructureEnabled
+                            }
+                        }
+                    }
+                }
+            }
+            soilDataError
+            soilMetadataResults {
+                siteId
+                result {
+                    __typename
+                    ... on SoilMetadataPushEntryFailure {
+                        reason
+                    }
+                }
+            }
+            soilMetadataError
+            errors
+        }
+    }
+"""
+
+
+def test_push_soil_data_success(client, user):
+    site = mixer.blend(Site, owner=user)
+
+    site.soil_data = SoilData()
+    site.soil_data.save()
+    site.soil_data.depth_intervals.get_or_create(depth_interval_start=10, depth_interval_end=20)
+
+    soil_data_changes = {
+        "slopeAspect": 10,
+        "downSlope": "CONVEX",
+        "crossSlope": "CONCAVE",
+        "bedrock": 20,
+        "slopeLandscapePosition": "HILLS_MOUNTAINS",
+        "slopeSteepnessSelect": "ROLLING",
+        "slopeSteepnessPercent": 15,
+        "slopeSteepnessDegree": 30,
+        "surfaceCracksSelect": "SURFACE_CRACKING_ONLY",
+        "surfaceSaltSelect": "SMALL_TEMPORARY_PATCHES",
+        "floodingSelect": "OCCASIONAL",
+        "limeRequirementsSelect": "SOME",
+        "surfaceStoninessSelect": "BETWEEN_3_AND_15",
+        "waterTableDepthSelect": "BETWEEN_30_AND_45_CM",
+        "soilDepthSelect": "BETWEEN_50_AND_70_CM",
+        "landCoverSelect": "GRASSLAND",
+        "grazingSelect": "CATTLE",
+        "depthIntervalPreset": "NRCS",
+    }
+
+    depth_dependent_changes = {
+        "clayPercent": 25,
+        "texture": "SANDY_LOAM",
+        "rockFragmentVolume": "VOLUME_1_15",
+        "colorHue": 7,
+        "colorValue": 4,
+        "colorChroma": 3,
+        "colorPhotoUsed": True,
+        "colorPhotoSoilCondition": "MOIST",
+        "colorPhotoLightingCondition": "EVEN",
+        "conductivity": "2.50",
+        "conductivityTest": "SOIL_WATER_1_1",
+        "conductivityUnit": "MILLISIEMENS_CENTIMETER",
+        "structure": "ANGULAR_BLOCKY",
+        "ph": "6.5",
+        "phTestingSolution": "SOIL_WATER_1_1",
+        "phTestingMethod": "METER",
+        "soilOrganicCarbon": "1.2",
+        "soilOrganicMatter": "2.3",
+        "soilOrganicCarbonTesting": "DRY_COMBUSTION",
+        "soilOrganicMatterTesting": "WET_OXIDATION",
+        "sodiumAbsorptionRatio": "5.1",
+        "carbonates": "SLIGHTLY_EFFERVESCENT",
+    }
+
+    depth_interval_changes = {
+        "label": "test label",
+        "soilTextureEnabled": True,
+        "soilColorEnabled": True,
+        "carbonatesEnabled": True,
+        "phEnabled": True,
+        "soilOrganicCarbonMatterEnabled": True,
+        "electricalConductivityEnabled": True,
+        "sodiumAdsorptionRatioEnabled": True,
+        "soilStructureEnabled": True,
+    }
+
+    nested_changes = {
+        "depthDependentData": [
+            {"depthInterval": {"start": 0, "end": 10}, **depth_dependent_changes}
+        ],
+        "depthIntervals": [
+            {
+                "depthInterval": {"start": 0, "end": 10},
+                **depth_interval_changes,
+            }
+        ],
+        "deletedDepthIntervals": [
+            {
+                "start": 10,
+                "end": 20,
+            }
+        ],
+    }
+
+    client.force_login(user)
+    response = graphql_query(
+        PUSH_SOIL_DATA_QUERY,
+        input_data={
+            "soilDataEntries": [
+                {"siteId": str(site.id), "soilData": {**soil_data_changes, **nested_changes}},
+            ]
+        },
+        client=client,
+    )
+
+    assert response.json()
+    result = response.json()["data"]["pushSiteData"]
+    assert result["errors"] is None
+    assert result["soilDataError"] is None
+    assert result["soilMetadataError"] is None
+    assert result["soilMetadataResults"] is None  # Not provided
+
+    # Check soil data results
+    result_soil_data = result["soilDataResults"][0]["result"]["soilData"]
+    for field, expected_value in soil_data_changes.items():
+        assert result_soil_data[field] == expected_value
+    assert result_soil_data["depthDependentData"][0]["depthInterval"]["start"] == 0
+    assert result_soil_data["depthDependentData"][0]["depthInterval"]["end"] == 10
+    for field, expected_value in depth_dependent_changes.items():
+        assert result_soil_data["depthDependentData"][0][field] == expected_value
+    assert result_soil_data["depthIntervals"][0]["depthInterval"]["start"] == 0
+    assert result_soil_data["depthIntervals"][0]["depthInterval"]["end"] == 10
+    for field, expected_value in depth_interval_changes.items():
+        assert result_soil_data["depthIntervals"][0][field] == expected_value
+    assert result_soil_data["depthIntervals"][0]["soilTextureEnabled"] is True
+    assert len(result_soil_data["depthIntervals"]) == 1
+
+    # Verify database state
+    site.refresh_from_db()
+    for field, expected_value in soil_data_changes.items():
+        assert getattr(site.soil_data, from_camel_to_snake_case(field)) == expected_value
+    depth_dependent_data = site.soil_data.depth_dependent_data.get(
+        depth_interval_start=0, depth_interval_end=10
+    )
+    for field, expected_value in depth_dependent_changes.items():
+        attr = getattr(depth_dependent_data, from_camel_to_snake_case(field))
+        if isinstance(attr, Decimal):
+            attr = str(attr)
+        assert attr == expected_value
+    depth_interval = site.soil_data.depth_intervals.get(
+        depth_interval_start=0, depth_interval_end=10
+    )
+    for field, expected_value in depth_interval_changes.items():
+        assert getattr(depth_interval, from_camel_to_snake_case(field)) == expected_value
+    assert not site.soil_data.depth_intervals.filter(
+        depth_interval_start=10, depth_interval_end=20
+    ).exists()
+
+    # Verify history
+    history = SoilDataHistory.objects.get(site=site)
+    assert history.update_failure_reason is None
+    assert history.update_succeeded
+    for field, expected_value in soil_data_changes.items():
+        assert history.soil_data_changes[from_camel_to_snake_case(field)] == expected_value
+    depth_dependent_history = history.soil_data_changes["depth_dependent_data"][0]
+    assert depth_dependent_history["depth_interval"]["start"] == 0
+    assert depth_dependent_history["depth_interval"]["end"] == 10
+    for field, expected_value in depth_dependent_changes.items():
+        assert depth_dependent_history[from_camel_to_snake_case(field)] == expected_value
+    depth_interval_history = history.soil_data_changes["depth_intervals"][0]
+    assert depth_interval_history["depth_interval"]["start"] == 0
+    assert depth_interval_history["depth_interval"]["end"] == 10
+    for field, expected_value in depth_interval_changes.items():
+        assert depth_interval_history[from_camel_to_snake_case(field)] == expected_value
+
+
+def test_push_site_data_edit_depth_interval(client, user):
+    """Test editing depth intervals via pushSiteData"""
+    site = mixer.blend(Site, owner=user)
+
+    site.soil_data = SoilData()
+    site.soil_data.save()
+    site.soil_data.depth_intervals.get_or_create(depth_interval_start=0, depth_interval_end=20)
+
+    nested_changes = {
+        "depthDependentData": [{"depthInterval": {"start": 1, "end": 10}}],
+        "depthIntervals": [
+            {
+                "depthInterval": {"start": 1, "end": 10},
+            }
+        ],
+        "deletedDepthIntervals": [
+            {
+                "start": 0,
+                "end": 20,
+            }
+        ],
+    }
+
+    client.force_login(user)
+    response = graphql_query(
+        PUSH_SOIL_DATA_QUERY,
+        input_data={
+            "soilDataEntries": [
+                {"siteId": str(site.id), "soilData": {**nested_changes}},
+            ]
+        },
+        client=client,
+    )
+
+    assert response.json()
+    assert "data" in response.json()
+    result = response.json()["data"]["pushSiteData"]
+    assert result["errors"] is None
+    assert result["soilDataError"] is None
+    assert result["soilMetadataResults"] is None  # Not provided
+    assert len(result["soilDataResults"]) == 1
+    result_soil_data = result["soilDataResults"][0]["result"]["soilData"]
+
+    assert len(result_soil_data["depthIntervals"]) == 1
+    assert result_soil_data["depthIntervals"][0]["depthInterval"]["start"] == 1
+    assert result_soil_data["depthIntervals"][0]["depthInterval"]["end"] == 10
+
+    # FYI depthDependentData would also maintain the old (0,20) depth interval if
+    # it was there to begin with, but it was not
+    assert len(result_soil_data["depthDependentData"]) > 0
+    assert result_soil_data["depthDependentData"][0]["depthInterval"]["start"] == 1
+    assert result_soil_data["depthDependentData"][0]["depthInterval"]["end"] == 10
+
+    # Verify database state
+    site.refresh_from_db()
+    assert not site.soil_data.depth_intervals.filter(
+        depth_interval_start=0, depth_interval_end=20
+    ).exists()
+    assert site.soil_data.depth_intervals.filter(
+        depth_interval_start=1, depth_interval_end=10
+    ).exists()
+
+    # Verify history
+    history = SoilDataHistory.objects.get(site=site)
+    assert history.update_failure_reason is None
+    assert history.update_succeeded
+    depth_dependent_history = history.soil_data_changes["depth_dependent_data"][0]
+    assert depth_dependent_history["depth_interval"]["start"] == 1
+    assert depth_dependent_history["depth_interval"]["end"] == 10
+    depth_interval_history = history.soil_data_changes["depth_intervals"][0]
+    assert depth_interval_history["depth_interval"]["start"] == 1
+    assert depth_interval_history["depth_interval"]["end"] == 10
+
+
+def test_push_site_data_mixed_soil_data_results(client, user):
+    """Test that pushSiteData can handle mixed success/failure results for soil data"""
+    non_user = mixer.blend(User)
+    user_sites = mixer.cycle(2).blend(Site, owner=user)
+    non_user_site = mixer.blend(Site, owner=non_user)
+
+    client.force_login(user)
+    response = graphql_query(
+        PUSH_SOIL_DATA_QUERY,
+        input_data={
+            "soilDataEntries": [
+                # update data successfully
+                {
+                    "siteId": str(user_sites[0].id),
+                    "soilData": {
+                        "slopeAspect": 10,
+                        "depthDependentData": [],
+                        "depthIntervals": [],
+                        "deletedDepthIntervals": [],
+                    },
+                },
+                # constraint violations
+                {
+                    "siteId": str(user_sites[1].id),
+                    "soilData": {
+                        "slopeAspect": -1,
+                        "depthDependentData": [],
+                        "depthIntervals": [],
+                        "deletedDepthIntervals": [],
+                    },
+                },
+                # no permission
+                {
+                    "siteId": str(non_user_site.id),
+                    "soilData": {
+                        "slopeAspect": 5,
+                        "depthDependentData": [],
+                        "depthIntervals": [],
+                        "deletedDepthIntervals": [],
+                    },
+                },
+                # does not exist
+                {
+                    "siteId": "00000000-0000-0000-0000-000000000000",
+                    "soilData": {
+                        "slopeAspect": 15,
+                        "depthDependentData": [],
+                        "depthIntervals": [],
+                        "deletedDepthIntervals": [],
+                    },
+                },
+            ]
+        },
+        client=client,
+    )
+
+    assert response.json()
+    assert "data" in response.json()
+    result = response.json()["data"]["pushSiteData"]
+    assert result["errors"] is None
+    assert result["soilDataError"] is None
+    assert result["soilMetadataResults"] is None  # Not provided
+
+    # Check results
+    assert result["soilDataResults"][0]["result"]["soilData"]["slopeAspect"] == 10
+    assert result["soilDataResults"][1]["result"]["reason"] == "INVALID_DATA"
+    assert result["soilDataResults"][2]["result"]["reason"] == "NOT_ALLOWED"
+    assert result["soilDataResults"][3]["result"]["reason"] == "DOES_NOT_EXIST"
+
+    # Verify database state
+    user_sites[0].refresh_from_db()
+    assert user_sites[0].soil_data.slope_aspect == 10
+
+    user_sites[1].refresh_from_db()
+    assert not hasattr(user_sites[1], "soil_data")
+
+    non_user_site.refresh_from_db()
+    assert not hasattr(non_user_site, "soil_data")
+
+    # Verify history
+    history_0 = SoilDataHistory.objects.get(site=user_sites[0])
+    assert history_0.update_failure_reason is None
+    assert history_0.update_succeeded
+    assert history_0.soil_data_changes["slope_aspect"] == 10
+
+    history_1 = SoilDataHistory.objects.get(site=user_sites[1])
+    assert history_1.update_failure_reason == "INVALID_DATA"
+    assert not history_1.update_succeeded
+    assert history_1.soil_data_changes["slope_aspect"] == -1
+
+    history_2 = SoilDataHistory.objects.get(site=non_user_site)
+    assert history_2.update_failure_reason == "NOT_ALLOWED"
+    assert not history_2.update_succeeded
+    assert history_2.soil_data_changes["slope_aspect"] == 5
+
+    history_3 = SoilDataHistory.objects.get(site=None)
+    assert history_3.update_failure_reason == "DOES_NOT_EXIST"
+    assert not history_3.update_succeeded
+    assert history_3.soil_data_changes["slope_aspect"] == 15
