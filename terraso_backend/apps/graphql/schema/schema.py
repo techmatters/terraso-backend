@@ -206,7 +206,9 @@ class Mutations(graphene.ObjectType):
     delete_soil_data_depth_interval = SoilDataDeleteDepthIntervalMutation.Field(
         deprecation_reason="Use push_site_data instead."
     )
-    update_soil_metadata = SoilMetadataUpdateMutation.Field()
+    update_soil_metadata = SoilMetadataUpdateMutation.Field(
+        deprecation_reason="Use push_site_data instead."
+    )
     update_project_soil_settings = ProjectSoilSettingsUpdateMutation.Field()
     update_project_soil_settings_depth_interval = (
         ProjectSoilSettingsUpdateDepthIntervalMutation.Field()
