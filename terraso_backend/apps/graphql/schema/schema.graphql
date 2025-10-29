@@ -1697,7 +1697,7 @@ type Mutations {
   pushSiteData(input: SiteDataPushInput!): SiteDataPushPayload!
   updateSoilDataDepthInterval(input: SoilDataUpdateDepthIntervalMutationInput!): SoilDataUpdateDepthIntervalMutationPayload! @deprecated(reason: "Use push_site_data instead.")
   deleteSoilDataDepthInterval(input: SoilDataDeleteDepthIntervalMutationInput!): SoilDataDeleteDepthIntervalMutationPayload! @deprecated(reason: "Use push_site_data instead.")
-  updateSoilMetadata(input: SoilMetadataUpdateMutationInput!): SoilMetadataUpdateMutationPayload!
+  updateSoilMetadata(input: SoilMetadataUpdateMutationInput!): SoilMetadataUpdateMutationPayload! @deprecated(reason: "Use push_site_data instead.")
   updateProjectSoilSettings(input: ProjectSoilSettingsUpdateMutationInput!): ProjectSoilSettingsUpdateMutationPayload!
   updateProjectSoilSettingsDepthInterval(input: ProjectSoilSettingsUpdateDepthIntervalMutationInput!): ProjectSoilSettingsUpdateDepthIntervalMutationPayload!
   deleteProjectSoilSettingsDepthInterval(input: ProjectSoilSettingsDeleteDepthIntervalMutationInput!): ProjectSoilSettingsDeleteDepthIntervalMutationPayload!
