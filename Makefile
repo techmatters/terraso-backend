@@ -37,6 +37,7 @@ createsuperuser: check_rebuild
 	$(DC_RUN_CMD) python terraso_backend/manage.py createsuperuser
 
 format: ${VIRTUAL_ENV}/scripts/ruff
+	ruff check terraso_backend --fix
 	ruff format terraso_backend
 
 install:
