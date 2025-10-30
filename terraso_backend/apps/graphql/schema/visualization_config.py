@@ -73,12 +73,19 @@ class VisualizationConfigFilterSet(django_filters.FilterSet):
                     slug=value
                 )
             )
+            | Q(
+                data_entry__shared_resources__target_object_id__in=StoryMap.objects.filter(
+                    slug=value
+                )
+            )
         )
 
     def filter_data_entry_shared_resources_target_content_type(self, queryset, name, value):
+        model_class = VisualizationConfig.get_target_model_class_from_type_name(value)
+
         return queryset.filter(
-            data_entry__shared_resources__target_content_type=ContentType.objects.get(
-                app_label="core", model=value
+            data_entry__shared_resources__target_content_type=ContentType.objects.get_for_model(
+                model_class
             )
         ).distinct()
 
