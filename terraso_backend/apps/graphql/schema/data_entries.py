@@ -63,13 +63,14 @@ class DataEntryFilterSet(django_filters.FilterSet):
         return queryset.filter(
             Q(shared_resources__target_object_id__in=Group.objects.filter(slug=value))
             | Q(shared_resources__target_object_id__in=Landscape.objects.filter(slug=value))
+            | Q(shared_resources__target_object_id__in=StoryMap.objects.filter(slug=value))
         )
 
     def filter_shared_resources_target_content_type(self, queryset, name, value):
+        model_class = DataEntry.get_target_model_class_from_type_name(value)
+
         return queryset.filter(
-            shared_resources__target_content_type=ContentType.objects.get(
-                app_label="core", model=value
-            )
+            shared_resources__target_content_type=ContentType.objects.get_for_model(model_class)
         ).distinct()
 
 
