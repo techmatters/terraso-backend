@@ -22,20 +22,26 @@ pytestmark = pytest.mark.django_db
 
 
 @pytest.fixture
-def input_by_parent(request, managed_groups, managed_landscapes):
+def input_by_parent(request, managed_groups, managed_landscapes, story_maps):
     parent = request.param
+    target_map = {
+        "group": ("group", managed_groups[0].slug),
+        "landscape": ("landscape", managed_landscapes[0].slug),
+        "story_map": ("story_map", story_maps[0].slug),
+    }
+    target_type, target_slug = target_map[parent]
     return {
         "name": "Name",
         "description": "Description",
         "url": "https://example.com",
         "entryType": "link",
         "resourceType": "link",
-        "targetType": "group" if parent == "group" else "landscape",
-        "targetSlug": managed_groups[0].slug if parent == "group" else managed_landscapes[0].slug,
+        "targetType": target_type,
+        "targetSlug": target_slug,
     }
 
 
-@pytest.mark.parametrize("input_by_parent", ["group", "landscape"], indirect=True)
+@pytest.mark.parametrize("input_by_parent", ["group", "landscape", "story_map"], indirect=True)
 def test_add_data_entry(client_query, input_by_parent):
     response = client_query(
         """
