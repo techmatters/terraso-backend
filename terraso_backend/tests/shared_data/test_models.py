@@ -148,3 +148,41 @@ def test_delete_user_with_shared_data(user, data_entry):
     assert DataEntry.objects.filter(id=data_entry.id).exists(), "Data entry should not be deleted"
     data_entry.refresh_from_db()
     assert data_entry.created_by == user, "Data entry should still link to user"
+
+
+def test_data_entry_can_be_viewed_by_story_map_creator(user, story_map_data_entry, story_map):
+    assert user.has_perm(DataEntry.get_perm("view"), obj=story_map_data_entry)
+
+
+def test_data_entry_can_be_viewed_by_story_map_members(
+    user, user_b, story_map_with_membership, data_entry
+):
+    data_entry.shared_resources.create(target=story_map_with_membership)
+    assert user_b.has_perm(DataEntry.get_perm("view"), obj=data_entry)
+
+
+def test_data_entry_cannot_be_viewed_by_non_story_map_members(user_b, story_map_data_entry):
+    assert not user_b.has_perm(DataEntry.get_perm("view"), obj=story_map_data_entry)
+
+
+def test_data_entry_can_be_deleted_by_story_map_creator(user, story_map_data_entry):
+    assert user.has_perm(DataEntry.get_perm("delete"), obj=story_map_data_entry)
+
+
+def test_visualization_config_can_be_viewed_by_story_map_creator(
+    user, story_map_visualization_config
+):
+    assert user.has_perm(VisualizationConfig.get_perm("view"), obj=story_map_visualization_config)
+
+
+def test_visualization_config_can_be_viewed_by_story_map_members(
+    user, user_b, story_map_with_membership, visualization_config
+):
+    visualization_config.data_entry.shared_resources.create(target=story_map_with_membership)
+    assert user_b.has_perm(VisualizationConfig.get_perm("view"), obj=visualization_config)
+
+
+def test_visualization_config_can_be_deleted_by_story_map_creator(
+    user, story_map_visualization_config
+):
+    assert user.has_perm(VisualizationConfig.get_perm("delete"), obj=story_map_visualization_config)
