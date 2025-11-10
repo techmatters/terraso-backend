@@ -470,9 +470,9 @@ idna==3.11 \
     #   httpx
     #   requests
     #   url-normalize
-imageio==2.37.0 \
-    --hash=sha256:11efa15b87bc7871b61590326b2d635439acc321cf7f8ce996f812543ce10eed \
-    --hash=sha256:71b57b3669666272c818497aebba2b4c5f20d5b37c81720e5e1a56d59c492996
+imageio==2.37.2 \
+    --hash=sha256:0212ef2727ac9caa5ca4b2c75ae89454312f440a756fcfc8ef1993e718f50f8a \
+    --hash=sha256:ad9adfb20335d718c03de457358ed69f141021a333c40a53e57273d8a5bd0b9b
     # via scikit-image
 jmespath==1.0.1 \
     --hash=sha256:02e2e4cc71b5bcab88332eebf907519190dd9e6e82107fa7f83b1003a6252980 \
