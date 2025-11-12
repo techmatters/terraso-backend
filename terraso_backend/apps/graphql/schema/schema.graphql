@@ -1564,7 +1564,7 @@ enum SoilIdDepthDependentSoilDataCarbonatesChoices {
 
 type SoilMetadataNode {
   site: SiteNode!
-  userRatings: [UserRatingEntry]!
+  userRatings: [UserRatingEntry!]!
   selectedSoilId: String
 }
 
