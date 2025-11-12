@@ -321,3 +321,136 @@ def test_add_null_media_valid(logged_client, users):
     assert response.json()["title"] == data["title"]
     assert response.json()["created_by"] == str(users[0].id)
     assert response.json()["is_published"]
+
+
+def test_add_upload_featured_image(logged_client, users):
+    url = reverse("story_map:add")
+    data = {
+        "title": "Test StoryMap with Featured Image",
+        "publish": "false",
+        "files": SimpleUploadedFile(
+            name="featured_image.jpg",
+            content="content".encode(),
+            content_type="image/jpeg",
+        ),
+        "configuration": json.dumps(
+            {
+                "title": "Test StoryMap with Featured Image",
+                "featuredImage": {
+                    "contentId": "featured_image.jpg",
+                    "type": "image/jpeg",
+                    "description": "A beautiful landscape",
+                },
+                "chapters": [],
+            }
+        ),
+    }
+    with patch(
+        "apps.story_map.views.story_map_media_upload_service.upload_file_get_path"
+    ) as mocked_upload_service:
+        mocked_upload_service.return_value = "https://example.org/featured_image.jpg"
+        response = logged_client.post(url, data=data)
+        mocked_upload_service.assert_called_once()
+
+    json_response = response.json()
+
+    assert response.status_code == 201
+    assert json_response["configuration"]["featuredImage"]["url"] is not None
+    assert json_response["configuration"]["featuredImage"]["description"] == "A beautiful landscape"
+    assert "contentId" not in json_response["configuration"]["featuredImage"]
+
+
+def test_update_upload_featured_image(logged_client, users):
+    story_map = mixer.blend("story_map.StoryMap", created_by=users[0])
+    url = reverse("story_map:update")
+    data = {
+        "id": story_map.pk,
+        "title": "Test StoryMap with Featured Image",
+        "publish": "false",
+        "files": SimpleUploadedFile(
+            name="featured_image.png",
+            content="content".encode(),
+            content_type="image/png",
+        ),
+        "configuration": json.dumps(
+            {
+                "title": "Test StoryMap with Featured Image",
+                "featuredImage": {
+                    "contentId": "featured_image.png",
+                    "type": "image/png",
+                    "description": "Updated landscape",
+                },
+                "chapters": [],
+            }
+        ),
+    }
+    with (
+        patch(
+            "apps.story_map.views.story_map_media_upload_service.upload_file_get_path"
+        ) as mocked_upload_service,
+        patch(
+            "apps.story_map.views.story_map_media_upload_service.get_signed_url"
+        ) as mocked_get_signed_url,
+    ):
+        mocked_upload_service.return_value = "https://example.org/featured_image.png"
+        mocked_get_signed_url.return_value = "https://example.org/featured_image.png?signed=true"
+        response = logged_client.post(url, data=data)
+        mocked_upload_service.assert_called_once()
+        mocked_get_signed_url.assert_called_once()
+
+    json_response = response.json()
+
+    assert response.status_code == 201
+    assert json_response["configuration"]["featuredImage"]["url"] is not None
+    assert json_response["configuration"]["featuredImage"]["signedUrl"] is not None
+    assert json_response["configuration"]["featuredImage"]["description"] == "Updated landscape"
+    assert "contentId" not in json_response["configuration"]["featuredImage"]
+
+
+def test_update_featured_image_cleanup(logged_client, users):
+    """Test that old featured images are deleted when replaced"""
+    old_config = {
+        "title": "Old Config",
+        "featuredImage": {"url": "https://example.org/old_image.jpg", "type": "image/jpeg"},
+        "chapters": [],
+    }
+    story_map = mixer.blend("story_map.StoryMap", created_by=users[0], configuration=old_config)
+    url = reverse("story_map:update")
+    data = {
+        "id": story_map.pk,
+        "title": "Updated StoryMap",
+        "publish": "false",
+        "files": SimpleUploadedFile(
+            name="new_image.jpg",
+            content="content".encode(),
+            content_type="image/jpeg",
+        ),
+        "configuration": json.dumps(
+            {
+                "title": "Updated StoryMap",
+                "featuredImage": {
+                    "contentId": "new_image.jpg",
+                    "type": "image/jpeg",
+                },
+                "chapters": [],
+            }
+        ),
+    }
+    with (
+        patch(
+            "apps.story_map.views.story_map_media_upload_service.upload_file_get_path"
+        ) as mocked_upload_service,
+        patch(
+            "apps.story_map.views.story_map_media_upload_service.delete_file"
+        ) as mocked_delete_service,
+        patch(
+            "apps.story_map.views.story_map_media_upload_service.get_signed_url"
+        ) as mocked_get_signed_url,
+    ):
+        mocked_upload_service.return_value = "https://example.org/new_image.jpg"
+        mocked_get_signed_url.return_value = "https://example.org/new_image.jpg?signed=true"
+        response = logged_client.post(url, data=data)
+        mocked_upload_service.assert_called_once()
+        mocked_delete_service.assert_called_once_with("https://example.org/old_image.jpg")
+
+    assert response.status_code == 201
