@@ -2439,9 +2439,7 @@ Partial updates are possible, if failure happens at the level of a sub-mutation,
 type SiteDataPushPayload {
   errors: GenericScalar
   soilDataResults: [SoilDataPushEntry!]
-  soilDataError: String
   soilMetadataResults: [SoilMetadataPushEntry!]
-  soilMetadataError: String
   clientMutationId: String
 }
 

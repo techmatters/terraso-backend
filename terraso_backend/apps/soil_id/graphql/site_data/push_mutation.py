@@ -45,11 +45,9 @@ class SiteDataPush(BaseWriteMutation):
     soil_data_results = graphene.Field(
         graphene.List(graphene.NonNull(SoilDataPushEntry)), required=False
     )
-    soil_data_error = graphene.String()
     soil_metadata_results = graphene.Field(
         graphene.List(graphene.NonNull(SoilMetadataPushEntry)), required=False
     )
-    soil_metadata_error = graphene.String()
 
     class Input:
         soil_data_entries = graphene.Field(graphene.List(graphene.NonNull(SoilDataPushInputEntry)))
@@ -68,33 +66,21 @@ class SiteDataPush(BaseWriteMutation):
             )
 
         soil_data_results = None
-        soil_data_error = None
         soil_metadata_results = None
-        soil_metadata_error = None
 
         if soil_data_entries:
-            try:
-                result = SoilDataPush.mutate_and_get_payload(
-                    root, info, soil_data_entries=soil_data_entries
-                )
-                soil_data_results = result.results
-            except Exception as e:
-                logger.exception("Unexpected error pushing soil data entries")
-                soil_data_error = str(e)
+            result = SoilDataPush.mutate_and_get_payload(
+                root, info, soil_data_entries=soil_data_entries
+            )
+            soil_data_results = result.results
 
         if soil_metadata_entries:
-            try:
-                result = SoilMetadataPush.mutate_and_get_payload(
-                    root, info, soil_metadata_entries=soil_metadata_entries
-                )
-                soil_metadata_results = result.results
-            except Exception as e:
-                logger.exception("Unexpected error pushing soil metadata entries")
-                soil_metadata_error = str(e)
+            result = SoilMetadataPush.mutate_and_get_payload(
+                root, info, soil_metadata_entries=soil_metadata_entries
+            )
+            soil_metadata_results = result.results
 
         return cls(
             soil_data_results=soil_data_results,
-            soil_data_error=soil_data_error,
             soil_metadata_results=soil_metadata_results,
-            soil_metadata_error=soil_metadata_error,
         )

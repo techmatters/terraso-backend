@@ -50,7 +50,6 @@ PUSH_SITE_DATA_QUERY = """
                     }
                 }
             }
-            soilDataError
             soilMetadataResults {
                 siteId
                 result {
@@ -68,7 +67,6 @@ PUSH_SITE_DATA_QUERY = """
                     }
                 }
             }
-            soilMetadataError
             errors
         }
     }
@@ -108,8 +106,6 @@ def test_push_site_data_with_both_soil_data_and_metadata(client, user):
 
     result = response.json()["data"]["pushSiteData"]
     assert result["errors"] is None
-    assert result["soilDataError"] is None
-    assert result["soilMetadataError"] is None
 
     # Check soil data results
     assert len(result["soilDataResults"]) == 1
@@ -161,8 +157,6 @@ def test_push_site_data_with_only_soil_data(client, user):
 
     result = response.json()["data"]["pushSiteData"]
     assert result["errors"] is None
-    assert result["soilDataError"] is None
-    assert result["soilMetadataError"] is None
 
     # Check soil data results
     assert len(result["soilDataResults"]) == 1
@@ -197,8 +191,6 @@ def test_push_site_data_with_only_soil_metadata(client, user):
 
     result = response.json()["data"]["pushSiteData"]
     assert result["errors"] is None
-    assert result["soilDataError"] is None
-    assert result["soilMetadataError"] is None
 
     # Check soil data results are null (not provided)
     assert result["soilDataResults"] is None
@@ -247,8 +239,6 @@ def test_push_site_data_with_mixed_results(client, user):
 
     result = response.json()["data"]["pushSiteData"]
     assert result["errors"] is None
-    assert result["soilDataError"] is None
-    assert result["soilMetadataError"] is None
 
     # Check soil data succeeded
     assert len(result["soilDataResults"]) == 1
@@ -284,7 +274,6 @@ def test_push_site_data_replaces_user_ratings(client, user):
 
     result = response.json()["data"]["pushSiteData"]
     assert result["errors"] is None
-    assert result["soilMetadataError"] is None
 
     # Verify old ratings are gone and only new ratings exist
     site.refresh_from_db()
@@ -311,7 +300,6 @@ def test_push_site_data_metadata_validation_multiple_selected(client, user):
 
     result = response.json()["data"]["pushSiteData"]
     assert result["errors"] is None
-    assert result["soilMetadataError"] is None
 
     # Check that the entry failed with INVALID_DATA
     assert len(result["soilMetadataResults"]) == 1
@@ -385,8 +373,6 @@ def test_push_site_data_with_multiple_sites(client, user):
 
     result = response.json()["data"]["pushSiteData"]
     assert result["errors"] is None
-    assert result["soilDataError"] is None
-    assert result["soilMetadataError"] is None
 
     # Check soil data results (2 entries)
     assert len(result["soilDataResults"]) == 2
@@ -524,7 +510,6 @@ PUSH_SOIL_DATA_QUERY = """
                     }
                 }
             }
-            soilDataError
             soilMetadataResults {
                 siteId
                 result {
@@ -534,7 +519,6 @@ PUSH_SOIL_DATA_QUERY = """
                     }
                 }
             }
-            soilMetadataError
             errors
         }
     }
@@ -638,8 +622,6 @@ def test_push_soil_data_success(client, user):
     assert response.json()
     result = response.json()["data"]["pushSiteData"]
     assert result["errors"] is None
-    assert result["soilDataError"] is None
-    assert result["soilMetadataError"] is None
     assert result["soilMetadataResults"] is None  # Not provided
 
     # Check soil data results
@@ -734,7 +716,6 @@ def test_push_site_data_edit_depth_interval(client, user):
     assert "data" in response.json()
     result = response.json()["data"]["pushSiteData"]
     assert result["errors"] is None
-    assert result["soilDataError"] is None
     assert result["soilMetadataResults"] is None  # Not provided
     assert len(result["soilDataResults"]) == 1
     result_soil_data = result["soilDataResults"][0]["result"]["soilData"]
@@ -830,7 +811,6 @@ def test_push_site_data_mixed_soil_data_results(client, user):
     assert "data" in response.json()
     result = response.json()["data"]["pushSiteData"]
     assert result["errors"] is None
-    assert result["soilDataError"] is None
     assert result["soilMetadataResults"] is None  # Not provided
 
     # Check results
