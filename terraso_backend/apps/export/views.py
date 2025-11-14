@@ -43,10 +43,12 @@ def _export_sites_response(all_sites, format, filename):
 
 
 def project_export(request, project_id, project_name, format):
-    # getting list of projects for a user requires authentication
+    # System exports bypass user-based security checks
+    # (Security will be implemented separately via export-specific permissions)
     User = get_user_model()
-    service_user = User.objects.get(email="derek@techmatters.org")
+    service_user = User.objects.get(email="system-export@terraso.org")
     request.user = service_user
+    request.is_system_export = True
 
     # """ 
     # # Test fetch_soil_id with a sample site
@@ -98,10 +100,12 @@ def project_export(request, project_id, project_name, format):
 
 
 def site_export(request, site_id, site_name, format):
-    # getting list of projects for a user requires authentication
+    # System exports bypass user-based security checks
+    # (Security will be implemented separately via export-specific permissions)
     User = get_user_model()
-    service_user = User.objects.get(email="derek@techmatters.org")
+    service_user = User.objects.get(email="system-export@terraso.org")
     request.user = service_user
+    request.is_system_export = True
 
     # Fetch detailed data for the specific site using the ID
     site_data = fetch_site_data(site_id, request, 1)
