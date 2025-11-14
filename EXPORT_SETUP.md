@@ -4,6 +4,28 @@
 
 The export functionality uses a system user (`system-export@terraso.org`) to bypass user-based security checks. This user must be created in each database environment.
 
+## Available Export Endpoints
+
+1. **Project Export**: `/export/project/{project_id}/{project_name}.{format}`
+   - Exports all sites within a specific project
+
+2. **Site Export**: `/export/site/{site_id}/{site_name}.{format}`
+   - Exports a single site with all its data
+
+3. **User Owned Sites Export**: `/export/user_owned/{user_id}/{user_name}.{format}`
+   - Exports all sites owned by a user (not part of any project)
+
+4. **User and Projects Sites Export**: `/export/user_and_projects/{user_id}/{user_name}.{format}`
+   - Exports all sites owned by user PLUS all sites in projects where user is a member
+
+**Supported formats**: `csv`, `json`
+
+**Example URLs**:
+- `http://localhost:8000/export/project/123/my-project.csv`
+- `http://localhost:8000/export/site/456/my-site.json`
+- `http://localhost:8000/export/user_owned/789/john-doe.csv`
+- `http://localhost:8000/export/user_and_projects/789/john-doe.json`
+
 ## Creating the System Export User
 
 ### For Local Development
