@@ -33,4 +33,14 @@ urlpatterns = [
         csrf_exempt(auth_optional(views.site_export)),
         name="site-export",
     ),
+    path(
+        "user_owned/<str:user_id>/<str:user_name>.<str:format>",
+        csrf_exempt(auth_optional(views.user_owned_sites_export)),
+        name="user-owned-sites-export",
+    ),
+    path(
+        "user_all/<str:user_id>/<str:user_name>.<str:format>",
+        csrf_exempt(auth_optional(views.user_all_sites_export)),
+        name="user-all-sites-export",
+    ),
 ]

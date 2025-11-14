@@ -362,6 +362,9 @@ DB_RESTORE_SOURCE_ID = config("DB_RESTORE_SOURCE_ID", default="")
 DB_RESTORE_SOURCE_HOST = config("DB_RESTORE_SOURCE_HOST", default="")
 DB_RESTORE_DEST_HOST = config("DB_RESTORE_DEST_HOST", default="")
 
+# Export system configuration
+EXPORT_PAGE_SIZE = config("EXPORT_PAGE_SIZE", default=50, cast=int)
+
 AWS_ACCESS_KEY_ID = config("AWS_ACCESS_KEY_ID", default="")
 AWS_SECRET_ACCESS_KEY = config("AWS_SECRET_ACCESS_KEY", default="")
 AWS_S3_REGION_NAME = config("AWS_S3_REGION_NAME", default="us-east-2")

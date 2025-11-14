@@ -13,10 +13,12 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see https://www.gnu.org/licenses/.
 
+from django.conf import settings
+
 from apps.graphql.schema.schema import schema
 
 
-def fetch_all_notes_for_site(site_id, request, page_size=200):
+def fetch_all_notes_for_site(site_id, request, page_size=settings.EXPORT_PAGE_SIZE):
     after = None
     notes = []
     gql = """
@@ -60,7 +62,7 @@ def fetch_all_notes_for_site(site_id, request, page_size=200):
         after = conn["pageInfo"]["endCursor"]
 
 
-def fetch_site_data(site_id, request, page_size=50):
+def fetch_site_data(site_id, request):
     gql = """
     query SiteWithNotes($id: ID!) {
         site(id: $id) {
@@ -153,74 +155,6 @@ def fetch_site_data(site_id, request, page_size=50):
         raise RuntimeError(res.errors)
 
     return res.data["site"]
-
-
-def fetch_project_list(user_id, request, page_size=50):
-    all_projects = []
-    after = None
-    gql = """
-    query Projects($member: ID!, $first: Int!, $after: String) {
-      projects(member: $member, first: $first, after: $after) {
-        totalCount
-        pageInfo { hasNextPage endCursor }
-        edges {
-          node {
-            id
-            name
-          }
-        }
-      }
-    }
-    """
-    while True:
-        res = schema.execute(
-            gql,
-            variable_values={"member": user_id, "first": page_size, "after": after},
-            context_value=request,
-        )
-        if res.errors:
-            raise RuntimeError(res.errors)
-        conn = res.data["projects"]
-        batch = [e["node"] for e in conn["edges"]]
-        all_projects.extend(batch)
-        if not conn["pageInfo"]["hasNextPage"]:
-            break
-        after = conn["pageInfo"]["endCursor"]
-    return all_projects
-
-
-def fetch_all_sites(project_id, request, page_size=50):
-    all_sites = []
-    after = None
-    gql = """
-    query ProjectWithSites($id: ID!, $first: Int!, $after: String) {
-        sites(project: $id, first: $first, after: $after) {
-            pageInfo { hasNextPage endCursor }
-            edges {
-                cursor
-                node {
-                    id
-                    name
-                }
-            }
-        }
-    }
-    """
-    while True:
-        res = schema.execute(
-            gql,
-            variable_values={"id": project_id, "first": page_size, "after": after},
-            context_value=request,
-        )
-        if res.errors:
-            raise RuntimeError(res.errors)
-        conn = res.data["sites"]
-        batch = [e["node"] for e in conn["edges"]]
-        all_sites.extend(batch)
-        if not conn["pageInfo"]["hasNextPage"]:
-            break
-        after = conn["pageInfo"]["endCursor"]
-    return all_sites
 
 
 def fetch_soil_id(site, request):
@@ -346,4 +280,4 @@ def fetch_soil_id(site, request):
     )
     if res.errors:
         raise RuntimeError(res.errors)
-    return res.data 
+    return res.data

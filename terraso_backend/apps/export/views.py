@@ -18,9 +18,35 @@ from urllib.parse import unquote
 from django.contrib.auth import get_user_model
 from django.http import HttpResponse, JsonResponse, HttpResponseBadRequest
 
+from .fetch_data import fetch_site_data, fetch_soil_id
+from .fetch_lists import fetch_all_sites, fetch_project_list, fetch_user_owned_sites
 from .formatters import sites_to_csv
-from .services import fetch_all_sites, fetch_site_data, fetch_soil_id
 from .transformers import transform_site_data
+
+
+def _setup_system_export_user(request):
+    """Set up request with system export user and flag."""
+    User = get_user_model()
+    service_user = User.objects.get(email="system-export@terraso.org")
+    request.user = service_user
+    request.is_system_export = True
+
+
+def _process_sites(site_ids, request):
+    """
+    Process a set of site IDs into full site data.
+    Returns a sorted list of transformed sites with soil_id data.
+    """
+    all_sites = []
+    for site_id in site_ids:
+        site_data = fetch_site_data(site_id, request)
+        transformed_site = transform_site_data(site_data, request)
+        transformed_site["soil_id"] = fetch_soil_id(transformed_site, request)
+        all_sites.append(transformed_site)
+
+    # Sort sites by name
+    all_sites.sort(key=lambda site: site.get("name", ""))
+    return all_sites
 
 
 def _export_sites_response(all_sites, format, filename):
@@ -45,56 +71,13 @@ def _export_sites_response(all_sites, format, filename):
 def project_export(request, project_id, project_name, format):
     # System exports bypass user-based security checks
     # (Security will be implemented separately via export-specific permissions)
-    User = get_user_model()
-    service_user = User.objects.get(email="system-export@terraso.org")
-    request.user = service_user
-    request.is_system_export = True
+    _setup_system_export_user(request)
 
-    # """ 
-    # # Test fetch_soil_id with a sample site
-    # test_site = {
-    #     "latitude": 41.6621642396362,
-    #     "longitude": 41.6621642396362,
-    #     "soilData": {
-    #         "slopeSteepnessDegree": 15,
-    #         "surfaceCracksSelect": "NO_CRACKING",
-    #         "depthIntervals": [
-    #             {
-    #                 "depthInterval": {
-    #                     "start": 0,
-    #                     "end": 5
-    #                 }
-    #             }
-    #         ],
-    #         "depthDependentData": [
-    #             {
-    #                 "texture": "SANDY_LOAM",
-    #                 "rockFragmentVolume": "VOLUME_1_15",
-    #                 "colorHue": 25.0,
-    #                 "colorValue": 4.0,
-    #                 "colorChroma": 6.0
-    #             }
-    #         ]
-    #     }
-    # }
-    # """
-    #
-    # soil_id = fetch_soil_id(test_site, request)
-    # return JsonResponse({"soildata": soil_id})
+    # Fetch all site IDs for the project (returns a set)
+    site_ids = fetch_all_sites(project_id, request)
 
-    # Fetch all sites for the project using the ID
-    sites_list = fetch_all_sites(project_id, request, 1)
-
-    # Fetch detailed data for each site and transform it
-    all_sites = []
-    for site in sites_list:
-        site_data = fetch_site_data(site["id"], request, 1)
-        transformed_site = transform_site_data(site_data, request, 50)
-        transformed_site["soil_id"] = fetch_soil_id(transformed_site, request)
-        all_sites.append(transformed_site)
-
-    # Sort sites by name
-    all_sites.sort(key=lambda site: site.get("name", ""))
+    # Process sites (fetch details, transform, add soil_id, sort)
+    all_sites = _process_sites(site_ids, request)
 
     return _export_sites_response(all_sites, format, project_name)
 
@@ -102,15 +85,48 @@ def project_export(request, project_id, project_name, format):
 def site_export(request, site_id, site_name, format):
     # System exports bypass user-based security checks
     # (Security will be implemented separately via export-specific permissions)
-    User = get_user_model()
-    service_user = User.objects.get(email="system-export@terraso.org")
-    request.user = service_user
-    request.is_system_export = True
+    _setup_system_export_user(request)
 
-    # Fetch detailed data for the specific site using the ID
-    site_data = fetch_site_data(site_id, request, 1)
-    transformed_site = transform_site_data(site_data, request, 50)
-    transformed_site["soil_id"] = fetch_soil_id(transformed_site, request)
-    all_sites = [transformed_site]
+    # Process single site
+    site_ids = {site_id}
+    all_sites = _process_sites(site_ids, request)
 
     return _export_sites_response(all_sites, format, site_name)
+
+
+def user_owned_sites_export(request, user_id, user_name, format):
+    """Export all sites owned by a specific user (not in any project)."""
+    # System exports bypass user-based security checks
+    # (Security will be implemented separately via export-specific permissions)
+    _setup_system_export_user(request)
+
+    # Fetch site IDs owned by the user (returns a set)
+    site_ids = fetch_user_owned_sites(user_id, request)
+
+    # Process sites (fetch details, transform, add soil_id, sort)
+    all_sites = _process_sites(site_ids, request)
+
+    return _export_sites_response(all_sites, format, f"{user_name}_owned_sites")
+
+
+def user_all_sites_export(request, user_id, user_name, format):
+    """Export all sites owned by user plus all sites in projects where user is a member."""
+    # System exports bypass user-based security checks
+    # (Security will be implemented separately via export-specific permissions)
+    _setup_system_export_user(request)
+
+    # Fetch site IDs owned by the user (returns a set)
+    site_ids = fetch_user_owned_sites(user_id, request)
+
+    # Fetch all project IDs where user is a member
+    project_ids = fetch_project_list(user_id, request)
+
+    # Add site IDs from each project (set union handles deduplication automatically)
+    for project_id in project_ids:
+        project_site_ids = fetch_all_sites(project_id, request)
+        site_ids.update(project_site_ids)
+
+    # Process sites (fetch details, transform, add soil_id, sort)
+    all_sites = _process_sites(site_ids, request)
+
+    return _export_sites_response(all_sites, format, f"{user_name}_and_projects")

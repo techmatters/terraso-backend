@@ -15,7 +15,9 @@
 
 from typing import Optional, Tuple
 
-from .services import fetch_all_notes_for_site
+from django.conf import settings
+
+from .fetch_data import fetch_all_notes_for_site
 
 # Depth interval presets
 depth_intervals_nrcs_gsp = [
@@ -357,7 +359,7 @@ def flatten_site(site: dict) -> dict:
     return rows
 
 
-def transform_site_data(site, request, page_size=50):
+def transform_site_data(site, request, page_size=settings.EXPORT_PAGE_SIZE):
     """Apply all transformations to site data"""
     # reshape the data a bit
     add_default_depth_intervals(site["soilData"])
