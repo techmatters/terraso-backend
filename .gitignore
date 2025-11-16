@@ -19,6 +19,9 @@ email_preview
 # PyCharm
 .idea
 
+# Claude Code local settings
+.claude/settings.local.json
+
 # Distribution / packaging
 .Python
 build/

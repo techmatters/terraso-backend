@@ -16,12 +16,25 @@
 from urllib.parse import unquote
 
 from django.contrib.auth import get_user_model
-from django.http import HttpResponse, JsonResponse, HttpResponseBadRequest
+from django.http import Http404, HttpResponse, HttpResponseBadRequest, JsonResponse
 
 from .fetch_data import fetch_site_data, fetch_soil_id
 from .fetch_lists import fetch_all_sites, fetch_project_list, fetch_user_owned_sites
 from .formatters import sites_to_csv
+from .models import ExportToken
 from .transformers import transform_site_data
+
+
+def _resolve_export_token(token):
+    """
+    Resolve export token to (resource_type, resource_id).
+    Raises Http404 if token not found.
+    """
+    try:
+        export_token = ExportToken.objects.get(token=token)
+        return export_token.resource_type, export_token.resource_id
+    except ExportToken.DoesNotExist:
+        raise Http404(f"Export token not found: {token}")
 
 
 def _setup_system_export_user(request):
@@ -68,10 +81,14 @@ def _export_sites_response(all_sites, format, filename):
     return response
 
 
-def project_export(request, project_id, project_name, format):
-    # System exports bypass user-based security checks
-    # (Security will be implemented separately via export-specific permissions)
+def project_export(request, project_token, project_name, format):
+    """Export all sites in a project using export token."""
     _setup_system_export_user(request)
+
+    # Resolve token to actual project ID
+    resource_type, project_id = _resolve_export_token(project_token)
+    if resource_type != "PROJECT":
+        return HttpResponseBadRequest("Invalid token type for project export")
 
     # Fetch all site IDs for the project (returns a set)
     site_ids = fetch_all_sites(project_id, request)
@@ -82,10 +99,14 @@ def project_export(request, project_id, project_name, format):
     return _export_sites_response(all_sites, format, project_name)
 
 
-def site_export(request, site_id, site_name, format):
-    # System exports bypass user-based security checks
-    # (Security will be implemented separately via export-specific permissions)
+def site_export(request, site_token, site_name, format):
+    """Export a single site using export token."""
     _setup_system_export_user(request)
+
+    # Resolve token to actual site ID
+    resource_type, site_id = _resolve_export_token(site_token)
+    if resource_type != "SITE":
+        return HttpResponseBadRequest("Invalid token type for site export")
 
     # Process single site
     site_ids = {site_id}
@@ -94,11 +115,14 @@ def site_export(request, site_id, site_name, format):
     return _export_sites_response(all_sites, format, site_name)
 
 
-def user_owned_sites_export(request, user_id, user_name, format):
-    """Export all sites owned by a specific user (not in any project)."""
-    # System exports bypass user-based security checks
-    # (Security will be implemented separately via export-specific permissions)
+def user_owned_sites_export(request, user_token, user_name, format):
+    """Export all sites owned by a specific user (not in any project) using export token."""
     _setup_system_export_user(request)
+
+    # Resolve token to actual user ID
+    resource_type, user_id = _resolve_export_token(user_token)
+    if resource_type != "USER":
+        return HttpResponseBadRequest("Invalid token type for user export")
 
     # Fetch site IDs owned by the user (returns a set)
     site_ids = fetch_user_owned_sites(user_id, request)
@@ -109,11 +133,14 @@ def user_owned_sites_export(request, user_id, user_name, format):
     return _export_sites_response(all_sites, format, f"{user_name}_owned_sites")
 
 
-def user_all_sites_export(request, user_id, user_name, format):
-    """Export all sites owned by user plus all sites in projects where user is a member."""
-    # System exports bypass user-based security checks
-    # (Security will be implemented separately via export-specific permissions)
+def user_all_sites_export(request, user_token, user_name, format):
+    """Export all sites owned by user plus all sites in projects where user is a member using export token."""
     _setup_system_export_user(request)
+
+    # Resolve token to actual user ID
+    resource_type, user_id = _resolve_export_token(user_token)
+    if resource_type != "USER":
+        return HttpResponseBadRequest("Invalid token type for user export")
 
     # Fetch site IDs owned by the user (returns a set)
     site_ids = fetch_user_owned_sites(user_id, request)

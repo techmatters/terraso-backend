@@ -2,61 +2,116 @@
 
 ## Overview
 
-The export functionality uses a system user (`system-export@terraso.org`) to bypass user-based security checks. This user must be created in each database environment.
+The export functionality uses:
+1. **Export Tokens** - UUID-based tokens that map to specific resources (User, Project, or Site)
+2. **System User** (`system-export@terraso.org`) - Bypasses user-based security checks
+
+## Export Tokens
+
+Export tokens provide secure, shareable access to export endpoints. Each token is a UUID that maps to a specific resource.
+
+### Permission Model
+
+**Who can create/delete/view export tokens?**
+
+- **USER tokens**: Only the user themselves
+- **PROJECT tokens**: Only project managers and owners
+- **SITE tokens**:
+  - For unaffiliated sites: Only the site owner
+  - For project sites: Only project managers and owners
+
+**Who can use export tokens to download data?**
+- Anyone with a valid token (no authentication required)
+- Tokens act as bearer tokens - possession of the token grants access
+
+**What happens when resources are deleted?**
+- When a user is (soft) deleted, their export tokens are automatically deleted
+- When a project is (soft) deleted, its export tokens are automatically deleted
+- When a site is (soft) deleted, its export tokens are automatically deleted
+
+### Creating Export Tokens (GraphQL)
+
+Use the mobile client or GraphQL interface to create tokens:
+
+```graphql
+mutation {
+  createExportToken(resourceType: USER, resourceId: "user-uuid-here") {
+    token {
+      token
+      resourceType
+      resourceId
+    }
+  }
+}
+```
+
+**Resource Types**: `USER`, `PROJECT`, `SITE`
+
+### Deleting Export Tokens (GraphQL)
+
+```graphql
+mutation {
+  deleteExportToken(token: "550e8400-e29b-41d4-a716-446655440000") {
+    success
+  }
+}
+```
+
+### Querying Export Tokens (GraphQL)
+
+```graphql
+query {
+  exportToken(resourceType: USER, resourceId: "user-uuid-here") {
+    token
+    resourceType
+    resourceId
+  }
+}
+```
 
 ## Available Export Endpoints
 
-1. **Project Export**: `/export/project/{project_id}/{project_name}.{format}`
+All endpoints now use **export tokens** instead of raw IDs for security:
+
+1. **Project Export**: `/export/project/{project_token}/{project_name}.{format}`
    - Exports all sites within a specific project
 
-2. **Site Export**: `/export/site/{site_id}/{site_name}.{format}`
+2. **Site Export**: `/export/site/{site_token}/{site_name}.{format}`
    - Exports a single site with all its data
 
-3. **User Owned Sites Export**: `/export/user_owned/{user_id}/{user_name}.{format}`
+3. **User Owned Sites Export**: `/export/user_owned/{user_token}/{user_name}.{format}`
    - Exports all sites owned by a user (not part of any project)
 
-4. **User and Projects Sites Export**: `/export/user_and_projects/{user_id}/{user_name}.{format}`
+4. **User All Sites Export**: `/export/user_all/{user_token}/{user_name}.{format}`
    - Exports all sites owned by user PLUS all sites in projects where user is a member
 
 **Supported formats**: `csv`, `json`
 
-**Example URLs**:
-- `http://localhost:8000/export/project/123/my-project.csv`
-- `http://localhost:8000/export/site/456/my-site.json`
-- `http://localhost:8000/export/user_owned/789/john-doe.csv`
-- `http://localhost:8000/export/user_and_projects/789/john-doe.json`
+**Note on Unaffiliated Sites**: Sites not associated with any project will have `projectName: null` in exports. This is handled correctly by the export system.
+
+**Example URLs** (with tokens):
+- `http://localhost:8000/export/project/550e8400-e29b-41d4-a716-446655440000/my-project.csv`
+- `http://localhost:8000/export/site/a1b2c3d4-e5f6-7890-abcd-ef1234567890/my-site.json`
+- `http://localhost:8000/export/user_owned/f47ac10b-58cc-4372-a567-0e02b2c3d479/john-doe.csv`
+- `http://localhost:8000/export/user_all/f47ac10b-58cc-4372-a567-0e02b2c3d479/john-doe.json`
 
 ## Creating the System Export User
 
-### For Local Development
+The system export user (`system-export@terraso.org`) is **automatically created** by migration `0054_create_system_export_user`.
+
+When you run migrations (`python manage.py migrate`), this user will be created if it doesn't already exist.
+
+### Manual Creation (Only if Needed)
+
+If for some reason you need to create this user manually:
+
+#### For Local Development
 
 ```bash
 docker compose -f docker-compose.dev.yml run --rm web python terraso_backend/manage.py shell -c "from apps.core.models import User; user, created = User.objects.get_or_create(email='system-export@terraso.org', defaults={'first_name': 'System', 'last_name': 'Export'}); print(f'User {user.email} {\"created\" if created else \"already exists\"}')"
 ```
 
-### For Staging Database
-
-```bash
-# Option 1: Using Django shell with DATABASE_URL environment variable
-DATABASE_URL="postgresql://terraso_pg:0RId44hSOgYXhytjyKvj8Go45ujrCrqW@dpg-cclqslarrk007qgqrjfg-a.oregon-postgres.render.com/terraso_backend_fonz" \
-docker compose -f docker-compose.dev.yml run --rm web python terraso_backend/manage.py shell -c "from apps.core.models import User; user, created = User.objects.get_or_create(email='system-export@terraso.org', defaults={'first_name': 'System', 'last_name': 'Export'}); print(f'User {user.email} {\"created\" if created else \"already exists\"}')"
-
-# Option 2: If deployed on server, SSH into the server and run:
-python manage.py shell -c "from apps.core.models import User; user, created = User.objects.get_or_create(email='system-export@terraso.org', defaults={'first_name': 'System', 'last_name': 'Export'}); print(f'User {user.email} {\"created\" if created else \"already exists\"}')"
-```
-
-### For Production Database
-
-```bash
-# Option 1: Using Django shell with DATABASE_URL environment variable
-DATABASE_URL="postgresql://terraso_pg:g5Sl9MzD1BXuo9LOPOxyfPR9dziuNQ0t@dpg-cd6rroirrk04votkd5qg-a.oregon-postgres.render.com/terraso_backend_g8od" \
-docker compose -f docker-compose.dev.yml run --rm web python terraso_backend/manage.py shell -c "from apps.core.models import User; user, created = User.objects.get_or_create(email='system-export@terraso.org', defaults={'first_name': 'System', 'last_name': 'Export'}); print(f'User {user.email} {\"created\" if created else \"already exists\"}')"
-
-# Option 2: If deployed on server, SSH into the server and run:
-python manage.py shell -c "from apps.core.models import User; user, created = User.objects.get_or_create(email='system-export@terraso.org', defaults={'first_name': 'System', 'last_name': 'Export'}); print(f'User {user.email} {\"created\" if created else \"already exists\"}')"
-```
-
-### Alternative: Create via Django Admin
+#### Via Django Admin
 
 1. Log into Django admin: `/admin/`
 2. Navigate to Users → Add user
@@ -99,45 +154,30 @@ The export system needs to:
 
 ### Security Considerations
 
-- The export URLs use `@auth_optional` decorator - they don't require authentication
-- **TODO**: Add export-specific security/authorization
-- Consider adding:
-  - API key authentication for export endpoints
-  - Rate limiting
-  - Audit logging of export requests
-  - IP allowlisting if exports should only come from specific sources
+**Token Security:**
+- UUID4 tokens have 122 bits of randomness (~5.3 × 10^36 possible values)
+- Brute force attacks are computationally infeasible
+- Tokens themselves are cryptographically unguessable
 
-## Migration Alternative (Optional)
+**Permission-Based Protection:**
+- GraphQL mutations/queries require authentication and proper permissions
+- Users can only create/view/delete tokens for resources they manage
+- Prevents enumeration attacks via GraphQL
 
-If you want to ensure this user is created automatically during deployment, you can create a Django data migration:
+**Bearer Token Model:**
+- Export URLs use `@auth_optional` - no authentication required beyond the token
+- Anyone with a token can download the data
+- Share tokens carefully (via secure channels)
 
-```bash
-python manage.py makemigrations --empty core --name create_system_export_user
-```
+**Token Management:**
+- Each resource (User/Project/Site) stores one export_token field referencing their current token
+- Multiple ExportToken records can exist per resource, but only one is "active" (stored in the resource's export_token field)
+- Tokens are stored in the `export_token` table with mappings to resources
+- Tokens are automatically deleted when their resource is soft-deleted (User, Project, or Site)
+- Creating a new token replaces the old token reference on the resource
 
-Then edit the migration file:
+**Current Limitations:**
+- Tokens do not expire (consider adding expiration)
+- No rate limiting on export endpoints (consider adding)
+- No audit logging of token usage (consider adding)
 
-```python
-from django.db import migrations
-
-def create_system_export_user(apps, schema_editor):
-    User = apps.get_model('core', 'User')
-    User.objects.get_or_create(
-        email='system-export@terraso.org',
-        defaults={
-            'first_name': 'System',
-            'last_name': 'Export'
-        }
-    )
-
-class Migration(migrations.Migration):
-    dependencies = [
-        ('core', 'XXXX_previous_migration'),
-    ]
-
-    operations = [
-        migrations.RunPython(create_system_export_user),
-    ]
-```
-
-This ensures the user is created automatically when migrations run during deployment.

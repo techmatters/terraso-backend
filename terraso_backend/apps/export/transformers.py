@@ -334,7 +334,7 @@ def flatten_site(site: dict) -> dict:
         flat = {
             "id": site["id"],
             "name": site["name"],
-            "projectName": site["project"]["name"],
+            "projectName": site["project"]["name"] if site["project"] else None,
             "latitude": site["latitude"],
             "longitude": site["longitude"],
             "elevation": site["elevation"],

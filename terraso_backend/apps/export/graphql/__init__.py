@@ -12,13 +12,3 @@
 #
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see https://www.gnu.org/licenses/.
-
-from django.apps import AppConfig
-
-
-class ExportConfig(AppConfig):
-    default_auto_field = "django.db.models.BigAutoField"
-    name = "apps.export"
-
-    def ready(self):
-        import apps.export.signals  # noqa: F401

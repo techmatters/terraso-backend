@@ -73,6 +73,7 @@ class Site(BaseModel):
     archived = models.BooleanField(
         default=False,
     )
+    export_token = models.CharField(max_length=36, null=True, blank=True, unique=True)
 
     def __str__(self):
         return f"{self.name} ({self.id})"

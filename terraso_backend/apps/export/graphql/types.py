@@ -13,12 +13,19 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see https://www.gnu.org/licenses/.
 
-from django.apps import AppConfig
+import graphene
+from graphene_django import DjangoObjectType
+
+from ..models import ExportToken as ExportTokenModel
 
 
-class ExportConfig(AppConfig):
-    default_auto_field = "django.db.models.BigAutoField"
-    name = "apps.export"
+class ResourceTypeEnum(graphene.Enum):
+    USER = "USER"
+    PROJECT = "PROJECT"
+    SITE = "SITE"
 
-    def ready(self):
-        import apps.export.signals  # noqa: F401
+
+class ExportToken(DjangoObjectType):
+    class Meta:
+        model = ExportTokenModel
+        fields = ("token", "resource_type", "resource_id")
