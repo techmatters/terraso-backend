@@ -77,6 +77,7 @@ class Project(BaseModel):
     settings = models.OneToOneField(ProjectSettings, on_delete=models.PROTECT)
 
     site_instructions = models.TextField(null=True, blank=True)
+    export_token = models.CharField(max_length=36, null=True, blank=True, unique=True)
 
     @staticmethod
     def default_settings():

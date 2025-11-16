@@ -4,6 +4,8 @@ schema {
 }
 
 type Query {
+  exportToken(resourceType: ResourceTypeEnum!, resourceId: ID!): ExportToken
+
   """Soil ID algorithm Queries"""
   soilId: SoilId!
   group(
@@ -76,6 +78,30 @@ type Query {
     orderBy: String
   ): SiteNodeConnection!
   sharedResource(shareUuid: String!): SharedResourceNode
+}
+
+type ExportToken {
+  token: String!
+  resourceType: ExportExportTokenResourceTypeChoices!
+  resourceId: String!
+}
+
+"""An enumeration."""
+enum ExportExportTokenResourceTypeChoices {
+  """User"""
+  USER
+
+  """Project"""
+  PROJECT
+
+  """Site"""
+  SITE
+}
+
+enum ResourceTypeEnum {
+  USER
+  PROJECT
+  SITE
 }
 
 """Soil ID algorithm queries."""
@@ -1709,6 +1735,8 @@ type Mutations {
   saveGroupMembership(input: GroupMembershipSaveMutationInput!): GroupMembershipSaveMutationPayload!
   deleteGroupMembership(input: GroupMembershipDeleteMutationInput!): GroupMembershipDeleteMutationPayload!
   updateSharedResource(input: SharedResourceUpdateMutationInput!): SharedResourceUpdateMutationPayload!
+  createExportToken(resourceId: ID!, resourceType: ResourceTypeEnum!): CreateExportToken
+  deleteExportToken(token: String!): DeleteExportToken
 }
 
 type GroupAddMutationPayload {
@@ -2682,4 +2710,12 @@ input SharedResourceUpdateMutationInput {
   id: ID!
   shareAccess: String!
   clientMutationId: String
+}
+
+type CreateExportToken {
+  token: ExportToken
+}
+
+type DeleteExportToken {
+  success: Boolean
 }

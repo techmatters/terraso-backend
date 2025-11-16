@@ -47,6 +47,11 @@ from apps.soil_id.graphql.soil_project.mutations import (
     ProjectSoilSettingsUpdateDepthIntervalMutation,
     ProjectSoilSettingsUpdateMutation,
 )
+from apps.export.graphql.mutations import (
+    CreateExportToken,
+    DeleteExportToken,
+)
+from apps.export.graphql.queries import Query as ExportQuery
 
 from .commons import TerrasoRelayNode
 from .data_entries import (
@@ -119,7 +124,7 @@ from .visualization_config import (
 )
 
 
-class Query(graphene.ObjectType):
+class Query(ExportQuery, graphene.ObjectType):
     group = TerrasoRelayNode.Field(GroupNode)
     landscape = TerrasoRelayNode.Field(LandscapeNode)
     landscape_group = TerrasoRelayNode.Field(LandscapeNode)
@@ -222,6 +227,8 @@ class Mutations(graphene.ObjectType):
     save_group_membership = GroupMembershipSaveMutation.Field()
     delete_group_membership = GroupMembershipDeleteMutation.Field()
     update_shared_resource = SharedResourceUpdateMutation.Field()
+    create_export_token = CreateExportToken.Field()
+    delete_export_token = DeleteExportToken.Field()
 
 
 schema = graphene.Schema(query=Query, mutation=Mutations)
