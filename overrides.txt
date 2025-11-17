@@ -1,0 +1,3 @@
+# Override soil-id's GDAL requirement - we use system python3-gdal package
+# to avoid GDAL 3.12 API breaking changes in pip-compiled bindings
+gdal==3.10.3  # Match Debian Trixie system GDAL version
