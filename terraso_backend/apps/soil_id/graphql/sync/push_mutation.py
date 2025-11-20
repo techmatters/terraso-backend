@@ -32,7 +32,7 @@ from apps.soil_id.graphql.soil_metadata.push_mutation import (
 logger = structlog.get_logger(__name__)
 
 
-class SiteDataPush(BaseWriteMutation):
+class UserDataPush(BaseWriteMutation):
     """
     To enable offline functionality.
     Pushes at least one of the following sub-mutations:
