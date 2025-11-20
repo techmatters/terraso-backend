@@ -31,9 +31,9 @@ pytestmark = pytest.mark.django_db
 
 logger = structlog.get_logger(__name__)
 
-PUSH_SITE_DATA_QUERY = """
-    mutation PushSiteDataMutation($input: SiteDataPushInput!) {
-        pushSiteData(input: $input) {
+PUSH_USER_DATA_QUERY = """
+    mutation PushUserDataMutation($input: UserDataPushInput!) {
+        pushUserData(input: $input) {
             soilDataResults {
                 siteId
                 result {
@@ -50,7 +50,6 @@ PUSH_SITE_DATA_QUERY = """
                     }
                 }
             }
-            soilDataError
             soilMetadataResults {
                 siteId
                 result {
@@ -68,14 +67,13 @@ PUSH_SITE_DATA_QUERY = """
                     }
                 }
             }
-            soilMetadataError
             errors
         }
     }
 """
 
 
-def test_push_site_data_with_both_soil_data_and_metadata(client, user):
+def test_push_user_data_with_both_soil_data_and_metadata(client, user):
     """Test pushing both soil data and soil metadata in a single request"""
     site = mixer.blend(Site, owner=user)
     site.soil_data = SoilData()
@@ -98,7 +96,7 @@ def test_push_site_data_with_both_soil_data_and_metadata(client, user):
 
     client.force_login(user)
     response = graphql_query(
-        PUSH_SITE_DATA_QUERY,
+        PUSH_USER_DATA_QUERY,
         input_data={
             "soilDataEntries": [{"siteId": str(site.id), "soilData": soil_data_changes}],
             "soilMetadataEntries": [{"siteId": str(site.id), "userRatings": metadata_changes}],
@@ -106,10 +104,8 @@ def test_push_site_data_with_both_soil_data_and_metadata(client, user):
         client=client,
     )
 
-    result = response.json()["data"]["pushSiteData"]
+    result = response.json()["data"]["pushUserData"]
     assert result["errors"] is None
-    assert result["soilDataError"] is None
-    assert result["soilMetadataError"] is None
 
     # Check soil data results
     assert len(result["soilDataResults"]) == 1
@@ -141,7 +137,7 @@ def test_push_site_data_with_both_soil_data_and_metadata(client, user):
     }
 
 
-def test_push_site_data_with_only_soil_data(client, user):
+def test_push_user_data_with_only_soil_data(client, user):
     """Test pushing only soil data"""
     site = mixer.blend(Site, owner=user)
 
@@ -154,15 +150,13 @@ def test_push_site_data_with_only_soil_data(client, user):
 
     client.force_login(user)
     response = graphql_query(
-        PUSH_SITE_DATA_QUERY,
+        PUSH_USER_DATA_QUERY,
         input_data={"soilDataEntries": [{"siteId": str(site.id), "soilData": soil_data_changes}]},
         client=client,
     )
 
-    result = response.json()["data"]["pushSiteData"]
+    result = response.json()["data"]["pushUserData"]
     assert result["errors"] is None
-    assert result["soilDataError"] is None
-    assert result["soilMetadataError"] is None
 
     # Check soil data results
     assert len(result["soilDataResults"]) == 1
@@ -177,7 +171,7 @@ def test_push_site_data_with_only_soil_data(client, user):
     assert site.soil_data.down_slope == "LINEAR"
 
 
-def test_push_site_data_with_only_soil_metadata(client, user):
+def test_push_user_data_with_only_soil_metadata(client, user):
     """Test pushing only soil metadata"""
     site = mixer.blend(Site, owner=user)
 
@@ -188,17 +182,15 @@ def test_push_site_data_with_only_soil_metadata(client, user):
 
     client.force_login(user)
     response = graphql_query(
-        PUSH_SITE_DATA_QUERY,
+        PUSH_USER_DATA_QUERY,
         input_data={
             "soilMetadataEntries": [{"siteId": str(site.id), "userRatings": metadata_changes}]
         },
         client=client,
     )
 
-    result = response.json()["data"]["pushSiteData"]
+    result = response.json()["data"]["pushUserData"]
     assert result["errors"] is None
-    assert result["soilDataError"] is None
-    assert result["soilMetadataError"] is None
 
     # Check soil data results are null (not provided)
     assert result["soilDataResults"] is None
@@ -213,7 +205,7 @@ def test_push_site_data_with_only_soil_metadata(client, user):
     assert site.soil_metadata.user_ratings == {"soil_a": "SELECTED", "soil_b": "REJECTED"}
 
 
-def test_push_site_data_with_mixed_results(client, user):
+def test_push_user_data_with_mixed_results(client, user):
     """Test that one section can succeed while another fails"""
     site = mixer.blend(Site, owner=user)
     other_user = mixer.blend(User)
@@ -230,7 +222,7 @@ def test_push_site_data_with_mixed_results(client, user):
 
     client.force_login(user)
     response = graphql_query(
-        PUSH_SITE_DATA_QUERY,
+        PUSH_USER_DATA_QUERY,
         input_data={
             "soilDataEntries": [
                 {"siteId": str(site.id), "soilData": soil_data_changes},  # Should succeed
@@ -245,10 +237,8 @@ def test_push_site_data_with_mixed_results(client, user):
         client=client,
     )
 
-    result = response.json()["data"]["pushSiteData"]
+    result = response.json()["data"]["pushUserData"]
     assert result["errors"] is None
-    assert result["soilDataError"] is None
-    assert result["soilMetadataError"] is None
 
     # Check soil data succeeded
     assert len(result["soilDataResults"]) == 1
@@ -262,7 +252,7 @@ def test_push_site_data_with_mixed_results(client, user):
     assert metadata_result["reason"] == "NOT_ALLOWED"
 
 
-def test_push_site_data_replaces_user_ratings(client, user):
+def test_push_user_data_replaces_user_ratings(client, user):
     """Test that user ratings are replaced, not merged"""
     site = mixer.blend(Site, owner=user)
     SoilMetadata.objects.create(
@@ -277,21 +267,20 @@ def test_push_site_data_replaces_user_ratings(client, user):
 
     client.force_login(user)
     response = graphql_query(
-        PUSH_SITE_DATA_QUERY,
+        PUSH_USER_DATA_QUERY,
         input_data={"soilMetadataEntries": [{"siteId": str(site.id), "userRatings": new_ratings}]},
         client=client,
     )
 
-    result = response.json()["data"]["pushSiteData"]
+    result = response.json()["data"]["pushUserData"]
     assert result["errors"] is None
-    assert result["soilMetadataError"] is None
 
     # Verify old ratings are gone and only new ratings exist
     site.refresh_from_db()
     assert site.soil_metadata.user_ratings == {"soil_4": "SELECTED", "soil_5": "UNSURE"}
 
 
-def test_push_site_data_metadata_validation_multiple_selected(client, user):
+def test_push_user_data_metadata_validation_multiple_selected(client, user):
     """Test that multiple SELECTED ratings are rejected"""
     site = mixer.blend(Site, owner=user)
 
@@ -302,16 +291,15 @@ def test_push_site_data_metadata_validation_multiple_selected(client, user):
 
     client.force_login(user)
     response = graphql_query(
-        PUSH_SITE_DATA_QUERY,
+        PUSH_USER_DATA_QUERY,
         input_data={
             "soilMetadataEntries": [{"siteId": str(site.id), "userRatings": invalid_ratings}]
         },
         client=client,
     )
 
-    result = response.json()["data"]["pushSiteData"]
+    result = response.json()["data"]["pushUserData"]
     assert result["errors"] is None
-    assert result["soilMetadataError"] is None
 
     # Check that the entry failed with INVALID_DATA
     assert len(result["soilMetadataResults"]) == 1
@@ -320,16 +308,16 @@ def test_push_site_data_metadata_validation_multiple_selected(client, user):
     assert metadata_result["reason"] == "INVALID_DATA"
 
 
-def test_push_site_data_requires_at_least_one_entry_type(client, user):
+def test_push_user_data_requires_at_least_one_entry_type(client, user):
     """Test that at least one of soilDataEntries or soilMetadataEntries is required"""
     client.force_login(user)
-    response = graphql_query(PUSH_SITE_DATA_QUERY, input_data={}, client=client)
+    response = graphql_query(PUSH_USER_DATA_QUERY, input_data={}, client=client)
 
     # Should get a validation error
     assert "errors" in response.json()
 
 
-def test_push_site_data_with_multiple_sites(client, user):
+def test_push_user_data_with_multiple_sites(client, user):
     """Test pushing data for multiple sites in a single mutation"""
     # Create three sites
     site1 = mixer.blend(Site, owner=user)
@@ -369,7 +357,7 @@ def test_push_site_data_with_multiple_sites(client, user):
 
     client.force_login(user)
     response = graphql_query(
-        PUSH_SITE_DATA_QUERY,
+        PUSH_USER_DATA_QUERY,
         input_data={
             "soilDataEntries": [
                 {"siteId": str(site1.id), "soilData": soil_data_changes_1},
@@ -383,10 +371,8 @@ def test_push_site_data_with_multiple_sites(client, user):
         client=client,
     )
 
-    result = response.json()["data"]["pushSiteData"]
+    result = response.json()["data"]["pushUserData"]
     assert result["errors"] is None
-    assert result["soilDataError"] is None
-    assert result["soilMetadataError"] is None
 
     # Check soil data results (2 entries)
     assert len(result["soilDataResults"]) == 2
@@ -448,8 +434,8 @@ def test_push_site_data_with_multiple_sites(client, user):
 # ----- Soil data changes only ------
 # Tests from test_soil_data.py but with the new non-deprecated endpoint
 PUSH_SOIL_DATA_QUERY = """
-    mutation PushSiteDataMutation($input: SiteDataPushInput!) {
-        pushSiteData(input: $input) {
+    mutation PushUserDataMutation($input: UserDataPushInput!) {
+        pushUserData(input: $input) {
             soilDataResults {
                 siteId
                 result {
@@ -524,7 +510,6 @@ PUSH_SOIL_DATA_QUERY = """
                     }
                 }
             }
-            soilDataError
             soilMetadataResults {
                 siteId
                 result {
@@ -534,7 +519,6 @@ PUSH_SOIL_DATA_QUERY = """
                     }
                 }
             }
-            soilMetadataError
             errors
         }
     }
@@ -636,10 +620,8 @@ def test_push_soil_data_success(client, user):
     )
 
     assert response.json()
-    result = response.json()["data"]["pushSiteData"]
+    result = response.json()["data"]["pushUserData"]
     assert result["errors"] is None
-    assert result["soilDataError"] is None
-    assert result["soilMetadataError"] is None
     assert result["soilMetadataResults"] is None  # Not provided
 
     # Check soil data results
@@ -696,8 +678,8 @@ def test_push_soil_data_success(client, user):
         assert depth_interval_history[from_camel_to_snake_case(field)] == expected_value
 
 
-def test_push_site_data_edit_depth_interval(client, user):
-    """Test editing depth intervals via pushSiteData"""
+def test_push_user_data_edit_depth_interval(client, user):
+    """Test editing depth intervals via pushUserData"""
     site = mixer.blend(Site, owner=user)
 
     site.soil_data = SoilData()
@@ -732,9 +714,8 @@ def test_push_site_data_edit_depth_interval(client, user):
 
     assert response.json()
     assert "data" in response.json()
-    result = response.json()["data"]["pushSiteData"]
+    result = response.json()["data"]["pushUserData"]
     assert result["errors"] is None
-    assert result["soilDataError"] is None
     assert result["soilMetadataResults"] is None  # Not provided
     assert len(result["soilDataResults"]) == 1
     result_soil_data = result["soilDataResults"][0]["result"]["soilData"]
@@ -770,8 +751,8 @@ def test_push_site_data_edit_depth_interval(client, user):
     assert depth_interval_history["depth_interval"]["end"] == 10
 
 
-def test_push_site_data_mixed_soil_data_results(client, user):
-    """Test that pushSiteData can handle mixed success/failure results for soil data"""
+def test_push_user_data_mixed_soil_data_results(client, user):
+    """Test that pushUserData can handle mixed success/failure results for soil data"""
     non_user = mixer.blend(User)
     user_sites = mixer.cycle(2).blend(Site, owner=user)
     non_user_site = mixer.blend(Site, owner=non_user)
@@ -828,9 +809,8 @@ def test_push_site_data_mixed_soil_data_results(client, user):
 
     assert response.json()
     assert "data" in response.json()
-    result = response.json()["data"]["pushSiteData"]
+    result = response.json()["data"]["pushUserData"]
     assert result["errors"] is None
-    assert result["soilDataError"] is None
     assert result["soilMetadataResults"] is None  # Not provided
 
     # Check results
