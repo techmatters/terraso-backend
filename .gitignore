@@ -92,3 +92,10 @@ Data/
 
 # node
 node_modules/
+
+# Database backups - never commit these (large files with sensitive data)
+*.sql
+terraso_render_backup.sql
+
+# Test data files
+derek_all_sites.*

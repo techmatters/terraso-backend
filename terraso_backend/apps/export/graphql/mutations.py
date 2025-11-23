@@ -13,6 +13,8 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see https://www.gnu.org/licenses/.
 
+import logging
+
 import graphene
 from django.contrib.auth import get_user_model
 from graphql import GraphQLError
@@ -24,6 +26,7 @@ from .types import ExportToken as ExportTokenType
 from .types import ResourceTypeEnum
 
 User = get_user_model()
+logger = logging.getLogger(__name__)
 
 
 def can_manage_export_token(user, resource_type, resource_id):
@@ -40,7 +43,16 @@ def can_manage_export_token(user, resource_type, resource_id):
 
     if resource_type == "USER":
         # Users can only manage tokens for themselves
-        return str(user.id) == resource_id
+        user_id_str = str(user.id)
+        result = user_id_str == resource_id
+        logger.info(
+            f"Export token USER permission check: "
+            f"user.id={user.id} (type={type(user.id).__name__}), "
+            f"str(user.id)={user_id_str}, "
+            f"resource_id={resource_id} (type={type(resource_id).__name__}), "
+            f"comparison result={result}"
+        )
+        return result
 
     elif resource_type == "PROJECT":
         # Only project managers/owners can manage tokens
@@ -89,13 +101,27 @@ class CreateExportToken(graphene.Mutation):
 
     @staticmethod
     def mutate(root, info, resource_type, resource_id):
+        logger.info(
+            f"CreateExportToken mutation called: "
+            f"resource_type={resource_type} (type={type(resource_type).__name__}), "
+            f"resource_id={resource_id}"
+        )
+
         user = info.context.user
+        logger.info(f"Authenticated user: {user.email} (id={user.id})")
+
+        # Convert enum to string value
+        resource_type_str = resource_type.value
+        logger.info(f"Converted resource_type to string: '{resource_type_str}'")
 
         # Check permissions
-        if not can_manage_export_token(user, resource_type, resource_id):
+        logger.info(f"Checking permissions for user {user.email} on {resource_type_str} {resource_id}")
+        if not can_manage_export_token(user, resource_type_str, resource_id):
+            logger.warning(f"Permission denied for user {user.email}")
             raise GraphQLError(
                 "You do not have permission to create an export token for this resource"
             )
+        logger.info(f"Permission check passed")
 
         # Get the resource model based on type
         model_map = {
@@ -104,25 +130,47 @@ class CreateExportToken(graphene.Mutation):
             "SITE": Site,
         }
 
-        model = model_map[resource_type]
+        model = model_map[resource_type_str]
+        logger.info(f"Looking up {model.__name__} with pk={resource_id}")
         try:
             resource = model.objects.get(pk=resource_id)
+            logger.info(f"Found resource: {resource}")
         except model.DoesNotExist:
+            logger.error(f"{resource_type_str} with id {resource_id} not found")
             raise GraphQLError(f"{resource_type} not found")
 
         # Check if token already exists
+        logger.info(f"Checking if export_token already exists: {resource.export_token}")
         if resource.export_token:
-            return CreateExportToken(
-                token=ExportToken.objects.get(token=resource.export_token)
+            logger.info(f"Token already exists, returning existing token: {resource.export_token}")
+            token_obj = ExportToken.objects.get(token=resource.export_token)
+            logger.info(
+                f"Returning token object - token={token_obj.token}, "
+                f"resource_type={token_obj.resource_type}, "
+                f"resource_id={token_obj.resource_id}"
             )
+            return CreateExportToken(token=token_obj)
 
         # Create new token
-        token_obj = ExportToken.create_token(resource_type, resource_id)
+        logger.info(f"Creating new export token for {resource_type_str} {resource_id}")
+        try:
+            token_obj = ExportToken.create_token(resource_type_str, resource_id)
+            logger.info(f"Created token object: {token_obj.token}")
+        except Exception as e:
+            logger.error(f"Failed to create token: {e}", exc_info=True)
+            raise
 
         # Store token in resource
-        resource.export_token = token_obj.token
-        resource.save(update_fields=["export_token"])
+        logger.info(f"Storing token {token_obj.token} on resource")
+        try:
+            resource.export_token = token_obj.token
+            resource.save(update_fields=["export_token"])
+            logger.info(f"Successfully saved token to resource")
+        except Exception as e:
+            logger.error(f"Failed to save token to resource: {e}", exc_info=True)
+            raise
 
+        logger.info(f"CreateExportToken mutation completed successfully")
         return CreateExportToken(token=token_obj)
 
 

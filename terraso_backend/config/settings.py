@@ -277,6 +277,8 @@ LOGIN_URL = f"{WEB_CLIENT_URL}/account"
 AUTH_COOKIE_DOMAIN = config("AUTH_COOKIE_DOMAIN", default="")
 CORS_ORIGIN_WHITELIST = config("CORS_ORIGIN_WHITELIST", default=[], cast=config.list)
 CORS_ALLOWED_ORIGIN_REGEXES = config("CORS_ALLOWED_ORIGIN_REGEXES", default=[], cast=config.list)
+# Globally restrict CORS to whitelist; per-URL exceptions handled via signals (see apps/export/handlers.py)
+CORS_ALLOW_ALL_ORIGINS = False
 
 API_ENDPOINT = config("API_ENDPOINT", default="")
 

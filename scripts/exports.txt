@@ -1,0 +1,32 @@
+ Export URLs for Derek (derek@techmatters.org)
+
+  1. User Export (All Derek's Sites)
+
+  User All Sites Export:
+  http://localhost:8000/export/user_all/c69eed2a-043d-46b1-a4b7-ba5450ce7793/derek.csv
+  or for JSON:
+  http://localhost:8000/export/user_all/c69eed2a-043d-46b1-a4b7-ba5450ce7793/derek.json
+
+  User Owned Sites Only:
+  http://localhost:8000/export/user_owned/c69eed2a-043d-46b1-a4b7-ba5450ce7793/derek.csv
+
+  2. Project Export ("Sample Project")
+
+  CSV:
+  http://localhost:8000/export/project/59a5d0bb-2b0b-4f4f-8f54-4981515251b0/Sample-Project.csv
+  JSON:
+  http://localhost:8000/export/project/59a5d0bb-2b0b-4f4f-8f54-4981515251b0/Sample-Project.json
+
+  3. Site Export ("Zoon")
+
+  CSV:
+  http://localhost:8000/export/site/eef854e4-d140-4c24-96e5-ca53c8e5e1db/Zoon.csv
+  JSON:
+  http://localhost:8000/export/site/eef854e4-d140-4c24-96e5-ca53c8e5e1db/Zoon.json
+
+  ---
+  Summary of Tokens Created:
+  - User Token: c69eed2a-043d-46b1-a4b7-ba5450ce7793
+  - Project Token (Sample Project): 59a5d0bb-2b0b-4f4f-8f54-4981515251b0
+  - Site Token (Zoon): eef854e4-d140-4c24-96e5-ca53c8e5e1db
+

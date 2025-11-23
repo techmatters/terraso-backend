@@ -105,6 +105,33 @@ Terraso Backend is a Django-based GraphQL API that powers a collaborative platfo
 - Use UUID primary keys for new models
 - Follow the established GraphQL patterns with base classes
 
+### GraphQL Enums
+When using `graphene.Enum` types in mutation arguments:
+- **Access the value directly**: Use `enum_param.value` to get the string value
+- **No defensive checks needed**: GraphQL guarantees the enum will be passed correctly
+- **Example pattern** (see `apps/project_management/graphql/projects.py:331`):
+  ```python
+  class MyMutation(graphene.Mutation):
+      class Arguments:
+          status = StatusEnum(required=True)
+
+      @staticmethod
+      def mutate(root, info, status):
+          # Correct: directly access .value
+          status_str = status.value
+
+          # Incorrect: unnecessary defensive programming
+          # if hasattr(status, 'value'):
+          #     status_str = status.value
+  ```
+- **Why**: The codebase consistently uses direct `.value` access without `hasattr()` checks in all GraphQL mutations
+- **Enum definition**: Use `graphene.Enum` with string values:
+  ```python
+  class StatusEnum(graphene.Enum):
+      ACTIVE = "ACTIVE"
+      INACTIVE = "INACTIVE"
+  ```
+
 ### Dependencies
 - Check existing `requirements.txt` for available libraries
 - Use `uv pip compile` for dependency management (not pip-tools)

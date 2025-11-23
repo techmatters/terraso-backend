@@ -23,24 +23,46 @@ from . import views
 app_name = "apps.export"
 
 urlpatterns = [
+    # Token-based exports (public, no authentication required)
     path(
-        "project/<str:project_token>/<str:project_name>.<str:format>",
+        "token/project/<str:project_token>/<str:project_name>.<str:format>",
         csrf_exempt(auth_optional(views.project_export)),
-        name="project-export",
+        name="project-export-by-token",
     ),
     path(
-        "site/<str:site_token>/<str:site_name>.<str:format>",
+        "token/site/<str:site_token>/<str:site_name>.<str:format>",
         csrf_exempt(auth_optional(views.site_export)),
-        name="site-export",
+        name="site-export-by-token",
     ),
     path(
-        "user_owned/<str:user_token>/<str:user_name>.<str:format>",
+        "token/user_owned/<str:user_token>/<str:user_name>.<str:format>",
         csrf_exempt(auth_optional(views.user_owned_sites_export)),
-        name="user-owned-sites-export",
+        name="user-owned-sites-export-by-token",
     ),
     path(
-        "user_all/<str:user_token>/<str:user_name>.<str:format>",
+        "token/user_all/<str:user_token>/<str:user_name>.<str:format>",
         csrf_exempt(auth_optional(views.user_all_sites_export)),
-        name="user-all-sites-export",
+        name="user-all-sites-export-by-token",
+    ),
+    # ID-based exports (authenticated, enforces permissions)
+    path(
+        "id/project/<str:project_id>/<str:project_name>.<str:format>",
+        csrf_exempt(views.project_export_by_id),
+        name="project-export-by-id",
+    ),
+    path(
+        "id/site/<str:site_id>/<str:site_name>.<str:format>",
+        csrf_exempt(views.site_export_by_id),
+        name="site-export-by-id",
+    ),
+    path(
+        "id/user_owned/<str:user_id>/<str:user_name>.<str:format>",
+        csrf_exempt(views.user_owned_sites_export_by_id),
+        name="user-owned-sites-export-by-id",
+    ),
+    path(
+        "id/user_all/<str:user_id>/<str:user_name>.<str:format>",
+        csrf_exempt(views.user_all_sites_export_by_id),
+        name="user-all-sites-export-by-id",
     ),
 ]

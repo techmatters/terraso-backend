@@ -17,6 +17,9 @@ from typing import Optional, Tuple
 
 from django.conf import settings
 
+from apps.soil_id.models.depth_dependent_soil_data import DepthDependentSoilData
+from apps.soil_id.models.soil_data import SoilData
+
 from .fetch_data import fetch_all_notes_for_site
 
 # Depth interval presets
@@ -158,77 +161,232 @@ depth_intervals_blm = [
     },
 ]
 
-# String mappings from terraso-mobile-client
-rock_fragment_volume = {
-    "VOLUME_0_1": "0–1%",
-    "VOLUME_1_15": "1–15%",
-    "VOLUME_15_35": "15–35%",
-    "VOLUME_35_60": "35–60%",
-    "VOLUME_60": ">60%",
-}
 
-soil_texture = {
-    "CLAY": "Clay",
-    "CLAY_LOAM": "Clay Loam",
-    "LOAM": "Loam",
-    "LOAMY_SAND": "Loamy Sand",
-    "SAND": "Sand",
-    "SANDY_CLAY": "Sandy Clay",
-    "SANDY_CLAY_LOAM": "Sandy Clay Loam",
-    "SANDY_LOAM": "Sandy Loam",
-    "SILT": "Silt",
-    "SILTY_CLAY": "Silty Clay",
-    "SILTY_CLAY_LOAM": "Silty Clay Loam",
-    "SILT_LOAM": "Silt Loam",
-}
+# Helper functions for converting enum codes to human-readable labels
 
-vertical_cracking = {
-    "NO_CRACKING": "No cracks",
-    "SURFACE_CRACKING_ONLY": "Surface cracks only",
-    "DEEP_VERTICAL_CRACKS": "Deep vertical cracks",
-}
+
+def code_to_label(code_value, capitalize_all_words=True):
+    """
+    Convert a database code like "SILTY_CLAY" to a human-readable label like "Silty Clay".
+
+    Args:
+        code_value: The code string (e.g., "SILTY_CLAY", "NO_CRACKING")
+        capitalize_all_words: If True, capitalize all words. If False, only capitalize first word.
+
+    Returns:
+        Human-readable label string
+
+    Examples:
+        code_to_label("SILTY_CLAY") -> "Silty Clay"
+        code_to_label("NO_CRACKING") -> "No Cracking"
+        code_to_label("DEEP_VERTICAL_CRACKS") -> "Deep Vertical Cracks"
+        code_to_label("SILTY_CLAY", capitalize_all_words=False) -> "Silty clay"
+    """
+    if not code_value:
+        return code_value
+
+    # Replace underscores with spaces
+    words = code_value.split("_")
+
+    if capitalize_all_words:
+        # Capitalize each word: "SILTY_CLAY" -> "Silty Clay"
+        return " ".join(word.capitalize() for word in words)
+    else:
+        # Only capitalize first word: "SILTY_CLAY" -> "Silty clay"
+        return " ".join(word.capitalize() if i == 0 else word.lower() for i, word in enumerate(words))
+
+
+def get_enum_label(enum_class, value, fallback=None):
+    """
+    Get the human-readable label for a Django TextChoices enum value.
+
+    Uses Django's built-in label system, which automatically generates labels
+    from enum values (e.g., "SILTY_CLAY" -> "Silty Clay") or uses custom labels
+    if defined in the enum.
+
+    Args:
+        enum_class: The Django TextChoices class (e.g., DepthDependentSoilData.Texture)
+        value: The enum value (e.g., "SILTY_CLAY")
+        fallback: Optional fallback function if value not in enum (default: code_to_label)
+
+    Returns:
+        The label string, or the result of fallback function if value not found
+
+    Examples:
+        get_enum_label(DepthDependentSoilData.Texture, "SILTY_CLAY") -> "Silty Clay"
+        get_enum_label(DepthDependentSoilData.RockFragmentVolume, "VOLUME_0_1") -> "0 — 1%"
+    """
+    try:
+        return enum_class(value).label
+    except (ValueError, KeyError):
+        # Value not in enum - use fallback if provided
+        if fallback:
+            return fallback(value)
+        # Default fallback: use code_to_label helper
+        return code_to_label(value)
+
 
 # Munsell color conversion constants
 non_neutral_color_hues = ["R", "YR", "Y", "GY", "G", "BG", "B", "PB", "P", "RP"]
 color_values = [2, 2.5, 3, 4, 5, 6, 7, 8, 8.5, 9, 9.5]
 
+# Configuration: Maps field names to their Django enum classes
+# This drives automatic label generation for all simple enum fields
+SIMPLE_ENUM_MAPPINGS = {
+    # SoilData enums
+    "downSlope": SoilData.SlopeShape,
+    "crossSlope": SoilData.SlopeShape,
+    "slopeLandscapePosition": SoilData.LandscapePosition,
+    "slopeSteepnessSelect": SoilData.SlopeSteepness,
+    "surfaceCracksSelect": SoilData.SurfaceCracks,
+    "surfaceSaltSelect": SoilData.SurfaceSalt,
+    "floodingSelect": SoilData.Flooding,
+    "limeRequirementsSelect": SoilData.LimeRequirements,
+    "surfaceStoninessSelect": SoilData.SurfaceStoniness,
+    "waterTableDepthSelect": SoilData.WaterTableDepth,
+    "soilDepthSelect": SoilData.SoilDepth,
+    "landCoverSelect": SoilData.LandCover,
+    "grazingSelect": SoilData.Grazing,
+    # DepthDependentSoilData enums
+    "texture": DepthDependentSoilData.Texture,
+    "rockFragmentVolume": DepthDependentSoilData.RockFragmentVolume,
+    "colorPhotoSoilCondition": DepthDependentSoilData.ColorPhotoSoilCondition,
+    "colorPhotoLightingCondition": DepthDependentSoilData.ColorPhotoLightingCondition,
+    "conductivityTest": DepthDependentSoilData.ConductivityTest,
+    "conductivityUnit": DepthDependentSoilData.ConductivityUnit,
+    "structure": DepthDependentSoilData.SoilStructure,
+    "phTestingSolution": DepthDependentSoilData.PhTestingSolution,
+    "phTestingMethod": DepthDependentSoilData.PhTestingMethod,
+}
+
+
+# Object-level transformer functions
+# Each transformer receives a dict and adds manufactured fields as needed
+
+
+def add_simple_enum_labels(obj):
+    """
+    Add _fieldName labels for all simple enum fields in an object.
+
+    Iterates through SIMPLE_ENUM_MAPPINGS and adds a manufactured label field
+    (with _ prefix) for any enum field present in the object.
+
+    This single function replaces ~20 individual transformer functions,
+    making it easy to add new enum fields by just updating SIMPLE_ENUM_MAPPINGS.
+    """
+    for field_name, enum_class in SIMPLE_ENUM_MAPPINGS.items():
+        if field_name in obj and obj[field_name] is not None:
+            obj[f"_{field_name}"] = get_enum_label(enum_class, obj[field_name])
+
+
+def add_munsell_color_label(obj):
+    """
+    Add _colorMunsell label if any color fields exist.
+
+    Special case: This derives from 3 separate fields (colorHue, colorValue, colorChroma)
+    rather than transforming a single enum field, so it can't use the simple mapping approach.
+    """
+    if any(k in obj for k in ["colorHue", "colorValue", "colorChroma"]):
+        obj["_colorMunsell"] = munsell_to_string(obj)
+
+
+# Registry of object-level transformers
+OBJECT_TRANSFORMERS = [
+    add_simple_enum_labels,  # Handles all simple enum fields via SIMPLE_ENUM_MAPPINGS
+    add_munsell_color_label,  # Special case: multi-field transformation
+]
+
+
+def apply_object_transformations(data):
+    """
+    Recursively walk data structure and apply object-level transformations.
+
+    For each dict encountered, runs all registered transformers.
+    Each transformer can inspect the dict and add manufactured fields as needed.
+
+    Args:
+        data: dict, list, or primitive value to transform
+
+    Returns:
+        The data structure with manufactured fields added (mutates in place)
+    """
+    if isinstance(data, dict):
+        # Apply all transformers to this object
+        for transformer in OBJECT_TRANSFORMERS:
+            transformer(data)
+
+        # Recursively process nested structures
+        for value in data.values():
+            apply_object_transformations(value)
+
+    elif isinstance(data, list):
+        # Process each item in the list
+        for item in data:
+            apply_object_transformations(item)
+
+    return data
+
 
 def add_default_depth_intervals(soil_data):
-    match soil_data["depthIntervalPreset"]:
-        case "NRCS":
-            soil_data["depthIntervals"] = depth_intervals_nrcs_gsp
-        case "BLM":
-            soil_data["depthIntervals"] = depth_intervals_blm
+    """
+    Add default depth intervals based on preset, only if depthIntervals don't already exist.
+    Custom depth intervals (if present) will be preserved.
+    """
+    # Only add defaults if no custom intervals exist
+    if "depthIntervals" not in soil_data or not soil_data["depthIntervals"]:
+        match soil_data.get("depthIntervalPreset"):
+            case "NRCS":
+                soil_data["depthIntervals"] = depth_intervals_nrcs_gsp
+            case "BLM":
+                soil_data["depthIntervals"] = depth_intervals_blm
+            case _:
+                # Unknown preset or no preset - leave depthIntervals as-is
+                # (might be custom intervals or empty)
+                pass
 
 
-def add_munsell_color_strings(depth_dependent_data):
-    for d in depth_dependent_data:
-        d["colorMunsell"] = munsell_to_string(d)
+def merge_depth_intervals_into_data(soil_data):
+    """
+    Merge depthIntervals and depthDependentData into single depthDependentData array.
+
+    Each item in the resulting depthDependentData will have:
+    - Depth interval metadata (label, depthInterval, *Enabled flags)
+    - Measurement data (texture, color, etc. - may be null)
+
+    This ensures we always have all depth intervals in the export, even if some
+    have no measurements.
+
+    The number of intervals varies:
+    - NRCS preset: 6 intervals (0-5, 5-15, 15-30, 30-60, 60-100, 100-200 cm)
+    - BLM preset: 5 intervals (0-1, 1-10, 10-20, 20-50, 50-70 cm)
+    - Custom intervals: Any number defined by the user
+    """
+    depth_intervals = soil_data.get("depthIntervals", [])
+    depth_dependent_data = soil_data.get("depthDependentData", [])
+
+    # Create a merged list
+    merged_data = []
+
+    for i, interval in enumerate(depth_intervals):
+        # Start with interval metadata (make a copy to avoid mutating presets)
+        merged_item = interval.copy()
+
+        # Add measurement data if it exists for this index
+        if i < len(depth_dependent_data):
+            measurement_data = depth_dependent_data[i]
+            merged_item.update(measurement_data)
+
+        merged_data.append(merged_item)
+
+    # Replace both arrays with single merged array
+    soil_data["depthDependentData"] = merged_data
+    # Remove old depthIntervals array
+    if "depthIntervals" in soil_data:
+        del soil_data["depthIntervals"]
 
 
 def hide_site_id(site):
     site["id"] = "hide id?"
-
-
-def replace_rock_fragment_volume_strings(depth_dependent_data):
-    for d in depth_dependent_data:
-        if d.get("rockFragmentVolume"):
-            d["rockFragmentVolume_string"] = rock_fragment_volume.get(
-                d.get("rockFragmentVolume"), d.get("rockFragmentVolume")
-            )
-
-
-def replace_soil_texture_strings(depth_dependent_data):
-    for d in depth_dependent_data:
-        if d.get("texture"):
-            d["texture_string"] = soil_texture.get(d.get("texture"), d.get("texture"))
-
-
-def replace_surface_cracking_strings(soil_data):
-    if soil_data.get("surfaceCracksSelect"):
-        soil_data["surfaceCracksString"] = vertical_cracking.get(
-            soil_data.get("surfaceCracksSelect"), soil_data.get("surfaceCracksSelect")
-        )
 
 
 def render_munsell_hue(color_hue: Optional[float], color_chroma: Optional[float]) -> Tuple[Optional[int], Optional[str]]:
@@ -278,7 +436,7 @@ def munsell_to_string(color: dict) -> str:
 
 
 def flatten_note(note):
-    return ",".join([note["content"], note["author"]["email"], note["createdAt"]])
+    return " | ".join([note["content"], note["author"]["email"], note["createdAt"]])
 
 
 def flatten_site(site: dict) -> dict:
@@ -292,16 +450,13 @@ def flatten_site(site: dict) -> dict:
 
     flattened_notes = [flatten_note(note) for note in notes] if notes else []
 
-    depth_intervals = soil_data.get("depthIntervals", [])
+    # Get merged depth data (now contains both interval metadata and measurements)
     depth_dependent_data = soil_data.get("depthDependentData", [])
 
-    # print("depth intervals", depth_intervals, "depth dependent data", depth_dependent_data)
-
-    # Create zip pairs, ensuring at least one row
-    depth_pairs = list(zip(depth_intervals, depth_dependent_data))
-    if not depth_pairs:
-        depth_pairs = [(None, None)]
-        print("No depth pairs for site", site["id"])
+    # Ensure at least one row even if no depth data
+    if not depth_dependent_data:
+        depth_dependent_data = [None]
+        print("No depth data for site", site["id"])
 
     user_selected_soil = site.get("soilMetadata", {}).get("selectedSoilId")
 
@@ -329,8 +484,8 @@ def flatten_site(site: dict) -> dict:
                     ecological_site = ecological_site_info.get("name") if ecological_site_info else None
                     break
 
-    for depth_interval, depth_dependent_data_item in depth_pairs:
-        print("adding a row for site", site["id"], "depth interval", depth_interval)
+    for depth_item in depth_dependent_data:
+        print("adding a row for site", site["id"], "depth", depth_item.get("label") if depth_item else None)
         flat = {
             "id": site["id"],
             "name": site["name"],
@@ -340,19 +495,20 @@ def flatten_site(site: dict) -> dict:
             "elevation": site["elevation"],
             "updatedAt": site["updatedAt"],
             "slopeSteepnessDegree": soil_data.get("slopeSteepnessDegree"),
-            "downSlope": soil_data.get("downSlope"),
-            "surfaceCracks": soil_data.get("surfaceCracksString"),
+            "downSlope": soil_data.get("_downSlope"),
+            "crossSlope": soil_data.get("_crossSlope"),
+            "surfaceCracks": soil_data.get("_surfaceCracksSelect"),
             "notes": ";".join(flattened_notes),
             "user-selected-soil": user_selected_soil,
             "lcc-class": lcc_class,
             "ecological-site": ecological_site,
-            # depth interval specific data
-            "depth-label": depth_interval.get("label") if depth_interval else None,
-            "depth-start": depth_interval.get("depthInterval", {}).get("start") if depth_interval else None,
-            "depth-end": depth_interval.get("depthInterval", {}).get("end") if depth_interval else None,
-            "depth-rockFragmentVolume": depth_dependent_data_item.get("rockFragmentVolume_string") if depth_dependent_data_item else None,
-            "depth-texture": depth_dependent_data_item.get("texture_string") if depth_dependent_data_item else None,
-            "depth-color": depth_dependent_data_item.get("colorMunsell") if depth_dependent_data_item else None,
+            # Depth interval and measurement data (now in same object)
+            "depth-label": depth_item.get("label") if depth_item else None,
+            "depth-start": depth_item.get("depthInterval", {}).get("start") if depth_item else None,
+            "depth-end": depth_item.get("depthInterval", {}).get("end") if depth_item else None,
+            "depth-rockFragmentVolume": depth_item.get("_rockFragmentVolume") if depth_item else None,
+            "depth-texture": depth_item.get("_texture") if depth_item else None,
+            "depth-color": depth_item.get("_colorMunsell") if depth_item else None,
         }
         rows.append(flat)
 
@@ -361,16 +517,18 @@ def flatten_site(site: dict) -> dict:
 
 def transform_site_data(site, request, page_size=settings.EXPORT_PAGE_SIZE):
     """Apply all transformations to site data"""
-    # reshape the data a bit
+    # Add default depth intervals
     add_default_depth_intervals(site["soilData"])
-    add_munsell_color_strings(site["soilData"].get("depthDependentData", []))
-    replace_rock_fragment_volume_strings(site["soilData"].get("depthDependentData", []))
-    replace_soil_texture_strings(site["soilData"].get("depthDependentData", []))
-    replace_surface_cracking_strings(site["soilData"])
+
+    # Merge depth intervals into depth dependent data
+    merge_depth_intervals_into_data(site["soilData"])
 
     # Add notes
     notes = fetch_all_notes_for_site(site["id"], request, page_size)
     site["notes"] = notes
+
+    # Apply all object transformations recursively to entire site
+    apply_object_transformations(site)
 
     # hide_site_id(site)
 

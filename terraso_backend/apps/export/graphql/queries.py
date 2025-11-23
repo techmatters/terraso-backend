@@ -13,6 +13,8 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see https://www.gnu.org/licenses/.
 
+import logging
+
 import graphene
 from graphql import GraphQLError
 
@@ -20,6 +22,8 @@ from ..models import ExportToken
 from .mutations import can_manage_export_token
 from .types import ExportToken as ExportTokenType
 from .types import ResourceTypeEnum
+
+logger = logging.getLogger(__name__)
 
 
 class Query(graphene.ObjectType):
@@ -31,17 +35,38 @@ class Query(graphene.ObjectType):
 
     @staticmethod
     def resolve_export_token(root, info, resource_type, resource_id):
+        logger.info(
+            f"exportToken query called: "
+            f"resource_type={resource_type} (type={type(resource_type).__name__}), "
+            f"resource_id={resource_id}"
+        )
+
         user = info.context.user
+        logger.info(f"Authenticated user: {user.email} (id={user.id})")
+
+        # Convert enum to string value
+        resource_type_str = resource_type.value
+        logger.info(f"Converted resource_type to string: '{resource_type_str}'")
 
         # Check permissions - user must have rights to view this resource's token
-        if not can_manage_export_token(user, resource_type, resource_id):
+        logger.info(f"Checking permissions for user {user.email} on {resource_type_str} {resource_id}")
+        if not can_manage_export_token(user, resource_type_str, resource_id):
+            logger.warning(f"Permission denied for user {user.email}")
             raise GraphQLError(
                 "You do not have permission to view the export token for this resource"
             )
+        logger.info(f"Permission check passed")
 
         try:
-            return ExportToken.objects.get(
-                resource_type=resource_type, resource_id=resource_id
+            token_obj = ExportToken.objects.get(
+                resource_type=resource_type_str, resource_id=resource_id
             )
+            logger.info(
+                f"Found token - token={token_obj.token}, "
+                f"resource_type={token_obj.resource_type}, "
+                f"resource_id={token_obj.resource_id}"
+            )
+            return token_obj
         except ExportToken.DoesNotExist:
+            logger.info(f"No export token found for {resource_type_str} {resource_id}")
             return None

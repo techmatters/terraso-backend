@@ -81,67 +81,41 @@ def _export_sites_response(all_sites, format, filename):
     return response
 
 
-def project_export(request, project_token, project_name, format):
-    """Export all sites in a project using export token."""
-    _setup_system_export_user(request)
+# Core business logic functions (shared by token-based and ID-based exports)
 
-    # Resolve token to actual project ID
-    resource_type, project_id = _resolve_export_token(project_token)
-    if resource_type != "PROJECT":
-        return HttpResponseBadRequest("Invalid token type for project export")
 
-    # Fetch all site IDs for the project (returns a set)
+def _export_project_sites(project_id, request):
+    """
+    Core logic: Fetch and process all sites in a project.
+    Returns sorted list of transformed site data.
+    """
     site_ids = fetch_all_sites(project_id, request)
-
-    # Process sites (fetch details, transform, add soil_id, sort)
-    all_sites = _process_sites(site_ids, request)
-
-    return _export_sites_response(all_sites, format, project_name)
+    return _process_sites(site_ids, request)
 
 
-def site_export(request, site_token, site_name, format):
-    """Export a single site using export token."""
-    _setup_system_export_user(request)
-
-    # Resolve token to actual site ID
-    resource_type, site_id = _resolve_export_token(site_token)
-    if resource_type != "SITE":
-        return HttpResponseBadRequest("Invalid token type for site export")
-
-    # Process single site
+def _export_single_site(site_id, request):
+    """
+    Core logic: Fetch and process a single site.
+    Returns sorted list of transformed site data (single item).
+    """
     site_ids = {site_id}
-    all_sites = _process_sites(site_ids, request)
-
-    return _export_sites_response(all_sites, format, site_name)
+    return _process_sites(site_ids, request)
 
 
-def user_owned_sites_export(request, user_token, user_name, format):
-    """Export all sites owned by a specific user (not in any project) using export token."""
-    _setup_system_export_user(request)
-
-    # Resolve token to actual user ID
-    resource_type, user_id = _resolve_export_token(user_token)
-    if resource_type != "USER":
-        return HttpResponseBadRequest("Invalid token type for user export")
-
-    # Fetch site IDs owned by the user (returns a set)
+def _export_user_owned_sites(user_id, request):
+    """
+    Core logic: Fetch and process user's unaffiliated sites only.
+    Returns sorted list of transformed site data.
+    """
     site_ids = fetch_user_owned_sites(user_id, request)
-
-    # Process sites (fetch details, transform, add soil_id, sort)
-    all_sites = _process_sites(site_ids, request)
-
-    return _export_sites_response(all_sites, format, f"{user_name}_owned_sites")
+    return _process_sites(site_ids, request)
 
 
-def user_all_sites_export(request, user_token, user_name, format):
-    """Export all sites owned by user plus all sites in projects where user is a member using export token."""
-    _setup_system_export_user(request)
-
-    # Resolve token to actual user ID
-    resource_type, user_id = _resolve_export_token(user_token)
-    if resource_type != "USER":
-        return HttpResponseBadRequest("Invalid token type for user export")
-
+def _export_user_all_sites(user_id, request):
+    """
+    Core logic: Fetch and process user's owned sites plus all sites in user's projects.
+    Returns sorted list of transformed site data.
+    """
     # Fetch site IDs owned by the user (returns a set)
     site_ids = fetch_user_owned_sites(user_id, request)
 
@@ -153,7 +127,103 @@ def user_all_sites_export(request, user_token, user_name, format):
         project_site_ids = fetch_all_sites(project_id, request)
         site_ids.update(project_site_ids)
 
-    # Process sites (fetch details, transform, add soil_id, sort)
-    all_sites = _process_sites(site_ids, request)
+    return _process_sites(site_ids, request)
 
+
+def project_export(request, project_token, project_name, format):
+    """Export all sites in a project using export token (public access, no auth required)."""
+    _setup_system_export_user(request)
+
+    # Resolve token to actual project ID
+    resource_type, project_id = _resolve_export_token(project_token)
+    if resource_type != "PROJECT":
+        return HttpResponseBadRequest("Invalid token type for project export")
+
+    # Use core business logic
+    all_sites = _export_project_sites(project_id, request)
+    return _export_sites_response(all_sites, format, project_name)
+
+
+def site_export(request, site_token, site_name, format):
+    """Export a single site using export token (public access, no auth required)."""
+    _setup_system_export_user(request)
+
+    # Resolve token to actual site ID
+    resource_type, site_id = _resolve_export_token(site_token)
+    if resource_type != "SITE":
+        return HttpResponseBadRequest("Invalid token type for site export")
+
+    # Use core business logic
+    all_sites = _export_single_site(site_id, request)
+    return _export_sites_response(all_sites, format, site_name)
+
+
+def user_owned_sites_export(request, user_token, user_name, format):
+    """Export all sites owned by a specific user (not in any project) using export token (public access, no auth required)."""
+    _setup_system_export_user(request)
+
+    # Resolve token to actual user ID
+    resource_type, user_id = _resolve_export_token(user_token)
+    if resource_type != "USER":
+        return HttpResponseBadRequest("Invalid token type for user export")
+
+    # Use core business logic
+    all_sites = _export_user_owned_sites(user_id, request)
+    return _export_sites_response(all_sites, format, f"{user_name}_owned_sites")
+
+
+def user_all_sites_export(request, user_token, user_name, format):
+    """Export all sites owned by user plus all sites in projects where user is a member using export token (public access, no auth required)."""
+    _setup_system_export_user(request)
+
+    # Resolve token to actual user ID
+    resource_type, user_id = _resolve_export_token(user_token)
+    if resource_type != "USER":
+        return HttpResponseBadRequest("Invalid token type for user export")
+
+    # Use core business logic
+    all_sites = _export_user_all_sites(user_id, request)
+    return _export_sites_response(all_sites, format, f"{user_name}_and_projects")
+
+
+# ID-based exports (authenticated, enforce permissions)
+
+
+def project_export_by_id(request, project_id, project_name, format):
+    """Export all sites in a project using project ID (authenticated, enforces permissions)."""
+    if not request.user.is_authenticated:
+        return HttpResponse("Authentication required", status=401)
+
+    # Use core business logic - permissions enforced via GraphQL queries
+    all_sites = _export_project_sites(project_id, request)
+    return _export_sites_response(all_sites, format, project_name)
+
+
+def site_export_by_id(request, site_id, site_name, format):
+    """Export a single site using site ID (authenticated, enforces permissions)."""
+    if not request.user.is_authenticated:
+        return HttpResponse("Authentication required", status=401)
+
+    # Use core business logic - permissions enforced via GraphQL queries
+    all_sites = _export_single_site(site_id, request)
+    return _export_sites_response(all_sites, format, site_name)
+
+
+def user_owned_sites_export_by_id(request, user_id, user_name, format):
+    """Export all sites owned by a specific user (not in any project) using user ID (authenticated, enforces permissions)."""
+    if not request.user.is_authenticated:
+        return HttpResponse("Authentication required", status=401)
+
+    # Use core business logic - permissions enforced via GraphQL queries
+    all_sites = _export_user_owned_sites(user_id, request)
+    return _export_sites_response(all_sites, format, f"{user_name}_owned_sites")
+
+
+def user_all_sites_export_by_id(request, user_id, user_name, format):
+    """Export all sites owned by user plus all sites in projects where user is a member using user ID (authenticated, enforces permissions)."""
+    if not request.user.is_authenticated:
+        return HttpResponse("Authentication required", status=401)
+
+    # Use core business logic - permissions enforced via GraphQL queries
+    all_sites = _export_user_all_sites(user_id, request)
     return _export_sites_response(all_sites, format, f"{user_name}_and_projects")
