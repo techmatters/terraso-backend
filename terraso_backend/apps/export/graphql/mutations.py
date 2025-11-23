@@ -123,7 +123,7 @@ class CreateExportToken(graphene.Mutation):
             )
         logger.info(f"Permission check passed")
 
-        # Get the resource model based on type
+        # Verify resource exists
         model_map = {
             "USER": User,
             "PROJECT": Project,
@@ -139,35 +139,18 @@ class CreateExportToken(graphene.Mutation):
             logger.error(f"{resource_type_str} with id {resource_id} not found")
             raise GraphQLError(f"{resource_type} not found")
 
-        # Check if token already exists
-        logger.info(f"Checking if export_token already exists: {resource.export_token}")
-        if resource.export_token:
-            logger.info(f"Token already exists, returning existing token: {resource.export_token}")
-            token_obj = ExportToken.objects.get(token=resource.export_token)
-            logger.info(
-                f"Returning token object - token={token_obj.token}, "
-                f"resource_type={token_obj.resource_type}, "
-                f"resource_id={token_obj.resource_id}"
+        # Get or create token for this user-resource pair
+        logger.info(f"Getting or creating token for user {user.id}, {resource_type_str} {resource_id}")
+        try:
+            token_obj, created = ExportToken.get_or_create_token(
+                resource_type_str, resource_id, str(user.id)
             )
-            return CreateExportToken(token=token_obj)
-
-        # Create new token
-        logger.info(f"Creating new export token for {resource_type_str} {resource_id}")
-        try:
-            token_obj = ExportToken.create_token(resource_type_str, resource_id)
-            logger.info(f"Created token object: {token_obj.token}")
+            if created:
+                logger.info(f"Created new token: {token_obj.token}")
+            else:
+                logger.info(f"Returning existing token: {token_obj.token}")
         except Exception as e:
-            logger.error(f"Failed to create token: {e}", exc_info=True)
-            raise
-
-        # Store token in resource
-        logger.info(f"Storing token {token_obj.token} on resource")
-        try:
-            resource.export_token = token_obj.token
-            resource.save(update_fields=["export_token"])
-            logger.info(f"Successfully saved token to resource")
-        except Exception as e:
-            logger.error(f"Failed to save token to resource: {e}", exc_info=True)
+            logger.error(f"Failed to get or create token: {e}", exc_info=True)
             raise
 
         logger.info(f"CreateExportToken mutation completed successfully")
@@ -195,23 +178,7 @@ class DeleteExportToken(graphene.Mutation):
                     "You do not have permission to delete this export token"
                 )
 
-            # Clear token from resource
-            model_map = {
-                "USER": User,
-                "PROJECT": Project,
-                "SITE": Site,
-            }
-
-            model = model_map[token_obj.resource_type]
-            try:
-                resource = model.objects.get(pk=token_obj.resource_id)
-                resource.export_token = None
-                resource.save(update_fields=["export_token"])
-            except model.DoesNotExist:
-                # Resource was deleted, but token still exists - just delete token
-                pass
-
-            # Delete token
+            # Delete token (no need to clear resource.export_token field)
             token_obj.delete()
 
             return DeleteExportToken(success=True)

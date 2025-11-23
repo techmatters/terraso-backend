@@ -34,7 +34,7 @@ def reverse_system_export_user(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('core', '0053_add_export_token_to_user'),
+        ('core', '0052_landscapedefaultgroup_and_more'),
     ]
 
     operations = [

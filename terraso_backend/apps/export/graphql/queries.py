@@ -58,15 +58,19 @@ class Query(graphene.ObjectType):
         logger.info(f"Permission check passed")
 
         try:
+            # Filter by user_id to ensure users only see their own tokens
             token_obj = ExportToken.objects.get(
-                resource_type=resource_type_str, resource_id=resource_id
+                resource_type=resource_type_str,
+                resource_id=resource_id,
+                user_id=str(user.id),
             )
             logger.info(
                 f"Found token - token={token_obj.token}, "
                 f"resource_type={token_obj.resource_type}, "
-                f"resource_id={token_obj.resource_id}"
+                f"resource_id={token_obj.resource_id}, "
+                f"user_id={token_obj.user_id}"
             )
             return token_obj
         except ExportToken.DoesNotExist:
-            logger.info(f"No export token found for {resource_type_str} {resource_id}")
+            logger.info(f"No export token found for user {user.id}, {resource_type_str} {resource_id}")
             return None

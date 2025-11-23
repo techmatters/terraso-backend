@@ -17,6 +17,7 @@ from django.contrib.auth import get_user_model
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 
+from apps.collaboration.models import Membership
 from apps.project_management.models import Project, Site
 
 from .models import ExportToken
@@ -30,18 +31,19 @@ def delete_user_export_tokens_on_soft_delete(sender, instance, **kwargs):
     Delete export tokens when user is soft-deleted.
     SafeDeleteModel doesn't trigger post_delete, so we use post_save
     and check if deleted_at is set.
+
+    This deletes:
+    - All tokens created BY this user (user_id matches)
+    - All tokens FOR this user as a resource (resource_type=USER)
     """
     if instance.deleted_at is not None:
-        # User was soft-deleted, delete their export tokens
+        # Delete all tokens created by this user
+        ExportToken.objects.filter(user_id=str(instance.id)).delete()
+
+        # Also delete tokens for this user as a resource
         ExportToken.objects.filter(
             resource_type="USER", resource_id=str(instance.id)
         ).delete()
-
-        # Also clear the export_token field from the user
-        if instance.export_token:
-            instance.export_token = None
-            # Use update to avoid triggering the signal again
-            User.objects.filter(pk=instance.pk).update(export_token=None)
 
 
 @receiver(post_save, sender=Project)
@@ -50,18 +52,14 @@ def delete_project_export_tokens_on_soft_delete(sender, instance, **kwargs):
     Delete export tokens when project is soft-deleted.
     SafeDeleteModel doesn't trigger post_delete, so we use post_save
     and check if deleted_at is set.
+
+    This deletes all tokens for this project (from any user).
     """
     if instance.deleted_at is not None:
-        # Project was soft-deleted, delete its export tokens
+        # Delete all tokens for this project (any user)
         ExportToken.objects.filter(
             resource_type="PROJECT", resource_id=str(instance.id)
         ).delete()
-
-        # Also clear the export_token field from the project
-        if instance.export_token:
-            instance.export_token = None
-            # Use update to avoid triggering the signal again
-            Project.objects.filter(pk=instance.pk).update(export_token=None)
 
 
 @receiver(post_save, sender=Site)
@@ -70,15 +68,40 @@ def delete_site_export_tokens_on_soft_delete(sender, instance, **kwargs):
     Delete export tokens when site is soft-deleted.
     SafeDeleteModel doesn't trigger post_delete, so we use post_save
     and check if deleted_at is set.
+
+    This deletes all tokens for this site (from any user).
     """
     if instance.deleted_at is not None:
-        # Site was soft-deleted, delete its export tokens
+        # Delete all tokens for this site (any user)
         ExportToken.objects.filter(
             resource_type="SITE", resource_id=str(instance.id)
         ).delete()
 
-        # Also clear the export_token field from the site
-        if instance.export_token:
-            instance.export_token = None
-            # Use update to avoid triggering the signal again
-            Site.objects.filter(pk=instance.pk).update(export_token=None)
+
+@receiver(post_save, sender=Membership)
+def delete_export_tokens_on_membership_removal(sender, instance, **kwargs):
+    """
+    Delete export tokens when user is removed from a project.
+    This includes tokens for the project itself and all sites in the project.
+
+    SafeDeleteModel doesn't trigger post_delete, so we use post_save
+    and check if deleted_at is set.
+    """
+    if instance.deleted_at is not None and instance.membership_list.project:
+        project = instance.membership_list.project
+        user_id = str(instance.user.id)
+
+        # Delete user's token for this project
+        ExportToken.objects.filter(
+            user_id=user_id,
+            resource_type="PROJECT",
+            resource_id=str(project.id),
+        ).delete()
+
+        # Delete user's tokens for all sites in this project
+        site_ids = project.sites.values_list("id", flat=True)
+        ExportToken.objects.filter(
+            user_id=user_id,
+            resource_type="SITE",
+            resource_id__in=[str(sid) for sid in site_ids],
+        ).delete()

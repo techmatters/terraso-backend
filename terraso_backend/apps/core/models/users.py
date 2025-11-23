@@ -83,7 +83,6 @@ class User(SafeDeleteModel, AbstractUser):
     username = None
     email = models.EmailField()
     profile_image = models.URLField(blank=True, default="")
-    export_token = models.CharField(max_length=36, null=True, blank=True, unique=True)
 
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = []
