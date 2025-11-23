@@ -28,4 +28,4 @@ class ResourceTypeEnum(graphene.Enum):
 class ExportToken(DjangoObjectType):
     class Meta:
         model = ExportTokenModel
-        fields = ("token", "resource_type", "resource_id")
+        fields = ("token", "resource_type", "resource_id", "user_id")
