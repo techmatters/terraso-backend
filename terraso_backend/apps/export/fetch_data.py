@@ -259,7 +259,9 @@ def fetch_soil_id(site, request):
                                     }
                                     texture
                                     rockFragmentVolume
-                                    munsellColorString
+                                    colorHue
+                                    colorValue
+                                    colorChroma
                                 }
                             }
                         }
