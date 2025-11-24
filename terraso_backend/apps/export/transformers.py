@@ -494,7 +494,7 @@ def flatten_site(site: dict) -> dict:
             "Latitude": site["latitude"],
             "Longitude": site["longitude"],
             "Elevation": site["elevation"],
-            "Last updated": site["updatedAt"],
+            "Last updated (UTC)": site["updatedAt"],
             "Slope steepness degree": soil_data.get("slopeSteepnessDegree"),
             "Down slope": soil_data.get("_downSlope"),
             "Cross slope": soil_data.get("_crossSlope"),

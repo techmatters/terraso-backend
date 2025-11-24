@@ -67,18 +67,11 @@ def sites_to_csv(sites):
             notes = ';'.join(formatted_notes)
             row['Notes'] = notes.replace("\r\n", "\n").replace("\n", "\u23CE")
 
-        # Format timestamps to YYYY-MM-DD HH:MM:SS
-        if 'Last updated' in row:
-            row['Last updated'] = format_timestamp_for_csv(row['Last updated'])
+        # Format timestamps to YYYY-MM-DD HH:MM:SS UTC
+        if 'Last updated (UTC)' in row:
+            row['Last updated (UTC)'] = format_timestamp_for_csv(row['Last updated (UTC)'])
 
-    # Get fieldnames and rename 'Last updated' to 'Last updated (UTC)' to preserve column order
     fieldnames = list(flattened_sites[0].keys()) if flattened_sites else []
-    fieldnames = [field if field != 'Last updated' else 'Last updated (UTC)' for field in fieldnames]
-
-    # Rename the key in each row
-    for row in flattened_sites:
-        if 'Last updated' in row:
-            row['Last updated (UTC)'] = row.pop('Last updated')
     csv_buffer = StringIO()
 
     # Write UTF-8 BOM for Excel compatibility
