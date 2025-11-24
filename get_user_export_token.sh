@@ -19,8 +19,21 @@ echo "=========================================="
 echo "Email: $USER_EMAIL"
 echo ""
 
-# Run Django shell command to get or create token
-docker compose -f docker-compose.dev.yml run --rm web python terraso_backend/manage.py shell <<EOF
+# Check if web container is running
+if ! docker compose -f docker-compose.dev.yml ps web | grep -q "Up"; then
+    echo "✗ ERROR: Backend container is not running"
+    echo ""
+    echo "Please start the backend first with:"
+    echo "  make run"
+    echo ""
+    exit 1
+fi
+
+echo "✓ Backend container is running"
+echo ""
+
+# Run Django shell command in existing container
+docker compose -f docker-compose.dev.yml exec -T web python terraso_backend/manage.py shell <<EOF
 from apps.core.models import User
 from apps.export.models import ExportToken
 
