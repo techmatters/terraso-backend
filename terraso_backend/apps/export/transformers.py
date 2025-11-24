@@ -436,6 +436,7 @@ def munsell_to_string(color: dict) -> str:
 
 
 def flatten_note(note):
+    # Format timestamp for better readability (will be further processed in CSV formatter)
     return " | ".join([note["content"], note["author"]["email"], note["createdAt"]])
 
 

@@ -14,9 +14,28 @@
 # along with this program. If not, see https://www.gnu.org/licenses/.
 
 import csv
+from datetime import datetime
 from io import StringIO
 
 from .transformers import flatten_site
+
+
+def format_timestamp_for_csv(iso_timestamp):
+    """Format ISO timestamp to YYYY-MM-DD HH:MM:SS UTC format for CSV"""
+    if not iso_timestamp:
+        return ""
+    try:
+        # Parse ISO format (e.g., 2025-11-11T17:42:15.065624+00:00 or +07:00)
+        dt = datetime.fromisoformat(iso_timestamp.replace("Z", "+00:00"))
+        # Convert to UTC if timezone-aware
+        if dt.tzinfo is not None:
+            from datetime import timezone
+            dt = dt.astimezone(timezone.utc)
+        # Format as YYYY-MM-DD HH:MM:SS (now in UTC)
+        return dt.strftime("%Y-%m-%d %H:%M:%S")
+    except (ValueError, AttributeError):
+        return iso_timestamp  # Return as-is if parsing fails
+        
 
 
 def sites_to_csv(sites):
@@ -25,13 +44,41 @@ def sites_to_csv(sites):
     for site in sites:
         flattened_sites.extend(flatten_site(site))
 
-    # Replace newlines with return symbol in notes field (CSV-specific for Excel compatibility)
-    # U+23CE (⏎) is the "Return Symbol" - visually indicates line breaks without causing Excel parsing issues
+    # CSV-specific transformations for Excel compatibility
     for row in flattened_sites:
+        # Replace newlines with return symbol in notes field
+        # U+23CE (⏎) is the "Return Symbol" - visually indicates line breaks without causing Excel parsing issues
         if 'notes' in row and row['notes']:
-            row['notes'] = row['notes'].replace("\r\n", "\n").replace("\n", "\u23CE")
+            notes = row['notes']
+            # Format timestamps in notes (format: "content | email | 2025-11-11T17:42:15.065624+00:00")
+            # Split by semicolon (multiple notes) then by pipe (note fields)
+            formatted_notes = []
+            for note in notes.split(';'):
+                if ' | ' in note:
+                    parts = note.split(' | ')
+                    if len(parts) == 3:
+                        content, email, timestamp = parts
+                        formatted_timestamp = format_timestamp_for_csv(timestamp.strip())
+                        formatted_notes.append(f"{content} | {email} | {formatted_timestamp}")
+                    else:
+                        formatted_notes.append(note)
+                else:
+                    formatted_notes.append(note)
+            notes = ';'.join(formatted_notes)
+            row['notes'] = notes.replace("\r\n", "\n").replace("\n", "\u23CE")
 
+        # Format timestamps to YYYY-MM-DD HH:MM:SS
+        if 'updatedAt' in row:
+            row['updatedAt'] = format_timestamp_for_csv(row['updatedAt'])
+
+    # Get fieldnames and rename updatedAt to preserve column order
     fieldnames = list(flattened_sites[0].keys()) if flattened_sites else []
+    fieldnames = [field if field != 'updatedAt' else 'Last updated (UTC)' for field in fieldnames]
+
+    # Rename the key in each row
+    for row in flattened_sites:
+        if 'updatedAt' in row:
+            row['Last updated (UTC)'] = row.pop('updatedAt')
     csv_buffer = StringIO()
 
     # Write UTF-8 BOM for Excel compatibility
