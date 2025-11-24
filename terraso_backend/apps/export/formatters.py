@@ -46,10 +46,10 @@ def sites_to_csv(sites):
 
     # CSV-specific transformations for Excel compatibility
     for row in flattened_sites:
-        # Replace newlines with return symbol in notes field
+        # Replace newlines with return symbol in Notes field
         # U+23CE (⏎) is the "Return Symbol" - visually indicates line breaks without causing Excel parsing issues
-        if 'notes' in row and row['notes']:
-            notes = row['notes']
+        if 'Notes' in row and row['Notes']:
+            notes = row['Notes']
             # Format timestamps in notes (format: "content | email | 2025-11-11T17:42:15.065624+00:00")
             # Split by semicolon (multiple notes) then by pipe (note fields)
             formatted_notes = []
@@ -65,20 +65,20 @@ def sites_to_csv(sites):
                 else:
                     formatted_notes.append(note)
             notes = ';'.join(formatted_notes)
-            row['notes'] = notes.replace("\r\n", "\n").replace("\n", "\u23CE")
+            row['Notes'] = notes.replace("\r\n", "\n").replace("\n", "\u23CE")
 
         # Format timestamps to YYYY-MM-DD HH:MM:SS
-        if 'updatedAt' in row:
-            row['updatedAt'] = format_timestamp_for_csv(row['updatedAt'])
+        if 'Last updated' in row:
+            row['Last updated'] = format_timestamp_for_csv(row['Last updated'])
 
-    # Get fieldnames and rename updatedAt to preserve column order
+    # Get fieldnames and rename 'Last updated' to 'Last updated (UTC)' to preserve column order
     fieldnames = list(flattened_sites[0].keys()) if flattened_sites else []
-    fieldnames = [field if field != 'updatedAt' else 'Last updated (UTC)' for field in fieldnames]
+    fieldnames = [field if field != 'Last updated' else 'Last updated (UTC)' for field in fieldnames]
 
     # Rename the key in each row
     for row in flattened_sites:
-        if 'updatedAt' in row:
-            row['Last updated (UTC)'] = row.pop('updatedAt')
+        if 'Last updated' in row:
+            row['Last updated (UTC)'] = row.pop('Last updated')
     csv_buffer = StringIO()
 
     # Write UTF-8 BOM for Excel compatibility
