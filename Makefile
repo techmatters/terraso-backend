@@ -46,8 +46,14 @@ install-dev:
 	uv pip install -r requirements-dev.txt $(UV_FLAGS)
 
 lint: check_api_schema
+ifeq ($(DC_ENV),ci)
+	# Disable Ruff cache in CI to avoid Docker permission failures
+	$(DC_RUN_CMD) ruff check terraso_backend --no-cache
+	$(DC_RUN_CMD) ruff format terraso_backend --diff --no-cache
+else
 	$(DC_RUN_CMD) ruff check terraso_backend
 	$(DC_RUN_CMD) ruff format terraso_backend --diff
+endif
 
 lock:
 	CUSTOM_COMPILE_COMMAND="make lock" uv pip compile --upgrade --generate-hashes --emit-build-options requirements/base.in requirements/deploy.in -o requirements.txt
