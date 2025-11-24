@@ -25,8 +25,19 @@ def sites_to_csv(sites):
     for site in sites:
         flattened_sites.extend(flatten_site(site))
 
+    # Replace newlines with return symbol in notes field (CSV-specific for Excel compatibility)
+    # U+23CE (⏎) is the "Return Symbol" - visually indicates line breaks without causing Excel parsing issues
+    for row in flattened_sites:
+        if 'notes' in row and row['notes']:
+            row['notes'] = row['notes'].replace("\r\n", "\n").replace("\n", "\u23CE")
+
     fieldnames = list(flattened_sites[0].keys()) if flattened_sites else []
     csv_buffer = StringIO()
+
+    # Write UTF-8 BOM for Excel compatibility
+    # U+FEFF (BOM) helps Excel recognize the file as UTF-8 encoded
+    csv_buffer.write("\uFEFF")
+
     writer = csv.DictWriter(csv_buffer, fieldnames=fieldnames)
     writer.writeheader()
     writer.writerows(flattened_sites)
