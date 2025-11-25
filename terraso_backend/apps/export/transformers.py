@@ -266,17 +266,17 @@ SIMPLE_ENUM_MAPPINGS = {
 
 def add_simple_enum_labels(obj):
     """
-    Add _fieldName labels for all simple enum fields in an object.
+    Replace enum code values with human-readable labels in-place.
 
-    Iterates through SIMPLE_ENUM_MAPPINGS and adds a manufactured label field
-    (with _ prefix) for any enum field present in the object.
+    Iterates through SIMPLE_ENUM_MAPPINGS and replaces enum code values
+    (e.g., "SILTY_CLAY") with their human-readable labels (e.g., "Silty Clay").
 
     This single function replaces ~20 individual transformer functions,
     making it easy to add new enum fields by just updating SIMPLE_ENUM_MAPPINGS.
     """
     for field_name, enum_class in SIMPLE_ENUM_MAPPINGS.items():
         if field_name in obj and obj[field_name] is not None:
-            obj[f"_{field_name}"] = get_enum_label(enum_class, obj[field_name])
+            obj[field_name] = get_enum_label(enum_class, obj[field_name])
 
 
 def add_munsell_color_label(obj):
@@ -290,9 +290,40 @@ def add_munsell_color_label(obj):
         obj["_colorMunsell"] = munsell_to_string(obj)
 
 
+def format_rock_fragment_volume(obj):
+    """
+    Format rockFragmentVolume to use regular dash without spaces.
+
+    Converts "0 — 1%" to "0-1%" and "1 — 15%" to "1-15%", etc.
+    This formatting is applied after enum label transformation.
+    """
+    if "rockFragmentVolume" in obj and obj["rockFragmentVolume"] is not None:
+        # Replace em-dash with regular dash and remove all spaces
+        value = obj["rockFragmentVolume"]
+        value = value.replace("—", "-")  # Replace em-dash with regular dash
+        value = value.replace(" ", "")   # Remove all spaces
+        obj["rockFragmentVolume"] = value
+
+
+def format_slope_steepness(obj):
+    """
+    Format slopeSteepnessSelect to use dash without spaces around it.
+
+    Converts "0 - 2% (flat)" to "0-2% (flat)", preserving space before parentheses.
+    This formatting is applied after enum label transformation.
+    """
+    if "slopeSteepnessSelect" in obj and obj["slopeSteepnessSelect"] is not None:
+        # Replace " - " with "-" to remove spaces around dash
+        value = obj["slopeSteepnessSelect"]
+        value = value.replace(" - ", "-")
+        obj["slopeSteepnessSelect"] = value
+
+
 # Registry of object-level transformers
 OBJECT_TRANSFORMERS = [
     add_simple_enum_labels,  # Handles all simple enum fields via SIMPLE_ENUM_MAPPINGS
+    format_rock_fragment_volume,  # Format rock fragment volume after enum transformation
+    format_slope_steepness,  # Format slope steepness after enum transformation
     add_munsell_color_label,  # Special case: multi-field transformation
 ]
 
@@ -350,7 +381,7 @@ def merge_depth_intervals_into_data(soil_data):
     Merge depthIntervals and depthDependentData into single depthDependentData array.
 
     Each item in the resulting depthDependentData will have:
-    - Depth interval metadata (label, depthInterval, *Enabled flags)
+    - Depth interval metadata (label, depthIntervalStart, depthIntervalEnd, *Enabled flags)
     - Measurement data (texture, color, etc. - may be null)
 
     This ensures we always have all depth intervals in the export, even if some
@@ -370,6 +401,12 @@ def merge_depth_intervals_into_data(soil_data):
     for i, interval in enumerate(depth_intervals):
         # Start with interval metadata (make a copy to avoid mutating presets)
         merged_item = interval.copy()
+
+        # Flatten depthInterval structure to depthIntervalStart and depthIntervalEnd
+        if "depthInterval" in merged_item:
+            depth_interval = merged_item.pop("depthInterval")
+            merged_item["depthIntervalStart"] = depth_interval.get("start")
+            merged_item["depthIntervalEnd"] = depth_interval.get("end")
 
         # Add measurement data if it exists for this index
         if i < len(depth_dependent_data):
@@ -496,19 +533,19 @@ def flatten_site(site: dict) -> dict:
             "Elevation": site["elevation"],
             "Last updated (UTC)": site["updatedAt"],
             "Slope steepness degree": soil_data.get("slopeSteepnessDegree"),
-            "Down slope": soil_data.get("_downSlope"),
-            "Cross slope": soil_data.get("_crossSlope"),
-            "Surface cracks": soil_data.get("_surfaceCracksSelect"),
+            "Down slope": soil_data.get("downSlope"),
+            "Cross slope": soil_data.get("crossSlope"),
+            "Surface cracks": soil_data.get("surfaceCracksSelect"),
             "Notes": ";".join(flattened_notes),
             "Selected soil series": user_selected_soil,
             "Land capability classification": lcc_class,
             "Ecological site name": ecological_site,
             # Depth interval and measurement data (now in same object)
             "Depth label": depth_item.get("label") if depth_item else None,
-            "Depth start": depth_item.get("depthInterval", {}).get("start") if depth_item else None,
-            "Depth end": depth_item.get("depthInterval", {}).get("end") if depth_item else None,
-            "Depth rock fragment volume": depth_item.get("_rockFragmentVolume") if depth_item else None,
-            "Depth texture class": depth_item.get("_texture") if depth_item else None,
+            "Depth start": depth_item.get("depthIntervalStart") if depth_item else None,
+            "Depth end": depth_item.get("depthIntervalEnd") if depth_item else None,
+            "Depth rock fragment volume": depth_item.get("rockFragmentVolume") if depth_item else None,
+            "Depth texture class": depth_item.get("texture") if depth_item else None,
             "Depth soil color": depth_item.get("_colorMunsell") if depth_item else None,
         }
         rows.append(flat)

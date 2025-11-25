@@ -53,8 +53,10 @@ def _process_sites(site_ids, request):
     all_sites = []
     for site_id in site_ids:
         site_data = fetch_site_data(site_id, request)
+        # Fetch soil_id BEFORE transformation since it needs original enum codes
+        soil_id_data = fetch_soil_id(site_data, request)
         transformed_site = transform_site_data(site_data, request)
-        transformed_site["soil_id"] = fetch_soil_id(transformed_site, request)
+        transformed_site["soil_id"] = soil_id_data
         all_sites.append(transformed_site)
 
     # Sort sites by name

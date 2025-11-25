@@ -63,6 +63,14 @@ def fetch_all_notes_for_site(site_id, request, page_size=settings.EXPORT_PAGE_SI
 
 
 def fetch_site_data(site_id, request):
+    # Note: The following fields are intentionally excluded from export:
+    # - Depth interval enabled flags (soilStructureEnabled, phEnabled,
+    #   electricalConductivityEnabled, carbonatesEnabled,
+    #   soilOrganicCarbonMatterEnabled, sodiumAdsorptionRatioEnabled)
+    # - Site-level fields: floodingSelect, grazingSelect, landCoverSelect,
+    #   limeRequirementsSelect, waterTableDepthSelect
+    # - Depth-dependent: clayPercent
+    # These fields not yet used anywhere
     gql = """
     query SiteWithNotes($id: ID!) {
         site(id: $id) {
@@ -86,24 +94,13 @@ def fetch_site_data(site_id, request):
                 slopeSteepnessDegree
                 surfaceCracksSelect
                 surfaceSaltSelect
-                floodingSelect
-                limeRequirementsSelect
                 surfaceStoninessSelect
-                waterTableDepthSelect
                 soilDepthSelect
-                landCoverSelect
-                grazingSelect
                 depthIntervalPreset
                 depthIntervals {
                     label
                     soilTextureEnabled
                     soilColorEnabled
-                    soilStructureEnabled
-                    carbonatesEnabled
-                    phEnabled
-                    soilOrganicCarbonMatterEnabled
-                    electricalConductivityEnabled
-                    sodiumAdsorptionRatioEnabled
                     depthInterval {
                         start
                         end
@@ -111,7 +108,6 @@ def fetch_site_data(site_id, request):
                 }
                 depthDependentData {
                     texture
-                    clayPercent
                     rockFragmentVolume
                     colorHue
                     colorValue
