@@ -498,55 +498,104 @@ def flatten_site(site: dict) -> dict:
 
     user_selected_soil = site.get("soilMetadata", {}).get("selectedSoilId")
 
-    # Find matching soil info if user selected a soil
-    # print("looking for user selected soil", user_selected_soil)
+    # Extract soil ID match data
+    soil_id_data = site.get("soil_id", {})
+    soil_matches = soil_id_data.get("soilId", {}).get("soilMatches", {})
+
+    # Initialize soil data variables
     matching_soil_info = None
+    selected_soil_taxonomy = None
+    selected_soil_description = None
     lcc_class = None
-    ecological_site = None
-    if user_selected_soil:
-        soil_id_data = site.get("soil_id", {})
-        soil_matches = soil_id_data.get("soilId", {}).get("soilMatches", {})
-        if isinstance(soil_matches, dict) and "matches" in soil_matches:
-            for match in soil_matches["matches"]:
-                soil_series_name = match.get("soilInfo", {}).get("soilSeries", {}).get("name")
-                if soil_series_name == user_selected_soil:
-                    matching_soil_info = match.get("soilInfo")
-                    print(f"Found matching soil info for {user_selected_soil}")
-                    print("matching_soil_info is", matching_soil_info)
-                    lcc_info = matching_soil_info.get("landCapabilityClass")
-                    if lcc_info:
-                        lcc_class = lcc_info.get("capabilityClass", "") + lcc_info.get("subClass", "")
-                    else:
-                        lcc_class = None
-                    ecological_site_info = matching_soil_info.get("ecologicalSite")
-                    ecological_site = ecological_site_info.get("name") if ecological_site_info else None
-                    break
+    ecological_site_name = None
+    ecological_site_id = None
+    top_match_soil_series = None
+    top_match_taxonomy = None
+    top_match_description = None
+
+    # Get top match (first in list) regardless of user selection
+    if isinstance(soil_matches, dict) and "matches" in soil_matches and soil_matches["matches"]:
+        top_match = soil_matches["matches"][0]
+        top_match_info = top_match.get("soilInfo", {})
+        top_match_series = top_match_info.get("soilSeries", {})
+        top_match_soil_series = top_match_series.get("name")
+        top_match_taxonomy = top_match_series.get("taxonomySubgroup")
+        top_match_description = top_match_series.get("description")
+
+    # Find matching soil info if user selected a soil
+    if user_selected_soil and isinstance(soil_matches, dict) and "matches" in soil_matches:
+        for match in soil_matches["matches"]:
+            soil_series_name = match.get("soilInfo", {}).get("soilSeries", {}).get("name")
+            if soil_series_name == user_selected_soil:
+                matching_soil_info = match.get("soilInfo")
+                print(f"Found matching soil info for {user_selected_soil}")
+
+                # Get selected soil details
+                selected_series = matching_soil_info.get("soilSeries", {})
+                selected_soil_taxonomy = selected_series.get("taxonomySubgroup")
+                selected_soil_description = selected_series.get("description")
+
+                # Get land capability class
+                lcc_info = matching_soil_info.get("landCapabilityClass")
+                if lcc_info:
+                    lcc_class = lcc_info.get("capabilityClass", "") + lcc_info.get("subClass", "")
+
+                # Get ecological site info
+                ecological_site_info = matching_soil_info.get("ecologicalSite")
+                if ecological_site_info:
+                    ecological_site_name = ecological_site_info.get("name")
+                    ecological_site_id = ecological_site_info.get("id")
+                break
 
     for depth_item in depth_dependent_data:
         print("adding a row for site", site["id"], "depth", depth_item.get("label") if depth_item else None)
         flat = {
+            # Site information
             "Site ID": site["id"],
             "Site name": site["name"],
+            "Site privacy": site.get("privacy"),
+            # Project information
             "Project name": site["project"]["name"] if site["project"] else None,
+            "Project ID": site["project"]["id"] if site["project"] else None,
+            "Project description": site["project"]["description"] if site["project"] else None,
+            # Location and metadata
             "Latitude": site["latitude"],
             "Longitude": site["longitude"],
             "Elevation": site["elevation"],
             "Last updated (UTC)": site["updatedAt"],
+            # Soil match information (from soil_id API)
+            "Soil map": soil_id_data.get("soilId", {}).get("soilMatches", {}).get("dataRegion"),
+            # Selected soil (user's choice)
+            "Selected soil series": user_selected_soil,
+            "Selected soil type taxonomy subgroup": selected_soil_taxonomy,
+            "Selected soil description": selected_soil_description,
+            # Top match (best algorithmic match)
+            "Top soil series match": top_match_soil_series,
+            "Top soil match taxonomy subgroup": top_match_taxonomy,
+            "Top soil match description": top_match_description,
+            # Ecological and classification
+            "Ecological site name": ecological_site_name,
+            "Ecological site ID": ecological_site_id,
+            "Land capability classification": lcc_class,
+            # Slope and surface characteristics
             "Slope steepness degree": soil_data.get("slopeSteepnessDegree"),
             "Down slope": soil_data.get("downSlope"),
             "Cross slope": soil_data.get("crossSlope"),
             "Surface cracks": soil_data.get("surfaceCracksSelect"),
-            "Notes": ";".join(flattened_notes),
-            "Selected soil series": user_selected_soil,
-            "Land capability classification": lcc_class,
-            "Ecological site name": ecological_site,
-            # Depth interval and measurement data (now in same object)
+            # Notes
+            "Site notes": ";".join(flattened_notes),
+            # Depth information
+            "Depth preset": soil_data.get("depthIntervalPreset"),
             "Depth label": depth_item.get("label") if depth_item else None,
             "Depth start": depth_item.get("depthIntervalStart") if depth_item else None,
             "Depth end": depth_item.get("depthIntervalEnd") if depth_item else None,
             "Depth rock fragment volume": depth_item.get("rockFragmentVolume") if depth_item else None,
             "Depth texture class": depth_item.get("texture") if depth_item else None,
             "Depth soil color": depth_item.get("_colorMunsell") if depth_item else None,
+            # Color photo metadata
+            "Soil color photo used": depth_item.get("colorPhotoUsed") if depth_item else None,
+            "Soil color condition": depth_item.get("colorPhotoSoilCondition") if depth_item else None,
+            "Soil color lighting": depth_item.get("colorPhotoLightingCondition") if depth_item else None,
         }
         rows.append(flat)
 

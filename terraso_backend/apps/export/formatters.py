@@ -46,10 +46,10 @@ def sites_to_csv(sites):
 
     # CSV-specific transformations for Excel compatibility
     for row in flattened_sites:
-        # Replace newlines with return symbol in Notes field
+        # Replace newlines with return symbol in Site notes field
         # U+23CE (⏎) is the "Return Symbol" - visually indicates line breaks without causing Excel parsing issues
-        if 'Notes' in row and row['Notes']:
-            notes = row['Notes']
+        if 'Site notes' in row and row['Site notes']:
+            notes = row['Site notes']
             # Format timestamps in notes (format: "content | email | 2025-11-11T17:42:15.065624+00:00")
             # Split by semicolon (multiple notes) then by pipe (note fields)
             formatted_notes = []
@@ -65,7 +65,7 @@ def sites_to_csv(sites):
                 else:
                     formatted_notes.append(note)
             notes = ';'.join(formatted_notes)
-            row['Notes'] = notes.replace("\r\n", "\n").replace("\n", "\u23CE")
+            row['Site notes'] = notes.replace("\r\n", "\n").replace("\n", "\u23CE")
 
         # Format timestamps to YYYY-MM-DD HH:MM:SS UTC
         if 'Last updated (UTC)' in row:
