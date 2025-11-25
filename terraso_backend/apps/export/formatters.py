@@ -44,6 +44,9 @@ def sites_to_csv(sites):
     for site in sites:
         flattened_sites.extend(flatten_site(site))
 
+    # Excel cell character limit (32,767 characters)
+    EXCEL_CELL_LIMIT = 32767
+
     # CSV-specific transformations for Excel compatibility
     for row in flattened_sites:
         # Replace newlines with return symbol in Site notes field
@@ -71,6 +74,12 @@ def sites_to_csv(sites):
         if 'Last updated (UTC)' in row:
             row['Last updated (UTC)'] = format_timestamp_for_csv(row['Last updated (UTC)'])
 
+        # Truncate any fields exceeding Excel's cell limit
+        for field_name, value in row.items():
+            if value and isinstance(value, str) and len(value) > EXCEL_CELL_LIMIT:
+                # Truncate and add indicator
+                row[field_name] = value[:EXCEL_CELL_LIMIT - 20] + " [TRUNCATED]"
+
     fieldnames = list(flattened_sites[0].keys()) if flattened_sites else []
     csv_buffer = StringIO()
 
@@ -78,7 +87,7 @@ def sites_to_csv(sites):
     # U+FEFF (BOM) helps Excel recognize the file as UTF-8 encoded
     csv_buffer.write("\uFEFF")
 
-    writer = csv.DictWriter(csv_buffer, fieldnames=fieldnames)
+    writer = csv.DictWriter(csv_buffer, fieldnames=fieldnames, quoting=csv.QUOTE_ALL)
     writer.writeheader()
     writer.writerows(flattened_sites)
     csv_buffer.seek(0)
