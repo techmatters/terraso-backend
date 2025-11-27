@@ -69,7 +69,10 @@ def fetch_site_data(site_id, request):
     #   soilOrganicCarbonMatterEnabled, sodiumAdsorptionRatioEnabled)
     # - Site-level fields: floodingSelect, grazingSelect, landCoverSelect,
     #   limeRequirementsSelect, waterTableDepthSelect
-    # - Depth-dependent: clayPercent
+    # - Depth-dependent: clayPercent, conductivity, conductivityTest,
+    #   conductivityUnit, structure, ph, phTestingSolution, phTestingMethod,
+    #   soilOrganicCarbon, soilOrganicMatter, soilOrganicCarbonTesting,
+    #   soilOrganicMatterTesting, sodiumAbsorptionRatio, carbonates
     # These fields not yet used anywhere
     gql = """
     query SiteWithNotes($id: ID!) {
@@ -115,19 +118,6 @@ def fetch_site_data(site_id, request):
                     colorPhotoUsed
                     colorPhotoSoilCondition
                     colorPhotoLightingCondition
-                    conductivity
-                    conductivityTest
-                    conductivityUnit
-                    structure
-                    ph
-                    phTestingSolution
-                    phTestingMethod
-                    soilOrganicCarbon
-                    soilOrganicMatter
-                    soilOrganicCarbonTesting
-                    soilOrganicMatterTesting
-                    sodiumAbsorptionRatio
-                    carbonates
                 }
             }
             soilMetadata {
