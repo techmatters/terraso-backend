@@ -160,48 +160,80 @@ class StoryMapUpdateView(AuthenticationRequiredMixin, FormView):
                 signed_url = story_map_media_upload_service.get_signed_url(media["url"])
                 chapter["media"]["signedUrl"] = signed_url
 
+        if story_map.configuration.get("featuredImage"):
+            featured_image = story_map.configuration["featuredImage"]
+            if "url" in featured_image:
+                signed_url = story_map_media_upload_service.get_signed_url(featured_image["url"])
+                story_map.configuration["featuredImage"]["signedUrl"] = signed_url
+
         return JsonResponse(story_map.to_dict(), status=201)
 
 
-def handle_config_media(new_config, story_map, request):
-    current_config = None if story_map is None else story_map.configuration
-    current_published_config = None if story_map is None else story_map.published_configuration
-    if "chapters" in new_config:
-        for chapter in new_config["chapters"]:
-            media = chapter.get("media")
-            if media and "contentId" in media:
-                file_id = media["contentId"]
-                matching_file = next(
-                    (file for file in request.FILES.getlist("files") if file.name == file_id), None
-                )
-                if matching_file:
-                    url = story_map_media_upload_service.upload_file_get_path(
-                        str(request.user.id),
-                        matching_file,
-                        file_name=uuid.uuid4(),
-                    )
-                    chapter["media"] = {"url": url, "type": media["type"]}
+def _upload_file(request, content_id):
+    """Upload a file and return its URL."""
+    matching_file = next(
+        (file for file in request.FILES.getlist("files") if file.name == content_id),
+        None,
+    )
+    if matching_file:
+        return story_map_media_upload_service.upload_file_get_path(
+            str(request.user.id),
+            matching_file,
+            file_name=uuid.uuid4(),
+        )
+    return None
 
-    if (current_config is None) or (not current_config.get("chapters")):
-        return new_config
 
-    all_active_chapters = (
-        new_config["chapters"]
-        if current_published_config is None
-        else current_published_config["chapters"] + new_config["chapters"]
+def _extract_media_urls(config):
+    chapter_urls = [
+        chapter["media"]["url"]
+        for chapter in config.get("chapters", [])
+        if chapter.get("media") and "url" in chapter["media"]
+    ]
+
+    featured_url = (
+        [config["featuredImage"]["url"]]
+        if config.get("featuredImage") and "url" in config["featuredImage"]
+        else []
     )
 
-    # Delete changed media
-    current_media = [
-        chapter["media"]["url"]
-        for chapter in current_config["chapters"]
-        if chapter.get("media") and "url" in chapter["media"]
-    ]
-    new_media = [
-        chapter["media"]["url"]
-        for chapter in all_active_chapters
-        if chapter.get("media") and "url" in chapter["media"]
-    ]
+    return chapter_urls + featured_url
+
+
+def _upload_chapter_media(config, request):
+    for chapter in config.get("chapters", []):
+        media = chapter.get("media")
+        if media and "contentId" in media:
+            url = _upload_file(request, media["contentId"])
+            if url:
+                chapter["media"] = {"url": url, "type": media["type"]}
+
+
+def _upload_featured_image(config, request):
+    featured_image = config.get("featuredImage")
+    if not featured_image or "contentId" not in featured_image:
+        return
+
+    url = _upload_file(request, featured_image["contentId"])
+    if not url:
+        return
+
+    new_featured_image = {"url": url}
+    if "description" in featured_image:
+        new_featured_image["description"] = featured_image["description"]
+    config["featuredImage"] = new_featured_image
+
+
+def _cleanup_unused_media(current_config, new_config, published_config):
+    current_media = _extract_media_urls(current_config)
+
+    active_configs = [new_config]
+    if published_config:
+        active_configs.append(published_config)
+
+    new_media = []
+    for config in active_configs:
+        new_media.extend(_extract_media_urls(config))
 
     for media_path in current_media:
         if media_path not in new_media:
@@ -212,6 +244,23 @@ def handle_config_media(new_config, story_map, request):
                     "Unable to delete media file",
                     extra={"media_path": media_path, "error": str(e)},
                 )
+
+
+def handle_config_media(new_config, story_map, request):
+    """
+    Handle media files for story map configuration.
+
+    1. Upload new media files to S3
+    2. Update configuration with uploaded URLs
+    3. Delete unused media files from S3
+    """
+    _upload_chapter_media(new_config, request)
+    _upload_featured_image(new_config, request)
+
+    if story_map and story_map.configuration:
+        _cleanup_unused_media(
+            story_map.configuration, new_config, story_map.published_configuration
+        )
 
     return new_config
 

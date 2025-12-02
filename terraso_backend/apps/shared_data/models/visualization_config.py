@@ -20,9 +20,14 @@ from django.utils.translation import gettext_lazy as _
 
 from apps.core.models import BaseModel, SlugModel, User
 from apps.core.models.commons import validate_name
+from apps.core.models.groups import Group
+from apps.core.models.landscapes import Landscape
 from apps.shared_data import permission_rules as perm_rules
+from apps.story_map.models.story_maps import StoryMap
 
 from .data_entries import DataEntry
+
+VALID_TARGET_TYPES = [(Group, "group"), (Landscape, "landscape"), (StoryMap, "story_map")]
 
 
 class VisualizationConfig(SlugModel):
@@ -79,3 +84,10 @@ class VisualizationConfig(SlugModel):
             "delete": perm_rules.allowed_to_delete_visualization_config,
             "view": perm_rules.allowed_to_view_visualization_config,
         }
+
+    @classmethod
+    def get_target_model_class_from_type_name(cls, type_name):
+        for model, name in VALID_TARGET_TYPES:
+            if name == type_name:
+                return model
+        return None

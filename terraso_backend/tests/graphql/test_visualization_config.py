@@ -253,3 +253,118 @@ def test_visualization_configs_with_deleted_data_entry(client_query, visualizati
     edges = json_response["data"]["visualizationConfigs"]["edges"]
     visualization_configs_result = [edge["node"]["id"] for edge in edges]
     assert len(visualization_configs_result) == 1
+
+
+def test_visualization_configs_filter_by_story_map_slug(
+    client_query, story_map_visualization_config, story_map, users
+):
+    response = client_query(
+        """
+        {visualizationConfigs(
+          dataEntry_SharedResources_Target_Slug: "%s",
+          dataEntry_SharedResources_TargetContentType: "%s"
+        ) {
+          edges {
+            node {
+              id
+              owner {
+                ... on StoryMapNode {
+                  id
+                  title
+                }
+              }
+            }
+          }
+        }}
+        """
+        % (story_map.slug, "story_map")
+    )
+
+    json_response = response.json()
+    edges = json_response["data"]["visualizationConfigs"]["edges"]
+
+    assert len(edges) == 1
+    assert edges[0]["node"]["id"] == str(story_map_visualization_config.id)
+    assert edges[0]["node"]["owner"]["id"] == str(story_map.id)
+    assert edges[0]["node"]["owner"]["title"] == story_map.title
+
+
+def test_visualization_configs_filter_by_story_map_id(
+    client_query, story_map_visualization_config, story_map, users
+):
+    response = client_query(
+        """
+        {visualizationConfigs(dataEntry_SharedResources_TargetObjectId: "%s") {
+          edges {
+            node {
+              id
+            }
+          }
+        }}
+        """
+        % story_map.id
+    )
+
+    edges = response.json()["data"]["visualizationConfigs"]["edges"]
+    visualization_configs_result = [edge["node"]["id"] for edge in edges]
+
+    assert len(visualization_configs_result) == 1
+    assert str(story_map_visualization_config.id) in visualization_configs_result
+
+
+def test_visualization_configs_filter_by_owner_id_story_map(
+    client_query, story_map_visualization_config, story_map
+):
+    response = client_query(
+        """
+        {visualizationConfigs(ownerObjectId: "%s") {
+          edges {
+            node {
+              id
+              owner {
+                ... on StoryMapNode {
+                  id
+                }
+              }
+            }
+          }
+        }}
+        """
+        % story_map.id
+    )
+
+    json_response = response.json()
+    edges = json_response["data"]["visualizationConfigs"]["edges"]
+
+    assert len(edges) == 1
+    assert edges[0]["node"]["id"] == str(story_map_visualization_config.id)
+    assert edges[0]["node"]["owner"]["id"] == str(story_map.id)
+
+
+def test_visualization_configs_returns_only_for_story_map_creator(
+    client_query, story_map_visualization_config, visualization_config_other_user
+):
+    # Request all visualization configs, but only the ones from logged user's story map should return
+    response = client_query(
+        """
+        {visualizationConfigs {
+          edges {
+            node {
+              id
+            }
+          }
+        }}
+        """
+    )
+
+    json_response = response.json()
+    edges = json_response["data"]["visualizationConfigs"]["edges"]
+    entries_result = [edge["node"]["id"] for edge in edges]
+
+    assert str(story_map_visualization_config.id) in entries_result
+    assert str(visualization_config_other_user.id) not in entries_result
+
+
+# NOTE: The following geojson tests were removed because they test existing functionality,
+# not the new story map ownership feature added in PR #1755. These tests belong in a separate
+# test suite for geojson resolution logic and are not required for validating story map ownership.

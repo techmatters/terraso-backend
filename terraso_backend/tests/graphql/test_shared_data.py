@@ -528,3 +528,70 @@ def test_data_entry_avoid_fetching_file_for_not_gis_file(get_file_mock, client_q
 
     get_file_mock.assert_not_called()
     assert data_entry_result["geojson"] is None
+
+
+def test_data_entries_filter_by_story_map_slug(
+    client_query, story_map_data_entry, story_map, users
+):
+    # Test filtering data entries by story map slug
+    response = client_query(
+        """
+        {dataEntries(sharedResources_Target_Slug: "%s", sharedResources_TargetContentType: "%s") {
+          edges {
+            node {
+              id
+            }
+          }
+        }}
+        """
+        % (story_map.slug, "story_map")
+    )
+    json_response = response.json()
+    print(json_response)
+    edges = json_response["data"]["dataEntries"]["edges"]
+    data_entries_result = [edge["node"]["id"] for edge in edges]
+    assert len(data_entries_result) == 1
+    assert str(story_map_data_entry.id) in data_entries_result
+
+
+def test_data_entries_filter_by_story_map_id(client_query, story_map_data_entry, story_map, users):
+    response = client_query(
+        """
+        {dataEntries(sharedResources_TargetObjectId: "%s") {
+          edges {
+            node {
+              id
+            }
+          }
+        }}
+        """
+        % story_map.id
+    )
+    edges = response.json()["data"]["dataEntries"]["edges"]
+    data_entries_result = [edge["node"]["id"] for edge in edges]
+    assert len(data_entries_result) == 1
+    assert str(story_map_data_entry.id) in data_entries_result
+
+
+def test_data_entries_returns_only_for_story_map_owner(
+    client_query, story_map_data_entry, data_entry_other_user
+):
+    # It's being done a request for all data entries, but only the data entries
+    # from logged user's story map is expected to return.
+    response = client_query(
+        """
+        {dataEntries {
+          edges {
+            node {
+              id
+            }
+          }
+        }}
+        """
+    )
+
+    edges = response.json()["data"]["dataEntries"]["edges"]
+    entries_result = [edge["node"]["id"] for edge in edges]
+
+    assert str(story_map_data_entry.id) in entries_result
+    assert str(data_entry_other_user.id) not in entries_result
