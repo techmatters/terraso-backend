@@ -37,6 +37,7 @@ createsuperuser: check_rebuild
 	$(DC_RUN_CMD) python terraso_backend/manage.py createsuperuser
 
 format: ${VIRTUAL_ENV}/scripts/ruff
+	ruff check terraso_backend --fix
 	ruff format terraso_backend
 
 install:
@@ -63,6 +64,9 @@ lock-package:
 
 lock-dev:
 	CUSTOM_COMPILE_COMMAND="make lock-dev" uv pip compile --upgrade --generate-hashes --emit-build-options requirements/dev.in -o requirements-dev.txt
+
+lock-package-dev:
+	CUSTOM_COMPILE_COMMAND="make lock-dev" uv pip compile --upgrade-package $(PACKAGE) --generate-hashes --emit-build-options requirements/dev.in  -o requirements-dev.txt
 
 migrate: check_rebuild
 	$(DC_RUN_CMD) python terraso_backend/manage.py migrate --no-input $(APP_MIGRATION_NAME)
@@ -109,14 +113,14 @@ test_unit: clean check_rebuild compile-translations
 	if [ -z "$(PATTERN)" ]; then \
 		$(DC_RUN_CMD) pytest terraso_backend -m "not integration"; \
 	else \
-		$(DC_RUN_CMD) pytest terraso_backend -m "not integration" -k $(PATTERN); \
+		$(DC_RUN_CMD) pytest terraso_backend -m "not integration" -k "$(PATTERN)"; \
 	fi
 
 test_integration: clean check_rebuild compile-translations
 	if [ -z "$(PATTERN)" ]; then \
 		$(DC_RUN_CMD) pytest terraso_backend -m integration; \
 	else \
-		$(DC_RUN_CMD) pytest terraso_backend -m integration -k $(PATTERN); \
+		$(DC_RUN_CMD) pytest terraso_backend -m integration -k "$(PATTERN)"; \
 	fi
 
 test: test_unit test_integration

@@ -23,7 +23,10 @@ from django.conf import settings
 
 from apps.core.gis.mapbox import create_tileset, remove_tileset
 from apps.core.gis.parsers import parse_file_to_geojson
+from apps.core.models.groups import Group
+from apps.core.models.landscapes import Landscape
 from apps.shared_data.services import data_entry_upload_service
+from apps.story_map.models.story_maps import StoryMap
 
 from .models import VisualizationConfig
 
@@ -52,7 +55,7 @@ def get_rows_from_file(data_entry):
         return [row for row in reader]
     elif type.startswith("xls"):
         file = data_entry_upload_service.get_file(data_entry.s3_object_name, "rb")
-        df = pandas.read_excel(file)
+        df = pandas.read_excel(file, dtype=str)
         rows = df.values.tolist()
         return [df.columns.tolist()] + rows
     else:
@@ -75,7 +78,13 @@ def remove_mapbox_tileset(tileset_id):
 
 
 def get_owner_name(visualization):
-    return visualization.owner.name if visualization.owner else "Unknown"
+    if isinstance(visualization.owner, Landscape):
+        return visualization.owner.name
+    elif isinstance(visualization.owner, Group):
+        return visualization.owner.name
+    elif isinstance(visualization.owner, StoryMap):
+        return visualization.owner.title
+    return "Unknown"
 
 
 def _get_geojson_from_dataset(data_entry, visualization):
@@ -151,7 +160,7 @@ def _get_geojson_from_gis(data_entry):
     return parse_file_to_geojson(file)
 
 
-def _get_geojson_from_data_entry(data_entry, visualization):
+def get_geojson_from_data_entry(data_entry, visualization):
     is_dataset = f".{data_entry.resource_type}" in settings.DATA_ENTRY_SPREADSHEET_TYPES.keys()
     is_gis = f".{data_entry.resource_type}" in settings.DATA_ENTRY_GIS_TYPES.keys()
 
@@ -172,7 +181,7 @@ def create_mapbox_tileset(visualization_id):
     remove_mapbox_tileset(visualization.mapbox_tileset_id)
 
     try:
-        geojson = _get_geojson_from_data_entry(data_entry, visualization)
+        geojson = get_geojson_from_data_entry(data_entry, visualization)
         logger.info(
             "Geojson generated for mapbox tileset",
             visualization_id=visualization_id,

@@ -235,3 +235,89 @@ def test_visualization_config_delete_by_non_creator_fails_due_permission_check(
         in response["data"]["deleteVisualizationConfig"]["errors"][0]["message"]
     )
     mock_remove_tileset.assert_not_called()
+
+
+@mock.patch("apps.graphql.schema.visualization_config.start_create_mapbox_tileset_task")
+def test_visualization_config_add_with_story_map_owner(
+    mock_create_tileset, client_query, story_maps, story_map_data_entry
+):
+    story_map = story_maps[0]
+    story_map_id = str(story_map.id)
+    data_entry_id = str(story_map_data_entry.id)
+    new_data = {
+        "title": "Test Story Map Viz",
+        "configuration": '{"key": "value"}',
+        "ownerId": story_map_id,
+        "ownerType": "story_map",
+        "dataEntryId": data_entry_id,
+    }
+
+    response = client_query(
+        """
+        mutation addVisualizationConfig($input: VisualizationConfigAddMutationInput!) {
+          addVisualizationConfig(input: $input) {
+            visualizationConfig {
+              slug
+              title
+              configuration
+              dataEntry { id }
+              owner {
+                ... on StoryMapNode {
+                  id
+                  title
+                }
+              }
+            }
+            errors
+          }
+        }
+        """,
+        variables={"input": new_data},
+    )
+
+    json_response = response.json()
+
+    result = json_response["data"]["addVisualizationConfig"]["visualizationConfig"]
+
+    assert result["slug"] == "test-story-map-viz"
+    assert result["title"] == "Test Story Map Viz"
+    assert result["configuration"] == '{"key": "value"}'
+    assert result["owner"]["id"] == story_map_id
+    assert result["owner"]["title"] == story_map.title
+    assert result["dataEntry"]["id"] == data_entry_id
+    mock_create_tileset.assert_called_once()
+
+
+@mock.patch("apps.graphql.schema.visualization_config.start_create_mapbox_tileset_task")
+def test_visualization_config_add_fails_with_invalid_story_map(
+    mock_create_tileset, client_query, data_entries, users
+):
+    invalid_story_map_id = "00000000-0000-0000-0000-000000000000"
+    data_entry_id = str(data_entries[0].id)
+    new_data = {
+        "title": "Test title",
+        "configuration": '{"key": "value"}',
+        "ownerId": invalid_story_map_id,
+        "ownerType": "story_map",
+        "dataEntryId": data_entry_id,
+    }
+
+    response = client_query(
+        """
+        mutation addVisualizationConfig($input: VisualizationConfigAddMutationInput!) {
+          addVisualizationConfig(input: $input) {
+            visualizationConfig {
+              id
+            }
+            errors
+          }
+        }
+        """,
+        variables={"input": new_data},
+    )
+
+    response = response.json()
+
+    assert "errors" in response["data"]["addVisualizationConfig"]
+    assert response["data"]["addVisualizationConfig"]["visualizationConfig"] is None
+    mock_create_tileset.assert_not_called()
