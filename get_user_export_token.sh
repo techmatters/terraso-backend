@@ -63,7 +63,10 @@ try:
 
     # Generate export URLs
     username = user_email.split('@')[0].replace('.', '_')
-    print("Export URLs:")
+    print("Export Link Page (shareable):")
+    print(f"  /export/token/user_all/{token_obj.token}/{username}_all_sites.html")
+    print("")
+    print("Direct Download URLs:")
     print(f"  CSV:  /export/token/user_all/{token_obj.token}/{username}_all_sites.csv")
     print(f"  JSON: /export/token/user_all/{token_obj.token}/{username}_all_sites.json")
 

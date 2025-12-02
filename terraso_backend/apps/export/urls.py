@@ -24,6 +24,28 @@ app_name = "apps.export"
 
 urlpatterns = [
     # Token-based exports (public, no authentication required)
+    # HTML landing pages (when format is "html")
+    path(
+        "token/project/<str:project_token>/<str:project_name>.html",
+        csrf_exempt(auth_optional(views.project_export_page)),
+        name="project-export-page",
+    ),
+    path(
+        "token/site/<str:site_token>/<str:site_name>.html",
+        csrf_exempt(auth_optional(views.site_export_page)),
+        name="site-export-page",
+    ),
+    path(
+        "token/user_owned/<str:user_token>/<str:user_name>.html",
+        csrf_exempt(auth_optional(views.user_owned_sites_export_page)),
+        name="user-owned-sites-export-page",
+    ),
+    path(
+        "token/user_all/<str:user_token>/<str:user_name>.html",
+        csrf_exempt(auth_optional(views.user_all_sites_export_page)),
+        name="user-all-sites-export-page",
+    ),
+    # Direct file downloads (CSV/JSON)
     path(
         "token/project/<str:project_token>/<str:project_name>.<str:format>",
         csrf_exempt(auth_optional(views.project_export)),

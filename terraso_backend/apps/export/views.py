@@ -229,3 +229,281 @@ def user_all_sites_export_by_id(request, user_id, user_name, format):
     # Use core business logic - permissions enforced via GraphQL queries
     all_sites = _export_user_all_sites(user_id, request)
     return _export_sites_response(all_sites, format, f"{user_name}_and_projects")
+
+
+def _export_page_html(name, resource_type, csv_url, json_url, request=None):
+    """
+    Generate HTML page for export with download links.
+
+    Args:
+        name: Display name for the export
+        resource_type: Type of resource (project, site, user_all, user_owned)
+        csv_url: URL for CSV download
+        json_url: URL for JSON download
+        request: Django request object (optional, for building absolute URLs)
+    """
+    resource_type_labels = {
+        "project": "Project Sites",
+        "site": "Single Site",
+        "user_all": "All Sites (Owned + Projects)",
+        "user_owned": "Owned Sites Only",
+    }
+
+    type_label = resource_type_labels.get(resource_type, "Sites")
+
+    # Build absolute URLs for OpenGraph metadata
+    if request:
+        image_url = request.build_absolute_uri("/static/export/landpks-round.png")
+        page_url = request.build_absolute_uri()
+    else:
+        image_url = "/static/export/landpks-round.png"
+        page_url = ""
+
+    html_content = f"""
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Export Download - {name}</title>
+
+        <!-- OpenGraph metadata for link previews -->
+        <meta property="og:title" content="LandPKS Export: {name}" />
+        <meta property="og:description" content="{type_label} - Download your LandPKS data export in CSV or JSON format" />
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content="{page_url}" />
+        <meta property="og:site_name" content="Terraso LandPKS" />
+        <meta property="og:locale" content="en_US" />
+        <meta property="og:image" content="{image_url}" />
+        <meta property="og:image:width" content="1024" />
+        <meta property="og:image:height" content="1024" />
+        <meta property="og:image:alt" content="LandPKS Logo - Landscape and soil data platform" />
+
+        <!-- Twitter Card metadata -->
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="LandPKS Export: {name}" />
+        <meta name="twitter:description" content="{type_label} - Download your LandPKS data export in CSV or JSON format" />
+        <meta name="twitter:image" content="{image_url}" />
+        <meta name="twitter:image:alt" content="LandPKS Logo - Landscape and soil data platform" />
+
+        <style>
+            body {{
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+                max-width: 600px;
+                margin: 50px auto;
+                padding: 20px;
+                background-color: #f5f5f5;
+            }}
+            .container {{
+                background-color: white;
+                border-radius: 8px;
+                padding: 40px;
+                box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+                text-align: center;
+            }}
+            .logo {{
+                width: 120px;
+                height: 120px;
+                margin: 0 auto 20px;
+            }}
+            h1 {{
+                color: #333;
+                margin-top: 0;
+                font-size: 24px;
+            }}
+            p {{
+                color: #666;
+                line-height: 1.6;
+            }}
+            .download-row {{
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                margin: 10px 0;
+            }}
+            .download-link {{
+                flex: 1;
+                background-color: #007bff;
+                color: white;
+                padding: 12px 24px;
+                text-decoration: none;
+                border-radius: 4px;
+                font-weight: 500;
+                text-align: center;
+            }}
+            .download-link:hover {{
+                background-color: #0056b3;
+            }}
+            .copy-button {{
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                gap: 6px;
+                background-color: #6c757d;
+                color: white;
+                padding: 12px 16px;
+                border: none;
+                border-radius: 4px;
+                cursor: pointer;
+                font-weight: 500;
+                font-size: 14px;
+                white-space: nowrap;
+                width: 135px;
+            }}
+            .copy-button:hover {{
+                background-color: #5a6268;
+            }}
+            .copy-button.copied {{
+                background-color: #28a745;
+            }}
+            .info {{
+                background-color: #f8f9fa;
+                padding: 15px;
+                border-radius: 4px;
+                margin-top: 20px;
+                text-align: left;
+            }}
+            .info-label {{
+                font-weight: 600;
+                color: #333;
+            }}
+            .info-value {{
+                color: #666;
+            }}
+            .download-section {{
+                margin-top: 30px;
+            }}
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <img src="/static/export/landpks-round.png" alt="LandPKS Logo" class="logo">
+            <h1>Terraso LandPKS Download Links</h1>
+            <p>Your LandPKS export file is ready to download.</p>
+
+            <div class="info">
+                <div style="margin-bottom: 10px;">
+                    <span class="info-label">Export name:</span>
+                    <span class="info-value">{name}</span>
+                </div>
+                <div>
+                    <span class="info-label">Export type:</span>
+                    <span class="info-value">{type_label}</span>
+                </div>
+            </div>
+
+            <div class="download-section">
+                <p style="margin-bottom: 15px; font-weight: 500;">Choose your format:</p>
+                <div class="download-row">
+                    <a href="{csv_url}" class="download-link" download>
+                        Download CSV
+                    </a>
+                    <button class="copy-button" onclick="copyLink('{csv_url}', this)">
+                        <span class="copy-icon">📋</span>
+                        <span class="copy-text">Copy Link</span>
+                    </button>
+                </div>
+                <div class="download-row">
+                    <a href="{json_url}" class="download-link" download>
+                        Download JSON
+                    </a>
+                    <button class="copy-button" onclick="copyLink('{json_url}', this)">
+                        <span class="copy-icon">📋</span>
+                        <span class="copy-text">Copy Link</span>
+                    </button>
+                </div>
+            </div>
+
+            <p style="margin-top: 30px; font-size: 14px; color: #999;">
+                This link will remain active as long as the export token is valid.
+            </p>
+        </div>
+
+        <script>
+            function copyLink(relativeUrl, button) {{
+                // Build absolute URL from relative path
+                const baseUrl = window.location.origin;
+                const absoluteUrl = baseUrl + relativeUrl;
+
+                // Try modern clipboard API first, fallback to older method
+                if (navigator.clipboard && navigator.clipboard.writeText) {{
+                    navigator.clipboard.writeText(absoluteUrl).then(() => {{
+                        showCopiedFeedback(button);
+                    }}).catch(err => {{
+                        console.log('Clipboard API failed, using fallback:', err);
+                        fallbackCopy(absoluteUrl, button);
+                    }});
+                }} else {{
+                    fallbackCopy(absoluteUrl, button);
+                }}
+            }}
+
+            function fallbackCopy(text, button) {{
+                // Fallback method that works without HTTPS
+                const textArea = document.createElement('textarea');
+                textArea.value = text;
+                textArea.style.position = 'fixed';
+                textArea.style.left = '-999999px';
+                textArea.style.top = '-999999px';
+                document.body.appendChild(textArea);
+                textArea.focus();
+                textArea.select();
+
+                try {{
+                    const successful = document.execCommand('copy');
+                    if (successful) {{
+                        showCopiedFeedback(button);
+                    }} else {{
+                        alert('Failed to copy link');
+                    }}
+                }} catch (err) {{
+                    console.error('Fallback copy failed:', err);
+                    alert('Failed to copy link');
+                }} finally {{
+                    document.body.removeChild(textArea);
+                }}
+            }}
+
+            function showCopiedFeedback(button) {{
+                const textSpan = button.querySelector('.copy-text');
+                button.classList.add('copied');
+                textSpan.textContent = 'Copied!';
+                setTimeout(() => {{
+                    button.classList.remove('copied');
+                    textSpan.textContent = 'Copy Link';
+                }}, 2000);
+            }}
+        </script>
+    </body>
+    </html>
+    """
+
+    return HttpResponse(html_content, content_type="text/html")
+
+
+def project_export_page(request, project_token, project_name):
+    """Return HTML page with download links for project export."""
+    csv_url = f"/export/token/project/{project_token}/{project_name}.csv"
+    json_url = f"/export/token/project/{project_token}/{project_name}.json"
+    return _export_page_html(project_name, "project", csv_url, json_url, request)
+
+
+def site_export_page(request, site_token, site_name):
+    """Return HTML page with download links for site export."""
+    csv_url = f"/export/token/site/{site_token}/{site_name}.csv"
+    json_url = f"/export/token/site/{site_token}/{site_name}.json"
+    return _export_page_html(site_name, "site", csv_url, json_url, request)
+
+
+def user_owned_sites_export_page(request, user_token, user_name):
+    """Return HTML page with download links for user owned sites export."""
+    csv_url = f"/export/token/user_owned/{user_token}/{user_name}.csv"
+    json_url = f"/export/token/user_owned/{user_token}/{user_name}.json"
+    return _export_page_html(user_name, "user_owned", csv_url, json_url, request)
+
+
+def user_all_sites_export_page(request, user_token, user_name):
+    """Return HTML page with download links for user all sites export."""
+    csv_url = f"/export/token/user_all/{user_token}/{user_name}.csv"
+    json_url = f"/export/token/user_all/{user_token}/{user_name}.json"
+    return _export_page_html(user_name, "user_all", csv_url, json_url, request)
