@@ -245,7 +245,7 @@ def _export_page_html(name, resource_type, csv_url, json_url, request=None):
     resource_type_labels = {
         "project": "Project Sites",
         "site": "Single Site",
-        "user_all": "All Sites (Owned + Projects)",
+        "user_all": "All User's Sites (Projects + Unaffiliated)",
         "user_owned": "Owned Sites Only",
     }
 
@@ -266,6 +266,9 @@ def _export_page_html(name, resource_type, csv_url, json_url, request=None):
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Export Download - {name}</title>
+
+        <!-- Material Icons -->
+        <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 
         <!-- OpenGraph metadata for link previews -->
         <meta property="og:title" content="LandPKS Export: {name}" />
@@ -323,16 +326,21 @@ def _export_page_html(name, resource_type, csv_url, json_url, request=None):
             }}
             .download-link {{
                 flex: 1;
-                background-color: #007bff;
+                background-color: #028843;
                 color: white;
-                padding: 12px 24px;
+                padding: 0 24px;
                 text-decoration: none;
                 border-radius: 4px;
                 font-weight: 500;
                 text-align: center;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 6px;
+                height: 48px;
             }}
             .download-link:hover {{
-                background-color: #0056b3;
+                background-color: #026E38;
             }}
             .copy-button {{
                 display: inline-flex;
@@ -341,7 +349,7 @@ def _export_page_html(name, resource_type, csv_url, json_url, request=None):
                 gap: 6px;
                 background-color: #6c757d;
                 color: white;
-                padding: 12px 16px;
+                padding: 0 16px;
                 border: none;
                 border-radius: 4px;
                 cursor: pointer;
@@ -349,6 +357,7 @@ def _export_page_html(name, resource_type, csv_url, json_url, request=None):
                 font-size: 14px;
                 white-space: nowrap;
                 width: 135px;
+                height: 48px;
             }}
             .copy-button:hover {{
                 background-color: #5a6268;
@@ -373,13 +382,17 @@ def _export_page_html(name, resource_type, csv_url, json_url, request=None):
             .download-section {{
                 margin-top: 30px;
             }}
+            .material-icons {{
+                font-size: 18px;
+                vertical-align: middle;
+            }}
         </style>
     </head>
     <body>
         <div class="container">
             <img src="/static/export/landpks-round.png" alt="LandPKS Logo" class="logo">
-            <h1>Terraso LandPKS Download Links</h1>
-            <p>Your LandPKS export file is ready to download.</p>
+            <h1>LandPKS Soil ID Data Export</h1>
+            <p>Exports will always contain up-to-date data. Export links will be valid until reset in the mobile app.</p>
 
             <div class="info">
                 <div style="margin-bottom: 10px;">
@@ -396,27 +409,26 @@ def _export_page_html(name, resource_type, csv_url, json_url, request=None):
                 <p style="margin-bottom: 15px; font-weight: 500;">Choose your format:</p>
                 <div class="download-row">
                     <a href="{csv_url}" class="download-link" download>
+                        <span class="material-icons">file_download</span>
                         Download CSV
                     </a>
                     <button class="copy-button" onclick="copyLink('{csv_url}', this)">
-                        <span class="copy-icon">📋</span>
+                        <span class="material-icons">share</span>
                         <span class="copy-text">Copy Link</span>
                     </button>
                 </div>
                 <div class="download-row">
                     <a href="{json_url}" class="download-link" download>
+                        <span class="material-icons">file_download</span>
                         Download JSON
                     </a>
                     <button class="copy-button" onclick="copyLink('{json_url}', this)">
-                        <span class="copy-icon">📋</span>
+                        <span class="material-icons">share</span>
                         <span class="copy-text">Copy Link</span>
                     </button>
                 </div>
             </div>
 
-            <p style="margin-top: 30px; font-size: 14px; color: #999;">
-                This link will remain active as long as the export token is valid.
-            </p>
         </div>
 
         <script>
