@@ -37,7 +37,7 @@ class SoilMetadataNode(DjangoObjectType):
     selected_soil_id = graphene.String()
 
     # New field: expose user_ratings as a list
-    user_ratings = graphene.List(UserRatingEntry, required=True)
+    user_ratings = graphene.List(graphene.NonNull(UserRatingEntry), required=True)
 
     class Meta:
         model = SoilMetadata

@@ -32,7 +32,6 @@ from apps.project_management.graphql.site_notes import (
     SiteNoteDeleteMutation,
     SiteNoteUpdateMutation,
 )
-from apps.soil_id.graphql.site_data.push_mutation import SiteDataPush
 from apps.soil_id.graphql.soil_data.mutations import (
     DepthDependentSoilDataUpdateMutation,
     SoilDataDeleteDepthIntervalMutation,
@@ -47,6 +46,7 @@ from apps.soil_id.graphql.soil_project.mutations import (
     ProjectSoilSettingsUpdateDepthIntervalMutation,
     ProjectSoilSettingsUpdateMutation,
 )
+from apps.soil_id.graphql.sync.push_mutation import UserDataPush
 
 from .commons import TerrasoRelayNode
 from .data_entries import (
@@ -193,20 +193,22 @@ class Mutations(graphene.ObjectType):
     update_user_role_in_project = ProjectUpdateUserRoleMutation.Field()
     mark_project_seen = ProjectMarkSeenMutation.Field()
     update_soil_data = SoilDataUpdateMutation.Field(
-        deprecation_reason="Use push_site_data instead."
+        deprecation_reason="Use push_user_data instead."
     )
     update_depth_dependent_soil_data = DepthDependentSoilDataUpdateMutation.Field(
-        deprecation_reason="Use push_site_data instead."
+        deprecation_reason="Use push_user_data instead."
     )
-    push_soil_data = SoilDataPush.Field(deprecation_reason="Use push_site_data instead.")
-    push_site_data = SiteDataPush.Field()
+    push_soil_data = SoilDataPush.Field(deprecation_reason="Use push_user_data instead.")
+    push_user_data = UserDataPush.Field()
     update_soil_data_depth_interval = SoilDataUpdateDepthIntervalMutation.Field(
-        deprecation_reason="Use push_site_data instead."
+        deprecation_reason="Use push_user_data instead."
     )
     delete_soil_data_depth_interval = SoilDataDeleteDepthIntervalMutation.Field(
-        deprecation_reason="Use push_site_data instead."
+        deprecation_reason="Use push_user_data instead."
     )
-    update_soil_metadata = SoilMetadataUpdateMutation.Field()
+    update_soil_metadata = SoilMetadataUpdateMutation.Field(
+        deprecation_reason="Use push_user_data instead."
+    )
     update_project_soil_settings = ProjectSoilSettingsUpdateMutation.Field()
     update_project_soil_settings_depth_interval = (
         ProjectSoilSettingsUpdateDepthIntervalMutation.Field()

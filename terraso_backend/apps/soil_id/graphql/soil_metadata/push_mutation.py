@@ -60,7 +60,7 @@ class SoilMetadataPushInputEntry(graphene.InputObjectType):
 
 class SoilMetadataPush(BaseWriteMutation):
     """
-    Note: as of 2025-10 this mutation is not exposed on its own; it is only used as part of SiteDataPush (similar to how SiteDataPush uses SoilDataPush).
+    Note: as of 2025-10 this mutation is not exposed on its own; it is only used as part of UserDataPush (similar to how UserDataPush uses SoilDataPush).
     """
 
     results = graphene.Field(graphene.List(graphene.NonNull(SoilMetadataPushEntry)), required=True)
