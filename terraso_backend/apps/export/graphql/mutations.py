@@ -29,6 +29,11 @@ User = get_user_model()
 logger = logging.getLogger(__name__)
 
 
+def get_user_tokens(user):
+    """Get all export tokens for the current user."""
+    return ExportToken.objects.filter(user_id=str(user.id))
+
+
 def can_manage_export_token(user, resource_type, resource_id):
     """
     Check if user has permission to create/delete export tokens for a resource.
@@ -97,7 +102,7 @@ class CreateExportToken(graphene.Mutation):
         resource_type = ResourceTypeEnum(required=True)
         resource_id = graphene.ID(required=True)
 
-    token = graphene.Field(ExportTokenType)
+    tokens = graphene.List(graphene.NonNull(ExportTokenType))
 
     @staticmethod
     def mutate(root, info, resource_type, resource_id):
@@ -154,14 +159,17 @@ class CreateExportToken(graphene.Mutation):
             raise
 
         logger.info(f"CreateExportToken mutation completed successfully")
-        return CreateExportToken(token=token_obj)
+
+        # Return all tokens for the user
+        user_tokens = get_user_tokens(user)
+        return CreateExportToken(tokens=list(user_tokens))
 
 
 class DeleteExportToken(graphene.Mutation):
     class Arguments:
         token = graphene.String(required=True)
 
-    success = graphene.Boolean()
+    tokens = graphene.List(graphene.NonNull(ExportTokenType))
 
     @staticmethod
     def mutate(root, info, token):
@@ -181,7 +189,9 @@ class DeleteExportToken(graphene.Mutation):
             # Delete token (no need to clear resource.export_token field)
             token_obj.delete()
 
-            return DeleteExportToken(success=True)
+            # Return all remaining tokens for the user
+            user_tokens = get_user_tokens(user)
+            return DeleteExportToken(tokens=list(user_tokens))
         except ExportToken.DoesNotExist:
             raise GraphQLError("Export token not found")
 

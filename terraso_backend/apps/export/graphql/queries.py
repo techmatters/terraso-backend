@@ -32,6 +32,7 @@ class Query(graphene.ObjectType):
         resource_type=ResourceTypeEnum(required=True),
         resource_id=graphene.ID(required=True),
     )
+    all_export_tokens = graphene.List(graphene.NonNull(ExportTokenType))
 
     @staticmethod
     def resolve_export_token(root, info, resource_type, resource_id):
@@ -74,3 +75,15 @@ class Query(graphene.ObjectType):
         except ExportToken.DoesNotExist:
             logger.info(f"No export token found for user {user.id}, {resource_type_str} {resource_id}")
             return None
+
+    @staticmethod
+    def resolve_all_export_tokens(root, info):
+        """Get all export tokens for the current user."""
+        user = info.context.user
+        logger.info(f"allExportTokens query called for user: {user.email} (id={user.id})")
+
+        # Filter by user_id to get all tokens belonging to this user
+        user_tokens = ExportToken.objects.filter(user_id=str(user.id))
+        logger.info(f"Found {user_tokens.count()} tokens for user {user.email}")
+
+        return user_tokens
