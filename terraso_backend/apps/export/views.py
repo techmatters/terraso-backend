@@ -16,7 +16,7 @@
 from urllib.parse import unquote
 
 from django.contrib.auth import get_user_model
-from django.http import Http404, HttpResponse, HttpResponseBadRequest, JsonResponse
+from django.http import HttpResponse, HttpResponseBadRequest, JsonResponse
 
 from .fetch_data import fetch_site_data, fetch_soil_id
 from .fetch_lists import fetch_all_sites, fetch_project_list, fetch_user_owned_sites
@@ -25,16 +25,106 @@ from .models import ExportToken
 from .transformers import transform_site_data
 
 
+def _invalid_token_page():
+    """Generate HTML page for invalid/expired export token."""
+    html_content = """
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Invalid Export Link</title>
+
+        <!-- Material Icons -->
+        <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
+        <style>
+            body {
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+                max-width: 600px;
+                margin: 50px auto;
+                padding: 20px;
+                background-color: #f5f5f5;
+            }
+            .container {
+                background-color: white;
+                border-radius: 8px;
+                padding: 40px;
+                text-align: center;
+            }
+            .logo {
+                width: 120px;
+                height: 120px;
+                margin: 0 auto 20px;
+                display: block;
+            }
+            .error-icon {
+                font-size: 64px;
+                color: #dc3545;
+                margin: 20px 0;
+                display: block;
+            }
+            h1 {
+                color: #333;
+                margin: 20px 0;
+                font-size: 24px;
+            }
+            p {
+                color: #666;
+                line-height: 1.6;
+                margin: 15px 0;
+            }
+            .info-box {
+                background-color: #fff3cd;
+                border-left: 4px solid #ffc107;
+                padding: 15px;
+                margin: 20px 0;
+                text-align: left;
+            }
+            .info-box strong {
+                color: #856404;
+            }
+            .material-icons {
+                vertical-align: middle;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <img src="/static/export/landpks-round.png" alt="LandPKS Logo" class="logo">
+            <span class="material-icons error-icon">link_off</span>
+            <h1>Export Link No Longer Valid</h1>
+            <p>This export link has been reset or expired and is no longer valid.</p>
+
+            <div class="info-box">
+                <strong>To get a new export link:</strong>
+                <ol style="margin: 10px 0; padding-left: 20px;">
+                    <li>Open the LandPKS mobile app</li>
+                    <li>Navigate to your project or site</li>
+                    <li>Generate a new export link</li>
+                </ol>
+            </div>
+
+            <p style="font-size: 14px; color: #999; margin-top: 30px;">
+                Export links can be reset at any time from the mobile app for security purposes.
+            </p>
+        </div>
+    </body>
+    </html>
+    """
+    return HttpResponse(html_content, content_type="text/html", status=404)
+
+
 def _resolve_export_token(token):
     """
     Resolve export token to (resource_type, resource_id).
-    Raises Http404 if token not found.
+    Returns invalid token page if token not found.
     """
     try:
         export_token = ExportToken.objects.get(token=token)
         return export_token.resource_type, export_token.resource_id
     except ExportToken.DoesNotExist:
-        raise Http404(f"Export token not found: {token}")
+        return None, None
 
 
 def _setup_system_export_user(request):
@@ -138,6 +228,8 @@ def project_export(request, project_token, project_name, format):
 
     # Resolve token to actual project ID
     resource_type, project_id = _resolve_export_token(project_token)
+    if resource_type is None:
+        return _invalid_token_page()
     if resource_type != "PROJECT":
         return HttpResponseBadRequest("Invalid token type for project export")
 
@@ -152,6 +244,8 @@ def site_export(request, site_token, site_name, format):
 
     # Resolve token to actual site ID
     resource_type, site_id = _resolve_export_token(site_token)
+    if resource_type is None:
+        return _invalid_token_page()
     if resource_type != "SITE":
         return HttpResponseBadRequest("Invalid token type for site export")
 
@@ -166,6 +260,8 @@ def user_owned_sites_export(request, user_token, user_name, format):
 
     # Resolve token to actual user ID
     resource_type, user_id = _resolve_export_token(user_token)
+    if resource_type is None:
+        return _invalid_token_page()
     if resource_type != "USER":
         return HttpResponseBadRequest("Invalid token type for user export")
 
@@ -180,6 +276,8 @@ def user_all_sites_export(request, user_token, user_name, format):
 
     # Resolve token to actual user ID
     resource_type, user_id = _resolve_export_token(user_token)
+    if resource_type is None:
+        return _invalid_token_page()
     if resource_type != "USER":
         return HttpResponseBadRequest("Invalid token type for user export")
 
@@ -493,6 +591,11 @@ def _export_page_html(name, resource_type, csv_url, json_url, request=None):
 
 def project_export_page(request, project_token, project_name):
     """Return HTML page with download links for project export."""
+    # Check if token is valid
+    resource_type, _ = _resolve_export_token(project_token)
+    if resource_type is None:
+        return _invalid_token_page()
+
     csv_url = f"/export/token/project/{project_token}/{project_name}.csv"
     json_url = f"/export/token/project/{project_token}/{project_name}.json"
     return _export_page_html(project_name, "project", csv_url, json_url, request)
@@ -500,6 +603,11 @@ def project_export_page(request, project_token, project_name):
 
 def site_export_page(request, site_token, site_name):
     """Return HTML page with download links for site export."""
+    # Check if token is valid
+    resource_type, _ = _resolve_export_token(site_token)
+    if resource_type is None:
+        return _invalid_token_page()
+
     csv_url = f"/export/token/site/{site_token}/{site_name}.csv"
     json_url = f"/export/token/site/{site_token}/{site_name}.json"
     return _export_page_html(site_name, "site", csv_url, json_url, request)
@@ -507,6 +615,11 @@ def site_export_page(request, site_token, site_name):
 
 def user_owned_sites_export_page(request, user_token, user_name):
     """Return HTML page with download links for user owned sites export."""
+    # Check if token is valid
+    resource_type, _ = _resolve_export_token(user_token)
+    if resource_type is None:
+        return _invalid_token_page()
+
     csv_url = f"/export/token/user_owned/{user_token}/{user_name}.csv"
     json_url = f"/export/token/user_owned/{user_token}/{user_name}.json"
     return _export_page_html(user_name, "user_owned", csv_url, json_url, request)
@@ -514,6 +627,11 @@ def user_owned_sites_export_page(request, user_token, user_name):
 
 def user_all_sites_export_page(request, user_token, user_name):
     """Return HTML page with download links for user all sites export."""
+    # Check if token is valid
+    resource_type, _ = _resolve_export_token(user_token)
+    if resource_type is None:
+        return _invalid_token_page()
+
     csv_url = f"/export/token/user_all/{user_token}/{user_name}.csv"
     json_url = f"/export/token/user_all/{user_token}/{user_name}.json"
     return _export_page_html(user_name, "user_all", csv_url, json_url, request)
