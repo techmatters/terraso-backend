@@ -23,6 +23,7 @@ from graphene_django import DjangoObjectType
 from apps.collaboration.models import Membership as CollaborationMembership
 from apps.core.models import Group, Landscape, SharedResource
 from apps.graphql.exceptions import GraphQLNotAllowedException, GraphQLNotFoundException
+from apps.graphql.schema.story_maps import StoryMapNode
 
 from .commons import BaseWriteMutation, TerrasoConnection
 from .constants import MutationTypes
@@ -41,7 +42,7 @@ class SourceNode(graphene.Union):
 
 class TargetNode(graphene.Union):
     class Meta:
-        types = (GroupNode, LandscapeNode)
+        types = (GroupNode, LandscapeNode, StoryMapNode)
 
 
 class SharedResourceNode(DjangoObjectType):

@@ -30,8 +30,8 @@ from apps.core.gis.parsers import parse_file_to_geojson
 from apps.core.models import Group, Landscape
 from apps.graphql.exceptions import GraphQLNotAllowedException, GraphQLNotFoundException
 from apps.shared_data.models import DataEntry, VisualizationConfig
-from apps.shared_data.models.data_entries import VALID_TARGET_TYPES
 from apps.shared_data.services import data_entry_upload_service
+from apps.story_map.models.story_maps import StoryMap
 
 from .commons import BaseDeleteMutation, BaseWriteMutation, TerrasoConnection
 from .constants import MutationTypes
@@ -63,13 +63,14 @@ class DataEntryFilterSet(django_filters.FilterSet):
         return queryset.filter(
             Q(shared_resources__target_object_id__in=Group.objects.filter(slug=value))
             | Q(shared_resources__target_object_id__in=Landscape.objects.filter(slug=value))
+            | Q(shared_resources__target_object_id__in=StoryMap.objects.filter(slug=value))
         )
 
     def filter_shared_resources_target_content_type(self, queryset, name, value):
+        model_class = DataEntry.get_target_model_class_from_type_name(value)
+
         return queryset.filter(
-            shared_resources__target_content_type=ContentType.objects.get(
-                app_label="core", model=value
-            )
+            shared_resources__target_content_type=ContentType.objects.get_for_model(model_class)
         ).distinct()
 
 
@@ -98,19 +99,18 @@ class DataEntryNode(DjangoObjectType, SharedResourcesMixin):
     @classmethod
     def get_queryset(cls, queryset, info):
         user_pk = getattr(info.context.user, "pk", False)
-        user_groups_ids = Subquery(
-            Group.objects.filter(
-                membership_list__memberships__deleted_at__isnull=True,
-                membership_list__memberships__user__id=user_pk,
-                membership_list__memberships__membership_status=CollaborationMembership.APPROVED,
-            ).values("id")
-        )
-        user_landscape_ids = Subquery(
-            Landscape.objects.filter(
-                membership_list__memberships__deleted_at__isnull=True,
-                membership_list__memberships__user__id=user_pk,
-                membership_list__memberships__membership_status=CollaborationMembership.APPROVED,
-            ).values("id")
+        [group_subquery, landscape_subquery, storymap_subquery] = [
+            Subquery(
+                model.objects.filter(
+                    membership_list__memberships__deleted_at__isnull=True,
+                    membership_list__memberships__user__id=user_pk,
+                    membership_list__memberships__membership_status=CollaborationMembership.APPROVED,
+                ).values("id")
+            )
+            for model in [Group, Landscape, StoryMap]
+        ]
+        storymap_owner_query = Subquery(
+            StoryMap.objects.filter(created_by__id=user_pk).values("id")
         )
 
         return (
@@ -124,8 +124,10 @@ class DataEntryNode(DjangoObjectType, SharedResourcesMixin):
                 "created_by",
             )
             .filter(
-                Q(shared_resources__target_object_id__in=user_groups_ids)
-                | Q(shared_resources__target_object_id__in=user_landscape_ids)
+                Q(shared_resources__target_object_id__in=group_subquery)
+                | Q(shared_resources__target_object_id__in=landscape_subquery)
+                | Q(shared_resources__target_object_id__in=storymap_subquery)
+                | Q(shared_resources__target_object_id__in=storymap_owner_query)
             )
             .distinct()
         )
@@ -167,15 +169,13 @@ class DataEntryAddMutation(BaseWriteMutation):
         target_type = kwargs.pop("target_type")
         target_slug = kwargs.pop("target_slug")
 
-        if target_type not in VALID_TARGET_TYPES:
+        model_class = DataEntry.get_target_model_class_from_type_name(target_type)
+        if model_class is None:
             logger.error("Invalid target_type provided when adding dataEntry")
             raise GraphQLNotFoundException(
                 field="target_type",
-                model_name=Group.__name__,
+                model_name=DataEntry.__name__,
             )
-
-        content_type = ContentType.objects.get(app_label="core", model=target_type)
-        model_class = content_type.model_class()
 
         try:
             target = model_class.objects.get(slug=target_slug)
