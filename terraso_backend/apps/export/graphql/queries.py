@@ -32,7 +32,7 @@ class Query(graphene.ObjectType):
         resource_type=ResourceTypeEnum(required=True),
         resource_id=graphene.ID(required=True),
     )
-    all_export_tokens = graphene.List(graphene.NonNull(ExportTokenType))
+    all_export_tokens = graphene.Field(graphene.List(graphene.NonNull(ExportTokenType)))
 
     @staticmethod
     def resolve_export_token(root, info, resource_type, resource_id):

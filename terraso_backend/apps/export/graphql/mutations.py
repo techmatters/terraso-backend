@@ -102,7 +102,7 @@ class CreateExportToken(graphene.Mutation):
         resource_type = ResourceTypeEnum(required=True)
         resource_id = graphene.ID(required=True)
 
-    tokens = graphene.List(graphene.NonNull(ExportTokenType))
+    tokens = graphene.Field(graphene.List(graphene.NonNull(ExportTokenType)))
 
     @staticmethod
     def mutate(root, info, resource_type, resource_id):
@@ -169,7 +169,7 @@ class DeleteExportToken(graphene.Mutation):
     class Arguments:
         token = graphene.String(required=True)
 
-    tokens = graphene.List(graphene.NonNull(ExportTokenType))
+    tokens = graphene.Field(graphene.List(graphene.NonNull(ExportTokenType)))
 
     @staticmethod
     def mutate(root, info, token):
