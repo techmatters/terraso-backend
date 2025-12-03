@@ -301,7 +301,6 @@ def _export_page_html(name, resource_type, csv_url, json_url, request=None):
                 background-color: white;
                 border-radius: 8px;
                 padding: 40px;
-                box-shadow: 0 2px 4px rgba(0,0,0,0.1);
                 text-align: center;
             }}
             .logo {{
@@ -363,7 +362,7 @@ def _export_page_html(name, resource_type, csv_url, json_url, request=None):
                 background-color: #5a6268;
             }}
             .copy-button.copied {{
-                background-color: #28a745;
+                background-color: #5a6268;
             }}
             .info {{
                 background-color: #f8f9fa;
@@ -406,7 +405,6 @@ def _export_page_html(name, resource_type, csv_url, json_url, request=None):
             </div>
 
             <div class="download-section">
-                <p style="margin-bottom: 15px; font-weight: 500;">Choose your format:</p>
                 <div class="download-row">
                     <a href="{csv_url}" class="download-link" download>
                         <span class="material-icons">file_download</span>
