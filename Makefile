@@ -14,6 +14,9 @@ api_schema:
 check_api_schema:
 	$(SCHEMA_BUILD_CMD) | diff $(SCHEMA_BUILD_FILE) -
 
+check_migrations:
+	$(DC_RUN_CMD) python terraso_backend/manage.py makemigrations --check --dry-run --no-input
+
 api_docs: api_schema
 	npx spectaql --one-file --target-file=docs.html --target-dir=terraso_backend/apps/graphql/templates/ terraso_backend/apps/graphql/spectaql.yml
 
@@ -46,7 +49,7 @@ install:
 install-dev:
 	uv pip install -r requirements-dev.txt $(UV_FLAGS)
 
-lint: check_api_schema
+lint: check_api_schema check_migrations
 ifeq ($(DC_ENV),ci)
 	# Disable Ruff cache in CI to avoid Docker permission failures
 	$(DC_RUN_CMD) ruff check terraso_backend --no-cache
