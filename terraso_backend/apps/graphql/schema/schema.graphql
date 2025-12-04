@@ -1565,7 +1565,7 @@ enum SoilIdDepthDependentSoilDataCarbonatesChoices {
 
 type SoilMetadataNode {
   site: SiteNode!
-  userRatings: [UserRatingEntry]!
+  userRatings: [UserRatingEntry!]!
   selectedSoilId: String
 }
 
@@ -1683,9 +1683,9 @@ type Mutations {
   deleteUserFromProject(input: ProjectDeleteUserMutationInput!): ProjectDeleteUserMutationPayload!
   updateUserRoleInProject(input: ProjectUpdateUserRoleMutationInput!): ProjectUpdateUserRoleMutationPayload!
   markProjectSeen(input: ProjectMarkSeenMutationInput!): ProjectMarkSeenMutationPayload!
-  updateSoilData(input: SoilDataUpdateMutationInput!): SoilDataUpdateMutationPayload! @deprecated(reason: "Use push_site_data instead.")
-  updateDepthDependentSoilData(input: DepthDependentSoilDataUpdateMutationInput!): DepthDependentSoilDataUpdateMutationPayload! @deprecated(reason: "Use push_site_data instead.")
-  pushSoilData(input: SoilDataPushInput!): SoilDataPushPayload! @deprecated(reason: "Use push_site_data instead.")
+  updateSoilData(input: SoilDataUpdateMutationInput!): SoilDataUpdateMutationPayload! @deprecated(reason: "Use push_user_data instead.")
+  updateDepthDependentSoilData(input: DepthDependentSoilDataUpdateMutationInput!): DepthDependentSoilDataUpdateMutationPayload! @deprecated(reason: "Use push_user_data instead.")
+  pushSoilData(input: SoilDataPushInput!): SoilDataPushPayload! @deprecated(reason: "Use push_user_data instead.")
 
   """
   To enable offline functionality.
@@ -1695,10 +1695,10 @@ type Mutations {
   
   Partial updates are possible, if failure happens at the level of a sub-mutation, or more granularly within the sub-mutation.
   """
-  pushSiteData(input: SiteDataPushInput!): SiteDataPushPayload!
-  updateSoilDataDepthInterval(input: SoilDataUpdateDepthIntervalMutationInput!): SoilDataUpdateDepthIntervalMutationPayload! @deprecated(reason: "Use push_site_data instead.")
-  deleteSoilDataDepthInterval(input: SoilDataDeleteDepthIntervalMutationInput!): SoilDataDeleteDepthIntervalMutationPayload! @deprecated(reason: "Use push_site_data instead.")
-  updateSoilMetadata(input: SoilMetadataUpdateMutationInput!): SoilMetadataUpdateMutationPayload!
+  pushUserData(input: UserDataPushInput!): UserDataPushPayload!
+  updateSoilDataDepthInterval(input: SoilDataUpdateDepthIntervalMutationInput!): SoilDataUpdateDepthIntervalMutationPayload! @deprecated(reason: "Use push_user_data instead.")
+  deleteSoilDataDepthInterval(input: SoilDataDeleteDepthIntervalMutationInput!): SoilDataDeleteDepthIntervalMutationPayload! @deprecated(reason: "Use push_user_data instead.")
+  updateSoilMetadata(input: SoilMetadataUpdateMutationInput!): SoilMetadataUpdateMutationPayload! @deprecated(reason: "Use push_user_data instead.")
   updateProjectSoilSettings(input: ProjectSoilSettingsUpdateMutationInput!): ProjectSoilSettingsUpdateMutationPayload!
   updateProjectSoilSettingsDepthInterval(input: ProjectSoilSettingsUpdateDepthIntervalMutationInput!): ProjectSoilSettingsUpdateDepthIntervalMutationPayload!
   deleteProjectSoilSettingsDepthInterval(input: ProjectSoilSettingsDeleteDepthIntervalMutationInput!): ProjectSoilSettingsDeleteDepthIntervalMutationPayload!
@@ -2437,12 +2437,10 @@ Pushes at least one of the following sub-mutations:
 
 Partial updates are possible, if failure happens at the level of a sub-mutation, or more granularly within the sub-mutation.
 """
-type SiteDataPushPayload {
+type UserDataPushPayload {
   errors: GenericScalar
   soilDataResults: [SoilDataPushEntry!]
-  soilDataError: String
   soilMetadataResults: [SoilMetadataPushEntry!]
-  soilMetadataError: String
   clientMutationId: String
 }
 
@@ -2467,7 +2465,7 @@ enum SoilMetadataPushFailureReason {
   INVALID_DATA
 }
 
-input SiteDataPushInput {
+input UserDataPushInput {
   soilDataEntries: [SoilDataPushInputEntry!] = null
   soilMetadataEntries: [SoilMetadataPushInputEntry!] = null
   clientMutationId: String
