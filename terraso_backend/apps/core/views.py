@@ -1,4 +1,4 @@
-# Copyright © 2021-2023 Technology Matters
+# Copyright © 2021-2025 Technology Matters
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as published
@@ -197,3 +197,5 @@ def restore(task, user_id, session_id):
         task.status = "finished"
     finally:
         task.save()
+
+
