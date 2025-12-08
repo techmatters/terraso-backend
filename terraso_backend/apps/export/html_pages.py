@@ -14,11 +14,18 @@
 # along with this program. If not, see https://www.gnu.org/licenses/.
 
 from django.http import HttpResponse
+from django.templatetags.static import static
+
+
+def get_logo_url():
+    """Get the URL for the LandPKS logo using Django's static file handling."""
+    return static("export/landpks-round.png")
 
 
 def invalid_token_page():
     """Generate HTML page for invalid/expired export token."""
-    html_content = """
+    logo_url = get_logo_url()
+    html_content = f"""
     <!DOCTYPE html>
     <html lang="en">
     <head>
@@ -30,59 +37,59 @@ def invalid_token_page():
         <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 
         <style>
-            body {
+            body {{
                 font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
                 max-width: 600px;
                 margin: 50px auto;
                 padding: 20px;
                 background-color: #f5f5f5;
-            }
-            .container {
+            }}
+            .container {{
                 background-color: white;
                 border-radius: 8px;
                 padding: 40px;
                 text-align: center;
-            }
-            .logo {
+            }}
+            .logo {{
                 width: 120px;
                 height: 120px;
                 margin: 0 auto 20px;
                 display: block;
-            }
-            .error-icon {
+            }}
+            .error-icon {{
                 font-size: 64px;
                 color: #dc3545;
                 margin: 20px 0;
                 display: block;
-            }
-            h1 {
+            }}
+            h1 {{
                 color: #333;
                 margin: 20px 0;
                 font-size: 24px;
-            }
-            p {
+            }}
+            p {{
                 color: #666;
                 line-height: 1.6;
                 margin: 15px 0;
-            }
-            .info-box {
+            }}
+            .info-box {{
                 background-color: #fff3cd;
                 border-left: 4px solid #ffc107;
                 padding: 15px;
                 margin: 20px 0;
                 text-align: left;
-            }
-            .info-box strong {
+            }}
+            .info-box strong {{
                 color: #856404;
-            }
-            .material-icons {
+            }}
+            .material-icons {{
                 vertical-align: middle;
-            }
+            }}
         </style>
     </head>
     <body>
         <div class="container">
-            <img src="/static/export/landpks-round.png" alt="LandPKS Logo" class="logo">
+            <img src="{logo_url}" alt="LandPKS Logo" class="logo">
             <span class="material-icons error-icon">link_off</span>
             <h1>Export Link No Longer Valid</h1>
             <p>This export link has been reset or expired and is no longer valid.</p>
@@ -126,12 +133,15 @@ def export_page_html(name, resource_type, csv_url, json_url, request=None):
 
     type_label = resource_type_labels.get(resource_type, "Sites")
 
+    # Get logo URL using Django's static file handling
+    logo_url = get_logo_url()
+
     # Build absolute URLs for OpenGraph metadata
     if request:
-        image_url = request.build_absolute_uri("/static/export/landpks-round.png")
+        image_url = request.build_absolute_uri(logo_url)
         page_url = request.build_absolute_uri()
     else:
-        image_url = "/static/export/landpks-round.png"
+        image_url = logo_url
         page_url = ""
 
     html_content = f"""
@@ -264,7 +274,7 @@ def export_page_html(name, resource_type, csv_url, json_url, request=None):
     </head>
     <body>
         <div class="container">
-            <img src="/static/export/landpks-round.png" alt="LandPKS Logo" class="logo">
+            <img src="{logo_url}" alt="LandPKS Logo" class="logo">
             <h1>LandPKS Soil ID Data Export</h1>
             <p>Exports will always contain up-to-date data. Export links will be valid until reset in the mobile app.</p>
 
