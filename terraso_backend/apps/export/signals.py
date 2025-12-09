@@ -41,9 +41,7 @@ def delete_user_export_tokens_on_soft_delete(sender, instance, **kwargs):
         ExportToken.objects.filter(user_id=str(instance.id)).delete()
 
         # Also delete tokens for this user as a resource
-        ExportToken.objects.filter(
-            resource_type="USER", resource_id=str(instance.id)
-        ).delete()
+        ExportToken.objects.filter(resource_type="USER", resource_id=str(instance.id)).delete()
 
 
 @receiver(post_save, sender=Project)
@@ -57,9 +55,7 @@ def delete_project_export_tokens_on_soft_delete(sender, instance, **kwargs):
     """
     if instance.deleted_at is not None:
         # Delete all tokens for this project (any user)
-        ExportToken.objects.filter(
-            resource_type="PROJECT", resource_id=str(instance.id)
-        ).delete()
+        ExportToken.objects.filter(resource_type="PROJECT", resource_id=str(instance.id)).delete()
 
 
 @receiver(post_save, sender=Site)
@@ -73,9 +69,7 @@ def delete_site_export_tokens_on_soft_delete(sender, instance, **kwargs):
     """
     if instance.deleted_at is not None:
         # Delete all tokens for this site (any user)
-        ExportToken.objects.filter(
-            resource_type="SITE", resource_id=str(instance.id)
-        ).delete()
+        ExportToken.objects.filter(resource_type="SITE", resource_id=str(instance.id)).delete()
 
 
 @receiver(post_save, sender=Membership)
@@ -94,7 +88,7 @@ def delete_export_tokens_on_membership_removal(sender, instance, **kwargs):
         return
 
     # Safely get project - membership_list may be for groups, landscapes, etc.
-    project = getattr(instance.membership_list, 'project', None)
+    project = getattr(instance.membership_list, "project", None)
     if project is None:
         return
 

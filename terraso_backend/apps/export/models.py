@@ -39,8 +39,13 @@ class ExportToken(models.Model):
     class Meta:
         db_table = "export_token"
         indexes = [
-            models.Index(fields=["resource_type", "resource_id"], name="export_toke_resourc_391f43_idx"),
-            models.Index(fields=["user_id", "resource_type", "resource_id"], name="export_token_user_resource_idx"),
+            models.Index(
+                fields=["resource_type", "resource_id"], name="export_toke_resourc_391f43_idx"
+            ),
+            models.Index(
+                fields=["user_id", "resource_type", "resource_id"],
+                name="export_token_user_resource_idx",
+            ),
         ]
         constraints = [
             models.UniqueConstraint(

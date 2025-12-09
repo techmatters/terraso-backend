@@ -151,7 +151,7 @@ class ProjectNode(DjangoObjectType):
     @classmethod
     def get_queryset(cls, queryset, info):
         # System exports bypass membership filtering
-        if getattr(info.context, 'is_system_export', False):
+        if getattr(info.context, "is_system_export", False):
             return queryset
 
         # limit queries to membership lists of projects to which the user belongs

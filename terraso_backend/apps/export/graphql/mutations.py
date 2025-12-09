@@ -135,12 +135,8 @@ class DeleteExportToken(graphene.Mutation):
             token_obj = ExportToken.objects.get(token=token)
 
             # Check permissions - user must have rights to manage this resource's token
-            if not can_manage_export_token(
-                user, token_obj.resource_type, token_obj.resource_id
-            ):
-                raise GraphQLError(
-                    "You do not have permission to delete this export token"
-                )
+            if not can_manage_export_token(user, token_obj.resource_type, token_obj.resource_id):
+                raise GraphQLError("You do not have permission to delete this export token")
 
             token_obj.delete()
 

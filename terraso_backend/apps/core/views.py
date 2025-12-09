@@ -197,5 +197,3 @@ def restore(task, user_id, session_id):
         task.status = "finished"
     finally:
         task.save()
-
-

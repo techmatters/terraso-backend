@@ -158,7 +158,7 @@ def fetch_soil_id(site, request):
     data = {
         "slope": soil_data.get("slopeSteepnessDegree"),
         "surfaceCracks": soil_data.get("surfaceCracksSelect", "NO_CRACKING"),
-        "depthDependentData": []
+        "depthDependentData": [],
     }
 
     # Process depth intervals and depth-dependent data
@@ -169,7 +169,7 @@ def fetch_soil_id(site, request):
         depth_entry = {
             "depthInterval": {
                 "start": interval.get("depthInterval", {}).get("start"),
-                "end": interval.get("depthInterval", {}).get("end")
+                "end": interval.get("depthInterval", {}).get("end"),
             }
         }
 
@@ -182,19 +182,20 @@ def fetch_soil_id(site, request):
             depth_entry["rockFragmentVolume"] = depth_data["rockFragmentVolume"]
 
         # Convert Munsell color to LAB color if available
-        if (depth_data.get("colorHue") is not None and
-            depth_data.get("colorValue") is not None and
-            depth_data.get("colorChroma") is not None):
+        if (
+            depth_data.get("colorHue") is not None
+            and depth_data.get("colorValue") is not None
+            and depth_data.get("colorChroma") is not None
+        ):
             # For now, we'll use placeholder LAB values
             # In a real implementation, you'd convert Munsell to LAB
             depth_entry["colorLAB"] = {
                 "L": depth_data.get("colorValue", 0) * 10,  # Rough conversion
                 "A": 0.0,  # Placeholder
-                "B": depth_data.get("colorChroma", 0) * 2  # Rough conversion
+                "B": depth_data.get("colorChroma", 0) * 2,  # Rough conversion
             }
 
         data["depthDependentData"].append(depth_entry)
-
 
     # print("query SoilID Latitude ", latitude, "Longitude ", longitude, "Data ", data)
 

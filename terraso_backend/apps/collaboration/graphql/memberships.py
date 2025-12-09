@@ -143,7 +143,7 @@ class MembershipNodeMixin:
     @classmethod
     def get_queryset(cls, queryset, info):
         # System exports bypass membership filtering
-        if getattr(info.context, 'is_system_export', False):
+        if getattr(info.context, "is_system_export", False):
             return queryset
 
         user = info.context.user
