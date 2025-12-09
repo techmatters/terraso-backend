@@ -86,22 +86,31 @@ def delete_export_tokens_on_membership_removal(sender, instance, **kwargs):
 
     SafeDeleteModel doesn't trigger post_delete, so we use post_save
     and check if deleted_at is set.
+
+    Note: MembershipList can be associated with projects, groups, landscapes,
+    or story maps. We only care about project memberships for export tokens.
     """
-    if instance.deleted_at is not None and instance.membership_list.project:
-        project = instance.membership_list.project
-        user_id = str(instance.user.id)
+    if instance.deleted_at is None:
+        return
 
-        # Delete user's token for this project
-        ExportToken.objects.filter(
-            user_id=user_id,
-            resource_type="PROJECT",
-            resource_id=str(project.id),
-        ).delete()
+    # Safely get project - membership_list may be for groups, landscapes, etc.
+    project = getattr(instance.membership_list, 'project', None)
+    if project is None:
+        return
 
-        # Delete user's tokens for all sites in this project
-        site_ids = project.sites.values_list("id", flat=True)
-        ExportToken.objects.filter(
-            user_id=user_id,
-            resource_type="SITE",
-            resource_id__in=[str(sid) for sid in site_ids],
-        ).delete()
+    user_id = str(instance.user.id)
+
+    # Delete user's token for this project
+    ExportToken.objects.filter(
+        user_id=user_id,
+        resource_type="PROJECT",
+        resource_id=str(project.id),
+    ).delete()
+
+    # Delete user's tokens for all sites in this project
+    site_ids = project.sites.values_list("id", flat=True)
+    ExportToken.objects.filter(
+        user_id=user_id,
+        resource_type="SITE",
+        resource_id__in=[str(sid) for sid in site_ids],
+    ).delete()
