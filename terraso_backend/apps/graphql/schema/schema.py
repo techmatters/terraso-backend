@@ -16,6 +16,11 @@
 import graphene
 from graphene_django.filter import DjangoFilterConnectionField
 
+from apps.export.graphql.mutations import (
+    CreateExportToken,
+    DeleteExportToken,
+)
+from apps.export.graphql.queries import Query as ExportQuery
 from apps.project_management.graphql.projects import (
     ProjectAddMutation,
     ProjectAddUserMutation,
@@ -47,11 +52,6 @@ from apps.soil_id.graphql.soil_project.mutations import (
     ProjectSoilSettingsUpdateMutation,
 )
 from apps.soil_id.graphql.sync.push_mutation import UserDataPush
-from apps.export.graphql.mutations import (
-    CreateExportToken,
-    DeleteExportToken,
-)
-from apps.export.graphql.queries import Query as ExportQuery
 
 from .commons import TerrasoRelayNode
 from .data_entries import (

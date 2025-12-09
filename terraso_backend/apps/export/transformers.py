@@ -72,7 +72,9 @@ def code_to_label(code_value, capitalize_all_words=True):
         return " ".join(word.capitalize() for word in words)
     else:
         # Only capitalize first word: "SILTY_CLAY" -> "Silty clay"
-        return " ".join(word.capitalize() if i == 0 else word.lower() for i, word in enumerate(words))
+        return " ".join(
+            word.capitalize() if i == 0 else word.lower() for i, word in enumerate(words)
+        )
 
 
 def get_enum_label(enum_class, value, fallback=None):
@@ -180,7 +182,7 @@ def format_rock_fragment_volume(obj):
         # Replace em-dash with regular dash and remove all spaces
         value = obj["rockFragmentVolume"]
         value = value.replace("—", "-")  # Replace em-dash with regular dash
-        value = value.replace(" ", "")   # Remove all spaces
+        value = value.replace(" ", "")  # Remove all spaces
         obj["rockFragmentVolume"] = value
 
 
@@ -301,7 +303,9 @@ def merge_depth_intervals_into_data(soil_data):
         del soil_data["depthIntervals"]
 
 
-def render_munsell_hue(color_hue: Optional[float], color_chroma: Optional[float]) -> Tuple[Optional[float], Optional[str]]:
+def render_munsell_hue(
+    color_hue: Optional[float], color_chroma: Optional[float]
+) -> Tuple[Optional[float], Optional[str]]:
     if color_hue is None:
         return None, None
 
@@ -459,13 +463,19 @@ def flatten_site(site: dict) -> dict:
             "Depth label": depth_item.get("label") if depth_item else None,
             "Depth start": depth_item.get("depthIntervalStart") if depth_item else None,
             "Depth end": depth_item.get("depthIntervalEnd") if depth_item else None,
-            "Depth rock fragment volume": depth_item.get("rockFragmentVolume") if depth_item else None,
+            "Depth rock fragment volume": depth_item.get("rockFragmentVolume")
+            if depth_item
+            else None,
             "Depth texture class": depth_item.get("texture") if depth_item else None,
             "Depth soil color": depth_item.get("_colorMunsell") if depth_item else None,
             # Color photo metadata
             "Soil color photo used": depth_item.get("colorPhotoUsed") if depth_item else None,
-            "Soil color condition": depth_item.get("colorPhotoSoilCondition") if depth_item else None,
-            "Soil color lighting": depth_item.get("colorPhotoLightingCondition") if depth_item else None,
+            "Soil color condition": depth_item.get("colorPhotoSoilCondition")
+            if depth_item
+            else None,
+            "Soil color lighting": depth_item.get("colorPhotoLightingCondition")
+            if depth_item
+            else None,
         }
         rows.append(flat)
 
