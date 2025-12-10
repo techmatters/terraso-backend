@@ -31,36 +31,36 @@ def get_user_tokens(user):
     return ExportToken.objects.filter(user_id=str(user.id))
 
 
-def can_manage_export_token(user, resource_type, resource_id):
+def can_create_export_token(user, resource_type, resource_id):
     """
-    Check if user has permission to create/delete export tokens for a resource.
+    Check if user has permission to CREATE an export token for a resource.
+    User must have access to the underlying resource.
 
-    Rules (Option A - Most Restrictive):
+    Rules:
     - USER: Only the user themselves
-    - PROJECT: Only project managers/owners
-    - SITE: Only site owner (unaffiliated) or project managers/owners (project sites)
+    - PROJECT: Any project member
+    - SITE: Site owner (unaffiliated) or any project member (project sites)
     """
     if user.is_anonymous:
         return False
 
     if resource_type == "USER":
-        # Users can only manage tokens for themselves
+        # Users can only create tokens for themselves
         return str(user.id) == resource_id
 
     elif resource_type == "PROJECT":
-        # Only project managers/owners can manage tokens
+        # Any project member can create their own token
         try:
             project = Project.objects.get(pk=resource_id)
             return project.membership_list.memberships.filter(
                 user=user,
-                user_role__in=["MANAGER", "OWNER"],
                 deleted_at__isnull=True,
             ).exists()
         except Project.DoesNotExist:
             return False
 
     elif resource_type == "SITE":
-        # Site owner OR project manager/owner can manage tokens
+        # Site owner OR any project member can create their own token
         try:
             site = Site.objects.get(pk=resource_id)
 
@@ -68,11 +68,10 @@ def can_manage_export_token(user, resource_type, resource_id):
             if site.owner == user:
                 return True
 
-            # Check if user is manager/owner of site's project
+            # Check if user is a member of site's project
             if site.project:
                 return site.project.membership_list.memberships.filter(
                     user=user,
-                    user_role__in=["MANAGER", "OWNER"],
                     deleted_at__isnull=True,
                 ).exists()
 
@@ -81,6 +80,11 @@ def can_manage_export_token(user, resource_type, resource_id):
             return False
 
     return False
+
+
+def user_owns_token(user, token_obj):
+    """Check if user owns this token (for view/delete operations)."""
+    return str(user.id) == token_obj.user_id
 
 
 class CreateExportToken(graphene.Mutation):
@@ -96,7 +100,7 @@ class CreateExportToken(graphene.Mutation):
         resource_type_str = resource_type.value
 
         # Check permissions
-        if not can_manage_export_token(user, resource_type_str, resource_id):
+        if not can_create_export_token(user, resource_type_str, resource_id):
             raise GraphQLError(
                 "You do not have permission to create an export token for this resource"
             )
@@ -134,8 +138,8 @@ class DeleteExportToken(graphene.Mutation):
         try:
             token_obj = ExportToken.objects.get(token=token)
 
-            # Check permissions - user must have rights to manage this resource's token
-            if not can_manage_export_token(user, token_obj.resource_type, token_obj.resource_id):
+            # Check permissions - user can only delete their own tokens
+            if not user_owns_token(user, token_obj):
                 raise GraphQLError("You do not have permission to delete this export token")
 
             token_obj.delete()
