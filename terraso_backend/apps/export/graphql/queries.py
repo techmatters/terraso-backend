@@ -14,10 +14,8 @@
 # along with this program. If not, see https://www.gnu.org/licenses/.
 
 import graphene
-from graphql import GraphQLError
 
 from ..models import ExportToken
-from .mutations import can_manage_export_token
 from .types import ExportToken as ExportTokenType
 from .types import ResourceTypeEnum
 
@@ -32,14 +30,11 @@ class Query(graphene.ObjectType):
 
     @staticmethod
     def resolve_export_token(root, info, resource_type, resource_id):
+        """Get the current user's export token for a specific resource."""
         user = info.context.user
         resource_type_str = resource_type.value
 
-        if not can_manage_export_token(user, resource_type_str, resource_id):
-            raise GraphQLError(
-                "You do not have permission to view the export token for this resource"
-            )
-
+        # Query filters by user_id, so users can only see their own tokens
         try:
             token_obj = ExportToken.objects.get(
                 resource_type=resource_type_str,
