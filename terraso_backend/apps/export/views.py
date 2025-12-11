@@ -28,27 +28,23 @@ from .transformers import transform_site_data
 
 def _resolve_export_token(token):
     """
-    Resolve export token to (resource_type, resource_id).
-    Returns invalid token page if token not found.
+    Resolve export token string to ExportToken object.
+    Returns None if token not found.
     """
     try:
-        export_token = ExportToken.objects.get(token=token)
-        return export_token.resource_type, export_token.resource_id
+        return ExportToken.objects.get(token=token)
     except ExportToken.DoesNotExist:
-        return None, None
+        return None
 
 
-def _setup_system_export_user(request):
-    """Set up request with system export user and flag."""
+def _setup_token_user(request, export_token):
+    """Set up request with the user who owns the export token."""
     User = get_user_model()
     try:
-        service_user = User.objects.get(email="system-export@terraso.org")
+        token_owner = User.objects.get(id=export_token.user_id)
     except User.DoesNotExist:
-        raise RuntimeError(
-            "System export user not found. Run migrations to create 'system-export@terraso.org' user."
-        )
-    request.user = service_user
-    request.is_system_export = True
+        raise RuntimeError(f"Token owner user not found: {export_token.user_id}")
+    request.user = token_owner
 
 
 def _process_sites(site_ids, request):
@@ -150,65 +146,61 @@ def _export_user_all_sites(user_id, request):
 
 def project_export(request, project_token, project_name, format):
     """Export all sites in a project using export token (public access, no auth required)."""
-    _setup_system_export_user(request)
-
-    # Resolve token to actual project ID
-    resource_type, project_id = _resolve_export_token(project_token)
-    if resource_type is None:
+    export_token = _resolve_export_token(project_token)
+    if export_token is None:
         return invalid_token_page()
-    if resource_type != "PROJECT":
+    if export_token.resource_type != "PROJECT":
         return HttpResponseBadRequest("Invalid token type for project export")
 
+    _setup_token_user(request, export_token)
+
     # Use core business logic
-    all_sites = _export_project_sites(project_id, request)
+    all_sites = _export_project_sites(export_token.resource_id, request)
     return _export_sites_response(all_sites, format, project_name)
 
 
 def site_export(request, site_token, site_name, format):
     """Export a single site using export token (public access, no auth required)."""
-    _setup_system_export_user(request)
-
-    # Resolve token to actual site ID
-    resource_type, site_id = _resolve_export_token(site_token)
-    if resource_type is None:
+    export_token = _resolve_export_token(site_token)
+    if export_token is None:
         return invalid_token_page()
-    if resource_type != "SITE":
+    if export_token.resource_type != "SITE":
         return HttpResponseBadRequest("Invalid token type for site export")
 
+    _setup_token_user(request, export_token)
+
     # Use core business logic
-    all_sites = _export_single_site(site_id, request)
+    all_sites = _export_single_site(export_token.resource_id, request)
     return _export_sites_response(all_sites, format, site_name)
 
 
 def user_owned_sites_export(request, user_token, user_name, format):
     """Export all sites owned by a specific user (not in any project) using export token (public access, no auth required)."""
-    _setup_system_export_user(request)
-
-    # Resolve token to actual user ID
-    resource_type, user_id = _resolve_export_token(user_token)
-    if resource_type is None:
+    export_token = _resolve_export_token(user_token)
+    if export_token is None:
         return invalid_token_page()
-    if resource_type != "USER":
+    if export_token.resource_type != "USER":
         return HttpResponseBadRequest("Invalid token type for user export")
 
+    _setup_token_user(request, export_token)
+
     # Use core business logic
-    all_sites = _export_user_owned_sites(user_id, request)
+    all_sites = _export_user_owned_sites(export_token.resource_id, request)
     return _export_sites_response(all_sites, format, f"{user_name}_owned_sites")
 
 
 def user_all_sites_export(request, user_token, user_name, format):
     """Export all sites owned by user plus all sites in projects where user is a member using export token (public access, no auth required)."""
-    _setup_system_export_user(request)
-
-    # Resolve token to actual user ID
-    resource_type, user_id = _resolve_export_token(user_token)
-    if resource_type is None:
+    export_token = _resolve_export_token(user_token)
+    if export_token is None:
         return invalid_token_page()
-    if resource_type != "USER":
+    if export_token.resource_type != "USER":
         return HttpResponseBadRequest("Invalid token type for user export")
 
+    _setup_token_user(request, export_token)
+
     # Use core business logic
-    all_sites = _export_user_all_sites(user_id, request)
+    all_sites = _export_user_all_sites(export_token.resource_id, request)
     return _export_sites_response(all_sites, format, f"{user_name}_and_projects")
 
 
@@ -261,8 +253,8 @@ def user_all_sites_export_by_id(request, user_id, user_name, format):
 def project_export_page(request, project_token, project_name):
     """Return HTML page with download links for project export."""
     # Check if token is valid
-    resource_type, _ = _resolve_export_token(project_token)
-    if resource_type is None:
+    export_token = _resolve_export_token(project_token)
+    if export_token is None:
         return invalid_token_page()
 
     csv_url = f"/export/token/project/{project_token}/{project_name}.csv"
@@ -273,8 +265,8 @@ def project_export_page(request, project_token, project_name):
 def site_export_page(request, site_token, site_name):
     """Return HTML page with download links for site export."""
     # Check if token is valid
-    resource_type, _ = _resolve_export_token(site_token)
-    if resource_type is None:
+    export_token = _resolve_export_token(site_token)
+    if export_token is None:
         return invalid_token_page()
 
     csv_url = f"/export/token/site/{site_token}/{site_name}.csv"
@@ -285,8 +277,8 @@ def site_export_page(request, site_token, site_name):
 def user_owned_sites_export_page(request, user_token, user_name):
     """Return HTML page with download links for user owned sites export."""
     # Check if token is valid
-    resource_type, _ = _resolve_export_token(user_token)
-    if resource_type is None:
+    export_token = _resolve_export_token(user_token)
+    if export_token is None:
         return invalid_token_page()
 
     csv_url = f"/export/token/user_owned/{user_token}/{user_name}.csv"
@@ -297,8 +289,8 @@ def user_owned_sites_export_page(request, user_token, user_name):
 def user_all_sites_export_page(request, user_token, user_name):
     """Return HTML page with download links for user all sites export."""
     # Check if token is valid
-    resource_type, _ = _resolve_export_token(user_token)
-    if resource_type is None:
+    export_token = _resolve_export_token(user_token)
+    if export_token is None:
         return invalid_token_page()
 
     csv_url = f"/export/token/user_all/{user_token}/{user_name}.csv"
