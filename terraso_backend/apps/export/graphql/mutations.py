@@ -31,62 +31,6 @@ def get_user_tokens(user):
     return ExportToken.objects.filter(user_id=str(user.id))
 
 
-def can_create_export_token(user, resource_type, resource_id):
-    """
-    Check if user has permission to CREATE an export token for a resource.
-    User must have access to the underlying resource.
-
-    Rules:
-    - USER: Only the user themselves
-    - PROJECT: Any project member
-    - SITE: Site owner (unaffiliated) or any project member (project sites)
-    """
-    if user.is_anonymous:
-        return False
-
-    if resource_type == "USER":
-        # Users can only create tokens for themselves
-        return str(user.id) == resource_id
-
-    elif resource_type == "PROJECT":
-        # Any project member can create their own token
-        try:
-            project = Project.objects.get(pk=resource_id)
-            return project.membership_list.memberships.filter(
-                user=user,
-                deleted_at__isnull=True,
-            ).exists()
-        except Project.DoesNotExist:
-            return False
-
-    elif resource_type == "SITE":
-        # Site owner OR any project member can create their own token
-        try:
-            site = Site.objects.get(pk=resource_id)
-
-            # Check if user owns the site directly (unaffiliated site)
-            if site.owner == user:
-                return True
-
-            # Check if user is a member of site's project
-            if site.project:
-                return site.project.membership_list.memberships.filter(
-                    user=user,
-                    deleted_at__isnull=True,
-                ).exists()
-
-            return False
-        except Site.DoesNotExist:
-            return False
-
-    return False
-
-
-def user_owns_token(user, token_obj):
-    """Check if user owns this token (for view/delete operations)."""
-    return str(user.id) == token_obj.user_id
-
-
 class CreateExportToken(graphene.Mutation):
     class Arguments:
         resource_type = ResourceTypeEnum(required=True)
@@ -99,24 +43,39 @@ class CreateExportToken(graphene.Mutation):
         user = info.context.user
         resource_type_str = resource_type.value
 
-        # Check permissions
-        if not can_create_export_token(user, resource_type_str, resource_id):
-            raise GraphQLError(
-                "You do not have permission to create an export token for this resource"
-            )
+        # Verify resource exists and check permissions
+        if resource_type_str == "USER":
+            try:
+                User.objects.get(pk=resource_id)
+            except User.DoesNotExist:
+                raise GraphQLError("User not found")
 
-        # Verify resource exists
-        model_map = {
-            "USER": User,
-            "PROJECT": Project,
-            "SITE": Site,
-        }
+            if not user.has_perm("export.create_user_token", resource_id):
+                raise GraphQLError(
+                    "You do not have permission to create an export token for this resource"
+                )
 
-        model = model_map[resource_type_str]
-        try:
-            model.objects.get(pk=resource_id)
-        except model.DoesNotExist:
-            raise GraphQLError(f"{resource_type} not found")
+        elif resource_type_str == "PROJECT":
+            try:
+                project = Project.objects.get(pk=resource_id)
+            except Project.DoesNotExist:
+                raise GraphQLError("Project not found")
+
+            if not user.has_perm("export.create_project_token", project):
+                raise GraphQLError(
+                    "You do not have permission to create an export token for this resource"
+                )
+
+        elif resource_type_str == "SITE":
+            try:
+                site = Site.objects.get(pk=resource_id)
+            except Site.DoesNotExist:
+                raise GraphQLError("Site not found")
+
+            if not user.has_perm("export.create_site_token", site):
+                raise GraphQLError(
+                    "You do not have permission to create an export token for this resource"
+                )
 
         # Get or create token for this user-resource pair
         ExportToken.get_or_create_token(resource_type_str, resource_id, str(user.id))
@@ -139,7 +98,7 @@ class DeleteExportToken(graphene.Mutation):
             token_obj = ExportToken.objects.get(token=token)
 
             # Check permissions - user can only delete their own tokens
-            if not user_owns_token(user, token_obj):
+            if not user.has_perm("export.owns_token", token_obj):
                 raise GraphQLError("You do not have permission to delete this export token")
 
             token_obj.delete()
