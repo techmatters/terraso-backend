@@ -188,8 +188,8 @@ Each user has their own token per resource. Tokens are automatically deleted whe
 
 ### Security
 
-- Token-based URLs use `is_system_export` context flag to bypass normal membership filtering
-- This flag is checked in `get_queryset()` methods in `sites.py`, `projects.py`, and `memberships.py`
+- Token-based export URLs set `request.user` to the token owner (the user who created the token)
+- This allows normal membership filtering to work correctly without special bypass logic
 - CORS for `/export/token/*` URLs is handled by signal in `apps/export/handlers.py`
 
 ### Development Scripts
