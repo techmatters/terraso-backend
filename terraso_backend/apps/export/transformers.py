@@ -18,27 +18,34 @@ from typing import Optional, Tuple
 from django.conf import settings
 
 from apps.soil_id.models.depth_dependent_soil_data import DepthDependentSoilData
+from apps.soil_id.models.project_soil_settings import BLMIntervalDefaults, NRCSIntervalDefaults
 from apps.soil_id.models.soil_data import SoilData
 
 from .fetch_data import fetch_all_notes_for_site
 
-# Depth interval presets (label and range only; *Enabled flags not needed for export)
-DEPTH_INTERVALS_NRCS = [
-    {"label": "0-5 cm", "depthInterval": {"start": 0, "end": 5}},
-    {"label": "5-15 cm", "depthInterval": {"start": 5, "end": 15}},
-    {"label": "15-30 cm", "depthInterval": {"start": 15, "end": 30}},
-    {"label": "30-60 cm", "depthInterval": {"start": 30, "end": 60}},
-    {"label": "60-100 cm", "depthInterval": {"start": 60, "end": 100}},
-    {"label": "100-200 cm", "depthInterval": {"start": 100, "end": 200}},
-]
 
-DEPTH_INTERVALS_BLM = [
-    {"label": "0-1 cm", "depthInterval": {"start": 0, "end": 1}},
-    {"label": "1-10 cm", "depthInterval": {"start": 1, "end": 10}},
-    {"label": "10-20 cm", "depthInterval": {"start": 10, "end": 20}},
-    {"label": "20-50 cm", "depthInterval": {"start": 20, "end": 50}},
-    {"label": "50-70 cm", "depthInterval": {"start": 50, "end": 70}},
-]
+def _build_depth_intervals(interval_defaults):
+    """
+    Convert interval defaults from project_soil_settings format to export format.
+
+    Input format:  {"depth_interval_start": 0, "depth_interval_end": 5}
+    Output format: {"label": "0-5 cm", "depthInterval": {"start": 0, "end": 5}}
+    """
+    return [
+        {
+            "label": f"{d['depth_interval_start']}-{d['depth_interval_end']} cm",
+            "depthInterval": {
+                "start": d["depth_interval_start"],
+                "end": d["depth_interval_end"],
+            },
+        }
+        for d in interval_defaults
+    ]
+
+
+# Depth interval presets (derived from soil_id source of truth)
+NRCS_DEPTH_INTERVALS = _build_depth_intervals(NRCSIntervalDefaults)
+BLM_DEPTH_INTERVALS = _build_depth_intervals(BLMIntervalDefaults)
 
 
 # Helper functions for converting enum codes to human-readable labels
@@ -248,9 +255,9 @@ def add_default_depth_intervals(soil_data):
     if "depthIntervals" not in soil_data or not soil_data["depthIntervals"]:
         match soil_data.get("depthIntervalPreset"):
             case "NRCS":
-                soil_data["depthIntervals"] = DEPTH_INTERVALS_NRCS
+                soil_data["depthIntervals"] = NRCS_DEPTH_INTERVALS
             case "BLM":
-                soil_data["depthIntervals"] = DEPTH_INTERVALS_BLM
+                soil_data["depthIntervals"] = BLM_DEPTH_INTERVALS
             case _:
                 # Unknown preset or no preset - leave depthIntervals as-is
                 # (might be custom intervals or empty)
