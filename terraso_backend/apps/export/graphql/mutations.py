@@ -31,7 +31,7 @@ def get_user_tokens(user):
     return ExportToken.objects.filter(user_id=str(user.id))
 
 
-class CreateExportToken(graphene.Mutation):
+class ExportTokenAddMutation(graphene.Mutation):
     class Arguments:
         resource_type = ResourceTypeEnum(required=True)
         resource_id = graphene.ID(required=True)
@@ -81,10 +81,10 @@ class CreateExportToken(graphene.Mutation):
         ExportToken.get_or_create_token(resource_type_str, resource_id, str(user.id))
 
         # Return all tokens for the user
-        return CreateExportToken(tokens=list(get_user_tokens(user)))
+        return ExportTokenAddMutation(tokens=list(get_user_tokens(user)))
 
 
-class DeleteExportToken(graphene.Mutation):
+class ExportTokenDeleteMutation(graphene.Mutation):
     class Arguments:
         token = graphene.String(required=True)
 
@@ -104,11 +104,11 @@ class DeleteExportToken(graphene.Mutation):
             token_obj.delete()
 
             # Return all remaining tokens for the user
-            return DeleteExportToken(tokens=list(get_user_tokens(user)))
+            return ExportTokenDeleteMutation(tokens=list(get_user_tokens(user)))
         except ExportToken.DoesNotExist:
             raise GraphQLError("Export token not found")
 
 
 class Mutation(graphene.ObjectType):
-    create_export_token = CreateExportToken.Field()
-    delete_export_token = DeleteExportToken.Field()
+    add_export_token = ExportTokenAddMutation.Field()
+    delete_export_token = ExportTokenDeleteMutation.Field()

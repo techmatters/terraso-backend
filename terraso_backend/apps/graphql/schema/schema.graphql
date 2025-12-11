@@ -1738,8 +1738,8 @@ type Mutations {
   saveGroupMembership(input: GroupMembershipSaveMutationInput!): GroupMembershipSaveMutationPayload!
   deleteGroupMembership(input: GroupMembershipDeleteMutationInput!): GroupMembershipDeleteMutationPayload!
   updateSharedResource(input: SharedResourceUpdateMutationInput!): SharedResourceUpdateMutationPayload!
-  createExportToken(resourceId: ID!, resourceType: ResourceTypeEnum!): CreateExportToken
-  deleteExportToken(token: String!): DeleteExportToken
+  addExportToken(resourceId: ID!, resourceType: ResourceTypeEnum!): ExportTokenAddMutation
+  deleteExportToken(token: String!): ExportTokenDeleteMutation
 }
 
 type GroupAddMutationPayload {
@@ -2713,10 +2713,10 @@ input SharedResourceUpdateMutationInput {
   clientMutationId: String
 }
 
-type CreateExportToken {
+type ExportTokenAddMutation {
   tokens: [ExportToken!]
 }
 
-type DeleteExportToken {
+type ExportTokenDeleteMutation {
   tokens: [ExportToken!]
 }
