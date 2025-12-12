@@ -47,6 +47,36 @@ def _setup_token_user(request, export_token):
     request.user = token_owner
 
 
+def _get_resource_name(export_token):
+    """
+    Look up the actual name of the resource from the database.
+    Returns the resource name for display/filename purposes.
+    """
+    from apps.project_management.models import Project, Site
+
+    if export_token.resource_type == "PROJECT":
+        try:
+            project = Project.objects.get(id=export_token.resource_id)
+            return project.name
+        except Project.DoesNotExist:
+            return None
+    elif export_token.resource_type == "SITE":
+        try:
+            site = Site.objects.get(id=export_token.resource_id)
+            return site.name
+        except Site.DoesNotExist:
+            return None
+    elif export_token.resource_type == "USER":
+        User = get_user_model()
+        try:
+            user = User.objects.get(id=export_token.resource_id)
+            full_name = f"{user.first_name} {user.last_name}".strip()
+            return full_name or user.email
+        except User.DoesNotExist:
+            return None
+    return None
+
+
 def _process_sites(site_ids, request):
     """
     Process a set of site IDs into full site data.
@@ -173,9 +203,10 @@ def project_export(request, project_token, project_name, format):
 
     _setup_token_user(request, export_token)
 
-    # Use core business logic
+    # Use actual name from database for filename
+    filename = _get_resource_name(export_token) or unquote(project_name)
     all_sites = _export_project_sites(export_token.resource_id, request)
-    return _export_sites_response(all_sites, format, project_name)
+    return _export_sites_response(all_sites, format, filename)
 
 
 def site_export(request, site_token, site_name, format):
@@ -188,9 +219,10 @@ def site_export(request, site_token, site_name, format):
 
     _setup_token_user(request, export_token)
 
-    # Use core business logic
+    # Use actual name from database for filename
+    filename = _get_resource_name(export_token) or unquote(site_name)
     all_sites = _export_single_site(export_token.resource_id, request)
-    return _export_sites_response(all_sites, format, site_name)
+    return _export_sites_response(all_sites, format, filename)
 
 
 def user_owned_sites_export(request, user_token, user_name, format):
@@ -203,9 +235,10 @@ def user_owned_sites_export(request, user_token, user_name, format):
 
     _setup_token_user(request, export_token)
 
-    # Use core business logic
+    # Use actual name from database for filename
+    display_name = _get_resource_name(export_token) or unquote(user_name)
     all_sites = _export_user_owned_sites(export_token.resource_id, request)
-    return _export_sites_response(all_sites, format, f"{user_name}_owned_sites")
+    return _export_sites_response(all_sites, format, f"{display_name}_owned_sites")
 
 
 def user_all_sites_export(request, user_token, user_name, format):
@@ -218,9 +251,10 @@ def user_all_sites_export(request, user_token, user_name, format):
 
     _setup_token_user(request, export_token)
 
-    # Use core business logic
+    # Use actual name from database for filename
+    display_name = _get_resource_name(export_token) or unquote(user_name)
     all_sites = _export_user_all_sites(export_token.resource_id, request)
-    return _export_sites_response(all_sites, format, f"{user_name}_and_projects")
+    return _export_sites_response(all_sites, format, f"{display_name}_and_projects")
 
 
 # ID-based exports (authenticated, enforce permissions)
@@ -231,9 +265,17 @@ def project_export_by_id(request, project_id, project_name, format):
     if not request.user.is_authenticated:
         return HttpResponse("Authentication required", status=401)
 
-    # Use core business logic - permissions enforced via GraphQL queries
+    # Look up actual name from database for filename
+    from apps.project_management.models import Project
+
+    try:
+        project = Project.objects.get(id=project_id)
+        filename = project.name
+    except Project.DoesNotExist:
+        filename = unquote(project_name)
+
     all_sites = _export_project_sites(project_id, request)
-    return _export_sites_response(all_sites, format, project_name)
+    return _export_sites_response(all_sites, format, filename)
 
 
 def site_export_by_id(request, site_id, site_name, format):
@@ -241,9 +283,17 @@ def site_export_by_id(request, site_id, site_name, format):
     if not request.user.is_authenticated:
         return HttpResponse("Authentication required", status=401)
 
-    # Use core business logic - permissions enforced via GraphQL queries
+    # Look up actual name from database for filename
+    from apps.project_management.models import Site
+
+    try:
+        site = Site.objects.get(id=site_id)
+        filename = site.name
+    except Site.DoesNotExist:
+        filename = unquote(site_name)
+
     all_sites = _export_single_site(site_id, request)
-    return _export_sites_response(all_sites, format, site_name)
+    return _export_sites_response(all_sites, format, filename)
 
 
 def user_owned_sites_export_by_id(request, user_id, user_name, format):
@@ -251,9 +301,17 @@ def user_owned_sites_export_by_id(request, user_id, user_name, format):
     if not request.user.is_authenticated:
         return HttpResponse("Authentication required", status=401)
 
-    # Use core business logic - permissions enforced via GraphQL queries
+    # Look up actual name from database for filename
+    User = get_user_model()
+    try:
+        user = User.objects.get(id=user_id)
+        full_name = f"{user.first_name} {user.last_name}".strip()
+        display_name = full_name or user.email
+    except User.DoesNotExist:
+        display_name = unquote(user_name)
+
     all_sites = _export_user_owned_sites(user_id, request)
-    return _export_sites_response(all_sites, format, f"{user_name}_owned_sites")
+    return _export_sites_response(all_sites, format, f"{display_name}_owned_sites")
 
 
 def user_all_sites_export_by_id(request, user_id, user_name, format):
@@ -261,9 +319,17 @@ def user_all_sites_export_by_id(request, user_id, user_name, format):
     if not request.user.is_authenticated:
         return HttpResponse("Authentication required", status=401)
 
-    # Use core business logic - permissions enforced via GraphQL queries
+    # Look up actual name from database for filename
+    User = get_user_model()
+    try:
+        user = User.objects.get(id=user_id)
+        full_name = f"{user.first_name} {user.last_name}".strip()
+        display_name = full_name or user.email
+    except User.DoesNotExist:
+        display_name = unquote(user_name)
+
     all_sites = _export_user_all_sites(user_id, request)
-    return _export_sites_response(all_sites, format, f"{user_name}_and_projects")
+    return _export_sites_response(all_sites, format, f"{display_name}_and_projects")
 
 
 # HTML landing pages for export links
@@ -276,9 +342,11 @@ def project_export_page(request, project_token, project_name):
     if export_token is None:
         return invalid_token_page()
 
+    # Use actual project name from database for display, URL name for links
+    display_name = _get_resource_name(export_token) or unquote(project_name)
     csv_url = f"/export/token/project/{project_token}/{project_name}.csv"
     json_url = f"/export/token/project/{project_token}/{project_name}.json"
-    return export_page_html(project_name, "project", csv_url, json_url, request)
+    return export_page_html(display_name, "project", csv_url, json_url, request)
 
 
 def site_export_page(request, site_token, site_name):
@@ -288,9 +356,11 @@ def site_export_page(request, site_token, site_name):
     if export_token is None:
         return invalid_token_page()
 
+    # Use actual site name from database for display, URL name for links
+    display_name = _get_resource_name(export_token) or unquote(site_name)
     csv_url = f"/export/token/site/{site_token}/{site_name}.csv"
     json_url = f"/export/token/site/{site_token}/{site_name}.json"
-    return export_page_html(site_name, "site", csv_url, json_url, request)
+    return export_page_html(display_name, "site", csv_url, json_url, request)
 
 
 def user_owned_sites_export_page(request, user_token, user_name):
@@ -300,9 +370,11 @@ def user_owned_sites_export_page(request, user_token, user_name):
     if export_token is None:
         return invalid_token_page()
 
+    # Use actual user name from database for display, URL name for links
+    display_name = _get_resource_name(export_token) or unquote(user_name)
     csv_url = f"/export/token/user_owned/{user_token}/{user_name}.csv"
     json_url = f"/export/token/user_owned/{user_token}/{user_name}.json"
-    return export_page_html(user_name, "user_owned", csv_url, json_url, request)
+    return export_page_html(display_name, "user_owned", csv_url, json_url, request)
 
 
 def user_all_sites_export_page(request, user_token, user_name):
@@ -312,6 +384,8 @@ def user_all_sites_export_page(request, user_token, user_name):
     if export_token is None:
         return invalid_token_page()
 
+    # Use actual user name from database for display, URL name for links
+    display_name = _get_resource_name(export_token) or unquote(user_name)
     csv_url = f"/export/token/user_all/{user_token}/{user_name}.csv"
     json_url = f"/export/token/user_all/{user_token}/{user_name}.json"
-    return export_page_html(user_name, "user_all", csv_url, json_url, request)
+    return export_page_html(display_name, "user_all", csv_url, json_url, request)
