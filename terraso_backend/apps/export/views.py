@@ -13,7 +13,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see https://www.gnu.org/licenses/.
 
-from urllib.parse import unquote
+from urllib.parse import quote, unquote
 
 from django.contrib.auth import get_user_model
 from django.http import HttpResponse, HttpResponseBadRequest, JsonResponse
@@ -75,6 +75,24 @@ def _strip_null_values(obj):
     return obj
 
 
+def _make_content_disposition(filename):
+    """
+    Build Content-Disposition header with both filename and filename* for compatibility.
+
+    - filename*: UTF-8 encoded per RFC 5987/6266 for modern browsers
+    - filename: ASCII fallback for older clients (non-ASCII replaced with underscore)
+
+    Note: filename* comes first as some clients give precedence to the first parameter.
+    Note: curl -O -J does not support filename* (PR #1995 was never merged), so it uses the
+    ASCII fallback filename.
+    """
+    # ASCII-safe fallback: replace non-ASCII characters with underscore
+    ascii_filename = filename.encode("ascii", "replace").decode("ascii").replace("?", "_")
+    # RFC 5987 format: charset'language'encoded_value (language is optional, hence empty)
+    encoded = quote(filename)
+    return f"attachment; filename*=UTF-8''{encoded}; filename=\"{ascii_filename}\""
+
+
 def _export_sites_response(all_sites, format, filename):
     """Helper function to generate export response for a list of sites."""
     # Validate format parameter
@@ -83,15 +101,16 @@ def _export_sites_response(all_sites, format, filename):
 
     # Decode URL-encoded characters in filename (e.g., %20 -> space)
     decoded_filename = unquote(filename)
+    full_filename = f"{decoded_filename}.{format}"
 
     if format == "json":
         cleaned_sites = _strip_null_values(all_sites)
         response = JsonResponse({"sites": cleaned_sites})
-        response["Content-Disposition"] = f'attachment; filename="{decoded_filename}.{format}"'
+        response["Content-Disposition"] = _make_content_disposition(full_filename)
         return response
 
     response = HttpResponse(sites_to_csv(all_sites), content_type="text/csv")
-    response["Content-Disposition"] = f'attachment; filename="{decoded_filename}.{format}"'
+    response["Content-Disposition"] = _make_content_disposition(full_filename)
     return response
 
 

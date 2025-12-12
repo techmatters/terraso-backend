@@ -13,6 +13,8 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see https://www.gnu.org/licenses/.
 
+from urllib.parse import quote
+
 from django.http import HttpResponse
 from django.templatetags.static import static
 
@@ -120,10 +122,16 @@ def export_page_html(name, resource_type, csv_url, json_url, request=None):
     Args:
         name: Display name for the export
         resource_type: Type of resource (project, site, user_all, user_owned)
-        csv_url: URL for CSV download
-        json_url: URL for JSON download
+        csv_url: URL for CSV download (will be URL-encoded for safe HTML/JS use)
+        json_url: URL for JSON download (will be URL-encoded for safe HTML/JS use)
         request: Django request object (optional, for building absolute URLs)
     """
+    # URL-encode the URLs for safe use in HTML attributes and JavaScript
+    # quote() with safe="" encodes everything except alphanumerics and _.-~
+    # We need to preserve path structure, so use safe="/:."
+    csv_url_safe = quote(csv_url, safe="/:.?&=")
+    json_url_safe = quote(json_url, safe="/:.?&=")
+
     resource_type_labels = {
         "project": "Project Sites",
         "site": "Single Site",
@@ -291,21 +299,21 @@ def export_page_html(name, resource_type, csv_url, json_url, request=None):
 
             <div class="download-section">
                 <div class="download-row">
-                    <a href="{csv_url}" class="download-link" download>
+                    <a href="{csv_url_safe}" class="download-link" download>
                         <span class="material-icons">file_download</span>
                         Download CSV
                     </a>
-                    <button class="copy-button" onclick="copyLink('{csv_url}', this)">
+                    <button class="copy-button" onclick="copyLink('{csv_url_safe}', this)">
                         <span class="material-icons">share</span>
                         <span class="copy-text">Copy Link</span>
                     </button>
                 </div>
                 <div class="download-row">
-                    <a href="{json_url}" class="download-link" download>
+                    <a href="{json_url_safe}" class="download-link" download>
                         <span class="material-icons">file_download</span>
                         Download JSON
                     </a>
-                    <button class="copy-button" onclick="copyLink('{json_url}', this)">
+                    <button class="copy-button" onclick="copyLink('{json_url_safe}', this)">
                         <span class="material-icons">share</span>
                         <span class="copy-text">Copy Link</span>
                     </button>
