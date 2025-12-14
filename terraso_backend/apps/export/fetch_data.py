@@ -122,6 +122,10 @@ def fetch_site_data(site_id, request):
             }
             soilMetadata {
                selectedSoilId
+               userRatings {
+                   soilMatchId
+                   rating
+               }
             }
             project {
                 id

@@ -77,6 +77,35 @@ def _get_resource_name(export_token):
     return None
 
 
+def _inject_user_ratings_into_matches(soil_id_data, user_ratings):
+    """
+    Inject user ratings into soil matches based on soil series name.
+
+    Args:
+        soil_id_data: The soil_id response data containing soilMatches
+        user_ratings: List of {soilMatchId, rating} from soilMetadata.userRatings
+
+    The soilMatchId corresponds to match.soilInfo.soilSeries.name.
+    If a match has a corresponding rating, adds "userRating" field.
+    If no rating exists for a match, the field is omitted.
+    """
+    if not user_ratings:
+        return
+
+    # Build lookup: {"Catden": "SELECTED", "Hollis": "REJECTED", ...}
+    ratings_by_name = {r["soilMatchId"]: r["rating"] for r in user_ratings}
+
+    # Navigate to matches array
+    matches = (
+        soil_id_data.get("soilId", {}).get("soilMatches", {}).get("matches", [])
+    )
+
+    for match in matches:
+        series_name = match.get("soilInfo", {}).get("soilSeries", {}).get("name")
+        if series_name and series_name in ratings_by_name:
+            match["userRating"] = ratings_by_name[series_name]
+
+
 def _process_sites(site_ids, request):
     """
     Process a set of site IDs into full site data.
@@ -87,8 +116,13 @@ def _process_sites(site_ids, request):
         site_data = fetch_site_data(site_id, request)
         # Fetch soil_id BEFORE transformation since it needs original enum codes
         soil_id_data = fetch_soil_id(site_data, request)
+        # Inject user ratings into soil matches (ratings are keyed by soil series name)
+        user_ratings = site_data.get("soilMetadata", {}).get("userRatings", [])
+        _inject_user_ratings_into_matches(soil_id_data, user_ratings)
         transformed_site = transform_site_data(site_data, request)
         transformed_site["soil_id"] = soil_id_data
+        # Remove soilMetadata from output - user ratings are now in soil_id matches
+        transformed_site.pop("soilMetadata", None)
         all_sites.append(transformed_site)
 
     # Sort sites by name

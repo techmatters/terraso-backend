@@ -395,6 +395,7 @@ def flatten_site(site: dict) -> dict:
     top_match_soil_series = None
     top_match_taxonomy = None
     top_match_description = None
+    top_match_user_rating = None
 
     # Get top match (first in list) regardless of user selection
     if isinstance(soil_matches, dict) and "matches" in soil_matches and soil_matches["matches"]:
@@ -404,6 +405,7 @@ def flatten_site(site: dict) -> dict:
         top_match_soil_series = top_match_series.get("name")
         top_match_taxonomy = top_match_series.get("taxonomySubgroup")
         top_match_description = top_match_series.get("description")
+        top_match_user_rating = top_match.get("userRating")
 
     # Find matching soil info if user selected a soil
     if user_selected_soil and isinstance(soil_matches, dict) and "matches" in soil_matches:
@@ -454,6 +456,8 @@ def flatten_site(site: dict) -> dict:
             "Top soil series match": top_match_soil_series,
             "Top soil match taxonomy subgroup": top_match_taxonomy,
             "Top soil match description": top_match_description,
+            # Default to "Unsure" if there's a top match but no explicit rating
+            "Top match user rating": (top_match_user_rating or "Unsure") if top_match_soil_series else None,
             # Ecological and classification
             "Ecological site name": ecological_site_name,
             "Ecological site ID": ecological_site_id,
