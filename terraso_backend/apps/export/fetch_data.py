@@ -110,6 +110,10 @@ def fetch_site_data(site_id, request):
                     }
                 }
                 depthDependentData {
+                    depthInterval {
+                        start
+                        end
+                    }
                     texture
                     rockFragmentVolume
                     colorHue

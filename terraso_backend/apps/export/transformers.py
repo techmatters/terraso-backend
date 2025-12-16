@@ -169,12 +169,15 @@ def add_simple_enum_labels(obj):
 
 def add_munsell_color_label(obj):
     """
-    Add _colorMunsell label if any color fields exist.
+    Add _colorMunsell label if any color fields have values.
 
     Special case: This derives from 3 separate fields (colorHue, colorValue, colorChroma)
     rather than transforming a single enum field, so it can't use the simple mapping approach.
+
+    Only adds _colorMunsell when at least one color field has a non-null value.
     """
-    if any(k in obj for k in ["colorHue", "colorValue", "colorChroma"]):
+    color_fields = ["colorHue", "colorValue", "colorChroma"]
+    if any(obj.get(k) is not None for k in color_fields):
         obj["_colorMunsell"] = munsell_to_string(obj)
 
 
@@ -298,7 +301,10 @@ def merge_depth_intervals_into_data(soil_data):
 
         # Add measurement data if it exists for this index
         if i < len(depth_dependent_data):
-            measurement_data = depth_dependent_data[i]
+            measurement_data = depth_dependent_data[i].copy()
+            # Remove depthInterval from measurement data if present
+            # (we already have depthIntervalStart/depthIntervalEnd from the interval)
+            measurement_data.pop("depthInterval", None)
             merged_item.update(measurement_data)
 
         merged_data.append(merged_item)
@@ -379,11 +385,22 @@ def flatten_site(site: dict) -> dict:
     if not depth_dependent_data:
         depth_dependent_data = [None]
 
-    user_selected_soil = site.get("soilMetadata", {}).get("selectedSoilId")
-
     # Extract soil ID match data
     soil_id_data = site.get("soil_id", {})
     soil_matches = soil_id_data.get("soilId", {}).get("soilMatches", {})
+
+    # Find user selected soil - look for match with userRating == "SELECTED"
+    # (userRating is injected into matches from soilMetadata.userRatings)
+    # Fallback to _selectedSoilName if no matches exist (e.g., when soil ID API fails)
+    user_selected_soil = None
+    if isinstance(soil_matches, dict) and "matches" in soil_matches:
+        for match in soil_matches.get("matches", []):
+            if match.get("userRating") == "SELECTED":
+                user_selected_soil = match.get("soilInfo", {}).get("soilSeries", {}).get("name")
+                break
+    # Fallback to _selectedSoilName when no matches exist
+    if user_selected_soil is None:
+        user_selected_soil = site.get("_selectedSoilName")
 
     # Initialize soil data variables
     matching_soil_info = None
@@ -396,6 +413,7 @@ def flatten_site(site: dict) -> dict:
     top_match_taxonomy = None
     top_match_description = None
     top_match_user_rating = None
+    top_match_data_source = None
 
     # Get top match (first in list) regardless of user selection
     if isinstance(soil_matches, dict) and "matches" in soil_matches and soil_matches["matches"]:
@@ -406,6 +424,7 @@ def flatten_site(site: dict) -> dict:
         top_match_taxonomy = top_match_series.get("taxonomySubgroup")
         top_match_description = top_match_series.get("description")
         top_match_user_rating = top_match.get("userRating")
+        top_match_data_source = top_match.get("dataSource")
 
     # Find matching soil info if user selected a soil
     if user_selected_soil and isinstance(soil_matches, dict) and "matches" in soil_matches:
@@ -447,7 +466,7 @@ def flatten_site(site: dict) -> dict:
             "Elevation": site["elevation"],
             "Last updated (UTC)": site["updatedAt"],
             # Soil match information (from soil_id API)
-            "Soil map": soil_id_data.get("soilId", {}).get("soilMatches", {}).get("dataRegion"),
+            "Soil map": top_match_data_source,
             # Selected soil (user's choice)
             "Selected soil series": user_selected_soil,
             "Selected soil type taxonomy subgroup": selected_soil_taxonomy,

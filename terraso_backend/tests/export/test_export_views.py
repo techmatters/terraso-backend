@@ -138,7 +138,7 @@ class TestUserExport:
 class TestTokenValidation:
     """Tests for token validation and error handling."""
 
-    def test_invalid_token_returns_404_page(self, client):
+    def test_export_invalid_token_returns_404_page(self, client):
         """Test that invalid token returns the invalid token HTML page."""
         url = "/export/token/site/invalid-token-12345/test.csv"
         response = client.get(url)
@@ -149,7 +149,7 @@ class TestTokenValidation:
         content = response.content.decode("utf-8")
         assert "Export Link No Longer Valid" in content
 
-    def test_wrong_token_type_returns_400(self, client, site_export_token):
+    def test_export_wrong_token_type_returns_400(self, client, site_export_token):
         """Test that using a site token for project endpoint returns 400."""
         # site_export_token is for a SITE, but we're using it on project endpoint
         url = f"/export/token/project/{site_export_token.token}/test.csv"
@@ -158,7 +158,7 @@ class TestTokenValidation:
         assert response.status_code == 400
         assert b"Invalid token type" in response.content
 
-    def test_deleted_token_returns_404(self, client, owned_site, export_user):
+    def test_export_deleted_token_returns_404(self, client, owned_site, export_user):
         """Test that a deleted token returns 404."""
         token = ExportToken.create_token("SITE", str(owned_site.id), str(export_user.id))
         token_value = token.token
@@ -204,10 +204,47 @@ class TestUnicodeHandling:
 class TestUnsupportedFormat:
     """Tests for unsupported format handling."""
 
-    def test_unsupported_format_returns_400(self, client, site_export_token):
+    def test_export_unsupported_format_returns_400(self, client, site_export_token):
         """Test that unsupported format returns 400."""
         url = f"/export/token/site/{site_export_token.token}/test.xml"
         response = client.get(url)
 
         assert response.status_code == 400
         assert b"Unsupported format" in response.content
+
+
+class TestRawFormat:
+    """Tests for raw format query parameter."""
+
+    def test_export_raw_format_returns_graphql_data(self, client, owned_site, site_export_token):
+        """Test that ?format=raw returns raw GraphQL data without transformation."""
+        url = f"/export/token/site/{site_export_token.token}/test.json?format=raw"
+        response = client.get(url)
+
+        assert response.status_code == 200
+        assert "application/json" in response["Content-Type"]
+
+        data = json.loads(response.content)
+        assert "sites" in data
+        assert len(data["sites"]) == 1
+        # Raw format should have GraphQL structure (e.g., "site" wrapper from query)
+        site_data = data["sites"][0]
+        assert "id" in site_data
+
+    def test_export_raw_format_only_supports_json(self, client, site_export_token):
+        """Test that ?format=raw with CSV returns 400."""
+        url = f"/export/token/site/{site_export_token.token}/test.csv?format=raw"
+        response = client.get(url)
+
+        assert response.status_code == 400
+        assert b"Raw format only supports JSON" in response.content
+
+    def test_export_raw_format_project(self, client, export_project, project_site, project_export_token):
+        """Test raw format works for project exports."""
+        url = f"/export/token/project/{project_export_token.token}/test.json?format=raw"
+        response = client.get(url)
+
+        assert response.status_code == 200
+        data = json.loads(response.content)
+        assert "sites" in data
+        assert len(data["sites"]) == 1
