@@ -476,7 +476,9 @@ def flatten_site(site: dict) -> dict:
             "Top soil match taxonomy subgroup": top_match_taxonomy,
             "Top soil match description": top_match_description,
             # Default to "Unsure" if there's a top match but no explicit rating
-            "Top match user rating": (top_match_user_rating or "Unsure") if top_match_soil_series else None,
+            "Top match user rating": (top_match_user_rating or "Unsure")
+            if top_match_soil_series
+            else None,
             # Ecological and classification
             "Ecological site name": ecological_site_name,
             "Ecological site ID": ecological_site_id,

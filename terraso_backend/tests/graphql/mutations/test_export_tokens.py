@@ -212,7 +212,10 @@ class TestAddExportToken:
         """Error when creating token for nonexistent site."""
         response = client_query(
             ADD_EXPORT_TOKEN,
-            variables={"resourceType": "SITE", "resourceId": "00000000-0000-0000-0000-000000000000"},
+            variables={
+                "resourceType": "SITE",
+                "resourceId": "00000000-0000-0000-0000-000000000000",
+            },
         )
         content = json.loads(response.content)
 
@@ -239,7 +242,9 @@ class TestDeleteExportToken:
         # Verify token was deleted
         assert not ExportToken.objects.filter(token=token_value).exists()
 
-    def test_delete_token_returns_remaining_tokens(self, client_query, user, user_site, user_project):
+    def test_delete_token_returns_remaining_tokens(
+        self, client_query, user, user_site, user_project
+    ):
         """After deletion, returns list of remaining tokens."""
         # Create two tokens
         site_token = ExportToken.create_token("SITE", str(user_site.id), str(user.id))
@@ -269,9 +274,7 @@ class TestDeleteExportToken:
 
     def test_delete_nonexistent_token(self, client_query):
         """Error when deleting nonexistent token."""
-        response = client_query(
-            DELETE_EXPORT_TOKEN, variables={"token": "nonexistent-token-value"}
-        )
+        response = client_query(DELETE_EXPORT_TOKEN, variables={"token": "nonexistent-token-value"})
         content = json.loads(response.content)
 
         assert "errors" in content
@@ -310,7 +313,9 @@ class TestAllExportTokensQuery:
         assert "errors" not in content, content.get("errors")
         assert content["data"]["allExportTokens"] == []
 
-    def test_query_only_returns_own_tokens(self, client_query, user, users, user_site, other_user_site):
+    def test_query_only_returns_own_tokens(
+        self, client_query, user, users, user_site, other_user_site
+    ):
         """User only sees their own tokens, not other users' tokens."""
         other_user = users[1]
         user_token = ExportToken.create_token("SITE", str(user_site.id), str(user.id))

@@ -53,7 +53,9 @@ class TestSiteExport:
         assert len(data["sites"]) == 1
         assert data["sites"][0]["id"] == str(owned_site.id)
 
-    def test_export_site_uses_database_name_for_filename(self, client, owned_site, site_export_token):
+    def test_export_site_uses_database_name_for_filename(
+        self, client, owned_site, site_export_token
+    ):
         """Test that Content-Disposition uses actual site name from database."""
         # Use a different name in URL than the actual site name
         url = f"/export/token/site/{site_export_token.token}/wrong_name.csv"
@@ -62,7 +64,9 @@ class TestSiteExport:
         assert response.status_code == 200
         # The filename should use the actual site name, not the URL name
         content_disposition = response["Content-Disposition"]
-        assert owned_site.name in content_disposition or quote(owned_site.name) in content_disposition
+        assert (
+            owned_site.name in content_disposition or quote(owned_site.name) in content_disposition
+        )
 
     def test_export_site_html_page(self, client, owned_site, site_export_token):
         """Test HTML landing page for site export."""
@@ -239,7 +243,9 @@ class TestRawFormat:
         assert response.status_code == 400
         assert b"Raw format only supports JSON" in response.content
 
-    def test_export_raw_format_project(self, client, export_project, project_site, project_export_token):
+    def test_export_raw_format_project(
+        self, client, export_project, project_site, project_export_token
+    ):
         """Test raw format works for project exports."""
         url = f"/export/token/project/{project_export_token.token}/test.json?format=raw"
         response = client.get(url)

@@ -96,9 +96,7 @@ def _inject_user_ratings_into_matches(soil_id_data, user_ratings):
     ratings_by_name = {r["soilMatchId"]: r["rating"] for r in user_ratings}
 
     # Navigate to matches array
-    matches = (
-        soil_id_data.get("soilId", {}).get("soilMatches", {}).get("matches", [])
-    )
+    matches = soil_id_data.get("soilId", {}).get("soilMatches", {}).get("matches", [])
 
     for match in matches:
         series_name = match.get("soilInfo", {}).get("soilSeries", {}).get("name")

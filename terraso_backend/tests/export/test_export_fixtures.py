@@ -86,7 +86,9 @@ def should_save_failing_output():
 
 def format_deepdiff_path(path):
     """Convert DeepDiff path like root['sites'][0]['name'] to sites[0].name."""
-    return path.replace("root", "").replace("['", ".").replace("']", "").replace("[", "[").lstrip(".")
+    return (
+        path.replace("root", "").replace("['", ".").replace("']", "").replace("[", "[").lstrip(".")
+    )
 
 
 DIFF_MESSAGES = {
@@ -257,7 +259,10 @@ def normalize_json_for_comparison(data, ignore_fields=None, parent_key=None):
             result[k] = normalize_json_for_comparison(v, ignore_fields, parent_key=k)
         return result
     elif isinstance(data, list):
-        return [normalize_json_for_comparison(item, ignore_fields, parent_key=parent_key) for item in data]
+        return [
+            normalize_json_for_comparison(item, ignore_fields, parent_key=parent_key)
+            for item in data
+        ]
     return data
 
 
@@ -272,7 +277,7 @@ def normalize_csv_for_comparison(csv_content, ignore_columns=None):
     Returns:
         Normalized CSV string with rows sorted by Site ID for stable comparison.
     """
-    if csv_content.startswith('\ufeff'):
+    if csv_content.startswith("\ufeff"):
         csv_content = csv_content[1:]
 
     if ignore_columns is None:
@@ -372,9 +377,11 @@ class TestExportFixtures:
         normalized_actual = normalize_json_for_comparison(actual_data)
 
         if normalized_actual != normalized_expected:
-            pytest.fail(format_json_failure_message(
-                fixture_name, normalized_expected, normalized_actual, FIXTURES_DIR
-            ))
+            pytest.fail(
+                format_json_failure_message(
+                    fixture_name, normalized_expected, normalized_actual, FIXTURES_DIR
+                )
+            )
 
     @pytest.mark.parametrize(
         "setup_fixture_data",
@@ -407,6 +414,8 @@ class TestExportFixtures:
         normalized_actual = normalize_csv_for_comparison(actual_csv)
 
         if normalized_actual != normalized_expected:
-            pytest.fail(format_csv_failure_message(
-                fixture_name, normalized_expected, normalized_actual, FIXTURES_DIR
-            ))
+            pytest.fail(
+                format_csv_failure_message(
+                    fixture_name, normalized_expected, normalized_actual, FIXTURES_DIR
+                )
+            )

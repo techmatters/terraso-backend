@@ -154,7 +154,9 @@ def load_site_from_raw_json(site_data, owner, synthetic_project=None):
                 soil_structure_enabled=interval_data.get("soilStructureEnabled"),
                 carbonates_enabled=interval_data.get("carbonatesEnabled"),
                 ph_enabled=interval_data.get("phEnabled"),
-                soil_organic_carbon_matter_enabled=interval_data.get("soilOrganicCarbonMatterEnabled"),
+                soil_organic_carbon_matter_enabled=interval_data.get(
+                    "soilOrganicCarbonMatterEnabled"
+                ),
                 electrical_conductivity_enabled=interval_data.get("electricalConductivityEnabled"),
                 sodium_adsorption_ratio_enabled=interval_data.get("sodiumAdsorptionRatioEnabled"),
             )
