@@ -14,6 +14,7 @@
 # along with this program. If not, see https://www.gnu.org/licenses/.
 
 from django.urls import path
+from django.views.decorators.cache import never_cache
 from django.views.decorators.csrf import csrf_exempt
 
 from apps.auth.middleware import auth_optional
@@ -27,64 +28,64 @@ urlpatterns = [
     # HTML landing pages (when format is "html")
     path(
         "token/project/<str:project_token>/<str:project_name>.html",
-        csrf_exempt(auth_optional(views.project_export_page)),
+        csrf_exempt(auth_optional(never_cache(views.project_export_page))),
         name="project-export-page",
     ),
     path(
         "token/site/<str:site_token>/<str:site_name>.html",
-        csrf_exempt(auth_optional(views.site_export_page)),
+        csrf_exempt(auth_optional(never_cache(views.site_export_page))),
         name="site-export-page",
     ),
     path(
         "token/user_owned/<str:user_token>/<str:user_name>.html",
-        csrf_exempt(auth_optional(views.user_owned_sites_export_page)),
+        csrf_exempt(auth_optional(never_cache(views.user_owned_sites_export_page))),
         name="user-owned-sites-export-page",
     ),
     path(
         "token/user_all/<str:user_token>/<str:user_name>.html",
-        csrf_exempt(auth_optional(views.user_all_sites_export_page)),
+        csrf_exempt(auth_optional(never_cache(views.user_all_sites_export_page))),
         name="user-all-sites-export-page",
     ),
     # Direct file downloads (CSV/JSON)
     path(
         "token/project/<str:project_token>/<str:project_name>.<str:format>",
-        csrf_exempt(auth_optional(views.project_export)),
+        csrf_exempt(auth_optional(never_cache(views.project_export))),
         name="project-export-by-token",
     ),
     path(
         "token/site/<str:site_token>/<str:site_name>.<str:format>",
-        csrf_exempt(auth_optional(views.site_export)),
+        csrf_exempt(auth_optional(never_cache(views.site_export))),
         name="site-export-by-token",
     ),
     path(
         "token/user_owned/<str:user_token>/<str:user_name>.<str:format>",
-        csrf_exempt(auth_optional(views.user_owned_sites_export)),
+        csrf_exempt(auth_optional(never_cache(views.user_owned_sites_export))),
         name="user-owned-sites-export-by-token",
     ),
     path(
         "token/user_all/<str:user_token>/<str:user_name>.<str:format>",
-        csrf_exempt(auth_optional(views.user_all_sites_export)),
+        csrf_exempt(auth_optional(never_cache(views.user_all_sites_export))),
         name="user-all-sites-export-by-token",
     ),
     # ID-based exports (authenticated, enforces permissions)
     path(
         "id/project/<str:project_id>/<str:project_name>.<str:format>",
-        csrf_exempt(views.project_export_by_id),
+        csrf_exempt(never_cache(views.project_export_by_id)),
         name="project-export-by-id",
     ),
     path(
         "id/site/<str:site_id>/<str:site_name>.<str:format>",
-        csrf_exempt(views.site_export_by_id),
+        csrf_exempt(never_cache(views.site_export_by_id)),
         name="site-export-by-id",
     ),
     path(
         "id/user_owned/<str:user_id>/<str:user_name>.<str:format>",
-        csrf_exempt(views.user_owned_sites_export_by_id),
+        csrf_exempt(never_cache(views.user_owned_sites_export_by_id)),
         name="user-owned-sites-export-by-id",
     ),
     path(
         "id/user_all/<str:user_id>/<str:user_name>.<str:format>",
-        csrf_exempt(views.user_all_sites_export_by_id),
+        csrf_exempt(never_cache(views.user_all_sites_export_by_id)),
         name="user-all-sites-export-by-id",
     ),
 ]
