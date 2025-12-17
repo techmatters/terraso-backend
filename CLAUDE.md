@@ -191,8 +191,3 @@ Each user has their own token per resource. Tokens are automatically deleted whe
 - Token-based export URLs set `request.user` to the token owner (the user who created the token)
 - This allows normal membership filtering to work correctly without special bypass logic
 - CORS for `/export/token/*` URLs is handled by signal in `apps/export/handlers.py`
-
-### Development Scripts
-
-- `./scripts/export/dump_export_tokens.sh` - List all tokens with URLs
-- `./scripts/export/get_user_export_token.sh <email>` - Get/create token for user
