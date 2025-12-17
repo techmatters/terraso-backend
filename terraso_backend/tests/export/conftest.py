@@ -18,6 +18,7 @@ from mixer.backend.django import mixer
 
 from apps.collaboration.models import Membership
 from apps.core.models import User
+from apps.export.fetch_data import clear_soil_id_cache
 from apps.export.models import ExportToken
 from apps.project_management.models import Project, Site
 from apps.soil_id.models import (
@@ -145,3 +146,15 @@ def project_export_token(export_project, export_user_2):
 def user_export_token(export_user):
     """Export token for user's sites."""
     return ExportToken.create_token("USER", str(export_user.id), str(export_user.id))
+
+
+@pytest.fixture(autouse=True)
+def clear_soil_id_cache_after_test():
+    """Clear the soil_id cache after each test to ensure isolation.
+
+    This runs automatically for every test in this directory (autouse=True).
+    The cache is populated by fixture_loader when loading raw.json fixtures,
+    allowing tests to skip external soil API calls.
+    """
+    yield
+    clear_soil_id_cache()

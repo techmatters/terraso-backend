@@ -17,33 +17,10 @@ import graphene
 
 from ..models import ExportToken
 from .types import ExportToken as ExportTokenType
-from .types import ResourceTypeEnum
 
 
 class Query(graphene.ObjectType):
-    export_token = graphene.Field(
-        ExportTokenType,
-        resource_type=ResourceTypeEnum(required=True),
-        resource_id=graphene.ID(required=True),
-    )
     all_export_tokens = graphene.Field(graphene.List(graphene.NonNull(ExportTokenType)))
-
-    @staticmethod
-    def resolve_export_token(root, info, resource_type, resource_id):
-        """Get the current user's export token for a specific resource."""
-        user = info.context.user
-        resource_type_str = resource_type.value
-
-        # Query filters by user_id, so users can only see their own tokens
-        try:
-            token_obj = ExportToken.objects.get(
-                resource_type=resource_type_str,
-                resource_id=resource_id,
-                user_id=str(user.id),
-            )
-            return token_obj
-        except ExportToken.DoesNotExist:
-            return None
 
     @staticmethod
     def resolve_all_export_tokens(root, info):

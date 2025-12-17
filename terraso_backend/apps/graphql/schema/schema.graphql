@@ -4,7 +4,6 @@ schema {
 }
 
 type Query {
-  exportToken(resourceType: ResourceTypeEnum!, resourceId: ID!): ExportToken
   allExportTokens: [ExportToken!]
 
   """Soil ID algorithm Queries"""
@@ -97,12 +96,6 @@ enum ExportExportTokenResourceTypeChoices {
   PROJECT
 
   """Site"""
-  SITE
-}
-
-enum ResourceTypeEnum {
-  USER
-  PROJECT
   SITE
 }
 
@@ -2715,6 +2708,12 @@ input SharedResourceUpdateMutationInput {
 
 type ExportTokenAddMutation {
   tokens: [ExportToken!]
+}
+
+enum ResourceTypeEnum {
+  USER
+  PROJECT
+  SITE
 }
 
 type ExportTokenDeleteMutation {

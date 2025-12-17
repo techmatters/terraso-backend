@@ -74,24 +74,9 @@ IGNORE_CSV_COLUMNS = {
     "Top match user rating",
 }
 
-# Additional soil-related columns to ignore when not comparing soil data
-SOIL_CSV_COLUMNS = {
-    "Soil map",
-    "Top soil series match",
-    "Top soil match taxonomy subgroup",
-    "Top soil match description",
-    "Ecological site name",
-    "Ecological site ID",
-    "Land capability classification",
-    "Selected soil type taxonomy subgroup",
-    "Selected soil description",
-}
-
 pytestmark = pytest.mark.django_db
 
 FIXTURES_DIR = Path(__file__).parent / "fixtures"
-WITH_SOIL_DIR = FIXTURES_DIR / "with_soil"
-WITHOUT_SOIL_DIR = FIXTURES_DIR / "without_soil"
 
 
 def should_save_failing_output():
@@ -102,12 +87,6 @@ def should_save_failing_output():
 def format_deepdiff_path(path):
     """Convert DeepDiff path like root['sites'][0]['name'] to sites[0].name."""
     return path.replace("root", "").replace("['", ".").replace("']", "").replace("[", "[").lstrip(".")
-
-
-def diff_contains_soil_id(diff):
-    """Check if any diff paths contain 'soil_id'."""
-    diff_str = str(diff)
-    return "soil_id" in diff_str
 
 
 DIFF_MESSAGES = {
@@ -158,14 +137,10 @@ def format_json_failure_message(fixture_name, expected, actual, fixture_dir, for
     lines = [f"JSON export mismatch for {fixture_name}"]
 
     diff = DeepDiff(expected, actual, ignore_order=False)
-    soil_id_differs = diff_contains_soil_id(diff)
 
     # Count total differences
     total_diffs = sum(len(v) if isinstance(v, dict) else 1 for v in diff.values())
     lines.append(f"Total differences: {total_diffs}")
-
-    if soil_id_differs:
-        lines.append("NOTE: soil_id data differs (external API response may have changed)")
 
     # Format diff items
     diff_lines = format_diff_items(diff)
@@ -220,32 +195,15 @@ def format_csv_failure_message(fixture_name, expected, actual, fixture_dir):
 
 def get_fixture_names():
     """
-    Discover all fixture sets by finding *.raw.json files in subdirectories.
-    Returns list of tuples: (fixture_base_name, has_soil_data).
-
-    Fixtures in with_soil/ will have soil_id data compared.
-    Fixtures in without_soil/ will ignore soil_id data in comparisons.
+    Discover all fixture sets by finding *.raw.json files.
+    Returns list of fixture base names.
     """
     fixtures = []
-
-    # Find fixtures in with_soil directory
-    if WITH_SOIL_DIR.exists():
-        for raw_file in WITH_SOIL_DIR.glob("*.raw.json"):
+    if FIXTURES_DIR.exists():
+        for raw_file in FIXTURES_DIR.glob("*.raw.json"):
             name = raw_file.stem.replace(".raw", "")
-            fixtures.append((name, True))
-
-    # Find fixtures in without_soil directory
-    if WITHOUT_SOIL_DIR.exists():
-        for raw_file in WITHOUT_SOIL_DIR.glob("*.raw.json"):
-            name = raw_file.stem.replace(".raw", "")
-            fixtures.append((name, False))
-
+            fixtures.append(name)
     return fixtures
-
-
-def get_fixture_dir(has_soil):
-    """Return the appropriate fixtures directory based on soil flag."""
-    return WITH_SOIL_DIR if has_soil else WITHOUT_SOIL_DIR
 
 
 def get_export_url(sites, owner, format_ext):
@@ -272,7 +230,7 @@ def get_export_url(sites, owner, format_ext):
     return None
 
 
-def normalize_json_for_comparison(data, ignore_fields=None, parent_key=None, include_soil=True):
+def normalize_json_for_comparison(data, ignore_fields=None, parent_key=None):
     """
     Normalize JSON data for comparison by removing fields that may legitimately differ.
 
@@ -280,15 +238,12 @@ def normalize_json_for_comparison(data, ignore_fields=None, parent_key=None, inc
         data: Dict or list to normalize
         ignore_fields: Set of field names to remove (default: IGNORE_JSON_FIELDS)
         parent_key: Key of parent object (used to make context-sensitive decisions)
-        include_soil: If False, also ignore soil_id field
 
     Returns:
         Normalized copy of the data
     """
     if ignore_fields is None:
-        ignore_fields = IGNORE_JSON_FIELDS.copy()
-        if not include_soil:
-            ignore_fields.add("soil_id")
+        ignore_fields = IGNORE_JSON_FIELDS
 
     if isinstance(data, dict):
         result = {}
@@ -299,21 +254,20 @@ def normalize_json_for_comparison(data, ignore_fields=None, parent_key=None, inc
             # but keep IDs for sites and projects (they're preserved from input)
             if k == "id" and parent_key in ("notes", "author"):
                 continue
-            result[k] = normalize_json_for_comparison(v, ignore_fields, parent_key=k, include_soil=include_soil)
+            result[k] = normalize_json_for_comparison(v, ignore_fields, parent_key=k)
         return result
     elif isinstance(data, list):
-        return [normalize_json_for_comparison(item, ignore_fields, parent_key=parent_key, include_soil=include_soil) for item in data]
+        return [normalize_json_for_comparison(item, ignore_fields, parent_key=parent_key) for item in data]
     return data
 
 
-def normalize_csv_for_comparison(csv_content, ignore_columns=None, include_soil=True):
+def normalize_csv_for_comparison(csv_content, ignore_columns=None):
     """
     Normalize CSV content for comparison.
 
     Args:
         csv_content: CSV string
         ignore_columns: Set of column names to ignore (default: IGNORE_CSV_COLUMNS)
-        include_soil: If False, also ignore soil-related columns
 
     Returns:
         Normalized CSV string with rows sorted by Site ID for stable comparison.
@@ -322,9 +276,7 @@ def normalize_csv_for_comparison(csv_content, ignore_columns=None, include_soil=
         csv_content = csv_content[1:]
 
     if ignore_columns is None:
-        ignore_columns = IGNORE_CSV_COLUMNS.copy()
-        if not include_soil:
-            ignore_columns.update(SOIL_CSV_COLUMNS)
+        ignore_columns = IGNORE_CSV_COLUMNS
 
     lines = csv_content.strip().split("\n")
     if not lines:
@@ -372,11 +324,7 @@ class TestExportFixtures:
     """
     Parameterized tests that run against all fixture files.
 
-    Add new test cases by adding files to the appropriate fixtures subdirectory:
-        with_soil/     - Fixtures that should have soil_id data compared
-        without_soil/  - Fixtures that should ignore soil_id data
-
-    Each fixture needs:
+    Add new test cases by adding files to the fixtures directory:
         - mytest.raw.json (required - raw input data)
         - mytest.json (optional - expected JSON output)
         - mytest.csv (optional - expected CSV output)
@@ -385,17 +333,14 @@ class TestExportFixtures:
     @pytest.fixture
     def setup_fixture_data(self, request):
         """Load fixture data into the database and return site info."""
-        fixture_name, has_soil = request.param
-        fixture_dir = get_fixture_dir(has_soil)
-        raw_file = fixture_dir / f"{fixture_name}.raw.json"
+        fixture_name = request.param
+        raw_file = FIXTURES_DIR / f"{fixture_name}.raw.json"
 
         owner = create_user_for_fixtures(email=f"{fixture_name}-owner@test.com")
-        sites = load_sites_from_fixture(raw_file.name, owner, fixture_dir)
+        sites = load_sites_from_fixture(raw_file.name, owner, FIXTURES_DIR)
 
         return {
             "fixture_name": fixture_name,
-            "has_soil": has_soil,
-            "fixture_dir": fixture_dir,
             "owner": owner,
             "sites": sites,
         }
@@ -408,12 +353,10 @@ class TestExportFixtures:
     def test_export_json_matches_expected(self, client, setup_fixture_data):
         """Test that JSON export matches expected output file."""
         fixture_name = setup_fixture_data["fixture_name"]
-        has_soil = setup_fixture_data["has_soil"]
-        fixture_dir = setup_fixture_data["fixture_dir"]
         owner = setup_fixture_data["owner"]
         sites = setup_fixture_data["sites"]
 
-        expected_file = fixture_dir / f"{fixture_name}.json"
+        expected_file = FIXTURES_DIR / f"{fixture_name}.json"
         if not expected_file.exists():
             pytest.skip(f"No expected JSON file: {fixture_name}.json")
 
@@ -429,13 +372,12 @@ class TestExportFixtures:
 
         actual_data = json.loads(response.content)
 
-        # Normalize both for comparison (include_soil based on fixture directory)
-        normalized_expected = normalize_json_for_comparison(expected_data, include_soil=has_soil)
-        normalized_actual = normalize_json_for_comparison(actual_data, include_soil=has_soil)
+        normalized_expected = normalize_json_for_comparison(expected_data)
+        normalized_actual = normalize_json_for_comparison(actual_data)
 
         if normalized_actual != normalized_expected:
             pytest.fail(format_json_failure_message(
-                fixture_name, normalized_expected, normalized_actual, fixture_dir
+                fixture_name, normalized_expected, normalized_actual, FIXTURES_DIR
             ))
 
     @pytest.mark.parametrize(
@@ -446,12 +388,10 @@ class TestExportFixtures:
     def test_export_csv_matches_expected(self, client, setup_fixture_data):
         """Test that CSV export matches expected output file."""
         fixture_name = setup_fixture_data["fixture_name"]
-        has_soil = setup_fixture_data["has_soil"]
-        fixture_dir = setup_fixture_data["fixture_dir"]
         owner = setup_fixture_data["owner"]
         sites = setup_fixture_data["sites"]
 
-        expected_file = fixture_dir / f"{fixture_name}.csv"
+        expected_file = FIXTURES_DIR / f"{fixture_name}.csv"
         if not expected_file.exists():
             pytest.skip(f"No expected CSV file: {fixture_name}.csv")
 
@@ -467,11 +407,10 @@ class TestExportFixtures:
 
         actual_csv = response.content.decode("utf-8")
 
-        # Normalize both for comparison (include_soil based on fixture directory)
-        normalized_expected = normalize_csv_for_comparison(expected_csv, include_soil=has_soil)
-        normalized_actual = normalize_csv_for_comparison(actual_csv, include_soil=has_soil)
+        normalized_expected = normalize_csv_for_comparison(expected_csv)
+        normalized_actual = normalize_csv_for_comparison(actual_csv)
 
         if normalized_actual != normalized_expected:
             pytest.fail(format_csv_failure_message(
-                fixture_name, normalized_expected, normalized_actual, fixture_dir
+                fixture_name, normalized_expected, normalized_actual, FIXTURES_DIR
             ))

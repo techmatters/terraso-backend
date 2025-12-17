@@ -17,6 +17,30 @@ from django.conf import settings
 
 from apps.graphql.schema.schema import schema
 
+# In-memory cache for soil_id data, used to avoid external API calls during tests.
+# Keyed by site ID (string UUID).
+_soil_id_cache = {}
+
+# Set to False to disable cache (for development/testing without cache)
+_USE_SOIL_ID_CACHE = True
+
+
+def set_soil_id_cache_enabled(enabled):
+    """Enable or disable the soil_id cache."""
+    global _USE_SOIL_ID_CACHE
+    _USE_SOIL_ID_CACHE = enabled
+
+
+def cache_soil_id(site_id, soil_id_data):
+    """Store soil_id data in cache for a site."""
+    if _USE_SOIL_ID_CACHE:
+        _soil_id_cache[str(site_id)] = soil_id_data
+
+
+def clear_soil_id_cache():
+    """Clear all cached soil_id data."""
+    _soil_id_cache.clear()
+
 
 def fetch_all_notes_for_site(site_id, request, page_size=settings.EXPORT_PAGE_SIZE):
     after = None
@@ -152,7 +176,17 @@ def fetch_site_data(site_id, request):
 
 
 def fetch_soil_id(site, request):
-    # Fetch soil ID data for a site using its coordinate and soil data.
+    """Fetch soil ID data for a site using its coordinate and soil data.
+
+    If cache is enabled and data exists for this site, returns cached data
+    instead of making an external API call.
+    """
+    site_id = site.get("id")
+
+    # Check cache first (if enabled)
+    if _USE_SOIL_ID_CACHE and site_id and str(site_id) in _soil_id_cache:
+        return _soil_id_cache[str(site_id)]
+
     latitude = site.get("latitude")
     longitude = site.get("longitude")
 

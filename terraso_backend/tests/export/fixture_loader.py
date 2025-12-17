@@ -26,6 +26,7 @@ from datetime import datetime
 from pathlib import Path
 
 from apps.core.models import User
+from apps.export.fetch_data import cache_soil_id
 from apps.project_management.models import Project, Site, SiteNote
 from apps.soil_id.models import (
     DepthDependentSoilData,
@@ -223,6 +224,11 @@ def load_site_from_raw_json(site_data, owner, synthetic_project=None):
             SiteNote.objects.filter(id=note.id).update(
                 created_at=parse_datetime(note_data["createdAt"])
             )
+
+    # Cache soil_id data if present in the raw fixture
+    # This allows tests to skip external API calls during export
+    if "soil_id" in site_data:
+        cache_soil_id(site.id, site_data["soil_id"])
 
     return site
 
