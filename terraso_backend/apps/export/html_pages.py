@@ -304,7 +304,7 @@ def export_page_html(name, resource_type, csv_url, json_url, request=None):
                         Download CSV
                     </a>
                     <button class="copy-button" onclick="copyLink('{csv_url_safe}', this)">
-                        <span class="material-icons">share</span>
+                        <span class="material-icons">content_copy</span>
                         <span class="copy-text">Copy Link</span>
                     </button>
                 </div>
@@ -314,7 +314,7 @@ def export_page_html(name, resource_type, csv_url, json_url, request=None):
                         Download JSON
                     </a>
                     <button class="copy-button" onclick="copyLink('{json_url_safe}', this)">
-                        <span class="material-icons">share</span>
+                        <span class="material-icons">content_copy</span>
                         <span class="copy-text">Copy Link</span>
                     </button>
                 </div>
