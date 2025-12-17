@@ -1,0 +1,2061 @@
+{
+  "sites": [
+    {
+      "id": "7c3adfa0-d2c2-45ef-9c28-ec96dd149079",
+      "name": "JST-03",
+      "latitude": 44.39504237561738,
+      "longitude": -89.73473520296409,
+      "elevation": 322.0,
+      "updatedAt": "2025-12-17T17:57:11.782397+00:00",
+      "privacy": "PRIVATE",
+      "archived": false,
+      "seen": true,
+      "soilData": {
+        "downSlope": "LINEAR",
+        "crossSlope": "CONVEX",
+        "slopeSteepnessSelect": "GENTLE",
+        "surfaceCracksSelect": "DEEP_VERTICAL_CRACKS",
+        "depthIntervalPreset": "NRCS",
+        "depthIntervals": [],
+        "depthDependentData": [
+          {
+            "depthInterval": {
+              "start": 0,
+              "end": 1
+            },
+            "texture": "CLAY",
+            "rockFragmentVolume": "VOLUME_0_1",
+            "colorHue": 17.5,
+            "colorValue": 4.0,
+            "colorChroma": 2.0,
+            "colorPhotoUsed": false
+          },
+          {
+            "depthInterval": {
+              "start": 1,
+              "end": 10
+            },
+            "texture": "LOAM",
+            "rockFragmentVolume": "VOLUME_15_35",
+            "colorHue": 20.0,
+            "colorValue": 4.0,
+            "colorChroma": 4.0,
+            "colorPhotoUsed": false
+          },
+          {
+            "depthInterval": {
+              "start": 10,
+              "end": 20
+            },
+            "texture": "CLAY",
+            "rockFragmentVolume": "VOLUME_0_1",
+            "colorHue": 40.0,
+            "colorValue": 7.0,
+            "colorChroma": 2.0,
+            "colorPhotoUsed": false
+          },
+          {
+            "depthInterval": {
+              "start": 20,
+              "end": 50
+            },
+            "texture": "SANDY_CLAY_LOAM",
+            "rockFragmentVolume": "VOLUME_1_15",
+            "colorHue": 20.0,
+            "colorValue": 8.0,
+            "colorChroma": 6.0,
+            "colorPhotoUsed": false
+          },
+          {
+            "depthInterval": {
+              "start": 50,
+              "end": 70
+            },
+            "texture": "LOAM",
+            "rockFragmentVolume": "VOLUME_15_35",
+            "colorHue": 15.0,
+            "colorValue": 5.0,
+            "colorChroma": 3.0,
+            "colorPhotoUsed": false
+          }
+        ]
+      },
+      "soilMetadata": {
+        "selectedSoilId": "Markey",
+        "userRatings": [
+          {
+            "soilMatchId": "Markey",
+            "rating": "SELECTED"
+          }
+        ]
+      },
+      "project": {
+        "id": "edf4882b-6343-4fc8-baeb-a3d1028031f4",
+        "name": "Johanness snapshot test - BLM",
+        "description": "Sites for snapshot, blm"
+      },
+      "notes": [
+        {
+          "id": "ee29edc9-2d2a-476d-899e-3259b53dab44",
+          "content": "Wow!",
+          "createdAt": "2025-12-17T18:17:19.543086+00:00",
+          "updatedAt": "2025-12-17T18:17:19.543095+00:00",
+          "deletedByCascade": false,
+          "author": {
+            "id": "b7fea1ab-7277-4b45-a301-9149fcefc80a",
+            "email": "derek@techmatters.org",
+            "firstName": "Derek",
+            "lastName": "Caelin",
+            "profileImage": "https://images.staging.terraso.net/b7fea1ab-7277-4b45-a301-9149fcefc80a/profile-image_253"
+          }
+        }
+      ],
+      "soil_id": {
+        "soilId": {
+          "soilMatches": {
+            "dataRegion": "US",
+            "matches": [
+              {
+                "dataSource": "SSURGO",
+                "distanceToNearestMapUnitM": 946.0,
+                "locationMatch": {
+                  "rank": 3,
+                  "score": 0.086
+                },
+                "soilInfo": {
+                  "soilSeries": {
+                    "name": "Anthropic psammaquents",
+                    "taxonomySubgroup": "None",
+                    "description": "",
+                    "fullDescriptionUrl": ""
+                  },
+                  "ecologicalSite": {
+                    "name": "Moist Sandy Outwash Uplands",
+                    "id": "F089XY011WI",
+                    "url": "https://edit.sc.egov.usda.gov/catalogs/esd/089X/F089XY011WI"
+                  },
+                  "landCapabilityClass": {
+                    "capabilityClass": "5",
+                    "subClass": "w"
+                  },
+                  "soilData": {
+                    "slope": 0.0,
+                    "depthDependentData": [
+                      {
+                        "depthInterval": {
+                          "start": 0,
+                          "end": 2
+                        },
+                        "texture": "SAND",
+                        "rockFragmentVolume": "VOLUME_0_1",
+                        "munsellColorString": ""
+                      },
+                      {
+                        "depthInterval": {
+                          "start": 2,
+                          "end": 12
+                        },
+                        "texture": "LOAMY_SAND",
+                        "rockFragmentVolume": "VOLUME_0_1",
+                        "munsellColorString": ""
+                      },
+                      {
+                        "depthInterval": {
+                          "start": 12,
+                          "end": 34
+                        },
+                        "texture": "SAND",
+                        "rockFragmentVolume": "VOLUME_1_15",
+                        "munsellColorString": ""
+                      },
+                      {
+                        "depthInterval": {
+                          "start": 34,
+                          "end": 76
+                        },
+                        "texture": "SAND",
+                        "rockFragmentVolume": "VOLUME_1_15",
+                        "munsellColorString": ""
+                      },
+                      {
+                        "depthInterval": {
+                          "start": 76,
+                          "end": 200
+                        },
+                        "texture": "SAND",
+                        "rockFragmentVolume": "VOLUME_1_15",
+                        "munsellColorString": ""
+                      }
+                    ]
+                  }
+                }
+              },
+              {
+                "dataSource": "SSURGO",
+                "distanceToNearestMapUnitM": 946.0,
+                "locationMatch": {
+                  "rank": 5,
+                  "score": 0.01
+                },
+                "soilInfo": {
+                  "soilSeries": {
+                    "name": "Anthroportic udorthents",
+                    "taxonomySubgroup": "Anthroportic Udorthents",
+                    "description": "",
+                    "fullDescriptionUrl": ""
+                  },
+                  "ecologicalSite": {
+                    "name": "Loamy Uplands",
+                    "id": "F089XY020WI",
+                    "url": "https://edit.sc.egov.usda.gov/catalogs/esd/089X/F089XY020WI"
+                  },
+                  "landCapabilityClass": {
+                    "capabilityClass": "8",
+                    "subClass": "s"
+                  },
+                  "soilData": {
+                    "slope": 30.0,
+                    "depthDependentData": [
+                      {
+                        "depthInterval": {
+                          "start": 0,
+                          "end": 15
+                        },
+                        "texture": "SANDY_LOAM",
+                        "rockFragmentVolume": "VOLUME_0_1",
+                        "munsellColorString": ""
+                      },
+                      {
+                        "depthInterval": {
+                          "start": 15,
+                          "end": 200
+                        },
+                        "texture": "SANDY_LOAM",
+                        "rockFragmentVolume": "VOLUME_0_1",
+                        "munsellColorString": ""
+                      }
+                    ]
+                  }
+                }
+              },
+              {
+                "dataSource": "SSURGO",
+                "distanceToNearestMapUnitM": 23.0,
+                "locationMatch": {
+                  "rank": 2,
+                  "score": 0.097
+                },
+                "soilInfo": {
+                  "soilSeries": {
+                    "name": "Friendship",
+                    "taxonomySubgroup": "Typic Udipsamments",
+                    "description": "The Friendship series consists of very deep, moderately well drained soils formed in sandy glaciofluvial deposits on outwash plains, outwash terraces, lake terraces, and lake plains.  Permeability is rapid or very rapid. Slopes range from 0 to 4 percent.  Mean annual precipitation is about 30 inches.  Mean annual air temperature is about 42 degrees F.",
+                    "fullDescriptionUrl": "https://casoilresource.lawr.ucdavis.edu/sde/?series=friendship"
+                  },
+                  "ecologicalSite": {
+                    "name": "Mucky Swamps",
+                    "id": "F089XY002WI",
+                    "url": "https://edit.sc.egov.usda.gov/catalogs/esd/089X/F089XY002WI"
+                  },
+                  "landCapabilityClass": {
+                    "capabilityClass": "4",
+                    "subClass": "s"
+                  },
+                  "soilData": {
+                    "slope": 1.0,
+                    "depthDependentData": [
+                      {
+                        "depthInterval": {
+                          "start": 0,
+                          "end": 20
+                        },
+                        "texture": "SAND",
+                        "rockFragmentVolume": "VOLUME_0_1",
+                        "munsellColorString": "10YR 4/2"
+                      },
+                      {
+                        "depthInterval": {
+                          "start": 20,
+                          "end": 84
+                        },
+                        "texture": "SAND",
+                        "rockFragmentVolume": "VOLUME_0_1",
+                        "munsellColorString": "10YR 4/2"
+                      },
+                      {
+                        "depthInterval": {
+                          "start": 84,
+                          "end": 94
+                        },
+                        "texture": "SAND",
+                        "rockFragmentVolume": "VOLUME_0_1",
+                        "munsellColorString": "10YR 6/3"
+                      },
+                      {
+                        "depthInterval": {
+                          "start": 94,
+                          "end": 200
+                        },
+                        "texture": "SAND",
+                        "rockFragmentVolume": "VOLUME_1_15",
+                        "munsellColorString": "10YR 6/4"
+                      }
+                    ]
+                  }
+                }
+              },
+              {
+                "dataSource": "SSURGO",
+                "distanceToNearestMapUnitM": 0.0,
+                "locationMatch": {
+                  "rank": 4,
+                  "score": 0.034
+                },
+                "soilInfo": {
+                  "soilSeries": {
+                    "name": "Markey",
+                    "taxonomySubgroup": "Terric Haplosaprists",
+                    "description": "The Markey series consists of very deep, very poorly drained organic soils.  They formed in herbaceous organic material 40 to 130 centimeters thick overlying sandy deposits in depressions on outwash plains, lake plains, flood plains, river terraces, valley trains, and moraines. Saturated hydraulic conductivity is moderately slow to moderately rapid in the organic layers and rapid or very rapid in the sandy material.  Slopes range from 0 to 2 percent.  Mean annual precipitation is about 760 millimeters.  Mean annual air temperature is about 6 degrees C.",
+                    "fullDescriptionUrl": "https://casoilresource.lawr.ucdavis.edu/sde/?series=markey"
+                  },
+                  "ecologicalSite": {
+                    "name": "Sandy Outwash Uplands",
+                    "id": "F089XY017WI",
+                    "url": "https://edit.sc.egov.usda.gov/catalogs/esd/089X/F089XY017WI"
+                  },
+                  "landCapabilityClass": {
+                    "capabilityClass": "7",
+                    "subClass": "w"
+                  },
+                  "soilData": {
+                    "slope": 1.0,
+                    "depthDependentData": [
+                      {
+                        "depthInterval": {
+                          "start": 0,
+                          "end": 23
+                        },
+                        "texture": "LOAMY_SAND",
+                        "rockFragmentVolume": "VOLUME_1_15",
+                        "munsellColorString": "10YR 4/2"
+                      },
+                      {
+                        "depthInterval": {
+                          "start": 23,
+                          "end": 58
+                        },
+                        "texture": "SAND",
+                        "rockFragmentVolume": "VOLUME_1_15",
+                        "munsellColorString": "10YR 4/2"
+                      },
+                      {
+                        "depthInterval": {
+                          "start": 58,
+                          "end": 81
+                        },
+                        "texture": "SAND",
+                        "rockFragmentVolume": "VOLUME_1_15",
+                        "munsellColorString": "N 4/0"
+                      },
+                      {
+                        "depthInterval": {
+                          "start": 81,
+                          "end": 200
+                        },
+                        "texture": "SAND",
+                        "rockFragmentVolume": "VOLUME_1_15",
+                        "munsellColorString": "N 4/0"
+                      }
+                    ]
+                  }
+                }
+              },
+              {
+                "dataSource": "SSURGO",
+                "distanceToNearestMapUnitM": 0.0,
+                "locationMatch": {
+                  "rank": 1,
+                  "score": 0.312
+                },
+                "soilInfo": {
+                  "soilSeries": {
+                    "name": "Meehan",
+                    "taxonomySubgroup": "Aquic Udipsamments",
+                    "description": "The Meehan series consists of very deep, somewhat poorly drained soils formed in sandy alluvium on outwash plains, stream terraces, beach ridges, and glacial lake plains.  Permeability is rapid or very rapid. Saturated hydraulic conductivity is high or very high. Slopes range from 0 to 3 percent. Mean annual precipitation is about 30 inches near the type location. Mean annual air temperature is about 42 degrees F.",
+                    "fullDescriptionUrl": "https://casoilresource.lawr.ucdavis.edu/sde/?series=meehan"
+                  },
+                  "ecologicalSite": {
+                    "name": "Wet Sandy Outwash Lowlands",
+                    "id": "F089XY006WI",
+                    "url": "https://edit.sc.egov.usda.gov/catalogs/esd/089X/F089XY006WI"
+                  },
+                  "landCapabilityClass": {
+                    "capabilityClass": "4",
+                    "subClass": "w"
+                  },
+                  "soilData": {
+                    "slope": 1.0,
+                    "depthDependentData": [
+                      {
+                        "depthInterval": {
+                          "start": 0,
+                          "end": 2
+                        },
+                        "texture": "SAND",
+                        "rockFragmentVolume": "VOLUME_0_1",
+                        "munsellColorString": "10YR 4/2"
+                      },
+                      {
+                        "depthInterval": {
+                          "start": 2,
+                          "end": 8
+                        },
+                        "texture": "LOAMY_SAND",
+                        "rockFragmentVolume": "VOLUME_0_1",
+                        "munsellColorString": "10YR 4/3"
+                      },
+                      {
+                        "depthInterval": {
+                          "start": 8,
+                          "end": 20
+                        },
+                        "texture": "LOAMY_SAND",
+                        "rockFragmentVolume": "VOLUME_0_1",
+                        "munsellColorString": "10YR 6/5"
+                      },
+                      {
+                        "depthInterval": {
+                          "start": 20,
+                          "end": 41
+                        },
+                        "texture": "SAND",
+                        "rockFragmentVolume": "VOLUME_0_1",
+                        "munsellColorString": "10YR 6/3"
+                      },
+                      {
+                        "depthInterval": {
+                          "start": 41,
+                          "end": 56
+                        },
+                        "texture": "SAND",
+                        "rockFragmentVolume": "VOLUME_0_1",
+                        "munsellColorString": "10YR 7/4"
+                      },
+                      {
+                        "depthInterval": {
+                          "start": 56,
+                          "end": 200
+                        },
+                        "texture": "SAND",
+                        "rockFragmentVolume": "VOLUME_1_15"
+                      }
+                    ]
+                  }
+                }
+              },
+              {
+                "dataSource": "SSURGO",
+                "distanceToNearestMapUnitM": 0.0,
+                "locationMatch": {
+                  "rank": 0,
+                  "score": 0.459
+                },
+                "soilInfo": {
+                  "soilSeries": {
+                    "name": "Newson",
+                    "taxonomySubgroup": "Humaqueptic Psammaquents",
+                    "description": "The Newson series consists of very deep, poorly drained and very poorly drained soils formed in sandy outwash, sandy alluvium, or sandy lacustrine deposits on outwash plains, lake terraces, stream terraces, and valley trains.  Permeability is rapid or very rapid.  Slopes range from 0 to 2 percent.  Mean annual precipitation is about 30 inches. Mean annual air temperature is about 42 degrees F.",
+                    "fullDescriptionUrl": "https://casoilresource.lawr.ucdavis.edu/sde/?series=newson"
+                  },
+                  "ecologicalSite": {
+                    "name": "Sandy Outwash Uplands",
+                    "id": "F089XY017WI",
+                    "url": "https://edit.sc.egov.usda.gov/catalogs/esd/089X/F089XY017WI"
+                  },
+                  "landCapabilityClass": {
+                    "capabilityClass": "6",
+                    "subClass": "w"
+                  },
+                  "soilData": {
+                    "slope": 1.0,
+                    "depthDependentData": [
+                      {
+                        "depthInterval": {
+                          "start": 0,
+                          "end": 2
+                        },
+                        "texture": "SAND",
+                        "rockFragmentVolume": "VOLUME_0_1",
+                        "munsellColorString": "10YR 3/1"
+                      },
+                      {
+                        "depthInterval": {
+                          "start": 2,
+                          "end": 12
+                        },
+                        "texture": "LOAMY_SAND",
+                        "rockFragmentVolume": "VOLUME_0_1",
+                        "munsellColorString": "10YR 3/1"
+                      },
+                      {
+                        "depthInterval": {
+                          "start": 12,
+                          "end": 30
+                        },
+                        "texture": "SAND",
+                        "rockFragmentVolume": "VOLUME_0_1",
+                        "munsellColorString": "10YR 3/1"
+                      },
+                      {
+                        "depthInterval": {
+                          "start": 30,
+                          "end": 48
+                        },
+                        "texture": "SAND",
+                        "rockFragmentVolume": "VOLUME_0_1",
+                        "munsellColorString": "10YR 6/2"
+                      },
+                      {
+                        "depthInterval": {
+                          "start": 48,
+                          "end": 76
+                        },
+                        "texture": "SAND",
+                        "rockFragmentVolume": "VOLUME_1_15",
+                        "munsellColorString": "10YR 6/2"
+                      },
+                      {
+                        "depthInterval": {
+                          "start": 76,
+                          "end": 109
+                        },
+                        "texture": "SAND",
+                        "rockFragmentVolume": "VOLUME_1_15",
+                        "munsellColorString": "10YR 6/4"
+                      },
+                      {
+                        "depthInterval": {
+                          "start": 109,
+                          "end": 124
+                        },
+                        "texture": "SAND",
+                        "rockFragmentVolume": "VOLUME_1_15"
+                      },
+                      {
+                        "depthInterval": {
+                          "start": 124,
+                          "end": 200
+                        },
+                        "texture": "SAND",
+                        "rockFragmentVolume": "VOLUME_1_15"
+                      }
+                    ]
+                  }
+                }
+              },
+              {
+                "dataSource": "SSURGO",
+                "distanceToNearestMapUnitM": 348.0,
+                "locationMatch": {
+                  "rank": 6,
+                  "score": 0.003
+                },
+                "soilInfo": {
+                  "soilSeries": {
+                    "name": "Plainfield",
+                    "taxonomySubgroup": "Typic Udipsamments",
+                    "description": "The Plainfield series consists of very deep, excessively drained soils formed in sandy drift on outwash plains, valley trains, glacial lake basins, stream terraces, and moraines and other upland areas.  Permeability is rapid or very rapid. Slopes range from 0 to 70 percent.  Mean annual precipitation is about 30 inches near the type location.  Mean annual temperature is about 49 degrees F. near the type location.",
+                    "fullDescriptionUrl": "https://casoilresource.lawr.ucdavis.edu/sde/?series=plainfield"
+                  },
+                  "ecologicalSite": {
+                    "name": "Mucky Swamps",
+                    "id": "F089XY002WI",
+                    "url": "https://edit.sc.egov.usda.gov/catalogs/esd/089X/F089XY002WI"
+                  },
+                  "landCapabilityClass": {
+                    "capabilityClass": "4",
+                    "subClass": "s"
+                  },
+                  "soilData": {
+                    "slope": 1.0,
+                    "depthDependentData": [
+                      {
+                        "depthInterval": {
+                          "start": 0,
+                          "end": 20
+                        },
+                        "texture": "SAND",
+                        "rockFragmentVolume": "VOLUME_0_1",
+                        "munsellColorString": "10YR 6/3"
+                      },
+                      {
+                        "depthInterval": {
+                          "start": 20,
+                          "end": 200
+                        },
+                        "texture": "SAND",
+                        "rockFragmentVolume": "VOLUME_0_1",
+                        "munsellColorString": "7.5YR 6/4"
+                      }
+                    ]
+                  }
+                }
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": "6f472f0b-eac1-430c-ba7a-7b84b98d4768",
+      "name": "JST-04",
+      "latitude": 32.231840716585566,
+      "longitude": -92.74431338288174,
+      "elevation": 67.0,
+      "updatedAt": "2025-12-17T17:58:22.866980+00:00",
+      "privacy": "PUBLIC",
+      "archived": false,
+      "seen": true,
+      "soilData": {
+        "downSlope": "LINEAR",
+        "crossSlope": "LINEAR",
+        "slopeSteepnessSelect": "MODERATE",
+        "depthIntervalPreset": "NRCS",
+        "depthIntervals": [],
+        "depthDependentData": [
+          {
+            "depthInterval": {
+              "start": 0,
+              "end": 1
+            },
+            "texture": "SANDY_CLAY_LOAM",
+            "rockFragmentVolume": "VOLUME_35_60",
+            "colorHue": 10.0,
+            "colorValue": 7.0,
+            "colorChroma": 6.0,
+            "colorPhotoUsed": false
+          }
+        ]
+      },
+      "soilMetadata": {
+        "selectedSoilId": "Bowie",
+        "userRatings": [
+          {
+            "soilMatchId": "Bowie",
+            "rating": "SELECTED"
+          }
+        ]
+      },
+      "project": {
+        "id": "edf4882b-6343-4fc8-baeb-a3d1028031f4",
+        "name": "Johanness snapshot test - BLM",
+        "description": "Sites for snapshot, blm"
+      },
+      "notes": [],
+      "soil_id": {
+        "soilId": {
+          "soilMatches": {
+            "dataRegion": "US",
+            "matches": [
+              {
+                "dataSource": "SSURGO",
+                "distanceToNearestMapUnitM": 726.0,
+                "locationMatch": {
+                  "rank": 4,
+                  "score": 0.061
+                },
+                "soilInfo": {
+                  "soilSeries": {
+                    "name": "Bellwood",
+                    "taxonomySubgroup": "Aquic Dystruderts",
+                    "description": "The Bellwood series consists of very deep, somewhat poorly drained, very slowly permeable soils that formed in acid, clayey Tertiary age sediments. These nearly level to steep soils occur on  Coastal Plain uplands. Mean annual precipitation is about 1403 mm (55.23 in)and the mean annual temperature is about 19 degrees C (65.5 degrees F). Slopes are 1 to 20 percent.",
+                    "fullDescriptionUrl": "https://casoilresource.lawr.ucdavis.edu/sde/?series=guyton"
+                  },
+                  "ecologicalSite": {
+                    "name": "Wet Terrace",
+                    "id": "F133BY012TX",
+                    "url": "https://edit.sc.egov.usda.gov/catalogs/esd/133B/F133BY012TX"
+                  },
+                  "landCapabilityClass": {
+                    "capabilityClass": "4",
+                    "subClass": "e"
+                  },
+                  "soilData": {
+                    "slope": 3.0,
+                    "depthDependentData": [
+                      {
+                        "depthInterval": {
+                          "start": 0,
+                          "end": 68
+                        },
+                        "texture": "SILT_LOAM",
+                        "rockFragmentVolume": "VOLUME_0_1",
+                        "munsellColorString": ""
+                      },
+                      {
+                        "depthInterval": {
+                          "start": 68,
+                          "end": 127
+                        },
+                        "rockFragmentVolume": "VOLUME_0_1"
+                      },
+                      {
+                        "depthInterval": {
+                          "start": 127,
+                          "end": 153
+                        },
+                        "rockFragmentVolume": "VOLUME_0_1"
+                      }
+                    ]
+                  }
+                }
+              },
+              {
+                "dataSource": "SSURGO",
+                "distanceToNearestMapUnitM": 397.0,
+                "locationMatch": {
+                  "rank": 1,
+                  "score": 0.081
+                },
+                "soilInfo": {
+                  "soilSeries": {
+                    "name": "Bowie",
+                    "taxonomySubgroup": "Plinthic Paleudults",
+                    "description": "The Bowie series consists of very deep, well drained soils that formed in loamy Coastal Plain deposits on the Queen City, Reklaw, Cook Mountain, Sparta, Cockfield and Carrizo Sand Formations. These very gently sloping to moderately\nsloping soils are on interfluves. Slopes range from 1 to 8 percent but are dominantly 1 to 5 percent. Mean annual air temperature is about 18 degrees C (65 degrees F), and mean annual precipitation is about 1270 mm (50 in).",
+                    "fullDescriptionUrl": "https://casoilresource.lawr.ucdavis.edu/sde/?series=mahan"
+                  },
+                  "ecologicalSite": {
+                    "name": "Loamy Over Clayey Upland",
+                    "id": "F133BY003TX",
+                    "url": "https://edit.sc.egov.usda.gov/catalogs/esd/133B/F133BY003TX"
+                  },
+                  "landCapabilityClass": {
+                    "capabilityClass": "3",
+                    "subClass": "e"
+                  },
+                  "soilData": {
+                    "slope": 3.0,
+                    "depthDependentData": [
+                      {
+                        "depthInterval": {
+                          "start": 0,
+                          "end": 0
+                        },
+                        "texture": "SANDY_LOAM",
+                        "rockFragmentVolume": "VOLUME_0_1",
+                        "munsellColorString": "5YR 6/5"
+                      }
+                    ]
+                  }
+                }
+              },
+              {
+                "dataSource": "SSURGO",
+                "distanceToNearestMapUnitM": 798.0,
+                "locationMatch": {
+                  "rank": 5,
+                  "score": 0.05
+                },
+                "soilInfo": {
+                  "soilSeries": {
+                    "name": "Frizzell",
+                    "taxonomySubgroup": "Glossaquic Hapludalfs",
+                    "description": "The Frizzell series consists of deep, somewhat poorly drained,\nslowly permeable soils that formed in silty alluvium.  These soils are on nearly level to very gently sloping terraces of mid-Pleistocene age.  Slope ranges from 0 to 3 percent.",
+                    "fullDescriptionUrl": "https://casoilresource.lawr.ucdavis.edu/sde/?series=guyton"
+                  },
+                  "ecologicalSite": {
+                    "name": "Depression",
+                    "id": "F133BY001TX",
+                    "url": "https://edit.sc.egov.usda.gov/catalogs/esd/133B/F133BY001TX"
+                  },
+                  "landCapabilityClass": {
+                    "capabilityClass": "2",
+                    "subClass": "e"
+                  },
+                  "soilData": {
+                    "slope": 1.0,
+                    "depthDependentData": [
+                      {
+                        "depthInterval": {
+                          "start": 0,
+                          "end": 0
+                        },
+                        "texture": "SILT_LOAM",
+                        "rockFragmentVolume": "VOLUME_0_1",
+                        "munsellColorString": "10YR 6/2"
+                      }
+                    ]
+                  }
+                }
+              },
+              {
+                "dataSource": "SSURGO",
+                "distanceToNearestMapUnitM": 90.0,
+                "locationMatch": {
+                  "rank": 2,
+                  "score": 0.077
+                },
+                "soilInfo": {
+                  "soilSeries": {
+                    "name": "Guyton",
+                    "taxonomySubgroup": "Typic Glossaqualfs",
+                    "description": "The Guyton series consists of very deep, poorly drained and very poorly drained, slowly permeable soils that formed in thick loamy sediments.  These soils are on Coastal Plain local stream flood plains and in depressional areas on late Pleistocene age terraces.  Slopes range from 0 to 1 percent. Mean annual precipitation is about 1397 mm (55 in) and the mean annual air temperature is about 17.2 degrees C (63 degrees F)",
+                    "fullDescriptionUrl": "https://casoilresource.lawr.ucdavis.edu/sde/?series=bowie"
+                  },
+                  "ecologicalSite": {
+                    "name": "Loamy Bottomland",
+                    "id": "F133BY017TX",
+                    "url": "https://edit.sc.egov.usda.gov/catalogs/esd/133B/F133BY017TX"
+                  },
+                  "landCapabilityClass": {
+                    "capabilityClass": "5",
+                    "subClass": "w"
+                  },
+                  "soilData": {
+                    "slope": 0.5,
+                    "depthDependentData": [
+                      {
+                        "depthInterval": {
+                          "start": 0,
+                          "end": 0
+                        },
+                        "texture": "SAND",
+                        "rockFragmentVolume": "VOLUME_0_1",
+                        "munsellColorString": ""
+                      }
+                    ]
+                  }
+                }
+              },
+              {
+                "dataSource": "SSURGO",
+                "distanceToNearestMapUnitM": 707.0,
+                "locationMatch": {
+                  "rank": 6,
+                  "score": 0.005
+                },
+                "soilInfo": {
+                  "soilSeries": {
+                    "name": "Keithville",
+                    "taxonomySubgroup": "Glossaquic Paleudalfs",
+                    "description": "The Keithville series consists of deep, moderately well drained,\nvery slowly permeable soils that formed in loamy over clayey sediment of Tertiary Age.  These soils are on broad nearly level or gently sloping uplands of the coastal plains.  Slopes range from 1 to 5 percent.  Keithville soils are saturated above the clayey layers to a depth of 2 to 3 feet below the surface for intermittent periods totaling 2 to 6 weeks during winter and early spring.",
+                    "fullDescriptionUrl": "https://casoilresource.lawr.ucdavis.edu/sde/?series=metcalf"
+                  },
+                  "ecologicalSite": {
+                    "name": "Loamy Upland",
+                    "id": "F133BY005TX",
+                    "url": "https://edit.sc.egov.usda.gov/catalogs/esd/133B/F133BY005TX"
+                  },
+                  "landCapabilityClass": {
+                    "capabilityClass": "3",
+                    "subClass": "e"
+                  },
+                  "soilData": {
+                    "slope": 3.0,
+                    "depthDependentData": [
+                      {
+                        "depthInterval": {
+                          "start": 0,
+                          "end": 0
+                        },
+                        "texture": "SILT_LOAM",
+                        "rockFragmentVolume": "VOLUME_0_1",
+                        "munsellColorString": "10YR 7/3"
+                      }
+                    ]
+                  }
+                }
+              },
+              {
+                "dataSource": "SSURGO",
+                "distanceToNearestMapUnitM": 92.0,
+                "locationMatch": {
+                  "rank": 0,
+                  "score": 0.181
+                },
+                "soilInfo": {
+                  "soilSeries": {
+                    "name": "Mahan",
+                    "taxonomySubgroup": "Typic Hapludults",
+                    "description": "The Mahan series consists of very deep, well drained, moderately permeable soils that formed in loamy and clayey sediments.  These soils are on uplands in the Western Coastal Plains.  Slopes range from 1 to 15 percent. Mean annual precipitation is about 1448 mm (57 in) and the mean annual air temperature is about 14.1 degrees C (57.5 degrees F)",
+                    "fullDescriptionUrl": "https://casoilresource.lawr.ucdavis.edu/sde/?series=mahan"
+                  },
+                  "ecologicalSite": {
+                    "name": "Loamy Upland",
+                    "id": "F133BY005TX",
+                    "url": "https://edit.sc.egov.usda.gov/catalogs/esd/133B/F133BY005TX"
+                  },
+                  "landCapabilityClass": {
+                    "capabilityClass": "3",
+                    "subClass": "e"
+                  },
+                  "soilData": {
+                    "slope": 3.0,
+                    "depthDependentData": [
+                      {
+                        "depthInterval": {
+                          "start": 0,
+                          "end": 25
+                        },
+                        "texture": "SANDY_LOAM",
+                        "rockFragmentVolume": "VOLUME_0_1",
+                        "munsellColorString": "5YR 6/5"
+                      },
+                      {
+                        "depthInterval": {
+                          "start": 25,
+                          "end": 89
+                        },
+                        "texture": "SILT_LOAM",
+                        "rockFragmentVolume": "VOLUME_0_1",
+                        "munsellColorString": "2.5YR 6/6"
+                      },
+                      {
+                        "depthInterval": {
+                          "start": 89,
+                          "end": 165
+                        },
+                        "rockFragmentVolume": "VOLUME_0_1",
+                        "munsellColorString": "2.5YR 6/5"
+                      }
+                    ]
+                  }
+                }
+              },
+              {
+                "dataSource": "SSURGO",
+                "distanceToNearestMapUnitM": 707.0,
+                "locationMatch": {
+                  "rank": 3,
+                  "score": 0.065
+                },
+                "soilInfo": {
+                  "soilSeries": {
+                    "name": "Metcalf",
+                    "taxonomySubgroup": "Glossaquic Paleudalfs",
+                    "description": "The Metcalf series consists of deep, somewhat poorly drained, very slowly permeable soils that formed in Pliestocene age loamy marine or alluvial sediments over Tertiary age clayey deposits. These soils are on broad level, nearly level marine or stream terraces on the Coastal Plain. Slope ranges from 0 to 2 percent.",
+                    "fullDescriptionUrl": "https://casoilresource.lawr.ucdavis.edu/sde/?series=guyton"
+                  },
+                  "ecologicalSite": {
+                    "name": "Loamy Over Clayey Upland",
+                    "id": "F133BY003TX",
+                    "url": "https://edit.sc.egov.usda.gov/catalogs/esd/133B/F133BY003TX"
+                  },
+                  "landCapabilityClass": {
+                    "capabilityClass": "2",
+                    "subClass": "w"
+                  },
+                  "soilData": {
+                    "slope": 1.0,
+                    "depthDependentData": [
+                      {
+                        "depthInterval": {
+                          "start": 0,
+                          "end": 0
+                        },
+                        "texture": "SILT_LOAM",
+                        "rockFragmentVolume": "VOLUME_0_1",
+                        "munsellColorString": "10YR 7/2"
+                      }
+                    ]
+                  }
+                }
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": "6d96c960-5ea2-45bc-b22e-13bcc88775d0",
+      "name": "JST-08",
+      "latitude": -28.410089855419848,
+      "longitude": -56.238039805470976,
+      "updatedAt": "2025-12-17T18:00:13.617914+00:00",
+      "privacy": "PRIVATE",
+      "archived": false,
+      "seen": true,
+      "soilData": {
+        "downSlope": "LINEAR",
+        "crossSlope": "CONVEX",
+        "slopeSteepnessSelect": "ROLLING",
+        "surfaceCracksSelect": "DEEP_VERTICAL_CRACKS",
+        "depthIntervalPreset": "NRCS",
+        "depthIntervals": [],
+        "depthDependentData": [
+          {
+            "depthInterval": {
+              "start": 0,
+              "end": 1
+            },
+            "texture": "LOAM",
+            "rockFragmentVolume": "VOLUME_15_35",
+            "colorHue": 25.0,
+            "colorValue": 4.0,
+            "colorChroma": 3.0,
+            "colorPhotoUsed": false
+          }
+        ]
+      },
+      "soilMetadata": {
+        "selectedSoilId": "Dystric plinthosols",
+        "userRatings": [
+          {
+            "soilMatchId": "Dystric plinthosols",
+            "rating": "SELECTED"
+          }
+        ]
+      },
+      "project": {
+        "id": "edf4882b-6343-4fc8-baeb-a3d1028031f4",
+        "name": "Johanness snapshot test - BLM",
+        "description": "Sites for snapshot, blm"
+      },
+      "notes": [],
+      "soil_id": {
+        "soilId": {
+          "soilMatches": {
+            "dataRegion": "GLOBAL",
+            "matches": [
+              {
+                "dataSource": "HWSD",
+                "distanceToNearestMapUnitM": 0.0,
+                "locationMatch": {
+                  "rank": 0,
+                  "score": 0.4
+                },
+                "soilInfo": {
+                  "soilSeries": {
+                    "name": "Rhodic ferralsols"
+                  },
+                  "soilData": {
+                    "depthDependentData": [
+                      {
+                        "depthInterval": {
+                          "start": 0,
+                          "end": 1
+                        },
+                        "rockFragmentVolume": "VOLUME_1_15"
+                      },
+                      {
+                        "depthInterval": {
+                          "start": 1,
+                          "end": 10
+                        },
+                        "rockFragmentVolume": "VOLUME_1_15"
+                      },
+                      {
+                        "depthInterval": {
+                          "start": 10,
+                          "end": 20
+                        },
+                        "rockFragmentVolume": "VOLUME_1_15"
+                      },
+                      {
+                        "depthInterval": {
+                          "start": 20,
+                          "end": 50
+                        },
+                        "rockFragmentVolume": "VOLUME_1_15"
+                      },
+                      {
+                        "depthInterval": {
+                          "start": 50,
+                          "end": 70
+                        },
+                        "rockFragmentVolume": "VOLUME_1_15"
+                      },
+                      {
+                        "depthInterval": {
+                          "start": 70,
+                          "end": 100
+                        },
+                        "rockFragmentVolume": "VOLUME_1_15"
+                      },
+                      {
+                        "depthInterval": {
+                          "start": 100,
+                          "end": 120
+                        },
+                        "rockFragmentVolume": "VOLUME_1_15"
+                      }
+                    ]
+                  }
+                }
+              },
+              {
+                "dataSource": "HWSD",
+                "distanceToNearestMapUnitM": 0.0,
+                "locationMatch": {
+                  "rank": 1,
+                  "score": 0.171
+                },
+                "soilInfo": {
+                  "soilSeries": {
+                    "name": "Rhodic nitisols"
+                  },
+                  "soilData": {
+                    "depthDependentData": [
+                      {
+                        "depthInterval": {
+                          "start": 0,
+                          "end": 1
+                        },
+                        "rockFragmentVolume": "VOLUME_1_15"
+                      },
+                      {
+                        "depthInterval": {
+                          "start": 1,
+                          "end": 10
+                        },
+                        "rockFragmentVolume": "VOLUME_1_15"
+                      },
+                      {
+                        "depthInterval": {
+                          "start": 10,
+                          "end": 20
+                        },
+                        "rockFragmentVolume": "VOLUME_1_15"
+                      },
+                      {
+                        "depthInterval": {
+                          "start": 20,
+                          "end": 50
+                        },
+                        "rockFragmentVolume": "VOLUME_1_15"
+                      },
+                      {
+                        "depthInterval": {
+                          "start": 50,
+                          "end": 70
+                        },
+                        "rockFragmentVolume": "VOLUME_1_15"
+                      },
+                      {
+                        "depthInterval": {
+                          "start": 70,
+                          "end": 100
+                        },
+                        "rockFragmentVolume": "VOLUME_1_15"
+                      },
+                      {
+                        "depthInterval": {
+                          "start": 100,
+                          "end": 120
+                        },
+                        "rockFragmentVolume": "VOLUME_1_15"
+                      }
+                    ]
+                  }
+                }
+              },
+              {
+                "dataSource": "HWSD",
+                "distanceToNearestMapUnitM": 24261.97458558,
+                "locationMatch": {
+                  "rank": 3,
+                  "score": 0.086
+                },
+                "soilInfo": {
+                  "soilSeries": {
+                    "name": "Dystric plinthosols"
+                  },
+                  "soilData": {
+                    "depthDependentData": [
+                      {
+                        "depthInterval": {
+                          "start": 0,
+                          "end": 1
+                        },
+                        "texture": "SILT_LOAM",
+                        "rockFragmentVolume": "VOLUME_1_15"
+                      },
+                      {
+                        "depthInterval": {
+                          "start": 1,
+                          "end": 10
+                        },
+                        "texture": "SILT_LOAM",
+                        "rockFragmentVolume": "VOLUME_1_15"
+                      },
+                      {
+                        "depthInterval": {
+                          "start": 10,
+                          "end": 20
+                        },
+                        "texture": "SILT_LOAM",
+                        "rockFragmentVolume": "VOLUME_1_15"
+                      },
+                      {
+                        "depthInterval": {
+                          "start": 20,
+                          "end": 50
+                        },
+                        "texture": "CLAY_LOAM",
+                        "rockFragmentVolume": "VOLUME_1_15"
+                      },
+                      {
+                        "depthInterval": {
+                          "start": 50,
+                          "end": 70
+                        },
+                        "texture": "CLAY_LOAM",
+                        "rockFragmentVolume": "VOLUME_1_15"
+                      },
+                      {
+                        "depthInterval": {
+                          "start": 70,
+                          "end": 100
+                        },
+                        "rockFragmentVolume": "VOLUME_1_15"
+                      },
+                      {
+                        "depthInterval": {
+                          "start": 100,
+                          "end": 120
+                        },
+                        "rockFragmentVolume": "VOLUME_1_15"
+                      }
+                    ]
+                  }
+                }
+              },
+              {
+                "dataSource": "HWSD",
+                "distanceToNearestMapUnitM": 5314.47842428,
+                "locationMatch": {
+                  "rank": 2,
+                  "score": 0.086
+                },
+                "soilInfo": {
+                  "soilSeries": {
+                    "name": "Eutric gleysols"
+                  },
+                  "soilData": {
+                    "depthDependentData": [
+                      {
+                        "depthInterval": {
+                          "start": 0,
+                          "end": 1
+                        },
+                        "texture": "CLAY_LOAM",
+                        "rockFragmentVolume": "VOLUME_1_15"
+                      },
+                      {
+                        "depthInterval": {
+                          "start": 1,
+                          "end": 10
+                        },
+                        "texture": "CLAY_LOAM",
+                        "rockFragmentVolume": "VOLUME_1_15"
+                      },
+                      {
+                        "depthInterval": {
+                          "start": 10,
+                          "end": 20
+                        },
+                        "texture": "CLAY_LOAM",
+                        "rockFragmentVolume": "VOLUME_1_15"
+                      },
+                      {
+                        "depthInterval": {
+                          "start": 20,
+                          "end": 50
+                        },
+                        "texture": "CLAY_LOAM",
+                        "rockFragmentVolume": "VOLUME_1_15"
+                      },
+                      {
+                        "depthInterval": {
+                          "start": 50,
+                          "end": 70
+                        },
+                        "texture": "CLAY_LOAM",
+                        "rockFragmentVolume": "VOLUME_1_15"
+                      },
+                      {
+                        "depthInterval": {
+                          "start": 70,
+                          "end": 100
+                        },
+                        "texture": "CLAY_LOAM",
+                        "rockFragmentVolume": "VOLUME_1_15"
+                      },
+                      {
+                        "depthInterval": {
+                          "start": 100,
+                          "end": 120
+                        },
+                        "texture": "CLAY_LOAM",
+                        "rockFragmentVolume": "VOLUME_1_15"
+                      }
+                    ]
+                  }
+                }
+              },
+              {
+                "dataSource": "HWSD",
+                "distanceToNearestMapUnitM": 5314.47842428,
+                "locationMatch": {
+                  "rank": 4,
+                  "score": 0.086
+                },
+                "soilInfo": {
+                  "soilSeries": {
+                    "name": "Mollic planosols"
+                  },
+                  "soilData": {
+                    "depthDependentData": [
+                      {
+                        "depthInterval": {
+                          "start": 0,
+                          "end": 1
+                        },
+                        "texture": "SILT_LOAM",
+                        "rockFragmentVolume": "VOLUME_1_15"
+                      },
+                      {
+                        "depthInterval": {
+                          "start": 1,
+                          "end": 10
+                        },
+                        "texture": "SILT_LOAM",
+                        "rockFragmentVolume": "VOLUME_1_15"
+                      },
+                      {
+                        "depthInterval": {
+                          "start": 10,
+                          "end": 20
+                        },
+                        "texture": "SILT_LOAM",
+                        "rockFragmentVolume": "VOLUME_1_15"
+                      },
+                      {
+                        "depthInterval": {
+                          "start": 20,
+                          "end": 50
+                        },
+                        "rockFragmentVolume": "VOLUME_1_15"
+                      },
+                      {
+                        "depthInterval": {
+                          "start": 50,
+                          "end": 70
+                        },
+                        "rockFragmentVolume": "VOLUME_1_15"
+                      },
+                      {
+                        "depthInterval": {
+                          "start": 70,
+                          "end": 100
+                        },
+                        "rockFragmentVolume": "VOLUME_1_15"
+                      },
+                      {
+                        "depthInterval": {
+                          "start": 100,
+                          "end": 120
+                        },
+                        "rockFragmentVolume": "VOLUME_1_15"
+                      }
+                    ]
+                  }
+                }
+              },
+              {
+                "dataSource": "HWSD",
+                "distanceToNearestMapUnitM": 7452.24857989,
+                "locationMatch": {
+                  "rank": 5,
+                  "score": 0.086
+                },
+                "soilInfo": {
+                  "soilSeries": {
+                    "name": "Mollic solonetz"
+                  },
+                  "soilData": {
+                    "depthDependentData": [
+                      {
+                        "depthInterval": {
+                          "start": 0,
+                          "end": 1
+                        },
+                        "texture": "SANDY_CLAY_LOAM",
+                        "rockFragmentVolume": "VOLUME_15_35"
+                      },
+                      {
+                        "depthInterval": {
+                          "start": 1,
+                          "end": 10
+                        },
+                        "texture": "SANDY_CLAY_LOAM",
+                        "rockFragmentVolume": "VOLUME_15_35"
+                      },
+                      {
+                        "depthInterval": {
+                          "start": 10,
+                          "end": 20
+                        },
+                        "texture": "SANDY_CLAY_LOAM",
+                        "rockFragmentVolume": "VOLUME_15_35"
+                      },
+                      {
+                        "depthInterval": {
+                          "start": 20,
+                          "end": 50
+                        },
+                        "texture": "SANDY_CLAY_LOAM",
+                        "rockFragmentVolume": "VOLUME_15_35"
+                      },
+                      {
+                        "depthInterval": {
+                          "start": 50,
+                          "end": 70
+                        },
+                        "texture": "CLAY_LOAM",
+                        "rockFragmentVolume": "VOLUME_15_35"
+                      },
+                      {
+                        "depthInterval": {
+                          "start": 70,
+                          "end": 100
+                        },
+                        "texture": "CLAY_LOAM",
+                        "rockFragmentVolume": "VOLUME_15_35"
+                      },
+                      {
+                        "depthInterval": {
+                          "start": 100,
+                          "end": 120
+                        },
+                        "texture": "CLAY_LOAM",
+                        "rockFragmentVolume": "VOLUME_15_35"
+                      }
+                    ]
+                  }
+                }
+              },
+              {
+                "dataSource": "HWSD",
+                "distanceToNearestMapUnitM": 7452.24857989,
+                "locationMatch": {
+                  "rank": 6,
+                  "score": 0.057
+                },
+                "soilInfo": {
+                  "soilSeries": {
+                    "name": "Gleyic solonetz"
+                  },
+                  "soilData": {
+                    "depthDependentData": [
+                      {
+                        "depthInterval": {
+                          "start": 0,
+                          "end": 1
+                        },
+                        "texture": "SILT_LOAM",
+                        "rockFragmentVolume": "VOLUME_1_15"
+                      },
+                      {
+                        "depthInterval": {
+                          "start": 1,
+                          "end": 10
+                        },
+                        "texture": "SILT_LOAM",
+                        "rockFragmentVolume": "VOLUME_1_15"
+                      },
+                      {
+                        "depthInterval": {
+                          "start": 10,
+                          "end": 20
+                        },
+                        "texture": "SILT_LOAM",
+                        "rockFragmentVolume": "VOLUME_1_15"
+                      },
+                      {
+                        "depthInterval": {
+                          "start": 20,
+                          "end": 50
+                        },
+                        "texture": "CLAY_LOAM",
+                        "rockFragmentVolume": "VOLUME_1_15"
+                      },
+                      {
+                        "depthInterval": {
+                          "start": 50,
+                          "end": 70
+                        },
+                        "texture": "CLAY_LOAM",
+                        "rockFragmentVolume": "VOLUME_1_15"
+                      },
+                      {
+                        "depthInterval": {
+                          "start": 70,
+                          "end": 100
+                        },
+                        "texture": "CLAY_LOAM",
+                        "rockFragmentVolume": "VOLUME_1_15"
+                      },
+                      {
+                        "depthInterval": {
+                          "start": 100,
+                          "end": 120
+                        },
+                        "texture": "CLAY_LOAM",
+                        "rockFragmentVolume": "VOLUME_1_15"
+                      }
+                    ]
+                  }
+                }
+              },
+              {
+                "dataSource": "HWSD",
+                "distanceToNearestMapUnitM": 24261.97458558,
+                "locationMatch": {
+                  "rank": 7,
+                  "score": 0.029
+                },
+                "soilInfo": {
+                  "soilSeries": {
+                    "name": "Eutric planosols"
+                  },
+                  "soilData": {
+                    "depthDependentData": [
+                      {
+                        "depthInterval": {
+                          "start": 0,
+                          "end": 1
+                        },
+                        "texture": "LOAM",
+                        "rockFragmentVolume": "VOLUME_1_15"
+                      },
+                      {
+                        "depthInterval": {
+                          "start": 1,
+                          "end": 10
+                        },
+                        "texture": "LOAM",
+                        "rockFragmentVolume": "VOLUME_1_15"
+                      },
+                      {
+                        "depthInterval": {
+                          "start": 10,
+                          "end": 20
+                        },
+                        "texture": "LOAM",
+                        "rockFragmentVolume": "VOLUME_1_15"
+                      },
+                      {
+                        "depthInterval": {
+                          "start": 20,
+                          "end": 50
+                        },
+                        "texture": "LOAM",
+                        "rockFragmentVolume": "VOLUME_1_15"
+                      },
+                      {
+                        "depthInterval": {
+                          "start": 50,
+                          "end": 70
+                        },
+                        "texture": "LOAM",
+                        "rockFragmentVolume": "VOLUME_1_15"
+                      },
+                      {
+                        "depthInterval": {
+                          "start": 70,
+                          "end": 100
+                        },
+                        "texture": "CLAY_LOAM",
+                        "rockFragmentVolume": "VOLUME_1_15"
+                      },
+                      {
+                        "depthInterval": {
+                          "start": 100,
+                          "end": 120
+                        },
+                        "texture": "CLAY_LOAM",
+                        "rockFragmentVolume": "VOLUME_1_15"
+                      }
+                    ]
+                  }
+                }
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": "06aec182-3431-4297-95fc-4a3dca26bbad",
+      "name": "JST-09",
+      "latitude": 7.3980944820064,
+      "longitude": 8.033273425881617,
+      "elevation": 199.0,
+      "updatedAt": "2025-12-17T18:00:33.831010+00:00",
+      "privacy": "PRIVATE",
+      "archived": false,
+      "seen": true,
+      "soilData": {
+        "downSlope": "CONVEX",
+        "crossSlope": "LINEAR",
+        "slopeSteepnessSelect": "GENTLE",
+        "surfaceCracksSelect": "NO_CRACKING",
+        "depthIntervalPreset": "NRCS",
+        "depthIntervals": [],
+        "depthDependentData": [
+          {
+            "depthInterval": {
+              "start": 0,
+              "end": 1
+            },
+            "rockFragmentVolume": "VOLUME_1_15",
+            "colorPhotoUsed": false
+          }
+        ]
+      },
+      "soilMetadata": {
+        "selectedSoilId": "Haplic acrisols",
+        "userRatings": [
+          {
+            "soilMatchId": "Haplic acrisols",
+            "rating": "SELECTED"
+          }
+        ]
+      },
+      "project": {
+        "id": "edf4882b-6343-4fc8-baeb-a3d1028031f4",
+        "name": "Johanness snapshot test - BLM",
+        "description": "Sites for snapshot, blm"
+      },
+      "notes": [
+        {
+          "id": "37aedfc3-cec0-4f06-a48c-8a67e4dc5dd5",
+          "content": "Guvuvy",
+          "createdAt": "2025-12-17T18:19:19.621702+00:00",
+          "updatedAt": "2025-12-17T18:19:19.621712+00:00",
+          "deletedByCascade": false,
+          "author": {
+            "id": "b7fea1ab-7277-4b45-a301-9149fcefc80a",
+            "email": "derek@techmatters.org",
+            "firstName": "Derek",
+            "lastName": "Caelin",
+            "profileImage": "https://images.staging.terraso.net/b7fea1ab-7277-4b45-a301-9149fcefc80a/profile-image_253"
+          }
+        }
+      ],
+      "soil_id": {
+        "soilId": {
+          "soilMatches": {
+            "dataRegion": "GLOBAL",
+            "matches": [
+              {
+                "dataSource": "HWSD",
+                "distanceToNearestMapUnitM": 6.61371874,
+                "locationMatch": {
+                  "rank": 0,
+                  "score": 0.3
+                },
+                "soilInfo": {
+                  "soilSeries": {
+                    "name": "Haplic nitisols"
+                  },
+                  "soilData": {
+                    "depthDependentData": [
+                      {
+                        "depthInterval": {
+                          "start": 0,
+                          "end": 1
+                        },
+                        "texture": "SANDY_CLAY_LOAM",
+                        "rockFragmentVolume": "VOLUME_1_15"
+                      },
+                      {
+                        "depthInterval": {
+                          "start": 1,
+                          "end": 10
+                        },
+                        "texture": "SANDY_CLAY_LOAM",
+                        "rockFragmentVolume": "VOLUME_1_15"
+                      },
+                      {
+                        "depthInterval": {
+                          "start": 10,
+                          "end": 20
+                        },
+                        "texture": "SANDY_CLAY_LOAM",
+                        "rockFragmentVolume": "VOLUME_1_15"
+                      },
+                      {
+                        "depthInterval": {
+                          "start": 20,
+                          "end": 50
+                        },
+                        "texture": "CLAY_LOAM",
+                        "rockFragmentVolume": "VOLUME_1_15"
+                      },
+                      {
+                        "depthInterval": {
+                          "start": 50,
+                          "end": 70
+                        },
+                        "rockFragmentVolume": "VOLUME_1_15"
+                      },
+                      {
+                        "depthInterval": {
+                          "start": 70,
+                          "end": 100
+                        },
+                        "rockFragmentVolume": "VOLUME_1_15"
+                      },
+                      {
+                        "depthInterval": {
+                          "start": 100,
+                          "end": 120
+                        },
+                        "rockFragmentVolume": "VOLUME_1_15"
+                      }
+                    ]
+                  }
+                }
+              },
+              {
+                "dataSource": "HWSD",
+                "distanceToNearestMapUnitM": 0.0,
+                "locationMatch": {
+                  "rank": 1,
+                  "score": 0.26
+                },
+                "soilInfo": {
+                  "soilSeries": {
+                    "name": "Dystric plinthosols"
+                  },
+                  "soilData": {
+                    "depthDependentData": [
+                      {
+                        "depthInterval": {
+                          "start": 0,
+                          "end": 1
+                        },
+                        "texture": "SANDY_LOAM",
+                        "rockFragmentVolume": "VOLUME_15_35"
+                      },
+                      {
+                        "depthInterval": {
+                          "start": 1,
+                          "end": 10
+                        },
+                        "texture": "SANDY_LOAM",
+                        "rockFragmentVolume": "VOLUME_15_35"
+                      },
+                      {
+                        "depthInterval": {
+                          "start": 10,
+                          "end": 20
+                        },
+                        "texture": "SANDY_LOAM",
+                        "rockFragmentVolume": "VOLUME_15_35"
+                      },
+                      {
+                        "depthInterval": {
+                          "start": 20,
+                          "end": 50
+                        },
+                        "texture": "SANDY_CLAY_LOAM",
+                        "rockFragmentVolume": "VOLUME_15_35"
+                      },
+                      {
+                        "depthInterval": {
+                          "start": 50,
+                          "end": 70
+                        },
+                        "texture": "CLAY_LOAM",
+                        "rockFragmentVolume": "VOLUME_15_35"
+                      },
+                      {
+                        "depthInterval": {
+                          "start": 70,
+                          "end": 100
+                        },
+                        "texture": "CLAY_LOAM",
+                        "rockFragmentVolume": "VOLUME_15_35"
+                      },
+                      {
+                        "depthInterval": {
+                          "start": 100,
+                          "end": 120
+                        },
+                        "texture": "CLAY_LOAM",
+                        "rockFragmentVolume": "VOLUME_15_35"
+                      }
+                    ]
+                  }
+                }
+              },
+              {
+                "dataSource": "HWSD",
+                "distanceToNearestMapUnitM": 0.0,
+                "locationMatch": {
+                  "rank": 2,
+                  "score": 0.13
+                },
+                "soilInfo": {
+                  "soilSeries": {
+                    "name": "Ferric acrisols"
+                  },
+                  "soilData": {
+                    "depthDependentData": [
+                      {
+                        "depthInterval": {
+                          "start": 0,
+                          "end": 1
+                        },
+                        "texture": "SANDY_CLAY_LOAM",
+                        "rockFragmentVolume": "VOLUME_15_35"
+                      },
+                      {
+                        "depthInterval": {
+                          "start": 1,
+                          "end": 10
+                        },
+                        "texture": "SANDY_CLAY_LOAM",
+                        "rockFragmentVolume": "VOLUME_15_35"
+                      },
+                      {
+                        "depthInterval": {
+                          "start": 10,
+                          "end": 20
+                        },
+                        "texture": "SANDY_CLAY_LOAM",
+                        "rockFragmentVolume": "VOLUME_15_35"
+                      },
+                      {
+                        "depthInterval": {
+                          "start": 20,
+                          "end": 50
+                        },
+                        "texture": "SANDY_CLAY_LOAM",
+                        "rockFragmentVolume": "VOLUME_15_35"
+                      },
+                      {
+                        "depthInterval": {
+                          "start": 50,
+                          "end": 70
+                        },
+                        "texture": "SANDY_CLAY_LOAM",
+                        "rockFragmentVolume": "VOLUME_15_35"
+                      },
+                      {
+                        "depthInterval": {
+                          "start": 70,
+                          "end": 100
+                        },
+                        "texture": "SANDY_CLAY",
+                        "rockFragmentVolume": "VOLUME_15_35"
+                      },
+                      {
+                        "depthInterval": {
+                          "start": 100,
+                          "end": 120
+                        },
+                        "texture": "CLAY_LOAM",
+                        "rockFragmentVolume": "VOLUME_15_35"
+                      }
+                    ]
+                  }
+                }
+              },
+              {
+                "dataSource": "HWSD",
+                "distanceToNearestMapUnitM": 6.61371874,
+                "locationMatch": {
+                  "rank": 4,
+                  "score": 0.1
+                },
+                "soilInfo": {
+                  "soilSeries": {
+                    "name": "Gleyic acrisols"
+                  },
+                  "soilData": {
+                    "depthDependentData": [
+                      {
+                        "depthInterval": {
+                          "start": 0,
+                          "end": 1
+                        },
+                        "texture": "LOAM",
+                        "rockFragmentVolume": "VOLUME_1_15"
+                      },
+                      {
+                        "depthInterval": {
+                          "start": 1,
+                          "end": 10
+                        },
+                        "texture": "LOAM",
+                        "rockFragmentVolume": "VOLUME_1_15"
+                      },
+                      {
+                        "depthInterval": {
+                          "start": 10,
+                          "end": 20
+                        },
+                        "texture": "LOAM",
+                        "rockFragmentVolume": "VOLUME_1_15"
+                      },
+                      {
+                        "depthInterval": {
+                          "start": 20,
+                          "end": 50
+                        },
+                        "texture": "CLAY_LOAM",
+                        "rockFragmentVolume": "VOLUME_1_15"
+                      },
+                      {
+                        "depthInterval": {
+                          "start": 50,
+                          "end": 70
+                        },
+                        "texture": "CLAY_LOAM",
+                        "rockFragmentVolume": "VOLUME_1_15"
+                      },
+                      {
+                        "depthInterval": {
+                          "start": 70,
+                          "end": 100
+                        },
+                        "texture": "CLAY_LOAM",
+                        "rockFragmentVolume": "VOLUME_1_15"
+                      },
+                      {
+                        "depthInterval": {
+                          "start": 100,
+                          "end": 120
+                        },
+                        "texture": "CLAY_LOAM",
+                        "rockFragmentVolume": "VOLUME_1_15"
+                      }
+                    ]
+                  }
+                }
+              },
+              {
+                "dataSource": "HWSD",
+                "distanceToNearestMapUnitM": 6.61371874,
+                "locationMatch": {
+                  "rank": 5,
+                  "score": 0.1
+                },
+                "soilInfo": {
+                  "soilSeries": {
+                    "name": "Haplic acrisols"
+                  },
+                  "soilData": {
+                    "depthDependentData": [
+                      {
+                        "depthInterval": {
+                          "start": 0,
+                          "end": 1
+                        },
+                        "texture": "SANDY_CLAY_LOAM",
+                        "rockFragmentVolume": "VOLUME_1_15"
+                      },
+                      {
+                        "depthInterval": {
+                          "start": 1,
+                          "end": 10
+                        },
+                        "texture": "SANDY_CLAY_LOAM",
+                        "rockFragmentVolume": "VOLUME_1_15"
+                      },
+                      {
+                        "depthInterval": {
+                          "start": 10,
+                          "end": 20
+                        },
+                        "texture": "SANDY_CLAY_LOAM",
+                        "rockFragmentVolume": "VOLUME_1_15"
+                      },
+                      {
+                        "depthInterval": {
+                          "start": 20,
+                          "end": 50
+                        },
+                        "texture": "SANDY_CLAY_LOAM",
+                        "rockFragmentVolume": "VOLUME_1_15"
+                      },
+                      {
+                        "depthInterval": {
+                          "start": 50,
+                          "end": 70
+                        },
+                        "texture": "SANDY_CLAY_LOAM",
+                        "rockFragmentVolume": "VOLUME_1_15"
+                      },
+                      {
+                        "depthInterval": {
+                          "start": 70,
+                          "end": 100
+                        },
+                        "texture": "SANDY_CLAY_LOAM",
+                        "rockFragmentVolume": "VOLUME_1_15"
+                      },
+                      {
+                        "depthInterval": {
+                          "start": 100,
+                          "end": 120
+                        },
+                        "texture": "SANDY_CLAY_LOAM",
+                        "rockFragmentVolume": "VOLUME_1_15"
+                      }
+                    ]
+                  }
+                }
+              },
+              {
+                "dataSource": "HWSD",
+                "distanceToNearestMapUnitM": 0.0,
+                "locationMatch": {
+                  "rank": 3,
+                  "score": 0.11
+                },
+                "soilInfo": {
+                  "soilSeries": {
+                    "name": "Lithic leptosols"
+                  },
+                  "soilData": {
+                    "depthDependentData": [
+                      {
+                        "depthInterval": {
+                          "start": 0,
+                          "end": 1
+                        },
+                        "texture": "LOAM",
+                        "rockFragmentVolume": "VOLUME_35_60"
+                      },
+                      {
+                        "depthInterval": {
+                          "start": 1,
+                          "end": 10
+                        },
+                        "texture": "LOAM",
+                        "rockFragmentVolume": "VOLUME_35_60"
+                      },
+                      {
+                        "depthInterval": {
+                          "start": 10,
+                          "end": 20
+                        },
+                        "texture": "LOAM",
+                        "rockFragmentVolume": "VOLUME_35_60"
+                      }
+                    ]
+                  }
+                }
+              }
+            ]
+          }
+        }
+      }
+    }
+  ]
+}
