@@ -27,6 +27,9 @@ pytestmark = pytest.mark.django_db
 
 
 # Fixtures
+# Note: These fixtures use `user` from tests/graphql/conftest.py (the authenticated
+# GraphQL user). Similar fixtures exist in tests/export/conftest.py which use
+# `export_user` (users[0]) for HTTP export endpoint tests.
 
 
 @pytest.fixture

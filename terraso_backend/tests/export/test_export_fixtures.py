@@ -278,12 +278,8 @@ def normalize_csv_for_comparison(csv_content, ignore_columns=None):
     if ignore_columns is None:
         ignore_columns = IGNORE_CSV_COLUMNS
 
-    lines = csv_content.strip().split("\n")
-    if not lines:
-        return ""
-
     # Use csv module for proper parsing of quoted fields
-    reader = csv.reader(io.StringIO(csv_content))
+    reader = csv.reader(io.StringIO(csv_content.strip()))
     rows = list(reader)
     if not rows:
         return ""

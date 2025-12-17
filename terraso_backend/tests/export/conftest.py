@@ -17,30 +17,27 @@ import pytest
 from mixer.backend.django import mixer
 
 from apps.collaboration.models import Membership
-from apps.core.models import User
 from apps.export.fetch_data import clear_soil_id_cache
 from apps.export.models import ExportToken
 from apps.project_management.models import Project, Site
-from apps.soil_id.models import (
-    DepthDependentSoilData,
-    DepthIntervalPreset,
-    NRCSIntervalDefaults,
-    ProjectSoilSettings,
-    SoilData,
-)
 
 pytestmark = pytest.mark.django_db
 
 
+# Note: These fixtures use users[0] and users[1] from the global conftest.py.
+# Similar fixtures exist in tests/graphql/mutations/test_export_tokens.py
+# which use the `user` fixture for GraphQL authentication context.
+
+
 @pytest.fixture
 def export_user(users):
-    """Primary user for export tests."""
+    """Primary user for export tests (users[0])."""
     return users[0]
 
 
 @pytest.fixture
 def export_user_2(users):
-    """Secondary user for export tests (e.g., project owner)."""
+    """Secondary user for export tests (users[1])."""
     return users[1]
 
 
@@ -102,29 +99,6 @@ def project_site(export_project):
         longitude=-107.0,
         elevation=1800.0,
     )
-
-
-@pytest.fixture
-def site_with_soil_data(owned_site):
-    """Site with basic soil data attached."""
-    SoilData.objects.create(site=owned_site)
-    return owned_site
-
-
-@pytest.fixture
-def project_site_with_soil_data(project_site, export_project):
-    """Project site with soil data and depth intervals."""
-    ProjectSoilSettings.objects.create(
-        project=export_project, depth_interval_preset=DepthIntervalPreset.NRCS
-    )
-    SoilData.objects.create(site=project_site)
-    for interval in NRCSIntervalDefaults:
-        DepthDependentSoilData.objects.create(
-            soil_data=project_site.soil_data,
-            depth_interval_start=interval["depth_interval_start"],
-            depth_interval_end=interval["depth_interval_end"],
-        )
-    return project_site
 
 
 # Export token fixtures

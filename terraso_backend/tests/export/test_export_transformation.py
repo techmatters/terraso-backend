@@ -34,7 +34,6 @@ from apps.export.transformers import (
     apply_object_transformations,
     flatten_site,
     merge_depth_intervals_into_data,
-    transform_site_data,
 )
 
 from .fixture_loader import create_user_for_fixtures, load_site_from_raw_json
