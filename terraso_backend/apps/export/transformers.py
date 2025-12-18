@@ -14,6 +14,7 @@
 # along with this program. If not, see https://www.gnu.org/licenses/.
 
 import math
+import re
 from typing import Optional, Tuple
 
 from django.conf import settings
@@ -211,27 +212,47 @@ def format_slope_steepness(obj):
         obj["slopeSteepnessSelect"] = value
 
 
-def calculate_slope_conversions(obj):
+def calculate_slope_percentage_range(obj):
     """
-    Calculate missing slope steepness values from the one that exists.
+    Calculate slope steepness percentage range from whichever input exists.
 
-    Formulas:
-        degrees = atan(percent/100) * (180/π)
-        percent = tan(degrees * π/180) * 100
+    Priority: slopeSteepnessPercent > slopeSteepnessDegree > slopeSteepnessSelect
 
-    Examples:
-        5% → 2.9°
-        45° → 100%
+    Sets _slopeSteepnessPercentLow and _slopeSteepnessPercentHigh.
+    For exact values (percent/degree), low == high.
+    For select categories, uses the range (e.g., FLAT = 0-2%).
     """
-    degree = obj.get("slopeSteepnessDegree")
     percent = obj.get("slopeSteepnessPercent")
+    degree = obj.get("slopeSteepnessDegree")
+    select = obj.get("slopeSteepnessSelect")
 
-    if degree is None and percent is not None:
-        # Calculate degree from percent
-        obj["slopeSteepnessDegree"] = round(math.degrees(math.atan(percent / 100)), 1)
-    elif percent is None and degree is not None:
-        # Calculate percent from degree
-        obj["slopeSteepnessPercent"] = round(math.tan(math.radians(degree)) * 100, 1)
+    low = None
+    high = None
+
+    if percent is not None:
+        # Exact percent value
+        low = high = float(percent)
+    elif degree is not None:
+        # Convert degree to percent: percent = tan(degrees) * 100
+        percent_value = round(math.tan(math.radians(degree)) * 100, 1)
+        low = high = percent_value
+    elif select is not None:
+        # Parse range from display label like "0-2% (flat)" or "100%+ (steepest)"
+        # Match "start - end%" or "start-end%"
+        range_match = re.search(r"(\d+)\s*-\s*(\d+)%", select)
+        if range_match:
+            low = int(range_match.group(1))
+            high = int(range_match.group(2))
+        else:
+            # Match "100%+" pattern (no upper bound)
+            plus_match = re.search(r"(\d+)%\+", select)
+            if plus_match:
+                low = int(plus_match.group(1))
+                high = 999  # Max app allows
+
+    if low is not None:
+        obj["_slopeSteepnessPercentLow"] = low
+        obj["_slopeSteepnessPercentHigh"] = high
 
 
 # Registry of object-level transformers
@@ -239,7 +260,7 @@ OBJECT_TRANSFORMERS = [
     add_simple_enum_labels,  # Handles all simple enum fields via SIMPLE_ENUM_MAPPINGS
     format_rock_fragment_volume,  # Format rock fragment volume after enum transformation
     format_slope_steepness,  # Format slope steepness after enum transformation
-    calculate_slope_conversions,  # Calculate missing degree/percent from the other
+    calculate_slope_percentage_range,  # Calculate percent range from any slope input
     add_munsell_color_label,  # Special case: multi-field transformation
 ]
 
@@ -509,8 +530,8 @@ def flatten_site(site: dict) -> dict:
             "Ecological site ID": ecological_site_id,
             "Land capability classification": lcc_class,
             # Slope and surface characteristics
-            "Slope steepness degree": soil_data.get("slopeSteepnessDegree"),
-            "Slope steepness percent": soil_data.get("slopeSteepnessPercent"),
+            "Slope steepness percent low": soil_data.get("_slopeSteepnessPercentLow"),
+            "Slope steepness percent high": soil_data.get("_slopeSteepnessPercentHigh"),
             "Down slope": soil_data.get("downSlope"),
             "Cross slope": soil_data.get("crossSlope"),
             "Surface cracks": soil_data.get("surfaceCracksSelect"),
