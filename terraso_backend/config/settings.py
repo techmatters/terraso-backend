@@ -217,10 +217,16 @@ LOGGING = {
             "processor": structlog.dev.ConsoleRenderer(),
         },
     },
+    "filters": {
+        "healthcheck_filter": {
+            "()": "config.logging_filters.HealthCheckFilter",
+        },
+    },
     "handlers": {
         "console": {
             "class": "logging.StreamHandler",
             "formatter": config("LOGS_FORMATTER", default="json_formatter"),
+            "filters": ["healthcheck_filter"],
         },
     },
     "loggers": {
