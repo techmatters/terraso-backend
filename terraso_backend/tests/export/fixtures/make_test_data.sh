@@ -35,13 +35,13 @@ BASE_URL="${BASE_URL%.csv}"
 OUTPUT_NAME=$(basename "$BASE_URL")
 
 echo "Fetching raw JSON..."
-curl -s "${BASE_URL}.json?format=raw" | jq > "${OUTPUT_NAME}.raw.json"
+curl -s "${BASE_URL}.json?format=raw&cached=20" | jq > "${OUTPUT_NAME}.raw.json"
 
 echo "Fetching transformed JSON..."
-curl -s "${BASE_URL}.json" | jq > "${OUTPUT_NAME}.json"
+curl -s "${BASE_URL}.json?cached=20" | jq > "${OUTPUT_NAME}.json"
 
 echo "Fetching CSV..."
-curl -s "${BASE_URL}.csv" > "${OUTPUT_NAME}.csv"
+curl -s "${BASE_URL}.csv?cached=20" > "${OUTPUT_NAME}.csv"
 
 echo ""
 echo "Generated files:"

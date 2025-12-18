@@ -1609,7 +1609,11 @@
               "start": 0,
               "end": 1
             },
+            "texture": "SAND",
             "rockFragmentVolume": "VOLUME_1_15",
+            "colorHue": 15.0,
+            "colorValue": 8.0,
+            "colorChroma": 4.0,
             "colorPhotoUsed": false
           }
         ]

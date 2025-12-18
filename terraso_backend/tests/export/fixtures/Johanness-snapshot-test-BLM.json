@@ -1635,8 +1635,13 @@
             "label": "0-5 cm",
             "depthIntervalStart": 0,
             "depthIntervalEnd": 5,
+            "texture": "Sand",
             "rockFragmentVolume": "1-15%",
-            "colorPhotoUsed": false
+            "colorHue": 15.0,
+            "colorValue": 8.0,
+            "colorChroma": 4.0,
+            "colorPhotoUsed": false,
+            "_colorMunsell": "5.0YR 8/4"
           },
           {
             "label": "5-15 cm",
