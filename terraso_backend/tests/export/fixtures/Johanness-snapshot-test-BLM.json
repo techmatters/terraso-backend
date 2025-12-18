@@ -82,7 +82,9 @@
             "depthIntervalStart": 100,
             "depthIntervalEnd": 200
           }
-        ]
+        ],
+        "_slopeSteepnessPercentLow": 2,
+        "_slopeSteepnessPercentHigh": 5
       },
       "project": {
         "id": "edf4882b-6343-4fc8-baeb-a3d1028031f4",
@@ -655,7 +657,9 @@
             "depthIntervalStart": 100,
             "depthIntervalEnd": 200
           }
-        ]
+        ],
+        "_slopeSteepnessPercentLow": 5,
+        "_slopeSteepnessPercentHigh": 10
       },
       "project": {
         "id": "edf4882b-6343-4fc8-baeb-a3d1028031f4",
@@ -1031,7 +1035,9 @@
             "depthIntervalStart": 100,
             "depthIntervalEnd": 200
           }
-        ]
+        ],
+        "_slopeSteepnessPercentLow": 10,
+        "_slopeSteepnessPercentHigh": 15
       },
       "project": {
         "id": "edf4882b-6343-4fc8-baeb-a3d1028031f4",
@@ -1668,7 +1674,9 @@
             "depthIntervalStart": 100,
             "depthIntervalEnd": 200
           }
-        ]
+        ],
+        "_slopeSteepnessPercentLow": 2,
+        "_slopeSteepnessPercentHigh": 5
       },
       "project": {
         "id": "edf4882b-6343-4fc8-baeb-a3d1028031f4",

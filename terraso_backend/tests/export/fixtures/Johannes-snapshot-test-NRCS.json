@@ -89,7 +89,9 @@
             "colorPhotoUsed": false,
             "_colorMunsell": "5.0YR 5/2"
           }
-        ]
+        ],
+        "_slopeSteepnessPercentLow": 30,
+        "_slopeSteepnessPercentHigh": 50
       },
       "project": {
         "id": "dd4fa6a9-9e45-4e61-a73c-36bedded0714",
@@ -938,7 +940,9 @@
             "depthIntervalStart": 100,
             "depthIntervalEnd": 200
           }
-        ]
+        ],
+        "_slopeSteepnessPercentLow": 10,
+        "_slopeSteepnessPercentHigh": 15
       },
       "project": {
         "id": "dd4fa6a9-9e45-4e61-a73c-36bedded0714",

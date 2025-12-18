@@ -13,7 +13,6 @@
       "soilData": {
         "downSlope": "Linear",
         "crossSlope": "Convex",
-        "slopeSteepnessPercent": 3.5,
         "slopeSteepnessDegree": 2,
         "surfaceCracksSelect": "No cracking",
         "depthIntervalPreset": "NRCS",
@@ -60,7 +59,9 @@
             "colorPhotoUsed": false,
             "_colorMunsell": "10.0G 2.5/1"
           }
-        ]
+        ],
+        "_slopeSteepnessPercentLow": 3.5,
+        "_slopeSteepnessPercentHigh": 3.5
       },
       "project": {
         "id": "da8e292d-e3df-4db4-9e08-602f28733f60",
@@ -932,7 +933,9 @@
             "colorPhotoUsed": false,
             "_colorMunsell": "10.0BG 3/1"
           }
-        ]
+        ],
+        "_slopeSteepnessPercentLow": 100,
+        "_slopeSteepnessPercentHigh": 999
       },
       "project": {
         "id": "da8e292d-e3df-4db4-9e08-602f28733f60",
@@ -1697,7 +1700,9 @@
             "colorPhotoUsed": false,
             "_colorMunsell": "2.5YR 5/2"
           }
-        ]
+        ],
+        "_slopeSteepnessPercentLow": 15,
+        "_slopeSteepnessPercentHigh": 30
       },
       "project": {
         "id": "da8e292d-e3df-4db4-9e08-602f28733f60",
