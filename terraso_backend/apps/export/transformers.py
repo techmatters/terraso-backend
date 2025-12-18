@@ -13,6 +13,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see https://www.gnu.org/licenses/.
 
+import math
 from typing import Optional, Tuple
 
 from django.conf import settings
@@ -210,11 +211,35 @@ def format_slope_steepness(obj):
         obj["slopeSteepnessSelect"] = value
 
 
+def calculate_slope_conversions(obj):
+    """
+    Calculate missing slope steepness values from the one that exists.
+
+    Formulas:
+        degrees = atan(percent/100) * (180/π)
+        percent = tan(degrees * π/180) * 100
+
+    Examples:
+        5% → 2.9°
+        45° → 100%
+    """
+    degree = obj.get("slopeSteepnessDegree")
+    percent = obj.get("slopeSteepnessPercent")
+
+    if degree is None and percent is not None:
+        # Calculate degree from percent
+        obj["slopeSteepnessDegree"] = round(math.degrees(math.atan(percent / 100)), 1)
+    elif percent is None and degree is not None:
+        # Calculate percent from degree
+        obj["slopeSteepnessPercent"] = round(math.tan(math.radians(degree)) * 100, 1)
+
+
 # Registry of object-level transformers
 OBJECT_TRANSFORMERS = [
     add_simple_enum_labels,  # Handles all simple enum fields via SIMPLE_ENUM_MAPPINGS
     format_rock_fragment_volume,  # Format rock fragment volume after enum transformation
     format_slope_steepness,  # Format slope steepness after enum transformation
+    calculate_slope_conversions,  # Calculate missing degree/percent from the other
     add_munsell_color_label,  # Special case: multi-field transformation
 ]
 
@@ -485,6 +510,7 @@ def flatten_site(site: dict) -> dict:
             "Land capability classification": lcc_class,
             # Slope and surface characteristics
             "Slope steepness degree": soil_data.get("slopeSteepnessDegree"),
+            "Slope steepness percent": soil_data.get("slopeSteepnessPercent"),
             "Down slope": soil_data.get("downSlope"),
             "Cross slope": soil_data.get("crossSlope"),
             "Surface cracks": soil_data.get("surfaceCracksSelect"),
