@@ -13,6 +13,30 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see https://www.gnu.org/licenses/.
 
+"""
+CORS handler for export URLs.
+
+When is CORS needed?
+--------------------
+CORS is ONLY needed when JavaScript running in a browser makes cross-origin
+requests (fetch/XMLHttpRequest to a different domain).
+
+CORS is needed for:
+  - A website using JavaScript to fetch from /export/token/* URLs
+
+CORS is NOT needed for:
+  - Clicking a link to download CSV/JSON (direct browser navigation)
+  - Mobile apps making HTTP requests
+  - curl, wget, or any server-side code
+  - The HTML landing pages (same origin as API)
+
+Security note:
+--------------
+Enabling CORS for /export/token/* is low risk because the security model
+is token-based: anyone with a valid token can access the data regardless
+of CORS. The token (a 128-bit UUID) IS the security, not CORS.
+"""
+
 from corsheaders.signals import check_request_enabled
 
 
@@ -26,9 +50,6 @@ def cors_allow_export_urls(sender, request, **kwargs):
     ID-based exports (/export/id/*) require JWT authentication and follow
     the standard CORS policy (CORS_ORIGIN_WHITELIST), so they return False here
     to let the default CORS middleware behavior apply.
-
-    This handler is called by django-cors-headers middleware to determine
-    if CORS should be enabled for a particular request.
 
     Returns:
         bool: True if CORS should be enabled (for /export/token/* URLs), False otherwise
