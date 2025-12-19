@@ -16,6 +16,11 @@
 import graphene
 from graphene_django.filter import DjangoFilterConnectionField
 
+from apps.export.graphql.mutations import (
+    ExportTokenAddMutation,
+    ExportTokenDeleteMutation,
+)
+from apps.export.graphql.queries import Query as ExportQuery
 from apps.project_management.graphql.projects import (
     ProjectAddMutation,
     ProjectAddUserMutation,
@@ -119,7 +124,7 @@ from .visualization_config import (
 )
 
 
-class Query(graphene.ObjectType):
+class Query(ExportQuery, graphene.ObjectType):
     group = TerrasoRelayNode.Field(GroupNode)
     landscape = TerrasoRelayNode.Field(LandscapeNode)
     landscape_group = TerrasoRelayNode.Field(LandscapeNode)
@@ -224,6 +229,8 @@ class Mutations(graphene.ObjectType):
     save_group_membership = GroupMembershipSaveMutation.Field()
     delete_group_membership = GroupMembershipDeleteMutation.Field()
     update_shared_resource = SharedResourceUpdateMutation.Field()
+    add_export_token = ExportTokenAddMutation.Field()
+    delete_export_token = ExportTokenDeleteMutation.Field()
 
 
 schema = graphene.Schema(query=Query, mutation=Mutations)
