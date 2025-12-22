@@ -158,6 +158,8 @@ def fetch_site_data(site_id, request):
                 id
                 name
                 description
+                siteInstructions
+                updatedAt
             }
         }
     }
