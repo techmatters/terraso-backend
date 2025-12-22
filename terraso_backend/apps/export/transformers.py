@@ -510,7 +510,7 @@ def flatten_site(site: dict) -> dict:
             "Latitude": site["latitude"],
             "Longitude": site["longitude"],
             "Elevation": site["elevation"],
-            "Last updated (UTC)": site["updatedAt"],
+            # "Last updated (UTC)": site["updatedAt"], // removed because value misleading as it only includes site object itself, not related data
             # Soil match information (from soil_id API)
             "Soil map": top_match_data_source,
             # Selected soil (user's choice)
