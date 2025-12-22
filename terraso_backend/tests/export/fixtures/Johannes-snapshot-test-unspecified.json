@@ -6,7 +6,6 @@
       "latitude": 40.963270749451226,
       "longitude": -78.26457174417402,
       "elevation": 498.0,
-      "updatedAt": "2025-12-17T17:56:21.931925+00:00",
       "privacy": "PUBLIC",
       "archived": false,
       "seen": true,
@@ -15,7 +14,6 @@
         "crossSlope": "Convex",
         "slopeSteepnessDegree": 2,
         "surfaceCracksSelect": "No cracking",
-        "depthIntervalPreset": "NRCS",
         "depthDependentData": [
           {
             "label": "A",
@@ -66,9 +64,16 @@
       "project": {
         "id": "da8e292d-e3df-4db4-9e08-602f28733f60",
         "name": "Johannes snapshot test - unspecified",
-        "description": "Sites for a snapshot test. Differing depths and observations"
+        "description": "Sites for a snapshot test. Differing depths and observations",
+        "siteInstructions": "Hello, I am a pinned note.",
+        "updatedAt": "2025-12-19T21:18:28.623663+00:00"
       },
-      "notes": [],
+      "notes": [
+        {
+          "content": "Hello, I am a pinned note.",
+          "createdAt": "2025-12-19T21:18:28.623663+00:00"
+        }
+      ],
       "soil_id": {
         "soilId": {
           "soilMatches": {
@@ -908,7 +913,6 @@
       "latitude": 44.620443220907816,
       "longitude": -113.79776116086633,
       "elevation": 1946.0,
-      "updatedAt": "2025-12-17T17:56:45.994003+00:00",
       "privacy": "PUBLIC",
       "archived": false,
       "seen": true,
@@ -917,7 +921,6 @@
         "crossSlope": "Linear",
         "slopeSteepnessSelect": "100%+ (steepest)",
         "surfaceCracksSelect": "Deep vertical cracks",
-        "depthIntervalPreset": "NRCS",
         "depthDependentData": [
           {
             "label": "",
@@ -940,9 +943,15 @@
       "project": {
         "id": "da8e292d-e3df-4db4-9e08-602f28733f60",
         "name": "Johannes snapshot test - unspecified",
-        "description": "Sites for a snapshot test. Differing depths and observations"
+        "description": "Sites for a snapshot test. Differing depths and observations",
+        "siteInstructions": "Hello, I am a pinned note.",
+        "updatedAt": "2025-12-19T21:18:28.623663+00:00"
       },
       "notes": [
+        {
+          "content": "Hello, I am a pinned note.",
+          "createdAt": "2025-12-19T21:18:28.623663+00:00"
+        },
         {
           "id": "f40bd9cd-f07c-4cad-aa4c-fea525d4d934",
           "content": "Hello",
@@ -954,7 +963,7 @@
             "email": "derek@techmatters.org",
             "firstName": "Derek",
             "lastName": "Caelin",
-            "profileImage": "https://images.staging.terraso.net/b7fea1ab-7277-4b45-a301-9149fcefc80a/profile-image_253"
+            "profileImage": "https://images.staging.terraso.net/b7fea1ab-7277-4b45-a301-9149fcefc80a/profile-image_254"
           }
         }
       ],
@@ -1675,7 +1684,6 @@
       "latitude": 24.727409639886204,
       "longitude": -99.32378965178066,
       "elevation": 281.0,
-      "updatedAt": "2025-12-17T17:59:39.272335+00:00",
       "privacy": "PRIVATE",
       "archived": false,
       "seen": true,
@@ -1684,7 +1692,6 @@
         "crossSlope": "Convex",
         "slopeSteepnessSelect": "15-30% (hilly)",
         "surfaceCracksSelect": "Surface cracking only",
-        "depthIntervalPreset": "NRCS",
         "depthDependentData": [
           {
             "label": "",
@@ -1707,9 +1714,15 @@
       "project": {
         "id": "da8e292d-e3df-4db4-9e08-602f28733f60",
         "name": "Johannes snapshot test - unspecified",
-        "description": "Sites for a snapshot test. Differing depths and observations"
+        "description": "Sites for a snapshot test. Differing depths and observations",
+        "siteInstructions": "Hello, I am a pinned note.",
+        "updatedAt": "2025-12-19T21:18:28.623663+00:00"
       },
       "notes": [
+        {
+          "content": "Hello, I am a pinned note.",
+          "createdAt": "2025-12-19T21:18:28.623663+00:00"
+        },
         {
           "id": "92ad2664-1f8d-4035-9bec-f990838718f2",
           "content": "Hello",
@@ -1721,7 +1734,7 @@
             "email": "derek@techmatters.org",
             "firstName": "Derek",
             "lastName": "Caelin",
-            "profileImage": "https://images.staging.terraso.net/b7fea1ab-7277-4b45-a301-9149fcefc80a/profile-image_253"
+            "profileImage": "https://images.staging.terraso.net/b7fea1ab-7277-4b45-a301-9149fcefc80a/profile-image_254"
           }
         }
       ],
