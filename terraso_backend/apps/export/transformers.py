@@ -412,7 +412,10 @@ def munsell_to_string(color: dict) -> str:
 
 def flatten_note(note):
     # Format timestamp for better readability (will be further processed in CSV formatter)
-    return " | ".join([note["content"], note["author"]["email"], note["createdAt"]])
+    author = note.get("author")
+    author_email = (author.get("email") if author else None) or "[Pinned Note]"
+    created_at = note.get("createdAt") or ""
+    return " | ".join([note["content"], author_email, created_at])
 
 
 def flatten_site(site: dict) -> dict:
@@ -571,6 +574,16 @@ def transform_site_data(site, request, page_size=settings.EXPORT_PAGE_SIZE):
 
     # Add notes
     notes = fetch_all_notes_for_site(site["id"], request, page_size)
+
+    # Prepend project's pinned note (siteInstructions) as first note if it exists
+    project = site.get("project")
+    if project and project.get("siteInstructions"):
+        pinned_note = {
+            "content": project["siteInstructions"],
+            "createdAt": project.get("updatedAt"),
+        }
+        notes.insert(0, pinned_note)
+
     site["notes"] = notes
 
     # Apply all object transformations recursively to entire site

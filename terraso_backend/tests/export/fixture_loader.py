@@ -90,13 +90,23 @@ def load_site_from_raw_json(site_data, owner, synthetic_project=None):
         if project_data:
             project_id = project_data.get("id")
             if project_id:
-                project, _ = Project.objects.get_or_create(
+                project, created = Project.objects.get_or_create(
                     id=project_id,
                     defaults={
                         "name": project_data.get("name", ""),
                         "description": project_data.get("description", ""),
+                        "site_instructions": project_data.get("siteInstructions"),
                     },
                 )
+                # Update site_instructions if project already existed
+                if not created and project_data.get("siteInstructions"):
+                    project.site_instructions = project_data["siteInstructions"]
+                    project.save()
+                # Update project timestamps if provided
+                if project_data.get("updatedAt"):
+                    Project.objects.filter(id=project.id).update(
+                        updated_at=parse_datetime(project_data["updatedAt"])
+                    )
                 # Ensure owner is a manager
                 if not project.is_manager(owner):
                     project.add_manager(owner)
