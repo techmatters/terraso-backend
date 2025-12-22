@@ -541,7 +541,7 @@ def flatten_site(site: dict) -> dict:
             # Notes
             "Site notes": ";".join(flattened_notes),
             # Depth information
-            "Depth preset": soil_data.get("depthIntervalPreset"),
+            # "Depth preset": soil_data.get("depthIntervalPreset"),  # removed - not useful for end users
             "Depth label": depth_item.get("label") if depth_item else None,
             "Depth start": depth_item.get("depthIntervalStart") if depth_item else None,
             "Depth end": depth_item.get("depthIntervalEnd") if depth_item else None,
@@ -588,5 +588,8 @@ def transform_site_data(site, request, page_size=settings.EXPORT_PAGE_SIZE):
 
     # Apply all object transformations recursively to entire site
     apply_object_transformations(site)
+
+    # Remove internal fields not useful for end users
+    site["soilData"].pop("depthIntervalPreset", None)
 
     return site
