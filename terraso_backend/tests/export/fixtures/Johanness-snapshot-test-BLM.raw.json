@@ -6,7 +6,6 @@
       "latitude": 44.39504237561738,
       "longitude": -89.73473520296409,
       "elevation": 322.0,
-      "updatedAt": "2025-12-17T17:57:11.782397+00:00",
       "privacy": "PRIVATE",
       "archived": false,
       "seen": true,
@@ -92,7 +91,8 @@
       "project": {
         "id": "edf4882b-6343-4fc8-baeb-a3d1028031f4",
         "name": "Johanness snapshot test - BLM",
-        "description": "Sites for snapshot, blm"
+        "description": "Sites for snapshot, blm",
+        "updatedAt": "2025-12-17T18:05:43.857479+00:00"
       },
       "notes": [
         {
@@ -106,7 +106,7 @@
             "email": "derek@techmatters.org",
             "firstName": "Derek",
             "lastName": "Caelin",
-            "profileImage": "https://images.staging.terraso.net/b7fea1ab-7277-4b45-a301-9149fcefc80a/profile-image_253"
+            "profileImage": "https://images.staging.terraso.net/b7fea1ab-7277-4b45-a301-9149fcefc80a/profile-image_254"
           }
         }
       ],
@@ -612,7 +612,6 @@
       "latitude": 32.231840716585566,
       "longitude": -92.74431338288174,
       "elevation": 67.0,
-      "updatedAt": "2025-12-17T17:58:22.866980+00:00",
       "privacy": "PUBLIC",
       "archived": false,
       "seen": true,
@@ -649,7 +648,8 @@
       "project": {
         "id": "edf4882b-6343-4fc8-baeb-a3d1028031f4",
         "name": "Johanness snapshot test - BLM",
-        "description": "Sites for snapshot, blm"
+        "description": "Sites for snapshot, blm",
+        "updatedAt": "2025-12-17T18:05:43.857479+00:00"
       },
       "notes": [],
       "soil_id": {
@@ -971,7 +971,6 @@
       "name": "JST-08",
       "latitude": -28.410089855419848,
       "longitude": -56.238039805470976,
-      "updatedAt": "2025-12-17T18:00:13.617914+00:00",
       "privacy": "PRIVATE",
       "archived": false,
       "seen": true,
@@ -1009,7 +1008,8 @@
       "project": {
         "id": "edf4882b-6343-4fc8-baeb-a3d1028031f4",
         "name": "Johanness snapshot test - BLM",
-        "description": "Sites for snapshot, blm"
+        "description": "Sites for snapshot, blm",
+        "updatedAt": "2025-12-17T18:05:43.857479+00:00"
       },
       "notes": [],
       "soil_id": {
@@ -1592,7 +1592,6 @@
       "latitude": 7.3980944820064,
       "longitude": 8.033273425881617,
       "elevation": 199.0,
-      "updatedAt": "2025-12-17T18:00:33.831010+00:00",
       "privacy": "PRIVATE",
       "archived": false,
       "seen": true,
@@ -1630,7 +1629,8 @@
       "project": {
         "id": "edf4882b-6343-4fc8-baeb-a3d1028031f4",
         "name": "Johanness snapshot test - BLM",
-        "description": "Sites for snapshot, blm"
+        "description": "Sites for snapshot, blm",
+        "updatedAt": "2025-12-17T18:05:43.857479+00:00"
       },
       "notes": [
         {
@@ -1644,7 +1644,7 @@
             "email": "derek@techmatters.org",
             "firstName": "Derek",
             "lastName": "Caelin",
-            "profileImage": "https://images.staging.terraso.net/b7fea1ab-7277-4b45-a301-9149fcefc80a/profile-image_253"
+            "profileImage": "https://images.staging.terraso.net/b7fea1ab-7277-4b45-a301-9149fcefc80a/profile-image_254"
           }
         }
       ],
