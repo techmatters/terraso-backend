@@ -36,10 +36,12 @@
             },
             "texture": "CLAY",
             "rockFragmentVolume": "VOLUME_15_35",
-            "colorHue": 10.0,
-            "colorValue": 3.0,
+            "colorHue": 20.0,
+            "colorValue": 5.0,
             "colorChroma": 6.0,
-            "colorPhotoUsed": false
+            "colorPhotoUsed": true,
+            "colorPhotoSoilCondition": "MOIST",
+            "colorPhotoLightingCondition": "UNEVEN"
           },
           {
             "depthInterval": {

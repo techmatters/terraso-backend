@@ -37,6 +37,23 @@ OUTPUT_NAME=$(basename "$BASE_URL")
 echo "Fetching raw JSON..."
 curl -s "${BASE_URL}.json?format=raw&cached=20" | jq > "${OUTPUT_NAME}.raw.json"
 
+# Check for multi-site fixtures with different siteInstructions (would fail in tests)
+SITE_COUNT=$(jq '.sites | length' "${OUTPUT_NAME}.raw.json")
+if [ "$SITE_COUNT" -gt 1 ]; then
+    # Get unique siteInstructions values (excluding null)
+    UNIQUE_INSTRUCTIONS=$(jq -r '[.sites[].project.siteInstructions | select(. != null)] | unique | length' "${OUTPUT_NAME}.raw.json")
+    if [ "$UNIQUE_INSTRUCTIONS" -gt 1 ]; then
+        echo ""
+        echo "ERROR: Multi-site fixture has sites from different projects with different siteInstructions."
+        echo "       This will cause test failures because the test framework uses a synthetic project"
+        echo "       that can only have one siteInstructions value."
+        echo ""
+        echo "       Consider exporting sites from a single project instead, or individual sites."
+        rm -f "${OUTPUT_NAME}.raw.json"
+        exit 1
+    fi
+fi
+
 echo "Fetching transformed JSON..."
 curl -s "${BASE_URL}.json?cached=20" | jq > "${OUTPUT_NAME}.json"
 

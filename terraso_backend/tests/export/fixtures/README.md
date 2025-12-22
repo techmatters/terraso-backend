@@ -68,6 +68,26 @@ curl "https://api.terraso.org/export/token/site/{token}/name.csv" > name.csv
 PATTERN="test_export_fixtures" make test_unit
 ```
 
+## Limitations
+
+### Multi-Site Fixtures and Pinned Notes
+
+When a fixture contains multiple sites, the test framework creates a **synthetic project** to group them together (required for project-based export). This synthetic project can only have one `siteInstructions` (pinned note) value.
+
+**This means fixtures cannot be created from exports where:**
+- Multiple sites come from **different projects**
+- Those projects have **different `siteInstructions`** values
+
+The `make_test_data.sh` script automatically detects this case and will error out with an explanation.
+
+**Safe fixture sources:**
+| Source | Safe? | Reason |
+|--------|-------|--------|
+| Single project export | ✓ | All sites share same `siteInstructions` |
+| Single site export | ✓ | No synthetic project needed |
+| User's owned sites (no projects) | ✓ | No `siteInstructions` to conflict |
+| User's all sites (multiple projects) | ⚠️ | Only if all projects have same (or no) `siteInstructions` |
+
 ## Debugging Failed Tests
 
 When a test fails, the output shows:
