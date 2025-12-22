@@ -272,11 +272,19 @@ def load_sites_from_fixture(fixture_name, owner=None, fixtures_dir=None):
     # This ensures they can all be exported together via a project token
     synthetic_project = None
     if len(sites_data) > 1:
+        # Get siteInstructions from first site's project if available
+        first_project = sites_data[0].get("project", {})
         synthetic_project = Project.objects.create(
             name=f"Test Project for {fixture_name}",
             description="Synthetic project created for fixture testing",
+            site_instructions=first_project.get("siteInstructions"),
         )
         synthetic_project.add_manager(owner)
+        # Update timestamps if provided
+        if first_project.get("updatedAt"):
+            Project.objects.filter(id=synthetic_project.id).update(
+                updated_at=parse_datetime(first_project["updatedAt"])
+            )
 
     for site_data in sites_data:
         site = load_site_from_raw_json(site_data, owner, synthetic_project=synthetic_project)

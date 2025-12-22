@@ -33,11 +33,13 @@
             "depthIntervalEnd": 15,
             "texture": "Clay",
             "rockFragmentVolume": "15-35%",
-            "colorHue": 10.0,
-            "colorValue": 3.0,
+            "colorHue": 20.0,
+            "colorValue": 5.0,
             "colorChroma": 6.0,
-            "colorPhotoUsed": false,
-            "_colorMunsell": "10.0R 3/6"
+            "colorPhotoUsed": true,
+            "colorPhotoSoilCondition": "Moist",
+            "colorPhotoLightingCondition": "Uneven",
+            "_colorMunsell": "10.0YR 5/6"
           },
           {
             "label": "15-30 cm",
