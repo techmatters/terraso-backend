@@ -6,11 +6,11 @@ This directory contains fixture files for testing the export transformation pipe
 
 Each test case consists of up to three files with the same base name:
 
-| File | Required | Description |
-|------|----------|-------------|
-| `<name>.raw.json` | Yes | Raw input data (from `?format=raw` export) |
-| `<name>.json` | No | Expected JSON export output |
-| `<name>.csv` | No | Expected CSV export output |
+| File              | Required | Description                                |
+| ----------------- | -------- | ------------------------------------------ |
+| `<name>.raw.json` | Yes      | Raw input data (from `?format=raw` export) |
+| `<name>.json`     | No       | Expected JSON export output                |
+| `<name>.csv`      | No       | Expected CSV export output                 |
 
 Tests are automatically discovered by finding `*.raw.json` files.
 
@@ -18,13 +18,19 @@ Tests are automatically discovered by finding `*.raw.json` files.
 
 The `.raw.json` files include `soil_id` data captured at fixture creation time. During tests, this cached data is used instead of calling external soil APIs. This provides:
 
-- **Fast tests**: No external API calls during test runs
-- **Deterministic results**: Tests pass regardless of soil algorithm changes
-- **Offline testing**: No network dependency
+-   **Fast tests**: No external API calls during test runs
+-   **Deterministic results**: Tests pass regardless of soil algorithm changes
+-   **Offline testing**: No network dependency
 
 The cache is automatically populated when fixtures are loaded and cleared after each test.
 
 ## Creating New Fixtures
+
+### Caution
+
+If you use staging or production to generate your test sites, and the export format changes, then when you generate new fixture data using the options below, the scripts will grab .csv and .json files from staging or production, which will not include the export format changes. This means you cannot easily create good .csv and .json files so github will complain that the fixture export tests have failed.
+
+The simplest solution is to let it fail, deploy to staging, then regenerate the fixtures files, and commit again. ideally also push to staging again, but since all you changed were test files, this may not be necessary.
 
 ### Option 1: Using the helper script
 
@@ -75,8 +81,9 @@ PATTERN="test_export_fixtures" make test_unit
 When a fixture contains multiple sites, the test framework creates a **synthetic project** to group them together (required for project-based export). This synthetic project can only have one `siteInstructions` (pinned note) value.
 
 **This means fixtures cannot be created from exports where:**
-- Multiple sites come from **different projects**
-- Those projects have **different `siteInstructions`** values
+
+-   Multiple sites come from **different projects**
+-   Those projects have **different `siteInstructions`** values
 
 The `make_test_data.sh` script automatically detects this case and will error out with an explanation.
 
@@ -91,8 +98,9 @@ The `make_test_data.sh` script automatically detects this case and will error ou
 ## Debugging Failed Tests
 
 When a test fails, the output shows:
-- Total number of differences
-- First 20 differences with paths and values
+
+-   Total number of differences
+-   First 20 differences with paths and values
 
 To save the actual output for manual diffing:
 
@@ -107,15 +115,17 @@ This creates `<name>.actual.json` or `<name>.actual.csv` files that you can diff
 ### JSON Comparison
 
 Ignored fields (may differ between test runs):
-- `updatedAt`, `createdAt`, `deletedAt` (timestamps)
-- `seen`, `profileImage` (dynamic fields)
-- `project` (may differ for synthetic test projects)
-- `soilMetadata`, `userRating`, `_selectedSoilName` (internal fields)
-- `id` for notes and authors (regenerated on load)
+
+-   `updatedAt`, `createdAt`, `deletedAt` (timestamps)
+-   `seen`, `profileImage` (dynamic fields)
+-   `project` (may differ for synthetic test projects)
+-   `soilMetadata`, `userRating`, `_selectedSoilName` (internal fields)
+-   `id` for notes and authors (regenerated on load)
 
 ### CSV Comparison
 
 Ignored columns:
-- `Last updated (UTC)`
-- `Project name`, `Project ID`, `Project description`
-- `Top match user rating`
+
+-   `Last updated (UTC)`
+-   `Project name`, `Project ID`, `Project description`
+-   `Top match user rating`
