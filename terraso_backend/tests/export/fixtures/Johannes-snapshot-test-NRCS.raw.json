@@ -6,7 +6,6 @@
       "latitude": 28.779504853490153,
       "longitude": -82.0736925618137,
       "elevation": 17.0,
-      "updatedAt": "2025-12-17T17:57:26.560646+00:00",
       "privacy": "PRIVATE",
       "archived": false,
       "seen": true,
@@ -37,10 +36,12 @@
             },
             "texture": "CLAY",
             "rockFragmentVolume": "VOLUME_15_35",
-            "colorHue": 10.0,
-            "colorValue": 3.0,
+            "colorHue": 20.0,
+            "colorValue": 5.0,
             "colorChroma": 6.0,
-            "colorPhotoUsed": false
+            "colorPhotoUsed": true,
+            "colorPhotoSoilCondition": "MOIST",
+            "colorPhotoLightingCondition": "UNEVEN"
           },
           {
             "depthInterval": {
@@ -116,7 +117,8 @@
       "project": {
         "id": "dd4fa6a9-9e45-4e61-a73c-36bedded0714",
         "name": "Johannes snapshot test - NRCS",
-        "description": ""
+        "description": "",
+        "updatedAt": "2025-12-17T18:06:40.089218+00:00"
       },
       "notes": [
         {
@@ -130,7 +132,7 @@
             "email": "derek@techmatters.org",
             "firstName": "Derek",
             "lastName": "Caelin",
-            "profileImage": "https://images.staging.terraso.net/b7fea1ab-7277-4b45-a301-9149fcefc80a/profile-image_253"
+            "profileImage": "https://images.staging.terraso.net/b7fea1ab-7277-4b45-a301-9149fcefc80a/profile-image_254"
           }
         }
       ],
@@ -908,7 +910,6 @@
       "latitude": 50.15349648556585,
       "longitude": 44.1961921812638,
       "elevation": 137.0,
-      "updatedAt": "2025-12-17T18:00:53.237502+00:00",
       "privacy": "PRIVATE",
       "archived": false,
       "seen": true,
@@ -946,7 +947,8 @@
       "project": {
         "id": "dd4fa6a9-9e45-4e61-a73c-36bedded0714",
         "name": "Johannes snapshot test - NRCS",
-        "description": ""
+        "description": "",
+        "updatedAt": "2025-12-17T18:06:40.089218+00:00"
       },
       "notes": [],
       "soil_id": {

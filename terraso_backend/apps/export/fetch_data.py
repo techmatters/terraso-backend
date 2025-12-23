@@ -106,7 +106,6 @@ def fetch_site_data(site_id, request):
             latitude
             longitude
             elevation
-            updatedAt
             privacy
             archived
             seen
@@ -159,6 +158,8 @@ def fetch_site_data(site_id, request):
                 id
                 name
                 description
+                siteInstructions
+                updatedAt
             }
         }
     }
