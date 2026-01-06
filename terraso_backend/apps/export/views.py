@@ -208,6 +208,8 @@ def _validate_output_format(output_format):
     """Return error response if output_format is invalid, else None."""
     if output_format is None:
         return HttpResponseBadRequest("Raw format only supports JSON output")
+    if output_format not in ["csv", "json", "raw"]:
+        return HttpResponseBadRequest(f"Unsupported format: {output_format}")
     return None
 
 
@@ -216,14 +218,9 @@ def _export_sites_response(all_sites, output_format, filename):
 
     Args:
         all_sites: List of site data dicts
-        output_format: "raw", "json", or "csv"
+        output_format: "raw", "json", or "csv" (must be validated by caller)
         filename: Base filename for Content-Disposition header
     """
-
-    # Validate output_format parameter
-    if output_format not in ["csv", "json", "raw"]:
-        return HttpResponseBadRequest(f"Unsupported format: {output_format}")
-
     # Determine file format (raw uses json file extension)
     format = "json" if output_format == "raw" else output_format
 

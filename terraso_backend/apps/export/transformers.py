@@ -20,7 +20,11 @@ from typing import Optional, Tuple
 from django.conf import settings
 
 from apps.soil_id.models.depth_dependent_soil_data import DepthDependentSoilData
-from apps.soil_id.models.project_soil_settings import BLMIntervalDefaults, NRCSIntervalDefaults
+from apps.soil_id.models.project_soil_settings import (
+    BLMIntervalDefaults,
+    DepthIntervalPreset,
+    NRCSIntervalDefaults,
+)
 from apps.soil_id.models.soil_data import SoilData
 
 from .fetch_data import fetch_all_notes_for_site
@@ -49,11 +53,11 @@ def _build_depth_intervals(interval_defaults):
 NRCS_DEPTH_INTERVALS = _build_depth_intervals(NRCSIntervalDefaults)
 BLM_DEPTH_INTERVALS = _build_depth_intervals(BLMIntervalDefaults)
 
-# Preset name constants
-PRESET_NRCS = "NRCS"
-PRESET_BLM = "BLM"
-PRESET_CUSTOM = "CUSTOM"
-PRESET_NONE = "NONE"
+# Preset name constants (from DepthIntervalPreset enum)
+PRESET_NRCS = DepthIntervalPreset.NRCS.value
+PRESET_BLM = DepthIntervalPreset.BLM.value
+PRESET_CUSTOM = DepthIntervalPreset.CUSTOM.value
+PRESET_NONE = DepthIntervalPreset.NONE.value
 
 
 # =============================================================================
@@ -87,21 +91,22 @@ def get_effective_preset(site):
 
     Priority: project.soilSettings.depthIntervalPreset > site.soilData.depthIntervalPreset
 
-    Note: Site-level CUSTOM is treated as None because "custom" at site level
-    means "no standard preset" - custom intervals are added separately.
-
     Returns:
-        str: The effective preset (NRCS, BLM, CUSTOM, NONE) or None
+        str: "NRCS", "BLM", "CUSTOM" (project only), or "NONE" (no preset)
+
+    Note: CUSTOM at site level returns "NONE" because it means "no standard preset" -
+    custom intervals are added separately.
+    CUSTOM at project level returns "CUSTOM" because project defines the intervals.
     """
     project = site.get("project")
     if project:
-        return (project.get("soilSettings") or {}).get("depthIntervalPreset")
+        return (project.get("soilSettings") or {}).get("depthIntervalPreset") or PRESET_NONE
 
     # Fall back to site-level preset (only if no project)
     # Site CUSTOM means "no preset" - custom intervals added separately
     soil_data = site.get("soilData", {})
     preset = soil_data.get("depthIntervalPreset")
-    return None if preset == PRESET_CUSTOM else preset
+    return PRESET_NONE if preset == PRESET_CUSTOM else (preset or PRESET_NONE)
 
 
 def get_preset_intervals(preset, site=None):
@@ -154,29 +159,26 @@ def get_visible_intervals(site):
     return result
 
 
-def measurement_matches_preset(measurement, preset, custom_intervals):
+def measurement_matches_preset(measurement, preset, preset_intervals, site_custom_intervals):
     """
     Check if a measurement matches an interval in the given preset.
 
-    Returns the preset name if it matches, or empty string if not.
+    Args:
+        measurement: The measurement dict with depthInterval
+        preset: "NRCS", "BLM", "CUSTOM", or "NONE" (returned if matches preset_intervals)
+        preset_intervals: Standard intervals for the preset (empty for NONE)
+        site_custom_intervals: Site-specific intervals (non-overlapping with preset)
+
+    Returns the preset name if matches preset_intervals, "CUSTOM" if matches site custom, or "".
     """
     m_key = depth_key(measurement)
 
-    if preset == PRESET_NRCS:
-        if any(depth_key(i) == m_key for i in NRCS_DEPTH_INTERVALS):
-            return PRESET_NRCS
-    elif preset == PRESET_BLM:
-        if any(depth_key(i) == m_key for i in BLM_DEPTH_INTERVALS):
-            return PRESET_BLM
-    elif preset == PRESET_CUSTOM:
-        if any(depth_key(i) == m_key for i in custom_intervals):
-            return PRESET_CUSTOM
-    elif preset == PRESET_NONE:
-        # NONE means all measurements are "custom"
-        return PRESET_CUSTOM
+    # Check preset intervals (NRCS, BLM, or project CUSTOM)
+    if any(depth_key(i) == m_key for i in preset_intervals):
+        return preset
 
-    # Also check site custom intervals (non-overlapping with preset)
-    if any(depth_key(i) == m_key for i in custom_intervals):
+    # Check site custom intervals
+    if any(depth_key(i) == m_key for i in site_custom_intervals):
         return PRESET_CUSTOM
 
     return ""
@@ -444,9 +446,9 @@ def process_depth_data_for_json(site):
     # Get preset intervals (project CUSTOM intervals if applicable)
     preset_intervals = get_preset_intervals(effective_preset, site)
 
-    # Combine preset intervals with non-overlapping site intervals for matching
+    # Get site intervals that don't overlap with preset intervals
     site_intervals = soil_data.get("depthIntervals", [])
-    all_custom = preset_intervals + [
+    site_custom = [
         i for i in site_intervals if not any(depth_key(i) == depth_key(c) for c in preset_intervals)
     ]
 
@@ -486,7 +488,9 @@ def process_depth_data_for_json(site):
                 item[field] = matching_interval[field]
 
         # Determine which preset this measurement matches
-        item["_depthPreset"] = measurement_matches_preset(m, effective_preset, all_custom)
+        item["_depthPreset"] = measurement_matches_preset(
+            m, effective_preset, preset_intervals, site_custom
+        )
 
         processed.append(item)
 
