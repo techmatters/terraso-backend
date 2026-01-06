@@ -159,7 +159,7 @@ class TestTransformationPipeline:
         assert "4/3" in data["_colorMunsell"]
 
     def test_export_depth_intervals_merge_json(self):
-        """Test that JSON export includes all measurements with _depthPreset field."""
+        """Test that JSON export includes all measurements with _depthSource field."""
         site = {
             "project": None,
             "soilData": {
@@ -182,13 +182,13 @@ class TestTransformationPipeline:
         # depthIntervals should be removed
         assert "depthIntervals" not in soil_data
 
-        # depthDependentData should have flattened data with _depthPreset
+        # depthDependentData should have flattened data with _depthSource
         assert len(soil_data["depthDependentData"]) == 2
         assert soil_data["depthDependentData"][0]["label"] == "0-5 cm"
         assert soil_data["depthDependentData"][0]["depthIntervalStart"] == 0
         assert soil_data["depthDependentData"][0]["depthIntervalEnd"] == 5
         assert soil_data["depthDependentData"][0]["texture"] == "CLAY"
-        assert soil_data["depthDependentData"][0]["_depthPreset"] == "CUSTOM"
+        assert soil_data["depthDependentData"][0]["_depthSource"] == "CUSTOM"
 
     def test_export_depth_intervals_merge_csv(self):
         """Test that CSV export includes all visible intervals with matched measurements."""

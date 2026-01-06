@@ -27,7 +27,7 @@
             "label": "A",
             "soilTextureEnabled": true,
             "soilColorEnabled": true,
-            "_depthPreset": "CUSTOM",
+            "_depthSource": "CUSTOM",
             "_colorMunsell": "5.0R 5/3"
           },
           {
@@ -42,7 +42,7 @@
             "label": "B",
             "soilTextureEnabled": true,
             "soilColorEnabled": true,
-            "_depthPreset": "CUSTOM",
+            "_depthSource": "CUSTOM",
             "_colorMunsell": "5.0BG 8/1"
           },
           {
@@ -57,11 +57,11 @@
             "label": "C",
             "soilTextureEnabled": true,
             "soilColorEnabled": true,
-            "_depthPreset": "CUSTOM",
+            "_depthSource": "CUSTOM",
             "_colorMunsell": "10.0G 2.5/1"
           }
         ],
-        "_effectivePreset": "NONE",
+        "_depthSource": "NONE",
         "_slopeSteepnessPercentLow": 3.5,
         "_slopeSteepnessPercentHigh": 3.5
       },
@@ -942,11 +942,11 @@
             "label": "0-5 cm",
             "soilTextureEnabled": true,
             "soilColorEnabled": true,
-            "_depthPreset": "CUSTOM",
+            "_depthSource": "CUSTOM",
             "_colorMunsell": "10.0BG 3/1"
           }
         ],
-        "_effectivePreset": "NONE",
+        "_depthSource": "NONE",
         "_slopeSteepnessPercentLow": 100,
         "_slopeSteepnessPercentHigh": 999
       },
@@ -1719,11 +1719,11 @@
             "label": "0-200 cm",
             "soilTextureEnabled": true,
             "soilColorEnabled": true,
-            "_depthPreset": "CUSTOM",
+            "_depthSource": "CUSTOM",
             "_colorMunsell": "2.5YR 5/2"
           }
         ],
-        "_effectivePreset": "NONE",
+        "_depthSource": "NONE",
         "_slopeSteepnessPercentLow": 15,
         "_slopeSteepnessPercentHigh": 30
       },

@@ -25,7 +25,7 @@
             "depthIntervalStart": 0,
             "depthIntervalEnd": 1,
             "label": "0-1 cm",
-            "_depthPreset": "BLM",
+            "_depthSource": "BLM",
             "_colorMunsell": "7.5YR 4/2"
           },
           {
@@ -38,7 +38,7 @@
             "depthIntervalStart": 1,
             "depthIntervalEnd": 10,
             "label": "1-10 cm",
-            "_depthPreset": "BLM",
+            "_depthSource": "BLM",
             "_colorMunsell": "10.0YR 4/4"
           },
           {
@@ -51,7 +51,7 @@
             "depthIntervalStart": 10,
             "depthIntervalEnd": 20,
             "label": "10-20 cm",
-            "_depthPreset": "BLM",
+            "_depthSource": "BLM",
             "_colorMunsell": "10.0GY 7/2"
           },
           {
@@ -64,7 +64,7 @@
             "depthIntervalStart": 20,
             "depthIntervalEnd": 50,
             "label": "20-50 cm",
-            "_depthPreset": "BLM",
+            "_depthSource": "BLM",
             "_colorMunsell": "10.0YR 8/6"
           },
           {
@@ -77,11 +77,11 @@
             "depthIntervalStart": 50,
             "depthIntervalEnd": 70,
             "label": "50-70 cm",
-            "_depthPreset": "BLM",
+            "_depthSource": "BLM",
             "_colorMunsell": "5.0YR 5/3"
           }
         ],
-        "_effectivePreset": "BLM",
+        "_depthSource": "BLM",
         "_slopeSteepnessPercentLow": 2,
         "_slopeSteepnessPercentHigh": 5
       },
@@ -632,11 +632,11 @@
             "depthIntervalStart": 0,
             "depthIntervalEnd": 1,
             "label": "0-1 cm",
-            "_depthPreset": "BLM",
+            "_depthSource": "BLM",
             "_colorMunsell": "10.0R 7/6"
           }
         ],
-        "_effectivePreset": "BLM",
+        "_depthSource": "BLM",
         "_slopeSteepnessPercentLow": 5,
         "_slopeSteepnessPercentHigh": 10
       },
@@ -990,11 +990,11 @@
             "depthIntervalStart": 0,
             "depthIntervalEnd": 1,
             "label": "0-1 cm",
-            "_depthPreset": "BLM",
+            "_depthSource": "BLM",
             "_colorMunsell": "5.0Y 4/3"
           }
         ],
-        "_effectivePreset": "BLM",
+        "_depthSource": "BLM",
         "_slopeSteepnessPercentLow": 10,
         "_slopeSteepnessPercentHigh": 15
       },
@@ -1609,11 +1609,11 @@
             "depthIntervalStart": 0,
             "depthIntervalEnd": 1,
             "label": "0-1 cm",
-            "_depthPreset": "BLM",
+            "_depthSource": "BLM",
             "_colorMunsell": "5.0YR 8/4"
           }
         ],
-        "_effectivePreset": "BLM",
+        "_depthSource": "BLM",
         "_slopeSteepnessPercentLow": 2,
         "_slopeSteepnessPercentHigh": 5
       },

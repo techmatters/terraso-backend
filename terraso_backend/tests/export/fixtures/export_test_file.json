@@ -19,7 +19,7 @@
             "depthIntervalStart": 0,
             "depthIntervalEnd": 5,
             "label": "0-5 cm",
-            "_depthPreset": "NRCS"
+            "_depthSource": "NRCS"
           },
           {
             "texture": "Clay",
@@ -27,7 +27,7 @@
             "depthIntervalStart": 5,
             "depthIntervalEnd": 15,
             "label": "5-15 cm",
-            "_depthPreset": "NRCS"
+            "_depthSource": "NRCS"
           },
           {
             "texture": "Clay Loam",
@@ -35,7 +35,7 @@
             "depthIntervalStart": 15,
             "depthIntervalEnd": 30,
             "label": "15-30 cm",
-            "_depthPreset": "NRCS"
+            "_depthSource": "NRCS"
           },
           {
             "texture": "Loam",
@@ -47,7 +47,7 @@
             "depthIntervalStart": 30,
             "depthIntervalEnd": 60,
             "label": "30-60 cm",
-            "_depthPreset": "NRCS",
+            "_depthSource": "NRCS",
             "_colorMunsell": "5.0Y 5/4"
           },
           {
@@ -60,7 +60,7 @@
             "depthIntervalStart": 60,
             "depthIntervalEnd": 100,
             "label": "60-100 cm",
-            "_depthPreset": "NRCS",
+            "_depthSource": "NRCS",
             "_colorMunsell": "10.0GY 6/2"
           },
           {
@@ -68,10 +68,10 @@
             "depthIntervalStart": 100,
             "depthIntervalEnd": 200,
             "label": "100-200 cm",
-            "_depthPreset": "NRCS"
+            "_depthSource": "NRCS"
           }
         ],
-        "_effectivePreset": "NRCS",
+        "_depthSource": "NRCS",
         "_slopeSteepnessPercentLow": 10,
         "_slopeSteepnessPercentHigh": 15
       },
