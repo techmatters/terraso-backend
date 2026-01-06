@@ -71,20 +71,6 @@ def depth_key(interval):
     return (di.get("start"), di.get("end"))
 
 
-def depth_key_flat(item):
-    """Extract (start, end) tuple from a flattened item."""
-    return (item.get("depthIntervalStart"), item.get("depthIntervalEnd"))
-
-
-def intervals_overlap(a, b):
-    """Check if two intervals overlap (share any depth range)."""
-    a_start, a_end = depth_key(a)
-    b_start, b_end = depth_key(b)
-    if None in (a_start, a_end, b_start, b_end):
-        return False
-    return a_start < b_end and b_start < a_end
-
-
 def get_effective_preset(site):
     """
     Determine the effective depth interval preset for a site.
@@ -148,11 +134,10 @@ def get_visible_intervals(site):
     for interval in preset_intervals:
         result.append((interval, preset_label))
 
-    # Add non-overlapping site custom intervals
+    # Add site custom intervals
     site_intervals = site.get("soilData", {}).get("depthIntervals", [])
     for site_interval in site_intervals:
-        if not any(intervals_overlap(site_interval, p) for p, _ in result):
-            result.append((site_interval, PRESET_CUSTOM))
+        result.append((site_interval, PRESET_CUSTOM))
 
     # Sort by start depth
     result.sort(key=lambda x: depth_key(x[0])[0] or 0)
@@ -738,7 +723,7 @@ def flatten_site(site: dict) -> dict:
             # Notes
             "Site notes": ";".join(flattened_notes),
             # Depth information
-            "Depth preset": depth_item.get("_depthPreset") if depth_item else None,
+            "Depth source": depth_item.get("_depthPreset") if depth_item else None,
             "Depth label": depth_item.get("label") if depth_item else None,
             "Depth start": depth_item.get("depthIntervalStart") if depth_item else None,
             "Depth end": depth_item.get("depthIntervalEnd") if depth_item else None,
