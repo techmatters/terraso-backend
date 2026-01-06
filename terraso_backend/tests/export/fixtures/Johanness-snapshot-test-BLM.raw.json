@@ -92,7 +92,11 @@
         "id": "edf4882b-6343-4fc8-baeb-a3d1028031f4",
         "name": "Johanness snapshot test - BLM",
         "description": "Sites for snapshot, blm",
-        "updatedAt": "2025-12-17T18:05:43.857479+00:00"
+        "updatedAt": "2025-12-17T18:05:43.857479+00:00",
+        "soilSettings": {
+          "depthIntervalPreset": "BLM",
+          "depthIntervals": []
+        }
       },
       "notes": [
         {
@@ -105,8 +109,8 @@
             "id": "b7fea1ab-7277-4b45-a301-9149fcefc80a",
             "email": "derek@techmatters.org",
             "firstName": "Derek",
-            "lastName": "Caelin",
-            "profileImage": "https://images.staging.terraso.net/b7fea1ab-7277-4b45-a301-9149fcefc80a/profile-image_254"
+            "lastName": "",
+            "profileImage": "https://images.staging.terraso.net/b7fea1ab-7277-4b45-a301-9149fcefc80a/profile-image_262"
           }
         }
       ],
@@ -649,7 +653,11 @@
         "id": "edf4882b-6343-4fc8-baeb-a3d1028031f4",
         "name": "Johanness snapshot test - BLM",
         "description": "Sites for snapshot, blm",
-        "updatedAt": "2025-12-17T18:05:43.857479+00:00"
+        "updatedAt": "2025-12-17T18:05:43.857479+00:00",
+        "soilSettings": {
+          "depthIntervalPreset": "BLM",
+          "depthIntervals": []
+        }
       },
       "notes": [],
       "soil_id": {
@@ -1009,7 +1017,11 @@
         "id": "edf4882b-6343-4fc8-baeb-a3d1028031f4",
         "name": "Johanness snapshot test - BLM",
         "description": "Sites for snapshot, blm",
-        "updatedAt": "2025-12-17T18:05:43.857479+00:00"
+        "updatedAt": "2025-12-17T18:05:43.857479+00:00",
+        "soilSettings": {
+          "depthIntervalPreset": "BLM",
+          "depthIntervals": []
+        }
       },
       "notes": [],
       "soil_id": {
@@ -1630,7 +1642,11 @@
         "id": "edf4882b-6343-4fc8-baeb-a3d1028031f4",
         "name": "Johanness snapshot test - BLM",
         "description": "Sites for snapshot, blm",
-        "updatedAt": "2025-12-17T18:05:43.857479+00:00"
+        "updatedAt": "2025-12-17T18:05:43.857479+00:00",
+        "soilSettings": {
+          "depthIntervalPreset": "BLM",
+          "depthIntervals": []
+        }
       },
       "notes": [
         {
@@ -1643,8 +1659,8 @@
             "id": "b7fea1ab-7277-4b45-a301-9149fcefc80a",
             "email": "derek@techmatters.org",
             "firstName": "Derek",
-            "lastName": "Caelin",
-            "profileImage": "https://images.staging.terraso.net/b7fea1ab-7277-4b45-a301-9149fcefc80a/profile-image_254"
+            "lastName": "",
+            "profileImage": "https://images.staging.terraso.net/b7fea1ab-7277-4b45-a301-9149fcefc80a/profile-image_262"
           }
         }
       ],

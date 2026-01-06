@@ -8,6 +8,7 @@
       "elevation": 17.0,
       "privacy": "PRIVATE",
       "archived": false,
+      "seen": true,
       "soilData": {
         "downSlope": "Concave",
         "crossSlope": "Concave",
@@ -99,14 +100,29 @@
         "_slopeSteepnessPercentLow": 30,
         "_slopeSteepnessPercentHigh": 50
       },
+      "project": {
+        "id": "dd4fa6a9-9e45-4e61-a73c-36bedded0714",
+        "name": "Johannes snapshot test - NRCS",
+        "description": "",
+        "updatedAt": "2025-12-17T18:06:40.089218+00:00",
+        "soilSettings": {
+          "depthIntervalPreset": "NRCS",
+          "depthIntervals": []
+        }
+      },
       "notes": [
         {
+          "id": "a7b669b4-490e-4fb1-a5eb-078aa93fd932",
           "content": "The rain in Spain falls mainly in the plain",
+          "createdAt": "2025-12-17T18:09:46.543787+00:00",
+          "updatedAt": "2025-12-17T18:09:46.543796+00:00",
           "deletedByCascade": false,
           "author": {
+            "id": "b7fea1ab-7277-4b45-a301-9149fcefc80a",
             "email": "derek@techmatters.org",
             "firstName": "Derek",
-            "lastName": "Caelin"
+            "lastName": "",
+            "profileImage": "https://images.staging.terraso.net/b7fea1ab-7277-4b45-a301-9149fcefc80a/profile-image_262"
           }
         }
       ],
@@ -169,7 +185,8 @@
                       }
                     ]
                   }
-                }
+                },
+                "userRating": "REJECTED"
               },
               {
                 "dataSource": "SSURGO",
@@ -432,7 +449,8 @@
                       }
                     ]
                   }
-                }
+                },
+                "userRating": "SELECTED"
               },
               {
                 "dataSource": "SSURGO",
@@ -629,7 +647,8 @@
                       }
                     ]
                   }
-                }
+                },
+                "userRating": "REJECTED"
               },
               {
                 "dataSource": "SSURGO",
@@ -871,7 +890,8 @@
                       }
                     ]
                   }
-                }
+                },
+                "userRating": "REJECTED"
               }
             ]
           }
@@ -886,6 +906,7 @@
       "elevation": 137.0,
       "privacy": "PRIVATE",
       "archived": false,
+      "seen": true,
       "soilData": {
         "downSlope": "Linear",
         "crossSlope": "Linear",
@@ -909,6 +930,16 @@
         "_effectivePreset": "NRCS",
         "_slopeSteepnessPercentLow": 10,
         "_slopeSteepnessPercentHigh": 15
+      },
+      "project": {
+        "id": "dd4fa6a9-9e45-4e61-a73c-36bedded0714",
+        "name": "Johannes snapshot test - NRCS",
+        "description": "",
+        "updatedAt": "2025-12-17T18:06:40.089218+00:00",
+        "soilSettings": {
+          "depthIntervalPreset": "NRCS",
+          "depthIntervals": []
+        }
       },
       "notes": [],
       "soil_id": {
@@ -1206,7 +1237,8 @@
                       }
                     ]
                   }
-                }
+                },
+                "userRating": "SELECTED"
               },
               {
                 "dataSource": "HWSD",

@@ -8,6 +8,7 @@
       "elevation": 322.0,
       "privacy": "PRIVATE",
       "archived": false,
+      "seen": true,
       "soilData": {
         "downSlope": "Linear",
         "crossSlope": "Convex",
@@ -24,7 +25,7 @@
             "depthIntervalStart": 0,
             "depthIntervalEnd": 1,
             "label": "0-1 cm",
-            "_depthPreset": "",
+            "_depthPreset": "BLM",
             "_colorMunsell": "7.5YR 4/2"
           },
           {
@@ -37,7 +38,7 @@
             "depthIntervalStart": 1,
             "depthIntervalEnd": 10,
             "label": "1-10 cm",
-            "_depthPreset": "",
+            "_depthPreset": "BLM",
             "_colorMunsell": "10.0YR 4/4"
           },
           {
@@ -50,7 +51,7 @@
             "depthIntervalStart": 10,
             "depthIntervalEnd": 20,
             "label": "10-20 cm",
-            "_depthPreset": "",
+            "_depthPreset": "BLM",
             "_colorMunsell": "10.0GY 7/2"
           },
           {
@@ -63,7 +64,7 @@
             "depthIntervalStart": 20,
             "depthIntervalEnd": 50,
             "label": "20-50 cm",
-            "_depthPreset": "",
+            "_depthPreset": "BLM",
             "_colorMunsell": "10.0YR 8/6"
           },
           {
@@ -76,22 +77,37 @@
             "depthIntervalStart": 50,
             "depthIntervalEnd": 70,
             "label": "50-70 cm",
-            "_depthPreset": "",
+            "_depthPreset": "BLM",
             "_colorMunsell": "5.0YR 5/3"
           }
         ],
-        "_effectivePreset": "NRCS",
+        "_effectivePreset": "BLM",
         "_slopeSteepnessPercentLow": 2,
         "_slopeSteepnessPercentHigh": 5
       },
+      "project": {
+        "id": "edf4882b-6343-4fc8-baeb-a3d1028031f4",
+        "name": "Johanness snapshot test - BLM",
+        "description": "Sites for snapshot, blm",
+        "updatedAt": "2025-12-17T18:05:43.857479+00:00",
+        "soilSettings": {
+          "depthIntervalPreset": "BLM",
+          "depthIntervals": []
+        }
+      },
       "notes": [
         {
+          "id": "ee29edc9-2d2a-476d-899e-3259b53dab44",
           "content": "Wow!",
+          "createdAt": "2025-12-17T18:17:19.543086+00:00",
+          "updatedAt": "2025-12-17T18:17:19.543095+00:00",
           "deletedByCascade": false,
           "author": {
+            "id": "b7fea1ab-7277-4b45-a301-9149fcefc80a",
             "email": "derek@techmatters.org",
             "firstName": "Derek",
-            "lastName": "Caelin"
+            "lastName": "",
+            "profileImage": "https://images.staging.terraso.net/b7fea1ab-7277-4b45-a301-9149fcefc80a/profile-image_262"
           }
         }
       ],
@@ -353,7 +369,8 @@
                       }
                     ]
                   }
-                }
+                },
+                "userRating": "SELECTED"
               },
               {
                 "dataSource": "SSURGO",
@@ -599,6 +616,7 @@
       "elevation": 67.0,
       "privacy": "PUBLIC",
       "archived": false,
+      "seen": true,
       "soilData": {
         "downSlope": "Linear",
         "crossSlope": "Linear",
@@ -614,13 +632,23 @@
             "depthIntervalStart": 0,
             "depthIntervalEnd": 1,
             "label": "0-1 cm",
-            "_depthPreset": "",
+            "_depthPreset": "BLM",
             "_colorMunsell": "10.0R 7/6"
           }
         ],
-        "_effectivePreset": "NRCS",
+        "_effectivePreset": "BLM",
         "_slopeSteepnessPercentLow": 5,
         "_slopeSteepnessPercentHigh": 10
+      },
+      "project": {
+        "id": "edf4882b-6343-4fc8-baeb-a3d1028031f4",
+        "name": "Johanness snapshot test - BLM",
+        "description": "Sites for snapshot, blm",
+        "updatedAt": "2025-12-17T18:05:43.857479+00:00",
+        "soilSettings": {
+          "depthIntervalPreset": "BLM",
+          "depthIntervals": []
+        }
       },
       "notes": [],
       "soil_id": {
@@ -718,7 +746,8 @@
                       }
                     ]
                   }
-                }
+                },
+                "userRating": "SELECTED"
               },
               {
                 "dataSource": "SSURGO",
@@ -944,6 +973,7 @@
       "longitude": -56.238039805470976,
       "privacy": "PRIVATE",
       "archived": false,
+      "seen": true,
       "soilData": {
         "downSlope": "Linear",
         "crossSlope": "Convex",
@@ -960,13 +990,23 @@
             "depthIntervalStart": 0,
             "depthIntervalEnd": 1,
             "label": "0-1 cm",
-            "_depthPreset": "",
+            "_depthPreset": "BLM",
             "_colorMunsell": "5.0Y 4/3"
           }
         ],
-        "_effectivePreset": "NRCS",
+        "_effectivePreset": "BLM",
         "_slopeSteepnessPercentLow": 10,
         "_slopeSteepnessPercentHigh": 15
+      },
+      "project": {
+        "id": "edf4882b-6343-4fc8-baeb-a3d1028031f4",
+        "name": "Johanness snapshot test - BLM",
+        "description": "Sites for snapshot, blm",
+        "updatedAt": "2025-12-17T18:05:43.857479+00:00",
+        "soilSettings": {
+          "depthIntervalPreset": "BLM",
+          "depthIntervals": []
+        }
       },
       "notes": [],
       "soil_id": {
@@ -1175,7 +1215,8 @@
                       }
                     ]
                   }
-                }
+                },
+                "userRating": "SELECTED"
               },
               {
                 "dataSource": "HWSD",
@@ -1551,6 +1592,7 @@
       "elevation": 199.0,
       "privacy": "PRIVATE",
       "archived": false,
+      "seen": true,
       "soilData": {
         "downSlope": "Convex",
         "crossSlope": "Linear",
@@ -1567,22 +1609,37 @@
             "depthIntervalStart": 0,
             "depthIntervalEnd": 1,
             "label": "0-1 cm",
-            "_depthPreset": "",
+            "_depthPreset": "BLM",
             "_colorMunsell": "5.0YR 8/4"
           }
         ],
-        "_effectivePreset": "NRCS",
+        "_effectivePreset": "BLM",
         "_slopeSteepnessPercentLow": 2,
         "_slopeSteepnessPercentHigh": 5
       },
+      "project": {
+        "id": "edf4882b-6343-4fc8-baeb-a3d1028031f4",
+        "name": "Johanness snapshot test - BLM",
+        "description": "Sites for snapshot, blm",
+        "updatedAt": "2025-12-17T18:05:43.857479+00:00",
+        "soilSettings": {
+          "depthIntervalPreset": "BLM",
+          "depthIntervals": []
+        }
+      },
       "notes": [
         {
+          "id": "37aedfc3-cec0-4f06-a48c-8a67e4dc5dd5",
           "content": "Guvuvy",
+          "createdAt": "2025-12-17T18:19:19.621702+00:00",
+          "updatedAt": "2025-12-17T18:19:19.621712+00:00",
           "deletedByCascade": false,
           "author": {
+            "id": "b7fea1ab-7277-4b45-a301-9149fcefc80a",
             "email": "derek@techmatters.org",
             "firstName": "Derek",
-            "lastName": "Caelin"
+            "lastName": "",
+            "profileImage": "https://images.staging.terraso.net/b7fea1ab-7277-4b45-a301-9149fcefc80a/profile-image_262"
           }
         }
       ],
@@ -1951,7 +2008,8 @@
                       }
                     ]
                   }
-                }
+                },
+                "userRating": "SELECTED"
               },
               {
                 "dataSource": "HWSD",

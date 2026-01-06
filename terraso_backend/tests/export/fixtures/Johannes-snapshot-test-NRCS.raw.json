@@ -118,7 +118,11 @@
         "id": "dd4fa6a9-9e45-4e61-a73c-36bedded0714",
         "name": "Johannes snapshot test - NRCS",
         "description": "",
-        "updatedAt": "2025-12-17T18:06:40.089218+00:00"
+        "updatedAt": "2025-12-17T18:06:40.089218+00:00",
+        "soilSettings": {
+          "depthIntervalPreset": "NRCS",
+          "depthIntervals": []
+        }
       },
       "notes": [
         {
@@ -131,8 +135,8 @@
             "id": "b7fea1ab-7277-4b45-a301-9149fcefc80a",
             "email": "derek@techmatters.org",
             "firstName": "Derek",
-            "lastName": "Caelin",
-            "profileImage": "https://images.staging.terraso.net/b7fea1ab-7277-4b45-a301-9149fcefc80a/profile-image_254"
+            "lastName": "",
+            "profileImage": "https://images.staging.terraso.net/b7fea1ab-7277-4b45-a301-9149fcefc80a/profile-image_262"
           }
         }
       ],
@@ -948,7 +952,11 @@
         "id": "dd4fa6a9-9e45-4e61-a73c-36bedded0714",
         "name": "Johannes snapshot test - NRCS",
         "description": "",
-        "updatedAt": "2025-12-17T18:06:40.089218+00:00"
+        "updatedAt": "2025-12-17T18:06:40.089218+00:00",
+        "soilSettings": {
+          "depthIntervalPreset": "NRCS",
+          "depthIntervals": []
+        }
       },
       "notes": [],
       "soil_id": {

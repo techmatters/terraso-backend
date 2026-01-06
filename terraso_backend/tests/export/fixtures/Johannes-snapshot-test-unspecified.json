@@ -8,6 +8,7 @@
       "elevation": 498.0,
       "privacy": "PUBLIC",
       "archived": false,
+      "seen": true,
       "soilData": {
         "downSlope": "Linear",
         "crossSlope": "Convex",
@@ -26,7 +27,7 @@
             "label": "A",
             "soilTextureEnabled": true,
             "soilColorEnabled": true,
-            "_depthPreset": "NRCS",
+            "_depthPreset": "CUSTOM",
             "_colorMunsell": "5.0R 5/3"
           },
           {
@@ -60,13 +61,25 @@
             "_colorMunsell": "10.0G 2.5/1"
           }
         ],
-        "_effectivePreset": "NRCS",
+        "_effectivePreset": "NONE",
         "_slopeSteepnessPercentLow": 3.5,
         "_slopeSteepnessPercentHigh": 3.5
       },
+      "project": {
+        "id": "da8e292d-e3df-4db4-9e08-602f28733f60",
+        "name": "Johannes snapshot test - unspecified",
+        "description": "Sites for a snapshot test. Differing depths and observations",
+        "siteInstructions": "Hello, I am a pinned note.",
+        "updatedAt": "2025-12-19T21:18:28.623663+00:00",
+        "soilSettings": {
+          "depthIntervalPreset": "NONE",
+          "depthIntervals": []
+        }
+      },
       "notes": [
         {
-          "content": "Hello, I am a pinned note."
+          "content": "Hello, I am a pinned note.",
+          "createdAt": "2025-12-19T21:18:28.623663+00:00"
         }
       ],
       "soil_id": {
@@ -413,7 +426,8 @@
                       }
                     ]
                   }
-                }
+                },
+                "userRating": "SELECTED"
               },
               {
                 "dataSource": "SSURGO",
@@ -909,6 +923,7 @@
       "elevation": 1946.0,
       "privacy": "PUBLIC",
       "archived": false,
+      "seen": true,
       "soilData": {
         "downSlope": "Linear",
         "crossSlope": "Linear",
@@ -927,25 +942,42 @@
             "label": "0-5 cm",
             "soilTextureEnabled": true,
             "soilColorEnabled": true,
-            "_depthPreset": "NRCS",
+            "_depthPreset": "CUSTOM",
             "_colorMunsell": "10.0BG 3/1"
           }
         ],
-        "_effectivePreset": "NRCS",
+        "_effectivePreset": "NONE",
         "_slopeSteepnessPercentLow": 100,
         "_slopeSteepnessPercentHigh": 999
       },
+      "project": {
+        "id": "da8e292d-e3df-4db4-9e08-602f28733f60",
+        "name": "Johannes snapshot test - unspecified",
+        "description": "Sites for a snapshot test. Differing depths and observations",
+        "siteInstructions": "Hello, I am a pinned note.",
+        "updatedAt": "2025-12-19T21:18:28.623663+00:00",
+        "soilSettings": {
+          "depthIntervalPreset": "NONE",
+          "depthIntervals": []
+        }
+      },
       "notes": [
         {
-          "content": "Hello, I am a pinned note."
+          "content": "Hello, I am a pinned note.",
+          "createdAt": "2025-12-19T21:18:28.623663+00:00"
         },
         {
+          "id": "f40bd9cd-f07c-4cad-aa4c-fea525d4d934",
           "content": "Hello",
+          "createdAt": "2025-12-17T18:13:56.629000+00:00",
+          "updatedAt": "2025-12-17T18:13:56.629010+00:00",
           "deletedByCascade": false,
           "author": {
+            "id": "b7fea1ab-7277-4b45-a301-9149fcefc80a",
             "email": "derek@techmatters.org",
             "firstName": "Derek",
-            "lastName": "Caelin"
+            "lastName": "",
+            "profileImage": "https://images.staging.terraso.net/b7fea1ab-7277-4b45-a301-9149fcefc80a/profile-image_262"
           }
         }
       ],
@@ -1026,7 +1058,8 @@
                       }
                     ]
                   }
-                }
+                },
+                "userRating": "SELECTED"
               },
               {
                 "dataSource": "SSURGO",
@@ -1667,6 +1700,7 @@
       "elevation": 281.0,
       "privacy": "PRIVATE",
       "archived": false,
+      "seen": true,
       "soilData": {
         "downSlope": "Linear",
         "crossSlope": "Convex",
@@ -1689,21 +1723,38 @@
             "_colorMunsell": "2.5YR 5/2"
           }
         ],
-        "_effectivePreset": "NRCS",
+        "_effectivePreset": "NONE",
         "_slopeSteepnessPercentLow": 15,
         "_slopeSteepnessPercentHigh": 30
       },
+      "project": {
+        "id": "da8e292d-e3df-4db4-9e08-602f28733f60",
+        "name": "Johannes snapshot test - unspecified",
+        "description": "Sites for a snapshot test. Differing depths and observations",
+        "siteInstructions": "Hello, I am a pinned note.",
+        "updatedAt": "2025-12-19T21:18:28.623663+00:00",
+        "soilSettings": {
+          "depthIntervalPreset": "NONE",
+          "depthIntervals": []
+        }
+      },
       "notes": [
         {
-          "content": "Hello, I am a pinned note."
+          "content": "Hello, I am a pinned note.",
+          "createdAt": "2025-12-19T21:18:28.623663+00:00"
         },
         {
+          "id": "92ad2664-1f8d-4035-9bec-f990838718f2",
           "content": "Hello",
+          "createdAt": "2025-12-17T18:14:38.063253+00:00",
+          "updatedAt": "2025-12-17T18:14:38.063263+00:00",
           "deletedByCascade": false,
           "author": {
+            "id": "b7fea1ab-7277-4b45-a301-9149fcefc80a",
             "email": "derek@techmatters.org",
             "firstName": "Derek",
-            "lastName": "Caelin"
+            "lastName": "",
+            "profileImage": "https://images.staging.terraso.net/b7fea1ab-7277-4b45-a301-9149fcefc80a/profile-image_262"
           }
         }
       ],
