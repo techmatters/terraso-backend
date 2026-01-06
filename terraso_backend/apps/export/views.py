@@ -104,7 +104,7 @@ def _inject_user_ratings_into_matches(soil_id_data, user_ratings):
             match["userRating"] = ratings_by_name[series_name]
 
 
-def _process_sites(site_ids, request, raw=False):
+def _process_sites(site_ids, request, output_format="json"):
     """
     Process a set of site IDs into full site data.
     Returns a sorted list of transformed sites with soil_id data.
@@ -112,13 +112,13 @@ def _process_sites(site_ids, request, raw=False):
     Args:
         site_ids: Set of site UUIDs to process
         request: Django request object
-        raw: If True, return GraphQL data with minimal processing (for testing/debugging)
+        output_format: "raw", "json", or "csv" - determines processing strategy
     """
     all_sites = []
     for site_id in site_ids:
         site_data = fetch_site_data(site_id, request)
 
-        if raw:
+        if output_format == "raw":
             # Return GraphQL data with minimal processing (for testing/debugging)
             # Include notes and soil_id data that would normally be fetched separately
             # Keep soilMetadata in raw output, don't inject userRating into matches
@@ -132,7 +132,7 @@ def _process_sites(site_ids, request, raw=False):
             # Inject user ratings into soil matches (ratings are keyed by soil series name)
             user_ratings = site_data.get("soilMetadata", {}).get("userRatings", [])
             _inject_user_ratings_into_matches(soil_id_data, user_ratings)
-            transformed_site = transform_site_data(site_data, request)
+            transformed_site = transform_site_data(site_data, request, output_format=output_format)
             transformed_site["soil_id"] = soil_id_data
             # Preserve selected soil name for CSV export (needed when no soil matches exist)
             # This allows us to show user's selection even when soil ID API returns no matches
@@ -186,27 +186,46 @@ def _make_content_disposition(filename):
     return f"attachment; filename*=UTF-8''{encoded}; filename=\"{ascii_filename}\""
 
 
-def _is_raw_format(request):
-    """Check if request wants raw format output."""
-    return request.GET.get("format") == "raw"
+def _get_output_format(request, url_format):
+    """
+    Determine output format from request and URL.
+
+    Args:
+        request: Django request with optional ?format=raw query param
+        url_format: Format from URL path ("json" or "csv")
+
+    Returns:
+        "raw", "json", or "csv", or None if invalid (raw + csv)
+    """
+    if request.GET.get("format") == "raw":
+        if url_format != "json":
+            return None  # Invalid: raw only works with JSON
+        return "raw"
+    return url_format
 
 
-def _export_sites_response(all_sites, format, filename, raw=False):
+def _validate_output_format(output_format):
+    """Return error response if output_format is invalid, else None."""
+    if output_format is None:
+        return HttpResponseBadRequest("Raw format only supports JSON output")
+    return None
+
+
+def _export_sites_response(all_sites, output_format, filename):
     """Helper function to generate export response for a list of sites.
 
     Args:
         all_sites: List of site data dicts
-        format: Export format ('csv' or 'json')
+        output_format: "raw", "json", or "csv"
         filename: Base filename for Content-Disposition header
-        raw: If True, data is raw GraphQL output (only json format supported)
     """
-    # Validate format parameter
-    if format not in ["csv", "json"]:
-        return HttpResponseBadRequest(f"Unsupported format: {format}")
 
-    # Raw mode only supports JSON
-    if raw and format != "json":
-        return HttpResponseBadRequest("Raw format only supports JSON output")
+    # Validate output_format parameter
+    if output_format not in ["csv", "json", "raw"]:
+        return HttpResponseBadRequest(f"Unsupported format: {output_format}")
+
+    # Determine file format (raw uses json file extension)
+    format = "json" if output_format == "raw" else output_format
 
     # Decode URL-encoded characters in filename (e.g., %20 -> space)
     decoded_filename = unquote(filename)
@@ -226,34 +245,34 @@ def _export_sites_response(all_sites, format, filename, raw=False):
 # Core business logic functions (shared by token-based and ID-based exports)
 
 
-def _export_project_sites(project_id, request, raw=False):
+def _export_project_sites(project_id, request, output_format="json"):
     """
     Core logic: Fetch and process all sites in a project.
     Returns sorted list of transformed site data.
     """
     site_ids = fetch_all_sites(project_id, request)
-    return _process_sites(site_ids, request, raw=raw)
+    return _process_sites(site_ids, request, output_format=output_format)
 
 
-def _export_single_site(site_id, request, raw=False):
+def _export_single_site(site_id, request, output_format="json"):
     """
     Core logic: Fetch and process a single site.
     Returns sorted list of transformed site data (single item).
     """
     site_ids = {site_id}
-    return _process_sites(site_ids, request, raw=raw)
+    return _process_sites(site_ids, request, output_format=output_format)
 
 
-def _export_user_owned_sites(user_id, request, raw=False):
+def _export_user_owned_sites(user_id, request, output_format="json"):
     """
     Core logic: Fetch and process user's unaffiliated sites only.
     Returns sorted list of transformed site data.
     """
     site_ids = fetch_user_owned_sites(user_id, request)
-    return _process_sites(site_ids, request, raw=raw)
+    return _process_sites(site_ids, request, output_format=output_format)
 
 
-def _export_user_all_sites(user_id, request, raw=False):
+def _export_user_all_sites(user_id, request, output_format="json"):
     """
     Core logic: Fetch and process user's owned sites plus all sites in user's projects.
     Returns sorted list of transformed site data.
@@ -269,7 +288,7 @@ def _export_user_all_sites(user_id, request, raw=False):
         project_site_ids = fetch_all_sites(project_id, request)
         site_ids.update(project_site_ids)
 
-    return _process_sites(site_ids, request, raw=raw)
+    return _process_sites(site_ids, request, output_format=output_format)
 
 
 def project_export(request, project_token, project_name, format):
@@ -280,12 +299,14 @@ def project_export(request, project_token, project_name, format):
     if export_token.resource_type != "PROJECT":
         return HttpResponseBadRequest("Invalid token type for project export")
 
-    _setup_token_user(request, export_token)
+    output_format = _get_output_format(request, format)
+    if error := _validate_output_format(output_format):
+        return error
 
-    raw = _is_raw_format(request)
+    _setup_token_user(request, export_token)
     filename = _get_resource_name(export_token) or unquote(project_name)
-    all_sites = _export_project_sites(export_token.resource_id, request, raw=raw)
-    return _export_sites_response(all_sites, format, filename, raw=raw)
+    all_sites = _export_project_sites(export_token.resource_id, request, output_format)
+    return _export_sites_response(all_sites, output_format, filename)
 
 
 def site_export(request, site_token, site_name, format):
@@ -296,12 +317,14 @@ def site_export(request, site_token, site_name, format):
     if export_token.resource_type != "SITE":
         return HttpResponseBadRequest("Invalid token type for site export")
 
-    _setup_token_user(request, export_token)
+    output_format = _get_output_format(request, format)
+    if error := _validate_output_format(output_format):
+        return error
 
-    raw = _is_raw_format(request)
+    _setup_token_user(request, export_token)
     filename = _get_resource_name(export_token) or unquote(site_name)
-    all_sites = _export_single_site(export_token.resource_id, request, raw=raw)
-    return _export_sites_response(all_sites, format, filename, raw=raw)
+    all_sites = _export_single_site(export_token.resource_id, request, output_format)
+    return _export_sites_response(all_sites, output_format, filename)
 
 
 def user_owned_sites_export(request, user_token, user_name, format):
@@ -312,12 +335,14 @@ def user_owned_sites_export(request, user_token, user_name, format):
     if export_token.resource_type != "USER":
         return HttpResponseBadRequest("Invalid token type for user export")
 
-    _setup_token_user(request, export_token)
+    output_format = _get_output_format(request, format)
+    if error := _validate_output_format(output_format):
+        return error
 
-    raw = _is_raw_format(request)
+    _setup_token_user(request, export_token)
     display_name = _get_resource_name(export_token) or unquote(user_name)
-    all_sites = _export_user_owned_sites(export_token.resource_id, request, raw=raw)
-    return _export_sites_response(all_sites, format, f"{display_name}_owned_sites", raw=raw)
+    all_sites = _export_user_owned_sites(export_token.resource_id, request, output_format)
+    return _export_sites_response(all_sites, output_format, f"{display_name}_owned_sites")
 
 
 def user_all_sites_export(request, user_token, user_name, format):
@@ -328,12 +353,14 @@ def user_all_sites_export(request, user_token, user_name, format):
     if export_token.resource_type != "USER":
         return HttpResponseBadRequest("Invalid token type for user export")
 
-    _setup_token_user(request, export_token)
+    output_format = _get_output_format(request, format)
+    if error := _validate_output_format(output_format):
+        return error
 
-    raw = _is_raw_format(request)
+    _setup_token_user(request, export_token)
     display_name = _get_resource_name(export_token) or unquote(user_name)
-    all_sites = _export_user_all_sites(export_token.resource_id, request, raw=raw)
-    return _export_sites_response(all_sites, format, f"{display_name}_and_projects", raw=raw)
+    all_sites = _export_user_all_sites(export_token.resource_id, request, output_format)
+    return _export_sites_response(all_sites, output_format, f"{display_name}_and_projects")
 
 
 # ID-based exports (authenticated, enforce permissions)
@@ -344,17 +371,20 @@ def project_export_by_id(request, project_id, project_name, format):
     if not request.user.is_authenticated:
         return HttpResponse("Authentication required", status=401)
 
+    output_format = _get_output_format(request, format)
+    if error := _validate_output_format(output_format):
+        return error
+
     from apps.project_management.models import Project
 
-    raw = _is_raw_format(request)
     try:
         project = Project.objects.get(id=project_id)
         filename = project.name
     except Project.DoesNotExist:
         filename = unquote(project_name)
 
-    all_sites = _export_project_sites(project_id, request, raw=raw)
-    return _export_sites_response(all_sites, format, filename, raw=raw)
+    all_sites = _export_project_sites(project_id, request, output_format)
+    return _export_sites_response(all_sites, output_format, filename)
 
 
 def site_export_by_id(request, site_id, site_name, format):
@@ -362,17 +392,20 @@ def site_export_by_id(request, site_id, site_name, format):
     if not request.user.is_authenticated:
         return HttpResponse("Authentication required", status=401)
 
+    output_format = _get_output_format(request, format)
+    if error := _validate_output_format(output_format):
+        return error
+
     from apps.project_management.models import Site
 
-    raw = _is_raw_format(request)
     try:
         site = Site.objects.get(id=site_id)
         filename = site.name
     except Site.DoesNotExist:
         filename = unquote(site_name)
 
-    all_sites = _export_single_site(site_id, request, raw=raw)
-    return _export_sites_response(all_sites, format, filename, raw=raw)
+    all_sites = _export_single_site(site_id, request, output_format)
+    return _export_sites_response(all_sites, output_format, filename)
 
 
 def user_owned_sites_export_by_id(request, user_id, user_name, format):
@@ -380,8 +413,11 @@ def user_owned_sites_export_by_id(request, user_id, user_name, format):
     if not request.user.is_authenticated:
         return HttpResponse("Authentication required", status=401)
 
+    output_format = _get_output_format(request, format)
+    if error := _validate_output_format(output_format):
+        return error
+
     User = get_user_model()
-    raw = _is_raw_format(request)
     try:
         user = User.objects.get(id=user_id)
         full_name = f"{user.first_name} {user.last_name}".strip()
@@ -389,8 +425,8 @@ def user_owned_sites_export_by_id(request, user_id, user_name, format):
     except User.DoesNotExist:
         display_name = unquote(user_name)
 
-    all_sites = _export_user_owned_sites(user_id, request, raw=raw)
-    return _export_sites_response(all_sites, format, f"{display_name}_owned_sites", raw=raw)
+    all_sites = _export_user_owned_sites(user_id, request, output_format)
+    return _export_sites_response(all_sites, output_format, f"{display_name}_owned_sites")
 
 
 def user_all_sites_export_by_id(request, user_id, user_name, format):
@@ -398,8 +434,11 @@ def user_all_sites_export_by_id(request, user_id, user_name, format):
     if not request.user.is_authenticated:
         return HttpResponse("Authentication required", status=401)
 
+    output_format = _get_output_format(request, format)
+    if error := _validate_output_format(output_format):
+        return error
+
     User = get_user_model()
-    raw = _is_raw_format(request)
     try:
         user = User.objects.get(id=user_id)
         full_name = f"{user.first_name} {user.last_name}".strip()
@@ -407,8 +446,8 @@ def user_all_sites_export_by_id(request, user_id, user_name, format):
     except User.DoesNotExist:
         display_name = unquote(user_name)
 
-    all_sites = _export_user_all_sites(user_id, request, raw=raw)
-    return _export_sites_response(all_sites, format, f"{display_name}_and_projects", raw=raw)
+    all_sites = _export_user_all_sites(user_id, request, output_format)
+    return _export_sites_response(all_sites, output_format, f"{display_name}_and_projects")
 
 
 # HTML landing pages for export links

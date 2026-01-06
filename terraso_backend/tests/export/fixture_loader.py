@@ -30,6 +30,8 @@ from apps.export.fetch_data import cache_soil_id
 from apps.project_management.models import Project, Site, SiteNote
 from apps.soil_id.models import (
     DepthDependentSoilData,
+    ProjectDepthInterval,
+    ProjectSoilSettings,
     SoilData,
     SoilDataDepthInterval,
     SoilMetadata,
@@ -65,6 +67,45 @@ def create_user_for_fixtures(email="fixture-user@test.com"):
         },
     )
     return user
+
+
+def create_project_soil_settings(project, soil_settings_data):
+    """
+    Create ProjectSoilSettings and ProjectDepthInterval records for a project.
+
+    Args:
+        project: Project instance
+        soil_settings_data: Dict with depthIntervalPreset and optional depthIntervals
+    """
+    if not soil_settings_data:
+        return None
+
+    preset = soil_settings_data.get("depthIntervalPreset")
+    if not preset:
+        return None
+
+    soil_settings, _ = ProjectSoilSettings.objects.get_or_create(
+        project=project,
+        defaults={"depth_interval_preset": preset},
+    )
+
+    # Update preset if it already existed
+    if soil_settings.depth_interval_preset != preset:
+        soil_settings.depth_interval_preset = preset
+        soil_settings.save()
+
+    # Create custom depth intervals if present
+    depth_intervals = soil_settings_data.get("depthIntervals", [])
+    for interval_data in depth_intervals:
+        interval_obj = interval_data.get("depthInterval", {})
+        ProjectDepthInterval.objects.get_or_create(
+            project=soil_settings,
+            depth_interval_start=interval_obj.get("start"),
+            depth_interval_end=interval_obj.get("end"),
+            defaults={"label": interval_data.get("label", "")},
+        )
+
+    return soil_settings
 
 
 def load_site_from_raw_json(site_data, owner, synthetic_project=None):
@@ -110,6 +151,10 @@ def load_site_from_raw_json(site_data, owner, synthetic_project=None):
                 # Ensure owner is a manager
                 if not project.is_manager(owner):
                     project.add_manager(owner)
+                # Create project soil settings if present
+                soil_settings_data = project_data.get("soilSettings")
+                if soil_settings_data:
+                    create_project_soil_settings(project, soil_settings_data)
 
     # Create site with specified ID
     site_id = site_data.get("id")
@@ -272,7 +317,7 @@ def load_sites_from_fixture(fixture_name, owner=None, fixtures_dir=None):
     # This ensures they can all be exported together via a project token
     synthetic_project = None
     if len(sites_data) > 1:
-        # Get siteInstructions from first site's project if available
+        # Get siteInstructions and soilSettings from first site's project if available
         first_project = sites_data[0].get("project", {})
         synthetic_project = Project.objects.create(
             name=f"Test Project for {fixture_name}",
@@ -285,6 +330,10 @@ def load_sites_from_fixture(fixture_name, owner=None, fixtures_dir=None):
             Project.objects.filter(id=synthetic_project.id).update(
                 updated_at=parse_datetime(first_project["updatedAt"])
             )
+        # Create project soil settings if present
+        soil_settings_data = first_project.get("soilSettings")
+        if soil_settings_data:
+            create_project_soil_settings(synthetic_project, soil_settings_data)
 
     for site_data in sites_data:
         site = load_site_from_raw_json(site_data, owner, synthetic_project=synthetic_project)

@@ -8,7 +8,6 @@
       "elevation": 322.0,
       "privacy": "PRIVATE",
       "archived": false,
-      "seen": true,
       "soilData": {
         "downSlope": "Linear",
         "crossSlope": "Convex",
@@ -16,93 +15,83 @@
         "surfaceCracksSelect": "Deep vertical cracks",
         "depthDependentData": [
           {
-            "label": "0-5 cm",
-            "depthIntervalStart": 0,
-            "depthIntervalEnd": 5,
             "texture": "Clay",
             "rockFragmentVolume": "0-1%",
             "colorHue": 17.5,
             "colorValue": 4.0,
             "colorChroma": 2.0,
             "colorPhotoUsed": false,
+            "depthIntervalStart": 0,
+            "depthIntervalEnd": 1,
+            "label": "0-1 cm",
+            "_depthPreset": "",
             "_colorMunsell": "7.5YR 4/2"
           },
           {
-            "label": "5-15 cm",
-            "depthIntervalStart": 5,
-            "depthIntervalEnd": 15,
             "texture": "Loam",
             "rockFragmentVolume": "15-35%",
             "colorHue": 20.0,
             "colorValue": 4.0,
             "colorChroma": 4.0,
             "colorPhotoUsed": false,
+            "depthIntervalStart": 1,
+            "depthIntervalEnd": 10,
+            "label": "1-10 cm",
+            "_depthPreset": "",
             "_colorMunsell": "10.0YR 4/4"
           },
           {
-            "label": "15-30 cm",
-            "depthIntervalStart": 15,
-            "depthIntervalEnd": 30,
             "texture": "Clay",
             "rockFragmentVolume": "0-1%",
             "colorHue": 40.0,
             "colorValue": 7.0,
             "colorChroma": 2.0,
             "colorPhotoUsed": false,
+            "depthIntervalStart": 10,
+            "depthIntervalEnd": 20,
+            "label": "10-20 cm",
+            "_depthPreset": "",
             "_colorMunsell": "10.0GY 7/2"
           },
           {
-            "label": "30-60 cm",
-            "depthIntervalStart": 30,
-            "depthIntervalEnd": 60,
             "texture": "Sandy Clay Loam",
             "rockFragmentVolume": "1-15%",
             "colorHue": 20.0,
             "colorValue": 8.0,
             "colorChroma": 6.0,
             "colorPhotoUsed": false,
+            "depthIntervalStart": 20,
+            "depthIntervalEnd": 50,
+            "label": "20-50 cm",
+            "_depthPreset": "",
             "_colorMunsell": "10.0YR 8/6"
           },
           {
-            "label": "60-100 cm",
-            "depthIntervalStart": 60,
-            "depthIntervalEnd": 100,
             "texture": "Loam",
             "rockFragmentVolume": "15-35%",
             "colorHue": 15.0,
             "colorValue": 5.0,
             "colorChroma": 3.0,
             "colorPhotoUsed": false,
+            "depthIntervalStart": 50,
+            "depthIntervalEnd": 70,
+            "label": "50-70 cm",
+            "_depthPreset": "",
             "_colorMunsell": "5.0YR 5/3"
-          },
-          {
-            "label": "100-200 cm",
-            "depthIntervalStart": 100,
-            "depthIntervalEnd": 200
           }
         ],
+        "_effectivePreset": "NRCS",
         "_slopeSteepnessPercentLow": 2,
         "_slopeSteepnessPercentHigh": 5
       },
-      "project": {
-        "id": "edf4882b-6343-4fc8-baeb-a3d1028031f4",
-        "name": "Johanness snapshot test - BLM",
-        "description": "Sites for snapshot, blm",
-        "updatedAt": "2025-12-17T18:05:43.857479+00:00"
-      },
       "notes": [
         {
-          "id": "ee29edc9-2d2a-476d-899e-3259b53dab44",
           "content": "Wow!",
-          "createdAt": "2025-12-17T18:17:19.543086+00:00",
-          "updatedAt": "2025-12-17T18:17:19.543095+00:00",
           "deletedByCascade": false,
           "author": {
-            "id": "b7fea1ab-7277-4b45-a301-9149fcefc80a",
             "email": "derek@techmatters.org",
             "firstName": "Derek",
-            "lastName": "Caelin",
-            "profileImage": "https://images.staging.terraso.net/b7fea1ab-7277-4b45-a301-9149fcefc80a/profile-image_254"
+            "lastName": "Caelin"
           }
         }
       ],
@@ -364,8 +353,7 @@
                       }
                     ]
                   }
-                },
-                "userRating": "SELECTED"
+                }
               },
               {
                 "dataSource": "SSURGO",
@@ -611,58 +599,28 @@
       "elevation": 67.0,
       "privacy": "PUBLIC",
       "archived": false,
-      "seen": true,
       "soilData": {
         "downSlope": "Linear",
         "crossSlope": "Linear",
         "slopeSteepnessSelect": "5-10% (moderate)",
         "depthDependentData": [
           {
-            "label": "0-5 cm",
-            "depthIntervalStart": 0,
-            "depthIntervalEnd": 5,
             "texture": "Sandy Clay Loam",
             "rockFragmentVolume": "35-60%",
             "colorHue": 10.0,
             "colorValue": 7.0,
             "colorChroma": 6.0,
             "colorPhotoUsed": false,
+            "depthIntervalStart": 0,
+            "depthIntervalEnd": 1,
+            "label": "0-1 cm",
+            "_depthPreset": "",
             "_colorMunsell": "10.0R 7/6"
-          },
-          {
-            "label": "5-15 cm",
-            "depthIntervalStart": 5,
-            "depthIntervalEnd": 15
-          },
-          {
-            "label": "15-30 cm",
-            "depthIntervalStart": 15,
-            "depthIntervalEnd": 30
-          },
-          {
-            "label": "30-60 cm",
-            "depthIntervalStart": 30,
-            "depthIntervalEnd": 60
-          },
-          {
-            "label": "60-100 cm",
-            "depthIntervalStart": 60,
-            "depthIntervalEnd": 100
-          },
-          {
-            "label": "100-200 cm",
-            "depthIntervalStart": 100,
-            "depthIntervalEnd": 200
           }
         ],
+        "_effectivePreset": "NRCS",
         "_slopeSteepnessPercentLow": 5,
         "_slopeSteepnessPercentHigh": 10
-      },
-      "project": {
-        "id": "edf4882b-6343-4fc8-baeb-a3d1028031f4",
-        "name": "Johanness snapshot test - BLM",
-        "description": "Sites for snapshot, blm",
-        "updatedAt": "2025-12-17T18:05:43.857479+00:00"
       },
       "notes": [],
       "soil_id": {
@@ -760,8 +718,7 @@
                       }
                     ]
                   }
-                },
-                "userRating": "SELECTED"
+                }
               },
               {
                 "dataSource": "SSURGO",
@@ -987,7 +944,6 @@
       "longitude": -56.238039805470976,
       "privacy": "PRIVATE",
       "archived": false,
-      "seen": true,
       "soilData": {
         "downSlope": "Linear",
         "crossSlope": "Convex",
@@ -995,51 +951,22 @@
         "surfaceCracksSelect": "Deep vertical cracks",
         "depthDependentData": [
           {
-            "label": "0-5 cm",
-            "depthIntervalStart": 0,
-            "depthIntervalEnd": 5,
             "texture": "Loam",
             "rockFragmentVolume": "15-35%",
             "colorHue": 25.0,
             "colorValue": 4.0,
             "colorChroma": 3.0,
             "colorPhotoUsed": false,
+            "depthIntervalStart": 0,
+            "depthIntervalEnd": 1,
+            "label": "0-1 cm",
+            "_depthPreset": "",
             "_colorMunsell": "5.0Y 4/3"
-          },
-          {
-            "label": "5-15 cm",
-            "depthIntervalStart": 5,
-            "depthIntervalEnd": 15
-          },
-          {
-            "label": "15-30 cm",
-            "depthIntervalStart": 15,
-            "depthIntervalEnd": 30
-          },
-          {
-            "label": "30-60 cm",
-            "depthIntervalStart": 30,
-            "depthIntervalEnd": 60
-          },
-          {
-            "label": "60-100 cm",
-            "depthIntervalStart": 60,
-            "depthIntervalEnd": 100
-          },
-          {
-            "label": "100-200 cm",
-            "depthIntervalStart": 100,
-            "depthIntervalEnd": 200
           }
         ],
+        "_effectivePreset": "NRCS",
         "_slopeSteepnessPercentLow": 10,
         "_slopeSteepnessPercentHigh": 15
-      },
-      "project": {
-        "id": "edf4882b-6343-4fc8-baeb-a3d1028031f4",
-        "name": "Johanness snapshot test - BLM",
-        "description": "Sites for snapshot, blm",
-        "updatedAt": "2025-12-17T18:05:43.857479+00:00"
       },
       "notes": [],
       "soil_id": {
@@ -1248,8 +1175,7 @@
                       }
                     ]
                   }
-                },
-                "userRating": "SELECTED"
+                }
               },
               {
                 "dataSource": "HWSD",
@@ -1625,7 +1551,6 @@
       "elevation": 199.0,
       "privacy": "PRIVATE",
       "archived": false,
-      "seen": true,
       "soilData": {
         "downSlope": "Convex",
         "crossSlope": "Linear",
@@ -1633,65 +1558,31 @@
         "surfaceCracksSelect": "No cracking",
         "depthDependentData": [
           {
-            "label": "0-5 cm",
-            "depthIntervalStart": 0,
-            "depthIntervalEnd": 5,
             "texture": "Sand",
             "rockFragmentVolume": "1-15%",
             "colorHue": 15.0,
             "colorValue": 8.0,
             "colorChroma": 4.0,
             "colorPhotoUsed": false,
+            "depthIntervalStart": 0,
+            "depthIntervalEnd": 1,
+            "label": "0-1 cm",
+            "_depthPreset": "",
             "_colorMunsell": "5.0YR 8/4"
-          },
-          {
-            "label": "5-15 cm",
-            "depthIntervalStart": 5,
-            "depthIntervalEnd": 15
-          },
-          {
-            "label": "15-30 cm",
-            "depthIntervalStart": 15,
-            "depthIntervalEnd": 30
-          },
-          {
-            "label": "30-60 cm",
-            "depthIntervalStart": 30,
-            "depthIntervalEnd": 60
-          },
-          {
-            "label": "60-100 cm",
-            "depthIntervalStart": 60,
-            "depthIntervalEnd": 100
-          },
-          {
-            "label": "100-200 cm",
-            "depthIntervalStart": 100,
-            "depthIntervalEnd": 200
           }
         ],
+        "_effectivePreset": "NRCS",
         "_slopeSteepnessPercentLow": 2,
         "_slopeSteepnessPercentHigh": 5
       },
-      "project": {
-        "id": "edf4882b-6343-4fc8-baeb-a3d1028031f4",
-        "name": "Johanness snapshot test - BLM",
-        "description": "Sites for snapshot, blm",
-        "updatedAt": "2025-12-17T18:05:43.857479+00:00"
-      },
       "notes": [
         {
-          "id": "37aedfc3-cec0-4f06-a48c-8a67e4dc5dd5",
           "content": "Guvuvy",
-          "createdAt": "2025-12-17T18:19:19.621702+00:00",
-          "updatedAt": "2025-12-17T18:19:19.621712+00:00",
           "deletedByCascade": false,
           "author": {
-            "id": "b7fea1ab-7277-4b45-a301-9149fcefc80a",
             "email": "derek@techmatters.org",
             "firstName": "Derek",
-            "lastName": "Caelin",
-            "profileImage": "https://images.staging.terraso.net/b7fea1ab-7277-4b45-a301-9149fcefc80a/profile-image_254"
+            "lastName": "Caelin"
           }
         }
       ],
@@ -2060,8 +1951,7 @@
                       }
                     ]
                   }
-                },
-                "userRating": "SELECTED"
+                }
               },
               {
                 "dataSource": "HWSD",

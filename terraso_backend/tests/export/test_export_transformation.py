@@ -33,7 +33,8 @@ from apps.export.models import ExportToken
 from apps.export.transformers import (
     apply_object_transformations,
     flatten_site,
-    merge_depth_intervals_into_data,
+    process_depth_data_for_csv,
+    process_depth_data_for_json,
 )
 
 from .fixture_loader import create_user_for_fixtures, load_site_from_raw_json
@@ -157,30 +158,73 @@ class TestTransformationPipeline:
         assert "R" in data["_colorMunsell"]
         assert "4/3" in data["_colorMunsell"]
 
-    def test_export_depth_intervals_merge(self):
-        """Test that depth intervals are merged with dependent data."""
-        soil_data = {
-            "depthIntervals": [
-                {"label": "0-5 cm", "depthInterval": {"start": 0, "end": 5}},
-                {"label": "5-15 cm", "depthInterval": {"start": 5, "end": 15}},
-            ],
-            "depthDependentData": [
-                {"texture": "CLAY"},
-                {"texture": "LOAM"},
-            ],
+    def test_export_depth_intervals_merge_json(self):
+        """Test that JSON export includes all measurements with _depthPreset field."""
+        site = {
+            "project": None,
+            "soilData": {
+                "depthIntervalPreset": "CUSTOM",
+                "depthIntervals": [
+                    {"label": "0-5 cm", "depthInterval": {"start": 0, "end": 5}},
+                    {"label": "5-15 cm", "depthInterval": {"start": 5, "end": 15}},
+                ],
+                "depthDependentData": [
+                    {"depthInterval": {"start": 0, "end": 5}, "texture": "CLAY"},
+                    {"depthInterval": {"start": 5, "end": 15}, "texture": "LOAM"},
+                ],
+            },
         }
 
-        merge_depth_intervals_into_data(soil_data)
+        process_depth_data_for_json(site)
+
+        soil_data = site["soilData"]
 
         # depthIntervals should be removed
         assert "depthIntervals" not in soil_data
 
-        # depthDependentData should have merged data
+        # depthDependentData should have flattened data with _depthPreset
         assert len(soil_data["depthDependentData"]) == 2
         assert soil_data["depthDependentData"][0]["label"] == "0-5 cm"
         assert soil_data["depthDependentData"][0]["depthIntervalStart"] == 0
         assert soil_data["depthDependentData"][0]["depthIntervalEnd"] == 5
         assert soil_data["depthDependentData"][0]["texture"] == "CLAY"
+        assert soil_data["depthDependentData"][0]["_depthPreset"] == "CUSTOM"
+
+    def test_export_depth_intervals_merge_csv(self):
+        """Test that CSV export includes all visible intervals with matched measurements."""
+        site = {
+            "project": None,
+            "soilData": {
+                "depthIntervalPreset": "CUSTOM",
+                "depthIntervals": [
+                    {"label": "0-5 cm", "depthInterval": {"start": 0, "end": 5}},
+                    {"label": "5-15 cm", "depthInterval": {"start": 5, "end": 15}},
+                    {"label": "15-30 cm", "depthInterval": {"start": 15, "end": 30}},
+                ],
+                "depthDependentData": [
+                    # Only first interval has data
+                    {"depthInterval": {"start": 0, "end": 5}, "texture": "CLAY"},
+                ],
+            },
+        }
+
+        process_depth_data_for_csv(site)
+
+        soil_data = site["soilData"]
+
+        # CSV should have all 3 intervals, even empty ones
+        assert len(soil_data["depthDependentData"]) == 3
+
+        # First interval has data
+        assert soil_data["depthDependentData"][0]["depthIntervalStart"] == 0
+        assert soil_data["depthDependentData"][0]["texture"] == "CLAY"
+
+        # Second interval is empty (no measurement)
+        assert soil_data["depthDependentData"][1]["depthIntervalStart"] == 5
+        assert soil_data["depthDependentData"][1].get("texture") is None
+
+        # Third interval is empty
+        assert soil_data["depthDependentData"][2]["depthIntervalStart"] == 15
 
     def test_export_rock_fragment_volume_formatting(self):
         """Test that rock fragment volume uses simple dash format."""

@@ -8,7 +8,6 @@
       "elevation": 498.0,
       "privacy": "PUBLIC",
       "archived": false,
-      "seen": true,
       "soilData": {
         "downSlope": "Linear",
         "crossSlope": "Convex",
@@ -16,62 +15,58 @@
         "surfaceCracksSelect": "No cracking",
         "depthDependentData": [
           {
-            "label": "A",
-            "soilTextureEnabled": true,
-            "soilColorEnabled": true,
-            "depthIntervalStart": 0,
-            "depthIntervalEnd": 5,
             "texture": "Loam",
             "rockFragmentVolume": "0-1%",
             "colorHue": 5.0,
             "colorValue": 5.0,
             "colorChroma": 3.0,
             "colorPhotoUsed": false,
+            "depthIntervalStart": 0,
+            "depthIntervalEnd": 5,
+            "label": "A",
+            "soilTextureEnabled": true,
+            "soilColorEnabled": true,
+            "_depthPreset": "NRCS",
             "_colorMunsell": "5.0R 5/3"
           },
           {
-            "label": "B",
-            "soilTextureEnabled": true,
-            "soilColorEnabled": true,
-            "depthIntervalStart": 5,
-            "depthIntervalEnd": 30,
             "texture": "Clay",
             "rockFragmentVolume": "1-15%",
             "colorHue": 55.0,
             "colorValue": 8.0,
             "colorChroma": 1.0,
             "colorPhotoUsed": false,
+            "depthIntervalStart": 5,
+            "depthIntervalEnd": 30,
+            "label": "B",
+            "soilTextureEnabled": true,
+            "soilColorEnabled": true,
+            "_depthPreset": "CUSTOM",
             "_colorMunsell": "5.0BG 8/1"
           },
           {
-            "label": "C",
-            "soilTextureEnabled": true,
-            "soilColorEnabled": true,
-            "depthIntervalStart": 30,
-            "depthIntervalEnd": 200,
             "texture": "Sandy Clay",
             "rockFragmentVolume": "15-35%",
             "colorHue": 50.0,
             "colorValue": 2.5,
             "colorChroma": 1.0,
             "colorPhotoUsed": false,
+            "depthIntervalStart": 30,
+            "depthIntervalEnd": 200,
+            "label": "C",
+            "soilTextureEnabled": true,
+            "soilColorEnabled": true,
+            "_depthPreset": "CUSTOM",
             "_colorMunsell": "10.0G 2.5/1"
           }
         ],
+        "_effectivePreset": "NRCS",
         "_slopeSteepnessPercentLow": 3.5,
         "_slopeSteepnessPercentHigh": 3.5
       },
-      "project": {
-        "id": "da8e292d-e3df-4db4-9e08-602f28733f60",
-        "name": "Johannes snapshot test - unspecified",
-        "description": "Sites for a snapshot test. Differing depths and observations",
-        "siteInstructions": "Hello, I am a pinned note.",
-        "updatedAt": "2025-12-19T21:18:28.623663+00:00"
-      },
       "notes": [
         {
-          "content": "Hello, I am a pinned note.",
-          "createdAt": "2025-12-19T21:18:28.623663+00:00"
+          "content": "Hello, I am a pinned note."
         }
       ],
       "soil_id": {
@@ -418,8 +413,7 @@
                       }
                     ]
                   }
-                },
-                "userRating": "SELECTED"
+                }
               },
               {
                 "dataSource": "SSURGO",
@@ -915,7 +909,6 @@
       "elevation": 1946.0,
       "privacy": "PUBLIC",
       "archived": false,
-      "seen": true,
       "soilData": {
         "downSlope": "Linear",
         "crossSlope": "Linear",
@@ -923,47 +916,36 @@
         "surfaceCracksSelect": "Deep vertical cracks",
         "depthDependentData": [
           {
-            "label": "",
-            "soilTextureEnabled": true,
-            "soilColorEnabled": true,
-            "depthIntervalStart": 0,
-            "depthIntervalEnd": 5,
             "texture": "Clay",
             "rockFragmentVolume": "0-1%",
             "colorHue": 60.0,
             "colorValue": 3.0,
             "colorChroma": 1.0,
             "colorPhotoUsed": false,
+            "depthIntervalStart": 0,
+            "depthIntervalEnd": 5,
+            "label": "0-5 cm",
+            "soilTextureEnabled": true,
+            "soilColorEnabled": true,
+            "_depthPreset": "NRCS",
             "_colorMunsell": "10.0BG 3/1"
           }
         ],
+        "_effectivePreset": "NRCS",
         "_slopeSteepnessPercentLow": 100,
         "_slopeSteepnessPercentHigh": 999
       },
-      "project": {
-        "id": "da8e292d-e3df-4db4-9e08-602f28733f60",
-        "name": "Johannes snapshot test - unspecified",
-        "description": "Sites for a snapshot test. Differing depths and observations",
-        "siteInstructions": "Hello, I am a pinned note.",
-        "updatedAt": "2025-12-19T21:18:28.623663+00:00"
-      },
       "notes": [
         {
-          "content": "Hello, I am a pinned note.",
-          "createdAt": "2025-12-19T21:18:28.623663+00:00"
+          "content": "Hello, I am a pinned note."
         },
         {
-          "id": "f40bd9cd-f07c-4cad-aa4c-fea525d4d934",
           "content": "Hello",
-          "createdAt": "2025-12-17T18:13:56.629000+00:00",
-          "updatedAt": "2025-12-17T18:13:56.629010+00:00",
           "deletedByCascade": false,
           "author": {
-            "id": "b7fea1ab-7277-4b45-a301-9149fcefc80a",
             "email": "derek@techmatters.org",
             "firstName": "Derek",
-            "lastName": "Caelin",
-            "profileImage": "https://images.staging.terraso.net/b7fea1ab-7277-4b45-a301-9149fcefc80a/profile-image_254"
+            "lastName": "Caelin"
           }
         }
       ],
@@ -1044,8 +1026,7 @@
                       }
                     ]
                   }
-                },
-                "userRating": "SELECTED"
+                }
               },
               {
                 "dataSource": "SSURGO",
@@ -1686,7 +1667,6 @@
       "elevation": 281.0,
       "privacy": "PRIVATE",
       "archived": false,
-      "seen": true,
       "soilData": {
         "downSlope": "Linear",
         "crossSlope": "Convex",
@@ -1694,47 +1674,36 @@
         "surfaceCracksSelect": "Surface cracking only",
         "depthDependentData": [
           {
-            "label": "",
-            "soilTextureEnabled": true,
-            "soilColorEnabled": true,
-            "depthIntervalStart": 0,
-            "depthIntervalEnd": 200,
             "texture": "Sand",
             "rockFragmentVolume": "0-1%",
             "colorHue": 12.5,
             "colorValue": 5.0,
             "colorChroma": 2.0,
             "colorPhotoUsed": false,
+            "depthIntervalStart": 0,
+            "depthIntervalEnd": 200,
+            "label": "0-200 cm",
+            "soilTextureEnabled": true,
+            "soilColorEnabled": true,
+            "_depthPreset": "CUSTOM",
             "_colorMunsell": "2.5YR 5/2"
           }
         ],
+        "_effectivePreset": "NRCS",
         "_slopeSteepnessPercentLow": 15,
         "_slopeSteepnessPercentHigh": 30
       },
-      "project": {
-        "id": "da8e292d-e3df-4db4-9e08-602f28733f60",
-        "name": "Johannes snapshot test - unspecified",
-        "description": "Sites for a snapshot test. Differing depths and observations",
-        "siteInstructions": "Hello, I am a pinned note.",
-        "updatedAt": "2025-12-19T21:18:28.623663+00:00"
-      },
       "notes": [
         {
-          "content": "Hello, I am a pinned note.",
-          "createdAt": "2025-12-19T21:18:28.623663+00:00"
+          "content": "Hello, I am a pinned note."
         },
         {
-          "id": "92ad2664-1f8d-4035-9bec-f990838718f2",
           "content": "Hello",
-          "createdAt": "2025-12-17T18:14:38.063253+00:00",
-          "updatedAt": "2025-12-17T18:14:38.063263+00:00",
           "deletedByCascade": false,
           "author": {
-            "id": "b7fea1ab-7277-4b45-a301-9149fcefc80a",
             "email": "derek@techmatters.org",
             "firstName": "Derek",
-            "lastName": "Caelin",
-            "profileImage": "https://images.staging.terraso.net/b7fea1ab-7277-4b45-a301-9149fcefc80a/profile-image_254"
+            "lastName": "Caelin"
           }
         }
       ],

@@ -160,6 +160,16 @@ def fetch_site_data(site_id, request):
                 description
                 siteInstructions
                 updatedAt
+                soilSettings {
+                    depthIntervalPreset
+                    depthIntervals {
+                        label
+                        depthInterval {
+                            start
+                            end
+                        }
+                    }
+                }
             }
         }
     }
