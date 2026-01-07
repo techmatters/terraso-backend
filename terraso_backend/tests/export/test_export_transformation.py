@@ -33,8 +33,7 @@ from apps.export.models import ExportToken
 from apps.export.transformers import (
     apply_object_transformations,
     flatten_site,
-    process_depth_data_for_csv,
-    process_depth_data_for_json,
+    process_depth_data,
 )
 
 from .fixture_loader import create_user_for_fixtures, load_site_from_raw_json
@@ -158,8 +157,8 @@ class TestTransformationPipeline:
         assert "R" in data["_colorMunsell"]
         assert "4/3" in data["_colorMunsell"]
 
-    def test_export_depth_intervals_merge_json(self):
-        """Test that JSON export includes all measurements with _depthSource field."""
+    def test_export_depth_intervals_with_measurements(self):
+        """Test that export includes visible intervals with _depthSource and merged measurements."""
         site = {
             "project": None,
             "soilData": {
@@ -175,7 +174,7 @@ class TestTransformationPipeline:
             },
         }
 
-        process_depth_data_for_json(site)
+        process_depth_data(site)
 
         soil_data = site["soilData"]
 
@@ -190,8 +189,8 @@ class TestTransformationPipeline:
         assert soil_data["depthDependentData"][0]["texture"] == "CLAY"
         assert soil_data["depthDependentData"][0]["_depthSource"] == "CUSTOM"
 
-    def test_export_depth_intervals_merge_csv(self):
-        """Test that CSV export includes all visible intervals with matched measurements."""
+    def test_export_depth_intervals_includes_empty(self):
+        """Test that export includes all visible intervals, even ones without measurements."""
         site = {
             "project": None,
             "soilData": {
@@ -208,11 +207,11 @@ class TestTransformationPipeline:
             },
         }
 
-        process_depth_data_for_csv(site)
+        process_depth_data(site)
 
         soil_data = site["soilData"]
 
-        # CSV should have all 3 intervals, even empty ones
+        # Output should have all 3 intervals, even empty ones
         assert len(soil_data["depthDependentData"]) == 3
 
         # First interval has data
@@ -225,6 +224,65 @@ class TestTransformationPipeline:
 
         # Third interval is empty
         assert soil_data["depthDependentData"][2]["depthIntervalStart"] == 15
+
+    def test_export_orphaned_measurements_dropped(self):
+        """Test that measurements without matching intervals are dropped."""
+        site = {
+            "project": None,
+            "soilData": {
+                "depthIntervalPreset": "CUSTOM",
+                "depthIntervals": [
+                    {"label": "0-5 cm", "depthInterval": {"start": 0, "end": 5}},
+                ],
+                "depthDependentData": [
+                    # This matches the interval
+                    {"depthInterval": {"start": 0, "end": 5}, "texture": "CLAY"},
+                    # This is orphaned - no matching interval
+                    {"depthInterval": {"start": 50, "end": 100}, "texture": "SAND"},
+                ],
+            },
+        }
+
+        process_depth_data(site)
+
+        soil_data = site["soilData"]
+
+        # Only the one defined interval should be in output
+        assert len(soil_data["depthDependentData"]) == 1
+        assert soil_data["depthDependentData"][0]["depthIntervalStart"] == 0
+        assert soil_data["depthDependentData"][0]["texture"] == "CLAY"
+
+    def test_export_empty_interval_included(self):
+        """Test that intervals without measurements are still included."""
+        site = {
+            "project": None,
+            "soilData": {
+                "depthIntervalPreset": "CUSTOM",
+                "depthIntervals": [
+                    {"label": "0-5 cm", "depthInterval": {"start": 0, "end": 5}},
+                    {"label": "5-15 cm", "depthInterval": {"start": 5, "end": 15}},
+                ],
+                "depthDependentData": [
+                    # Only first interval has measurement
+                    {"depthInterval": {"start": 0, "end": 5}, "texture": "CLAY"},
+                ],
+            },
+        }
+
+        process_depth_data(site)
+
+        soil_data = site["soilData"]
+
+        # Both intervals should be in output
+        assert len(soil_data["depthDependentData"]) == 2
+
+        # First has measurement
+        assert soil_data["depthDependentData"][0]["depthIntervalStart"] == 0
+        assert soil_data["depthDependentData"][0]["texture"] == "CLAY"
+
+        # Second is empty but still included
+        assert soil_data["depthDependentData"][1]["depthIntervalStart"] == 5
+        assert soil_data["depthDependentData"][1].get("texture") is None
 
     def test_export_rock_fragment_volume_formatting(self):
         """Test that rock fragment volume uses simple dash format."""

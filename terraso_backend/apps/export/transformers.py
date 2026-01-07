@@ -143,31 +143,6 @@ def get_visible_intervals(site):
     return result
 
 
-def measurement_matches_preset(measurement, preset, preset_intervals, site_custom_intervals):
-    """
-    Check if a measurement matches an interval in the given preset.
-
-    Args:
-        measurement: The measurement dict with depthInterval
-        preset: "NRCS", "BLM", "CUSTOM", or "NONE" (returned if matches preset_intervals)
-        preset_intervals: Standard intervals for the preset (empty for NONE)
-        site_custom_intervals: Site-specific intervals (non-overlapping with preset)
-
-    Returns the preset name if matches preset_intervals, "CUSTOM" if matches site custom, or "".
-    """
-    m_key = depth_key(measurement)
-
-    # Check preset intervals (NRCS, BLM, or project CUSTOM)
-    if any(depth_key(i) == m_key for i in preset_intervals):
-        return preset
-
-    # Check site custom intervals
-    if any(depth_key(i) == m_key for i in site_custom_intervals):
-        return PRESET_CUSTOM
-
-    return ""
-
-
 # Helper functions for converting enum codes to human-readable labels
 
 
@@ -412,88 +387,11 @@ def apply_object_transformations(data):
 
     return data
 
-
-def process_depth_data_for_json(site):
+def process_depth_data(site):
     """
-    Process depth data for JSON export.
+    Process depth data for export (JSON and CSV).
 
-    For JSON, we include ALL measurements with a _depthSource field indicating
-    which protocol they match (NRCS, BLM, CUSTOM, or "" for orphaned).
-
-    Also adds _depthSource at the site level.
-    """
-    soil_data = site.get("soilData", {})
-    measurements = soil_data.get("depthDependentData", [])
-
-    effective_preset = get_effective_preset(site)
-
-    # Get preset intervals (project CUSTOM intervals if applicable)
-    preset_intervals = get_preset_intervals(effective_preset, site)
-
-    # Get site intervals that don't overlap with preset intervals
-    site_intervals = soil_data.get("depthIntervals", [])
-    site_custom = [
-        i for i in site_intervals if not any(depth_key(i) == depth_key(c) for c in preset_intervals)
-    ]
-
-    # Index all intervals by (start, end) for metadata lookup
-    interval_by_key = {}
-    for interval in preset_intervals:
-        interval_by_key[depth_key(interval)] = interval
-    # Site intervals may override preset intervals with same key
-    for interval in site_intervals:
-        interval_by_key[depth_key(interval)] = interval
-
-    # Process each measurement: flatten, add metadata, and add _depthSource
-    processed = []
-    for m in measurements:
-        item = m.copy()
-
-        # Flatten depthInterval to depthIntervalStart/End
-        di = item.pop("depthInterval", {})
-        start = di.get("start")
-        end = di.get("end")
-        item["depthIntervalStart"] = start
-        item["depthIntervalEnd"] = end
-
-        # Look up interval metadata by (start, end)
-        key = (start, end)
-        matching_interval = interval_by_key.get(key, {})
-
-        # Use custom label if available, otherwise generate from depth range
-        if matching_interval.get("label"):
-            item["label"] = matching_interval["label"]
-        elif start is not None and end is not None:
-            item["label"] = f"{start}-{end} cm"
-
-        # Include enabled flags from matching interval
-        for field in ("soilTextureEnabled", "soilColorEnabled"):
-            if field in matching_interval:
-                item[field] = matching_interval[field]
-
-        # Determine which preset this measurement matches
-        item["_depthSource"] = measurement_matches_preset(
-            m, effective_preset, preset_intervals, site_custom
-        )
-
-        processed.append(item)
-
-    # Sort by start depth
-    processed.sort(key=lambda x: (x.get("depthIntervalStart") or 0))
-
-    soil_data["depthDependentData"] = processed
-    soil_data["_depthSource"] = effective_preset
-
-    # Remove depthIntervals from JSON output (not needed)
-    soil_data.pop("depthIntervals", None)
-    soil_data.pop("depthIntervalPreset", None)
-
-
-def process_depth_data_for_csv(site):
-    """
-    Process depth data for CSV export.
-
-    For CSV, we include ALL visible intervals (from preset + non-overlapping custom),
+    Includes all visible intervals (from preset + non-overlapping custom),
     with matching measurement data merged by (start, end).
     """
     soil_data = site.get("soilData", {})
@@ -738,23 +636,17 @@ def flatten_site(site: dict) -> dict:
     return rows
 
 
-def transform_site_data(site, request, output_format="json", page_size=settings.EXPORT_PAGE_SIZE):
+def transform_site_data(site, request, page_size=settings.EXPORT_PAGE_SIZE):
     """
     Apply all transformations to site data.
 
     Args:
         site: Site data dict from GraphQL
         request: Django request object
-        output_format: "json" or "csv" - determines depth processing strategy
         page_size: Page size for notes pagination
     """
-    # Process depth data based on output format
-    # JSON: include ALL measurements with _depthSource field
-    # CSV: include ALL visible intervals with matching measurements
-    if output_format == "csv":
-        process_depth_data_for_csv(site)
-    else:
-        process_depth_data_for_json(site)
+    # Process depth data: visible intervals with matching measurements
+    process_depth_data(site)
 
     # Add notes
     notes = fetch_all_notes_for_site(site["id"], request, page_size)

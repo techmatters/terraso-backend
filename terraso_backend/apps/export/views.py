@@ -132,7 +132,7 @@ def _process_sites(site_ids, request, output_format="json"):
             # Inject user ratings into soil matches (ratings are keyed by soil series name)
             user_ratings = site_data.get("soilMetadata", {}).get("userRatings", [])
             _inject_user_ratings_into_matches(soil_id_data, user_ratings)
-            transformed_site = transform_site_data(site_data, request, output_format=output_format)
+            transformed_site = transform_site_data(site_data, request)
             transformed_site["soil_id"] = soil_id_data
             # Preserve selected soil name for CSV export (needed when no soil matches exist)
             # This allows us to show user's selection even when soil ID API returns no matches
