@@ -13,7 +13,7 @@
         "downSlope": "Convex",
         "crossSlope": "Convex",
         "slopeSteepnessSelect": "10-15% (rolling)",
-        "depthDependentData": [
+        "_depthIntervals": [
           {
             "label": "0-5 cm",
             "depthIntervalStart": 0,

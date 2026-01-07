@@ -14,7 +14,7 @@
         "crossSlope": "Convex",
         "slopeSteepnessSelect": "2-5% (gentle)",
         "surfaceCracksSelect": "Deep vertical cracks",
-        "depthDependentData": [
+        "_depthIntervals": [
           {
             "label": "0-1 cm",
             "depthIntervalStart": 0,
@@ -107,7 +107,7 @@
             "email": "derek@techmatters.org",
             "firstName": "Derek",
             "lastName": "",
-            "profileImage": "https://images.staging.terraso.net/b7fea1ab-7277-4b45-a301-9149fcefc80a/profile-image_262"
+            "profileImage": "https://images.staging.terraso.net/b7fea1ab-7277-4b45-a301-9149fcefc80a/profile-image_263"
           }
         }
       ],
@@ -621,7 +621,7 @@
         "downSlope": "Linear",
         "crossSlope": "Linear",
         "slopeSteepnessSelect": "5-10% (moderate)",
-        "depthDependentData": [
+        "_depthIntervals": [
           {
             "label": "0-1 cm",
             "depthIntervalStart": 0,
@@ -1003,7 +1003,7 @@
         "crossSlope": "Convex",
         "slopeSteepnessSelect": "10-15% (rolling)",
         "surfaceCracksSelect": "Deep vertical cracks",
-        "depthDependentData": [
+        "_depthIntervals": [
           {
             "label": "0-1 cm",
             "depthIntervalStart": 0,
@@ -1646,7 +1646,7 @@
         "crossSlope": "Linear",
         "slopeSteepnessSelect": "2-5% (gentle)",
         "surfaceCracksSelect": "No cracking",
-        "depthDependentData": [
+        "_depthIntervals": [
           {
             "label": "0-1 cm",
             "depthIntervalStart": 0,
@@ -1711,7 +1711,7 @@
             "email": "derek@techmatters.org",
             "firstName": "Derek",
             "lastName": "",
-            "profileImage": "https://images.staging.terraso.net/b7fea1ab-7277-4b45-a301-9149fcefc80a/profile-image_262"
+            "profileImage": "https://images.staging.terraso.net/b7fea1ab-7277-4b45-a301-9149fcefc80a/profile-image_263"
           }
         }
       ],
