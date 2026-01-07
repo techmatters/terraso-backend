@@ -16,68 +16,68 @@
         "surfaceCracksSelect": "Deep vertical cracks",
         "depthDependentData": [
           {
+            "label": "0-1 cm",
+            "depthIntervalStart": 0,
+            "depthIntervalEnd": 1,
+            "_depthSource": "BLM",
             "texture": "Clay",
             "rockFragmentVolume": "0-1%",
             "colorHue": 17.5,
             "colorValue": 4.0,
             "colorChroma": 2.0,
             "colorPhotoUsed": false,
-            "depthIntervalStart": 0,
-            "depthIntervalEnd": 1,
-            "label": "0-1 cm",
-            "_depthSource": "BLM",
             "_colorMunsell": "7.5YR 4/2"
           },
           {
+            "label": "1-10 cm",
+            "depthIntervalStart": 1,
+            "depthIntervalEnd": 10,
+            "_depthSource": "BLM",
             "texture": "Loam",
             "rockFragmentVolume": "15-35%",
             "colorHue": 20.0,
             "colorValue": 4.0,
             "colorChroma": 4.0,
             "colorPhotoUsed": false,
-            "depthIntervalStart": 1,
-            "depthIntervalEnd": 10,
-            "label": "1-10 cm",
-            "_depthSource": "BLM",
             "_colorMunsell": "10.0YR 4/4"
           },
           {
+            "label": "10-20 cm",
+            "depthIntervalStart": 10,
+            "depthIntervalEnd": 20,
+            "_depthSource": "BLM",
             "texture": "Clay",
             "rockFragmentVolume": "0-1%",
             "colorHue": 40.0,
             "colorValue": 7.0,
             "colorChroma": 2.0,
             "colorPhotoUsed": false,
-            "depthIntervalStart": 10,
-            "depthIntervalEnd": 20,
-            "label": "10-20 cm",
-            "_depthSource": "BLM",
             "_colorMunsell": "10.0GY 7/2"
           },
           {
+            "label": "20-50 cm",
+            "depthIntervalStart": 20,
+            "depthIntervalEnd": 50,
+            "_depthSource": "BLM",
             "texture": "Sandy Clay Loam",
             "rockFragmentVolume": "1-15%",
             "colorHue": 20.0,
             "colorValue": 8.0,
             "colorChroma": 6.0,
             "colorPhotoUsed": false,
-            "depthIntervalStart": 20,
-            "depthIntervalEnd": 50,
-            "label": "20-50 cm",
-            "_depthSource": "BLM",
             "_colorMunsell": "10.0YR 8/6"
           },
           {
+            "label": "50-70 cm",
+            "depthIntervalStart": 50,
+            "depthIntervalEnd": 70,
+            "_depthSource": "BLM",
             "texture": "Loam",
             "rockFragmentVolume": "15-35%",
             "colorHue": 15.0,
             "colorValue": 5.0,
             "colorChroma": 3.0,
             "colorPhotoUsed": false,
-            "depthIntervalStart": 50,
-            "depthIntervalEnd": 70,
-            "label": "50-70 cm",
-            "_depthSource": "BLM",
             "_colorMunsell": "5.0YR 5/3"
           }
         ],
@@ -623,17 +623,41 @@
         "slopeSteepnessSelect": "5-10% (moderate)",
         "depthDependentData": [
           {
+            "label": "0-1 cm",
+            "depthIntervalStart": 0,
+            "depthIntervalEnd": 1,
+            "_depthSource": "BLM",
             "texture": "Sandy Clay Loam",
             "rockFragmentVolume": "35-60%",
             "colorHue": 10.0,
             "colorValue": 7.0,
             "colorChroma": 6.0,
             "colorPhotoUsed": false,
-            "depthIntervalStart": 0,
-            "depthIntervalEnd": 1,
-            "label": "0-1 cm",
-            "_depthSource": "BLM",
             "_colorMunsell": "10.0R 7/6"
+          },
+          {
+            "label": "1-10 cm",
+            "depthIntervalStart": 1,
+            "depthIntervalEnd": 10,
+            "_depthSource": "BLM"
+          },
+          {
+            "label": "10-20 cm",
+            "depthIntervalStart": 10,
+            "depthIntervalEnd": 20,
+            "_depthSource": "BLM"
+          },
+          {
+            "label": "20-50 cm",
+            "depthIntervalStart": 20,
+            "depthIntervalEnd": 50,
+            "_depthSource": "BLM"
+          },
+          {
+            "label": "50-70 cm",
+            "depthIntervalStart": 50,
+            "depthIntervalEnd": 70,
+            "_depthSource": "BLM"
           }
         ],
         "_depthSource": "BLM",
@@ -981,17 +1005,41 @@
         "surfaceCracksSelect": "Deep vertical cracks",
         "depthDependentData": [
           {
+            "label": "0-1 cm",
+            "depthIntervalStart": 0,
+            "depthIntervalEnd": 1,
+            "_depthSource": "BLM",
             "texture": "Loam",
             "rockFragmentVolume": "15-35%",
             "colorHue": 25.0,
             "colorValue": 4.0,
             "colorChroma": 3.0,
             "colorPhotoUsed": false,
-            "depthIntervalStart": 0,
-            "depthIntervalEnd": 1,
-            "label": "0-1 cm",
-            "_depthSource": "BLM",
             "_colorMunsell": "5.0Y 4/3"
+          },
+          {
+            "label": "1-10 cm",
+            "depthIntervalStart": 1,
+            "depthIntervalEnd": 10,
+            "_depthSource": "BLM"
+          },
+          {
+            "label": "10-20 cm",
+            "depthIntervalStart": 10,
+            "depthIntervalEnd": 20,
+            "_depthSource": "BLM"
+          },
+          {
+            "label": "20-50 cm",
+            "depthIntervalStart": 20,
+            "depthIntervalEnd": 50,
+            "_depthSource": "BLM"
+          },
+          {
+            "label": "50-70 cm",
+            "depthIntervalStart": 50,
+            "depthIntervalEnd": 70,
+            "_depthSource": "BLM"
           }
         ],
         "_depthSource": "BLM",
@@ -1600,17 +1648,41 @@
         "surfaceCracksSelect": "No cracking",
         "depthDependentData": [
           {
+            "label": "0-1 cm",
+            "depthIntervalStart": 0,
+            "depthIntervalEnd": 1,
+            "_depthSource": "BLM",
             "texture": "Sand",
             "rockFragmentVolume": "1-15%",
             "colorHue": 15.0,
             "colorValue": 8.0,
             "colorChroma": 4.0,
             "colorPhotoUsed": false,
-            "depthIntervalStart": 0,
-            "depthIntervalEnd": 1,
-            "label": "0-1 cm",
-            "_depthSource": "BLM",
             "_colorMunsell": "5.0YR 8/4"
+          },
+          {
+            "label": "1-10 cm",
+            "depthIntervalStart": 1,
+            "depthIntervalEnd": 10,
+            "_depthSource": "BLM"
+          },
+          {
+            "label": "10-20 cm",
+            "depthIntervalStart": 10,
+            "depthIntervalEnd": 20,
+            "_depthSource": "BLM"
+          },
+          {
+            "label": "20-50 cm",
+            "depthIntervalStart": 20,
+            "depthIntervalEnd": 50,
+            "_depthSource": "BLM"
+          },
+          {
+            "label": "50-70 cm",
+            "depthIntervalStart": 50,
+            "depthIntervalEnd": 70,
+            "_depthSource": "BLM"
           }
         ],
         "_depthSource": "BLM",

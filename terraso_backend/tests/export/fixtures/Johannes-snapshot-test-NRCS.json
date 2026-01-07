@@ -16,19 +16,23 @@
         "surfaceCracksSelect": "No cracking",
         "depthDependentData": [
           {
+            "label": "0-5 cm",
+            "depthIntervalStart": 0,
+            "depthIntervalEnd": 5,
+            "_depthSource": "NRCS",
             "texture": "Loam",
             "rockFragmentVolume": "0-1%",
             "colorHue": 0.0,
             "colorValue": 5.0,
             "colorChroma": 8.0,
             "colorPhotoUsed": false,
-            "depthIntervalStart": 0,
-            "depthIntervalEnd": 5,
-            "label": "0-5 cm",
-            "_depthSource": "NRCS",
             "_colorMunsell": "10.0RP 5/8"
           },
           {
+            "label": "5-15 cm",
+            "depthIntervalStart": 5,
+            "depthIntervalEnd": 15,
+            "_depthSource": "NRCS",
             "texture": "Clay",
             "rockFragmentVolume": "15-35%",
             "colorHue": 20.0,
@@ -37,62 +41,58 @@
             "colorPhotoUsed": true,
             "colorPhotoSoilCondition": "Moist",
             "colorPhotoLightingCondition": "Uneven",
-            "depthIntervalStart": 5,
-            "depthIntervalEnd": 15,
-            "label": "5-15 cm",
-            "_depthSource": "NRCS",
             "_colorMunsell": "10.0YR 5/6"
           },
           {
+            "label": "15-30 cm",
+            "depthIntervalStart": 15,
+            "depthIntervalEnd": 30,
+            "_depthSource": "NRCS",
             "texture": "Loam",
             "rockFragmentVolume": ">60%",
             "colorHue": 40.0,
             "colorValue": 7.0,
             "colorChroma": 2.0,
             "colorPhotoUsed": false,
-            "depthIntervalStart": 15,
-            "depthIntervalEnd": 30,
-            "label": "15-30 cm",
-            "_depthSource": "NRCS",
             "_colorMunsell": "10.0GY 7/2"
           },
           {
+            "label": "30-60 cm",
+            "depthIntervalStart": 30,
+            "depthIntervalEnd": 60,
+            "_depthSource": "NRCS",
             "texture": "Sandy Clay Loam",
             "rockFragmentVolume": "1-15%",
             "colorHue": 40.0,
             "colorValue": 6.0,
             "colorChroma": 1.0,
             "colorPhotoUsed": false,
-            "depthIntervalStart": 30,
-            "depthIntervalEnd": 60,
-            "label": "30-60 cm",
-            "_depthSource": "NRCS",
             "_colorMunsell": "10.0GY 6/1"
           },
           {
+            "label": "60-100 cm",
+            "depthIntervalStart": 60,
+            "depthIntervalEnd": 100,
+            "_depthSource": "NRCS",
             "texture": "Sandy Loam",
             "rockFragmentVolume": "0-1%",
             "colorHue": 25.0,
             "colorValue": 3.0,
             "colorChroma": 2.0,
             "colorPhotoUsed": false,
-            "depthIntervalStart": 60,
-            "depthIntervalEnd": 100,
-            "label": "60-100 cm",
-            "_depthSource": "NRCS",
             "_colorMunsell": "5.0Y 3/2"
           },
           {
+            "label": "100-200 cm",
+            "depthIntervalStart": 100,
+            "depthIntervalEnd": 200,
+            "_depthSource": "NRCS",
             "texture": "Silt",
             "rockFragmentVolume": "0-1%",
             "colorHue": 15.0,
             "colorValue": 5.0,
             "colorChroma": 2.0,
             "colorPhotoUsed": false,
-            "depthIntervalStart": 100,
-            "depthIntervalEnd": 200,
-            "label": "100-200 cm",
-            "_depthSource": "NRCS",
             "_colorMunsell": "5.0YR 5/2"
           }
         ],
@@ -914,17 +914,47 @@
         "surfaceCracksSelect": "Deep vertical cracks",
         "depthDependentData": [
           {
+            "label": "0-5 cm",
+            "depthIntervalStart": 0,
+            "depthIntervalEnd": 5,
+            "_depthSource": "NRCS",
             "texture": "Clay",
             "rockFragmentVolume": "1-15%",
             "colorHue": 40.0,
             "colorValue": 4.0,
             "colorChroma": 2.0,
             "colorPhotoUsed": false,
-            "depthIntervalStart": 0,
-            "depthIntervalEnd": 5,
-            "label": "0-5 cm",
-            "_depthSource": "NRCS",
             "_colorMunsell": "10.0GY 4/2"
+          },
+          {
+            "label": "5-15 cm",
+            "depthIntervalStart": 5,
+            "depthIntervalEnd": 15,
+            "_depthSource": "NRCS"
+          },
+          {
+            "label": "15-30 cm",
+            "depthIntervalStart": 15,
+            "depthIntervalEnd": 30,
+            "_depthSource": "NRCS"
+          },
+          {
+            "label": "30-60 cm",
+            "depthIntervalStart": 30,
+            "depthIntervalEnd": 60,
+            "_depthSource": "NRCS"
+          },
+          {
+            "label": "60-100 cm",
+            "depthIntervalStart": 60,
+            "depthIntervalEnd": 100,
+            "_depthSource": "NRCS"
+          },
+          {
+            "label": "100-200 cm",
+            "depthIntervalStart": 100,
+            "depthIntervalEnd": 200,
+            "_depthSource": "NRCS"
           }
         ],
         "_depthSource": "NRCS",

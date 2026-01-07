@@ -15,60 +15,60 @@
         "slopeSteepnessSelect": "10-15% (rolling)",
         "depthDependentData": [
           {
-            "rockFragmentVolume": "1-15%",
+            "label": "0-5 cm",
             "depthIntervalStart": 0,
             "depthIntervalEnd": 5,
-            "label": "0-5 cm",
-            "_depthSource": "NRCS"
+            "_depthSource": "NRCS",
+            "rockFragmentVolume": "1-15%"
           },
           {
-            "texture": "Clay",
-            "rockFragmentVolume": "0-1%",
+            "label": "5-15 cm",
             "depthIntervalStart": 5,
             "depthIntervalEnd": 15,
-            "label": "5-15 cm",
-            "_depthSource": "NRCS"
+            "_depthSource": "NRCS",
+            "texture": "Clay",
+            "rockFragmentVolume": "0-1%"
           },
           {
-            "texture": "Clay Loam",
-            "rockFragmentVolume": "35-60%",
+            "label": "15-30 cm",
             "depthIntervalStart": 15,
             "depthIntervalEnd": 30,
-            "label": "15-30 cm",
-            "_depthSource": "NRCS"
+            "_depthSource": "NRCS",
+            "texture": "Clay Loam",
+            "rockFragmentVolume": "35-60%"
           },
           {
+            "label": "30-60 cm",
+            "depthIntervalStart": 30,
+            "depthIntervalEnd": 60,
+            "_depthSource": "NRCS",
             "texture": "Loam",
             "rockFragmentVolume": ">60%",
             "colorHue": 25.0,
             "colorValue": 5.0,
             "colorChroma": 4.0,
             "colorPhotoUsed": false,
-            "depthIntervalStart": 30,
-            "depthIntervalEnd": 60,
-            "label": "30-60 cm",
-            "_depthSource": "NRCS",
             "_colorMunsell": "5.0Y 5/4"
           },
           {
+            "label": "60-100 cm",
+            "depthIntervalStart": 60,
+            "depthIntervalEnd": 100,
+            "_depthSource": "NRCS",
             "texture": "Loamy Sand",
             "rockFragmentVolume": "15-35%",
             "colorHue": 40.0,
             "colorValue": 6.0,
             "colorChroma": 2.0,
             "colorPhotoUsed": false,
-            "depthIntervalStart": 60,
-            "depthIntervalEnd": 100,
-            "label": "60-100 cm",
-            "_depthSource": "NRCS",
             "_colorMunsell": "10.0GY 6/2"
           },
           {
-            "texture": "Silt Loam",
+            "label": "100-200 cm",
             "depthIntervalStart": 100,
             "depthIntervalEnd": 200,
-            "label": "100-200 cm",
-            "_depthSource": "NRCS"
+            "_depthSource": "NRCS",
+            "texture": "Silt Loam"
           }
         ],
         "_depthSource": "NRCS",
