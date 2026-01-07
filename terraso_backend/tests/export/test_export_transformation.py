@@ -178,16 +178,17 @@ class TestTransformationPipeline:
 
         soil_data = site["soilData"]
 
-        # depthIntervals should be removed
+        # Source fields should be removed
         assert "depthIntervals" not in soil_data
+        assert "depthDependentData" not in soil_data
 
-        # depthDependentData should have flattened data with _depthSource
-        assert len(soil_data["depthDependentData"]) == 2
-        assert soil_data["depthDependentData"][0]["label"] == "0-5 cm"
-        assert soil_data["depthDependentData"][0]["depthIntervalStart"] == 0
-        assert soil_data["depthDependentData"][0]["depthIntervalEnd"] == 5
-        assert soil_data["depthDependentData"][0]["texture"] == "CLAY"
-        assert soil_data["depthDependentData"][0]["_depthSource"] == "CUSTOM"
+        # _depthIntervals should have flattened data with _depthSource
+        assert len(soil_data["_depthIntervals"]) == 2
+        assert soil_data["_depthIntervals"][0]["label"] == "0-5 cm"
+        assert soil_data["_depthIntervals"][0]["depthIntervalStart"] == 0
+        assert soil_data["_depthIntervals"][0]["depthIntervalEnd"] == 5
+        assert soil_data["_depthIntervals"][0]["texture"] == "CLAY"
+        assert soil_data["_depthIntervals"][0]["_depthSource"] == "CUSTOM"
 
     def test_export_depth_intervals_includes_empty(self):
         """Test that export includes all visible intervals, even ones without measurements."""
@@ -212,18 +213,18 @@ class TestTransformationPipeline:
         soil_data = site["soilData"]
 
         # Output should have all 3 intervals, even empty ones
-        assert len(soil_data["depthDependentData"]) == 3
+        assert len(soil_data["_depthIntervals"]) == 3
 
         # First interval has data
-        assert soil_data["depthDependentData"][0]["depthIntervalStart"] == 0
-        assert soil_data["depthDependentData"][0]["texture"] == "CLAY"
+        assert soil_data["_depthIntervals"][0]["depthIntervalStart"] == 0
+        assert soil_data["_depthIntervals"][0]["texture"] == "CLAY"
 
         # Second interval is empty (no measurement)
-        assert soil_data["depthDependentData"][1]["depthIntervalStart"] == 5
-        assert soil_data["depthDependentData"][1].get("texture") is None
+        assert soil_data["_depthIntervals"][1]["depthIntervalStart"] == 5
+        assert soil_data["_depthIntervals"][1].get("texture") is None
 
         # Third interval is empty
-        assert soil_data["depthDependentData"][2]["depthIntervalStart"] == 15
+        assert soil_data["_depthIntervals"][2]["depthIntervalStart"] == 15
 
     def test_export_orphaned_measurements_dropped(self):
         """Test that measurements without matching intervals are dropped."""
@@ -248,9 +249,9 @@ class TestTransformationPipeline:
         soil_data = site["soilData"]
 
         # Only the one defined interval should be in output
-        assert len(soil_data["depthDependentData"]) == 1
-        assert soil_data["depthDependentData"][0]["depthIntervalStart"] == 0
-        assert soil_data["depthDependentData"][0]["texture"] == "CLAY"
+        assert len(soil_data["_depthIntervals"]) == 1
+        assert soil_data["_depthIntervals"][0]["depthIntervalStart"] == 0
+        assert soil_data["_depthIntervals"][0]["texture"] == "CLAY"
 
     def test_export_empty_interval_included(self):
         """Test that intervals without measurements are still included."""
@@ -274,15 +275,15 @@ class TestTransformationPipeline:
         soil_data = site["soilData"]
 
         # Both intervals should be in output
-        assert len(soil_data["depthDependentData"]) == 2
+        assert len(soil_data["_depthIntervals"]) == 2
 
         # First has measurement
-        assert soil_data["depthDependentData"][0]["depthIntervalStart"] == 0
-        assert soil_data["depthDependentData"][0]["texture"] == "CLAY"
+        assert soil_data["_depthIntervals"][0]["depthIntervalStart"] == 0
+        assert soil_data["_depthIntervals"][0]["texture"] == "CLAY"
 
         # Second is empty but still included
-        assert soil_data["depthDependentData"][1]["depthIntervalStart"] == 5
-        assert soil_data["depthDependentData"][1].get("texture") is None
+        assert soil_data["_depthIntervals"][1]["depthIntervalStart"] == 5
+        assert soil_data["_depthIntervals"][1].get("texture") is None
 
     def test_export_rock_fragment_volume_formatting(self):
         """Test that rock fragment volume uses simple dash format."""
@@ -352,12 +353,12 @@ class TestFixtureRoundTrip:
         assert "soilData" in exported
         soil_data = exported["soilData"]
 
-        # depthIntervals should be merged into depthDependentData
-        assert "depthDependentData" in soil_data
+        # depthIntervals should be merged into _depthIntervals
+        assert "_depthIntervals" in soil_data
 
         # Check depth dependent data has merged structure
-        if soil_data["depthDependentData"]:
-            dd = soil_data["depthDependentData"][0]
+        if soil_data["_depthIntervals"]:
+            dd = soil_data["_depthIntervals"][0]
             # Should have interval metadata
             assert "label" in dd
             assert "depthIntervalStart" in dd
@@ -379,8 +380,8 @@ class TestFixtureRoundTrip:
         assert soil_data.get("surfaceCracksSelect") == "No cracking"
 
         # Check depth dependent data
-        if soil_data["depthDependentData"]:
-            dd = soil_data["depthDependentData"][0]
+        if soil_data["_depthIntervals"]:
+            dd = soil_data["_depthIntervals"][0]
             assert dd.get("texture") == "Silty Clay"
             assert dd.get("rockFragmentVolume") == "0-1%"
 
@@ -435,8 +436,7 @@ class TestFlattenSite:
             "privacy": "PRIVATE",
             "project": None,
             "soilData": {
-                "depthIntervalPreset": "NRCS",
-                "depthDependentData": [
+                "_depthIntervals": [
                     {"label": "0-5 cm", "depthIntervalStart": 0, "depthIntervalEnd": 5},
                     {"label": "5-15 cm", "depthIntervalStart": 5, "depthIntervalEnd": 15},
                 ],
@@ -464,7 +464,7 @@ class TestFlattenSite:
             "privacy": "PRIVATE",
             "project": None,
             "soilData": {
-                "depthDependentData": [],
+                "_depthIntervals": [],
             },
             "soilMetadata": {},
             "notes": [],

@@ -427,10 +427,11 @@ def process_depth_data(site):
 
         merged.append(item)
 
-    soil_data["depthDependentData"] = merged
+    soil_data["_depthIntervals"] = merged
     soil_data["_depthSource"] = get_effective_preset(site)
 
-    # Remove depthIntervals from output
+    # Remove source fields from output
+    soil_data.pop("depthDependentData", None)
     soil_data.pop("depthIntervals", None)
     soil_data.pop("depthIntervalPreset", None)
 
@@ -500,12 +501,12 @@ def flatten_site(site: dict) -> dict:
 
     flattened_notes = [flatten_note(note) for note in notes] if notes else []
 
-    # Get merged depth data (now contains both interval metadata and measurements)
-    depth_dependent_data = soil_data.get("depthDependentData", [])
+    # Get depth intervals (contains both interval metadata and measurements)
+    depth_intervals = soil_data.get("_depthIntervals", [])
 
     # Ensure at least one row even if no depth data
-    if not depth_dependent_data:
-        depth_dependent_data = [None]
+    if not depth_intervals:
+        depth_intervals = [None]
 
     # Extract soil ID match data
     soil_id_data = site.get("soil_id", {})
@@ -572,7 +573,7 @@ def flatten_site(site: dict) -> dict:
                     ecological_site_id = ecological_site_info.get("id")
                 break
 
-    for depth_item in depth_dependent_data:
+    for depth_item in depth_intervals:
         flat = {
             # Site information
             "Site ID": site["id"],
