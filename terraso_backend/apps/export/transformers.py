@@ -499,39 +499,32 @@ def process_depth_data_for_csv(site):
     soil_data = site.get("soilData", {})
     measurements = soil_data.get("depthDependentData", [])
 
-    # Index measurements by (start, end) for O(1) lookup
-    measurement_by_key = {}
-    for m in measurements:
-        key = depth_key(m)
-        measurement_by_key[key] = m
-
-    # Get all visible intervals
-    visible_intervals = get_visible_intervals(site)
-
-    # Build merged data: each interval with its matching measurement (if any)
+    # Build merged data: each visible interval with its matching measurement (if any)
     merged = []
-    for interval, preset_name in visible_intervals:
+    for interval, preset_name in get_visible_intervals(site):
         item = interval.copy()
 
         # Flatten depthInterval
         di = item.pop("depthInterval", {})
-        item["depthIntervalStart"] = di.get("start")
-        item["depthIntervalEnd"] = di.get("end")
+        start = di.get("start")
+        end = di.get("end")
+        item["depthIntervalStart"] = start
+        item["depthIntervalEnd"] = end
 
         # Generate label if not present
-        start, end = item["depthIntervalStart"], item["depthIntervalEnd"]
-        if "label" not in item and start is not None and end is not None:
+        if "label" not in item:
             item["label"] = f"{start}-{end} cm"
 
         # Add source marker
         item["_depthSource"] = preset_name
 
         # Find and merge matching measurement
-        key = (start, end)
-        if key in measurement_by_key:
-            measurement = measurement_by_key[key].copy()
-            measurement.pop("depthInterval", None)
-            item.update(measurement)
+        for m in measurements:
+            if depth_key(m) == (start, end):
+                measurement = m.copy()
+                measurement.pop("depthInterval", None)
+                item.update(measurement)
+                break
 
         merged.append(item)
 
