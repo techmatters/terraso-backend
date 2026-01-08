@@ -97,7 +97,11 @@
         "name": "Johannes snapshot test - unspecified",
         "description": "Sites for a snapshot test. Differing depths and observations",
         "siteInstructions": "Hello, I am a pinned note.",
-        "updatedAt": "2025-12-19T21:18:28.623663+00:00"
+        "updatedAt": "2025-12-19T21:18:28.623663+00:00",
+        "soilSettings": {
+          "depthIntervalPreset": "NONE",
+          "depthIntervals": []
+        }
       },
       "notes": [],
       "soil_id": {
@@ -987,7 +991,11 @@
         "name": "Johannes snapshot test - unspecified",
         "description": "Sites for a snapshot test. Differing depths and observations",
         "siteInstructions": "Hello, I am a pinned note.",
-        "updatedAt": "2025-12-19T21:18:28.623663+00:00"
+        "updatedAt": "2025-12-19T21:18:28.623663+00:00",
+        "soilSettings": {
+          "depthIntervalPreset": "NONE",
+          "depthIntervals": []
+        }
       },
       "notes": [
         {
@@ -1000,8 +1008,8 @@
             "id": "b7fea1ab-7277-4b45-a301-9149fcefc80a",
             "email": "derek@techmatters.org",
             "firstName": "Derek",
-            "lastName": "Caelin",
-            "profileImage": "https://images.staging.terraso.net/b7fea1ab-7277-4b45-a301-9149fcefc80a/profile-image_254"
+            "lastName": "",
+            "profileImage": "https://images.staging.terraso.net/b7fea1ab-7277-4b45-a301-9149fcefc80a/profile-image_263"
           }
         }
       ],
@@ -1764,7 +1772,11 @@
         "name": "Johannes snapshot test - unspecified",
         "description": "Sites for a snapshot test. Differing depths and observations",
         "siteInstructions": "Hello, I am a pinned note.",
-        "updatedAt": "2025-12-19T21:18:28.623663+00:00"
+        "updatedAt": "2025-12-19T21:18:28.623663+00:00",
+        "soilSettings": {
+          "depthIntervalPreset": "NONE",
+          "depthIntervals": []
+        }
       },
       "notes": [
         {
@@ -1777,8 +1789,8 @@
             "id": "b7fea1ab-7277-4b45-a301-9149fcefc80a",
             "email": "derek@techmatters.org",
             "firstName": "Derek",
-            "lastName": "Caelin",
-            "profileImage": "https://images.staging.terraso.net/b7fea1ab-7277-4b45-a301-9149fcefc80a/profile-image_254"
+            "lastName": "",
+            "profileImage": "https://images.staging.terraso.net/b7fea1ab-7277-4b45-a301-9149fcefc80a/profile-image_263"
           }
         }
       ],

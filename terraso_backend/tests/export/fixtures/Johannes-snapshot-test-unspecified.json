@@ -14,13 +14,14 @@
         "crossSlope": "Convex",
         "slopeSteepnessDegree": 2,
         "surfaceCracksSelect": "No cracking",
-        "depthDependentData": [
+        "_depthIntervals": [
           {
             "label": "A",
             "soilTextureEnabled": true,
             "soilColorEnabled": true,
             "depthIntervalStart": 0,
             "depthIntervalEnd": 5,
+            "_depthSource": "CUSTOM",
             "texture": "Loam",
             "rockFragmentVolume": "0-1%",
             "colorHue": 5.0,
@@ -35,6 +36,7 @@
             "soilColorEnabled": true,
             "depthIntervalStart": 5,
             "depthIntervalEnd": 30,
+            "_depthSource": "CUSTOM",
             "texture": "Clay",
             "rockFragmentVolume": "1-15%",
             "colorHue": 55.0,
@@ -49,6 +51,7 @@
             "soilColorEnabled": true,
             "depthIntervalStart": 30,
             "depthIntervalEnd": 200,
+            "_depthSource": "CUSTOM",
             "texture": "Sandy Clay",
             "rockFragmentVolume": "15-35%",
             "colorHue": 50.0,
@@ -58,6 +61,7 @@
             "_colorMunsell": "10.0G 2.5/1"
           }
         ],
+        "_depthSource": "NONE",
         "_slopeSteepnessPercentLow": 3.5,
         "_slopeSteepnessPercentHigh": 3.5
       },
@@ -66,7 +70,11 @@
         "name": "Johannes snapshot test - unspecified",
         "description": "Sites for a snapshot test. Differing depths and observations",
         "siteInstructions": "Hello, I am a pinned note.",
-        "updatedAt": "2025-12-19T21:18:28.623663+00:00"
+        "updatedAt": "2025-12-19T21:18:28.623663+00:00",
+        "soilSettings": {
+          "depthIntervalPreset": "NONE",
+          "depthIntervals": []
+        }
       },
       "notes": [
         {
@@ -921,13 +929,14 @@
         "crossSlope": "Linear",
         "slopeSteepnessSelect": "100%+ (steepest)",
         "surfaceCracksSelect": "Deep vertical cracks",
-        "depthDependentData": [
+        "_depthIntervals": [
           {
             "label": "",
             "soilTextureEnabled": true,
             "soilColorEnabled": true,
             "depthIntervalStart": 0,
             "depthIntervalEnd": 5,
+            "_depthSource": "CUSTOM",
             "texture": "Clay",
             "rockFragmentVolume": "0-1%",
             "colorHue": 60.0,
@@ -937,6 +946,7 @@
             "_colorMunsell": "10.0BG 3/1"
           }
         ],
+        "_depthSource": "NONE",
         "_slopeSteepnessPercentLow": 100,
         "_slopeSteepnessPercentHigh": 999
       },
@@ -945,7 +955,11 @@
         "name": "Johannes snapshot test - unspecified",
         "description": "Sites for a snapshot test. Differing depths and observations",
         "siteInstructions": "Hello, I am a pinned note.",
-        "updatedAt": "2025-12-19T21:18:28.623663+00:00"
+        "updatedAt": "2025-12-19T21:18:28.623663+00:00",
+        "soilSettings": {
+          "depthIntervalPreset": "NONE",
+          "depthIntervals": []
+        }
       },
       "notes": [
         {
@@ -962,8 +976,8 @@
             "id": "b7fea1ab-7277-4b45-a301-9149fcefc80a",
             "email": "derek@techmatters.org",
             "firstName": "Derek",
-            "lastName": "Caelin",
-            "profileImage": "https://images.staging.terraso.net/b7fea1ab-7277-4b45-a301-9149fcefc80a/profile-image_254"
+            "lastName": "",
+            "profileImage": "https://images.staging.terraso.net/b7fea1ab-7277-4b45-a301-9149fcefc80a/profile-image_263"
           }
         }
       ],
@@ -1692,13 +1706,14 @@
         "crossSlope": "Convex",
         "slopeSteepnessSelect": "15-30% (hilly)",
         "surfaceCracksSelect": "Surface cracking only",
-        "depthDependentData": [
+        "_depthIntervals": [
           {
             "label": "",
             "soilTextureEnabled": true,
             "soilColorEnabled": true,
             "depthIntervalStart": 0,
             "depthIntervalEnd": 200,
+            "_depthSource": "CUSTOM",
             "texture": "Sand",
             "rockFragmentVolume": "0-1%",
             "colorHue": 12.5,
@@ -1708,6 +1723,7 @@
             "_colorMunsell": "2.5YR 5/2"
           }
         ],
+        "_depthSource": "NONE",
         "_slopeSteepnessPercentLow": 15,
         "_slopeSteepnessPercentHigh": 30
       },
@@ -1716,7 +1732,11 @@
         "name": "Johannes snapshot test - unspecified",
         "description": "Sites for a snapshot test. Differing depths and observations",
         "siteInstructions": "Hello, I am a pinned note.",
-        "updatedAt": "2025-12-19T21:18:28.623663+00:00"
+        "updatedAt": "2025-12-19T21:18:28.623663+00:00",
+        "soilSettings": {
+          "depthIntervalPreset": "NONE",
+          "depthIntervals": []
+        }
       },
       "notes": [
         {
@@ -1733,8 +1753,8 @@
             "id": "b7fea1ab-7277-4b45-a301-9149fcefc80a",
             "email": "derek@techmatters.org",
             "firstName": "Derek",
-            "lastName": "Caelin",
-            "profileImage": "https://images.staging.terraso.net/b7fea1ab-7277-4b45-a301-9149fcefc80a/profile-image_254"
+            "lastName": "",
+            "profileImage": "https://images.staging.terraso.net/b7fea1ab-7277-4b45-a301-9149fcefc80a/profile-image_263"
           }
         }
       ],

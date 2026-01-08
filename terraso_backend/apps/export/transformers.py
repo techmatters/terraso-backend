@@ -20,7 +20,11 @@ from typing import Optional, Tuple
 from django.conf import settings
 
 from apps.soil_id.models.depth_dependent_soil_data import DepthDependentSoilData
-from apps.soil_id.models.project_soil_settings import BLMIntervalDefaults, NRCSIntervalDefaults
+from apps.soil_id.models.project_soil_settings import (
+    BLMIntervalDefaults,
+    DepthIntervalPreset,
+    NRCSIntervalDefaults,
+)
 from apps.soil_id.models.soil_data import SoilData
 
 from .fetch_data import fetch_all_notes_for_site
@@ -48,6 +52,95 @@ def _build_depth_intervals(interval_defaults):
 # Depth interval presets (derived from soil_id source of truth)
 NRCS_DEPTH_INTERVALS = _build_depth_intervals(NRCSIntervalDefaults)
 BLM_DEPTH_INTERVALS = _build_depth_intervals(BLMIntervalDefaults)
+
+# Preset name constants (from DepthIntervalPreset enum)
+PRESET_NRCS = DepthIntervalPreset.NRCS.value
+PRESET_BLM = DepthIntervalPreset.BLM.value
+PRESET_CUSTOM = DepthIntervalPreset.CUSTOM.value
+PRESET_NONE = DepthIntervalPreset.NONE.value
+
+
+# =============================================================================
+# Depth interval helpers
+# =============================================================================
+
+
+def depth_key(interval):
+    """Extract (start, end) tuple from an interval dict for matching."""
+    di = interval.get("depthInterval", {})
+    return (di.get("start"), di.get("end"))
+
+
+def get_effective_preset(site):
+    """
+    Determine the effective depth interval preset for a site.
+
+    Priority: project.soilSettings.depthIntervalPreset > site.soilData.depthIntervalPreset
+
+    Returns:
+        str: "NRCS", "BLM", "CUSTOM" (project only), or "NONE" (no preset)
+
+    Note: CUSTOM at site level returns "NONE" because it means "no standard preset" -
+    custom intervals are added separately.
+    CUSTOM at project level returns "CUSTOM" because project defines the intervals.
+    """
+    project = site.get("project")
+    if project:
+        return (project.get("soilSettings") or {}).get("depthIntervalPreset") or PRESET_NONE
+
+    # Fall back to site-level preset (only if no project)
+    # Site CUSTOM means "no preset" - custom intervals added separately
+    soil_data = site.get("soilData", {})
+    preset = soil_data.get("depthIntervalPreset")
+    return PRESET_NONE if preset == PRESET_CUSTOM else (preset or PRESET_NONE)
+
+
+def get_preset_intervals(preset, site=None):
+    """
+    Get the standard intervals for a preset.
+
+    For CUSTOM preset, returns project's custom intervals (requires site param).
+
+    Returns list of intervals in format:
+    [{"label": "0-5 cm", "depthInterval": {"start": 0, "end": 5}}, ...]
+    """
+    if preset == PRESET_NRCS:
+        return NRCS_DEPTH_INTERVALS
+    elif preset == PRESET_BLM:
+        return BLM_DEPTH_INTERVALS
+    elif preset == PRESET_CUSTOM and site:
+        # CUSTOM preset only comes from project (site CUSTOM returns None from get_effective_preset)
+        project = site.get("project")
+        return (project.get("soilSettings") or {}).get("depthIntervals", [])
+    return []
+
+
+def get_visible_intervals(site):
+    """
+    Get all visible depth intervals for a site.
+
+    Combines:
+    1. Preset intervals (from NRCS, BLM, or project CUSTOM)
+    2. Site's custom intervals that don't overlap with #1
+
+    Returns list of (interval, preset_name) tuples.
+    """
+    effective_preset = get_effective_preset(site)
+    result = []
+
+    # Get preset intervals (NRCS, BLM, or project CUSTOM)
+    preset_intervals = get_preset_intervals(effective_preset, site)
+    for interval in preset_intervals:
+        result.append((interval, effective_preset))
+
+    # Add site custom intervals
+    site_intervals = site.get("soilData", {}).get("depthIntervals", [])
+    for site_interval in site_intervals:
+        result.append((site_interval, PRESET_CUSTOM))
+
+    # Sort by start depth
+    result.sort(key=lambda x: depth_key(x[0])[0] or 0)
+    return result
 
 
 # Helper functions for converting enum codes to human-readable labels
@@ -295,71 +388,52 @@ def apply_object_transformations(data):
     return data
 
 
-def add_default_depth_intervals(soil_data):
+def process_depth_data(site):
     """
-    Add default depth intervals based on preset, only if depthIntervals don't already exist.
-    Custom depth intervals (if present) will be preserved.
+    Process depth data for export (JSON and CSV).
+
+    Includes all visible intervals (from preset + non-overlapping custom),
+    with matching measurement data merged by (start, end).
     """
-    # Only add defaults if no custom intervals exist
-    if "depthIntervals" not in soil_data or not soil_data["depthIntervals"]:
-        match soil_data.get("depthIntervalPreset"):
-            case "NRCS":
-                soil_data["depthIntervals"] = NRCS_DEPTH_INTERVALS
-            case "BLM":
-                soil_data["depthIntervals"] = BLM_DEPTH_INTERVALS
-            case _:
-                # Unknown preset or no preset - leave depthIntervals as-is
-                # (might be custom intervals or empty)
-                pass
+    soil_data = site.get("soilData", {})
+    measurements = soil_data.get("depthDependentData", [])
 
+    # Build merged data: each visible interval with its matching measurement (if any)
+    merged = []
+    for interval, preset_name in get_visible_intervals(site):
+        item = interval.copy()
 
-def merge_depth_intervals_into_data(soil_data):
-    """
-    Merge depthIntervals and depthDependentData into single depthDependentData array.
+        # Flatten depthInterval
+        di = item.pop("depthInterval", {})
+        start = di.get("start")
+        end = di.get("end")
+        item["depthIntervalStart"] = start
+        item["depthIntervalEnd"] = end
 
-    Each item in the resulting depthDependentData will have:
-    - Depth interval metadata (label, depthIntervalStart, depthIntervalEnd, *Enabled flags)
-    - Measurement data (texture, color, etc. - may be null)
+        # Generate label if not present
+        if "label" not in item:
+            item["label"] = f"{start}-{end} cm"
 
-    This ensures we always have all depth intervals in the export, even if some
-    have no measurements.
+        # Add source marker
+        item["_depthSource"] = preset_name
 
-    The number of intervals varies:
-    - NRCS preset: 6 intervals (0-5, 5-15, 15-30, 30-60, 60-100, 100-200 cm)
-    - BLM preset: 5 intervals (0-1, 1-10, 10-20, 20-50, 50-70 cm)
-    - Custom intervals: Any number defined by the user
-    """
-    depth_intervals = soil_data.get("depthIntervals", [])
-    depth_dependent_data = soil_data.get("depthDependentData", [])
+        # Find and merge matching measurement
+        for m in measurements:
+            if depth_key(m) == (start, end):
+                measurement = m.copy()
+                measurement.pop("depthInterval", None)
+                item.update(measurement)
+                break
 
-    # Create a merged list
-    merged_data = []
+        merged.append(item)
 
-    for i, interval in enumerate(depth_intervals):
-        # Start with interval metadata (make a copy to avoid mutating presets)
-        merged_item = interval.copy()
+    soil_data["_depthIntervals"] = merged
+    soil_data["_depthSource"] = get_effective_preset(site)
 
-        # Flatten depthInterval structure to depthIntervalStart and depthIntervalEnd
-        if "depthInterval" in merged_item:
-            depth_interval = merged_item.pop("depthInterval")
-            merged_item["depthIntervalStart"] = depth_interval.get("start")
-            merged_item["depthIntervalEnd"] = depth_interval.get("end")
-
-        # Add measurement data if it exists for this index
-        if i < len(depth_dependent_data):
-            measurement_data = depth_dependent_data[i].copy()
-            # Remove depthInterval from measurement data if present
-            # (we already have depthIntervalStart/depthIntervalEnd from the interval)
-            measurement_data.pop("depthInterval", None)
-            merged_item.update(measurement_data)
-
-        merged_data.append(merged_item)
-
-    # Replace both arrays with single merged array
-    soil_data["depthDependentData"] = merged_data
-    # Remove old depthIntervals array
-    if "depthIntervals" in soil_data:
-        del soil_data["depthIntervals"]
+    # Remove source fields from output
+    soil_data.pop("depthDependentData", None)
+    soil_data.pop("depthIntervals", None)
+    soil_data.pop("depthIntervalPreset", None)
 
 
 def render_munsell_hue(
@@ -427,12 +501,12 @@ def flatten_site(site: dict) -> dict:
 
     flattened_notes = [flatten_note(note) for note in notes] if notes else []
 
-    # Get merged depth data (now contains both interval metadata and measurements)
-    depth_dependent_data = soil_data.get("depthDependentData", [])
+    # Get depth intervals (contains both interval metadata and measurements)
+    depth_intervals = soil_data.get("_depthIntervals", [])
 
     # Ensure at least one row even if no depth data
-    if not depth_dependent_data:
-        depth_dependent_data = [None]
+    if not depth_intervals:
+        depth_intervals = [None]
 
     # Extract soil ID match data
     soil_id_data = site.get("soil_id", {})
@@ -499,7 +573,7 @@ def flatten_site(site: dict) -> dict:
                     ecological_site_id = ecological_site_info.get("id")
                 break
 
-    for depth_item in depth_dependent_data:
+    for depth_item in depth_intervals:
         flat = {
             # Site information
             "Site ID": site["id"],
@@ -541,7 +615,7 @@ def flatten_site(site: dict) -> dict:
             # Notes
             "Site notes": ";".join(flattened_notes),
             # Depth information
-            # "Depth preset": soil_data.get("depthIntervalPreset"),  # removed - not useful for end users
+            "Depth source": depth_item.get("_depthSource") if depth_item else None,
             "Depth label": depth_item.get("label") if depth_item else None,
             "Depth start": depth_item.get("depthIntervalStart") if depth_item else None,
             "Depth end": depth_item.get("depthIntervalEnd") if depth_item else None,
@@ -565,12 +639,16 @@ def flatten_site(site: dict) -> dict:
 
 
 def transform_site_data(site, request, page_size=settings.EXPORT_PAGE_SIZE):
-    """Apply all transformations to site data"""
-    # Add default depth intervals
-    add_default_depth_intervals(site["soilData"])
+    """
+    Apply all transformations to site data.
 
-    # Merge depth intervals into depth dependent data
-    merge_depth_intervals_into_data(site["soilData"])
+    Args:
+        site: Site data dict from GraphQL
+        request: Django request object
+        page_size: Page size for notes pagination
+    """
+    # Process depth data: visible intervals with matching measurements
+    process_depth_data(site)
 
     # Add notes
     notes = fetch_all_notes_for_site(site["id"], request, page_size)
@@ -588,8 +666,5 @@ def transform_site_data(site, request, page_size=settings.EXPORT_PAGE_SIZE):
 
     # Apply all object transformations recursively to entire site
     apply_object_transformations(site)
-
-    # Remove internal fields not useful for end users
-    site["soilData"].pop("depthIntervalPreset", None)
 
     return site

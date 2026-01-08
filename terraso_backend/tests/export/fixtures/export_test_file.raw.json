@@ -2,7 +2,7 @@
   "sites": [
     {
       "id": "634ae151-8f51-45bd-aa5f-50e8ebea49c0",
-      "name": "Export Test File",
+      "name": "Export Test / With Slash",
       "latitude": 37.33532145182639,
       "longitude": -122.0098214523779,
       "elevation": 56.0,
@@ -97,7 +97,7 @@
             "email": "johannes@schmidtparty.com",
             "firstName": "",
             "lastName": "",
-            "profileImage": "https://images.dev.terraso.org/6099c3d0-ef13-4f93-8cad-6926a771f492/profile-image_13"
+            "profileImage": "https://images.dev.terraso.org/6099c3d0-ef13-4f93-8cad-6926a771f492/profile-image_15"
           }
         },
         {
@@ -111,7 +111,7 @@
             "email": "johannes@schmidtparty.com",
             "firstName": "",
             "lastName": "",
-            "profileImage": "https://images.dev.terraso.org/6099c3d0-ef13-4f93-8cad-6926a771f492/profile-image_13"
+            "profileImage": "https://images.dev.terraso.org/6099c3d0-ef13-4f93-8cad-6926a771f492/profile-image_15"
           }
         },
         {
@@ -125,7 +125,7 @@
             "email": "johannes@schmidtparty.com",
             "firstName": "",
             "lastName": "",
-            "profileImage": "https://images.dev.terraso.org/6099c3d0-ef13-4f93-8cad-6926a771f492/profile-image_13"
+            "profileImage": "https://images.dev.terraso.org/6099c3d0-ef13-4f93-8cad-6926a771f492/profile-image_15"
           }
         }
       ],

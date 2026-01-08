@@ -2,7 +2,7 @@
   "sites": [
     {
       "id": "634ae151-8f51-45bd-aa5f-50e8ebea49c0",
-      "name": "Export Test File",
+      "name": "Export Test / With Slash",
       "latitude": 37.33532145182639,
       "longitude": -122.0098214523779,
       "elevation": 56.0,
@@ -13,17 +13,19 @@
         "downSlope": "Convex",
         "crossSlope": "Convex",
         "slopeSteepnessSelect": "10-15% (rolling)",
-        "depthDependentData": [
+        "_depthIntervals": [
           {
             "label": "0-5 cm",
             "depthIntervalStart": 0,
             "depthIntervalEnd": 5,
+            "_depthSource": "NRCS",
             "rockFragmentVolume": "1-15%"
           },
           {
             "label": "5-15 cm",
             "depthIntervalStart": 5,
             "depthIntervalEnd": 15,
+            "_depthSource": "NRCS",
             "texture": "Clay",
             "rockFragmentVolume": "0-1%"
           },
@@ -31,6 +33,7 @@
             "label": "15-30 cm",
             "depthIntervalStart": 15,
             "depthIntervalEnd": 30,
+            "_depthSource": "NRCS",
             "texture": "Clay Loam",
             "rockFragmentVolume": "35-60%"
           },
@@ -38,6 +41,7 @@
             "label": "30-60 cm",
             "depthIntervalStart": 30,
             "depthIntervalEnd": 60,
+            "_depthSource": "NRCS",
             "texture": "Loam",
             "rockFragmentVolume": ">60%",
             "colorHue": 25.0,
@@ -50,6 +54,7 @@
             "label": "60-100 cm",
             "depthIntervalStart": 60,
             "depthIntervalEnd": 100,
+            "_depthSource": "NRCS",
             "texture": "Loamy Sand",
             "rockFragmentVolume": "15-35%",
             "colorHue": 40.0,
@@ -62,9 +67,11 @@
             "label": "100-200 cm",
             "depthIntervalStart": 100,
             "depthIntervalEnd": 200,
+            "_depthSource": "NRCS",
             "texture": "Silt Loam"
           }
         ],
+        "_depthSource": "NRCS",
         "_slopeSteepnessPercentLow": 10,
         "_slopeSteepnessPercentHigh": 15
       },
@@ -80,7 +87,7 @@
             "email": "johannes@schmidtparty.com",
             "firstName": "",
             "lastName": "",
-            "profileImage": "https://images.dev.terraso.org/6099c3d0-ef13-4f93-8cad-6926a771f492/profile-image_13"
+            "profileImage": "https://images.dev.terraso.org/6099c3d0-ef13-4f93-8cad-6926a771f492/profile-image_15"
           }
         },
         {
@@ -94,7 +101,7 @@
             "email": "johannes@schmidtparty.com",
             "firstName": "",
             "lastName": "",
-            "profileImage": "https://images.dev.terraso.org/6099c3d0-ef13-4f93-8cad-6926a771f492/profile-image_13"
+            "profileImage": "https://images.dev.terraso.org/6099c3d0-ef13-4f93-8cad-6926a771f492/profile-image_15"
           }
         },
         {
@@ -108,7 +115,7 @@
             "email": "johannes@schmidtparty.com",
             "firstName": "",
             "lastName": "",
-            "profileImage": "https://images.dev.terraso.org/6099c3d0-ef13-4f93-8cad-6926a771f492/profile-image_13"
+            "profileImage": "https://images.dev.terraso.org/6099c3d0-ef13-4f93-8cad-6926a771f492/profile-image_15"
           }
         }
       ],

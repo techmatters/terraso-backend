@@ -14,11 +14,12 @@
         "crossSlope": "Concave",
         "slopeSteepnessSelect": "30-50% (steep)",
         "surfaceCracksSelect": "No cracking",
-        "depthDependentData": [
+        "_depthIntervals": [
           {
             "label": "0-5 cm",
             "depthIntervalStart": 0,
             "depthIntervalEnd": 5,
+            "_depthSource": "NRCS",
             "texture": "Loam",
             "rockFragmentVolume": "0-1%",
             "colorHue": 0.0,
@@ -31,6 +32,7 @@
             "label": "5-15 cm",
             "depthIntervalStart": 5,
             "depthIntervalEnd": 15,
+            "_depthSource": "NRCS",
             "texture": "Clay",
             "rockFragmentVolume": "15-35%",
             "colorHue": 20.0,
@@ -45,6 +47,7 @@
             "label": "15-30 cm",
             "depthIntervalStart": 15,
             "depthIntervalEnd": 30,
+            "_depthSource": "NRCS",
             "texture": "Loam",
             "rockFragmentVolume": ">60%",
             "colorHue": 40.0,
@@ -57,6 +60,7 @@
             "label": "30-60 cm",
             "depthIntervalStart": 30,
             "depthIntervalEnd": 60,
+            "_depthSource": "NRCS",
             "texture": "Sandy Clay Loam",
             "rockFragmentVolume": "1-15%",
             "colorHue": 40.0,
@@ -69,6 +73,7 @@
             "label": "60-100 cm",
             "depthIntervalStart": 60,
             "depthIntervalEnd": 100,
+            "_depthSource": "NRCS",
             "texture": "Sandy Loam",
             "rockFragmentVolume": "0-1%",
             "colorHue": 25.0,
@@ -81,6 +86,7 @@
             "label": "100-200 cm",
             "depthIntervalStart": 100,
             "depthIntervalEnd": 200,
+            "_depthSource": "NRCS",
             "texture": "Silt",
             "rockFragmentVolume": "0-1%",
             "colorHue": 15.0,
@@ -90,6 +96,7 @@
             "_colorMunsell": "5.0YR 5/2"
           }
         ],
+        "_depthSource": "NRCS",
         "_slopeSteepnessPercentLow": 30,
         "_slopeSteepnessPercentHigh": 50
       },
@@ -97,7 +104,11 @@
         "id": "dd4fa6a9-9e45-4e61-a73c-36bedded0714",
         "name": "Johannes snapshot test - NRCS",
         "description": "",
-        "updatedAt": "2025-12-17T18:06:40.089218+00:00"
+        "updatedAt": "2025-12-17T18:06:40.089218+00:00",
+        "soilSettings": {
+          "depthIntervalPreset": "NRCS",
+          "depthIntervals": []
+        }
       },
       "notes": [
         {
@@ -110,8 +121,8 @@
             "id": "b7fea1ab-7277-4b45-a301-9149fcefc80a",
             "email": "derek@techmatters.org",
             "firstName": "Derek",
-            "lastName": "Caelin",
-            "profileImage": "https://images.staging.terraso.net/b7fea1ab-7277-4b45-a301-9149fcefc80a/profile-image_254"
+            "lastName": "",
+            "profileImage": "https://images.staging.terraso.net/b7fea1ab-7277-4b45-a301-9149fcefc80a/profile-image_263"
           }
         }
       ],
@@ -901,11 +912,12 @@
         "crossSlope": "Linear",
         "slopeSteepnessSelect": "10-15% (rolling)",
         "surfaceCracksSelect": "Deep vertical cracks",
-        "depthDependentData": [
+        "_depthIntervals": [
           {
             "label": "0-5 cm",
             "depthIntervalStart": 0,
             "depthIntervalEnd": 5,
+            "_depthSource": "NRCS",
             "texture": "Clay",
             "rockFragmentVolume": "1-15%",
             "colorHue": 40.0,
@@ -917,29 +929,35 @@
           {
             "label": "5-15 cm",
             "depthIntervalStart": 5,
-            "depthIntervalEnd": 15
+            "depthIntervalEnd": 15,
+            "_depthSource": "NRCS"
           },
           {
             "label": "15-30 cm",
             "depthIntervalStart": 15,
-            "depthIntervalEnd": 30
+            "depthIntervalEnd": 30,
+            "_depthSource": "NRCS"
           },
           {
             "label": "30-60 cm",
             "depthIntervalStart": 30,
-            "depthIntervalEnd": 60
+            "depthIntervalEnd": 60,
+            "_depthSource": "NRCS"
           },
           {
             "label": "60-100 cm",
             "depthIntervalStart": 60,
-            "depthIntervalEnd": 100
+            "depthIntervalEnd": 100,
+            "_depthSource": "NRCS"
           },
           {
             "label": "100-200 cm",
             "depthIntervalStart": 100,
-            "depthIntervalEnd": 200
+            "depthIntervalEnd": 200,
+            "_depthSource": "NRCS"
           }
         ],
+        "_depthSource": "NRCS",
         "_slopeSteepnessPercentLow": 10,
         "_slopeSteepnessPercentHigh": 15
       },
@@ -947,7 +965,11 @@
         "id": "dd4fa6a9-9e45-4e61-a73c-36bedded0714",
         "name": "Johannes snapshot test - NRCS",
         "description": "",
-        "updatedAt": "2025-12-17T18:06:40.089218+00:00"
+        "updatedAt": "2025-12-17T18:06:40.089218+00:00",
+        "soilSettings": {
+          "depthIntervalPreset": "NRCS",
+          "depthIntervals": []
+        }
       },
       "notes": [],
       "soil_id": {
