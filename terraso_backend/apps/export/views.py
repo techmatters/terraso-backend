@@ -77,26 +77,44 @@ def _get_resource_name(export_token):
     return None
 
 
+def _flatten_soil_id(soil_id_data):
+    """
+    Flatten soil_id structure from soilId.soilMatches to just the matches data.
+
+    Input:  {"soilId": {"soilMatches": {"dataRegion": ..., "matches": [...]}}}
+    Output: {"dataRegion": ..., "matches": [...]}
+
+    Returns None if the structure is missing or represents a failure.
+    """
+    if not soil_id_data:
+        return None
+    soil_matches = soil_id_data.get("soilId", {}).get("soilMatches", {})
+    # soilMatches could be SoilIdFailure with just "reason" field - skip those
+    if "matches" not in soil_matches:
+        return None
+    return soil_matches
+
+
 def _inject_user_ratings_into_matches(soil_id_data, user_ratings):
     """
     Inject user ratings into soil matches based on soil series name.
 
     Args:
-        soil_id_data: The soil_id response data containing soilMatches
+        soil_id_data: The flattened soil_id data containing matches directly
         user_ratings: List of {soilMatchId, rating} from soilMetadata.userRatings
 
     The soilMatchId corresponds to match.soilInfo.soilSeries.name.
     If a match has a corresponding rating, adds "userRating" field.
     If no rating exists for a match, the field is omitted.
     """
-    if not user_ratings:
+    if not user_ratings or not soil_id_data:
         return
 
     # Build lookup: {"Catden": "SELECTED", "Hollis": "REJECTED", ...}
     ratings_by_name = {r["soilMatchId"]: r["rating"] for r in user_ratings}
 
-    # Navigate to matches array
-    matches = soil_id_data.get("soilId", {}).get("soilMatches", {}).get("matches", [])
+    # Navigate to matches array (now directly in soil_id_data)
+    matches = soil_id_data.get("matches", [])
 
     for match in matches:
         series_name = match.get("soilInfo", {}).get("soilSeries", {}).get("name")
@@ -128,7 +146,9 @@ def _process_sites(site_ids, request, output_format="json"):
         else:
             # Full transformation for CSV/JSON export
             # Fetch soil_id BEFORE transformation since it needs original enum codes
-            soil_id_data = fetch_soil_id(site_data, request)
+            soil_id_raw = fetch_soil_id(site_data, request)
+            # Flatten the nested soilId.soilMatches structure
+            soil_id_data = _flatten_soil_id(soil_id_raw)
             # Inject user ratings into soil matches (ratings are keyed by soil series name)
             user_ratings = site_data.get("soilMetadata", {}).get("userRatings", [])
             _inject_user_ratings_into_matches(soil_id_data, user_ratings)
