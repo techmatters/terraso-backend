@@ -120,658 +120,654 @@
         }
       ],
       "soil_id": {
-        "soilId": {
-          "soilMatches": {
-            "dataRegion": "US",
-            "matches": [
-              {
-                "dataSource": "SSURGO",
-                "distanceToNearestMapUnitM": 0.0,
-                "locationMatch": {
-                  "rank": 1,
-                  "score": 0.278
-                },
-                "soilInfo": {
-                  "soilSeries": {
-                    "name": "Botella",
-                    "taxonomySubgroup": "Pachic Argixerolls",
-                    "description": "The Botella series consists of very deep, well drained soils that formed in alluvial material from sedimentary rocks. Botella soils are in valley bottoms and on alluvial fans and have slopes of 0 to 15 percent. The mean annual precipitation is about 457 mm (18 inches) and the mean annual air temperature is about 14 degrees C (58 degrees F).",
-                    "fullDescriptionUrl": "https://casoilresource.lawr.ucdavis.edu/sde/?series=botella"
-                  },
-                  "landCapabilityClass": {
-                    "capabilityClass": "3",
-                    "subClass": "s"
-                  },
-                  "soilData": {
-                    "slope": 1.0,
-                    "depthDependentData": [
-                      {
-                        "depthInterval": {
-                          "start": 0,
-                          "end": 5
-                        },
-                        "texture": "SANDY_LOAM",
-                        "rockFragmentVolume": "VOLUME_0_1",
-                        "munsellColorString": ""
-                      },
-                      {
-                        "depthInterval": {
-                          "start": 5,
-                          "end": 23
-                        },
-                        "texture": "SILT_LOAM",
-                        "rockFragmentVolume": "VOLUME_1_15",
-                        "munsellColorString": ""
-                      },
-                      {
-                        "depthInterval": {
-                          "start": 23,
-                          "end": 46
-                        },
-                        "rockFragmentVolume": "VOLUME_0_1",
-                        "munsellColorString": "10YR 5/1"
-                      },
-                      {
-                        "depthInterval": {
-                          "start": 46,
-                          "end": 69
-                        },
-                        "rockFragmentVolume": "VOLUME_0_1",
-                        "munsellColorString": "10YR 5/1"
-                      },
-                      {
-                        "depthInterval": {
-                          "start": 69,
-                          "end": 100
-                        },
-                        "texture": "CLAY_LOAM",
-                        "rockFragmentVolume": "VOLUME_0_1",
-                        "munsellColorString": "10YR 5/1"
-                      },
-                      {
-                        "depthInterval": {
-                          "start": 100,
-                          "end": 155
-                        },
-                        "texture": "SANDY_CLAY_LOAM",
-                        "rockFragmentVolume": "VOLUME_1_15",
-                        "munsellColorString": "10YR 6/1"
-                      },
-                      {
-                        "depthInterval": {
-                          "start": 155,
-                          "end": 178
-                        },
-                        "texture": "SANDY_CLAY_LOAM",
-                        "rockFragmentVolume": "VOLUME_0_1"
-                      }
-                    ]
-                  }
-                },
-                "userRating": "SELECTED"
+        "dataRegion": "US",
+        "matches": [
+          {
+            "dataSource": "SSURGO",
+            "distanceToNearestMapUnitM": 0.0,
+            "locationMatch": {
+              "rank": 1,
+              "score": 0.278
+            },
+            "soilInfo": {
+              "soilSeries": {
+                "name": "Botella",
+                "taxonomySubgroup": "Pachic Argixerolls",
+                "description": "The Botella series consists of very deep, well drained soils that formed in alluvial material from sedimentary rocks. Botella soils are in valley bottoms and on alluvial fans and have slopes of 0 to 15 percent. The mean annual precipitation is about 457 mm (18 inches) and the mean annual air temperature is about 14 degrees C (58 degrees F).",
+                "fullDescriptionUrl": "https://casoilresource.lawr.ucdavis.edu/sde/?series=botella"
               },
-              {
-                "dataSource": "SSURGO",
-                "distanceToNearestMapUnitM": 232.0,
-                "locationMatch": {
-                  "rank": 4,
-                  "score": 0.066
-                },
-                "soilInfo": {
-                  "soilSeries": {
-                    "name": "Campbell",
-                    "taxonomySubgroup": "Cumulic Haploxerolls",
-                    "description": "The Campbell series consists of very deep, moderately well drained soils on floodplains and alluvial fans. These soils formed in alluvium derived from mixed rock sources. Slopes range from 0 to 2 percent. Mean annual precipitation is about 14 inches and the mean annual temperature is about 60 degrees F.",
-                    "fullDescriptionUrl": "https://casoilresource.lawr.ucdavis.edu/sde/?series=campbell"
-                  },
-                  "ecologicalSite": {
-                    "name": "Dry Loamy Fan",
-                    "id": "R014XG917CA",
-                    "url": "https://edit.sc.egov.usda.gov/catalogs/esd/014X/R014XG917CA"
-                  },
-                  "landCapabilityClass": {
-                    "capabilityClass": "3",
-                    "subClass": "s"
-                  },
-                  "soilData": {
-                    "slope": 1.0,
-                    "depthDependentData": [
-                      {
-                        "depthInterval": {
-                          "start": 0,
-                          "end": 6
-                        },
-                        "texture": "SANDY_LOAM",
-                        "rockFragmentVolume": "VOLUME_1_15",
-                        "munsellColorString": "10YR 5/3"
-                      },
-                      {
-                        "depthInterval": {
-                          "start": 6,
-                          "end": 17
-                        },
-                        "texture": "SANDY_CLAY_LOAM",
-                        "rockFragmentVolume": "VOLUME_1_15",
-                        "munsellColorString": "10YR 5/3"
-                      },
-                      {
-                        "depthInterval": {
-                          "start": 17,
-                          "end": 43
-                        },
-                        "texture": "SANDY_CLAY_LOAM",
-                        "rockFragmentVolume": "VOLUME_15_35",
-                        "munsellColorString": "10YR 5/2"
-                      },
-                      {
-                        "depthInterval": {
-                          "start": 43,
-                          "end": 80
-                        },
-                        "texture": "SANDY_CLAY_LOAM",
-                        "rockFragmentVolume": "VOLUME_15_35",
-                        "munsellColorString": "10YR 5/2"
-                      },
-                      {
-                        "depthInterval": {
-                          "start": 80,
-                          "end": 150
-                        },
-                        "texture": "SANDY_LOAM",
-                        "rockFragmentVolume": "VOLUME_35_60",
-                        "munsellColorString": "10YR 4/2"
-                      }
-                    ]
-                  }
-                }
+              "landCapabilityClass": {
+                "capabilityClass": "3",
+                "subClass": "s"
               },
-              {
-                "dataSource": "SSURGO",
-                "distanceToNearestMapUnitM": 232.0,
-                "locationMatch": {
-                  "rank": 6,
-                  "score": 0.017
-                },
-                "soilInfo": {
-                  "soilSeries": {
-                    "name": "Clear lake",
-                    "taxonomySubgroup": "Xeric Endoaquerts",
-                    "description": "The Clear Lake series consists of very deep, poorly drained soils that formed in fine textured alluvium derived from mixed rock sources. Clear Lake soils are in flood basins, flood plains and in swales of drainageways. Slopes are 0 to 5 percent. The mean annual precipitation is about 20 inches and the mean annual air temperature is about 60 degrees F.",
-                    "fullDescriptionUrl": "https://casoilresource.lawr.ucdavis.edu/sde/?series=clear_lake"
+              "soilData": {
+                "slope": 1.0,
+                "depthDependentData": [
+                  {
+                    "depthInterval": {
+                      "start": 0,
+                      "end": 5
+                    },
+                    "texture": "SANDY_LOAM",
+                    "rockFragmentVolume": "VOLUME_0_1",
+                    "munsellColorString": ""
                   },
-                  "ecologicalSite": {
-                    "name": "Dry Loamy Fan",
-                    "id": "R014XG917CA",
-                    "url": "https://edit.sc.egov.usda.gov/catalogs/esd/014X/R014XG917CA"
+                  {
+                    "depthInterval": {
+                      "start": 5,
+                      "end": 23
+                    },
+                    "texture": "SILT_LOAM",
+                    "rockFragmentVolume": "VOLUME_1_15",
+                    "munsellColorString": ""
                   },
-                  "landCapabilityClass": {
-                    "capabilityClass": "3",
-                    "subClass": "s"
+                  {
+                    "depthInterval": {
+                      "start": 23,
+                      "end": 46
+                    },
+                    "rockFragmentVolume": "VOLUME_0_1",
+                    "munsellColorString": "10YR 5/1"
                   },
-                  "soilData": {
-                    "slope": 1.0,
-                    "depthDependentData": [
-                      {
-                        "depthInterval": {
-                          "start": 0,
-                          "end": 25
-                        },
-                        "texture": "SILT_LOAM",
-                        "rockFragmentVolume": "VOLUME_0_1",
-                        "munsellColorString": "2.5BG 1/1"
-                      },
-                      {
-                        "depthInterval": {
-                          "start": 25,
-                          "end": 60
-                        },
-                        "texture": "SILT_LOAM",
-                        "rockFragmentVolume": "VOLUME_0_1",
-                        "munsellColorString": "2.5BG 1/1"
-                      },
-                      {
-                        "depthInterval": {
-                          "start": 60,
-                          "end": 80
-                        },
-                        "rockFragmentVolume": "VOLUME_0_1",
-                        "munsellColorString": "2.5BG 1/1"
-                      },
-                      {
-                        "depthInterval": {
-                          "start": 80,
-                          "end": 97
-                        },
-                        "rockFragmentVolume": "VOLUME_0_1",
-                        "munsellColorString": "7.5Y 2/1"
-                      },
-                      {
-                        "depthInterval": {
-                          "start": 97,
-                          "end": 130
-                        },
-                        "rockFragmentVolume": "VOLUME_0_1",
-                        "munsellColorString": "2.5Y 5/2"
-                      },
-                      {
-                        "depthInterval": {
-                          "start": 130,
-                          "end": 180
-                        },
-                        "texture": "CLAY",
-                        "rockFragmentVolume": "VOLUME_0_1"
-                      },
-                      {
-                        "depthInterval": {
-                          "start": 180,
-                          "end": 200
-                        },
-                        "texture": "CLAY",
-                        "rockFragmentVolume": "VOLUME_0_1"
-                      }
-                    ]
+                  {
+                    "depthInterval": {
+                      "start": 46,
+                      "end": 69
+                    },
+                    "rockFragmentVolume": "VOLUME_0_1",
+                    "munsellColorString": "10YR 5/1"
+                  },
+                  {
+                    "depthInterval": {
+                      "start": 69,
+                      "end": 100
+                    },
+                    "texture": "CLAY_LOAM",
+                    "rockFragmentVolume": "VOLUME_0_1",
+                    "munsellColorString": "10YR 5/1"
+                  },
+                  {
+                    "depthInterval": {
+                      "start": 100,
+                      "end": 155
+                    },
+                    "texture": "SANDY_CLAY_LOAM",
+                    "rockFragmentVolume": "VOLUME_1_15",
+                    "munsellColorString": "10YR 6/1"
+                  },
+                  {
+                    "depthInterval": {
+                      "start": 155,
+                      "end": 178
+                    },
+                    "texture": "SANDY_CLAY_LOAM",
+                    "rockFragmentVolume": "VOLUME_0_1"
                   }
-                }
-              },
-              {
-                "dataSource": "SSURGO",
-                "distanceToNearestMapUnitM": 0.0,
-                "locationMatch": {
-                  "rank": 0,
-                  "score": 0.357
-                },
-                "soilInfo": {
-                  "soilSeries": {
-                    "name": "Flaskan",
-                    "taxonomySubgroup": "Typic Argixerolls",
-                    "description": "The Flaskan series consists of very deep, well drained soils that formed in alluvium from mixed rock sources. Flaskan soils are on alluvial fans. Slopes range from 0 to 30 percent. The mean annual precipitation is about 16 inches and the mean annual temperature is about 60 degrees F/C.",
-                    "fullDescriptionUrl": "https://casoilresource.lawr.ucdavis.edu/sde/?series=flaskan"
-                  },
-                  "landCapabilityClass": {
-                    "capabilityClass": "3",
-                    "subClass": "s"
-                  },
-                  "soilData": {
-                    "slope": 1.0,
-                    "depthDependentData": [
-                      {
-                        "depthInterval": {
-                          "start": 0,
-                          "end": 3
-                        },
-                        "texture": "SILT_LOAM",
-                        "rockFragmentVolume": "VOLUME_0_1",
-                        "munsellColorString": "10YR 5/3"
-                      },
-                      {
-                        "depthInterval": {
-                          "start": 3,
-                          "end": 10
-                        },
-                        "texture": "SANDY_LOAM",
-                        "rockFragmentVolume": "VOLUME_1_15",
-                        "munsellColorString": "10YR 5/3"
-                      },
-                      {
-                        "depthInterval": {
-                          "start": 10,
-                          "end": 26
-                        },
-                        "texture": "SANDY_CLAY_LOAM",
-                        "rockFragmentVolume": "VOLUME_1_15",
-                        "munsellColorString": "10YR 5/3"
-                      },
-                      {
-                        "depthInterval": {
-                          "start": 26,
-                          "end": 48
-                        },
-                        "texture": "SANDY_CLAY_LOAM",
-                        "rockFragmentVolume": "VOLUME_1_15",
-                        "munsellColorString": "10YR 5/4"
-                      },
-                      {
-                        "depthInterval": {
-                          "start": 48,
-                          "end": 59
-                        },
-                        "texture": "SAND",
-                        "rockFragmentVolume": "VOLUME_35_60",
-                        "munsellColorString": "10YR 4/4"
-                      },
-                      {
-                        "depthInterval": {
-                          "start": 59,
-                          "end": 90
-                        },
-                        "rockFragmentVolume": "VOLUME_0_1"
-                      },
-                      {
-                        "depthInterval": {
-                          "start": 90,
-                          "end": 140
-                        },
-                        "texture": "CLAY_LOAM",
-                        "rockFragmentVolume": "VOLUME_0_1"
-                      },
-                      {
-                        "depthInterval": {
-                          "start": 140,
-                          "end": 200
-                        },
-                        "texture": "SANDY_CLAY_LOAM",
-                        "rockFragmentVolume": "VOLUME_0_1"
-                      }
-                    ]
-                  }
-                }
-              },
-              {
-                "dataSource": "SSURGO",
-                "distanceToNearestMapUnitM": 0.0,
-                "locationMatch": {
-                  "rank": 5,
-                  "score": 0.026
-                },
-                "soilInfo": {
-                  "soilSeries": {
-                    "name": "Landelspark",
-                    "taxonomySubgroup": "Fluventic Haploxerolls",
-                    "description": "The Landelspark series consists of very deep, well drained soils that formed in alluvium from mixed rock sources. Landelspark soils are on floodplains. Slopes range from 0 to 2 percent. The mean annual precipitation is about 14 inches and the mean annual temperature is about 60 degrees F.",
-                    "fullDescriptionUrl": "https://casoilresource.lawr.ucdavis.edu/sde/?series=landelspark"
-                  },
-                  "landCapabilityClass": {
-                    "capabilityClass": "3",
-                    "subClass": "s"
-                  },
-                  "soilData": {
-                    "slope": 1.0,
-                    "depthDependentData": [
-                      {
-                        "depthInterval": {
-                          "start": 0,
-                          "end": 23
-                        },
-                        "texture": "CLAY",
-                        "rockFragmentVolume": "VOLUME_0_1",
-                        "munsellColorString": "7.5YR 4/2"
-                      },
-                      {
-                        "depthInterval": {
-                          "start": 23,
-                          "end": 36
-                        },
-                        "texture": "CLAY",
-                        "rockFragmentVolume": "VOLUME_0_1",
-                        "munsellColorString": "10YR 5/3"
-                      },
-                      {
-                        "depthInterval": {
-                          "start": 36,
-                          "end": 82
-                        },
-                        "texture": "CLAY",
-                        "rockFragmentVolume": "VOLUME_0_1",
-                        "munsellColorString": "10YR 5/3"
-                      },
-                      {
-                        "depthInterval": {
-                          "start": 82,
-                          "end": 127
-                        },
-                        "texture": "CLAY",
-                        "rockFragmentVolume": "VOLUME_0_1",
-                        "munsellColorString": "10YR 5/3"
-                      },
-                      {
-                        "depthInterval": {
-                          "start": 127,
-                          "end": 167
-                        },
-                        "texture": "CLAY",
-                        "rockFragmentVolume": "VOLUME_0_1",
-                        "munsellColorString": "10YR 6/3"
-                      }
-                    ]
-                  }
-                }
-              },
-              {
-                "dataSource": "SSURGO",
-                "distanceToNearestMapUnitM": 232.0,
-                "locationMatch": {
-                  "rank": 7,
-                  "score": 0.017
-                },
-                "soilInfo": {
-                  "soilSeries": {
-                    "name": "Newpark",
-                    "taxonomySubgroup": "Calcic Pachic Haploxerolls",
-                    "description": "The Newpark series consists of very deep, moderately well drained soils that formed in alluvium from mixed rock sources. Newpark soils are on alluvial fans. Slopes range from 0 to 2 percent. The mean annual precipitation is about 13 inches, and the mean annual temperature is about 60 degrees F.",
-                    "fullDescriptionUrl": "https://casoilresource.lawr.ucdavis.edu/sde/?series=newpark"
-                  },
-                  "landCapabilityClass": {
-                    "capabilityClass": "3",
-                    "subClass": "s"
-                  },
-                  "soilData": {
-                    "slope": 1.0,
-                    "depthDependentData": [
-                      {
-                        "depthInterval": {
-                          "start": 0,
-                          "end": 20
-                        },
-                        "rockFragmentVolume": "VOLUME_0_1",
-                        "munsellColorString": "10YR 5/2"
-                      },
-                      {
-                        "depthInterval": {
-                          "start": 20,
-                          "end": 45
-                        },
-                        "rockFragmentVolume": "VOLUME_0_1",
-                        "munsellColorString": "10YR 5/2"
-                      },
-                      {
-                        "depthInterval": {
-                          "start": 45,
-                          "end": 68
-                        },
-                        "rockFragmentVolume": "VOLUME_0_1",
-                        "munsellColorString": "10YR 4/2"
-                      },
-                      {
-                        "depthInterval": {
-                          "start": 68,
-                          "end": 91
-                        },
-                        "rockFragmentVolume": "VOLUME_0_1",
-                        "munsellColorString": "10YR 6/3"
-                      },
-                      {
-                        "depthInterval": {
-                          "start": 91,
-                          "end": 132
-                        },
-                        "rockFragmentVolume": "VOLUME_0_1",
-                        "munsellColorString": "10YR 6/3"
-                      },
-                      {
-                        "depthInterval": {
-                          "start": 132,
-                          "end": 160
-                        },
-                        "texture": "SANDY_LOAM",
-                        "rockFragmentVolume": "VOLUME_0_1",
-                        "munsellColorString": "10YR 6/3"
-                      },
-                      {
-                        "depthInterval": {
-                          "start": 160,
-                          "end": 200
-                        },
-                        "texture": "SANDY_LOAM",
-                        "rockFragmentVolume": "VOLUME_0_1",
-                        "munsellColorString": "10YR 6/3"
-                      }
-                    ]
-                  }
-                }
-              },
-              {
-                "dataSource": "SSURGO",
-                "distanceToNearestMapUnitM": 0.0,
-                "locationMatch": {
-                  "rank": 3,
-                  "score": 0.066
-                },
-                "soilInfo": {
-                  "soilSeries": {
-                    "name": "Pachic haploxerolls",
-                    "taxonomySubgroup": "Typic Haploxerolls",
-                    "description": "",
-                    "fullDescriptionUrl": "https://casoilresource.lawr.ucdavis.edu/sde/?series=pachic_haploxerolls"
-                  },
-                  "landCapabilityClass": {
-                    "capabilityClass": "3",
-                    "subClass": "s"
-                  },
-                  "soilData": {
-                    "slope": 1.0,
-                    "depthDependentData": [
-                      {
-                        "depthInterval": {
-                          "start": 0,
-                          "end": 5
-                        },
-                        "texture": "SANDY_LOAM",
-                        "rockFragmentVolume": "VOLUME_1_15",
-                        "munsellColorString": ""
-                      },
-                      {
-                        "depthInterval": {
-                          "start": 5,
-                          "end": 36
-                        },
-                        "texture": "SANDY_LOAM",
-                        "rockFragmentVolume": "VOLUME_15_35",
-                        "munsellColorString": ""
-                      },
-                      {
-                        "depthInterval": {
-                          "start": 36,
-                          "end": 80
-                        },
-                        "texture": "SANDY_LOAM",
-                        "rockFragmentVolume": "VOLUME_35_60",
-                        "munsellColorString": ""
-                      },
-                      {
-                        "depthInterval": {
-                          "start": 80,
-                          "end": 120
-                        },
-                        "texture": "LOAMY_SAND",
-                        "rockFragmentVolume": "VOLUME_60",
-                        "munsellColorString": ""
-                      },
-                      {
-                        "depthInterval": {
-                          "start": 120,
-                          "end": 150
-                        },
-                        "texture": "LOAMY_SAND",
-                        "rockFragmentVolume": "VOLUME_35_60",
-                        "munsellColorString": ""
-                      }
-                    ]
-                  }
-                }
-              },
-              {
-                "dataSource": "SSURGO",
-                "distanceToNearestMapUnitM": 0.0,
-                "locationMatch": {
-                  "rank": 2,
-                  "score": 0.173
-                },
-                "soilInfo": {
-                  "soilSeries": {
-                    "name": "Stevenscreek",
-                    "taxonomySubgroup": "Pachic Haploxerolls",
-                    "description": "The Stevenscreek series consists of very deep, well drained soils that formed in  alluvium. Stevenscreek soils are on alluvial fans. Slopes range from 0 to 9 percent. The mean annual precipitation is about 15 inches and the mean annual temperature is about 58 degrees F.",
-                    "fullDescriptionUrl": "https://casoilresource.lawr.ucdavis.edu/sde/?series=stevenscreek"
-                  },
-                  "landCapabilityClass": {
-                    "capabilityClass": "3",
-                    "subClass": "s"
-                  },
-                  "soilData": {
-                    "slope": 1.0,
-                    "depthDependentData": [
-                      {
-                        "depthInterval": {
-                          "start": 0,
-                          "end": 17
-                        },
-                        "texture": "SANDY_LOAM",
-                        "rockFragmentVolume": "VOLUME_1_15",
-                        "munsellColorString": "10YR 3/2"
-                      },
-                      {
-                        "depthInterval": {
-                          "start": 17,
-                          "end": 35
-                        },
-                        "texture": "SANDY_CLAY_LOAM",
-                        "rockFragmentVolume": "VOLUME_1_15",
-                        "munsellColorString": "10YR 4/2"
-                      },
-                      {
-                        "depthInterval": {
-                          "start": 35,
-                          "end": 54
-                        },
-                        "texture": "CLAY_LOAM",
-                        "rockFragmentVolume": "VOLUME_1_15",
-                        "munsellColorString": "10YR 4/2"
-                      },
-                      {
-                        "depthInterval": {
-                          "start": 54,
-                          "end": 87
-                        },
-                        "texture": "CLAY_LOAM",
-                        "rockFragmentVolume": "VOLUME_1_15",
-                        "munsellColorString": "10YR 4/2"
-                      },
-                      {
-                        "depthInterval": {
-                          "start": 87,
-                          "end": 140
-                        },
-                        "texture": "CLAY_LOAM",
-                        "rockFragmentVolume": "VOLUME_1_15",
-                        "munsellColorString": "10YR 4/2"
-                      },
-                      {
-                        "depthInterval": {
-                          "start": 140,
-                          "end": 173
-                        },
-                        "texture": "CLAY_LOAM",
-                        "rockFragmentVolume": "VOLUME_1_15",
-                        "munsellColorString": "10YR 5/3"
-                      }
-                    ]
-                  }
-                },
-                "userRating": "REJECTED"
+                ]
               }
-            ]
+            },
+            "userRating": "SELECTED"
+          },
+          {
+            "dataSource": "SSURGO",
+            "distanceToNearestMapUnitM": 232.0,
+            "locationMatch": {
+              "rank": 4,
+              "score": 0.066
+            },
+            "soilInfo": {
+              "soilSeries": {
+                "name": "Campbell",
+                "taxonomySubgroup": "Cumulic Haploxerolls",
+                "description": "The Campbell series consists of very deep, moderately well drained soils on floodplains and alluvial fans. These soils formed in alluvium derived from mixed rock sources. Slopes range from 0 to 2 percent. Mean annual precipitation is about 14 inches and the mean annual temperature is about 60 degrees F.",
+                "fullDescriptionUrl": "https://casoilresource.lawr.ucdavis.edu/sde/?series=campbell"
+              },
+              "ecologicalSite": {
+                "name": "Dry Loamy Fan",
+                "id": "R014XG917CA",
+                "url": "https://edit.sc.egov.usda.gov/catalogs/esd/014X/R014XG917CA"
+              },
+              "landCapabilityClass": {
+                "capabilityClass": "3",
+                "subClass": "s"
+              },
+              "soilData": {
+                "slope": 1.0,
+                "depthDependentData": [
+                  {
+                    "depthInterval": {
+                      "start": 0,
+                      "end": 6
+                    },
+                    "texture": "SANDY_LOAM",
+                    "rockFragmentVolume": "VOLUME_1_15",
+                    "munsellColorString": "10YR 5/3"
+                  },
+                  {
+                    "depthInterval": {
+                      "start": 6,
+                      "end": 17
+                    },
+                    "texture": "SANDY_CLAY_LOAM",
+                    "rockFragmentVolume": "VOLUME_1_15",
+                    "munsellColorString": "10YR 5/3"
+                  },
+                  {
+                    "depthInterval": {
+                      "start": 17,
+                      "end": 43
+                    },
+                    "texture": "SANDY_CLAY_LOAM",
+                    "rockFragmentVolume": "VOLUME_15_35",
+                    "munsellColorString": "10YR 5/2"
+                  },
+                  {
+                    "depthInterval": {
+                      "start": 43,
+                      "end": 80
+                    },
+                    "texture": "SANDY_CLAY_LOAM",
+                    "rockFragmentVolume": "VOLUME_15_35",
+                    "munsellColorString": "10YR 5/2"
+                  },
+                  {
+                    "depthInterval": {
+                      "start": 80,
+                      "end": 150
+                    },
+                    "texture": "SANDY_LOAM",
+                    "rockFragmentVolume": "VOLUME_35_60",
+                    "munsellColorString": "10YR 4/2"
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "dataSource": "SSURGO",
+            "distanceToNearestMapUnitM": 232.0,
+            "locationMatch": {
+              "rank": 6,
+              "score": 0.017
+            },
+            "soilInfo": {
+              "soilSeries": {
+                "name": "Clear lake",
+                "taxonomySubgroup": "Xeric Endoaquerts",
+                "description": "The Clear Lake series consists of very deep, poorly drained soils that formed in fine textured alluvium derived from mixed rock sources. Clear Lake soils are in flood basins, flood plains and in swales of drainageways. Slopes are 0 to 5 percent. The mean annual precipitation is about 20 inches and the mean annual air temperature is about 60 degrees F.",
+                "fullDescriptionUrl": "https://casoilresource.lawr.ucdavis.edu/sde/?series=clear_lake"
+              },
+              "ecologicalSite": {
+                "name": "Dry Loamy Fan",
+                "id": "R014XG917CA",
+                "url": "https://edit.sc.egov.usda.gov/catalogs/esd/014X/R014XG917CA"
+              },
+              "landCapabilityClass": {
+                "capabilityClass": "3",
+                "subClass": "s"
+              },
+              "soilData": {
+                "slope": 1.0,
+                "depthDependentData": [
+                  {
+                    "depthInterval": {
+                      "start": 0,
+                      "end": 25
+                    },
+                    "texture": "SILT_LOAM",
+                    "rockFragmentVolume": "VOLUME_0_1",
+                    "munsellColorString": "2.5BG 1/1"
+                  },
+                  {
+                    "depthInterval": {
+                      "start": 25,
+                      "end": 60
+                    },
+                    "texture": "SILT_LOAM",
+                    "rockFragmentVolume": "VOLUME_0_1",
+                    "munsellColorString": "2.5BG 1/1"
+                  },
+                  {
+                    "depthInterval": {
+                      "start": 60,
+                      "end": 80
+                    },
+                    "rockFragmentVolume": "VOLUME_0_1",
+                    "munsellColorString": "2.5BG 1/1"
+                  },
+                  {
+                    "depthInterval": {
+                      "start": 80,
+                      "end": 97
+                    },
+                    "rockFragmentVolume": "VOLUME_0_1",
+                    "munsellColorString": "7.5Y 2/1"
+                  },
+                  {
+                    "depthInterval": {
+                      "start": 97,
+                      "end": 130
+                    },
+                    "rockFragmentVolume": "VOLUME_0_1",
+                    "munsellColorString": "2.5Y 5/2"
+                  },
+                  {
+                    "depthInterval": {
+                      "start": 130,
+                      "end": 180
+                    },
+                    "texture": "CLAY",
+                    "rockFragmentVolume": "VOLUME_0_1"
+                  },
+                  {
+                    "depthInterval": {
+                      "start": 180,
+                      "end": 200
+                    },
+                    "texture": "CLAY",
+                    "rockFragmentVolume": "VOLUME_0_1"
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "dataSource": "SSURGO",
+            "distanceToNearestMapUnitM": 0.0,
+            "locationMatch": {
+              "rank": 0,
+              "score": 0.357
+            },
+            "soilInfo": {
+              "soilSeries": {
+                "name": "Flaskan",
+                "taxonomySubgroup": "Typic Argixerolls",
+                "description": "The Flaskan series consists of very deep, well drained soils that formed in alluvium from mixed rock sources. Flaskan soils are on alluvial fans. Slopes range from 0 to 30 percent. The mean annual precipitation is about 16 inches and the mean annual temperature is about 60 degrees F/C.",
+                "fullDescriptionUrl": "https://casoilresource.lawr.ucdavis.edu/sde/?series=flaskan"
+              },
+              "landCapabilityClass": {
+                "capabilityClass": "3",
+                "subClass": "s"
+              },
+              "soilData": {
+                "slope": 1.0,
+                "depthDependentData": [
+                  {
+                    "depthInterval": {
+                      "start": 0,
+                      "end": 3
+                    },
+                    "texture": "SILT_LOAM",
+                    "rockFragmentVolume": "VOLUME_0_1",
+                    "munsellColorString": "10YR 5/3"
+                  },
+                  {
+                    "depthInterval": {
+                      "start": 3,
+                      "end": 10
+                    },
+                    "texture": "SANDY_LOAM",
+                    "rockFragmentVolume": "VOLUME_1_15",
+                    "munsellColorString": "10YR 5/3"
+                  },
+                  {
+                    "depthInterval": {
+                      "start": 10,
+                      "end": 26
+                    },
+                    "texture": "SANDY_CLAY_LOAM",
+                    "rockFragmentVolume": "VOLUME_1_15",
+                    "munsellColorString": "10YR 5/3"
+                  },
+                  {
+                    "depthInterval": {
+                      "start": 26,
+                      "end": 48
+                    },
+                    "texture": "SANDY_CLAY_LOAM",
+                    "rockFragmentVolume": "VOLUME_1_15",
+                    "munsellColorString": "10YR 5/4"
+                  },
+                  {
+                    "depthInterval": {
+                      "start": 48,
+                      "end": 59
+                    },
+                    "texture": "SAND",
+                    "rockFragmentVolume": "VOLUME_35_60",
+                    "munsellColorString": "10YR 4/4"
+                  },
+                  {
+                    "depthInterval": {
+                      "start": 59,
+                      "end": 90
+                    },
+                    "rockFragmentVolume": "VOLUME_0_1"
+                  },
+                  {
+                    "depthInterval": {
+                      "start": 90,
+                      "end": 140
+                    },
+                    "texture": "CLAY_LOAM",
+                    "rockFragmentVolume": "VOLUME_0_1"
+                  },
+                  {
+                    "depthInterval": {
+                      "start": 140,
+                      "end": 200
+                    },
+                    "texture": "SANDY_CLAY_LOAM",
+                    "rockFragmentVolume": "VOLUME_0_1"
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "dataSource": "SSURGO",
+            "distanceToNearestMapUnitM": 0.0,
+            "locationMatch": {
+              "rank": 5,
+              "score": 0.026
+            },
+            "soilInfo": {
+              "soilSeries": {
+                "name": "Landelspark",
+                "taxonomySubgroup": "Fluventic Haploxerolls",
+                "description": "The Landelspark series consists of very deep, well drained soils that formed in alluvium from mixed rock sources. Landelspark soils are on floodplains. Slopes range from 0 to 2 percent. The mean annual precipitation is about 14 inches and the mean annual temperature is about 60 degrees F.",
+                "fullDescriptionUrl": "https://casoilresource.lawr.ucdavis.edu/sde/?series=landelspark"
+              },
+              "landCapabilityClass": {
+                "capabilityClass": "3",
+                "subClass": "s"
+              },
+              "soilData": {
+                "slope": 1.0,
+                "depthDependentData": [
+                  {
+                    "depthInterval": {
+                      "start": 0,
+                      "end": 23
+                    },
+                    "texture": "CLAY",
+                    "rockFragmentVolume": "VOLUME_0_1",
+                    "munsellColorString": "7.5YR 4/2"
+                  },
+                  {
+                    "depthInterval": {
+                      "start": 23,
+                      "end": 36
+                    },
+                    "texture": "CLAY",
+                    "rockFragmentVolume": "VOLUME_0_1",
+                    "munsellColorString": "10YR 5/3"
+                  },
+                  {
+                    "depthInterval": {
+                      "start": 36,
+                      "end": 82
+                    },
+                    "texture": "CLAY",
+                    "rockFragmentVolume": "VOLUME_0_1",
+                    "munsellColorString": "10YR 5/3"
+                  },
+                  {
+                    "depthInterval": {
+                      "start": 82,
+                      "end": 127
+                    },
+                    "texture": "CLAY",
+                    "rockFragmentVolume": "VOLUME_0_1",
+                    "munsellColorString": "10YR 5/3"
+                  },
+                  {
+                    "depthInterval": {
+                      "start": 127,
+                      "end": 167
+                    },
+                    "texture": "CLAY",
+                    "rockFragmentVolume": "VOLUME_0_1",
+                    "munsellColorString": "10YR 6/3"
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "dataSource": "SSURGO",
+            "distanceToNearestMapUnitM": 232.0,
+            "locationMatch": {
+              "rank": 7,
+              "score": 0.017
+            },
+            "soilInfo": {
+              "soilSeries": {
+                "name": "Newpark",
+                "taxonomySubgroup": "Calcic Pachic Haploxerolls",
+                "description": "The Newpark series consists of very deep, moderately well drained soils that formed in alluvium from mixed rock sources. Newpark soils are on alluvial fans. Slopes range from 0 to 2 percent. The mean annual precipitation is about 13 inches, and the mean annual temperature is about 60 degrees F.",
+                "fullDescriptionUrl": "https://casoilresource.lawr.ucdavis.edu/sde/?series=newpark"
+              },
+              "landCapabilityClass": {
+                "capabilityClass": "3",
+                "subClass": "s"
+              },
+              "soilData": {
+                "slope": 1.0,
+                "depthDependentData": [
+                  {
+                    "depthInterval": {
+                      "start": 0,
+                      "end": 20
+                    },
+                    "rockFragmentVolume": "VOLUME_0_1",
+                    "munsellColorString": "10YR 5/2"
+                  },
+                  {
+                    "depthInterval": {
+                      "start": 20,
+                      "end": 45
+                    },
+                    "rockFragmentVolume": "VOLUME_0_1",
+                    "munsellColorString": "10YR 5/2"
+                  },
+                  {
+                    "depthInterval": {
+                      "start": 45,
+                      "end": 68
+                    },
+                    "rockFragmentVolume": "VOLUME_0_1",
+                    "munsellColorString": "10YR 4/2"
+                  },
+                  {
+                    "depthInterval": {
+                      "start": 68,
+                      "end": 91
+                    },
+                    "rockFragmentVolume": "VOLUME_0_1",
+                    "munsellColorString": "10YR 6/3"
+                  },
+                  {
+                    "depthInterval": {
+                      "start": 91,
+                      "end": 132
+                    },
+                    "rockFragmentVolume": "VOLUME_0_1",
+                    "munsellColorString": "10YR 6/3"
+                  },
+                  {
+                    "depthInterval": {
+                      "start": 132,
+                      "end": 160
+                    },
+                    "texture": "SANDY_LOAM",
+                    "rockFragmentVolume": "VOLUME_0_1",
+                    "munsellColorString": "10YR 6/3"
+                  },
+                  {
+                    "depthInterval": {
+                      "start": 160,
+                      "end": 200
+                    },
+                    "texture": "SANDY_LOAM",
+                    "rockFragmentVolume": "VOLUME_0_1",
+                    "munsellColorString": "10YR 6/3"
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "dataSource": "SSURGO",
+            "distanceToNearestMapUnitM": 0.0,
+            "locationMatch": {
+              "rank": 3,
+              "score": 0.066
+            },
+            "soilInfo": {
+              "soilSeries": {
+                "name": "Pachic haploxerolls",
+                "taxonomySubgroup": "Typic Haploxerolls",
+                "description": "",
+                "fullDescriptionUrl": "https://casoilresource.lawr.ucdavis.edu/sde/?series=pachic_haploxerolls"
+              },
+              "landCapabilityClass": {
+                "capabilityClass": "3",
+                "subClass": "s"
+              },
+              "soilData": {
+                "slope": 1.0,
+                "depthDependentData": [
+                  {
+                    "depthInterval": {
+                      "start": 0,
+                      "end": 5
+                    },
+                    "texture": "SANDY_LOAM",
+                    "rockFragmentVolume": "VOLUME_1_15",
+                    "munsellColorString": ""
+                  },
+                  {
+                    "depthInterval": {
+                      "start": 5,
+                      "end": 36
+                    },
+                    "texture": "SANDY_LOAM",
+                    "rockFragmentVolume": "VOLUME_15_35",
+                    "munsellColorString": ""
+                  },
+                  {
+                    "depthInterval": {
+                      "start": 36,
+                      "end": 80
+                    },
+                    "texture": "SANDY_LOAM",
+                    "rockFragmentVolume": "VOLUME_35_60",
+                    "munsellColorString": ""
+                  },
+                  {
+                    "depthInterval": {
+                      "start": 80,
+                      "end": 120
+                    },
+                    "texture": "LOAMY_SAND",
+                    "rockFragmentVolume": "VOLUME_60",
+                    "munsellColorString": ""
+                  },
+                  {
+                    "depthInterval": {
+                      "start": 120,
+                      "end": 150
+                    },
+                    "texture": "LOAMY_SAND",
+                    "rockFragmentVolume": "VOLUME_35_60",
+                    "munsellColorString": ""
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "dataSource": "SSURGO",
+            "distanceToNearestMapUnitM": 0.0,
+            "locationMatch": {
+              "rank": 2,
+              "score": 0.173
+            },
+            "soilInfo": {
+              "soilSeries": {
+                "name": "Stevenscreek",
+                "taxonomySubgroup": "Pachic Haploxerolls",
+                "description": "The Stevenscreek series consists of very deep, well drained soils that formed in  alluvium. Stevenscreek soils are on alluvial fans. Slopes range from 0 to 9 percent. The mean annual precipitation is about 15 inches and the mean annual temperature is about 58 degrees F.",
+                "fullDescriptionUrl": "https://casoilresource.lawr.ucdavis.edu/sde/?series=stevenscreek"
+              },
+              "landCapabilityClass": {
+                "capabilityClass": "3",
+                "subClass": "s"
+              },
+              "soilData": {
+                "slope": 1.0,
+                "depthDependentData": [
+                  {
+                    "depthInterval": {
+                      "start": 0,
+                      "end": 17
+                    },
+                    "texture": "SANDY_LOAM",
+                    "rockFragmentVolume": "VOLUME_1_15",
+                    "munsellColorString": "10YR 3/2"
+                  },
+                  {
+                    "depthInterval": {
+                      "start": 17,
+                      "end": 35
+                    },
+                    "texture": "SANDY_CLAY_LOAM",
+                    "rockFragmentVolume": "VOLUME_1_15",
+                    "munsellColorString": "10YR 4/2"
+                  },
+                  {
+                    "depthInterval": {
+                      "start": 35,
+                      "end": 54
+                    },
+                    "texture": "CLAY_LOAM",
+                    "rockFragmentVolume": "VOLUME_1_15",
+                    "munsellColorString": "10YR 4/2"
+                  },
+                  {
+                    "depthInterval": {
+                      "start": 54,
+                      "end": 87
+                    },
+                    "texture": "CLAY_LOAM",
+                    "rockFragmentVolume": "VOLUME_1_15",
+                    "munsellColorString": "10YR 4/2"
+                  },
+                  {
+                    "depthInterval": {
+                      "start": 87,
+                      "end": 140
+                    },
+                    "texture": "CLAY_LOAM",
+                    "rockFragmentVolume": "VOLUME_1_15",
+                    "munsellColorString": "10YR 4/2"
+                  },
+                  {
+                    "depthInterval": {
+                      "start": 140,
+                      "end": 173
+                    },
+                    "texture": "CLAY_LOAM",
+                    "rockFragmentVolume": "VOLUME_1_15",
+                    "munsellColorString": "10YR 5/3"
+                  }
+                ]
+              }
+            },
+            "userRating": "REJECTED"
           }
-        }
+        ]
       }
     }
   ]

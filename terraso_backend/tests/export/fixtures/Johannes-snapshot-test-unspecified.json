@@ -83,836 +83,832 @@
         }
       ],
       "soil_id": {
-        "soilId": {
-          "soilMatches": {
-            "dataRegion": "US",
-            "matches": [
-              {
-                "dataSource": "SSURGO",
-                "distanceToNearestMapUnitM": 0.0,
-                "combinedMatch": {
-                  "rank": 0,
-                  "score": 0.403
-                },
-                "dataMatch": {
-                  "rank": 1,
-                  "score": 0.611
-                },
-                "locationMatch": {
-                  "rank": 0,
-                  "score": 0.194
-                },
-                "soilInfo": {
-                  "soilSeries": {
-                    "name": "Bethesda",
-                    "taxonomySubgroup": "Anthroportic Udorthents",
-                    "description": "Updated format; changed horizonation from Cd to C; location verified to NAD83; corrected saturated hydraulic conductivity for reclaimed and unreclaimed local phases; updated USE AND VEGETATION and REMARKS sections",
-                    "fullDescriptionUrl": "https://casoilresource.lawr.ucdavis.edu/sde/?series=bethesda"
-                  },
-                  "ecologicalSite": {
-                    "name": "Divergent Uplands",
-                    "id": "F127XY013WV",
-                    "url": "https://edit.sc.egov.usda.gov/catalogs/esd/127X/F127XY013WV"
-                  },
-                  "landCapabilityClass": {
-                    "capabilityClass": "4",
-                    "subClass": "s"
-                  },
-                  "soilData": {
-                    "slope": 6.0,
-                    "depthDependentData": [
-                      {
-                        "depthInterval": {
-                          "start": 0,
-                          "end": 15
-                        },
-                        "texture": "LOAM",
-                        "rockFragmentVolume": "VOLUME_15_35",
-                        "munsellColorString": "10YR 6/2"
-                      },
-                      {
-                        "depthInterval": {
-                          "start": 15,
-                          "end": 91
-                        },
-                        "texture": "SANDY_LOAM",
-                        "rockFragmentVolume": "VOLUME_35_60",
-                        "munsellColorString": "10YR 6/3"
-                      },
-                      {
-                        "depthInterval": {
-                          "start": 91,
-                          "end": 137
-                        },
-                        "texture": "LOAMY_SAND",
-                        "rockFragmentVolume": "VOLUME_60"
-                      }
-                    ]
-                  }
-                }
+        "dataRegion": "US",
+        "matches": [
+          {
+            "dataSource": "SSURGO",
+            "distanceToNearestMapUnitM": 0.0,
+            "combinedMatch": {
+              "rank": 0,
+              "score": 0.403
+            },
+            "dataMatch": {
+              "rank": 1,
+              "score": 0.611
+            },
+            "locationMatch": {
+              "rank": 0,
+              "score": 0.194
+            },
+            "soilInfo": {
+              "soilSeries": {
+                "name": "Bethesda",
+                "taxonomySubgroup": "Anthroportic Udorthents",
+                "description": "Updated format; changed horizonation from Cd to C; location verified to NAD83; corrected saturated hydraulic conductivity for reclaimed and unreclaimed local phases; updated USE AND VEGETATION and REMARKS sections",
+                "fullDescriptionUrl": "https://casoilresource.lawr.ucdavis.edu/sde/?series=bethesda"
               },
-              {
-                "dataSource": "SSURGO",
-                "distanceToNearestMapUnitM": 136.0,
-                "combinedMatch": {
-                  "rank": 1,
-                  "score": 0.381
-                },
-                "dataMatch": {
-                  "rank": 4,
-                  "score": 0.591
-                },
-                "locationMatch": {
-                  "rank": 1,
-                  "score": 0.171
-                },
-                "soilInfo": {
-                  "soilSeries": {
-                    "name": "Cookport",
-                    "taxonomySubgroup": "Aquic Fragiudults",
-                    "description": "The Cookport series consists of deep and very deep, moderately well drained soils formed in residuum weathered primarily from sandstone but includes some materials from shale and siltstone. Saturated hydraulic conductivity is moderately high above the fragipan and low in the fragipan. Slope ranges from 0 to 25 percent. Mean annual precipitation is about 1270 millimeters, and mean annual temperature is about 11.1 degrees C.",
-                    "fullDescriptionUrl": "https://casoilresource.lawr.ucdavis.edu/sde/?series=cookport"
-                  },
-                  "ecologicalSite": {
-                    "name": "Wet Uplands",
-                    "id": "F127XY007WV",
-                    "url": "https://edit.sc.egov.usda.gov/catalogs/esd/127X/F127XY007WV"
-                  },
-                  "landCapabilityClass": {
-                    "capabilityClass": "2",
-                    "subClass": "e"
-                  },
-                  "soilData": {
-                    "slope": 5.0,
-                    "depthDependentData": [
-                      {
-                        "depthInterval": {
-                          "start": 0,
-                          "end": 20
-                        },
-                        "texture": "SILT_LOAM",
-                        "rockFragmentVolume": "VOLUME_0_1",
-                        "munsellColorString": "7.5YR 5/2"
-                      },
-                      {
-                        "depthInterval": {
-                          "start": 20,
-                          "end": 53
-                        },
-                        "rockFragmentVolume": "VOLUME_0_1",
-                        "munsellColorString": "10YR 6/2"
-                      },
-                      {
-                        "depthInterval": {
-                          "start": 53,
-                          "end": 107
-                        },
-                        "texture": "SILT_LOAM",
-                        "rockFragmentVolume": "VOLUME_1_15",
-                        "munsellColorString": "10YR 6/2"
-                      },
-                      {
-                        "depthInterval": {
-                          "start": 107,
-                          "end": 165
-                        },
-                        "texture": "SILT_LOAM",
-                        "rockFragmentVolume": "VOLUME_1_15",
-                        "munsellColorString": "10YR 6/3"
-                      }
-                    ]
-                  }
-                }
+              "ecologicalSite": {
+                "name": "Divergent Uplands",
+                "id": "F127XY013WV",
+                "url": "https://edit.sc.egov.usda.gov/catalogs/esd/127X/F127XY013WV"
               },
-              {
-                "dataSource": "SSURGO",
-                "distanceToNearestMapUnitM": 0.0,
-                "combinedMatch": {
-                  "rank": 2,
-                  "score": 0.377
-                },
-                "dataMatch": {
-                  "rank": 5,
-                  "score": 0.584
-                },
-                "locationMatch": {
-                  "rank": 2,
-                  "score": 0.17
-                },
-                "soilInfo": {
-                  "soilSeries": {
-                    "name": "Fairpoint",
-                    "taxonomySubgroup": "Anthroportic Udorthents",
-                    "description": "111 (Indiana and Ohio Till Plain), 113 (Central Claypan Areas), 114 (Southern Illinois and Indiana Thin Loess and Till Plain), 115 (Central Mississippi Valley Wooded Slopes), 120 (Kentucky and Indiana Sandstone and Shale Hills and Valleys), 122 (Highland Rim and Pennyroyal), 124 (Western Allegheny Plateau), 125 (Cumberland Plateau and Mountains), 126  (Central Allegheny Plateau), 127 (Eastern Allegheny Plateau and Mountains), 128 (Southern Appalachian Ridges and Valleys) and 139 (Lake Erie Glaciated Plateau)",
-                    "fullDescriptionUrl": "https://casoilresource.lawr.ucdavis.edu/sde/?series=fairpoint"
-                  },
-                  "landCapabilityClass": {
-                    "capabilityClass": "6",
-                    "subClass": "e"
-                  },
-                  "soilData": {
-                    "slope": 10.0,
-                    "depthDependentData": [
-                      {
-                        "depthInterval": {
-                          "start": 0,
-                          "end": 20
-                        },
-                        "texture": "SILT_LOAM",
-                        "rockFragmentVolume": "VOLUME_1_15",
-                        "munsellColorString": "2.5Y 7/2"
-                      },
-                      {
-                        "depthInterval": {
-                          "start": 20,
-                          "end": 66
-                        },
-                        "texture": "SILT_LOAM",
-                        "rockFragmentVolume": "VOLUME_1_15",
-                        "munsellColorString": "2.5Y 7/2"
-                      },
-                      {
-                        "depthInterval": {
-                          "start": 66,
-                          "end": 122
-                        },
-                        "texture": "SILT_LOAM",
-                        "rockFragmentVolume": "VOLUME_1_15"
-                      },
-                      {
-                        "depthInterval": {
-                          "start": 122,
-                          "end": 216
-                        },
-                        "texture": "SILT_LOAM",
-                        "rockFragmentVolume": "VOLUME_1_15"
-                      }
-                    ]
-                  }
-                }
+              "landCapabilityClass": {
+                "capabilityClass": "4",
+                "subClass": "s"
               },
-              {
-                "dataSource": "SSURGO",
-                "distanceToNearestMapUnitM": 105.0,
-                "combinedMatch": {
-                  "rank": 3,
-                  "score": 0.343
-                },
-                "dataMatch": {
-                  "rank": 2,
-                  "score": 0.611
-                },
-                "locationMatch": {
-                  "rank": 5,
-                  "score": 0.076
-                },
-                "soilInfo": {
-                  "soilSeries": {
-                    "name": "Brinkerton",
-                    "taxonomySubgroup": "Typic Fragiaqualfs",
-                    "description": "The Brinkerton series consists of very deep, poorly drained soils formed in medium textured colluvium derived from acid gray shale and siltstone. Saturated hydraulic conductivity is moderately high or high in the surface and upper subsoil, and moderately low or moderately high in the fragipan and substratum. Slope ranges from 0 to 15 percent. Mean annual precipitation is about 1067 mm, mean annual temperature is about 11 degrees C.",
-                    "fullDescriptionUrl": "https://casoilresource.lawr.ucdavis.edu/sde/?series=brinkerton"
+              "soilData": {
+                "slope": 6.0,
+                "depthDependentData": [
+                  {
+                    "depthInterval": {
+                      "start": 0,
+                      "end": 15
+                    },
+                    "texture": "LOAM",
+                    "rockFragmentVolume": "VOLUME_15_35",
+                    "munsellColorString": "10YR 6/2"
                   },
-                  "landCapabilityClass": {
-                    "capabilityClass": "4",
-                    "subClass": "w"
+                  {
+                    "depthInterval": {
+                      "start": 15,
+                      "end": 91
+                    },
+                    "texture": "SANDY_LOAM",
+                    "rockFragmentVolume": "VOLUME_35_60",
+                    "munsellColorString": "10YR 6/3"
                   },
-                  "soilData": {
-                    "slope": 5.0,
-                    "depthDependentData": [
-                      {
-                        "depthInterval": {
-                          "start": 0,
-                          "end": 3
-                        },
-                        "texture": "SAND",
-                        "rockFragmentVolume": "VOLUME_0_1",
-                        "munsellColorString": "2.5Y 6/2"
-                      },
-                      {
-                        "depthInterval": {
-                          "start": 3,
-                          "end": 5
-                        },
-                        "texture": "SAND",
-                        "rockFragmentVolume": "VOLUME_0_1",
-                        "munsellColorString": "2.5Y 6/2"
-                      },
-                      {
-                        "depthInterval": {
-                          "start": 5,
-                          "end": 25
-                        },
-                        "texture": "SILT_LOAM",
-                        "rockFragmentVolume": "VOLUME_1_15",
-                        "munsellColorString": "2.5Y 6/2"
-                      },
-                      {
-                        "depthInterval": {
-                          "start": 25,
-                          "end": 51
-                        },
-                        "texture": "CLAY_LOAM",
-                        "rockFragmentVolume": "VOLUME_1_15",
-                        "munsellColorString": "10YR 6/3"
-                      },
-                      {
-                        "depthInterval": {
-                          "start": 51,
-                          "end": 122
-                        },
-                        "texture": "SANDY_CLAY_LOAM",
-                        "rockFragmentVolume": "VOLUME_15_35"
-                      }
-                    ]
+                  {
+                    "depthInterval": {
+                      "start": 91,
+                      "end": 137
+                    },
+                    "texture": "LOAMY_SAND",
+                    "rockFragmentVolume": "VOLUME_60"
                   }
-                }
-              },
-              {
-                "dataSource": "SSURGO",
-                "distanceToNearestMapUnitM": 105.0,
-                "combinedMatch": {
-                  "rank": 4,
-                  "score": 0.336
-                },
-                "dataMatch": {
-                  "rank": 8,
-                  "score": 0.545
-                },
-                "locationMatch": {
-                  "rank": 3,
-                  "score": 0.127
-                },
-                "soilInfo": {
-                  "soilSeries": {
-                    "name": "Ernest",
-                    "taxonomySubgroup": "Aquic Fragiudults",
-                    "description": "124 (Western Allegheny Plateau); 126 (Central Allegheny Plateau); 127 (Eastern Allegheny Plateau and Mountains); 128 (Southern Appalachian Ridges and Valleys); 147 (Northern Appalachian Ridges and Valleys)\nDepth Class: Very deep\nDrainage Class (Agricultural): Moderately well or somewhat poorly drained\nSaturated Hydraulic Conductivity Class: Moderately low\nLandscape: Upland\nParent Material: Colluvium derived from acid shale, siltstone and sandstone\nSlope: 0 to 50 percent\nMean Annual Air Temperature (type location): 8.7 degrees C. (48 degrees F.)\nMean Annual Precipitation (type location): 1090 mm (43 inches)",
-                    "fullDescriptionUrl": "https://casoilresource.lawr.ucdavis.edu/sde/?series=ernest"
-                  },
-                  "landCapabilityClass": {
-                    "capabilityClass": "2",
-                    "subClass": "e"
-                  },
-                  "soilData": {
-                    "slope": 6.0,
-                    "depthDependentData": [
-                      {
-                        "depthInterval": {
-                          "start": 0,
-                          "end": 20
-                        },
-                        "texture": "SILT_LOAM",
-                        "rockFragmentVolume": "VOLUME_1_15",
-                        "munsellColorString": "10YR 6/3"
-                      },
-                      {
-                        "depthInterval": {
-                          "start": 20,
-                          "end": 61
-                        },
-                        "texture": "SILT_LOAM",
-                        "rockFragmentVolume": "VOLUME_15_35",
-                        "munsellColorString": "10YR 6/3"
-                      },
-                      {
-                        "depthInterval": {
-                          "start": 61,
-                          "end": 79
-                        },
-                        "texture": "SILT_LOAM",
-                        "rockFragmentVolume": "VOLUME_35_60",
-                        "munsellColorString": "10YR 6/3"
-                      }
-                    ]
-                  }
-                },
-                "userRating": "SELECTED"
-              },
-              {
-                "dataSource": "SSURGO",
-                "distanceToNearestMapUnitM": 105.0,
-                "combinedMatch": {
-                  "rank": 5,
-                  "score": 0.318
-                },
-                "dataMatch": {
-                  "rank": 0,
-                  "score": 0.629
-                },
-                "locationMatch": {
-                  "rank": 9,
-                  "score": 0.007
-                },
-                "soilInfo": {
-                  "soilSeries": {
-                    "name": "Lobdell",
-                    "taxonomySubgroup": "Fluvaquentic Eutrudepts",
-                    "description": "The Lobdell series consists of very deep, moderately well drained soils that formed in recent loamy alluvium. Permeability is moderate in the solum and moderate or moderately rapid in the underlying material. Slope ranges from 0 to 3 percent. Mean annual precipitation is about 38 inches, and mean annual temperature is about 50 degrees F.",
-                    "fullDescriptionUrl": "https://casoilresource.lawr.ucdavis.edu/sde/?series=lobdell"
-                  },
-                  "landCapabilityClass": {
-                    "capabilityClass": "2",
-                    "subClass": "w"
-                  },
-                  "soilData": {
-                    "slope": 2.0,
-                    "depthDependentData": [
-                      {
-                        "depthInterval": {
-                          "start": 0,
-                          "end": 13
-                        },
-                        "texture": "CLAY_LOAM",
-                        "rockFragmentVolume": "VOLUME_15_35",
-                        "munsellColorString": "7.5YR 6/3"
-                      },
-                      {
-                        "depthInterval": {
-                          "start": 13,
-                          "end": 48
-                        },
-                        "texture": "SILT_LOAM",
-                        "rockFragmentVolume": "VOLUME_15_35",
-                        "munsellColorString": "7.5YR 6/4"
-                      },
-                      {
-                        "depthInterval": {
-                          "start": 48,
-                          "end": 203
-                        },
-                        "texture": "LOAM",
-                        "rockFragmentVolume": "VOLUME_15_35",
-                        "munsellColorString": "2.5Y 6/2"
-                      }
-                    ]
-                  }
-                }
-              },
-              {
-                "dataSource": "SSURGO",
-                "distanceToNearestMapUnitM": 0.0,
-                "combinedMatch": {
-                  "rank": 6,
-                  "score": 0.311
-                },
-                "dataMatch": {
-                  "rank": 3,
-                  "score": 0.602
-                },
-                "locationMatch": {
-                  "rank": 7,
-                  "score": 0.02
-                },
-                "soilInfo": {
-                  "soilSeries": {
-                    "name": "Aeric epiaquents",
-                    "taxonomySubgroup": "Aeric Epiaquents",
-                    "description": "",
-                    "fullDescriptionUrl": ""
-                  },
-                  "landCapabilityClass": {
-                    "capabilityClass": "6",
-                    "subClass": "w"
-                  },
-                  "soilData": {
-                    "slope": 10.0,
-                    "depthDependentData": [
-                      {
-                        "depthInterval": {
-                          "start": 0,
-                          "end": 4
-                        },
-                        "texture": "SAND",
-                        "rockFragmentVolume": "VOLUME_0_1",
-                        "munsellColorString": ""
-                      },
-                      {
-                        "depthInterval": {
-                          "start": 4,
-                          "end": 7
-                        },
-                        "texture": "CLAY_LOAM",
-                        "rockFragmentVolume": "VOLUME_1_15",
-                        "munsellColorString": ""
-                      },
-                      {
-                        "depthInterval": {
-                          "start": 7,
-                          "end": 17
-                        },
-                        "texture": "SILT_LOAM",
-                        "rockFragmentVolume": "VOLUME_1_15",
-                        "munsellColorString": ""
-                      },
-                      {
-                        "depthInterval": {
-                          "start": 17,
-                          "end": 62
-                        },
-                        "texture": "SILT_LOAM",
-                        "rockFragmentVolume": "VOLUME_15_35",
-                        "munsellColorString": ""
-                      },
-                      {
-                        "depthInterval": {
-                          "start": 62,
-                          "end": 80
-                        },
-                        "texture": "SILT_LOAM",
-                        "rockFragmentVolume": "VOLUME_60",
-                        "munsellColorString": ""
-                      }
-                    ]
-                  }
-                }
-              },
-              {
-                "dataSource": "SSURGO",
-                "distanceToNearestMapUnitM": 136.0,
-                "combinedMatch": {
-                  "rank": 7,
-                  "score": 0.304
-                },
-                "dataMatch": {
-                  "rank": 9,
-                  "score": 0.517
-                },
-                "locationMatch": {
-                  "rank": 4,
-                  "score": 0.092
-                },
-                "soilInfo": {
-                  "soilSeries": {
-                    "name": "Hazleton",
-                    "taxonomySubgroup": "Typic Dystrudepts",
-                    "description": "Deep and very deep\nDrainage class: Well drained\nParent material: Residuum from acid gray, brown, or red sandstone\nSlope range: 0 to 80 percent\nSaturated hydraulic conductivity: Moderately high to high\nMean annual temperature: 10.5 C (51 F)\nMean annual precipitation: 1220 millimeters (48 inches)",
-                    "fullDescriptionUrl": "https://casoilresource.lawr.ucdavis.edu/sde/?series=hazleton"
-                  },
-                  "landCapabilityClass": {
-                    "capabilityClass": "2",
-                    "subClass": "e"
-                  },
-                  "soilData": {
-                    "slope": 6.0,
-                    "depthDependentData": [
-                      {
-                        "depthInterval": {
-                          "start": 0,
-                          "end": 18
-                        },
-                        "texture": "SILT_LOAM",
-                        "rockFragmentVolume": "VOLUME_1_15",
-                        "munsellColorString": "5YR 4/2"
-                      },
-                      {
-                        "depthInterval": {
-                          "start": 18,
-                          "end": 107
-                        },
-                        "rockFragmentVolume": "VOLUME_1_15",
-                        "munsellColorString": "5YR 4/2"
-                      },
-                      {
-                        "depthInterval": {
-                          "start": 107,
-                          "end": 152
-                        },
-                        "rockFragmentVolume": "VOLUME_35_60",
-                        "munsellColorString": "10YR 6/1"
-                      }
-                    ]
-                  }
-                }
-              },
-              {
-                "dataSource": "SSURGO",
-                "distanceToNearestMapUnitM": 0.0,
-                "combinedMatch": {
-                  "rank": 8,
-                  "score": 0.297
-                },
-                "dataMatch": {
-                  "rank": 7,
-                  "score": 0.558
-                },
-                "locationMatch": {
-                  "rank": 6,
-                  "score": 0.036
-                },
-                "soilInfo": {
-                  "soilSeries": {
-                    "name": "Gilpin",
-                    "taxonomySubgroup": "Typic Hapludults",
-                    "description": "",
-                    "fullDescriptionUrl": "https://casoilresource.lawr.ucdavis.edu/sde/?series=gilpin"
-                  },
-                  "ecologicalSite": {
-                    "name": "Divergent Uplands",
-                    "id": "F127XY013WV",
-                    "url": "https://edit.sc.egov.usda.gov/catalogs/esd/127X/F127XY013WV"
-                  },
-                  "landCapabilityClass": {
-                    "capabilityClass": "2",
-                    "subClass": "e"
-                  },
-                  "soilData": {
-                    "slope": 6.0,
-                    "depthDependentData": [
-                      {
-                        "depthInterval": {
-                          "start": 0,
-                          "end": 3
-                        },
-                        "texture": "SAND",
-                        "rockFragmentVolume": "VOLUME_0_1",
-                        "munsellColorString": "10YR 6/2"
-                      },
-                      {
-                        "depthInterval": {
-                          "start": 3,
-                          "end": 5
-                        },
-                        "texture": "SAND",
-                        "rockFragmentVolume": "VOLUME_0_1",
-                        "munsellColorString": "10YR 6/2"
-                      },
-                      {
-                        "depthInterval": {
-                          "start": 5,
-                          "end": 10
-                        },
-                        "texture": "LOAM",
-                        "rockFragmentVolume": "VOLUME_15_35",
-                        "munsellColorString": "10YR 6/2"
-                      },
-                      {
-                        "depthInterval": {
-                          "start": 10,
-                          "end": 20
-                        },
-                        "texture": "LOAM",
-                        "rockFragmentVolume": "VOLUME_1_15",
-                        "munsellColorString": "10YR 6/4"
-                      },
-                      {
-                        "depthInterval": {
-                          "start": 20,
-                          "end": 58
-                        },
-                        "texture": "LOAM",
-                        "rockFragmentVolume": "VOLUME_1_15",
-                        "munsellColorString": "10YR 6/3"
-                      },
-                      {
-                        "depthInterval": {
-                          "start": 58,
-                          "end": 102
-                        },
-                        "texture": "SANDY_CLAY_LOAM",
-                        "rockFragmentVolume": "VOLUME_15_35"
-                      },
-                      {
-                        "depthInterval": {
-                          "start": 102,
-                          "end": 117
-                        },
-                        "texture": "SANDY_LOAM",
-                        "rockFragmentVolume": "VOLUME_15_35"
-                      }
-                    ]
-                  }
-                }
-              },
-              {
-                "dataSource": "SSURGO",
-                "distanceToNearestMapUnitM": 136.0,
-                "combinedMatch": {
-                  "rank": 9,
-                  "score": 0.297
-                },
-                "dataMatch": {
-                  "rank": 6,
-                  "score": 0.584
-                },
-                "locationMatch": {
-                  "rank": 8,
-                  "score": 0.01
-                },
-                "soilInfo": {
-                  "soilSeries": {
-                    "name": "Nolo",
-                    "taxonomySubgroup": "Typic Fragiaquults",
-                    "description": "The Nolo series consists of deep and very deep, poorly drained soils formed in residuum primarily from sandstone but includes some materials from shale and siltstone. Slope ranges from 0 to 8 percent. Saturated hydraulic conductivity is moderately high above the fragipan and low in the fragipan. Mean annual precipitation is about 1092 millimeters. Mean annual air temperature is about 10 degrees C.",
-                    "fullDescriptionUrl": "https://casoilresource.lawr.ucdavis.edu/sde/?series=nolo"
-                  },
-                  "ecologicalSite": {
-                    "name": "Mine Spoil",
-                    "id": "F127XY100WV",
-                    "url": "https://edit.sc.egov.usda.gov/catalogs/esd/127X/F127XY100WV"
-                  },
-                  "landCapabilityClass": {
-                    "capabilityClass": "4",
-                    "subClass": "w"
-                  },
-                  "soilData": {
-                    "slope": 6.0,
-                    "depthDependentData": [
-                      {
-                        "depthInterval": {
-                          "start": 0,
-                          "end": 7
-                        },
-                        "texture": "SILT_LOAM",
-                        "rockFragmentVolume": "VOLUME_15_35",
-                        "munsellColorString": "5Y 4/1"
-                      },
-                      {
-                        "depthInterval": {
-                          "start": 7,
-                          "end": 200
-                        },
-                        "rockFragmentVolume": "VOLUME_60",
-                        "munsellColorString": "5Y 4/1"
-                      }
-                    ]
-                  }
-                }
-              },
-              {
-                "dataSource": "SSURGO",
-                "distanceToNearestMapUnitM": 144.0,
-                "combinedMatch": {
-                  "rank": 10,
-                  "score": 0.246
-                },
-                "dataMatch": {
-                  "rank": 10,
-                  "score": 0.49
-                },
-                "locationMatch": {
-                  "rank": 11,
-                  "score": 0.003
-                },
-                "soilInfo": {
-                  "soilSeries": {
-                    "name": "Cavode",
-                    "taxonomySubgroup": "Aeric Endoaquults",
-                    "description": "The Cavode series consists of deep and very deep, somewhat poorly drained upland soils formed in residuum weathered from gray and yellow acid shale interbedded with siltstone and sandstone. These soils are found on broad ridgetops, interfluves, and sideslopes. Saturated hydraulic conductivity is low. Slope ranges from 0 to 25 percent. Mean annual precipitation is about 1067 mm (42 inches) and the mean annual air temperature is about 10.5 C (51 degrees F).",
-                    "fullDescriptionUrl": "https://casoilresource.lawr.ucdavis.edu/sde/?series=cavode"
-                  },
-                  "ecologicalSite": {
-                    "name": "Mine Spoil",
-                    "id": "F127XY100WV",
-                    "url": "https://edit.sc.egov.usda.gov/catalogs/esd/127X/F127XY100WV"
-                  },
-                  "landCapabilityClass": {
-                    "capabilityClass": "3",
-                    "subClass": "w"
-                  },
-                  "soilData": {
-                    "slope": 6.0,
-                    "depthDependentData": [
-                      {
-                        "depthInterval": {
-                          "start": 0,
-                          "end": 7
-                        },
-                        "texture": "SILT_LOAM",
-                        "rockFragmentVolume": "VOLUME_15_35",
-                        "munsellColorString": "10YR 6/3"
-                      },
-                      {
-                        "depthInterval": {
-                          "start": 7,
-                          "end": 200
-                        },
-                        "rockFragmentVolume": "VOLUME_60",
-                        "munsellColorString": "10YR 7/2"
-                      }
-                    ]
-                  }
-                }
-              },
-              {
-                "dataSource": "SSURGO",
-                "distanceToNearestMapUnitM": 144.0,
-                "combinedMatch": {
-                  "rank": 11,
-                  "score": 0.243
-                },
-                "dataMatch": {
-                  "rank": 11,
-                  "score": 0.48
-                },
-                "locationMatch": {
-                  "rank": 10,
-                  "score": 0.005
-                },
-                "soilInfo": {
-                  "soilSeries": {
-                    "name": "Armagh",
-                    "taxonomySubgroup": "Typic Endoaquults",
-                    "description": "The Armagh series consists of deep and very deep, poorly drained soils formed in residuum from acid shale interbedded with siltstone and sandstone.  They are on broad ridgetops and benches.  Slopes range from 0 to 8 percent. Saturated hydraulic conductivity is low. Mean annual precipitation is 1066 millimeters (42 inches).  Mean annual temperature is 10.5 degrees C (51 F).",
-                    "fullDescriptionUrl": "https://casoilresource.lawr.ucdavis.edu/sde/?series=armagh"
-                  },
-                  "landCapabilityClass": {
-                    "capabilityClass": "4",
-                    "subClass": "w"
-                  },
-                  "soilData": {
-                    "slope": 6.0,
-                    "depthDependentData": [
-                      {
-                        "depthInterval": {
-                          "start": 0,
-                          "end": 4
-                        },
-                        "texture": "SAND",
-                        "rockFragmentVolume": "VOLUME_0_1",
-                        "munsellColorString": "10YR 5/1"
-                      },
-                      {
-                        "depthInterval": {
-                          "start": 4,
-                          "end": 7
-                        },
-                        "texture": "CLAY_LOAM",
-                        "rockFragmentVolume": "VOLUME_1_15",
-                        "munsellColorString": "10YR 8/1"
-                      },
-                      {
-                        "depthInterval": {
-                          "start": 7,
-                          "end": 17
-                        },
-                        "texture": "SILT_LOAM",
-                        "rockFragmentVolume": "VOLUME_1_15",
-                        "munsellColorString": "10YR 8/1"
-                      },
-                      {
-                        "depthInterval": {
-                          "start": 17,
-                          "end": 62
-                        },
-                        "texture": "SILT_LOAM",
-                        "rockFragmentVolume": "VOLUME_15_35"
-                      },
-                      {
-                        "depthInterval": {
-                          "start": 62,
-                          "end": 80
-                        },
-                        "texture": "SILT_LOAM",
-                        "rockFragmentVolume": "VOLUME_60"
-                      }
-                    ]
-                  }
-                }
+                ]
               }
-            ]
+            }
+          },
+          {
+            "dataSource": "SSURGO",
+            "distanceToNearestMapUnitM": 136.0,
+            "combinedMatch": {
+              "rank": 1,
+              "score": 0.381
+            },
+            "dataMatch": {
+              "rank": 4,
+              "score": 0.591
+            },
+            "locationMatch": {
+              "rank": 1,
+              "score": 0.171
+            },
+            "soilInfo": {
+              "soilSeries": {
+                "name": "Cookport",
+                "taxonomySubgroup": "Aquic Fragiudults",
+                "description": "The Cookport series consists of deep and very deep, moderately well drained soils formed in residuum weathered primarily from sandstone but includes some materials from shale and siltstone. Saturated hydraulic conductivity is moderately high above the fragipan and low in the fragipan. Slope ranges from 0 to 25 percent. Mean annual precipitation is about 1270 millimeters, and mean annual temperature is about 11.1 degrees C.",
+                "fullDescriptionUrl": "https://casoilresource.lawr.ucdavis.edu/sde/?series=cookport"
+              },
+              "ecologicalSite": {
+                "name": "Wet Uplands",
+                "id": "F127XY007WV",
+                "url": "https://edit.sc.egov.usda.gov/catalogs/esd/127X/F127XY007WV"
+              },
+              "landCapabilityClass": {
+                "capabilityClass": "2",
+                "subClass": "e"
+              },
+              "soilData": {
+                "slope": 5.0,
+                "depthDependentData": [
+                  {
+                    "depthInterval": {
+                      "start": 0,
+                      "end": 20
+                    },
+                    "texture": "SILT_LOAM",
+                    "rockFragmentVolume": "VOLUME_0_1",
+                    "munsellColorString": "7.5YR 5/2"
+                  },
+                  {
+                    "depthInterval": {
+                      "start": 20,
+                      "end": 53
+                    },
+                    "rockFragmentVolume": "VOLUME_0_1",
+                    "munsellColorString": "10YR 6/2"
+                  },
+                  {
+                    "depthInterval": {
+                      "start": 53,
+                      "end": 107
+                    },
+                    "texture": "SILT_LOAM",
+                    "rockFragmentVolume": "VOLUME_1_15",
+                    "munsellColorString": "10YR 6/2"
+                  },
+                  {
+                    "depthInterval": {
+                      "start": 107,
+                      "end": 165
+                    },
+                    "texture": "SILT_LOAM",
+                    "rockFragmentVolume": "VOLUME_1_15",
+                    "munsellColorString": "10YR 6/3"
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "dataSource": "SSURGO",
+            "distanceToNearestMapUnitM": 0.0,
+            "combinedMatch": {
+              "rank": 2,
+              "score": 0.377
+            },
+            "dataMatch": {
+              "rank": 5,
+              "score": 0.584
+            },
+            "locationMatch": {
+              "rank": 2,
+              "score": 0.17
+            },
+            "soilInfo": {
+              "soilSeries": {
+                "name": "Fairpoint",
+                "taxonomySubgroup": "Anthroportic Udorthents",
+                "description": "111 (Indiana and Ohio Till Plain), 113 (Central Claypan Areas), 114 (Southern Illinois and Indiana Thin Loess and Till Plain), 115 (Central Mississippi Valley Wooded Slopes), 120 (Kentucky and Indiana Sandstone and Shale Hills and Valleys), 122 (Highland Rim and Pennyroyal), 124 (Western Allegheny Plateau), 125 (Cumberland Plateau and Mountains), 126  (Central Allegheny Plateau), 127 (Eastern Allegheny Plateau and Mountains), 128 (Southern Appalachian Ridges and Valleys) and 139 (Lake Erie Glaciated Plateau)",
+                "fullDescriptionUrl": "https://casoilresource.lawr.ucdavis.edu/sde/?series=fairpoint"
+              },
+              "landCapabilityClass": {
+                "capabilityClass": "6",
+                "subClass": "e"
+              },
+              "soilData": {
+                "slope": 10.0,
+                "depthDependentData": [
+                  {
+                    "depthInterval": {
+                      "start": 0,
+                      "end": 20
+                    },
+                    "texture": "SILT_LOAM",
+                    "rockFragmentVolume": "VOLUME_1_15",
+                    "munsellColorString": "2.5Y 7/2"
+                  },
+                  {
+                    "depthInterval": {
+                      "start": 20,
+                      "end": 66
+                    },
+                    "texture": "SILT_LOAM",
+                    "rockFragmentVolume": "VOLUME_1_15",
+                    "munsellColorString": "2.5Y 7/2"
+                  },
+                  {
+                    "depthInterval": {
+                      "start": 66,
+                      "end": 122
+                    },
+                    "texture": "SILT_LOAM",
+                    "rockFragmentVolume": "VOLUME_1_15"
+                  },
+                  {
+                    "depthInterval": {
+                      "start": 122,
+                      "end": 216
+                    },
+                    "texture": "SILT_LOAM",
+                    "rockFragmentVolume": "VOLUME_1_15"
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "dataSource": "SSURGO",
+            "distanceToNearestMapUnitM": 105.0,
+            "combinedMatch": {
+              "rank": 3,
+              "score": 0.343
+            },
+            "dataMatch": {
+              "rank": 2,
+              "score": 0.611
+            },
+            "locationMatch": {
+              "rank": 5,
+              "score": 0.076
+            },
+            "soilInfo": {
+              "soilSeries": {
+                "name": "Brinkerton",
+                "taxonomySubgroup": "Typic Fragiaqualfs",
+                "description": "The Brinkerton series consists of very deep, poorly drained soils formed in medium textured colluvium derived from acid gray shale and siltstone. Saturated hydraulic conductivity is moderately high or high in the surface and upper subsoil, and moderately low or moderately high in the fragipan and substratum. Slope ranges from 0 to 15 percent. Mean annual precipitation is about 1067 mm, mean annual temperature is about 11 degrees C.",
+                "fullDescriptionUrl": "https://casoilresource.lawr.ucdavis.edu/sde/?series=brinkerton"
+              },
+              "landCapabilityClass": {
+                "capabilityClass": "4",
+                "subClass": "w"
+              },
+              "soilData": {
+                "slope": 5.0,
+                "depthDependentData": [
+                  {
+                    "depthInterval": {
+                      "start": 0,
+                      "end": 3
+                    },
+                    "texture": "SAND",
+                    "rockFragmentVolume": "VOLUME_0_1",
+                    "munsellColorString": "2.5Y 6/2"
+                  },
+                  {
+                    "depthInterval": {
+                      "start": 3,
+                      "end": 5
+                    },
+                    "texture": "SAND",
+                    "rockFragmentVolume": "VOLUME_0_1",
+                    "munsellColorString": "2.5Y 6/2"
+                  },
+                  {
+                    "depthInterval": {
+                      "start": 5,
+                      "end": 25
+                    },
+                    "texture": "SILT_LOAM",
+                    "rockFragmentVolume": "VOLUME_1_15",
+                    "munsellColorString": "2.5Y 6/2"
+                  },
+                  {
+                    "depthInterval": {
+                      "start": 25,
+                      "end": 51
+                    },
+                    "texture": "CLAY_LOAM",
+                    "rockFragmentVolume": "VOLUME_1_15",
+                    "munsellColorString": "10YR 6/3"
+                  },
+                  {
+                    "depthInterval": {
+                      "start": 51,
+                      "end": 122
+                    },
+                    "texture": "SANDY_CLAY_LOAM",
+                    "rockFragmentVolume": "VOLUME_15_35"
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "dataSource": "SSURGO",
+            "distanceToNearestMapUnitM": 105.0,
+            "combinedMatch": {
+              "rank": 4,
+              "score": 0.336
+            },
+            "dataMatch": {
+              "rank": 8,
+              "score": 0.545
+            },
+            "locationMatch": {
+              "rank": 3,
+              "score": 0.127
+            },
+            "soilInfo": {
+              "soilSeries": {
+                "name": "Ernest",
+                "taxonomySubgroup": "Aquic Fragiudults",
+                "description": "124 (Western Allegheny Plateau); 126 (Central Allegheny Plateau); 127 (Eastern Allegheny Plateau and Mountains); 128 (Southern Appalachian Ridges and Valleys); 147 (Northern Appalachian Ridges and Valleys)\nDepth Class: Very deep\nDrainage Class (Agricultural): Moderately well or somewhat poorly drained\nSaturated Hydraulic Conductivity Class: Moderately low\nLandscape: Upland\nParent Material: Colluvium derived from acid shale, siltstone and sandstone\nSlope: 0 to 50 percent\nMean Annual Air Temperature (type location): 8.7 degrees C. (48 degrees F.)\nMean Annual Precipitation (type location): 1090 mm (43 inches)",
+                "fullDescriptionUrl": "https://casoilresource.lawr.ucdavis.edu/sde/?series=ernest"
+              },
+              "landCapabilityClass": {
+                "capabilityClass": "2",
+                "subClass": "e"
+              },
+              "soilData": {
+                "slope": 6.0,
+                "depthDependentData": [
+                  {
+                    "depthInterval": {
+                      "start": 0,
+                      "end": 20
+                    },
+                    "texture": "SILT_LOAM",
+                    "rockFragmentVolume": "VOLUME_1_15",
+                    "munsellColorString": "10YR 6/3"
+                  },
+                  {
+                    "depthInterval": {
+                      "start": 20,
+                      "end": 61
+                    },
+                    "texture": "SILT_LOAM",
+                    "rockFragmentVolume": "VOLUME_15_35",
+                    "munsellColorString": "10YR 6/3"
+                  },
+                  {
+                    "depthInterval": {
+                      "start": 61,
+                      "end": 79
+                    },
+                    "texture": "SILT_LOAM",
+                    "rockFragmentVolume": "VOLUME_35_60",
+                    "munsellColorString": "10YR 6/3"
+                  }
+                ]
+              }
+            },
+            "userRating": "SELECTED"
+          },
+          {
+            "dataSource": "SSURGO",
+            "distanceToNearestMapUnitM": 105.0,
+            "combinedMatch": {
+              "rank": 5,
+              "score": 0.318
+            },
+            "dataMatch": {
+              "rank": 0,
+              "score": 0.629
+            },
+            "locationMatch": {
+              "rank": 9,
+              "score": 0.007
+            },
+            "soilInfo": {
+              "soilSeries": {
+                "name": "Lobdell",
+                "taxonomySubgroup": "Fluvaquentic Eutrudepts",
+                "description": "The Lobdell series consists of very deep, moderately well drained soils that formed in recent loamy alluvium. Permeability is moderate in the solum and moderate or moderately rapid in the underlying material. Slope ranges from 0 to 3 percent. Mean annual precipitation is about 38 inches, and mean annual temperature is about 50 degrees F.",
+                "fullDescriptionUrl": "https://casoilresource.lawr.ucdavis.edu/sde/?series=lobdell"
+              },
+              "landCapabilityClass": {
+                "capabilityClass": "2",
+                "subClass": "w"
+              },
+              "soilData": {
+                "slope": 2.0,
+                "depthDependentData": [
+                  {
+                    "depthInterval": {
+                      "start": 0,
+                      "end": 13
+                    },
+                    "texture": "CLAY_LOAM",
+                    "rockFragmentVolume": "VOLUME_15_35",
+                    "munsellColorString": "7.5YR 6/3"
+                  },
+                  {
+                    "depthInterval": {
+                      "start": 13,
+                      "end": 48
+                    },
+                    "texture": "SILT_LOAM",
+                    "rockFragmentVolume": "VOLUME_15_35",
+                    "munsellColorString": "7.5YR 6/4"
+                  },
+                  {
+                    "depthInterval": {
+                      "start": 48,
+                      "end": 203
+                    },
+                    "texture": "LOAM",
+                    "rockFragmentVolume": "VOLUME_15_35",
+                    "munsellColorString": "2.5Y 6/2"
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "dataSource": "SSURGO",
+            "distanceToNearestMapUnitM": 0.0,
+            "combinedMatch": {
+              "rank": 6,
+              "score": 0.311
+            },
+            "dataMatch": {
+              "rank": 3,
+              "score": 0.602
+            },
+            "locationMatch": {
+              "rank": 7,
+              "score": 0.02
+            },
+            "soilInfo": {
+              "soilSeries": {
+                "name": "Aeric epiaquents",
+                "taxonomySubgroup": "Aeric Epiaquents",
+                "description": "",
+                "fullDescriptionUrl": ""
+              },
+              "landCapabilityClass": {
+                "capabilityClass": "6",
+                "subClass": "w"
+              },
+              "soilData": {
+                "slope": 10.0,
+                "depthDependentData": [
+                  {
+                    "depthInterval": {
+                      "start": 0,
+                      "end": 4
+                    },
+                    "texture": "SAND",
+                    "rockFragmentVolume": "VOLUME_0_1",
+                    "munsellColorString": ""
+                  },
+                  {
+                    "depthInterval": {
+                      "start": 4,
+                      "end": 7
+                    },
+                    "texture": "CLAY_LOAM",
+                    "rockFragmentVolume": "VOLUME_1_15",
+                    "munsellColorString": ""
+                  },
+                  {
+                    "depthInterval": {
+                      "start": 7,
+                      "end": 17
+                    },
+                    "texture": "SILT_LOAM",
+                    "rockFragmentVolume": "VOLUME_1_15",
+                    "munsellColorString": ""
+                  },
+                  {
+                    "depthInterval": {
+                      "start": 17,
+                      "end": 62
+                    },
+                    "texture": "SILT_LOAM",
+                    "rockFragmentVolume": "VOLUME_15_35",
+                    "munsellColorString": ""
+                  },
+                  {
+                    "depthInterval": {
+                      "start": 62,
+                      "end": 80
+                    },
+                    "texture": "SILT_LOAM",
+                    "rockFragmentVolume": "VOLUME_60",
+                    "munsellColorString": ""
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "dataSource": "SSURGO",
+            "distanceToNearestMapUnitM": 136.0,
+            "combinedMatch": {
+              "rank": 7,
+              "score": 0.304
+            },
+            "dataMatch": {
+              "rank": 9,
+              "score": 0.517
+            },
+            "locationMatch": {
+              "rank": 4,
+              "score": 0.092
+            },
+            "soilInfo": {
+              "soilSeries": {
+                "name": "Hazleton",
+                "taxonomySubgroup": "Typic Dystrudepts",
+                "description": "Deep and very deep\nDrainage class: Well drained\nParent material: Residuum from acid gray, brown, or red sandstone\nSlope range: 0 to 80 percent\nSaturated hydraulic conductivity: Moderately high to high\nMean annual temperature: 10.5 C (51 F)\nMean annual precipitation: 1220 millimeters (48 inches)",
+                "fullDescriptionUrl": "https://casoilresource.lawr.ucdavis.edu/sde/?series=hazleton"
+              },
+              "landCapabilityClass": {
+                "capabilityClass": "2",
+                "subClass": "e"
+              },
+              "soilData": {
+                "slope": 6.0,
+                "depthDependentData": [
+                  {
+                    "depthInterval": {
+                      "start": 0,
+                      "end": 18
+                    },
+                    "texture": "SILT_LOAM",
+                    "rockFragmentVolume": "VOLUME_1_15",
+                    "munsellColorString": "5YR 4/2"
+                  },
+                  {
+                    "depthInterval": {
+                      "start": 18,
+                      "end": 107
+                    },
+                    "rockFragmentVolume": "VOLUME_1_15",
+                    "munsellColorString": "5YR 4/2"
+                  },
+                  {
+                    "depthInterval": {
+                      "start": 107,
+                      "end": 152
+                    },
+                    "rockFragmentVolume": "VOLUME_35_60",
+                    "munsellColorString": "10YR 6/1"
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "dataSource": "SSURGO",
+            "distanceToNearestMapUnitM": 0.0,
+            "combinedMatch": {
+              "rank": 8,
+              "score": 0.297
+            },
+            "dataMatch": {
+              "rank": 7,
+              "score": 0.558
+            },
+            "locationMatch": {
+              "rank": 6,
+              "score": 0.036
+            },
+            "soilInfo": {
+              "soilSeries": {
+                "name": "Gilpin",
+                "taxonomySubgroup": "Typic Hapludults",
+                "description": "",
+                "fullDescriptionUrl": "https://casoilresource.lawr.ucdavis.edu/sde/?series=gilpin"
+              },
+              "ecologicalSite": {
+                "name": "Divergent Uplands",
+                "id": "F127XY013WV",
+                "url": "https://edit.sc.egov.usda.gov/catalogs/esd/127X/F127XY013WV"
+              },
+              "landCapabilityClass": {
+                "capabilityClass": "2",
+                "subClass": "e"
+              },
+              "soilData": {
+                "slope": 6.0,
+                "depthDependentData": [
+                  {
+                    "depthInterval": {
+                      "start": 0,
+                      "end": 3
+                    },
+                    "texture": "SAND",
+                    "rockFragmentVolume": "VOLUME_0_1",
+                    "munsellColorString": "10YR 6/2"
+                  },
+                  {
+                    "depthInterval": {
+                      "start": 3,
+                      "end": 5
+                    },
+                    "texture": "SAND",
+                    "rockFragmentVolume": "VOLUME_0_1",
+                    "munsellColorString": "10YR 6/2"
+                  },
+                  {
+                    "depthInterval": {
+                      "start": 5,
+                      "end": 10
+                    },
+                    "texture": "LOAM",
+                    "rockFragmentVolume": "VOLUME_15_35",
+                    "munsellColorString": "10YR 6/2"
+                  },
+                  {
+                    "depthInterval": {
+                      "start": 10,
+                      "end": 20
+                    },
+                    "texture": "LOAM",
+                    "rockFragmentVolume": "VOLUME_1_15",
+                    "munsellColorString": "10YR 6/4"
+                  },
+                  {
+                    "depthInterval": {
+                      "start": 20,
+                      "end": 58
+                    },
+                    "texture": "LOAM",
+                    "rockFragmentVolume": "VOLUME_1_15",
+                    "munsellColorString": "10YR 6/3"
+                  },
+                  {
+                    "depthInterval": {
+                      "start": 58,
+                      "end": 102
+                    },
+                    "texture": "SANDY_CLAY_LOAM",
+                    "rockFragmentVolume": "VOLUME_15_35"
+                  },
+                  {
+                    "depthInterval": {
+                      "start": 102,
+                      "end": 117
+                    },
+                    "texture": "SANDY_LOAM",
+                    "rockFragmentVolume": "VOLUME_15_35"
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "dataSource": "SSURGO",
+            "distanceToNearestMapUnitM": 136.0,
+            "combinedMatch": {
+              "rank": 9,
+              "score": 0.297
+            },
+            "dataMatch": {
+              "rank": 6,
+              "score": 0.584
+            },
+            "locationMatch": {
+              "rank": 8,
+              "score": 0.01
+            },
+            "soilInfo": {
+              "soilSeries": {
+                "name": "Nolo",
+                "taxonomySubgroup": "Typic Fragiaquults",
+                "description": "The Nolo series consists of deep and very deep, poorly drained soils formed in residuum primarily from sandstone but includes some materials from shale and siltstone. Slope ranges from 0 to 8 percent. Saturated hydraulic conductivity is moderately high above the fragipan and low in the fragipan. Mean annual precipitation is about 1092 millimeters. Mean annual air temperature is about 10 degrees C.",
+                "fullDescriptionUrl": "https://casoilresource.lawr.ucdavis.edu/sde/?series=nolo"
+              },
+              "ecologicalSite": {
+                "name": "Mine Spoil",
+                "id": "F127XY100WV",
+                "url": "https://edit.sc.egov.usda.gov/catalogs/esd/127X/F127XY100WV"
+              },
+              "landCapabilityClass": {
+                "capabilityClass": "4",
+                "subClass": "w"
+              },
+              "soilData": {
+                "slope": 6.0,
+                "depthDependentData": [
+                  {
+                    "depthInterval": {
+                      "start": 0,
+                      "end": 7
+                    },
+                    "texture": "SILT_LOAM",
+                    "rockFragmentVolume": "VOLUME_15_35",
+                    "munsellColorString": "5Y 4/1"
+                  },
+                  {
+                    "depthInterval": {
+                      "start": 7,
+                      "end": 200
+                    },
+                    "rockFragmentVolume": "VOLUME_60",
+                    "munsellColorString": "5Y 4/1"
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "dataSource": "SSURGO",
+            "distanceToNearestMapUnitM": 144.0,
+            "combinedMatch": {
+              "rank": 10,
+              "score": 0.246
+            },
+            "dataMatch": {
+              "rank": 10,
+              "score": 0.49
+            },
+            "locationMatch": {
+              "rank": 11,
+              "score": 0.003
+            },
+            "soilInfo": {
+              "soilSeries": {
+                "name": "Cavode",
+                "taxonomySubgroup": "Aeric Endoaquults",
+                "description": "The Cavode series consists of deep and very deep, somewhat poorly drained upland soils formed in residuum weathered from gray and yellow acid shale interbedded with siltstone and sandstone. These soils are found on broad ridgetops, interfluves, and sideslopes. Saturated hydraulic conductivity is low. Slope ranges from 0 to 25 percent. Mean annual precipitation is about 1067 mm (42 inches) and the mean annual air temperature is about 10.5 C (51 degrees F).",
+                "fullDescriptionUrl": "https://casoilresource.lawr.ucdavis.edu/sde/?series=cavode"
+              },
+              "ecologicalSite": {
+                "name": "Mine Spoil",
+                "id": "F127XY100WV",
+                "url": "https://edit.sc.egov.usda.gov/catalogs/esd/127X/F127XY100WV"
+              },
+              "landCapabilityClass": {
+                "capabilityClass": "3",
+                "subClass": "w"
+              },
+              "soilData": {
+                "slope": 6.0,
+                "depthDependentData": [
+                  {
+                    "depthInterval": {
+                      "start": 0,
+                      "end": 7
+                    },
+                    "texture": "SILT_LOAM",
+                    "rockFragmentVolume": "VOLUME_15_35",
+                    "munsellColorString": "10YR 6/3"
+                  },
+                  {
+                    "depthInterval": {
+                      "start": 7,
+                      "end": 200
+                    },
+                    "rockFragmentVolume": "VOLUME_60",
+                    "munsellColorString": "10YR 7/2"
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "dataSource": "SSURGO",
+            "distanceToNearestMapUnitM": 144.0,
+            "combinedMatch": {
+              "rank": 11,
+              "score": 0.243
+            },
+            "dataMatch": {
+              "rank": 11,
+              "score": 0.48
+            },
+            "locationMatch": {
+              "rank": 10,
+              "score": 0.005
+            },
+            "soilInfo": {
+              "soilSeries": {
+                "name": "Armagh",
+                "taxonomySubgroup": "Typic Endoaquults",
+                "description": "The Armagh series consists of deep and very deep, poorly drained soils formed in residuum from acid shale interbedded with siltstone and sandstone.  They are on broad ridgetops and benches.  Slopes range from 0 to 8 percent. Saturated hydraulic conductivity is low. Mean annual precipitation is 1066 millimeters (42 inches).  Mean annual temperature is 10.5 degrees C (51 F).",
+                "fullDescriptionUrl": "https://casoilresource.lawr.ucdavis.edu/sde/?series=armagh"
+              },
+              "landCapabilityClass": {
+                "capabilityClass": "4",
+                "subClass": "w"
+              },
+              "soilData": {
+                "slope": 6.0,
+                "depthDependentData": [
+                  {
+                    "depthInterval": {
+                      "start": 0,
+                      "end": 4
+                    },
+                    "texture": "SAND",
+                    "rockFragmentVolume": "VOLUME_0_1",
+                    "munsellColorString": "10YR 5/1"
+                  },
+                  {
+                    "depthInterval": {
+                      "start": 4,
+                      "end": 7
+                    },
+                    "texture": "CLAY_LOAM",
+                    "rockFragmentVolume": "VOLUME_1_15",
+                    "munsellColorString": "10YR 8/1"
+                  },
+                  {
+                    "depthInterval": {
+                      "start": 7,
+                      "end": 17
+                    },
+                    "texture": "SILT_LOAM",
+                    "rockFragmentVolume": "VOLUME_1_15",
+                    "munsellColorString": "10YR 8/1"
+                  },
+                  {
+                    "depthInterval": {
+                      "start": 17,
+                      "end": 62
+                    },
+                    "texture": "SILT_LOAM",
+                    "rockFragmentVolume": "VOLUME_15_35"
+                  },
+                  {
+                    "depthInterval": {
+                      "start": 62,
+                      "end": 80
+                    },
+                    "texture": "SILT_LOAM",
+                    "rockFragmentVolume": "VOLUME_60"
+                  }
+                ]
+              }
+            }
           }
-        }
+        ]
       }
     },
     {
@@ -977,719 +973,715 @@
             "email": "derek@techmatters.org",
             "firstName": "Derek",
             "lastName": "",
-            "profileImage": "https://images.staging.terraso.net/b7fea1ab-7277-4b45-a301-9149fcefc80a/profile-image_263"
+            "profileImage": "https://images.staging.terraso.net/b7fea1ab-7277-4b45-a301-9149fcefc80a/profile-image_264"
           }
         }
       ],
       "soil_id": {
-        "soilId": {
-          "soilMatches": {
-            "dataRegion": "US",
-            "matches": [
-              {
-                "dataSource": "SSURGO",
-                "distanceToNearestMapUnitM": 0.0,
-                "combinedMatch": {
-                  "rank": 0,
-                  "score": 0.31
-                },
-                "dataMatch": {
-                  "rank": 9,
-                  "score": 0.275
-                },
-                "locationMatch": {
-                  "rank": 0,
-                  "score": 0.345
-                },
-                "soilInfo": {
-                  "soilSeries": {
-                    "name": "Ketchum",
-                    "taxonomySubgroup": "Xeric Haplocryepts",
-                    "description": "The Ketchum series consists of very deep, well drained soils that formed in colluvium from limestone, quartzitic sandstone and related rock. Ketchum soils are on mountains and have slopes of 20 to 75 percent. Permeability is moderately rapid.  The mean annual precipitation is about 510 mm, and the mean annual air temperature is about 3 degrees C.",
-                    "fullDescriptionUrl": "https://casoilresource.lawr.ucdavis.edu/sde/?series=ketchum"
-                  },
-                  "ecologicalSite": {
-                    "name": "Gravelly Loam 8-12 Pz Artrw8/Pssps",
-                    "id": "R012XY004ID",
-                    "url": "https://edit.sc.egov.usda.gov/catalogs/esd/012X/R012XY004ID"
-                  },
-                  "landCapabilityClass": {
-                    "capabilityClass": "7",
-                    "subClass": "e"
-                  },
-                  "soilData": {
-                    "slope": 55.0,
-                    "depthDependentData": [
-                      {
-                        "depthInterval": {
-                          "start": 0,
-                          "end": 5
-                        },
-                        "texture": "LOAM",
-                        "rockFragmentVolume": "VOLUME_35_60",
-                        "munsellColorString": "7.5YR 4/2"
-                      },
-                      {
-                        "depthInterval": {
-                          "start": 5,
-                          "end": 51
-                        },
-                        "texture": "CLAY_LOAM",
-                        "rockFragmentVolume": "VOLUME_35_60",
-                        "munsellColorString": "10YR 5/3"
-                      },
-                      {
-                        "depthInterval": {
-                          "start": 51,
-                          "end": 107
-                        },
-                        "texture": "CLAY_LOAM",
-                        "rockFragmentVolume": "VOLUME_35_60",
-                        "munsellColorString": "10YR 7/2"
-                      },
-                      {
-                        "depthInterval": {
-                          "start": 107,
-                          "end": 152
-                        },
-                        "texture": "CLAY_LOAM",
-                        "rockFragmentVolume": "VOLUME_35_60",
-                        "munsellColorString": "10YR 7/3"
-                      }
-                    ]
-                  }
-                },
-                "userRating": "SELECTED"
+        "dataRegion": "US",
+        "matches": [
+          {
+            "dataSource": "SSURGO",
+            "distanceToNearestMapUnitM": 0.0,
+            "combinedMatch": {
+              "rank": 0,
+              "score": 0.31
+            },
+            "dataMatch": {
+              "rank": 9,
+              "score": 0.275
+            },
+            "locationMatch": {
+              "rank": 0,
+              "score": 0.345
+            },
+            "soilInfo": {
+              "soilSeries": {
+                "name": "Ketchum",
+                "taxonomySubgroup": "Xeric Haplocryepts",
+                "description": "The Ketchum series consists of very deep, well drained soils that formed in colluvium from limestone, quartzitic sandstone and related rock. Ketchum soils are on mountains and have slopes of 20 to 75 percent. Permeability is moderately rapid.  The mean annual precipitation is about 510 mm, and the mean annual air temperature is about 3 degrees C.",
+                "fullDescriptionUrl": "https://casoilresource.lawr.ucdavis.edu/sde/?series=ketchum"
               },
-              {
-                "dataSource": "SSURGO",
-                "distanceToNearestMapUnitM": 0.0,
-                "combinedMatch": {
-                  "rank": 1,
-                  "score": 0.301
-                },
-                "dataMatch": {
-                  "rank": 6,
-                  "score": 0.36
-                },
-                "locationMatch": {
-                  "rank": 1,
-                  "score": 0.241
-                },
-                "soilInfo": {
-                  "soilSeries": {
-                    "name": "Enentah",
-                    "taxonomySubgroup": "Typic Haplocryepts",
-                    "description": "The Enentah series consists of very deep, somewhat excessively drained soils that formed in colluvium and till derived from granitic rocks, gneiss, and schist.  Enentah soils are on glaciated mountain slopes and moraines.  Slopes range from 10 to 70 percent.  Mean annual precipitation is about 33 inches and the mean annual temperature is about 39 degrees F.",
-                    "fullDescriptionUrl": "https://casoilresource.lawr.ucdavis.edu/sde/?series=enentah"
-                  },
-                  "ecologicalSite": {
-                    "name": "Upland Cool Woodland Group",
-                    "id": "F043BP610ID",
-                    "url": "https://edit.sc.egov.usda.gov/catalogs/esd/043B/F043BP610ID"
-                  },
-                  "landCapabilityClass": {
-                    "capabilityClass": "7",
-                    "subClass": "e"
-                  },
-                  "soilData": {
-                    "slope": 50.0,
-                    "depthDependentData": [
-                      {
-                        "depthInterval": {
-                          "start": 0,
-                          "end": 3
-                        },
-                        "texture": "SAND",
-                        "rockFragmentVolume": "VOLUME_0_1",
-                        "munsellColorString": "10YR 7/2"
-                      },
-                      {
-                        "depthInterval": {
-                          "start": 3,
-                          "end": 28
-                        },
-                        "texture": "LOAM",
-                        "rockFragmentVolume": "VOLUME_35_60",
-                        "munsellColorString": "10YR 7/2"
-                      },
-                      {
-                        "depthInterval": {
-                          "start": 28,
-                          "end": 94
-                        },
-                        "texture": "SANDY_LOAM",
-                        "rockFragmentVolume": "VOLUME_35_60",
-                        "munsellColorString": "10YR 5/4"
-                      },
-                      {
-                        "depthInterval": {
-                          "start": 94,
-                          "end": 150
-                        },
-                        "texture": "SANDY_LOAM",
-                        "rockFragmentVolume": "VOLUME_60",
-                        "munsellColorString": "10YR 5/4"
-                      }
-                    ]
-                  }
-                }
+              "ecologicalSite": {
+                "name": "Gravelly Loam 8-12 Pz Artrw8/Pssps",
+                "id": "R012XY004ID",
+                "url": "https://edit.sc.egov.usda.gov/catalogs/esd/012X/R012XY004ID"
               },
-              {
-                "dataSource": "SSURGO",
-                "distanceToNearestMapUnitM": 915.0,
-                "combinedMatch": {
-                  "rank": 2,
-                  "score": 0.243
-                },
-                "dataMatch": {
-                  "rank": 1,
-                  "score": 0.4
-                },
-                "locationMatch": {
-                  "rank": 3,
-                  "score": 0.086
-                },
-                "soilInfo": {
-                  "soilSeries": {
-                    "name": "Venum",
-                    "taxonomySubgroup": "Xeric Haplargids",
-                    "description": "The Venum series consists of very deep, well drained, slowly permeable soils.  They formed in colluvium from quartzite and other mixed material on mountains and foothills.  They have slopes of 6 to 55 percent.  The average annual precipitation is about 9 inches and the average annual air temperature is about 39 degrees F.",
-                    "fullDescriptionUrl": "https://casoilresource.lawr.ucdavis.edu/sde/?series=venum"
-                  },
-                  "ecologicalSite": {
-                    "name": "Steep Skeletal 15-19 Inch Precipitation Zone Lost River Mountains",
-                    "id": "R012XC072ID",
-                    "url": "https://edit.sc.egov.usda.gov/catalogs/esd/012X/R012XC072ID"
-                  },
-                  "landCapabilityClass": {
-                    "capabilityClass": "7",
-                    "subClass": "e"
-                  },
-                  "soilData": {
-                    "slope": 35.0,
-                    "depthDependentData": [
-                      {
-                        "depthInterval": {
-                          "start": 0,
-                          "end": 23
-                        },
-                        "texture": "SILT_LOAM",
-                        "rockFragmentVolume": "VOLUME_35_60",
-                        "munsellColorString": "10YR 6/3"
-                      },
-                      {
-                        "depthInterval": {
-                          "start": 23,
-                          "end": 36
-                        },
-                        "texture": "SILT_LOAM",
-                        "rockFragmentVolume": "VOLUME_35_60",
-                        "munsellColorString": "10YR 5/5"
-                      },
-                      {
-                        "depthInterval": {
-                          "start": 36,
-                          "end": 61
-                        },
-                        "texture": "SILT_LOAM",
-                        "rockFragmentVolume": "VOLUME_60",
-                        "munsellColorString": "10YR 6/5"
-                      }
-                    ]
-                  }
-                }
+              "landCapabilityClass": {
+                "capabilityClass": "7",
+                "subClass": "e"
               },
-              {
-                "dataSource": "SSURGO",
-                "distanceToNearestMapUnitM": 915.0,
-                "combinedMatch": {
-                  "rank": 3,
-                  "score": 0.241
-                },
-                "dataMatch": {
-                  "rank": 0,
-                  "score": 0.412
-                },
-                "locationMatch": {
-                  "rank": 5,
-                  "score": 0.069
-                },
-                "soilInfo": {
-                  "soilSeries": {
-                    "name": "Cronks",
-                    "taxonomySubgroup": "Calciargidic Argixerolls",
-                    "description": "The Cronks series consists of very deep, well drained soils formed in mixed slope alluvium and colluvium derived dominantly from quartzite and andesite.  Cronks soils are on foothills and mountains and have slopes of 6 to 60 percent.  Permeability is slow. The average annual precipitation is about 12 inches, and the average annual air temperature is about 39 degrees F.",
-                    "fullDescriptionUrl": "https://casoilresource.lawr.ucdavis.edu/sde/?series=cronks"
+              "soilData": {
+                "slope": 55.0,
+                "depthDependentData": [
+                  {
+                    "depthInterval": {
+                      "start": 0,
+                      "end": 5
+                    },
+                    "texture": "LOAM",
+                    "rockFragmentVolume": "VOLUME_35_60",
+                    "munsellColorString": "7.5YR 4/2"
                   },
-                  "ecologicalSite": {
-                    "name": "Rocky Hills 15-19 Inch Precipitation Zone Lost River Mountains",
-                    "id": "R012XC034ID",
-                    "url": "https://edit.sc.egov.usda.gov/catalogs/esd/012X/R012XC034ID"
+                  {
+                    "depthInterval": {
+                      "start": 5,
+                      "end": 51
+                    },
+                    "texture": "CLAY_LOAM",
+                    "rockFragmentVolume": "VOLUME_35_60",
+                    "munsellColorString": "10YR 5/3"
                   },
-                  "landCapabilityClass": {
-                    "capabilityClass": "7",
-                    "subClass": "e"
+                  {
+                    "depthInterval": {
+                      "start": 51,
+                      "end": 107
+                    },
+                    "texture": "CLAY_LOAM",
+                    "rockFragmentVolume": "VOLUME_35_60",
+                    "munsellColorString": "10YR 7/2"
                   },
-                  "soilData": {
-                    "slope": 35.0,
-                    "depthDependentData": [
-                      {
-                        "depthInterval": {
-                          "start": 0,
-                          "end": 20
-                        },
-                        "texture": "SILT_LOAM",
-                        "rockFragmentVolume": "VOLUME_35_60",
-                        "munsellColorString": "10YR 5/3"
-                      },
-                      {
-                        "depthInterval": {
-                          "start": 20,
-                          "end": 33
-                        },
-                        "texture": "LOAM",
-                        "rockFragmentVolume": "VOLUME_35_60",
-                        "munsellColorString": "10YR 5/3"
-                      }
-                    ]
+                  {
+                    "depthInterval": {
+                      "start": 107,
+                      "end": 152
+                    },
+                    "texture": "CLAY_LOAM",
+                    "rockFragmentVolume": "VOLUME_35_60",
+                    "munsellColorString": "10YR 7/3"
                   }
-                }
-              },
-              {
-                "dataSource": "SSURGO",
-                "distanceToNearestMapUnitM": 0.0,
-                "combinedMatch": {
-                  "rank": 4,
-                  "score": 0.227
-                },
-                "dataMatch": {
-                  "rank": 2,
-                  "score": 0.386
-                },
-                "locationMatch": {
-                  "rank": 4,
-                  "score": 0.069
-                },
-                "soilInfo": {
-                  "soilSeries": {
-                    "name": "Parvis",
-                    "taxonomySubgroup": "Pachic Palecryolls",
-                    "description": "The Parvis series consists of very deep, well drained soils that formed in colluvium and alluvium from mixed quartzitic siltstone and challis volcanics.  Slopes are 15 to 60 percent. Permeability is moderate slow.  Average annual precipitation is about 14 inches and the average annual air temperature is about 36 degrees F.",
-                    "fullDescriptionUrl": "https://casoilresource.lawr.ucdavis.edu/sde/?series=parvis"
-                  },
-                  "ecologicalSite": {
-                    "name": "Shallow Cool Woodland Group",
-                    "id": "F043BP602ID",
-                    "url": "https://edit.sc.egov.usda.gov/catalogs/esd/043B/F043BP602ID"
-                  },
-                  "landCapabilityClass": {
-                    "capabilityClass": "6",
-                    "subClass": "c"
-                  },
-                  "soilData": {
-                    "slope": 10.0,
-                    "depthDependentData": [
-                      {
-                        "depthInterval": {
-                          "start": 0,
-                          "end": 6
-                        },
-                        "texture": "SAND",
-                        "rockFragmentVolume": "VOLUME_0_1",
-                        "munsellColorString": "10YR 4/2"
-                      },
-                      {
-                        "depthInterval": {
-                          "start": 6,
-                          "end": 23
-                        },
-                        "texture": "SANDY_LOAM",
-                        "rockFragmentVolume": "VOLUME_60",
-                        "munsellColorString": "10YR 5/3"
-                      },
-                      {
-                        "depthInterval": {
-                          "start": 23,
-                          "end": 152
-                        },
-                        "texture": "SANDY_LOAM",
-                        "rockFragmentVolume": "VOLUME_60",
-                        "munsellColorString": "10YR 5/3"
-                      }
-                    ]
-                  }
-                }
-              },
-              {
-                "dataSource": "SSURGO",
-                "distanceToNearestMapUnitM": 270.0,
-                "combinedMatch": {
-                  "rank": 5,
-                  "score": 0.226
-                },
-                "dataMatch": {
-                  "rank": 7,
-                  "score": 0.36
-                },
-                "locationMatch": {
-                  "rank": 2,
-                  "score": 0.092
-                },
-                "soilInfo": {
-                  "soilSeries": {
-                    "name": "Lag",
-                    "taxonomySubgroup": "Xeric Haplocryolls",
-                    "description": "The Lag series consists of very deep, well drained, moderately rapid permeable soils that formed on mountain sides from mixed material.  They have slopes of 4 to 70 percent.  Average annual precipitation is about 21 inches and the average annual temperature is about 37 degrees F.",
-                    "fullDescriptionUrl": "https://casoilresource.lawr.ucdavis.edu/sde/?series=lag"
-                  },
-                  "ecologicalSite": {
-                    "name": "Rocky Hills 15-19 Inch Precipitation Zone Lost River Mountains",
-                    "id": "R012XC034ID",
-                    "url": "https://edit.sc.egov.usda.gov/catalogs/esd/012X/R012XC034ID"
-                  },
-                  "landCapabilityClass": {
-                    "capabilityClass": "8",
-                    "subClass": ""
-                  },
-                  "soilData": {
-                    "slope": 65.0,
-                    "depthDependentData": [
-                      {
-                        "depthInterval": {
-                          "start": 0,
-                          "end": 3
-                        },
-                        "texture": "SAND",
-                        "rockFragmentVolume": "VOLUME_0_1",
-                        "munsellColorString": "7.5YR 4/2"
-                      },
-                      {
-                        "depthInterval": {
-                          "start": 3,
-                          "end": 8
-                        },
-                        "texture": "LOAM",
-                        "rockFragmentVolume": "VOLUME_35_60",
-                        "munsellColorString": "7.5YR 4/3"
-                      },
-                      {
-                        "depthInterval": {
-                          "start": 8,
-                          "end": 115
-                        },
-                        "texture": "LOAM",
-                        "rockFragmentVolume": "VOLUME_35_60",
-                        "munsellColorString": "10YR 5/3"
-                      },
-                      {
-                        "depthInterval": {
-                          "start": 115,
-                          "end": 150
-                        },
-                        "texture": "SANDY_LOAM",
-                        "rockFragmentVolume": "VOLUME_60",
-                        "munsellColorString": "10YR 6/2"
-                      }
-                    ]
-                  }
-                }
-              },
-              {
-                "dataSource": "SSURGO",
-                "distanceToNearestMapUnitM": 270.0,
-                "combinedMatch": {
-                  "rank": 6,
-                  "score": 0.194
-                },
-                "dataMatch": {
-                  "rank": 5,
-                  "score": 0.363
-                },
-                "locationMatch": {
-                  "rank": 7,
-                  "score": 0.026
-                },
-                "soilInfo": {
-                  "soilSeries": {
-                    "name": "Valmar",
-                    "taxonomySubgroup": "Typic Argixerolls",
-                    "description": "The Valmar series consists of moderately deep, well drained soils that formed in alluvium, colluvium, and residuum derived from quartzite and related metasedimentary rocks.  Valmar soils are on mountainsides and ridges and have slopes of 20 to 80 percent.  Permeability is moderate.  The average annual precipitation is about 18 inches and the average annual air temperature is about 42 degrees F.",
-                    "fullDescriptionUrl": "https://casoilresource.lawr.ucdavis.edu/sde/?series=valmar"
-                  },
-                  "ecologicalSite": {
-                    "name": "Skeletal 20-24 Inch Precipitation Zone Lost River Mountains",
-                    "id": "R012XD068ID",
-                    "url": "https://edit.sc.egov.usda.gov/catalogs/esd/012X/R012XD068ID"
-                  },
-                  "landCapabilityClass": {
-                    "capabilityClass": "7",
-                    "subClass": "e"
-                  },
-                  "soilData": {
-                    "slope": 55.0,
-                    "depthDependentData": [
-                      {
-                        "depthInterval": {
-                          "start": 0,
-                          "end": 19
-                        },
-                        "texture": "LOAM",
-                        "rockFragmentVolume": "VOLUME_15_35",
-                        "munsellColorString": "10YR 5/3"
-                      },
-                      {
-                        "depthInterval": {
-                          "start": 19,
-                          "end": 65
-                        },
-                        "texture": "LOAM",
-                        "rockFragmentVolume": "VOLUME_35_60",
-                        "munsellColorString": "10YR 5/4"
-                      },
-                      {
-                        "depthInterval": {
-                          "start": 65,
-                          "end": 150
-                        },
-                        "texture": "SANDY_CLAY_LOAM",
-                        "rockFragmentVolume": "VOLUME_60",
-                        "munsellColorString": "10YR 5/4"
-                      }
-                    ]
-                  }
-                }
-              },
-              {
-                "dataSource": "SSURGO",
-                "distanceToNearestMapUnitM": 270.0,
-                "combinedMatch": {
-                  "rank": 7,
-                  "score": 0.193
-                },
-                "dataMatch": {
-                  "rank": 3,
-                  "score": 0.369
-                },
-                "locationMatch": {
-                  "rank": 9,
-                  "score": 0.017
-                },
-                "soilInfo": {
-                  "soilSeries": {
-                    "name": "Kaina",
-                    "taxonomySubgroup": "Typic Cryorthents",
-                    "description": "The Kaina series consists of very deep, well drained soils that form in colluvium and till derived from mixed metasedimentary rock. These soils occur on cirque platforms, cirque headwalls, glacial-valley walls and moraines.  Slopes are 30 to 80 percent. Mean annual precipitation is about 1,475 mm, and mean annual air temperature is about 3.0 degrees C.",
-                    "fullDescriptionUrl": "https://casoilresource.lawr.ucdavis.edu/sde/?series=kaina"
-                  },
-                  "ecologicalSite": {
-                    "name": "Upland Cold Woodland Group",
-                    "id": "F043BP609ID",
-                    "url": "https://edit.sc.egov.usda.gov/catalogs/esd/043B/F043BP609ID"
-                  },
-                  "landCapabilityClass": {
-                    "capabilityClass": "7",
-                    "subClass": "e"
-                  },
-                  "soilData": {
-                    "slope": 55.0,
-                    "depthDependentData": [
-                      {
-                        "depthInterval": {
-                          "start": 0,
-                          "end": 3
-                        },
-                        "texture": "SAND",
-                        "rockFragmentVolume": "VOLUME_0_1",
-                        "munsellColorString": "7.5YR 4/2"
-                      },
-                      {
-                        "depthInterval": {
-                          "start": 3,
-                          "end": 11
-                        },
-                        "texture": "LOAM",
-                        "rockFragmentVolume": "VOLUME_15_35",
-                        "munsellColorString": "10YR 6/2"
-                      },
-                      {
-                        "depthInterval": {
-                          "start": 11,
-                          "end": 30
-                        },
-                        "texture": "SANDY_LOAM",
-                        "rockFragmentVolume": "VOLUME_60",
-                        "munsellColorString": "10YR 6/3"
-                      },
-                      {
-                        "depthInterval": {
-                          "start": 30,
-                          "end": 95
-                        },
-                        "texture": "SANDY_LOAM",
-                        "rockFragmentVolume": "VOLUME_60"
-                      },
-                      {
-                        "depthInterval": {
-                          "start": 95,
-                          "end": 150
-                        },
-                        "texture": "LOAMY_SAND",
-                        "rockFragmentVolume": "VOLUME_60"
-                      }
-                    ]
-                  }
-                }
-              },
-              {
-                "dataSource": "SSURGO",
-                "distanceToNearestMapUnitM": 0.0,
-                "combinedMatch": {
-                  "rank": 8,
-                  "score": 0.192
-                },
-                "dataMatch": {
-                  "rank": 4,
-                  "score": 0.363
-                },
-                "locationMatch": {
-                  "rank": 8,
-                  "score": 0.021
-                },
-                "soilInfo": {
-                  "soilSeries": {
-                    "name": "Copperbasin",
-                    "taxonomySubgroup": "Aquic Haplocryolls",
-                    "description": "The Copperbasin series consists of very deep soils with sand and gravel at shallow depths.  They are somewhat poorly drained soils that formed in alluvium.  The Copperbasin soils are on flood plains and stream terraces.  Permeability is moderately rapid over very rapid.  Slopes are 0 to 4 percent.  The average annual precipitation is about 14 inches and the average annual temperature is about 37 degrees F.",
-                    "fullDescriptionUrl": "https://casoilresource.lawr.ucdavis.edu/sde/?series=copperbasin"
-                  },
-                  "ecologicalSite": {
-                    "name": "Upland Cool Woodland Group",
-                    "id": "F043BP610ID",
-                    "url": "https://edit.sc.egov.usda.gov/catalogs/esd/043B/F043BP610ID"
-                  },
-                  "landCapabilityClass": {
-                    "capabilityClass": "7",
-                    "subClass": "s"
-                  },
-                  "soilData": {
-                    "slope": 5.0,
-                    "depthDependentData": [
-                      {
-                        "depthInterval": {
-                          "start": 0,
-                          "end": 3
-                        },
-                        "texture": "SAND",
-                        "rockFragmentVolume": "VOLUME_0_1",
-                        "munsellColorString": "10YR 5/2"
-                      },
-                      {
-                        "depthInterval": {
-                          "start": 3,
-                          "end": 28
-                        },
-                        "texture": "LOAM",
-                        "rockFragmentVolume": "VOLUME_35_60",
-                        "munsellColorString": "10YR 5/2"
-                      },
-                      {
-                        "depthInterval": {
-                          "start": 28,
-                          "end": 94
-                        },
-                        "texture": "SANDY_LOAM",
-                        "rockFragmentVolume": "VOLUME_35_60",
-                        "munsellColorString": ""
-                      },
-                      {
-                        "depthInterval": {
-                          "start": 94,
-                          "end": 150
-                        },
-                        "texture": "SANDY_LOAM",
-                        "rockFragmentVolume": "VOLUME_60",
-                        "munsellColorString": ""
-                      }
-                    ]
-                  }
-                }
-              },
-              {
-                "dataSource": "SSURGO",
-                "distanceToNearestMapUnitM": 0.0,
-                "combinedMatch": {
-                  "rank": 9,
-                  "score": 0.178
-                },
-                "dataMatch": {
-                  "rank": 8,
-                  "score": 0.321
-                },
-                "locationMatch": {
-                  "rank": 6,
-                  "score": 0.034
-                },
-                "soilInfo": {
-                  "soilSeries": {
-                    "name": "Dollarhide",
-                    "taxonomySubgroup": "Lithic Haplocryolls",
-                    "description": "The Dollarhide series consists of shallow, well drained soils that formed in loess and residuum and colluvium from quartzitic sandstone and related rocks. Dollarhide soils are on mountainsides and foothills and have slopes of 15 to 75 percent. Permeability is moderately rapid. The average annual precipitation is about 20 inches, and the average annual temperature is about 39 degrees F.",
-                    "fullDescriptionUrl": "https://casoilresource.lawr.ucdavis.edu/sde/?series=dollarhide"
-                  },
-                  "ecologicalSite": {
-                    "name": "Riparian Wet Meadow Lost River Mountains",
-                    "id": "R012XG085ID",
-                    "url": "https://edit.sc.egov.usda.gov/catalogs/esd/012X/R012XG085ID"
-                  },
-                  "landCapabilityClass": {
-                    "capabilityClass": "7",
-                    "subClass": "e"
-                  },
-                  "soilData": {
-                    "slope": 35.0,
-                    "depthDependentData": [
-                      {
-                        "depthInterval": {
-                          "start": 0,
-                          "end": 13
-                        },
-                        "texture": "SANDY_LOAM",
-                        "rockFragmentVolume": "VOLUME_35_60",
-                        "munsellColorString": "10YR 5/3"
-                      },
-                      {
-                        "depthInterval": {
-                          "start": 13,
-                          "end": 64
-                        },
-                        "texture": "LOAMY_SAND",
-                        "rockFragmentVolume": "VOLUME_60",
-                        "munsellColorString": "10YR 5/4"
-                      },
-                      {
-                        "depthInterval": {
-                          "start": 64,
-                          "end": 84
-                        },
-                        "texture": "SAND",
-                        "rockFragmentVolume": "VOLUME_60"
-                      },
-                      {
-                        "depthInterval": {
-                          "start": 84,
-                          "end": 150
-                        },
-                        "texture": "SAND",
-                        "rockFragmentVolume": "VOLUME_60"
-                      }
-                    ]
-                  }
-                }
+                ]
               }
-            ]
+            },
+            "userRating": "SELECTED"
+          },
+          {
+            "dataSource": "SSURGO",
+            "distanceToNearestMapUnitM": 0.0,
+            "combinedMatch": {
+              "rank": 1,
+              "score": 0.301
+            },
+            "dataMatch": {
+              "rank": 6,
+              "score": 0.36
+            },
+            "locationMatch": {
+              "rank": 1,
+              "score": 0.241
+            },
+            "soilInfo": {
+              "soilSeries": {
+                "name": "Enentah",
+                "taxonomySubgroup": "Typic Haplocryepts",
+                "description": "The Enentah series consists of very deep, somewhat excessively drained soils that formed in colluvium and till derived from granitic rocks, gneiss, and schist.  Enentah soils are on glaciated mountain slopes and moraines.  Slopes range from 10 to 70 percent.  Mean annual precipitation is about 33 inches and the mean annual temperature is about 39 degrees F.",
+                "fullDescriptionUrl": "https://casoilresource.lawr.ucdavis.edu/sde/?series=enentah"
+              },
+              "ecologicalSite": {
+                "name": "Upland Cool Woodland Group",
+                "id": "F043BP610ID",
+                "url": "https://edit.sc.egov.usda.gov/catalogs/esd/043B/F043BP610ID"
+              },
+              "landCapabilityClass": {
+                "capabilityClass": "7",
+                "subClass": "e"
+              },
+              "soilData": {
+                "slope": 50.0,
+                "depthDependentData": [
+                  {
+                    "depthInterval": {
+                      "start": 0,
+                      "end": 3
+                    },
+                    "texture": "SAND",
+                    "rockFragmentVolume": "VOLUME_0_1",
+                    "munsellColorString": "10YR 7/2"
+                  },
+                  {
+                    "depthInterval": {
+                      "start": 3,
+                      "end": 28
+                    },
+                    "texture": "LOAM",
+                    "rockFragmentVolume": "VOLUME_35_60",
+                    "munsellColorString": "10YR 7/2"
+                  },
+                  {
+                    "depthInterval": {
+                      "start": 28,
+                      "end": 94
+                    },
+                    "texture": "SANDY_LOAM",
+                    "rockFragmentVolume": "VOLUME_35_60",
+                    "munsellColorString": "10YR 5/4"
+                  },
+                  {
+                    "depthInterval": {
+                      "start": 94,
+                      "end": 150
+                    },
+                    "texture": "SANDY_LOAM",
+                    "rockFragmentVolume": "VOLUME_60",
+                    "munsellColorString": "10YR 5/4"
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "dataSource": "SSURGO",
+            "distanceToNearestMapUnitM": 915.0,
+            "combinedMatch": {
+              "rank": 2,
+              "score": 0.243
+            },
+            "dataMatch": {
+              "rank": 1,
+              "score": 0.4
+            },
+            "locationMatch": {
+              "rank": 3,
+              "score": 0.086
+            },
+            "soilInfo": {
+              "soilSeries": {
+                "name": "Venum",
+                "taxonomySubgroup": "Xeric Haplargids",
+                "description": "The Venum series consists of very deep, well drained, slowly permeable soils.  They formed in colluvium from quartzite and other mixed material on mountains and foothills.  They have slopes of 6 to 55 percent.  The average annual precipitation is about 9 inches and the average annual air temperature is about 39 degrees F.",
+                "fullDescriptionUrl": "https://casoilresource.lawr.ucdavis.edu/sde/?series=venum"
+              },
+              "ecologicalSite": {
+                "name": "Steep Skeletal 15-19 Inch Precipitation Zone Lost River Mountains",
+                "id": "R012XC072ID",
+                "url": "https://edit.sc.egov.usda.gov/catalogs/esd/012X/R012XC072ID"
+              },
+              "landCapabilityClass": {
+                "capabilityClass": "7",
+                "subClass": "e"
+              },
+              "soilData": {
+                "slope": 35.0,
+                "depthDependentData": [
+                  {
+                    "depthInterval": {
+                      "start": 0,
+                      "end": 23
+                    },
+                    "texture": "SILT_LOAM",
+                    "rockFragmentVolume": "VOLUME_35_60",
+                    "munsellColorString": "10YR 6/3"
+                  },
+                  {
+                    "depthInterval": {
+                      "start": 23,
+                      "end": 36
+                    },
+                    "texture": "SILT_LOAM",
+                    "rockFragmentVolume": "VOLUME_35_60",
+                    "munsellColorString": "10YR 5/5"
+                  },
+                  {
+                    "depthInterval": {
+                      "start": 36,
+                      "end": 61
+                    },
+                    "texture": "SILT_LOAM",
+                    "rockFragmentVolume": "VOLUME_60",
+                    "munsellColorString": "10YR 6/5"
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "dataSource": "SSURGO",
+            "distanceToNearestMapUnitM": 915.0,
+            "combinedMatch": {
+              "rank": 3,
+              "score": 0.241
+            },
+            "dataMatch": {
+              "rank": 0,
+              "score": 0.412
+            },
+            "locationMatch": {
+              "rank": 5,
+              "score": 0.069
+            },
+            "soilInfo": {
+              "soilSeries": {
+                "name": "Cronks",
+                "taxonomySubgroup": "Calciargidic Argixerolls",
+                "description": "The Cronks series consists of very deep, well drained soils formed in mixed slope alluvium and colluvium derived dominantly from quartzite and andesite.  Cronks soils are on foothills and mountains and have slopes of 6 to 60 percent.  Permeability is slow. The average annual precipitation is about 12 inches, and the average annual air temperature is about 39 degrees F.",
+                "fullDescriptionUrl": "https://casoilresource.lawr.ucdavis.edu/sde/?series=cronks"
+              },
+              "ecologicalSite": {
+                "name": "Rocky Hills 15-19 Inch Precipitation Zone Lost River Mountains",
+                "id": "R012XC034ID",
+                "url": "https://edit.sc.egov.usda.gov/catalogs/esd/012X/R012XC034ID"
+              },
+              "landCapabilityClass": {
+                "capabilityClass": "7",
+                "subClass": "e"
+              },
+              "soilData": {
+                "slope": 35.0,
+                "depthDependentData": [
+                  {
+                    "depthInterval": {
+                      "start": 0,
+                      "end": 20
+                    },
+                    "texture": "SILT_LOAM",
+                    "rockFragmentVolume": "VOLUME_35_60",
+                    "munsellColorString": "10YR 5/3"
+                  },
+                  {
+                    "depthInterval": {
+                      "start": 20,
+                      "end": 33
+                    },
+                    "texture": "LOAM",
+                    "rockFragmentVolume": "VOLUME_35_60",
+                    "munsellColorString": "10YR 5/3"
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "dataSource": "SSURGO",
+            "distanceToNearestMapUnitM": 0.0,
+            "combinedMatch": {
+              "rank": 4,
+              "score": 0.227
+            },
+            "dataMatch": {
+              "rank": 2,
+              "score": 0.386
+            },
+            "locationMatch": {
+              "rank": 4,
+              "score": 0.069
+            },
+            "soilInfo": {
+              "soilSeries": {
+                "name": "Parvis",
+                "taxonomySubgroup": "Pachic Palecryolls",
+                "description": "The Parvis series consists of very deep, well drained soils that formed in colluvium and alluvium from mixed quartzitic siltstone and challis volcanics.  Slopes are 15 to 60 percent. Permeability is moderate slow.  Average annual precipitation is about 14 inches and the average annual air temperature is about 36 degrees F.",
+                "fullDescriptionUrl": "https://casoilresource.lawr.ucdavis.edu/sde/?series=parvis"
+              },
+              "ecologicalSite": {
+                "name": "Shallow Cool Woodland Group",
+                "id": "F043BP602ID",
+                "url": "https://edit.sc.egov.usda.gov/catalogs/esd/043B/F043BP602ID"
+              },
+              "landCapabilityClass": {
+                "capabilityClass": "6",
+                "subClass": "c"
+              },
+              "soilData": {
+                "slope": 10.0,
+                "depthDependentData": [
+                  {
+                    "depthInterval": {
+                      "start": 0,
+                      "end": 6
+                    },
+                    "texture": "SAND",
+                    "rockFragmentVolume": "VOLUME_0_1",
+                    "munsellColorString": "10YR 4/2"
+                  },
+                  {
+                    "depthInterval": {
+                      "start": 6,
+                      "end": 23
+                    },
+                    "texture": "SANDY_LOAM",
+                    "rockFragmentVolume": "VOLUME_60",
+                    "munsellColorString": "10YR 5/3"
+                  },
+                  {
+                    "depthInterval": {
+                      "start": 23,
+                      "end": 152
+                    },
+                    "texture": "SANDY_LOAM",
+                    "rockFragmentVolume": "VOLUME_60",
+                    "munsellColorString": "10YR 5/3"
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "dataSource": "SSURGO",
+            "distanceToNearestMapUnitM": 270.0,
+            "combinedMatch": {
+              "rank": 5,
+              "score": 0.226
+            },
+            "dataMatch": {
+              "rank": 7,
+              "score": 0.36
+            },
+            "locationMatch": {
+              "rank": 2,
+              "score": 0.092
+            },
+            "soilInfo": {
+              "soilSeries": {
+                "name": "Lag",
+                "taxonomySubgroup": "Xeric Haplocryolls",
+                "description": "The Lag series consists of very deep, well drained, moderately rapid permeable soils that formed on mountain sides from mixed material.  They have slopes of 4 to 70 percent.  Average annual precipitation is about 21 inches and the average annual temperature is about 37 degrees F.",
+                "fullDescriptionUrl": "https://casoilresource.lawr.ucdavis.edu/sde/?series=lag"
+              },
+              "ecologicalSite": {
+                "name": "Rocky Hills 15-19 Inch Precipitation Zone Lost River Mountains",
+                "id": "R012XC034ID",
+                "url": "https://edit.sc.egov.usda.gov/catalogs/esd/012X/R012XC034ID"
+              },
+              "landCapabilityClass": {
+                "capabilityClass": "8",
+                "subClass": ""
+              },
+              "soilData": {
+                "slope": 65.0,
+                "depthDependentData": [
+                  {
+                    "depthInterval": {
+                      "start": 0,
+                      "end": 3
+                    },
+                    "texture": "SAND",
+                    "rockFragmentVolume": "VOLUME_0_1",
+                    "munsellColorString": "7.5YR 4/2"
+                  },
+                  {
+                    "depthInterval": {
+                      "start": 3,
+                      "end": 8
+                    },
+                    "texture": "LOAM",
+                    "rockFragmentVolume": "VOLUME_35_60",
+                    "munsellColorString": "7.5YR 4/3"
+                  },
+                  {
+                    "depthInterval": {
+                      "start": 8,
+                      "end": 115
+                    },
+                    "texture": "LOAM",
+                    "rockFragmentVolume": "VOLUME_35_60",
+                    "munsellColorString": "10YR 5/3"
+                  },
+                  {
+                    "depthInterval": {
+                      "start": 115,
+                      "end": 150
+                    },
+                    "texture": "SANDY_LOAM",
+                    "rockFragmentVolume": "VOLUME_60",
+                    "munsellColorString": "10YR 6/2"
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "dataSource": "SSURGO",
+            "distanceToNearestMapUnitM": 270.0,
+            "combinedMatch": {
+              "rank": 6,
+              "score": 0.194
+            },
+            "dataMatch": {
+              "rank": 5,
+              "score": 0.363
+            },
+            "locationMatch": {
+              "rank": 7,
+              "score": 0.026
+            },
+            "soilInfo": {
+              "soilSeries": {
+                "name": "Valmar",
+                "taxonomySubgroup": "Typic Argixerolls",
+                "description": "The Valmar series consists of moderately deep, well drained soils that formed in alluvium, colluvium, and residuum derived from quartzite and related metasedimentary rocks.  Valmar soils are on mountainsides and ridges and have slopes of 20 to 80 percent.  Permeability is moderate.  The average annual precipitation is about 18 inches and the average annual air temperature is about 42 degrees F.",
+                "fullDescriptionUrl": "https://casoilresource.lawr.ucdavis.edu/sde/?series=valmar"
+              },
+              "ecologicalSite": {
+                "name": "Skeletal 20-24 Inch Precipitation Zone Lost River Mountains",
+                "id": "R012XD068ID",
+                "url": "https://edit.sc.egov.usda.gov/catalogs/esd/012X/R012XD068ID"
+              },
+              "landCapabilityClass": {
+                "capabilityClass": "7",
+                "subClass": "e"
+              },
+              "soilData": {
+                "slope": 55.0,
+                "depthDependentData": [
+                  {
+                    "depthInterval": {
+                      "start": 0,
+                      "end": 19
+                    },
+                    "texture": "LOAM",
+                    "rockFragmentVolume": "VOLUME_15_35",
+                    "munsellColorString": "10YR 5/3"
+                  },
+                  {
+                    "depthInterval": {
+                      "start": 19,
+                      "end": 65
+                    },
+                    "texture": "LOAM",
+                    "rockFragmentVolume": "VOLUME_35_60",
+                    "munsellColorString": "10YR 5/4"
+                  },
+                  {
+                    "depthInterval": {
+                      "start": 65,
+                      "end": 150
+                    },
+                    "texture": "SANDY_CLAY_LOAM",
+                    "rockFragmentVolume": "VOLUME_60",
+                    "munsellColorString": "10YR 5/4"
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "dataSource": "SSURGO",
+            "distanceToNearestMapUnitM": 270.0,
+            "combinedMatch": {
+              "rank": 7,
+              "score": 0.193
+            },
+            "dataMatch": {
+              "rank": 3,
+              "score": 0.369
+            },
+            "locationMatch": {
+              "rank": 9,
+              "score": 0.017
+            },
+            "soilInfo": {
+              "soilSeries": {
+                "name": "Kaina",
+                "taxonomySubgroup": "Typic Cryorthents",
+                "description": "The Kaina series consists of very deep, well drained soils that form in colluvium and till derived from mixed metasedimentary rock. These soils occur on cirque platforms, cirque headwalls, glacial-valley walls and moraines.  Slopes are 30 to 80 percent. Mean annual precipitation is about 1,475 mm, and mean annual air temperature is about 3.0 degrees C.",
+                "fullDescriptionUrl": "https://casoilresource.lawr.ucdavis.edu/sde/?series=kaina"
+              },
+              "ecologicalSite": {
+                "name": "Upland Cold Woodland Group",
+                "id": "F043BP609ID",
+                "url": "https://edit.sc.egov.usda.gov/catalogs/esd/043B/F043BP609ID"
+              },
+              "landCapabilityClass": {
+                "capabilityClass": "7",
+                "subClass": "e"
+              },
+              "soilData": {
+                "slope": 55.0,
+                "depthDependentData": [
+                  {
+                    "depthInterval": {
+                      "start": 0,
+                      "end": 3
+                    },
+                    "texture": "SAND",
+                    "rockFragmentVolume": "VOLUME_0_1",
+                    "munsellColorString": "7.5YR 4/2"
+                  },
+                  {
+                    "depthInterval": {
+                      "start": 3,
+                      "end": 11
+                    },
+                    "texture": "LOAM",
+                    "rockFragmentVolume": "VOLUME_15_35",
+                    "munsellColorString": "10YR 6/2"
+                  },
+                  {
+                    "depthInterval": {
+                      "start": 11,
+                      "end": 30
+                    },
+                    "texture": "SANDY_LOAM",
+                    "rockFragmentVolume": "VOLUME_60",
+                    "munsellColorString": "10YR 6/3"
+                  },
+                  {
+                    "depthInterval": {
+                      "start": 30,
+                      "end": 95
+                    },
+                    "texture": "SANDY_LOAM",
+                    "rockFragmentVolume": "VOLUME_60"
+                  },
+                  {
+                    "depthInterval": {
+                      "start": 95,
+                      "end": 150
+                    },
+                    "texture": "LOAMY_SAND",
+                    "rockFragmentVolume": "VOLUME_60"
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "dataSource": "SSURGO",
+            "distanceToNearestMapUnitM": 0.0,
+            "combinedMatch": {
+              "rank": 8,
+              "score": 0.192
+            },
+            "dataMatch": {
+              "rank": 4,
+              "score": 0.363
+            },
+            "locationMatch": {
+              "rank": 8,
+              "score": 0.021
+            },
+            "soilInfo": {
+              "soilSeries": {
+                "name": "Copperbasin",
+                "taxonomySubgroup": "Aquic Haplocryolls",
+                "description": "The Copperbasin series consists of very deep soils with sand and gravel at shallow depths.  They are somewhat poorly drained soils that formed in alluvium.  The Copperbasin soils are on flood plains and stream terraces.  Permeability is moderately rapid over very rapid.  Slopes are 0 to 4 percent.  The average annual precipitation is about 14 inches and the average annual temperature is about 37 degrees F.",
+                "fullDescriptionUrl": "https://casoilresource.lawr.ucdavis.edu/sde/?series=copperbasin"
+              },
+              "ecologicalSite": {
+                "name": "Upland Cool Woodland Group",
+                "id": "F043BP610ID",
+                "url": "https://edit.sc.egov.usda.gov/catalogs/esd/043B/F043BP610ID"
+              },
+              "landCapabilityClass": {
+                "capabilityClass": "7",
+                "subClass": "s"
+              },
+              "soilData": {
+                "slope": 5.0,
+                "depthDependentData": [
+                  {
+                    "depthInterval": {
+                      "start": 0,
+                      "end": 3
+                    },
+                    "texture": "SAND",
+                    "rockFragmentVolume": "VOLUME_0_1",
+                    "munsellColorString": "10YR 5/2"
+                  },
+                  {
+                    "depthInterval": {
+                      "start": 3,
+                      "end": 28
+                    },
+                    "texture": "LOAM",
+                    "rockFragmentVolume": "VOLUME_35_60",
+                    "munsellColorString": "10YR 5/2"
+                  },
+                  {
+                    "depthInterval": {
+                      "start": 28,
+                      "end": 94
+                    },
+                    "texture": "SANDY_LOAM",
+                    "rockFragmentVolume": "VOLUME_35_60",
+                    "munsellColorString": ""
+                  },
+                  {
+                    "depthInterval": {
+                      "start": 94,
+                      "end": 150
+                    },
+                    "texture": "SANDY_LOAM",
+                    "rockFragmentVolume": "VOLUME_60",
+                    "munsellColorString": ""
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "dataSource": "SSURGO",
+            "distanceToNearestMapUnitM": 0.0,
+            "combinedMatch": {
+              "rank": 9,
+              "score": 0.178
+            },
+            "dataMatch": {
+              "rank": 8,
+              "score": 0.321
+            },
+            "locationMatch": {
+              "rank": 6,
+              "score": 0.034
+            },
+            "soilInfo": {
+              "soilSeries": {
+                "name": "Dollarhide",
+                "taxonomySubgroup": "Lithic Haplocryolls",
+                "description": "The Dollarhide series consists of shallow, well drained soils that formed in loess and residuum and colluvium from quartzitic sandstone and related rocks. Dollarhide soils are on mountainsides and foothills and have slopes of 15 to 75 percent. Permeability is moderately rapid. The average annual precipitation is about 20 inches, and the average annual temperature is about 39 degrees F.",
+                "fullDescriptionUrl": "https://casoilresource.lawr.ucdavis.edu/sde/?series=dollarhide"
+              },
+              "ecologicalSite": {
+                "name": "Riparian Wet Meadow Lost River Mountains",
+                "id": "R012XG085ID",
+                "url": "https://edit.sc.egov.usda.gov/catalogs/esd/012X/R012XG085ID"
+              },
+              "landCapabilityClass": {
+                "capabilityClass": "7",
+                "subClass": "e"
+              },
+              "soilData": {
+                "slope": 35.0,
+                "depthDependentData": [
+                  {
+                    "depthInterval": {
+                      "start": 0,
+                      "end": 13
+                    },
+                    "texture": "SANDY_LOAM",
+                    "rockFragmentVolume": "VOLUME_35_60",
+                    "munsellColorString": "10YR 5/3"
+                  },
+                  {
+                    "depthInterval": {
+                      "start": 13,
+                      "end": 64
+                    },
+                    "texture": "LOAMY_SAND",
+                    "rockFragmentVolume": "VOLUME_60",
+                    "munsellColorString": "10YR 5/4"
+                  },
+                  {
+                    "depthInterval": {
+                      "start": 64,
+                      "end": 84
+                    },
+                    "texture": "SAND",
+                    "rockFragmentVolume": "VOLUME_60"
+                  },
+                  {
+                    "depthInterval": {
+                      "start": 84,
+                      "end": 150
+                    },
+                    "texture": "SAND",
+                    "rockFragmentVolume": "VOLUME_60"
+                  }
+                ]
+              }
+            }
           }
-        }
+        ]
       }
     },
     {
@@ -1754,271 +1746,267 @@
             "email": "derek@techmatters.org",
             "firstName": "Derek",
             "lastName": "",
-            "profileImage": "https://images.staging.terraso.net/b7fea1ab-7277-4b45-a301-9149fcefc80a/profile-image_263"
+            "profileImage": "https://images.staging.terraso.net/b7fea1ab-7277-4b45-a301-9149fcefc80a/profile-image_264"
           }
         }
       ],
       "soil_id": {
-        "soilId": {
-          "soilMatches": {
-            "dataRegion": "GLOBAL",
-            "matches": [
-              {
-                "dataSource": "HWSD",
-                "distanceToNearestMapUnitM": 0.0,
-                "combinedMatch": {
-                  "rank": 0,
-                  "score": 0.428
-                },
-                "dataMatch": {
-                  "rank": 0,
-                  "score": 0.571
-                },
-                "locationMatch": {
-                  "rank": 1,
-                  "score": 0.286
-                },
-                "soilInfo": {
-                  "soilSeries": {
-                    "name": "Haplic calcisols"
-                  },
-                  "soilData": {
-                    "depthDependentData": [
-                      {
-                        "depthInterval": {
-                          "start": 0,
-                          "end": 1
-                        },
-                        "texture": "LOAM",
-                        "rockFragmentVolume": "VOLUME_15_35"
-                      },
-                      {
-                        "depthInterval": {
-                          "start": 1,
-                          "end": 10
-                        },
-                        "texture": "LOAM",
-                        "rockFragmentVolume": "VOLUME_15_35"
-                      },
-                      {
-                        "depthInterval": {
-                          "start": 10,
-                          "end": 20
-                        },
-                        "texture": "LOAM",
-                        "rockFragmentVolume": "VOLUME_15_35"
-                      }
-                    ]
-                  }
-                }
+        "dataRegion": "GLOBAL",
+        "matches": [
+          {
+            "dataSource": "HWSD",
+            "distanceToNearestMapUnitM": 0.0,
+            "combinedMatch": {
+              "rank": 0,
+              "score": 0.428
+            },
+            "dataMatch": {
+              "rank": 0,
+              "score": 0.571
+            },
+            "locationMatch": {
+              "rank": 1,
+              "score": 0.286
+            },
+            "soilInfo": {
+              "soilSeries": {
+                "name": "Haplic calcisols"
               },
-              {
-                "dataSource": "HWSD",
-                "distanceToNearestMapUnitM": 0.0,
-                "combinedMatch": {
-                  "rank": 1,
-                  "score": 0.4
-                },
-                "dataMatch": {
-                  "rank": 1,
-                  "score": 0.557
-                },
-                "locationMatch": {
-                  "rank": 2,
-                  "score": 0.243
-                },
-                "soilInfo": {
-                  "soilSeries": {
-                    "name": "Eutric vertisols"
+              "soilData": {
+                "depthDependentData": [
+                  {
+                    "depthInterval": {
+                      "start": 0,
+                      "end": 1
+                    },
+                    "texture": "LOAM",
+                    "rockFragmentVolume": "VOLUME_15_35"
                   },
-                  "soilData": {
-                    "depthDependentData": [
-                      {
-                        "depthInterval": {
-                          "start": 0,
-                          "end": 1
-                        },
-                        "texture": "LOAM",
-                        "rockFragmentVolume": "VOLUME_1_15"
-                      },
-                      {
-                        "depthInterval": {
-                          "start": 1,
-                          "end": 10
-                        },
-                        "texture": "LOAM",
-                        "rockFragmentVolume": "VOLUME_1_15"
-                      },
-                      {
-                        "depthInterval": {
-                          "start": 10,
-                          "end": 20
-                        },
-                        "texture": "LOAM",
-                        "rockFragmentVolume": "VOLUME_1_15"
-                      },
-                      {
-                        "depthInterval": {
-                          "start": 20,
-                          "end": 50
-                        },
-                        "texture": "LOAM",
-                        "rockFragmentVolume": "VOLUME_1_15"
-                      },
-                      {
-                        "depthInterval": {
-                          "start": 50,
-                          "end": 70
-                        },
-                        "texture": "LOAM",
-                        "rockFragmentVolume": "VOLUME_15_35"
-                      },
-                      {
-                        "depthInterval": {
-                          "start": 70,
-                          "end": 100
-                        },
-                        "texture": "LOAM",
-                        "rockFragmentVolume": "VOLUME_15_35"
-                      },
-                      {
-                        "depthInterval": {
-                          "start": 100,
-                          "end": 120
-                        },
-                        "texture": "LOAM",
-                        "rockFragmentVolume": "VOLUME_15_35"
-                      }
-                    ]
-                  }
-                }
-              },
-              {
-                "dataSource": "HWSD",
-                "distanceToNearestMapUnitM": 0.0,
-                "combinedMatch": {
-                  "rank": 2,
-                  "score": 0.147
-                },
-                "dataMatch": {
-                  "rank": 3,
-                  "score": 0.152
-                },
-                "locationMatch": {
-                  "rank": 3,
-                  "score": 0.143
-                },
-                "soilInfo": {
-                  "soilSeries": {
-                    "name": "Eutric regosols"
+                  {
+                    "depthInterval": {
+                      "start": 1,
+                      "end": 10
+                    },
+                    "texture": "LOAM",
+                    "rockFragmentVolume": "VOLUME_15_35"
                   },
-                  "soilData": {
-                    "depthDependentData": [
-                      {
-                        "depthInterval": {
-                          "start": 0,
-                          "end": 1
-                        },
-                        "rockFragmentVolume": "VOLUME_1_15"
-                      },
-                      {
-                        "depthInterval": {
-                          "start": 1,
-                          "end": 10
-                        },
-                        "rockFragmentVolume": "VOLUME_1_15"
-                      },
-                      {
-                        "depthInterval": {
-                          "start": 10,
-                          "end": 20
-                        },
-                        "rockFragmentVolume": "VOLUME_1_15"
-                      },
-                      {
-                        "depthInterval": {
-                          "start": 20,
-                          "end": 50
-                        },
-                        "rockFragmentVolume": "VOLUME_1_15"
-                      },
-                      {
-                        "depthInterval": {
-                          "start": 50,
-                          "end": 70
-                        },
-                        "rockFragmentVolume": "VOLUME_1_15"
-                      },
-                      {
-                        "depthInterval": {
-                          "start": 70,
-                          "end": 100
-                        },
-                        "rockFragmentVolume": "VOLUME_1_15"
-                      },
-                      {
-                        "depthInterval": {
-                          "start": 100,
-                          "end": 120
-                        },
-                        "rockFragmentVolume": "VOLUME_1_15"
-                      }
-                    ]
+                  {
+                    "depthInterval": {
+                      "start": 10,
+                      "end": 20
+                    },
+                    "texture": "LOAM",
+                    "rockFragmentVolume": "VOLUME_15_35"
                   }
-                }
-              },
-              {
-                "dataSource": "HWSD",
-                "distanceToNearestMapUnitM": 15498.80169963,
-                "combinedMatch": {
-                  "rank": 3,
-                  "score": 0.001
-                },
-                "dataMatch": {
-                  "rank": 2,
-                  "score": 0.339
-                },
-                "locationMatch": {
-                  "rank": 0,
-                  "score": 0.329
-                },
-                "soilInfo": {
-                  "soilSeries": {
-                    "name": "Lithic leptosols"
-                  },
-                  "soilData": {
-                    "depthDependentData": [
-                      {
-                        "depthInterval": {
-                          "start": 0,
-                          "end": 1
-                        },
-                        "texture": "SANDY_LOAM",
-                        "rockFragmentVolume": "VOLUME_15_35"
-                      },
-                      {
-                        "depthInterval": {
-                          "start": 1,
-                          "end": 10
-                        },
-                        "texture": "SANDY_LOAM",
-                        "rockFragmentVolume": "VOLUME_15_35"
-                      },
-                      {
-                        "depthInterval": {
-                          "start": 10,
-                          "end": 20
-                        },
-                        "texture": "SANDY_LOAM",
-                        "rockFragmentVolume": "VOLUME_15_35"
-                      }
-                    ]
-                  }
-                }
+                ]
               }
-            ]
+            }
+          },
+          {
+            "dataSource": "HWSD",
+            "distanceToNearestMapUnitM": 0.0,
+            "combinedMatch": {
+              "rank": 1,
+              "score": 0.4
+            },
+            "dataMatch": {
+              "rank": 1,
+              "score": 0.557
+            },
+            "locationMatch": {
+              "rank": 2,
+              "score": 0.243
+            },
+            "soilInfo": {
+              "soilSeries": {
+                "name": "Eutric vertisols"
+              },
+              "soilData": {
+                "depthDependentData": [
+                  {
+                    "depthInterval": {
+                      "start": 0,
+                      "end": 1
+                    },
+                    "texture": "LOAM",
+                    "rockFragmentVolume": "VOLUME_1_15"
+                  },
+                  {
+                    "depthInterval": {
+                      "start": 1,
+                      "end": 10
+                    },
+                    "texture": "LOAM",
+                    "rockFragmentVolume": "VOLUME_1_15"
+                  },
+                  {
+                    "depthInterval": {
+                      "start": 10,
+                      "end": 20
+                    },
+                    "texture": "LOAM",
+                    "rockFragmentVolume": "VOLUME_1_15"
+                  },
+                  {
+                    "depthInterval": {
+                      "start": 20,
+                      "end": 50
+                    },
+                    "texture": "LOAM",
+                    "rockFragmentVolume": "VOLUME_1_15"
+                  },
+                  {
+                    "depthInterval": {
+                      "start": 50,
+                      "end": 70
+                    },
+                    "texture": "LOAM",
+                    "rockFragmentVolume": "VOLUME_15_35"
+                  },
+                  {
+                    "depthInterval": {
+                      "start": 70,
+                      "end": 100
+                    },
+                    "texture": "LOAM",
+                    "rockFragmentVolume": "VOLUME_15_35"
+                  },
+                  {
+                    "depthInterval": {
+                      "start": 100,
+                      "end": 120
+                    },
+                    "texture": "LOAM",
+                    "rockFragmentVolume": "VOLUME_15_35"
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "dataSource": "HWSD",
+            "distanceToNearestMapUnitM": 0.0,
+            "combinedMatch": {
+              "rank": 2,
+              "score": 0.147
+            },
+            "dataMatch": {
+              "rank": 3,
+              "score": 0.152
+            },
+            "locationMatch": {
+              "rank": 3,
+              "score": 0.143
+            },
+            "soilInfo": {
+              "soilSeries": {
+                "name": "Eutric regosols"
+              },
+              "soilData": {
+                "depthDependentData": [
+                  {
+                    "depthInterval": {
+                      "start": 0,
+                      "end": 1
+                    },
+                    "rockFragmentVolume": "VOLUME_1_15"
+                  },
+                  {
+                    "depthInterval": {
+                      "start": 1,
+                      "end": 10
+                    },
+                    "rockFragmentVolume": "VOLUME_1_15"
+                  },
+                  {
+                    "depthInterval": {
+                      "start": 10,
+                      "end": 20
+                    },
+                    "rockFragmentVolume": "VOLUME_1_15"
+                  },
+                  {
+                    "depthInterval": {
+                      "start": 20,
+                      "end": 50
+                    },
+                    "rockFragmentVolume": "VOLUME_1_15"
+                  },
+                  {
+                    "depthInterval": {
+                      "start": 50,
+                      "end": 70
+                    },
+                    "rockFragmentVolume": "VOLUME_1_15"
+                  },
+                  {
+                    "depthInterval": {
+                      "start": 70,
+                      "end": 100
+                    },
+                    "rockFragmentVolume": "VOLUME_1_15"
+                  },
+                  {
+                    "depthInterval": {
+                      "start": 100,
+                      "end": 120
+                    },
+                    "rockFragmentVolume": "VOLUME_1_15"
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "dataSource": "HWSD",
+            "distanceToNearestMapUnitM": 15498.80169963,
+            "combinedMatch": {
+              "rank": 3,
+              "score": 0.001
+            },
+            "dataMatch": {
+              "rank": 2,
+              "score": 0.339
+            },
+            "locationMatch": {
+              "rank": 0,
+              "score": 0.329
+            },
+            "soilInfo": {
+              "soilSeries": {
+                "name": "Lithic leptosols"
+              },
+              "soilData": {
+                "depthDependentData": [
+                  {
+                    "depthInterval": {
+                      "start": 0,
+                      "end": 1
+                    },
+                    "texture": "SANDY_LOAM",
+                    "rockFragmentVolume": "VOLUME_15_35"
+                  },
+                  {
+                    "depthInterval": {
+                      "start": 1,
+                      "end": 10
+                    },
+                    "texture": "SANDY_LOAM",
+                    "rockFragmentVolume": "VOLUME_15_35"
+                  },
+                  {
+                    "depthInterval": {
+                      "start": 10,
+                      "end": 20
+                    },
+                    "texture": "SANDY_LOAM",
+                    "rockFragmentVolume": "VOLUME_15_35"
+                  }
+                ]
+              }
+            }
           }
-        }
+        ]
       }
     }
   ]
