@@ -1,0 +1,19 @@
+name,csv_name,description
+Site,Site,"Core site information including location, metadata, soil data, notes, and soil ID matches"
+Location,Location,Geographic location of the site
+Project,Project,Project that contains the site
+SoilSettings,,"Project-level soil collection settings"
+ProjectDepthInterval,,"Custom depth interval defined by the project"
+SoilData,Soil Data,"Site-level soil measurements and configuration"
+DepthInterval,Depth Intervals,"Depth-dependent soil data for a single interval"
+Note,,"Site observation note with author information"
+Author,,"User who authored a note"
+SoilMatches,Soil Matches,"Soil identification matches"
+SoilMatch,,"Individual soil match with scoring"
+MatchScore,,"Match scoring information (combinedMatch, dataMatch, locationMatch)"
+SoilInfo,,"Detailed information about a matched soil"
+SoilSeries,,"Soil series identification and description"
+EcologicalSite,Ecological Site,"Ecological site classification"
+LandCapabilityClass,,"USDA land capability classification"
+MatchSoilData,,"Reference soil data from the database for a match"
+MatchDepthData,,"Reference depth-dependent data for a soil match"

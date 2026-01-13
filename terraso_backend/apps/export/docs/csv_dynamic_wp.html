@@ -1,0 +1,26 @@
+<!-- LandPKS CSV Export - WordPress Embeddable -->
+
+<div id="export-docs-csv" class="export-docs">
+  <div id="csv-loading">Loading...</div>
+  <div id="csv-content"></div>
+</div>
+
+<script>
+  (function () {
+    var host = window.location.hostname;
+    var BASE;
+    if (host.indexOf("landpks-terraso-staging") !== -1) {
+      BASE = "https://api.staging.terraso.org/export/docs";
+    } else if (host === "landpks.terraso.org") {
+      BASE = "https://api.terraso.org/export/docs";
+    } else {
+      BASE = "http://localhost:8000" + "/export/docs";
+    }
+    var js = document.createElement("script");
+    js.src = BASE + "/export_docs.js";
+    js.onload = function () {
+      initExportDocs(BASE, "csv", "csv");
+    };
+    document.body.appendChild(js);
+  })();
+</script>

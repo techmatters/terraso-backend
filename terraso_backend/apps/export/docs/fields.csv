@@ -1,0 +1,94 @@
+object,json_name,csv_column,type,description
+Site,id,Site ID,string,Unique identifier for the LandPKS Soil ID site
+Site,name,Site name,string,Name of the LandPKS Soil ID site
+Site,privacy,Site privacy,privacy,Privacy setting of the site or its parent project
+Site,archived,,boolean,Whether site is archived
+Site,seen,,boolean,Whether site has been viewed by the user
+Site,updatedAt,,datetime,"Date and time the site was last updated (e.g., ""2025-01-15T14:30:00.000000+00:00"")"
+Site,project,,Project,Project containing the site
+Site,soilData,,SoilData,Site-level soil measurements and depth intervals
+Site,notes,,Note[],Site observation notes
+Site,soil_id,,SoilMatches,Soil identification matches
+Location,latitude,Latitude,number,Latitude of the LandPKS site (-90 to 90)
+Location,longitude,Longitude,number,Longitude of the LandPKS site (-180 to 180)
+Location,elevation,Elevation,number,Height of the site above mean sea level (meters)
+Project,id,Project ID,string,Unique identifier for the LandPKS Soil ID project
+Project,name,Project name,string,Name of the LandPKS Soil ID project
+Project,description,Project description,string,Description of the LandPKS Soil ID project
+Project,siteInstructions,,string,Pinned note displayed on all sites in the project (shown as first note in JSON export)
+Project,updatedAt,,datetime,"Date and time the project was last updated (e.g., ""2025-01-15T14:30:00.000000+00:00"")"
+Project,soilSettings,,SoilSettings,Project-level soil collection settings
+SoilSettings,depthIntervalPreset,,depth_interval_preset,Depth interval preset for the project
+SoilSettings,depthIntervals,,ProjectDepthInterval[],Custom depth intervals defined by the project
+ProjectDepthInterval,label,,string,Label for the depth interval
+ProjectDepthInterval,start,,number,Start depth of the interval (cm)
+ProjectDepthInterval,end,,number,End depth of the interval (cm)
+SoilData,_depthSource,,depth_source,Effective depth interval preset for the site
+SoilData,_depthIntervals,,DepthInterval[],Depth interval measurements for the site
+SoilData,slopeSteepnessPercent,Slope steepness percent low,number,"Lower estimate of slope steepness as percent rise (e.g., 5 means 5% grade or 5 ft rise per 100 ft horizontal)"
+SoilData,slopeSteepnessPercentHigh,Slope steepness percent high,number,"Upper estimate of slope steepness as percent rise (e.g., 15 means 15% grade)"
+SoilData,downSlope,Down slope,slope_shape,Shape of the downhill slope
+SoilData,crossSlope,Cross slope,slope_shape,Shape of the slope perpendicular to downhill direction
+SoilData,surfaceCracksSelect,Surface cracks,surface_cracking,Presence and intensity of surface cracks
+SoilData,,Site notes,string,"Notes entered for the site. Format: content | author_email | timestamp; (next note). Newlines shown as ↵. Example: ""Soil was moist after rain | jane@example.com | 2025-01-15T14:30:00+00:00; Rocky area near creek | john@example.com | 2025-01-14T10:00:00+00:00"""
+DepthInterval,label,Depth label,string,"Label of the soil pit depth (e.g., ""0-1 cm"", ""1-10 cm"", ""10-20 cm"")"
+DepthInterval,depthIntervalStart,Depth start,number,Upper bound of the soil pit depth interval (cm)
+DepthInterval,depthIntervalEnd,Depth end,number,Lower bound of the soil pit depth interval (cm)
+DepthInterval,_depthSource,Depth source,depth_source,Source preset for this depth interval
+DepthInterval,rockFragmentVolume,Depth rock fragment volume,rock_fragment_volume,Percent of rock fragments in the soil sample
+DepthInterval,texture,Depth texture class,texture,Texture class of the soil sample
+DepthInterval,_colorMunsell,Depth soil color,string,"Munsell color values of the soil sample (e.g., ""10YR 4/3"", ""5YR 3/2""). Computed from colorHue, colorValue, colorChroma."
+DepthInterval,colorPhotoUsed,Soil color photo used,boolean,Whether soil color was determined through photo analysis
+DepthInterval,soilColorCondition,Soil color condition,soil_condition,Soil dampness (moist/dry) of the sample
+DepthInterval,soilColorLighting,Soil color lighting,lighting_condition,Lighting conditions of the sample photo
+DepthInterval,soilTextureEnabled,,boolean,Whether texture collection is enabled for this interval
+DepthInterval,soilColorEnabled,,boolean,Whether color collection is enabled for this interval
+Note,id,,string,Note identifier
+Note,content,,string,Note text content
+Note,createdAt,,datetime,"Creation timestamp (e.g., ""2025-01-15T14:30:00.000000+00:00"")"
+Note,updatedAt,,datetime,"Last update timestamp (e.g., ""2025-01-15T14:30:00.000000+00:00"")"
+Note,deletedByCascade,,boolean,Whether note was deleted via cascade
+Note,author,,Author,User who authored the note
+Author,id,,string,Author user identifier
+Author,email,,string,Author email address
+Author,firstName,,string,Author first name
+Author,lastName,,string,Author last name
+Author,profileImage,,string,Author profile image URL
+SoilMatches,dataRegion,,data_region,Geographic region for soil data (US or GLOBAL)
+SoilMatches,matches,,SoilMatch[],Array of soil match results
+SoilMatches,,Selected soil series,string,"Soil series selected by the user as best match (e.g., ""Literr"", ""Togasara"")"
+SoilMatches,,Selected soil type taxonomy subgroup,string,"Subgroup of the soil series selected by the user (e.g., ""Typic Argixerolls"")"
+SoilMatches,,Selected soil description,string,Description of the soil selected by the user
+SoilMatches,,Top soil series match,string,Soil series suggested by the algorithm as best match
+SoilMatches,,Top soil match taxonomy subgroup,string,"Subgroup suggested by the LandPKS Soil ID algorithm (e.g., ""Pachic Argixerolls"")"
+SoilMatches,,Top soil match description,string,Description of the soil suggested by the algorithm
+SoilMatches,,Top match user rating,string,"User's feedback on the top algorithmic match: Selected, Rejected, or Unsure"
+SoilMatch,dataSource,Soil map,soil_map,"Data source (SSURGO, STATSGO, HWSD)"
+SoilMatch,userRating,,user_rating,User's rating for this match
+SoilMatch,distanceToNearestMapUnitM,,number,Distance to nearest map unit in meters
+SoilMatch,combinedMatch,,MatchScore,Combined match scoring
+SoilMatch,dataMatch,,MatchScore,Data-based match scoring
+SoilMatch,locationMatch,,MatchScore,Location-based match scoring
+SoilMatch,soilInfo,,SoilInfo,Detailed soil information for this match
+MatchScore,rank,,number,Ranking position (0 = best)
+MatchScore,score,,number,Match score (0-1)
+SoilInfo,soilSeries,,SoilSeries,Soil series information
+SoilInfo,landCapabilityClass,,LandCapabilityClass,Land capability classification
+SoilInfo,ecologicalSite,,EcologicalSite,Ecological site information
+SoilInfo,soilData,,MatchSoilData,Reference soil data from the database
+SoilSeries,name,,string,"Soil series name (e.g., ""Catden"", ""Sirdrak"")"
+SoilSeries,taxonomySubgroup,,string,"Taxonomic subgroup (e.g., ""Typic Argixerolls"")"
+SoilSeries,description,,string,Full soil series description
+SoilSeries,fullDescriptionUrl,,string,URL to full soil series description
+EcologicalSite,name,Ecological site name,string,"Ecological site name (e.g., ""Loamy Upland"", ""Sandy Bottomland"")"
+EcologicalSite,id,Ecological site ID,string,"Ecological site ID (e.g., ""R042XB012NM"")"
+EcologicalSite,,Land capability classification,string,"Class 1-8 (1=fewest limitations, 8=most severe) + subclass: e=erosion hazard, w=wetness/excess water, s=soil limitations (shallow, droughty, stony), c=climate. Examples: ""3e"", ""6w"""
+LandCapabilityClass,capabilityClass,,string,Capability class (1-8)
+LandCapabilityClass,subClass,,string,"Subclass (e, w, s, c)"
+MatchSoilData,slope,,number,Reference slope value from soil database
+MatchSoilData,depthDependentData,,MatchDepthData[],Reference depth-dependent data from soil database
+MatchDepthData,start,,number,Start depth of the interval (cm)
+MatchDepthData,end,,number,End depth of the interval (cm)
+MatchDepthData,texture,,texture,Reference texture class
+MatchDepthData,rockFragmentVolume,,rock_fragment_volume,"Reference rock fragment volume. Values indicate percentage range (e.g., VOLUME_15_35 means 15-35%)"
+MatchDepthData,munsellColorString,,string,"Reference Munsell color string (e.g., ""10YR 4/3"", ""5YR 3/2"")"
