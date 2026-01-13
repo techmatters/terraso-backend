@@ -1,0 +1,26 @@
+<!-- LandPKS JSON Fields - WordPress Embeddable -->
+
+<div id="export-docs-fields" class="export-docs">
+  <div id="fields-loading">Loading...</div>
+  <div id="fields-content"></div>
+</div>
+
+<script>
+  (function () {
+    var host = window.location.hostname;
+    var BASE;
+    if (host.indexOf("landpks-terraso-staging") !== -1) {
+      BASE = "https://api.staging.terraso.net/export/docs";
+    } else if (host === "landpks.terraso.org") {
+      BASE = "https://api.terraso.net/export/docs";
+    } else {
+      BASE = "http://localhost:8000" + "/export/docs";
+    }
+    var js = document.createElement("script");
+    js.src = BASE + "/export_docs.js";
+    js.onload = function () {
+      initExportDocs(BASE, "fields", "fields");
+    };
+    document.body.appendChild(js);
+  })();
+</script>

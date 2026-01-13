@@ -524,3 +524,35 @@ def user_all_sites_export_page(request, user_token, user_name):
     csv_url = f"/export/token/user_all/{user_token}/{user_name}.csv"
     json_url = f"/export/token/user_all/{user_token}/{user_name}.json"
     return export_page_html(display_name, "user_all", csv_url, json_url, request)
+
+
+# Documentation files for WordPress embedding
+
+
+def export_docs_file(request, filename):
+    """
+    Serve export documentation files for WordPress embedding.
+
+    These files are served with CORS enabled (via handlers.py) to allow
+    JavaScript on external sites (e.g., WordPress) to fetch them.
+    """
+    import mimetypes
+    import os
+
+    # Prevent path traversal by stripping directory components
+    safe_filename = os.path.basename(filename)
+
+    # Get path to docs directory (same directory as this module)
+    docs_dir = os.path.join(os.path.dirname(__file__), "docs")
+    file_path = os.path.join(docs_dir, safe_filename)
+
+    # Determine content type from extension
+    content_type, _ = mimetypes.guess_type(safe_filename)
+
+    try:
+        with open(file_path, "r", encoding="utf-8") as f:
+            content = f.read()
+    except FileNotFoundError:
+        return HttpResponse("File not found", status=404)
+
+    return HttpResponse(content, content_type=content_type or "application/octet-stream")

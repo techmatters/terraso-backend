@@ -23,6 +23,7 @@ requests (fetch/XMLHttpRequest to a different domain).
 
 CORS is needed for:
   - A website using JavaScript to fetch from /export/token/* URLs
+  - A website using JavaScript to fetch from /export/docs/* URLs (WordPress embedding)
 
 CORS is NOT needed for:
   - Clicking a link to download CSV/JSON (direct browser navigation)
@@ -35,6 +36,9 @@ Security note:
 Enabling CORS for /export/token/* is low risk because the security model
 is token-based: anyone with a valid token can access the data regardless
 of CORS. The token (a 128-bit UUID) IS the security, not CORS.
+
+Enabling CORS for /export/docs/* is low risk because these are public
+documentation files (JS, CSS, CSV schema definitions) with no sensitive data.
 """
 
 from corsheaders.signals import check_request_enabled
@@ -42,19 +46,23 @@ from corsheaders.signals import check_request_enabled
 
 def cors_allow_export_urls(sender, request, **kwargs):
     """
-    Enable CORS for token-based export URLs only.
+    Enable CORS for token-based export URLs and documentation files.
 
     Token-based exports (/export/token/*) allow public access via bearer tokens,
     so they need CORS enabled for all origins.
+
+    Documentation files (/export/docs/*) are public schema/JS/CSS files for
+    embedding export documentation in external sites like WordPress.
 
     ID-based exports (/export/id/*) require JWT authentication and follow
     the standard CORS policy (CORS_ORIGIN_WHITELIST), so they return False here
     to let the default CORS middleware behavior apply.
 
     Returns:
-        bool: True if CORS should be enabled (for /export/token/* URLs), False otherwise
+        bool: True if CORS should be enabled, False otherwise
     """
-    return request.path.startswith("/export/token/")
+    path = request.path
+    return path.startswith("/export/token/") or path.startswith("/export/docs/")
 
 
 # Connect the signal handler

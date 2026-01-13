@@ -88,4 +88,10 @@ urlpatterns = [
         csrf_exempt(never_cache(views.user_all_sites_export_by_id)),
         name="user-all-sites-export-by-id",
     ),
+    # Documentation files for WordPress embedding (public, CORS enabled)
+    path(
+        "docs/<str:filename>",
+        csrf_exempt(auth_optional(views.export_docs_file)),
+        name="export-docs-file",
+    ),
 ]
