@@ -508,9 +508,9 @@ def flatten_site(site: dict) -> dict:
     if not depth_intervals:
         depth_intervals = [None]
 
-    # Extract soil ID match data
-    soil_id_data = site.get("soil_id", {})
-    soil_matches = soil_id_data.get("soilId", {}).get("soilMatches", {})
+    # Extract soil ID match data (already flattened in views.py)
+    soil_id_data = site.get("soil_id") or {}
+    soil_matches = soil_id_data  # soil_id now directly contains dataRegion and matches
 
     # Find user selected soil - look for match with userRating == "SELECTED"
     # (userRating is injected into matches from soilMetadata.userRatings)
