@@ -50,7 +50,7 @@ def cors_allow_export_urls(sender, request, **kwargs):
 
     Token-based exports (/export/token/*) requires CORS access so external
     websites can fetch the CSV or JSON using fetch().  It is not needed
-    for access from the shared html page, or for tools like curl that 
+    for access from the shared html page, or for tools like curl that
     don't enforce CORS.
 
     Documentation files (/export/docs/*) are public schema/JS/CSS files for
