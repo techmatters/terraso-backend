@@ -17,8 +17,9 @@
  * @param {string} base - Base URL for assets and data (e.g., 'https://example.com/export')
  * @param {string} mode - Render mode: 'csv', 'tree', 'fields', or 'hierarchy'
  * @param {string} prefix - Element ID prefix (e.g., 'csv' for 'csv-loading', 'csv-content')
+ * @param {string} [sheetsId] - Optional Google Sheets spreadsheet ID to load CSVs from
  */
-function initExportDocs(base, mode, prefix) {
+function initExportDocs(base, mode, prefix, sheetsId) {
     // Load CSS dynamically
     var css = document.createElement('link');
     css.rel = 'stylesheet';
@@ -28,7 +29,8 @@ function initExportDocs(base, mode, prefix) {
     var loadingEl = document.getElementById(prefix + '-loading');
     var contentEl = document.getElementById(prefix + '-content');
 
-    loadExportData(base).then(function(data) {
+    var dataSource = sheetsId ? 'sheets:' + sheetsId : base;
+    loadExportData(dataSource).then(function(data) {
         switch (mode) {
             case 'csv':
                 renderCsvDocs(data, contentEl, {showOverview: false});
@@ -93,6 +95,23 @@ function parseCSVLine(line) {
 // =============================================================================
 
 async function loadExportData(basePath = '') {
+    // Check if using Google Sheets (format: "sheets:SPREADSHEET_ID")
+    if (basePath.startsWith('sheets:')) {
+        const spreadsheetId = basePath.slice(7);
+        const sheetBase = 'https://docs.google.com/spreadsheets/d/' + spreadsheetId + '/gviz/tq?tqx=out:csv&sheet=';
+        const [sheetsObjRes, sheetsFieldsRes, sheetsEnumRes] = await Promise.all([
+            fetch(sheetBase + 'objects'),
+            fetch(sheetBase + 'fields'),
+            fetch(sheetBase + 'enum_values')
+        ]);
+        return {
+            objects: parseCSV(await sheetsObjRes.text()),
+            fields: parseCSV(await sheetsFieldsRes.text()),
+            enumValues: parseCSV(await sheetsEnumRes.text())
+        };
+    }
+
+    // Default: backend-hosted CSVs
     const prefix = basePath ? basePath + '/' : '';
     const [objectsRes, fieldsRes, enumValuesRes] = await Promise.all([
         fetch(`${prefix}objects.csv`),
@@ -188,7 +207,7 @@ function renderCsvNav(data, container, jsonFormatHref = '/json-export-format/') 
 }
 
 function renderCsvDocs(data, container, options = {}) {
-    const { fields, enumValues } = data;
+    const { objects, fields, enumValues } = data;
     const { showOverview = true } = options;
 
     // Group enum values by enum (use labels for CSV)
@@ -230,8 +249,9 @@ function renderCsvDocs(data, container, options = {}) {
             tableRows += `<tr><td>${escapeHtml(csvCol)}</td><td>${typeHtml}</td><td>${escapeHtml(fdesc)}</td></tr>`;
         }
 
-        const descHtml = objName === 'DepthInterval'
-            ? '<p class="description">One row per depth interval. Intervals are determined by the site\'s depth interval preset.</p>'
+        const objInfo = objects.find(o => o.name === objName);
+        const descHtml = objInfo && objInfo.description
+            ? `<p class="description">${escapeHtml(objInfo.description)}</p>`
             : '';
 
         html += `<div class="section" id="csv-${objName.toLowerCase()}">
@@ -316,12 +336,6 @@ function renderJsonFields(data, container) {
 
     // Group fields by object
     const fieldsByObject = groupBy(fields, 'object');
-
-    // Merge Location into Site
-    if (fieldsByObject.Location && fieldsByObject.Site) {
-        fieldsByObject.Site.push(...fieldsByObject.Location);
-        delete fieldsByObject.Location;
-    }
 
     // Group enum values
     const valuesByEnum = groupBy(enumValues, 'enum');
@@ -438,12 +452,6 @@ function renderHierarchy(data, container) {
             if (!primitives[parent]) primitives[parent] = [];
             primitives[parent].push({ fname, typeDisplay, fdesc });
         }
-    }
-
-    // Merge Location into Site
-    if (primitives.Location && primitives.Site) {
-        primitives.Site.push(...primitives.Location);
-        delete primitives.Location;
     }
 
     // Color palette
