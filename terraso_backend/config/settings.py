@@ -36,12 +36,6 @@ PROJECT_DIR = os.path.dirname(os.path.abspath(BASE_DIR))
 
 ENV = config("ENV", default="development")
 
-# Controls verbosity of GraphQL operation logging in development. Only active when ENV="development".
-# "minimal" - default Django structlog logging (no GraphQL-specific info)
-# "names"   - include GraphQL operation name in request_started/request_finished logs
-# "full"    - also include input variables (request_started) and response (request_finished)
-GRAPHQL_LOG_LEVEL = "names"
-
 DEBUG = config("DEBUG", default=False, cast=config.boolean)
 
 ALLOWED_HOSTS = config("ALLOWED_HOSTS", default="*", cast=config.list)
@@ -264,6 +258,12 @@ structlog.configure(
     wrapper_class=structlog.stdlib.BoundLogger,
     cache_logger_on_first_use=True,
 )
+
+# Controls verbosity of GraphQL operation logging in development. Only active when ENV="development".
+# "minimal" - default Django structlog logging (no GraphQL-specific info)
+# "names"   - include GraphQL operation name in request_started/request_finished logs
+# "full"    - also include input variables (request_started) and response (request_finished)
+GRAPHQL_LOG_LEVEL = "names"
 
 GRAPHENE = {
     "SCHEMA": "apps.graphql.schema.schema.schema",
