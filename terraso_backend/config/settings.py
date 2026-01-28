@@ -36,6 +36,12 @@ PROJECT_DIR = os.path.dirname(os.path.abspath(BASE_DIR))
 
 ENV = config("ENV", default="development")
 
+# Controls GraphQL operation logging in development. Only active when ENV="development".
+# "minimal" - default Django structlog logging (no GraphQL-specific info)
+# "names"   - include GraphQL operation name in request_started/request_finished logs
+# "full"    - also include input variables (request_started) and response (request_finished)
+GRAPHQL_LOG_LEVEL = "full"
+
 DEBUG = config("DEBUG", default=False, cast=config.boolean)
 
 ALLOWED_HOSTS = config("ALLOWED_HOSTS", default="*", cast=config.list)
@@ -215,7 +221,7 @@ LOGGING = {
         },
         "plain_console": {
             "()": structlog.stdlib.ProcessorFormatter,
-            "processor": structlog.dev.ConsoleRenderer(),
+            "processor": structlog.dev.ConsoleRenderer(sort_keys=False),
         },
     },
     "filters": {
@@ -460,3 +466,5 @@ HUBSPOT_ACCOUNT_DELETION_FORM_API_URL = (
 GLOBAL_SOIL_ID_BUFFER_DISTANCE = config(
     "GLOBAL_SOIL_ID_BUFFER_DISTANCE", default="30000", cast=config.eval
 )
+
+import config.graphql_log  # noqa: E402, F401 — registers django_structlog signal receivers
