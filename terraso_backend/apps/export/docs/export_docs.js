@@ -17,8 +17,9 @@
  * @param {string} base - Base URL for assets and data (e.g., 'https://example.com/export')
  * @param {string} mode - Render mode: 'csv', 'tree', 'fields', or 'hierarchy'
  * @param {string} prefix - Element ID prefix (e.g., 'csv' for 'csv-loading', 'csv-content')
+ * @param {string} [sheetsId] - Optional Google Sheets spreadsheet ID to load CSVs from
  */
-function initExportDocs(base, mode, prefix) {
+function initExportDocs(base, mode, prefix, sheetsId) {
     // Load CSS dynamically
     var css = document.createElement('link');
     css.rel = 'stylesheet';
@@ -28,7 +29,8 @@ function initExportDocs(base, mode, prefix) {
     var loadingEl = document.getElementById(prefix + '-loading');
     var contentEl = document.getElementById(prefix + '-content');
 
-    loadExportData(base).then(function(data) {
+    var dataSource = sheetsId ? 'sheets:' + sheetsId : base;
+    loadExportData(dataSource).then(function(data) {
         switch (mode) {
             case 'csv':
                 renderCsvDocs(data, contentEl, {showOverview: false});
@@ -93,6 +95,23 @@ function parseCSVLine(line) {
 // =============================================================================
 
 async function loadExportData(basePath = '') {
+    // Check if using Google Sheets (format: "sheets:SPREADSHEET_ID")
+    if (basePath.startsWith('sheets:')) {
+        const spreadsheetId = basePath.slice(7);
+        const sheetBase = 'https://docs.google.com/spreadsheets/d/' + spreadsheetId + '/gviz/tq?tqx=out:csv&sheet=';
+        const [sheetsObjRes, sheetsFieldsRes, sheetsEnumRes] = await Promise.all([
+            fetch(sheetBase + 'objects'),
+            fetch(sheetBase + 'fields'),
+            fetch(sheetBase + 'enum_values')
+        ]);
+        return {
+            objects: parseCSV(await sheetsObjRes.text()),
+            fields: parseCSV(await sheetsFieldsRes.text()),
+            enumValues: parseCSV(await sheetsEnumRes.text())
+        };
+    }
+
+    // Default: backend-hosted CSVs
     const prefix = basePath ? basePath + '/' : '';
     const [objectsRes, fieldsRes, enumValuesRes] = await Promise.all([
         fetch(`${prefix}objects.csv`),
@@ -153,50 +172,50 @@ function computeJsonPath(objName, parentMap) {
 // =============================================================================
 
 function getCsvSections(data) {
-    const { objects, fields } = data;
-    // Build lookup: object name -> csv_name
-    const csvNameMap = {};
-    for (const obj of objects) {
-        if (obj.csv_name) {
-            csvNameMap[obj.name] = obj.csv_name;
-        }
-    }
+    const { fields } = data;
 
-    // Get unique objects that have CSV columns, in order of first appearance
+    // Get unique csv_sections that have CSV columns, in order of first appearance
     const csvFields = fields.filter(f => f.csv_column);
     const seen = new Set();
     const sections = [];
     for (const f of csvFields) {
-        const obj = f.object;
-        if (obj && !seen.has(obj)) {
-            seen.add(obj);
-            sections.push([obj, csvNameMap[obj] || obj]);
+        const section = f.csv_section;
+        if (section && !seen.has(section)) {
+            seen.add(section);
+            sections.push(section);
         }
     }
     return sections;
 }
 
+function toSlug(name) {
+    return name.toLowerCase().replace(/\s+/g, '-');
+}
+
 function renderCsvNav(data, container, jsonFormatHref = '/json-export-format/') {
+    const { objects } = data;
     const sections = getCsvSections(data);
 
     let html = '<a href="#overview">Overview</a> ';
-    for (const [objName, displayName] of sections) {
-        html += `<a href="#csv-${objName.toLowerCase()}">${displayName}</a> `;
+    for (const name of sections) {
+        const objInfo = objects.find(o => o.name === name);
+        const displayName = (objInfo && objInfo.label) || name;
+        html += `<a href="#csv-${toSlug(name)}">${escapeHtml(displayName)}</a> `;
     }
     html += `<span class="muted" style="margin-left: 1em;">See also: <a href="${jsonFormatHref}">JSON Format</a></span>`;
     container.innerHTML = html;
 }
 
 function renderCsvDocs(data, container, options = {}) {
-    const { fields, enumValues } = data;
+    const { objects, fields, enumValues } = data;
     const { showOverview = true } = options;
 
     // Group enum values by enum (use labels for CSV)
     const valuesByEnum = groupBy(enumValues, 'enum');
 
-    // Get fields with CSV columns, grouped by object
+    // Get fields with CSV columns, grouped by csv_section
     const csvFields = fields.filter(f => f.csv_column);
-    const fieldsByObject = groupBy(csvFields, 'object');
+    const fieldsBySection = groupBy(csvFields, 'csv_section');
     const sections = getCsvSections(data);
 
     let html = '';
@@ -207,12 +226,12 @@ function renderCsvDocs(data, container, options = {}) {
         </div>`;
     }
 
-    for (const [objName, displayName] of sections) {
-        const objFields = fieldsByObject[objName] || [];
-        if (!objFields.length) continue;
+    for (const name of sections) {
+        const sectionFields = fieldsBySection[name] || [];
+        if (!sectionFields.length) continue;
 
         let tableRows = '';
-        for (const f of objFields) {
+        for (const f of sectionFields) {
             const csvCol = f.csv_column || '';
             const ftype = f.type || '';
             const fdesc = f.description || '';
@@ -230,15 +249,17 @@ function renderCsvDocs(data, container, options = {}) {
             tableRows += `<tr><td>${escapeHtml(csvCol)}</td><td>${typeHtml}</td><td>${escapeHtml(fdesc)}</td></tr>`;
         }
 
-        const descHtml = objName === 'DepthInterval'
-            ? '<p class="description">One row per depth interval. Intervals are determined by the site\'s depth interval preset.</p>'
+        const objInfo = objects.find(o => o.name === name);
+        const displayName = (objInfo && objInfo.label) || name;
+        const descHtml = objInfo && objInfo.description
+            ? `<p class="description">${escapeHtml(objInfo.description)}</p>`
             : '';
 
-        html += `<div class="section" id="csv-${objName.toLowerCase()}">
-            <h2>${displayName}</h2>
+        html += `<div class="section" id="csv-${toSlug(name)}">
+            <h2>${escapeHtml(displayName)}</h2>
             ${descHtml}
             <table>
-                <thead><tr><th>CSV Column</th><th>Type</th><th>Description</th></tr></thead>
+                <thead><tr><th>Column</th><th>Type</th><th>Description</th></tr></thead>
                 <tbody>${tableRows}</tbody>
             </table>
         </div>`;
@@ -279,7 +300,7 @@ function renderJsonTree(data, container, options = {}) {
     const { minimal = false } = options;
 
     const link = (name, obj, isArray = false) =>
-        `<a href="#obj-${obj.toLowerCase()}">${name}${isArray ? '[]' : ''}</a>`;
+        `<a href="#obj-${toSlug(obj)}">${name}${isArray ? '[]' : ''}</a>`;
 
     function renderNode(objName, fieldName, isArray, indent) {
         const prefix = '  '.repeat(indent);
@@ -317,12 +338,6 @@ function renderJsonFields(data, container) {
     // Group fields by object
     const fieldsByObject = groupBy(fields, 'object');
 
-    // Merge Location into Site
-    if (fieldsByObject.Location && fieldsByObject.Site) {
-        fieldsByObject.Site.push(...fieldsByObject.Location);
-        delete fieldsByObject.Location;
-    }
-
     // Group enum values
     const valuesByEnum = groupBy(enumValues, 'enum');
 
@@ -358,14 +373,18 @@ function renderJsonFields(data, container) {
 
             let typeHtml;
             if (valuesByEnum[baseType]) {
-                const vals = valuesByEnum[baseType].map(v => escapeHtml(v.value));
+                const vals = valuesByEnum[baseType].map(v => {
+                    const val = escapeHtml(v.value);
+                    const desc = v.description ? ` (${escapeHtml(v.description)})` : '';
+                    return val + desc;
+                });
                 typeHtml = vals.join(', ');
             } else if (baseType === 'boolean') {
                 typeHtml = 'true, false';
             } else if (baseType === 'datetime') {
                 typeHtml = 'ISO 8601 DateTime';
             } else if (objectNames.has(baseType)) {
-                typeHtml = `<a href="#obj-${baseType.toLowerCase()}">${escapeHtml(baseType)}</a>`;
+                typeHtml = `<a href="#obj-${toSlug(baseType)}">${escapeHtml(baseType)}</a>`;
             } else {
                 typeHtml = escapeHtml(baseType);
             }
@@ -373,7 +392,7 @@ function renderJsonFields(data, container) {
             tableRows += `<tr><td>${fnameHtml}</td><td>${typeHtml}</td><td>${escapeHtml(fdesc)}</td></tr>`;
         }
 
-        html += `<div class="section" id="obj-${name.toLowerCase()}">
+        html += `<div class="section" id="obj-${toSlug(name)}">
             <h2>${escapeHtml(name)}</h2>
             ${desc ? `<p class="description">${escapeHtml(desc)}</p>` : ''}
             ${path ? `<p class="muted">JSON path: <code>${escapeHtml(path)}</code></p>` : ''}
@@ -401,7 +420,7 @@ function renderHierarchy(data, container) {
     for (const val of enumValues) {
         const enumName = val.enum || '';
         if (!valuesByEnum[enumName]) valuesByEnum[enumName] = [];
-        valuesByEnum[enumName].push(val.value || '');
+        valuesByEnum[enumName].push(val);
     }
 
     // Build children and primitives maps
@@ -426,7 +445,11 @@ function renderHierarchy(data, container) {
             // Compute display type
             let typeDisplay;
             if (valuesByEnum[baseType]) {
-                typeDisplay = valuesByEnum[baseType].join(', ');
+                typeDisplay = valuesByEnum[baseType].map(v => {
+                    const val = v.value || '';
+                    const desc = v.description ? ` (${v.description})` : '';
+                    return val + desc;
+                }).join(', ');
             } else if (baseType === 'boolean') {
                 typeDisplay = 'true, false';
             } else if (baseType === 'datetime') {
@@ -438,12 +461,6 @@ function renderHierarchy(data, container) {
             if (!primitives[parent]) primitives[parent] = [];
             primitives[parent].push({ fname, typeDisplay, fdesc });
         }
-    }
-
-    // Merge Location into Site
-    if (primitives.Location && primitives.Site) {
-        primitives.Site.push(...primitives.Location);
-        delete primitives.Location;
     }
 
     // Color palette

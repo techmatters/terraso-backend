@@ -7,19 +7,27 @@
 
 <script>
   (function () {
+    var params = new URLSearchParams(window.location.search);
     var host = window.location.hostname;
     var BASE;
+    var sheetsId;
     if (host.indexOf("landpks-terraso-staging") !== -1) {
       BASE = "https://api.staging.terraso.net/export/docs";
+      sheetsId = "1D8HTWaUkHQJZ5CQKQ7FvHwA6BjPPdGIC4YSv_LfdCDY";
     } else if (host === "landpks.terraso.org") {
       BASE = "https://api.terraso.net/export/docs";
+      sheetsId = "1hNw0zCOuZ9td3ueWMXNZZahEagIDeGt8ryCreyNyqGc";
     } else {
-      BASE = "http://localhost:8000" + "/export/docs";
+      BASE = "http://localhost:8000/export/docs";
+      sheetsId = "";
+    }
+    if (params.get("use_sheets")) {
+      sheetsId = params.get("use_sheets");
     }
     var js = document.createElement("script");
     js.src = BASE + "/export_docs.js";
     js.onload = function () {
-      initExportDocs(BASE, "hierarchy", "hierarchy");
+      initExportDocs(BASE, "hierarchy", "hierarchy", sheetsId);
     };
     document.body.appendChild(js);
   })();
