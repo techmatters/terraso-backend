@@ -256,7 +256,7 @@ def main():
             print(f"  {json_path.name}: OK")
 
     # Summary
-    print(f"\n=== Summary ===")
+    print("\n=== Summary ===")
     if all_errors:
         print(f"Found {len(all_errors)} validation errors")
         return 1

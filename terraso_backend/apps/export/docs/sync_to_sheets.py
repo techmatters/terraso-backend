@@ -107,7 +107,7 @@ def main():
         if data:
             worksheet.update(data, "A1")
 
-        print(f"  Done.")
+        print("  Done.")
 
     print("\nSync complete!")
 
