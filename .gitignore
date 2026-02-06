@@ -96,3 +96,6 @@ node_modules/
 # Database backups - never commit these (large files with sensitive data)
 *.sql
 
+# Export documentation CSVs - master is in Google Sheets
+terraso_backend/apps/export/docs/*.csv
+
