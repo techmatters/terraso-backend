@@ -100,7 +100,9 @@ def main():
             worksheet = spreadsheet.worksheet(sheet_name)
         except gspread.WorksheetNotFound:
             print(f"  Creating worksheet '{sheet_name}'...")
-            worksheet = spreadsheet.add_worksheet(sheet_name, rows=len(data), cols=len(data[0]) if data else 1)
+            worksheet = spreadsheet.add_worksheet(
+                sheet_name, rows=len(data), cols=len(data[0]) if data else 1
+            )
 
         # Clear and update
         worksheet.clear()

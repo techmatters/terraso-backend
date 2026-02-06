@@ -29,7 +29,9 @@ FIXTURES_DIR = DOCS_DIR.parent.parent.parent / "tests" / "export" / "fixtures"
 
 def fetch_csv_from_sheets(sheet_id: str, sheet_name: str) -> list[dict]:
     """Fetch a CSV from Google Sheets and parse it."""
-    url = f"https://docs.google.com/spreadsheets/d/{sheet_id}/gviz/tq?tqx=out:csv&sheet={sheet_name}"
+    url = (
+        f"https://docs.google.com/spreadsheets/d/{sheet_id}/gviz/tq?tqx=out:csv&sheet={sheet_name}"
+    )
     with urllib.request.urlopen(url) as response:
         content = response.read().decode("utf-8")
     reader = csv.DictReader(StringIO(content))
@@ -122,7 +124,8 @@ def validate_csv_fixture(csv_path: Path, field_index: dict) -> list[str]:
 def normalize_path(path: str) -> str:
     """Normalize path by replacing array indices with []."""
     import re
-    return re.sub(r'\[\d+\]', '[]', path)
+
+    return re.sub(r"\[\d+\]", "[]", path)
 
 
 def validate_json_object(
@@ -168,9 +171,7 @@ def validate_json_object(
                             errors,
                         )
             elif isinstance(value, dict):
-                validate_json_object(
-                    value, base_type, current_path, field_index, errors
-                )
+                validate_json_object(value, base_type, current_path, field_index, errors)
 
 
 def validate_json_fixture(json_path: Path, field_index: dict) -> list[str]:
