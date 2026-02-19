@@ -12,6 +12,7 @@
 #
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see https://www.gnu.org/licenses/.
+import uuid
 from datetime import datetime
 
 import django_filters
@@ -21,6 +22,8 @@ from graphene import relay
 from graphene_django import DjangoObjectType
 from graphene_django.filter import TypedFilter
 
+from apps.core.exceptions import ErrorContext, ErrorMessage
+from apps.graphql.exceptions import GraphQLValidationException
 from apps.project_management.graphql.projects import ProjectNode
 from apps.project_management.models import Project, Site, sites
 from apps.project_management.permission_rules import Context
@@ -117,6 +120,7 @@ class SiteAddMutation(BaseWriteMutation):
     model_class = Site
 
     class Input:
+        id = graphene.ID()
         name = graphene.String(required=True)
         latitude = graphene.Float(required=True)
         longitude = graphene.Float(required=True)
@@ -131,6 +135,21 @@ class SiteAddMutation(BaseWriteMutation):
 
         if not check_site_permission(user, SiteAction.CREATE, Context()):
             cls.not_allowed_create(Site)
+
+        client_id = kwargs.pop("id", None)
+        if client_id is not None:
+            try:
+                client_uuid = uuid.UUID(str(client_id))
+            except ValueError:
+                raise GraphQLValidationException(
+                    error_messages=[
+                        ErrorMessage(code="invalid", context=ErrorContext(model="Site", field="id"))
+                    ]
+                )
+            existing = Site.objects.filter(id=client_uuid).first()
+            if existing:
+                return SiteAddMutation(site=existing)
+            kwargs["model_instance"] = Site(id=client_uuid)
 
         client_time = kwargs.pop("client_time", None)
         if not client_time:

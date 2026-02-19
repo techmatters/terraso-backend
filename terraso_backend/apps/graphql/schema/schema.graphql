@@ -2112,6 +2112,7 @@ type SiteAddMutationPayload {
 }
 
 input SiteAddMutationInput {
+  id: ID
   name: String!
   latitude: Float!
   longitude: Float!
@@ -2611,6 +2612,7 @@ type SiteNoteAddMutationPayload {
 }
 
 input SiteNoteAddMutationInput {
+  id: ID
   siteId: ID!
   content: String!
   clientMutationId: String
