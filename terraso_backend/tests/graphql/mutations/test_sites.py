@@ -13,6 +13,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see https://www.gnu.org/licenses/.
 import json
+import uuid
 
 import pytest
 import structlog
@@ -36,6 +37,7 @@ CREATE_SITE_QUERY = """
               id
               seen
            }
+           errors
         }
     }
 """
@@ -87,6 +89,58 @@ def test_site_creation_in_project(client, project_user_w_role, project):
     id = content["data"]["addSite"]["site"]["id"]
     site = Site.objects.get(pk=id)
     assert site.project == project
+
+
+def test_site_creation_with_client_id(client_query, user):
+    client_id = str(uuid.uuid4())
+    kwargs = site_creation_keywords()
+    kwargs["id"] = client_id
+    response = client_query(CREATE_SITE_QUERY, variables={"input": kwargs})
+    content = json.loads(response.content)
+    assert "errors" not in content
+    id = content["data"]["addSite"]["site"]["id"]
+    assert id == client_id
+    site = Site.objects.get(pk=client_id)
+    assert str(site.id) == client_id
+    assert site.owner == user
+
+
+def test_site_creation_without_client_id_backwards_compat(client_query, user):
+    kwargs = site_creation_keywords()
+    response = client_query(CREATE_SITE_QUERY, variables={"input": kwargs})
+    content = json.loads(response.content)
+    assert "errors" not in content
+    id = content["data"]["addSite"]["site"]["id"]
+    site = Site.objects.get(pk=id)
+    assert str(site.id) == id
+    assert site.owner == user
+
+
+def test_site_creation_duplicate_client_id_returns_existing(client_query, user):
+    client_id = str(uuid.uuid4())
+    kwargs = site_creation_keywords()
+    kwargs["id"] = client_id
+
+    response1 = client_query(CREATE_SITE_QUERY, variables={"input": kwargs})
+    content1 = json.loads(response1.content)
+    assert "errors" not in content1
+
+    response2 = client_query(CREATE_SITE_QUERY, variables={"input": kwargs})
+    content2 = json.loads(response2.content)
+    assert "errors" not in content2
+
+    assert content1["data"]["addSite"]["site"]["id"] == content2["data"]["addSite"]["site"]["id"]
+    assert Site.objects.filter(pk=client_id).count() == 1
+
+
+def test_site_creation_invalid_client_id_rejected(client_query, user):
+    kwargs = site_creation_keywords()
+    kwargs["id"] = "not-a-valid-uuid"
+    initial_count = Site.objects.count()
+    response = client_query(CREATE_SITE_QUERY, variables={"input": kwargs})
+    content = json.loads(response.content)
+    assert "errors" in content
+    assert Site.objects.count() == initial_count
 
 
 UPDATE_SITE_QUERY = """
