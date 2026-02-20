@@ -17,6 +17,8 @@ from django.conf import settings
 
 from apps.graphql.schema.schema import schema
 
+from .depth_helpers import depth_key, get_visible_intervals
+
 # In-memory cache for soil_id data, used to avoid external API calls during tests.
 # Keyed by site ID (string UUID).
 _soil_id_cache = {}
@@ -214,38 +216,44 @@ def fetch_soil_id(site, request):
         "depthDependentData": [],
     }
 
-    # Process depth intervals and depth-dependent data
-    depth_intervals = soil_data.get("depthIntervals", [])
-    depth_dependent_data = soil_data.get("depthDependentData", [])
+    # Filter depth-dependent data to only include visible intervals.
+    # This uses the same logic as the CSV/JSON export (process_depth_data),
+    # respecting the effective preset (project overrides site).
+    visible_keys = {depth_key(interval) for interval, _ in get_visible_intervals(site)}
+    measurements = soil_data.get("depthDependentData", [])
 
-    for interval, depth_data in zip(depth_intervals, depth_dependent_data):
+    for measurement in measurements:
+        if depth_key(measurement) not in visible_keys:
+            continue
+
+        di = measurement.get("depthInterval", {})
         depth_entry = {
             "depthInterval": {
-                "start": interval.get("depthInterval", {}).get("start"),
-                "end": interval.get("depthInterval", {}).get("end"),
+                "start": di.get("start"),
+                "end": di.get("end"),
             }
         }
 
         # Add texture if available
-        if depth_data.get("texture"):
-            depth_entry["texture"] = depth_data["texture"]
+        if measurement.get("texture"):
+            depth_entry["texture"] = measurement["texture"]
 
         # Add rock fragment volume if available
-        if depth_data.get("rockFragmentVolume"):
-            depth_entry["rockFragmentVolume"] = depth_data["rockFragmentVolume"]
+        if measurement.get("rockFragmentVolume"):
+            depth_entry["rockFragmentVolume"] = measurement["rockFragmentVolume"]
 
         # Convert Munsell color to LAB color if available
         if (
-            depth_data.get("colorHue") is not None
-            and depth_data.get("colorValue") is not None
-            and depth_data.get("colorChroma") is not None
+            measurement.get("colorHue") is not None
+            and measurement.get("colorValue") is not None
+            and measurement.get("colorChroma") is not None
         ):
             # For now, we'll use placeholder LAB values
             # In a real implementation, you'd convert Munsell to LAB
             depth_entry["colorLAB"] = {
-                "L": depth_data.get("colorValue", 0) * 10,  # Rough conversion
+                "L": measurement.get("colorValue", 0) * 10,  # Rough conversion
                 "A": 0.0,  # Placeholder
-                "B": depth_data.get("colorChroma", 0) * 2,  # Rough conversion
+                "B": measurement.get("colorChroma", 0) * 2,  # Rough conversion
             }
 
         data["depthDependentData"].append(depth_entry)
