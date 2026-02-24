@@ -22,7 +22,10 @@ from django_structlog import signals
 
 
 def _get_log_level():
-    """Read GRAPHQL_LOG_LEVEL at call time so code changes take effect on hot reload."""
+    """Read GRAPHQL_LOG_LEVEL at call time so code changes take effect on hot reload.
+
+    See .env.sample for description of the log levels.
+    """
     if getattr(settings, "ENV", "") != "development":
         return "minimal"
     return getattr(settings, "GRAPHQL_LOG_LEVEL", "names")

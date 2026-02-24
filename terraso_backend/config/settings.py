@@ -259,11 +259,8 @@ structlog.configure(
     cache_logger_on_first_use=True,
 )
 
-# Controls verbosity of GraphQL operation logging in development. Only active when ENV="development".
-# "minimal" - default Django structlog logging (no GraphQL-specific info)
-# "names"   - include GraphQL operation name in request_started/request_finished logs
-# "full"    - also include input variables (request_started) and response (request_finished)
-GRAPHQL_LOG_LEVEL = "names"
+# See .env.sample for description of the log levels
+GRAPHQL_LOG_LEVEL = config("GRAPHQL_LOG_LEVEL", default="names")
 
 GRAPHENE = {
     "SCHEMA": "apps.graphql.schema.schema.schema",
