@@ -22,13 +22,7 @@ from django.conf import settings
 from apps.soil_id.models.depth_dependent_soil_data import DepthDependentSoilData
 from apps.soil_id.models.soil_data import SoilData
 
-from .depth_helpers import (  # noqa: F401
-    PRESET_CUSTOM,
-    PRESET_NONE,
-    depth_key,
-    get_effective_preset,
-    get_visible_intervals,
-)
+from .depth_helpers import depth_key, get_effective_preset, get_visible_intervals
 from .fetch_data import fetch_all_notes_for_site
 
 # Helper functions for converting enum codes to human-readable labels

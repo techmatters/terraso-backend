@@ -102,6 +102,22 @@ def test_munsell_to_lab_hue_decoding():
 
     # The fixture covers R, YR, Y, GY, G, BG, B, PB families (with 5 and 10 substeps)
     # RP and P families (hue100 85-100) are not in the fixture
-    expected_families = {"5R", "10R", "5YR", "10YR", "5Y", "10Y", "5GY", "10GY",
-                         "5G", "10G", "5BG", "10BG", "5B", "10B", "5PB", "10PB"}
+    expected_families = {
+        "5R",
+        "10R",
+        "5YR",
+        "10YR",
+        "5Y",
+        "10Y",
+        "5GY",
+        "10GY",
+        "5G",
+        "10G",
+        "5BG",
+        "10BG",
+        "5B",
+        "10B",
+        "5PB",
+        "10PB",
+    }
     assert hue_families_seen == expected_families
