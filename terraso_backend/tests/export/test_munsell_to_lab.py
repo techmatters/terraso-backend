@@ -34,6 +34,9 @@ import pytest
 
 from apps.export.fetch_data import munsell_to_lab
 
+# Requires LandPKS_munsell_rgb_lab.csv from `make download-soil-data`.
+pytestmark = pytest.mark.integration
+
 FIXTURE_PATH = os.path.join(os.path.dirname(__file__), "fixtures", "munsellTestData.json")
 
 # Maximum allowed difference per LAB channel between backend and mobile client.
