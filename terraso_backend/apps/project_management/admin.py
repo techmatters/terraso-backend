@@ -29,4 +29,5 @@ class ProjectAdmin(admin.ModelAdmin):
 
 @admin.register(Site)
 class SiteAdmin(admin.ModelAdmin):
-    list_display = ("name", "owner", "created_at")
+    list_display = ("name", "owner", "project__name", "created_at")
+    search_fields = ("name", "owner", "project__name")
