@@ -157,12 +157,17 @@ class SiteAddMutation(BaseWriteMutation):
 
         adding_to_project = "project_id" in kwargs
         if adding_to_project:
-            project = cls.get_or_throw(Project, "project_id", kwargs["project_id"])
-            if not check_project_permission(
+            project = Project.objects.filter(id=kwargs["project_id"]).first()
+            if project is None or not check_project_permission(
                 user, ProjectAction.ADD_NEW_SITE, Context(project=project)
             ):
-                raise cls.not_allowed(MutationTypes.CREATE)
-            kwargs["project"] = project
+                # If project was removed in the time you did this,
+                # It would be more consistent to return something denoting the sync conflict, and have the client show the sync conflict dialog, but for now we'll just unaffiliate the site silently.
+                kwargs.pop("project_id", None)
+                kwargs["owner"] = info.context.user
+
+            else:
+                kwargs["project"] = project
         else:
             kwargs["owner"] = info.context.user
 
