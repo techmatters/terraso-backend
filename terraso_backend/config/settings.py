@@ -132,7 +132,11 @@ PRIMARY_DATABASE_URL = config("DATABASE_URL", default=default_dburl)
 SOIL_ID_DATABASE_URL = config("SOIL_ID_DATABASE_URL", default=PRIMARY_DATABASE_URL)
 
 DATABASES = {
-    "default": parse_db_url(PRIMARY_DATABASE_URL),
+    "default": {
+        **parse_db_url(PRIMARY_DATABASE_URL),
+        "CONN_MAX_AGE": int(config("CONN_MAX_AGE", default="600")),
+        "CONN_HEALTH_CHECKS": True,
+    },
 }
 
 AUTHENTICATION_BACKENDS = (

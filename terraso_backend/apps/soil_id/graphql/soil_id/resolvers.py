@@ -14,6 +14,7 @@
 # along with this program. If not, see https://www.gnu.org/licenses/.
 
 import math
+import threading
 import traceback
 from typing import Optional
 
@@ -47,15 +48,15 @@ from apps.soil_id.models.soil_id_cache import SoilIdCache
 
 logger = structlog.get_logger(__name__)
 
-_soil_id_database_connection = None
+_soil_id_thread_local = threading.local()
 
 
 def soil_id_database_connection():
-    global _soil_id_database_connection
-    if _soil_id_database_connection is None:
-        _soil_id_database_connection = psycopg.connect(SOIL_ID_DATABASE_URL)
-
-    return _soil_id_database_connection
+    conn = getattr(_soil_id_thread_local, "connection", None)
+    if conn is None or conn.closed:
+        conn = psycopg.connect(SOIL_ID_DATABASE_URL)
+        _soil_id_thread_local.connection = conn
+    return conn
 
 
 def resolve_texture(texture: Optional[str | float]):
