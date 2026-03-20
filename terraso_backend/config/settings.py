@@ -14,6 +14,7 @@
 # along with this program. If not, see https://www.gnu.org/licenses/.
 import base64
 import os
+import re
 from typing import TypedDict
 
 import django
@@ -22,6 +23,7 @@ import structlog
 from dj_database_url import parse as parse_db_url
 from django.utils.encoding import force_str
 from django.utils.translation import gettext_lazy as _
+from django.views.debug import SafeExceptionReporterFilter
 from prettyconf import config
 
 # Monkey patching force_text function to make the application work with Django
@@ -37,6 +39,14 @@ PROJECT_DIR = os.path.dirname(os.path.abspath(BASE_DIR))
 ENV = config("ENV", default="development")
 
 DEBUG = config("DEBUG", default=False, cast=config.boolean)
+if ENV != "development":
+    DEBUG = False
+
+# Hide database URLs (which contain passwords) in Django error pages.
+# Django's defaults already hide settings matching API, TOKEN, KEY, SECRET, PASS.
+SafeExceptionReporterFilter.hidden_settings = re.compile(
+    r"API|TOKEN|KEY|SECRET|PASS|SIGNATURE|HTTP_COOKIE|DATABASE_URL", re.IGNORECASE
+)
 
 ALLOWED_HOSTS = config("ALLOWED_HOSTS", default="*", cast=config.list)
 CSRF_TRUSTED_ORIGINS = config(
