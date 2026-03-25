@@ -53,6 +53,32 @@ $ python terraso_backend/manage.py createsuperuser
 $ exit
 ```
 
+## Running with gunicorn (production-like)
+
+`make run` uses Django's single-threaded development server. To test with
+production-like concurrency, use:
+
+```sh
+$ make run-gunicorn
+```
+
+This launches gunicorn inside Docker, reading its configuration from `.env`:
+
+- `WEB_CONCURRENCY` — number of worker processes (OS-level parallelism, ~350MB each)
+- `GUNICORN_CMD_ARGS` — extra flags, e.g. `--worker-class gthread --threads 8`
+
+With `WEB_CONCURRENCY=2` and `--threads 8`, you get 2 workers x 8 threads = 16
+concurrent requests. Workers provide true parallelism; threads within a worker
+share memory and take turns on CPU (Python GIL) but can all wait on I/O (database
+queries, HTTP calls) simultaneously.
+
+These are the same env vars used on Render, so you can test locally with the exact
+values you plan to deploy.
+
+Note: gunicorn does not support hot-reload — code changes require a manual restart.
+For day-to-day development, use `make run` which auto-reloads on save. Use
+`make run-gunicorn` when you need to test concurrency or production-like behavior.
+
 ## Debugging locally with Docker
 
 To debug while running tests, just use regular Python `breakpoint()` and

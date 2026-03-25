@@ -104,19 +104,14 @@ setup-git-hooks:
 run: check_rebuild
 	@./scripts/docker.sh "$(DC_FILE_ARG)"
 
-# Run with gunicorn + gthread workers to match production threading behavior.
+# Run with gunicorn to match production threading behavior.
 # Unlike "make run", this does NOT auto-reload on code changes — restart manually.
-# Useful for testing concurrency (e.g. parallel curl requests to confirm threading).
-# Production recommendation: --workers 2 --threads 8 (16 concurrent requests).
-# Workers are OS processes (~350MB each); threads are cheap and share memory.
-# Threads help most for I/O-bound work (DB queries, external API calls).
+# Reads WEB_CONCURRENCY and GUNICORN_CMD_ARGS from .env (same values used on Render).
+# Useful for testing concurrency locally before deploying to production.
 run-gunicorn: check_rebuild
 	docker compose $(DC_FILE_ARG) run --rm -p 8000:8000 web \
 		gunicorn config.wsgi:application \
 		--bind 0.0.0.0:8000 \
-		--worker-class gthread \
-		--threads 8 \
-		--workers 2 \
 		--chdir /app/terraso_backend
 
 setup: build setup-pre-commit
