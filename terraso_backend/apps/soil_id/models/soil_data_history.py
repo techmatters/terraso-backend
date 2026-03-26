@@ -37,6 +37,9 @@ class JSONEncoder(DjangoJSONEncoder):
 #       authorization to enter data for a site, then went offline and made
 #       changes simultaneous to losing authorization to enter data for that site
 class SoilDataHistory(BaseModel):
+    class Meta(BaseModel.Meta):
+        verbose_name_plural = "History: SoilDataHistory"
+
     site = models.ForeignKey(Site, null=True, on_delete=models.CASCADE)
     changed_by = models.ForeignKey(User, on_delete=models.CASCADE)
     update_succeeded = models.BooleanField(null=False, blank=False, default=False)
