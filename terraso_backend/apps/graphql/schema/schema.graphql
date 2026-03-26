@@ -1711,10 +1711,13 @@ type Mutations {
   """
   To enable offline functionality.
   Pushes at least one of the following sub-mutations:
+  - sites (creates/updates sites and their notes)
   - soil data
   - soil metadata (fully replaces user ratings)
   
-  Partial updates are possible, if failure happens at the level of a sub-mutation, or more granularly within the sub-mutation.
+  Partial updates are possible, if failure happens at the level of a sub-mutation, or more
+  granularly within the sub-mutation. Sites are processed before soil data/metadata to ensure
+  new sites exist on the server before their soil data references them.
   """
   pushUserData(input: UserDataPushInput!): UserDataPushPayload!
   updateSoilDataDepthInterval(input: SoilDataUpdateDepthIntervalMutationInput!): SoilDataUpdateDepthIntervalMutationPayload! @deprecated(reason: "Use push_user_data instead.")
@@ -2456,16 +2459,42 @@ input SoilDataPushInputDepthInterval {
 """
 To enable offline functionality.
 Pushes at least one of the following sub-mutations:
+- sites (creates/updates sites and their notes)
 - soil data
 - soil metadata (fully replaces user ratings)
 
-Partial updates are possible, if failure happens at the level of a sub-mutation, or more granularly within the sub-mutation.
+Partial updates are possible, if failure happens at the level of a sub-mutation, or more
+granularly within the sub-mutation. Sites are processed before soil data/metadata to ensure
+new sites exist on the server before their soil data references them.
 """
 type UserDataPushPayload {
   errors: GenericScalar
+  siteResults: [SitePushEntry!]
   soilDataResults: [SoilDataPushEntry!]
   soilMetadataResults: [SoilMetadataPushEntry!]
   clientMutationId: String
+}
+
+type SitePushEntry {
+  siteId: ID!
+  result: SitePushEntryResult!
+}
+
+union SitePushEntryResult = SitePushEntrySuccess | SitePushEntryFailure
+
+type SitePushEntrySuccess {
+  site: SiteNode!
+}
+
+type SitePushEntryFailure {
+  reason: SitePushFailureReason!
+}
+
+enum SitePushFailureReason {
+  SITE_DOES_NOT_EXIST
+  NOTE_DOES_NOT_EXIST
+  NOT_ALLOWED
+  INVALID_DATA
 }
 
 type SoilMetadataPushEntry {
@@ -2490,9 +2519,29 @@ enum SoilMetadataPushFailureReason {
 }
 
 input UserDataPushInput {
+  siteEntries: [SitePushInputEntry!] = null
   soilDataEntries: [SoilDataPushInputEntry!] = null
   soilMetadataEntries: [SoilMetadataPushInputEntry!] = null
   clientMutationId: String
+}
+
+input SitePushInputEntry {
+  siteId: ID!
+  isNew: Boolean!
+  name: String
+  latitude: Float
+  longitude: Float
+  elevation: Float
+  privacy: ProjectManagementSitePrivacyChoices
+  projectId: ID
+  newNotes: [SitePushNoteInput!]!
+  updatedNotes: [SitePushNoteInput!]!
+  deletedNoteIds: [ID!]!
+}
+
+input SitePushNoteInput {
+  id: ID!
+  content: String!
 }
 
 input SoilMetadataPushInputEntry {
