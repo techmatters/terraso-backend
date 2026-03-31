@@ -242,7 +242,7 @@ class SitePush(BaseWriteMutation):
         for note_input in site_entry.get("updated_notes", []):
             note = SiteNote.objects.filter(id=note_input["id"]).first()
             if note is None:
-                raise SitePush.SiteConflictError(SitePushFailureReason.NOTE_DOES_NOT_EXIST)
+                continue  # Idempotent: note was deleted externally, skip update
 
             if not check_site_permission(user, SiteAction.EDIT_NOTE, Context(site_note=note)):
                 raise SitePush.SiteConflictError(SitePushFailureReason.NOT_ALLOWED)

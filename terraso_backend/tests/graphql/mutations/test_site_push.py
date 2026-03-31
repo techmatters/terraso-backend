@@ -317,7 +317,8 @@ def test_update_note_success(client_query, user, owned_site, site_note):
     assert site_note.content == "Updated content"
 
 
-def test_update_note_does_not_exist(client_query, user, owned_site):
+def test_update_note_does_not_exist_is_skipped(client_query, user, owned_site):
+    """Updating a note that doesn't exist is silently skipped (idempotent)."""
     entry = update_site_entry(
         owned_site.id,
         updatedNotes=[{"id": str(uuid.uuid4()), "content": "Phantom edit"}],
@@ -326,8 +327,7 @@ def test_update_note_does_not_exist(client_query, user, owned_site):
     response = do_push(client_query, [entry])
     results = get_site_results(response)
 
-    assert results[0]["result"]["__typename"] == "SitePushEntryFailure"
-    assert results[0]["result"]["reason"] == "NOTE_DOES_NOT_EXIST"
+    assert results[0]["result"]["__typename"] == "SitePushEntrySuccess"
 
 
 def test_update_note_not_allowed(client_query, user):
@@ -395,26 +395,24 @@ def test_delete_note_not_allowed(client_query, user):
 # ---------------------------------------------------------------------------
 
 
-def test_note_failure_rolls_back_site_field_update(client_query, user, owned_site):
+def test_missing_note_update_does_not_roll_back_site_field_update(client_query, user, owned_site):
     """
-    If a note operation fails, all changes for that site entry are rolled back —
-    including any site field updates earlier in the same entry.
+    Updating a note that doesn't exist is silently skipped, so other changes
+    in the same entry (like site field updates) still succeed.
     """
-    original_name = owned_site.name
     entry = update_site_entry(
         owned_site.id,
-        name="Should Be Rolled Back",
+        name="Should Succeed",
         updatedNotes=[{"id": str(uuid.uuid4()), "content": "Phantom"}],
     )
 
     response = do_push(client_query, [entry])
     results = get_site_results(response)
 
-    assert results[0]["result"]["__typename"] == "SitePushEntryFailure"
-    assert results[0]["result"]["reason"] == "NOTE_DOES_NOT_EXIST"
+    assert results[0]["result"]["__typename"] == "SitePushEntrySuccess"
 
     owned_site.refresh_from_db()
-    assert owned_site.name == original_name  # rolled back
+    assert owned_site.name == "Should Succeed"
 
 
 def test_new_site_note_failure_rolls_back_site_creation(client_query, user):
