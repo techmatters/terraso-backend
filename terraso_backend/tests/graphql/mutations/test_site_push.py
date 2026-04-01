@@ -478,7 +478,8 @@ def test_partial_success_one_site_fails_other_succeeds(client_query, user):
 def test_history_logged_before_processing(client_query, user):
     """
     History entries are logged in a separate atomic block before processing.
-    Even if processing fails unexpectedly, history should still exist.
+    Even if processing fails unexpectedly, the history entry still exists and
+    the mutation returns UNEXPECTED_ERROR (not a GraphQL-level error).
     """
     site_id = str(uuid.uuid4())
     entry = new_site_entry(site_id=site_id)
@@ -487,14 +488,16 @@ def test_history_logged_before_processing(client_query, user):
         "apps.project_management.graphql.site_push.SitePush._process_site_entry",
         side_effect=RuntimeError("Unexpected error"),
     ):
-        # The mutation itself will surface as a GraphQL error, but history is pre-logged
-        client_query(
+        response = client_query(
             PUSH_USER_DATA_QUERY,
             variables={"input": {"siteEntries": [entry]}},
         )
 
     # History entry should exist even though processing raised
     assert SitePushHistory.objects.filter(changed_by=user).exists()
+    # Error is surfaced as a per-entry failure, not a GraphQL-level error
+    results = get_site_results(response)
+    assert results[0]["result"]["reason"] == "UNEXPECTED_ERROR"
 
 
 # ---------------------------------------------------------------------------
@@ -597,3 +600,82 @@ def test_userdatapush_requires_at_least_one_entry(client_query):
     content = json.loads(response.content)
     # BaseMutation.mutate() catches exceptions and returns them as errors in the data payload
     assert content["data"]["pushUserData"]["errors"] is not None
+
+
+# ---------------------------------------------------------------------------
+# UNEXPECTED_ERROR handling
+# ---------------------------------------------------------------------------
+
+PUSH_USER_DATA_ALL_TYPES_QUERY = """
+mutation pushUserData($input: UserDataPushInput!) {
+  pushUserData(input: $input) {
+    siteResults {
+      siteId
+      result {
+        __typename
+        ... on SitePushEntryFailure { reason }
+        ... on SitePushEntrySuccess { site { id } }
+      }
+    }
+    soilDataResults {
+      siteId
+      result {
+        __typename
+        ... on SoilDataPushEntryFailure { reason }
+      }
+    }
+    soilMetadataResults {
+      siteId
+      result {
+        __typename
+        ... on SoilMetadataPushEntryFailure { reason }
+      }
+    }
+  }
+}
+"""
+
+
+def test_unexpected_error_returns_per_entry_failure_and_does_not_block_other_entries(
+    client_query, user
+):
+    """
+    An unexpected error on one entry is returned as UNEXPECTED_ERROR in that entry's
+    result — not as a GraphQL-level error — and does not prevent other entries in the
+    same request (including other sub-mutations) from being processed.
+    """
+    site_id = str(uuid.uuid4())
+    site = Site.objects.create(id=site_id, name="S", latitude=0, longitude=0, owner=user)
+    SoilData.objects.create(site=site)
+    SoilMetadata.objects.create(site=site)
+
+    with patch(
+        "apps.project_management.graphql.site_push.SitePush._process_site_entry",
+        side_effect=RuntimeError("simulated unexpected error"),
+    ):
+        response = client_query(
+            PUSH_USER_DATA_ALL_TYPES_QUERY,
+            variables={
+                "input": {
+                    "siteEntries": [update_site_entry(site_id)],
+                    "soilDataEntries": [
+                        {
+                            "siteId": site_id,
+                            "soilData": {
+                                "depthDependentData": [],
+                                "depthIntervals": [],
+                                "deletedDepthIntervals": [],
+                            },
+                        }
+                    ],
+                    "soilMetadataEntries": [{"siteId": site_id, "userRatings": []}],
+                }
+            },
+        )
+
+    content = json.loads(response.content)
+    assert "errors" not in content
+    data = content["data"]["pushUserData"]
+    assert data["siteResults"][0]["result"]["reason"] == "UNEXPECTED_ERROR"
+    assert data["soilDataResults"][0]["result"]["__typename"] == "SoilDataPushEntrySuccess"
+    assert data["soilMetadataResults"][0]["result"]["__typename"] == "SoilMetadataPushEntrySuccess"

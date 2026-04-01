@@ -218,10 +218,10 @@ class SoilDataPush(BaseWriteMutation):
             )
         except Exception as e:
             logger.warning("soilData_push.unexpected_error", site_id=site_id, error=str(e))
-            SoilDataPush.log_failure(history_entry, SoilDataPushFailureReason.UNEXPECTED_ERROR)
-            return SoilDataPushEntry(
+            return SoilDataPush.log_soil_data_push_entry_failure(
+                history_entry=history_entry,
                 site_id=site_id,
-                result=SoilDataPushEntryFailure(reason=SoilDataPushFailureReason.UNEXPECTED_ERROR),
+                reason=SoilDataPushFailureReason.UNEXPECTED_ERROR,
             )
 
     @classmethod
