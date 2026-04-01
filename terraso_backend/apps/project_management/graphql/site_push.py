@@ -66,6 +66,7 @@ class SitePushFailureReason(graphene.Enum):
     NOTE_DOES_NOT_EXIST = "NOTE_DOES_NOT_EXIST"
     NOT_ALLOWED = "NOT_ALLOWED"
     INVALID_DATA = "INVALID_DATA"
+    UNEXPECTED_ERROR = "UNEXPECTED_ERROR"
 
 
 class SitePushEntrySuccess(graphene.ObjectType):
@@ -284,6 +285,13 @@ class SitePush(BaseWriteMutation):
             return SitePushEntry(
                 site_id=site_id,
                 result=SitePushEntryFailure(reason=SitePushFailureReason.INVALID_DATA),
+            )
+        except Exception as e:
+            logger.warning("site_push.unexpected_error", site_id=site_id, error=str(e))
+            SitePush.log_failure(history_entry, SitePushFailureReason.UNEXPECTED_ERROR)
+            return SitePushEntry(
+                site_id=site_id,
+                result=SitePushEntryFailure(reason=SitePushFailureReason.UNEXPECTED_ERROR),
             )
 
     @classmethod

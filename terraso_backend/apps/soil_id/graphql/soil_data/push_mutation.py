@@ -31,6 +31,7 @@ class SoilDataPushFailureReason(graphene.Enum):
     DOES_NOT_EXIST = "DOES_NOT_EXIST"
     NOT_ALLOWED = "NOT_ALLOWED"
     INVALID_DATA = "INVALID_DATA"
+    UNEXPECTED_ERROR = "UNEXPECTED_ERROR"
 
 
 class SoilDataPushEntryFailure(graphene.ObjectType):
@@ -214,6 +215,13 @@ class SoilDataPush(BaseWriteMutation):
                 history_entry=history_entry,
                 site_id=site_id,
                 reason=SoilDataPushFailureReason.INVALID_DATA,
+            )
+        except Exception as e:
+            logger.warning("soilData_push.unexpected_error", site_id=site_id, error=str(e))
+            SoilDataPush.log_failure(history_entry, SoilDataPushFailureReason.UNEXPECTED_ERROR)
+            return SoilDataPushEntry(
+                site_id=site_id,
+                result=SoilDataPushEntryFailure(reason=SoilDataPushFailureReason.UNEXPECTED_ERROR),
             )
 
     @classmethod

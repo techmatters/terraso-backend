@@ -2381,6 +2381,7 @@ enum SoilDataPushFailureReason {
   DOES_NOT_EXIST
   NOT_ALLOWED
   INVALID_DATA
+  UNEXPECTED_ERROR
 }
 
 input SoilDataPushInput {
@@ -2495,6 +2496,7 @@ enum SitePushFailureReason {
   NOTE_DOES_NOT_EXIST
   NOT_ALLOWED
   INVALID_DATA
+  UNEXPECTED_ERROR
 }
 
 type SoilMetadataPushEntry {
@@ -2516,6 +2518,7 @@ enum SoilMetadataPushFailureReason {
   DOES_NOT_EXIST
   NOT_ALLOWED
   INVALID_DATA
+  UNEXPECTED_ERROR
 }
 
 input UserDataPushInput {
