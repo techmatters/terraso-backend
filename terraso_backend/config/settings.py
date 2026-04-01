@@ -48,7 +48,7 @@ if ENV != "development":
 # https://docs.djangoproject.com/en/6.0/howto/error-reporting/#custom-error-reports
 class TerrasoExceptionReporterFilter(SafeExceptionReporterFilter):
     hidden_settings = re.compile(
-        SafeExceptionReporterFilter.hidden_settings.pattern + r"|DATABASE_URL",
+        SafeExceptionReporterFilter.hidden_settings.pattern + r"|DATABASE_URL|DATABASES",
         re.IGNORECASE,
     )
 
@@ -145,12 +145,13 @@ LOCALE_PATHS = (os.path.join(BASE_DIR, "locale"),)
 WSGI_APPLICATION = "config.wsgi.application"
 
 default_dburl = "sqlite:///" + os.path.join(BASE_DIR, "db.sqlite3")
-PRIMARY_DATABASE_URL = config("DATABASE_URL", default=default_dburl)
-SOIL_ID_DATABASE_URL = config("SOIL_ID_DATABASE_URL", default=PRIMARY_DATABASE_URL)
+_primary_db_url = config("DATABASE_URL", default=default_dburl)
+SOIL_ID_DATABASE_URL = config("SOIL_ID_DATABASE_URL", default=_primary_db_url)
 
 DATABASES = {
-    "default": parse_db_url(PRIMARY_DATABASE_URL),
+    "default": parse_db_url(_primary_db_url),
 }
+del _primary_db_url
 
 AUTHENTICATION_BACKENDS = (
     "rules.permissions.ObjectPermissionBackend",

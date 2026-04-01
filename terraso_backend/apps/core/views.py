@@ -35,6 +35,7 @@ from django.http import (
     JsonResponse,
 )
 from django.views import View
+from django.views.decorators.debug import sensitive_variables
 from django.views.generic.edit import FormView
 
 from apps.auth.mixins import AuthenticationRequiredMixin
@@ -126,6 +127,7 @@ def check_restore_job_status(request, task_id):
     return HttpResponse(json.dumps({"status": task.status}), "application/json")
 
 
+@sensitive_variables("aws_credentials")
 def _sync_s3_buckets(
     source_buckets: list[str], dest_buckets: list[str], aws_credentials: tuple[str, str, str]
 ):
@@ -141,6 +143,7 @@ def _sync_s3_buckets(
         subprocess.run(["aws", "s3", "sync", "s3://" + source, "s3://" + dest], env=env)
 
 
+@sensitive_variables("render_token", "headers")
 def _backup_service(service_name: str, render_token: str, start_command: str):
     """Send request to source service to trigger backup and wait for completion."""
     jobs_resource = f"{settings.RENDER_API_URL}services/{service_name}/jobs"
@@ -176,6 +179,7 @@ def _load_config() -> tuple[list[str], list[str], str]:
     return source_buckets, dest_buckets, service
 
 
+@sensitive_variables("aws_credentials")
 def restore(task, user_id, session_id):
     """Restore current instance from source instance."""
     try:
