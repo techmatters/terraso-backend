@@ -42,11 +42,18 @@ DEBUG = config("DEBUG", default=False, cast=config.boolean)
 if ENV != "development":
     DEBUG = False
 
-# Hide database URLs (which contain passwords) in Django error pages.
-# Django's defaults already hide settings matching API, TOKEN, KEY, SECRET, PASS.
-SafeExceptionReporterFilter.hidden_settings = re.compile(
-    r"API|TOKEN|KEY|SECRET|PASS|SIGNATURE|HTTP_COOKIE|DATABASE_URL", re.IGNORECASE
-)
+
+# Extend Django's default hidden_settings to also redact DATABASE_URL (which contains
+# passwords) in error pages. Uses subclass + DEFAULT_EXCEPTION_REPORTER_FILTER per
+# https://docs.djangoproject.com/en/6.0/howto/error-reporting/#custom-error-reports
+class TerrasoExceptionReporterFilter(SafeExceptionReporterFilter):
+    hidden_settings = re.compile(
+        SafeExceptionReporterFilter.hidden_settings.pattern + r"|DATABASE_URL",
+        re.IGNORECASE,
+    )
+
+
+DEFAULT_EXCEPTION_REPORTER_FILTER = "config.settings.TerrasoExceptionReporterFilter"
 
 ALLOWED_HOSTS = config("ALLOWED_HOSTS", default="*", cast=config.list)
 CSRF_TRUSTED_ORIGINS = config(
