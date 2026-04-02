@@ -179,7 +179,7 @@ class SitePush(BaseWriteMutation):
                         privacy_val.value if isinstance(privacy_val, enum.Enum) else privacy_val
                     )
 
-                # Handle project affiliation — silently drop if project not found/no permission
+                # Handle project affiliation — silently make site unaffiliated (drop the project value) if project not found/no permission
                 project_id = site_entry.get("project_id")
                 project = Project.objects.filter(id=project_id).first() if project_id else None
                 if project and check_project_permission(
