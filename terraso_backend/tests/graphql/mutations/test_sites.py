@@ -13,7 +13,6 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see https://www.gnu.org/licenses/.
 import json
-import uuid
 
 import pytest
 import structlog
@@ -37,7 +36,6 @@ CREATE_SITE_QUERY = """
               id
               seen
            }
-           errors
         }
     }
 """
@@ -78,52 +76,6 @@ def test_site_creation_without_elevation(client_query, user):
     assert site.privacy == "public"
 
 
-NONEXISTENT_PROJECT_ID = "00000000-0000-0000-0000-000000000000"
-
-
-# Simulates a case where you create a site in a project that someone deleted since you last pulled (so it's deleted on the server but not in your local client's view)
-def test_site_creation_nonexistent_project_creates_unaffiliated(client_query, user):
-    kwargs = site_creation_keywords()
-    kwargs["projectId"] = NONEXISTENT_PROJECT_ID
-    response = client_query(CREATE_SITE_QUERY, variables={"input": kwargs})
-    content = json.loads(response.content)
-    assert "errors" not in content
-    site_data = content["data"]["addSite"]["site"]
-    assert site_data is not None
-    site = Site.objects.get(pk=site_data["id"])
-    assert site.owner == user
-    assert site.project is None
-
-
-def test_site_creation_viewer_in_project_creates_unaffiliated(client, project, project_user):
-    kwargs = site_creation_keywords()
-    kwargs["projectId"] = str(project.id)
-    client.force_login(project_user)
-    response = graphql_query(CREATE_SITE_QUERY, variables={"input": kwargs}, client=client)
-    content = json.loads(response.content)
-    assert "errors" not in content
-    site_data = content["data"]["addSite"]["site"]
-    assert site_data is not None
-    site = Site.objects.get(pk=site_data["id"])
-    assert site.owner == project_user
-    assert site.project is None
-
-
-def test_site_creation_non_member_of_project_creates_unaffiliated(client, project):
-    non_member = mixer.blend(User)
-    kwargs = site_creation_keywords()
-    kwargs["projectId"] = str(project.id)
-    client.force_login(non_member)
-    response = graphql_query(CREATE_SITE_QUERY, variables={"input": kwargs}, client=client)
-    content = json.loads(response.content)
-    assert "errors" not in content
-    site_data = content["data"]["addSite"]["site"]
-    assert site_data is not None
-    site = Site.objects.get(pk=site_data["id"])
-    assert site.owner == non_member
-    assert site.project is None
-
-
 @pytest.mark.parametrize("project_user_w_role", ["MANAGER", "CONTRIBUTOR"], indirect=True)
 def test_site_creation_in_project(client, project_user_w_role, project):
     kwargs = site_creation_keywords()
@@ -135,58 +87,6 @@ def test_site_creation_in_project(client, project_user_w_role, project):
     id = content["data"]["addSite"]["site"]["id"]
     site = Site.objects.get(pk=id)
     assert site.project == project
-
-
-def test_site_creation_with_client_id(client_query, user):
-    client_id = str(uuid.uuid4())
-    kwargs = site_creation_keywords()
-    kwargs["id"] = client_id
-    response = client_query(CREATE_SITE_QUERY, variables={"input": kwargs})
-    content = json.loads(response.content)
-    assert "errors" not in content
-    id = content["data"]["addSite"]["site"]["id"]
-    assert id == client_id
-    site = Site.objects.get(pk=client_id)
-    assert str(site.id) == client_id
-    assert site.owner == user
-
-
-def test_site_creation_without_client_id_backwards_compat(client_query, user):
-    kwargs = site_creation_keywords()
-    response = client_query(CREATE_SITE_QUERY, variables={"input": kwargs})
-    content = json.loads(response.content)
-    assert "errors" not in content
-    id = content["data"]["addSite"]["site"]["id"]
-    site = Site.objects.get(pk=id)
-    assert str(site.id) == id
-    assert site.owner == user
-
-
-def test_site_creation_duplicate_client_id_returns_existing(client_query, user):
-    client_id = str(uuid.uuid4())
-    kwargs = site_creation_keywords()
-    kwargs["id"] = client_id
-
-    response1 = client_query(CREATE_SITE_QUERY, variables={"input": kwargs})
-    content1 = json.loads(response1.content)
-    assert "errors" not in content1
-
-    response2 = client_query(CREATE_SITE_QUERY, variables={"input": kwargs})
-    content2 = json.loads(response2.content)
-    assert "errors" not in content2
-
-    assert content1["data"]["addSite"]["site"]["id"] == content2["data"]["addSite"]["site"]["id"]
-    assert Site.objects.filter(pk=client_id).count() == 1
-
-
-def test_site_creation_invalid_client_id_rejected(client_query, user):
-    kwargs = site_creation_keywords()
-    kwargs["id"] = "not-a-valid-uuid"
-    initial_count = Site.objects.count()
-    response = client_query(CREATE_SITE_QUERY, variables={"input": kwargs})
-    content = json.loads(response.content)
-    assert "errors" in content
-    assert Site.objects.count() == initial_count
 
 
 UPDATE_SITE_QUERY = """

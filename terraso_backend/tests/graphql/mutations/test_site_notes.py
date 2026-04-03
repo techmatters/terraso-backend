@@ -13,7 +13,6 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see https://www.gnu.org/licenses/.
 import json
-import uuid
 
 import pytest
 from mixer.backend.django import mixer
@@ -81,61 +80,6 @@ def test_site_note_creation_unauthorized(client_query, project_site):
     response = client_query(ADD_SITE_NOTE_QUERY, variables={"input": kwargs})
     content = json.loads(response.content)
     assert "errors" in content, content["errors"]
-
-
-def test_site_note_creation_with_client_id(client_query, site, user):
-    client_id = str(uuid.uuid4())
-    kwargs = site_note_creation_data(site)
-    kwargs["id"] = client_id
-    response = client_query(ADD_SITE_NOTE_QUERY, variables={"input": kwargs})
-    content = json.loads(response.content)
-    assert "errors" not in content, content["errors"]
-    id = content["data"]["addSiteNote"]["siteNote"]["id"]
-    assert id == client_id
-    site_note = SiteNote.objects.get(pk=client_id)
-    assert str(site_note.id) == client_id
-    assert site_note.author == user
-
-
-def test_site_note_creation_without_client_id_backwards_compat(client_query, site, user):
-    kwargs = site_note_creation_data(site)
-    response = client_query(ADD_SITE_NOTE_QUERY, variables={"input": kwargs})
-    content = json.loads(response.content)
-    assert "errors" not in content, content["errors"]
-    id = content["data"]["addSiteNote"]["siteNote"]["id"]
-    site_note = SiteNote.objects.get(pk=id)
-    assert str(site_note.id) == id
-    assert site_note.author == user
-
-
-def test_site_note_creation_duplicate_client_id_returns_existing(client_query, site, user):
-    client_id = str(uuid.uuid4())
-    kwargs = site_note_creation_data(site)
-    kwargs["id"] = client_id
-
-    response1 = client_query(ADD_SITE_NOTE_QUERY, variables={"input": kwargs})
-    content1 = json.loads(response1.content)
-    assert "errors" not in content1, content1["errors"]
-
-    response2 = client_query(ADD_SITE_NOTE_QUERY, variables={"input": kwargs})
-    content2 = json.loads(response2.content)
-    assert "errors" not in content2, content2["errors"]
-
-    assert (
-        content1["data"]["addSiteNote"]["siteNote"]["id"]
-        == content2["data"]["addSiteNote"]["siteNote"]["id"]
-    )
-    assert SiteNote.objects.filter(pk=client_id).count() == 1
-
-
-def test_site_note_creation_invalid_client_id_rejected(client_query, site, user):
-    kwargs = site_note_creation_data(site)
-    kwargs["id"] = "not-a-valid-uuid"
-    initial_count = SiteNote.objects.count()
-    response = client_query(ADD_SITE_NOTE_QUERY, variables={"input": kwargs})
-    content = json.loads(response.content)
-    assert "errors" in content
-    assert SiteNote.objects.count() == initial_count
 
 
 DELETE_SITE_NOTE_QUERY = """

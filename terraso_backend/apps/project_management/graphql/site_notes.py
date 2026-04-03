@@ -13,14 +13,10 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see https://www.gnu.org/licenses/.
 
-import uuid
-
 import graphene
 from django.db import transaction
 from graphene_django import DjangoObjectType
 
-from apps.core.exceptions import ErrorContext, ErrorMessage
-from apps.graphql.exceptions import GraphQLValidationException
 from apps.graphql.schema.commons import (
     BaseDeleteMutation,
     BaseWriteMutation,
@@ -49,40 +45,18 @@ class SiteNoteAddMutation(BaseWriteMutation):
     model_class = SiteNote
 
     class Input:
-        id = graphene.ID()
         site_id = graphene.ID(required=True)
         content = graphene.String(required=True)
 
     @classmethod
     def mutate_and_get_payload(cls, root, info, **input):
         user = info.context.user
-
-        client_id = input.pop("id", None)
-        client_uuid = None
-        if client_id is not None:
-            try:
-                client_uuid = uuid.UUID(str(client_id))
-            except ValueError:
-                raise GraphQLValidationException(
-                    error_messages=[
-                        ErrorMessage(
-                            code="invalid", context=ErrorContext(model="SiteNote", field="id")
-                        )
-                    ]
-                )
-            existing = SiteNote.objects.filter(id=client_uuid).first()
-            if existing:
-                return SiteNoteAddMutation(site_note=existing)
-
         site_id = input["site_id"]
         site = cls.get_or_throw(Site, "id", site_id)
         if not check_site_permission(user, SiteAction.CREATE_NOTE, Context(site=site)):
             cls.not_allowed_create(SiteNote)
 
-        create_kwargs = {"site": site, "content": input["content"], "author": user}
-        if client_uuid is not None:
-            create_kwargs["id"] = client_uuid
-        site_note = SiteNote.objects.create(**create_kwargs)
+        site_note = SiteNote.objects.create(site=site, content=input["content"], author=user)
         return SiteNoteAddMutation(site_note=site_note)
 
 

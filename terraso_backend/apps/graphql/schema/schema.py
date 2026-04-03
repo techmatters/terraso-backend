@@ -184,7 +184,7 @@ class Mutations(graphene.ObjectType):
     delete_story_map_membership = StoryMapMembershipDeleteMutation.Field()
     approve_story_map_membership = StoryMapMembershipApproveMutation.Field()
     approve_story_map_membership_token = StoryMapMembershipApproveTokenMutation.Field()
-    add_site = SiteAddMutation.Field()
+    add_site = SiteAddMutation.Field(deprecation_reason="Use push_user_data instead.")
     update_site = SiteUpdateMutation.Field()
     delete_site = SiteDeleteMutation.Field()
     mark_site_seen = SiteMarkSeenMutation.Field()
@@ -221,9 +221,13 @@ class Mutations(graphene.ObjectType):
     delete_project_soil_settings_depth_interval = (
         ProjectSoilSettingsDeleteDepthIntervalMutation.Field()
     )
-    add_site_note = SiteNoteAddMutation.Field()
-    update_site_note = SiteNoteUpdateMutation.Field()
-    delete_site_note = SiteNoteDeleteMutation.Field()
+    add_site_note = SiteNoteAddMutation.Field(deprecation_reason="Use push_user_data instead.")
+    update_site_note = SiteNoteUpdateMutation.Field(
+        deprecation_reason="Use push_user_data instead."
+    )
+    delete_site_note = SiteNoteDeleteMutation.Field(
+        deprecation_reason="Use push_user_data instead."
+    )
     save_landscape_membership = LandscapeMembershipSaveMutation.Field()
     delete_landscape_membership = LandscapeMembershipDeleteMutation.Field()
     save_group_membership = GroupMembershipSaveMutation.Field()

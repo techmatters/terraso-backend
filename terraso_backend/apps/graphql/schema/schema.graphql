@@ -1691,7 +1691,7 @@ type Mutations {
   deleteStoryMapMembership(input: StoryMapMembershipDeleteMutationInput!): StoryMapMembershipDeleteMutationPayload!
   approveStoryMapMembership(input: StoryMapMembershipApproveMutationInput!): StoryMapMembershipApproveMutationPayload!
   approveStoryMapMembershipToken(input: StoryMapMembershipApproveTokenMutationInput!): StoryMapMembershipApproveTokenMutationPayload!
-  addSite(input: SiteAddMutationInput!): SiteAddMutationPayload!
+  addSite(input: SiteAddMutationInput!): SiteAddMutationPayload! @deprecated(reason: "Use push_user_data instead.")
   updateSite(input: SiteUpdateMutationInput!): SiteUpdateMutationPayload!
   deleteSite(input: SiteDeleteMutationInput!): SiteDeleteMutationPayload!
   markSiteSeen(input: SiteMarkSeenMutationInput!): SiteMarkSeenMutationPayload!
@@ -1726,9 +1726,9 @@ type Mutations {
   updateProjectSoilSettings(input: ProjectSoilSettingsUpdateMutationInput!): ProjectSoilSettingsUpdateMutationPayload!
   updateProjectSoilSettingsDepthInterval(input: ProjectSoilSettingsUpdateDepthIntervalMutationInput!): ProjectSoilSettingsUpdateDepthIntervalMutationPayload!
   deleteProjectSoilSettingsDepthInterval(input: ProjectSoilSettingsDeleteDepthIntervalMutationInput!): ProjectSoilSettingsDeleteDepthIntervalMutationPayload!
-  addSiteNote(input: SiteNoteAddMutationInput!): SiteNoteAddMutationPayload!
-  updateSiteNote(input: SiteNoteUpdateMutationInput!): SiteNoteUpdateMutationPayload!
-  deleteSiteNote(input: SiteNoteDeleteMutationInput!): SiteNoteDeleteMutationPayload!
+  addSiteNote(input: SiteNoteAddMutationInput!): SiteNoteAddMutationPayload! @deprecated(reason: "Use push_user_data instead.")
+  updateSiteNote(input: SiteNoteUpdateMutationInput!): SiteNoteUpdateMutationPayload! @deprecated(reason: "Use push_user_data instead.")
+  deleteSiteNote(input: SiteNoteDeleteMutationInput!): SiteNoteDeleteMutationPayload! @deprecated(reason: "Use push_user_data instead.")
   saveLandscapeMembership(input: LandscapeMembershipSaveMutationInput!): LandscapeMembershipSaveMutationPayload!
   deleteLandscapeMembership(input: LandscapeMembershipDeleteMutationInput!): LandscapeMembershipDeleteMutationPayload!
   saveGroupMembership(input: GroupMembershipSaveMutationInput!): GroupMembershipSaveMutationPayload!
@@ -2115,7 +2115,6 @@ type SiteAddMutationPayload {
 }
 
 input SiteAddMutationInput {
-  id: ID
   name: String!
   latitude: Float!
   longitude: Float!
@@ -2664,7 +2663,6 @@ type SiteNoteAddMutationPayload {
 }
 
 input SiteNoteAddMutationInput {
-  id: ID
   siteId: ID!
   content: String!
   clientMutationId: String

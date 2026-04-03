@@ -12,7 +12,6 @@
 #
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see https://www.gnu.org/licenses/.
-import uuid
 from datetime import datetime
 
 import django_filters
@@ -22,8 +21,6 @@ from graphene import relay
 from graphene_django import DjangoObjectType
 from graphene_django.filter import TypedFilter
 
-from apps.core.exceptions import ErrorContext, ErrorMessage
-from apps.graphql.exceptions import GraphQLValidationException
 from apps.project_management.graphql.projects import ProjectNode
 from apps.project_management.models import Project, Site, sites
 from apps.project_management.permission_rules import Context
@@ -120,7 +117,6 @@ class SiteAddMutation(BaseWriteMutation):
     model_class = Site
 
     class Input:
-        id = graphene.ID()
         name = graphene.String(required=True)
         latitude = graphene.Float(required=True)
         longitude = graphene.Float(required=True)
@@ -136,38 +132,18 @@ class SiteAddMutation(BaseWriteMutation):
         if not check_site_permission(user, SiteAction.CREATE, Context()):
             cls.not_allowed_create(Site)
 
-        client_id = kwargs.pop("id", None)
-        if client_id is not None:
-            try:
-                client_uuid = uuid.UUID(str(client_id))
-            except ValueError:
-                raise GraphQLValidationException(
-                    error_messages=[
-                        ErrorMessage(code="invalid", context=ErrorContext(model="Site", field="id"))
-                    ]
-                )
-            existing = Site.objects.filter(id=client_uuid).first()
-            if existing:
-                return SiteAddMutation(site=existing)
-            kwargs["model_instance"] = Site(id=client_uuid)
-
         client_time = kwargs.pop("client_time", None)
         if not client_time:
             client_time = datetime.now()
 
         adding_to_project = "project_id" in kwargs
         if adding_to_project:
-            project = Project.objects.filter(id=kwargs["project_id"]).first()
-            if project is None or not check_project_permission(
+            project = cls.get_or_throw(Project, "project_id", kwargs["project_id"])
+            if not check_project_permission(
                 user, ProjectAction.ADD_NEW_SITE, Context(project=project)
             ):
-                # If project was removed in the time you did this,
-                # It would be more consistent to return something denoting the sync conflict, and have the client show the sync conflict dialog, but for now we'll just unaffiliate the site silently.
-                kwargs.pop("project_id", None)
-                kwargs["owner"] = info.context.user
-
-            else:
-                kwargs["project"] = project
+                raise cls.not_allowed(MutationTypes.CREATE)
+            kwargs["project"] = project
         else:
             kwargs["owner"] = info.context.user
 

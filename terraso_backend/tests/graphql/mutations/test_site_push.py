@@ -241,6 +241,22 @@ def test_add_new_site_project_not_found_creates_without_affiliation(client_query
     assert site.project is None
 
 
+def test_add_new_site_no_project_permission_creates_without_affiliation(client_query, user):
+    """When the user lacks permission to add to a project, site is created as owner-only (silent drop)."""
+    project = mixer.blend(Project)
+    # user is not a member of the project at all
+    site_id = str(uuid.uuid4())
+    entry = new_site_entry(site_id=site_id, projectId=str(project.id))
+
+    response = do_push(client_query, [entry])
+    results = get_site_results(response)
+
+    assert results[0]["result"]["__typename"] == "SitePushEntrySuccess"
+    site = Site.objects.get(id=site_id)
+    assert site.owner == user
+    assert site.project is None
+
+
 # ---------------------------------------------------------------------------
 # Existing site — update cases
 # ---------------------------------------------------------------------------
