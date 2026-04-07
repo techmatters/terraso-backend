@@ -156,6 +156,7 @@ class SitePush(BaseWriteMutation):
 
         # --- Site-level operation ---
         if is_new:
+            # Adding a new site
             try:
                 site_uuid = uuid.UUID(str(site_id))
             except ValueError:
@@ -195,6 +196,7 @@ class SitePush(BaseWriteMutation):
                 SoilMetadata.objects.create(site=site)
                 site.mark_seen_by(user)
         else:
+            # Updating an existing site
             site = Site.objects.filter(id=site_id).first()
             if site is None:
                 raise SitePush.SiteConflictError(SitePushFailureReason.SITE_DOES_NOT_EXIST)

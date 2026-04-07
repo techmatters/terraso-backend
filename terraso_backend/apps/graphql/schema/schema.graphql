@@ -1715,9 +1715,10 @@ type Mutations {
   - soil data
   - soil metadata (fully replaces user ratings)
   
-  Partial updates are possible, if failure happens at the level of a sub-mutation, or more
-  granularly within the sub-mutation. Sites are processed before soil data/metadata to ensure
-  new sites exist on the server before their soil data references them.
+  Partial updates are possible, if failure happens at the level of an entity
+  (often a single site within a sub-mutation). Sites are processed before
+  soil data/metadata to ensure new sites exist on the server before their
+  soil data references them.
   """
   pushUserData(input: UserDataPushInput!): UserDataPushPayload!
   updateSoilDataDepthInterval(input: SoilDataUpdateDepthIntervalMutationInput!): SoilDataUpdateDepthIntervalMutationPayload! @deprecated(reason: "Use push_user_data instead.")
@@ -2463,9 +2464,10 @@ Pushes at least one of the following sub-mutations:
 - soil data
 - soil metadata (fully replaces user ratings)
 
-Partial updates are possible, if failure happens at the level of a sub-mutation, or more
-granularly within the sub-mutation. Sites are processed before soil data/metadata to ensure
-new sites exist on the server before their soil data references them.
+Partial updates are possible, if failure happens at the level of an entity
+(often a single site within a sub-mutation). Sites are processed before
+soil data/metadata to ensure new sites exist on the server before their
+soil data references them.
 """
 type UserDataPushPayload {
   errors: GenericScalar

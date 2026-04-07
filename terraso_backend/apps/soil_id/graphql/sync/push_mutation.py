@@ -45,9 +45,10 @@ class UserDataPush(BaseWriteMutation):
     - soil data
     - soil metadata (fully replaces user ratings)
 
-    Partial updates are possible, if failure happens at the level of a sub-mutation, or more
-    granularly within the sub-mutation. Sites are processed before soil data/metadata to ensure
-    new sites exist on the server before their soil data references them.
+    Partial updates are possible, if failure happens at the level of an entity
+    (often a single site within a sub-mutation). Sites are processed before
+    soil data/metadata to ensure new sites exist on the server before their
+    soil data references them.
     """
 
     site_results = graphene.Field(graphene.List(graphene.NonNull(SitePushEntry)), required=False)
