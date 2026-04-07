@@ -107,6 +107,20 @@ class AccountService:
         start_update_profile_image_task(user.id, profile_image_url)
 
         if not created:
+            # Backfill empty names if the provider sent them this time (e.g. Apple
+            # Sign In after a user revokes the app from their Apple ID and re-auths
+            # — Apple only returns the name on a "first" authorization).
+            # Only fill in *empty* fields; never overwrite a name the user may have
+            # edited themselves.
+            backfill = False
+            if first_name and not user.first_name:
+                user.first_name = first_name
+                backfill = True
+            if last_name and not user.last_name:
+                user.last_name = last_name
+                backfill = True
+            if backfill:
+                user.save()
             return user, False
 
         self._set_default_preferences(user)
