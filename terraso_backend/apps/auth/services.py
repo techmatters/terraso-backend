@@ -106,39 +106,29 @@ class AccountService:
 
         start_update_profile_image_task(user.id, profile_image_url)
 
-        if not created:
-            # Backfill empty names if the provider sent them this time (e.g. Apple
-            # Sign In after a user revokes the app from their Apple ID and re-auths
-            # — Apple only returns the name on a "first" authorization).
-            # Only fill in *empty* fields; never overwrite a name the user may have
-            # edited themselves.
-            backfill = False
-            if first_name and not user.first_name:
-                user.first_name = first_name
-                backfill = True
-            if last_name and not user.last_name:
-                user.last_name = last_name
-                backfill = True
-            if backfill:
-                user.save()
-            return user, False
+        if created:
+            self._set_default_preferences(user)
 
-        self._set_default_preferences(user)
-
-        update_name = first_name or last_name
-
-        if first_name:
+        # Populate first_name / last_name if the provider supplied them and the
+        # current value is empty. Never overwrites a non-empty name (which may
+        # have been edited by the user, or supplied on a prior sign-in).
+        # For brand-new users this trivially fills the fields; for existing
+        # users this acts as a backfill — notably for Apple Sign In, where
+        # Apple only returns the name on the very first authorization.
+        name_changed = False
+        if first_name and not user.first_name:
             user.first_name = first_name
-
-        if last_name:
+            name_changed = True
+        if last_name and not user.last_name:
             user.last_name = last_name
-
-        if update_name:
+            name_changed = True
+        if name_changed:
             user.save()
 
-        user_signup_signal.send(sender=self.__class__, user=user)
+        if created:
+            user_signup_signal.send(sender=self.__class__, user=user)
 
-        return user, True
+        return user, created
 
     def _update_profile_image(self, user, profile_image_url):
         if not profile_image_url:
