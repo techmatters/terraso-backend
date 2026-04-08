@@ -383,6 +383,31 @@ class TokenExchangeView(View):
         except TokenExchangeException as e:
             return self._token_error(e)
 
+        # Reject early if the JWT didn't include an email claim. Some providers
+        # (notably Apple in certain degraded auth states; Microsoft in some
+        # tenant configurations) can return a valid id_token that omits email,
+        # in which case we have nothing to identify or create the user with.
+        # Until we add a sub-based fallback lookup, the only correct response
+        # is a 4xx so the client gets a clear error instead of a 500.
+        if not payload.get("email"):
+            logger.warning(
+                "token_exchange_rejected",
+                reason="missing_email",
+                provider=contents.get("provider"),
+                iss=payload.get("iss"),
+                sub=payload.get("sub"),
+            )
+            return JsonResponse(
+                {
+                    "error": "missing_email",
+                    "detail": (
+                        "The provider's id_token did not include an email claim. "
+                        "Cannot identify or create a user without an email."
+                    ),
+                },
+                status=400,
+            )
+
         # Allow client-supplied names to override or fill in JWT-derived names.
         # Apple's id_token never includes name claims; the iOS Sign in with Apple
         # SDK only exposes the user's name on the *very first* authorization,
