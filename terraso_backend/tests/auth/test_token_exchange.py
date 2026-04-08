@@ -179,3 +179,80 @@ def test_token_exchange_is_new_account_false(client, private_key, payload):
     contents = resp.json()
     assert contents["is_new_account"] is False
     assert User.objects.filter(email="existinguser@example.org").count() == 1
+
+
+def test_token_exchange_client_supplied_names_new_user(client, private_key, payload):
+    """Client-supplied first_name/last_name are used when creating a new user.
+    Simulates the mobile Apple Sign In flow: Apple's JWT has no name claims, so
+    the mobile app captures fullName from the credential and sends it alongside."""
+    # Strip name claims from JWT to mimic Apple's id_token (which never has them)
+    payload["email"] = "appleuser@example.org"
+    del payload["given_name"]
+    del payload["family_name"]
+
+    resp = client.post(
+        reverse("apps.auth:token-exchange"),
+        content_type="application/json",
+        data={
+            "jwt": sign_payload(payload, private_key),
+            "provider": "example",
+            "first_name": "Jane",
+            "last_name": "Appleseed",
+        },
+    )
+    contents = resp.json()
+    assert contents["is_new_account"] is True
+    user = User.objects.get(email="appleuser@example.org")
+    assert user.first_name == "Jane"
+    assert user.last_name == "Appleseed"
+
+
+def test_token_exchange_client_supplied_names_backfill_existing(client, private_key, payload):
+    """Client-supplied names backfill an existing user whose name fields are empty.
+    This is the post-revoke Apple Sign In path: the user already exists but came in
+    via a previous Apple sign-in that didn't capture the name."""
+    payload["email"] = "nameless@example.org"
+    del payload["given_name"]
+    del payload["family_name"]
+    User.objects.create(email="nameless@example.org", first_name="", last_name="")
+
+    resp = client.post(
+        reverse("apps.auth:token-exchange"),
+        content_type="application/json",
+        data={
+            "jwt": sign_payload(payload, private_key),
+            "provider": "example",
+            "first_name": "Jane",
+            "last_name": "Appleseed",
+        },
+    )
+    assert resp.json()["is_new_account"] is False
+    user = User.objects.get(email="nameless@example.org")
+    assert user.first_name == "Jane"
+    assert user.last_name == "Appleseed"
+
+
+def test_token_exchange_client_supplied_names_do_not_overwrite_existing(
+    client, private_key, payload
+):
+    """Client-supplied names must NOT overwrite a non-empty name on an existing user.
+    Users may have edited their name in-app — we never clobber their choice."""
+    payload["email"] = "named@example.org"
+    del payload["given_name"]
+    del payload["family_name"]
+    User.objects.create(email="named@example.org", first_name="Existing", last_name="Name")
+
+    resp = client.post(
+        reverse("apps.auth:token-exchange"),
+        content_type="application/json",
+        data={
+            "jwt": sign_payload(payload, private_key),
+            "provider": "example",
+            "first_name": "Should",
+            "last_name": "Not Win",
+        },
+    )
+    assert resp.json()["is_new_account"] is False
+    user = User.objects.get(email="named@example.org")
+    assert user.first_name == "Existing"
+    assert user.last_name == "Name"

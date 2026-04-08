@@ -383,6 +383,19 @@ class TokenExchangeView(View):
         except TokenExchangeException as e:
             return self._token_error(e)
 
+        # Allow client-supplied names to override or fill in JWT-derived names.
+        # Apple's id_token never includes name claims; the iOS Sign in with Apple
+        # SDK only exposes the user's name on the *very first* authorization,
+        # via the credential's fullName property. The mobile app captures it
+        # then and forwards it here as first_name/last_name in the request body.
+        # Combined with the backfill in AccountService._persist_user, this lets
+        # us populate the name on either a brand-new user or an existing user
+        # whose name field is currently empty.
+        if first_name := contents.get("first_name"):
+            payload["given_name"] = first_name
+        if last_name := contents.get("last_name"):
+            payload["family_name"] = last_name
+
         user, created = self._create_or_fetch_user(**payload)
         access_token, refresh_token = terraso_login(request, user)
         resp_payload = {
