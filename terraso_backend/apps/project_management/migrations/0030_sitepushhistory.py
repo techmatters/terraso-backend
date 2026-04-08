@@ -15,6 +15,7 @@
 
 import uuid
 
+import apps.project_management.models.site_push_history
 import django.db.models.deletion
 import rules.contrib.models
 from django.conf import settings
@@ -42,7 +43,7 @@ class Migration(migrations.Migration):
                 ),
                 ("created_at", models.DateTimeField(auto_now_add=True)),
                 ("updated_at", models.DateTimeField(auto_now=True)),
-                ("site_changes", models.JSONField()),
+                ("site_changes", models.JSONField(encoder=apps.project_management.models.site_push_history.JSONEncoder)),
                 (
                     "changed_by",
                     models.ForeignKey(
