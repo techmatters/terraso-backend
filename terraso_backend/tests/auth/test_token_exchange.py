@@ -256,3 +256,215 @@ def test_token_exchange_client_supplied_names_do_not_overwrite_existing(
     user = User.objects.get(email="named@example.org")
     assert user.first_name == "Existing"
     assert user.last_name == "Name"
+
+
+# ---------------------------------------------------------------------------
+# Apple sub-based lookup
+#
+# These tests cover the sub-aware lookup path that handles the Apple-specific
+# failure mode where Apple's id_token sometimes omits the email claim. The
+# fixture payload's iss is "https://example.org" by default; tests that need
+# to exercise the Apple-specific code path override iss to the literal Apple
+# issuer string the production code checks for.
+# ---------------------------------------------------------------------------
+
+APPLE_ISS = "https://appleid.apple.com"
+
+
+def test_token_exchange_apple_sub_lookup_succeeds_with_no_email(client, private_key, payload):
+    """When the JWT has no email but the sub matches an existing user's
+    apple_sub, the user is found via sub lookup and login succeeds."""
+    User.objects.create(
+        email="existing@example.org",
+        first_name="Existing",
+        last_name="User",
+        apple_sub="apple-sub-12345",
+    )
+    payload["iss"] = APPLE_ISS
+    payload["sub"] = "apple-sub-12345"
+    del payload["email"]
+    del payload["given_name"]
+    del payload["family_name"]
+
+    resp = client.post(
+        reverse("apps.auth:token-exchange"),
+        content_type="application/json",
+        data={"jwt": sign_payload(payload, private_key), "provider": "example"},
+    )
+    contents = resp.json()
+    assert contents["is_new_account"] is False
+    # User row is unchanged — no name overwrite, no email change
+    user = User.objects.get(apple_sub="apple-sub-12345")
+    assert user.email == "existing@example.org"
+    assert user.first_name == "Existing"
+    assert user.last_name == "User"
+
+
+def test_token_exchange_apple_sub_backfilled_on_email_path(client, private_key, payload):
+    """When the JWT has both email and sub, and the user is found by email but
+    has no apple_sub yet, the sub is backfilled for future sign-ins."""
+    User.objects.create(email="backfill@example.org", apple_sub=None)
+    payload["iss"] = APPLE_ISS
+    payload["sub"] = "apple-sub-backfill"
+    payload["email"] = "backfill@example.org"
+
+    resp = client.post(
+        reverse("apps.auth:token-exchange"),
+        content_type="application/json",
+        data={"jwt": sign_payload(payload, private_key), "provider": "example"},
+    )
+    assert resp.json()["is_new_account"] is False
+    user = User.objects.get(email="backfill@example.org")
+    assert user.apple_sub == "apple-sub-backfill"
+
+
+def test_token_exchange_no_email_no_sub_match_returns_400(client, private_key, payload):
+    """No email in JWT and no existing user with this sub → clean 400 response.
+    Previously this was a 500 + traceback (the old _persist_user ValueError)."""
+    payload["iss"] = APPLE_ISS
+    payload["sub"] = "apple-sub-orphan"
+    del payload["email"]
+    del payload["given_name"]
+    del payload["family_name"]
+
+    resp = client.post(
+        reverse("apps.auth:token-exchange"),
+        content_type="application/json",
+        data={"jwt": sign_payload(payload, private_key), "provider": "example"},
+    )
+    assert resp.status_code == 400
+    contents = resp.json()
+    assert contents["error"] == "missing_email"
+    assert "id_token" in contents["detail"]
+    # Confirm no user was created
+    assert not User.objects.filter(apple_sub="apple-sub-orphan").exists()
+
+
+def test_token_exchange_apple_sub_collision_login_succeeds(client, private_key, payload):
+    """Two users share an Apple ID (rare: e.g. one created with Hide My Email,
+    one with Share My Email after revoke + re-auth). The sub already belongs
+    to user A; the JWT comes in with email matching user B and the same sub.
+    User B is logged in via the email path, the sub backfill on B raises
+    IntegrityError, we catch it, and both users remain in their original state.
+    """
+    user_a = User.objects.create(
+        email="user-a@example.org", apple_sub="shared-apple-sub"
+    )
+    user_b = User.objects.create(email="user-b@example.org", apple_sub=None)
+
+    payload["iss"] = APPLE_ISS
+    payload["sub"] = "shared-apple-sub"
+    payload["email"] = "user-b@example.org"
+
+    resp = client.post(
+        reverse("apps.auth:token-exchange"),
+        content_type="application/json",
+        data={"jwt": sign_payload(payload, private_key), "provider": "example"},
+    )
+    # Login still succeeds — the user in the response is user B, found by email
+    contents = resp.json()
+    assert "atoken" in contents
+    jwt_service = JWTService()
+    access_token = jwt_service.verify_access_token(contents["atoken"])
+    assert access_token["email"] == "user-b@example.org"
+
+    # Both users still exist with their original apple_sub state
+    user_a.refresh_from_db()
+    user_b.refresh_from_db()
+    assert user_a.apple_sub == "shared-apple-sub"
+    assert user_b.apple_sub is None  # backfill was rolled back
+
+
+def test_token_exchange_apple_sub_collision_logs_sentry_event(client, private_key, payload):
+    """The collision case must call sentry_sdk.capture_message so we can
+    monitor frequency in Sentry. Logging alone isn't enough — Sentry's default
+    LoggingIntegration only captures ERROR and above as events; warnings get
+    silently dropped if they don't ride along with an error in the same request.
+    """
+    User.objects.create(email="primary@example.org", apple_sub="collision-sub")
+    User.objects.create(email="duplicate@example.org", apple_sub=None)
+
+    payload["iss"] = APPLE_ISS
+    payload["sub"] = "collision-sub"
+    payload["email"] = "duplicate@example.org"
+
+    with patch("apps.auth.services.sentry_sdk.capture_message") as mock_capture:
+        client.post(
+            reverse("apps.auth:token-exchange"),
+            content_type="application/json",
+            data={"jwt": sign_payload(payload, private_key), "provider": "example"},
+        )
+
+    assert mock_capture.call_count == 1
+    args, kwargs = mock_capture.call_args
+    assert args[0] == "apple_sub_collision"
+    assert kwargs["level"] == "warning"
+    assert kwargs["extras"]["attempted_sub"] == "collision-sub"
+    assert kwargs["extras"]["attempted_user_email"] == "duplicate@example.org"
+
+
+def test_token_exchange_email_updated_when_found_by_sub(client, private_key, payload):
+    """When a user is found via sub-lookup and the JWT carries a different email
+    (e.g. the user switched from Hide My Email to Share My Email), the user's
+    email is updated to the provider-supplied value. Unlike names, email is
+    provider-controlled — we trust the provider's current value."""
+    User.objects.create(
+        email="relay@privaterelay.appleid.com",
+        apple_sub="email-change-sub",
+    )
+    payload["iss"] = APPLE_ISS
+    payload["sub"] = "email-change-sub"
+    payload["email"] = "real@example.org"
+
+    resp = client.post(
+        reverse("apps.auth:token-exchange"),
+        content_type="application/json",
+        data={"jwt": sign_payload(payload, private_key), "provider": "example"},
+    )
+    assert resp.json()["is_new_account"] is False
+    user = User.objects.get(apple_sub="email-change-sub")
+    assert user.email == "real@example.org"
+
+
+def test_token_exchange_email_update_blocked_by_existing_user(client, private_key, payload):
+    """If the provider sends a new email but another active user already has it,
+    the email update is skipped (IntegrityError on unique_active_email). The
+    login still succeeds with the old email."""
+    User.objects.create(
+        email="relay@privaterelay.appleid.com",
+        apple_sub="blocked-email-sub",
+    )
+    User.objects.create(email="taken@example.org")  # another user owns this email
+
+    payload["iss"] = APPLE_ISS
+    payload["sub"] = "blocked-email-sub"
+    payload["email"] = "taken@example.org"
+
+    resp = client.post(
+        reverse("apps.auth:token-exchange"),
+        content_type="application/json",
+        data={"jwt": sign_payload(payload, private_key), "provider": "example"},
+    )
+    # Login still succeeds — user found by sub
+    assert "atoken" in resp.json()
+    # Email was NOT updated (collision with existing user)
+    user = User.objects.get(apple_sub="blocked-email-sub")
+    assert user.email == "relay@privaterelay.appleid.com"
+
+
+def test_token_exchange_non_apple_iss_does_not_record_sub(client, private_key, payload):
+    """For Google/Microsoft/web sign-ins (non-Apple iss), the apple_sub field
+    should never be touched, even though the JWT has a sub claim. The
+    apple_sub column is Apple-specific by design."""
+    # Default fixture iss is "https://example.org" — explicitly NOT Apple
+    payload["email"] = "googleuser@example.org"
+    payload["sub"] = "google-sub-9999"
+
+    resp = client.post(
+        reverse("apps.auth:token-exchange"),
+        content_type="application/json",
+        data={"jwt": sign_payload(payload, private_key), "provider": "example"},
+    )
+    assert resp.json()["is_new_account"] is True
+    user = User.objects.get(email="googleuser@example.org")
+    assert user.apple_sub is None

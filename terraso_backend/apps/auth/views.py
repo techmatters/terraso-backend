@@ -336,6 +336,7 @@ class TokenExchangeView(View):
         given_name: str = "",
         family_name: str = "",
         picture: Optional[str] = None,
+        apple_sub: str = "",
         **kwargs,
     ):
         account_service = AccountService()
@@ -345,7 +346,11 @@ class TokenExchangeView(View):
         # TODO: using a private method of AccountService is weird, should be refactored
         # Should be a public method, and arguably static
         user, created = account_service._persist_user(
-            email, first_name=given_name, last_name=family_name, **additional_kwargs
+            email,
+            first_name=given_name,
+            last_name=family_name,
+            apple_sub=apple_sub,
+            **additional_kwargs,
         )
         return user, created
 
@@ -383,30 +388,13 @@ class TokenExchangeView(View):
         except TokenExchangeException as e:
             return self._token_error(e)
 
-        # Reject early if the JWT didn't include an email claim. Some providers
-        # (notably Apple in certain degraded auth states; Microsoft in some
-        # tenant configurations) can return a valid id_token that omits email,
-        # in which case we have nothing to identify or create the user with.
-        # Until we add a sub-based fallback lookup, the only correct response
-        # is a 4xx so the client gets a clear error instead of a 500.
-        if not payload.get("email"):
-            logger.warning(
-                "token_exchange_rejected",
-                reason="missing_email",
-                provider=contents.get("provider"),
-                iss=payload.get("iss"),
-                sub=payload.get("sub"),
-            )
-            return JsonResponse(
-                {
-                    "error": "missing_email",
-                    "detail": (
-                        "The provider's id_token did not include an email claim. "
-                        "Cannot identify or create a user without an email."
-                    ),
-                },
-                status=400,
-            )
+        # For Apple sign-ins, extract the stable per-(Apple ID, developer team)
+        # `sub` claim from the verified JWT and pass it through as `apple_sub`
+        # so AccountService._persist_user can use it as the primary lookup key.
+        # We trust the JWT's verified `iss` field rather than the client-supplied
+        # `provider` value to decide whether this is an Apple sign-in.
+        if payload.get("iss") == "https://appleid.apple.com" and payload.get("sub"):
+            payload["apple_sub"] = payload["sub"]
 
         # Allow client-supplied names to override or fill in JWT-derived names.
         # Apple's id_token never includes name claims; the iOS Sign in with Apple
@@ -421,7 +409,32 @@ class TokenExchangeView(View):
         if last_name := contents.get("last_name"):
             payload["family_name"] = last_name
 
-        user, created = self._create_or_fetch_user(**payload)
+        try:
+            user, created = self._create_or_fetch_user(**payload)
+        except ValueError:
+            # _persist_user raises ValueError when it can neither find an
+            # existing user (by sub or by email) nor create one (no email).
+            # This was previously a 500 with a Sentry-noisy traceback; now
+            # we return a clean 4xx with a structured log line.
+            logger.warning(
+                "token_exchange_rejected",
+                reason="missing_email_and_no_sub_match",
+                provider=contents.get("provider"),
+                iss=payload.get("iss"),
+                sub=payload.get("sub"),
+            )
+            return JsonResponse(
+                {
+                    "error": "missing_email",
+                    "detail": (
+                        "The provider's id_token did not include an email claim, "
+                        "and no existing user could be matched by provider sub. "
+                        "Cannot identify or create a user."
+                    ),
+                },
+                status=400,
+            )
+
         access_token, refresh_token = terraso_login(request, user)
         resp_payload = {
             "rtoken": refresh_token,
