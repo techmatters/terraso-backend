@@ -87,8 +87,6 @@ class SitePushEntry(graphene.ObjectType):
     result = graphene.Field(SitePushEntryResult, required=True)
 
 
-# NOTE: we check if the user has all permissions required to edit a site,
-#       rather than checking individual permissions against which data has been modified.
 # NOTE: we catch errors at the granularity of each site in the request.
 #       So one site's updates can succeed while another fails. But if any of
 #       an individual site's updates are invalid (including note conflicts), we
@@ -201,29 +199,71 @@ class SitePush(BaseWriteMutation):
             if site is None:
                 raise SitePush.SiteConflictError(SitePushFailureReason.SITE_DOES_NOT_EXIST)
 
-            if not check_site_permission(user, SiteAction.UPDATE_SETTINGS, Context(site=site)):
+            # Lightweight access check: the user must have *some* relationship
+            # to the site (they own it, or they're a member of its project).
+            # Without this, a completely unauthorized user would get a silent
+            # success with all operations skipped — technically harmless (no
+            # data changes) but misleading, and it would mask misconfigurations
+            # or stale client state.
+            is_accessible = site.owner == user or (
+                site.project and site.project.is_member(user)
+            )
+            if not is_accessible:
                 raise SitePush.SiteConflictError(SitePushFailureReason.NOT_ALLOWED)
 
+            # --- Site-level field updates (best-effort) ---
+            # Field updates require UPDATE_SETTINGS permission (manager-only
+            # for affiliated sites). If the user doesn't have it, we skip the
+            # field updates rather than rejecting the entire entry — the user
+            # may still have permission for note operations below.
             field_updates = {}
             for field in ["name", "latitude", "longitude", "elevation", "privacy"]:
                 val = site_entry.get(field)
                 if val is not None:
                     field_updates[field] = val.value if isinstance(val, enum.Enum) else val
 
-            # Handle project_id update — silently skip if project not found (deferred)
-            project_id = site_entry.get("project_id")
-            if project_id is not None:
-                project = Project.objects.filter(id=project_id).first()
-                if project:
-                    site.add_to_project(project)
-                # If project not found, skip silently (PROJECT_DOES_NOT_EXIST deferred)
+            has_project_update = site_entry.get("project_id") is not None
 
-            if field_updates:
-                for k, v in field_updates.items():
-                    setattr(site, k, v)
-                site.save()
+            if field_updates or has_project_update:
+                if check_site_permission(
+                    user, SiteAction.UPDATE_SETTINGS, Context(site=site)
+                ):
+                    if has_project_update:
+                        project = Project.objects.filter(
+                            id=site_entry["project_id"]
+                        ).first()
+                        if project:
+                            site.add_to_project(project)
 
-        # --- Note operations ---
+                    if field_updates:
+                        for k, v in field_updates.items():
+                            setattr(site, k, v)
+                        site.save()
+                else:
+                    # Elevation is a special case: contributors can set it if
+                    # currently null, but not overwrite an existing value
+                    # (that's a settings change). This is needed because
+                    # elevation data comes from an external API
+                    # (epqs.nationalmap.gov) that isn't available while
+                    # offline. A site created offline will have null elevation;
+                    # once the device is back online and the elevation lookup
+                    # succeeds, the client pushes the value. Contributors need
+                    # to be able to fill this in without manager permissions.
+                    elevation_val = field_updates.get("elevation")
+                    if elevation_val is not None and site.elevation is None:
+                        site.elevation = elevation_val
+                        site.save()
+                    logger.info(
+                        "site_push.skipped_field_updates",
+                        site_id=str(site_id),
+                        user_id=str(user.id),
+                        reason="not_allowed",
+                    )
+
+        # --- Note operations (best-effort per note) ---
+        # Each note operation is checked individually. If the user lacks
+        # permission for a specific note (e.g. editing someone else's note),
+        # that note is skipped rather than rejecting the entire entry.
         for note_input in site_entry.get("new_notes", []):
             note_id_str = note_input["id"]
             try:
@@ -236,7 +276,14 @@ class SitePush(BaseWriteMutation):
                 continue
 
             if not check_site_permission(user, SiteAction.CREATE_NOTE, Context(site=site)):
-                raise SitePush.SiteConflictError(SitePushFailureReason.NOT_ALLOWED)
+                logger.info(
+                    "site_push.skipped_create_note",
+                    site_id=str(site_id),
+                    note_id=note_id_str,
+                    user_id=str(user.id),
+                    reason="not_allowed",
+                )
+                continue
 
             SiteNote.objects.create(
                 id=note_uuid, site=site, content=note_input["content"], author=user
@@ -248,7 +295,14 @@ class SitePush(BaseWriteMutation):
                 continue  # Idempotent: note was deleted externally, skip update
 
             if not check_site_permission(user, SiteAction.EDIT_NOTE, Context(site_note=note)):
-                raise SitePush.SiteConflictError(SitePushFailureReason.NOT_ALLOWED)
+                logger.info(
+                    "site_push.skipped_edit_note",
+                    site_id=str(site_id),
+                    note_id=str(note_input["id"]),
+                    user_id=str(user.id),
+                    reason="not_allowed",
+                )
+                continue
 
             note.content = note_input["content"]
             note.save()
@@ -259,7 +313,14 @@ class SitePush(BaseWriteMutation):
                 continue  # Idempotent: already deleted is a success
 
             if not check_site_permission(user, SiteAction.DELETE_NOTE, Context(site_note=note)):
-                raise SitePush.SiteConflictError(SitePushFailureReason.NOT_ALLOWED)
+                logger.info(
+                    "site_push.skipped_delete_note",
+                    site_id=str(site_id),
+                    note_id=note_id_str,
+                    user_id=str(user.id),
+                    reason="not_allowed",
+                )
+                continue
 
             note.delete()
 

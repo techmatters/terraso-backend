@@ -346,8 +346,9 @@ def test_update_note_does_not_exist_is_skipped(client_query, user, owned_site):
     assert results[0]["result"]["__typename"] == "SitePushEntrySuccess"
 
 
-def test_update_note_not_allowed(client_query, user):
-    """Cannot edit a note you didn't author on a project site (author check applies)."""
+def test_update_note_not_allowed_is_skipped(client_query, user):
+    """Editing a note you didn't author on a project site is silently skipped
+    (best-effort: the entry succeeds, but the note content is unchanged)."""
     project = mixer.blend(Project)
     project.add_manager(user)
     project_site = Site.objects.create(
@@ -363,8 +364,9 @@ def test_update_note_not_allowed(client_query, user):
     response = do_push(client_query, [entry])
     results = get_site_results(response)
 
-    assert results[0]["result"]["__typename"] == "SitePushEntryFailure"
-    assert results[0]["result"]["reason"] == "NOT_ALLOWED"
+    assert results[0]["result"]["__typename"] == "SitePushEntrySuccess"
+    note.refresh_from_db()
+    assert note.content == "Other's note"  # unchanged — edit was skipped
 
 
 def test_delete_note_success(client_query, user, owned_site, site_note):
@@ -431,11 +433,10 @@ def test_missing_note_update_does_not_roll_back_site_field_update(client_query, 
     assert owned_site.name == "Should Succeed"
 
 
-def test_new_site_note_failure_rolls_back_site_creation(client_query, user):
+def test_new_site_with_unauthorized_note_edit_still_creates_site(client_query, user):
     """
-    If a note operation fails on a new site, the site itself is also rolled back.
-    (The note UUID is valid but the note already exists under a *different* site,
-     triggering a permission failure via EDIT_NOTE on the wrong site.)
+    Note operations are best-effort: if editing a note fails permission, the
+    edit is skipped but the rest of the entry (including site creation) succeeds.
     """
     # Create an existing note owned by another user so EDIT_NOTE will fail
     other_user = mixer.blend("core.User")
@@ -447,15 +448,159 @@ def test_new_site_note_failure_rolls_back_site_creation(client_query, user):
         site_id=site_id,
         newNotes=[],
     )
-    # Force a note failure by trying to update a note on a different site
+    # Force a note permission failure by trying to update a note the user doesn't own
     entry["updatedNotes"] = [{"id": str(existing_note.id), "content": "Stolen"}]
 
     response = do_push(client_query, [entry])
     results = get_site_results(response)
 
-    assert results[0]["result"]["__typename"] == "SitePushEntryFailure"
-    # New site should not exist after rollback
-    assert not Site.objects.filter(id=site_id).exists()
+    assert results[0]["result"]["__typename"] == "SitePushEntrySuccess"
+    # Site was still created despite the skipped note edit
+    assert Site.objects.filter(id=site_id).exists()
+    # The other user's note was not modified
+    existing_note.refresh_from_db()
+    assert existing_note.content == "Existing"
+
+
+# ---------------------------------------------------------------------------
+# Contributor best-effort permissions
+# ---------------------------------------------------------------------------
+
+
+def test_contributor_can_push_notes_on_project_site(client_query, user):
+    """A project contributor can create notes on an affiliated site even though
+    they don't have UPDATE_SETTINGS permission (which is manager-only)."""
+    project = mixer.blend(Project)
+    project.add_contributor(user)
+    project_site = Site.objects.create(
+        name="Project Site", latitude=1.0, longitude=2.0, project=project, privacy="private"
+    )
+    note_id = str(uuid.uuid4())
+    entry = update_site_entry(
+        project_site.id,
+        newNotes=[{"id": note_id, "content": "Contributor note"}],
+    )
+
+    response = do_push(client_query, [entry])
+    results = get_site_results(response)
+
+    assert results[0]["result"]["__typename"] == "SitePushEntrySuccess"
+    note = SiteNote.objects.get(id=note_id)
+    assert note.content == "Contributor note"
+    assert note.author == user
+
+
+def test_contributor_field_updates_skipped_on_project_site(client_query, user):
+    """A contributor's field updates (name, lat, etc.) are silently skipped on
+    an affiliated site — the entry succeeds but the fields are unchanged."""
+    project = mixer.blend(Project)
+    project.add_contributor(user)
+    project_site = Site.objects.create(
+        name="Original Name", latitude=1.0, longitude=2.0, project=project, privacy="private"
+    )
+    entry = update_site_entry(project_site.id, name="Contributor Rename")
+
+    response = do_push(client_query, [entry])
+    results = get_site_results(response)
+
+    assert results[0]["result"]["__typename"] == "SitePushEntrySuccess"
+    project_site.refresh_from_db()
+    assert project_site.name == "Original Name"  # unchanged — field update skipped
+
+
+def test_contributor_mixed_entry_notes_applied_fields_skipped(client_query, user):
+    """When a contributor sends both field updates and notes in one entry, the
+    field updates are skipped (no permission) but the notes are applied."""
+    project = mixer.blend(Project)
+    project.add_contributor(user)
+    project_site = Site.objects.create(
+        name="Original", latitude=1.0, longitude=2.0, project=project, privacy="private"
+    )
+    note_id = str(uuid.uuid4())
+    entry = update_site_entry(
+        project_site.id,
+        name="Should Not Change",
+        newNotes=[{"id": note_id, "content": "Should be created"}],
+    )
+
+    response = do_push(client_query, [entry])
+    results = get_site_results(response)
+
+    assert results[0]["result"]["__typename"] == "SitePushEntrySuccess"
+    project_site.refresh_from_db()
+    assert project_site.name == "Original"  # field update skipped
+    assert SiteNote.objects.filter(id=note_id).exists()  # note created
+
+
+def test_contributor_can_set_null_elevation(client_query, user):
+    """A contributor can set elevation on a site where it's currently null —
+    this is initial data entry, not a settings change."""
+    project = mixer.blend(Project)
+    project.add_contributor(user)
+    project_site = Site.objects.create(
+        name="No Elevation", latitude=1.0, longitude=2.0,
+        project=project, privacy="private", elevation=None,
+    )
+    entry = update_site_entry(project_site.id, elevation=100.5)
+
+    response = do_push(client_query, [entry])
+    results = get_site_results(response)
+
+    assert results[0]["result"]["__typename"] == "SitePushEntrySuccess"
+    project_site.refresh_from_db()
+    assert project_site.elevation == 100.5
+
+
+def test_contributor_cannot_overwrite_existing_elevation(client_query, user):
+    """A contributor cannot change elevation from one value to another —
+    that's a settings change requiring UPDATE_SETTINGS (manager-only)."""
+    project = mixer.blend(Project)
+    project.add_contributor(user)
+    project_site = Site.objects.create(
+        name="Has Elevation", latitude=1.0, longitude=2.0,
+        project=project, privacy="private", elevation=50.0,
+    )
+    entry = update_site_entry(project_site.id, elevation=100.5)
+
+    response = do_push(client_query, [entry])
+    results = get_site_results(response)
+
+    assert results[0]["result"]["__typename"] == "SitePushEntrySuccess"
+    project_site.refresh_from_db()
+    assert project_site.elevation == 50.0  # unchanged
+
+
+def test_contributor_edit_own_note_skips_others_note(client_query, user):
+    """A contributor can edit their own note but editing another user's note
+    is silently skipped — both operations in the same entry."""
+    project = mixer.blend(Project)
+    project.add_contributor(user)
+    project_site = Site.objects.create(
+        name="Project Site", latitude=1.0, longitude=2.0, project=project, privacy="private"
+    )
+    own_note = SiteNote.objects.create(
+        site=project_site, content="My note", author=user
+    )
+    other_user = mixer.blend("core.User")
+    others_note = SiteNote.objects.create(
+        site=project_site, content="Their note", author=other_user
+    )
+    entry = update_site_entry(
+        project_site.id,
+        updatedNotes=[
+            {"id": str(own_note.id), "content": "My updated note"},
+            {"id": str(others_note.id), "content": "Stolen content"},
+        ],
+    )
+
+    response = do_push(client_query, [entry])
+    results = get_site_results(response)
+
+    assert results[0]["result"]["__typename"] == "SitePushEntrySuccess"
+    own_note.refresh_from_db()
+    assert own_note.content == "My updated note"  # own note updated
+    others_note.refresh_from_db()
+    assert others_note.content == "Their note"  # other's note unchanged
 
 
 # ---------------------------------------------------------------------------
