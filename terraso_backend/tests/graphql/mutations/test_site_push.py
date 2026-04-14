@@ -538,8 +538,12 @@ def test_contributor_can_set_null_elevation(client_query, user):
     project = mixer.blend(Project)
     project.add_contributor(user)
     project_site = Site.objects.create(
-        name="No Elevation", latitude=1.0, longitude=2.0,
-        project=project, privacy="private", elevation=None,
+        name="No Elevation",
+        latitude=1.0,
+        longitude=2.0,
+        project=project,
+        privacy="private",
+        elevation=None,
     )
     entry = update_site_entry(project_site.id, elevation=100.5)
 
@@ -557,8 +561,12 @@ def test_contributor_cannot_overwrite_existing_elevation(client_query, user):
     project = mixer.blend(Project)
     project.add_contributor(user)
     project_site = Site.objects.create(
-        name="Has Elevation", latitude=1.0, longitude=2.0,
-        project=project, privacy="private", elevation=50.0,
+        name="Has Elevation",
+        latitude=1.0,
+        longitude=2.0,
+        project=project,
+        privacy="private",
+        elevation=50.0,
     )
     entry = update_site_entry(project_site.id, elevation=100.5)
 
@@ -578,9 +586,7 @@ def test_contributor_edit_own_note_skips_others_note(client_query, user):
     project_site = Site.objects.create(
         name="Project Site", latitude=1.0, longitude=2.0, project=project, privacy="private"
     )
-    own_note = SiteNote.objects.create(
-        site=project_site, content="My note", author=user
-    )
+    own_note = SiteNote.objects.create(site=project_site, content="My note", author=user)
     other_user = mixer.blend("core.User")
     others_note = SiteNote.objects.create(
         site=project_site, content="Their note", author=other_user

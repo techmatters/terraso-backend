@@ -205,9 +205,7 @@ class SitePush(BaseWriteMutation):
             # success with all operations skipped — technically harmless (no
             # data changes) but misleading, and it would mask misconfigurations
             # or stale client state.
-            is_accessible = site.owner == user or (
-                site.project and site.project.is_member(user)
-            )
+            is_accessible = site.owner == user or (site.project and site.project.is_member(user))
             if not is_accessible:
                 raise SitePush.SiteConflictError(SitePushFailureReason.NOT_ALLOWED)
 
@@ -225,13 +223,9 @@ class SitePush(BaseWriteMutation):
             has_project_update = site_entry.get("project_id") is not None
 
             if field_updates or has_project_update:
-                if check_site_permission(
-                    user, SiteAction.UPDATE_SETTINGS, Context(site=site)
-                ):
+                if check_site_permission(user, SiteAction.UPDATE_SETTINGS, Context(site=site)):
                     if has_project_update:
-                        project = Project.objects.filter(
-                            id=site_entry["project_id"]
-                        ).first()
+                        project = Project.objects.filter(id=site_entry["project_id"]).first()
                         if project:
                             site.add_to_project(project)
 
