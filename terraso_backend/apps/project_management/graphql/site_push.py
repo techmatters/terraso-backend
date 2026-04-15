@@ -63,7 +63,6 @@ class SitePushInputEntry(graphene.InputObjectType):
 
 class SitePushFailureReason(graphene.Enum):
     SITE_DOES_NOT_EXIST = "SITE_DOES_NOT_EXIST"
-    NOTE_DOES_NOT_EXIST = "NOTE_DOES_NOT_EXIST"
     NOT_ALLOWED = "NOT_ALLOWED"
     INVALID_DATA = "INVALID_DATA"
     UNEXPECTED_ERROR = "UNEXPECTED_ERROR"

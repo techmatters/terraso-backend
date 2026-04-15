@@ -185,7 +185,7 @@ class Mutations(graphene.ObjectType):
     approve_story_map_membership = StoryMapMembershipApproveMutation.Field()
     approve_story_map_membership_token = StoryMapMembershipApproveTokenMutation.Field()
     add_site = SiteAddMutation.Field(deprecation_reason="Use push_user_data instead.")
-    update_site = SiteUpdateMutation.Field()
+    update_site = SiteUpdateMutation.Field(deprecation_reason="Use push_user_data instead.")
     delete_site = SiteDeleteMutation.Field()
     mark_site_seen = SiteMarkSeenMutation.Field()
     transfer_sites = SiteTransferMutation.Field()

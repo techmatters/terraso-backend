@@ -1692,7 +1692,7 @@ type Mutations {
   approveStoryMapMembership(input: StoryMapMembershipApproveMutationInput!): StoryMapMembershipApproveMutationPayload!
   approveStoryMapMembershipToken(input: StoryMapMembershipApproveTokenMutationInput!): StoryMapMembershipApproveTokenMutationPayload!
   addSite(input: SiteAddMutationInput!): SiteAddMutationPayload! @deprecated(reason: "Use push_user_data instead.")
-  updateSite(input: SiteUpdateMutationInput!): SiteUpdateMutationPayload!
+  updateSite(input: SiteUpdateMutationInput!): SiteUpdateMutationPayload! @deprecated(reason: "Use push_user_data instead.")
   deleteSite(input: SiteDeleteMutationInput!): SiteDeleteMutationPayload!
   markSiteSeen(input: SiteMarkSeenMutationInput!): SiteMarkSeenMutationPayload!
   transferSites(input: SiteTransferMutationInput!): SiteTransferMutationPayload!
@@ -2494,7 +2494,6 @@ type SitePushEntryFailure {
 
 enum SitePushFailureReason {
   SITE_DOES_NOT_EXIST
-  NOTE_DOES_NOT_EXIST
   NOT_ALLOWED
   INVALID_DATA
   UNEXPECTED_ERROR
