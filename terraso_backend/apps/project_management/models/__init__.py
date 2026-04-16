@@ -15,6 +15,7 @@
 
 from .projects import Project, ProjectMembership, ProjectMembershipList, ProjectSettings
 from .site_notes import SiteNote
+from .site_push_history import SitePushHistory
 from .sites import Site
 
 __all__ = [
@@ -24,4 +25,5 @@ __all__ = [
     "ProjectSettings",
     "Site",
     "SiteNote",
+    "SitePushHistory",
 ]

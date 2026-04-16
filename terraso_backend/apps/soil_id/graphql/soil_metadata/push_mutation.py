@@ -37,6 +37,7 @@ class SoilMetadataPushFailureReason(graphene.Enum):
     DOES_NOT_EXIST = "DOES_NOT_EXIST"
     NOT_ALLOWED = "NOT_ALLOWED"
     INVALID_DATA = "INVALID_DATA"
+    UNEXPECTED_ERROR = "UNEXPECTED_ERROR"
 
 
 class SoilMetadataPushEntryFailure(graphene.ObjectType):
@@ -135,6 +136,14 @@ class SoilMetadataPush(BaseWriteMutation):
                 site_id=site_id,
                 result=SoilMetadataPushEntryFailure(
                     reason=SoilMetadataPushFailureReason.INVALID_DATA
+                ),
+            )
+        except Exception as e:
+            logger.warning("soilMetadata_push.unexpected_error", site_id=site_id, error=str(e))
+            return SoilMetadataPushEntry(
+                site_id=site_id,
+                result=SoilMetadataPushEntryFailure(
+                    reason=SoilMetadataPushFailureReason.UNEXPECTED_ERROR
                 ),
             )
 
