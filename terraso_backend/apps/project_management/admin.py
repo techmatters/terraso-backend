@@ -16,7 +16,7 @@
 # Register your models here.
 from django.contrib import admin
 
-from apps.project_management.models import Project, ProjectSettings, Site
+from apps.project_management.models import Project, ProjectSettings, Site, SitePushHistory
 
 admin.site.register(ProjectSettings)
 
@@ -29,4 +29,17 @@ class ProjectAdmin(admin.ModelAdmin):
 
 @admin.register(Site)
 class SiteAdmin(admin.ModelAdmin):
-    list_display = ("name", "owner", "created_at")
+    list_display = ("name", "owner", "project__name", "created_at")
+    search_fields = ("name", "owner", "project__name")
+
+
+@admin.register(SitePushHistory)
+class SitePushHistoryAdmin(admin.ModelAdmin):
+    list_display = [
+        "updated_at",
+        "site__name",
+        "changed_by__email",
+        "update_succeeded",
+        "update_failure_reason",
+    ]
+    search_fields = ["site__name", "changed_by__email", "update_succeeded", "update_failure_reason"]

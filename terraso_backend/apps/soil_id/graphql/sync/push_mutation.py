@@ -18,6 +18,11 @@ import structlog
 from django.forms import ValidationError
 
 from apps.graphql.schema.commons import BaseWriteMutation
+from apps.project_management.graphql.site_push import (
+    SitePush,
+    SitePushEntry,
+    SitePushInputEntry,
+)
 from apps.soil_id.graphql.soil_data.push_mutation import (
     SoilDataPush,
     SoilDataPushEntry,
@@ -36,12 +41,17 @@ class UserDataPush(BaseWriteMutation):
     """
     To enable offline functionality.
     Pushes at least one of the following sub-mutations:
+    - sites (creates/updates sites and their notes)
     - soil data
     - soil metadata (fully replaces user ratings)
 
-    Partial updates are possible, if failure happens at the level of a sub-mutation, or more granularly within the sub-mutation.
+    Partial updates are possible, if failure happens at the level of an entity
+    (often a single site within a sub-mutation). Sites are processed before
+    soil data/metadata to ensure new sites exist on the server before their
+    soil data references them.
     """
 
+    site_results = graphene.Field(graphene.List(graphene.NonNull(SitePushEntry)), required=False)
     soil_data_results = graphene.Field(
         graphene.List(graphene.NonNull(SoilDataPushEntry)), required=False
     )
@@ -50,6 +60,7 @@ class UserDataPush(BaseWriteMutation):
     )
 
     class Input:
+        site_entries = graphene.Field(graphene.List(graphene.NonNull(SitePushInputEntry)))
         soil_data_entries = graphene.Field(graphene.List(graphene.NonNull(SoilDataPushInputEntry)))
         soil_metadata_entries = graphene.Field(
             graphene.List(graphene.NonNull(SoilMetadataPushInputEntry))
@@ -57,16 +68,23 @@ class UserDataPush(BaseWriteMutation):
 
     @classmethod
     def mutate_and_get_payload(cls, root, info, **kwargs):
+        site_entries = kwargs.get("site_entries", [])
         soil_data_entries = kwargs.get("soil_data_entries", [])
         soil_metadata_entries = kwargs.get("soil_metadata_entries", [])
 
-        if not soil_data_entries and not soil_metadata_entries:
+        if not site_entries and not soil_data_entries and not soil_metadata_entries:
             raise ValidationError(
-                "At least one of soilDataEntries or soilMetadataEntries must be provided"
+                "At least one of siteEntries, soilDataEntries, or soilMetadataEntries must be provided"
             )
 
+        site_results = None
         soil_data_results = None
         soil_metadata_results = None
+
+        # Sites must be processed first so new sites exist before soil data references them
+        if site_entries:
+            result = SitePush.mutate_and_get_payload(root, info, site_entries=site_entries)
+            site_results = result.results
 
         if soil_data_entries:
             result = SoilDataPush.mutate_and_get_payload(
@@ -81,6 +99,7 @@ class UserDataPush(BaseWriteMutation):
             soil_metadata_results = result.results
 
         return cls(
+            site_results=site_results,
             soil_data_results=soil_data_results,
             soil_metadata_results=soil_metadata_results,
         )

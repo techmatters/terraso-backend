@@ -1,4 +1,4 @@
-# Copyright © 2024 Technology Matters
+# Copyright © 2026 Technology Matters
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as published
@@ -20,7 +20,8 @@ from django.db import models
 
 from apps.core.models import User
 from apps.core.models.commons import BaseModel
-from apps.project_management.models.sites import Site
+
+from .sites import Site
 
 
 class JSONEncoder(DjangoJSONEncoder):
@@ -34,11 +35,11 @@ class JSONEncoder(DjangoJSONEncoder):
 #       by unauthorized (but still authenticated) users. such requests may have
 #       an update_failure_reason of null or "NOT_ALLOWED". unless a user is
 #       handcrafting malicious requests, this will be because a user had
-#       authorization to enter data for a site, then went offline and made
-#       changes simultaneous to losing authorization to enter data for that site
-class SoilDataHistory(BaseModel):
+#       authorization to edit a site, then went offline and made changes
+#       simultaneous to losing authorization for that site.
+class SitePushHistory(BaseModel):
     class Meta(BaseModel.Meta):
-        verbose_name_plural = "History: SoilDataHistory"
+        verbose_name_plural = "History: SitePushHistory"
 
     site = models.ForeignKey(Site, null=True, on_delete=models.CASCADE)
     changed_by = models.ForeignKey(User, on_delete=models.CASCADE)
@@ -46,26 +47,15 @@ class SoilDataHistory(BaseModel):
     update_failure_reason = models.TextField(null=True)
 
     # intended JSON schema: {
-    #   ...soilDataInputs,
-    #   "depth_dependent_data": [{
-    #     "depth_interval": {
-    #       "start": number,
-    #       "end": number
-    #     },
-    #     ...depthDependentInputs
-    #   }],
-    #   "depth_intervals": [{
-    #     "depth_interval": {
-    #       "start": number,
-    #       "end": number
-    #     },
-    #     ...depthIntervalConfig
-    #   }],
-    #   "deleted_depth_intervals": [{
-    #     "depth_interval": {
-    #       "start": number,
-    #       "end": number
-    #     }
-    #   }]
+    #   "is_new": bool,
+    #   "name": str | null,
+    #   "latitude": float | null,
+    #   "longitude": float | null,
+    #   "elevation": float | null,
+    #   "privacy": str | null,
+    #   "project_id": str | null,
+    #   "new_notes": [{"id": str, "content": str}],
+    #   "updated_notes": [{"id": str, "content": str}],
+    #   "deleted_note_ids": [str]
     # }
-    soil_data_changes = models.JSONField(encoder=JSONEncoder)
+    site_changes = models.JSONField(encoder=JSONEncoder)

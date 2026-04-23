@@ -115,5 +115,6 @@ def filter_only_sites_user_owner_or_member(user: User, queryset):
     is_approved_member = Q(
         project__membership_list__memberships__user=user,
         project__membership_list__memberships__membership_status=CollaborationMembership.APPROVED,
+        project__membership_list__memberships__deleted_at__isnull=True,
     )
     return queryset.filter(is_owner | is_approved_member)
