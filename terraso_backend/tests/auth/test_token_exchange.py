@@ -347,9 +347,7 @@ def test_token_exchange_apple_sub_collision_login_succeeds(client, private_key, 
     User B is logged in via the email path, the sub backfill on B raises
     IntegrityError, we catch it, and both users remain in their original state.
     """
-    user_a = User.objects.create(
-        email="user-a@example.org", apple_sub="shared-apple-sub"
-    )
+    user_a = User.objects.create(email="user-a@example.org", apple_sub="shared-apple-sub")
     user_b = User.objects.create(email="user-b@example.org", apple_sub=None)
 
     payload["iss"] = APPLE_ISS

@@ -187,7 +187,9 @@ class AccountService:
         # email, so changing the email is safe from a referential integrity
         # standpoint. Guarded by a savepoint in case another active user
         # already has the new email (unique_active_email constraint).
-        found_by_sub_not_email = apple_sub and user.apple_sub == apple_sub and email and user.email != email
+        found_by_sub_not_email = (
+            apple_sub and user.apple_sub == apple_sub and email and user.email != email
+        )
         if found_by_sub_not_email:
             old_email = user.email
             try:
