@@ -104,6 +104,16 @@ setup-git-hooks:
 run: check_rebuild
 	@./scripts/docker.sh "$(DC_FILE_ARG)"
 
+# Run with gunicorn to match production threading behavior.
+# Unlike "make run", this does NOT auto-reload on code changes — restart manually.
+# Reads WEB_CONCURRENCY and GUNICORN_CMD_ARGS from .env (same values used on Render).
+# Useful for testing concurrency locally before deploying to production.
+run-gunicorn: check_rebuild
+	docker compose $(DC_FILE_ARG) run --rm -p 8000:8000 web \
+		gunicorn config.wsgi:application \
+		--bind 0.0.0.0:8000 \
+		--chdir /app/terraso_backend
+
 setup: build setup-pre-commit
 
 start-%:

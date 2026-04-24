@@ -15,6 +15,7 @@
 
 import csv
 import os
+import threading
 
 import structlog
 from django.conf import settings
@@ -25,8 +26,12 @@ from .depth_helpers import depth_key, get_visible_intervals
 
 logger = structlog.get_logger(__name__)
 
-# In-memory cache for soil_id data, used to avoid external API calls during tests.
-# Keyed by site ID (string UUID).
+# Lock protecting the module-level caches below against concurrent access
+# from multiple gthread worker threads.
+_cache_lock = threading.Lock()
+
+# In-memory cache for soil_id data, only populated during tests (via cache_soil_id
+# in fixture_loader.py) to avoid external API calls. Never written to in production.
 _soil_id_cache = {}
 
 # Set to False to disable cache (for development/testing without cache)
@@ -46,31 +51,36 @@ def _load_munsell_lab_table():
     if _munsell_lab_table is not None:
         return _munsell_lab_table
 
-    try:
-        from soil_id.config import MUNSELL_RGB_LAB_PATH
+    with _cache_lock:
+        # Double-check after acquiring lock
+        if _munsell_lab_table is not None:
+            return _munsell_lab_table
 
-        path = MUNSELL_RGB_LAB_PATH
-    except ImportError:
-        path = os.path.join(os.environ.get("DATA_PATH", "Data"), "LandPKS_munsell_rgb_lab.csv")
+        try:
+            from soil_id.config import MUNSELL_RGB_LAB_PATH
 
-    table = {}
-    try:
-        with open(path, newline="") as f:
-            for row in csv.DictReader(f):
-                hue = row["hue"]
-                value = int(row["value"])
-                chroma = int(row["chroma"])
-                table[(hue, value, chroma)] = (
-                    float(row["cielab_l"]),
-                    float(row["cielab_a"]),
-                    float(row["cielab_b"]),
-                )
-    except FileNotFoundError:
-        logger.warning("Munsell-to-LAB lookup table not found", path=path)
+            path = MUNSELL_RGB_LAB_PATH
+        except ImportError:
+            path = os.path.join(os.environ.get("DATA_PATH", "Data"), "LandPKS_munsell_rgb_lab.csv")
+
         table = {}
+        try:
+            with open(path, newline="") as f:
+                for row in csv.DictReader(f):
+                    hue = row["hue"]
+                    value = int(row["value"])
+                    chroma = int(row["chroma"])
+                    table[(hue, value, chroma)] = (
+                        float(row["cielab_l"]),
+                        float(row["cielab_a"]),
+                        float(row["cielab_b"]),
+                    )
+        except FileNotFoundError:
+            logger.warning("Munsell-to-LAB lookup table not found", path=path)
+            table = {}
 
-    _munsell_lab_table = table
-    return _munsell_lab_table
+        _munsell_lab_table = table
+        return _munsell_lab_table
 
 
 def munsell_to_lab(color_hue, color_value, color_chroma):
@@ -111,18 +121,21 @@ def munsell_to_lab(color_hue, color_value, color_chroma):
 def set_soil_id_cache_enabled(enabled):
     """Enable or disable the soil_id cache."""
     global _USE_SOIL_ID_CACHE
-    _USE_SOIL_ID_CACHE = enabled
+    with _cache_lock:
+        _USE_SOIL_ID_CACHE = enabled
 
 
 def cache_soil_id(site_id, soil_id_data):
     """Store soil_id data in cache for a site."""
-    if _USE_SOIL_ID_CACHE:
-        _soil_id_cache[str(site_id)] = soil_id_data
+    with _cache_lock:
+        if _USE_SOIL_ID_CACHE:
+            _soil_id_cache[str(site_id)] = soil_id_data
 
 
 def clear_soil_id_cache():
     """Clear all cached soil_id data."""
-    _soil_id_cache.clear()
+    with _cache_lock:
+        _soil_id_cache.clear()
 
 
 def fetch_all_notes_for_site(site_id, request, page_size=settings.EXPORT_PAGE_SIZE):
@@ -278,8 +291,9 @@ def fetch_soil_id(site, request):
     site_id = site.get("id")
 
     # Check cache first (if enabled)
-    if _USE_SOIL_ID_CACHE and site_id and str(site_id) in _soil_id_cache:
-        return _soil_id_cache[str(site_id)]
+    with _cache_lock:
+        if _USE_SOIL_ID_CACHE and site_id and str(site_id) in _soil_id_cache:
+            return _soil_id_cache[str(site_id)]
 
     latitude = site.get("latitude")
     longitude = site.get("longitude")

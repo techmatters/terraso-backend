@@ -22,10 +22,11 @@ from uuid import uuid4
 
 import httpx
 import jwt
+import sentry_sdk
 import structlog
 from django.conf import settings
 from django.contrib.auth import get_user_model
-from django.db import transaction
+from django.db import IntegrityError, transaction
 from django.utils import timezone
 
 from apps.core.formatters import uppercase_locale
@@ -71,7 +72,12 @@ class AccountService:
             logger.error(error_msg)
             raise Exception(error_msg)
 
-        return self._persist_user(tokens.open_id.email, first_name=first_name, last_name=last_name)
+        return self._persist_user(
+            tokens.open_id.email,
+            first_name=first_name,
+            last_name=last_name,
+            apple_sub=tokens.open_id.sub,
+        )
 
     def sign_up_with_microsoft(self, authorization_code):
         provider = MicrosoftProvider()
@@ -97,34 +103,135 @@ class AccountService:
             UserPreference.objects.create(user=user, key=notification_key, value=default_val)
 
     @transaction.atomic
-    def _persist_user(self, email, first_name="", last_name="", profile_image_url=None):
-        if not email:
-            # it is possible for the email not to be set, notably with Microsoft
-            # here throw a more descriptive error message
-            raise ValueError("Could not create account, user email is empty")
-        user, created = User.objects.get_or_create(email=email)
+    def _persist_user(
+        self, email, first_name="", last_name="", profile_image_url=None, apple_sub=""
+    ):
+        # Step 1: Identify the user.
+        # Primary path: lookup by email. This is the normal happy path for
+        # virtually all sign-ins — the JWT contains an email, we find an
+        # existing user by it (or create one).
+        # Fallback path: lookup by apple_sub. This handles the specific case
+        # where Apple's id_token omits the email claim (which can happen in
+        # degraded auth states even though Apple is documented to always
+        # include email when the email scope is granted). Apple's sub is
+        # stable per-(Apple ID, developer team) and we record it on first
+        # successful Apple sign-in for exactly this purpose.
+        user = None
+        created = False
+
+        if email:
+            user = User.objects.filter(email=email).first()
+
+        if user is None and apple_sub:
+            user = User.objects.filter(apple_sub=apple_sub).first()
+
+        if user is None:
+            if not email:
+                # No sub-match and no email — we can neither identify nor
+                # create a user. The caller (e.g. TokenExchangeView) catches
+                # this and converts it to a 4xx response.
+                raise ValueError("Could not create account, user email is empty")
+            # get_or_create rather than .create() for race safety: another
+            # concurrent request may have created the row between our filter
+            # above and this point.
+            user, created = User.objects.get_or_create(email=email)
 
         start_update_profile_image_task(user.id, profile_image_url)
 
-        if not created:
-            return user, False
+        if created:
+            self._set_default_preferences(user)
 
-        self._set_default_preferences(user)
+        # Step 2a: Backfill apple_sub if missing. Wrapped in a nested
+        # savepoint so a uniqueness collision rolls back only this save,
+        # not the entire outer transaction.atomic block — Django requires
+        # any IntegrityError caught inside an atomic block to be wrapped in
+        # its own atomic savepoint, otherwise subsequent queries raise
+        # TransactionManagementError.
+        #
+        # A collision means two Terraso accounts share the same Apple ID —
+        # a rare situation we don't try to repair automatically. We log it
+        # to Sentry so we can monitor frequency and reach out manually if
+        # it ever fires, then let the login proceed via the email path that
+        # matched the user in step 1.
+        if apple_sub and not user.apple_sub:
+            try:
+                with transaction.atomic():
+                    user.apple_sub = apple_sub
+                    user.save(update_fields=["apple_sub"])
+            except IntegrityError:
+                logger.warning(
+                    "apple_sub_collision",
+                    attempted_sub=apple_sub,
+                    attempted_user_id=str(user.id),
+                    attempted_user_email=user.email,
+                )
+                sentry_sdk.capture_message(
+                    "apple_sub_collision",
+                    level="warning",
+                    extras={
+                        "attempted_sub": apple_sub,
+                        "attempted_user_id": str(user.id),
+                        "attempted_user_email": user.email,
+                    },
+                )
+                # Discard the in-memory apple_sub change so the rest of the
+                # function doesn't try to save it again on the name save below.
+                user.refresh_from_db()
 
-        update_name = first_name or last_name
+        # Step 2b: Update email if the provider sent a different one and the
+        # user was found via sub (not via email). This handles the case where a
+        # user switches from Hide My Email to Share My Email (or vice versa),
+        # or Apple rolls out email-change support. Unlike names, email is
+        # provider-controlled — we trust the provider's current value over our
+        # stale record. All durable FK references to User are via UUID, not
+        # email, so changing the email is safe from a referential integrity
+        # standpoint. Guarded by a savepoint in case another active user
+        # already has the new email (unique_active_email constraint).
+        found_by_sub_not_email = (
+            apple_sub and user.apple_sub == apple_sub and email and user.email != email
+        )
+        if found_by_sub_not_email:
+            old_email = user.email
+            try:
+                with transaction.atomic():
+                    user.email = email
+                    user.save(update_fields=["email"])
+                logger.info(
+                    "user_email_updated_from_provider",
+                    user_id=str(user.id),
+                    old_email=old_email,
+                    new_email=email,
+                )
+            except IntegrityError:
+                # Another active user already has this email — keep the old one.
+                logger.warning(
+                    "user_email_update_collision",
+                    user_id=str(user.id),
+                    old_email=old_email,
+                    attempted_email=email,
+                )
+                user.refresh_from_db()
 
-        if first_name:
+        # Step 2c: Backfill first_name / last_name. Only fills *empty* fields;
+        # never overwrites a name the user may have edited themselves (or that
+        # an earlier sign-in supplied). For brand-new users this trivially
+        # fills the fields; for existing users this acts as a backfill —
+        # notably for Apple Sign In, where Apple only returns the name on the
+        # very first authorization.
+        name_changed = False
+        if first_name and not user.first_name:
             user.first_name = first_name
-
-        if last_name:
+            name_changed = True
+        if last_name and not user.last_name:
             user.last_name = last_name
-
-        if update_name:
+            name_changed = True
+        if name_changed:
             user.save()
 
-        user_signup_signal.send(sender=self.__class__, user=user)
+        if created:
+            user_signup_signal.send(sender=self.__class__, user=user)
 
-        return user, True
+        return user, created
 
     def _update_profile_image(self, user, profile_image_url):
         if not profile_image_url:

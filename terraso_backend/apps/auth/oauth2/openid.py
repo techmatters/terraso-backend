@@ -54,6 +54,13 @@ class OpenID:
     def picture(self):
         return self.data.get("picture", "")
 
+    @property
+    def sub(self):
+        # Stable per-user, per-(developer team) identifier from the id_token.
+        # For Apple, this is what we record in User.apple_sub so we can look
+        # the user up on subsequent sign-ins where Apple omits the email claim.
+        return self.data.get("sub", "")
+
     def _decode_b64(self, data):
         missing_padding = len(data) % 4
         if missing_padding:

@@ -83,6 +83,13 @@ class User(SafeDeleteModel, AbstractUser):
     username = None
     email = models.EmailField()
     profile_image = models.URLField(blank=True, default="")
+    # Apple's stable per-(Apple ID, developer team) user identifier ("sub" claim
+    # of the id_token). Recorded on first successful Apple sign-in so we can
+    # look users up by sub on subsequent sign-ins where Apple omits the email
+    # claim from the id_token (which can happen on degraded auth state, e.g.
+    # after revoke + re-auth cycles). Null for users who have never signed in
+    # via Apple, or for legacy Apple users not yet backfilled.
+    apple_sub = models.CharField(max_length=255, blank=True, null=True)
 
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = []
@@ -97,6 +104,11 @@ class User(SafeDeleteModel, AbstractUser):
                 fields=("email",),
                 condition=models.Q(deleted_at__isnull=True),
                 name="unique_active_email",
+            ),
+            models.UniqueConstraint(
+                fields=("apple_sub",),
+                condition=models.Q(apple_sub__isnull=False) & models.Q(deleted_at__isnull=True),
+                name="unique_active_apple_sub",
             ),
         )
 

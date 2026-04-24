@@ -21,6 +21,7 @@ from apps.soil_id.models import (
     ProjectSoilSettings,
     SoilData,
     SoilDataDepthInterval,
+    SoilDataHistory,
     SoilMetadata,
 )
 from apps.soil_id.models.soil_id_cache import SoilIdCache
@@ -72,6 +73,18 @@ class SoilDataAdmin(admin.ModelAdmin):
 @admin.register(SoilIdCache)
 class SoilIdCacheAdmin(admin.ModelAdmin):
     list_display = ["id", "latitude", "longitude"]
+
+
+@admin.register(SoilDataHistory)
+class SoilDataHistoryAdmin(admin.ModelAdmin):
+    list_display = [
+        "updated_at",
+        "site__name",
+        "changed_by__email",
+        "update_succeeded",
+        "update_failure_reason",
+    ]
+    search_fields = ["site__name", "changed_by__email", "update_succeeded", "update_failure_reason"]
 
 
 @admin.register(SoilMetadata)
