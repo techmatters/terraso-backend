@@ -77,3 +77,58 @@ def test_graphql_query_without_token_returns_ok(client_query_no_token, landscape
     )
     assert response.status_code == 200
     assert response.json()["data"]["landscapes"]["edges"][0]["node"]["slug"] == landscapes[0].slug
+
+
+def test_graphql_session_cookie_is_ignored(client, user):
+    """A Django session cookie must NOT authenticate /graphql/ requests.
+    Only the JWT (Authorization: Bearer ...) is accepted as an API credential.
+    Regression test for F9 in scripts/security_audit_findings.md."""
+    from apps.project_management.models import Project
+
+    client.force_login(user)
+    response = client.post(
+        "/graphql/",
+        data={
+            "query": (
+                'mutation { addProject(input: {name: "session-bypass-probe"}) '
+                "{ project { id } errors } }"
+            )
+        },
+        content_type="application/json",
+    )
+    # The mutation must not have created a project — the session cookie alone
+    # must not authenticate the request.
+    assert not Project.objects.filter(name="session-bypass-probe").exists()
+    assert "errors" in response.json()
+
+
+def test_graphql_session_cookie_with_expired_jwt_returns_401(
+    client, user, expired_access_token
+):
+    """Session cookie + expired JWT must be rejected by the JWT layer.
+    Before the F9 fix, the session would short-circuit and let the request
+    through despite the expired JWT."""
+    client.force_login(user)
+    response = client.post(
+        "/graphql/",
+        data={"query": "query { landscapes { edges { node { slug } } } }"},
+        content_type="application/json",
+        HTTP_AUTHORIZATION=f"Bearer {expired_access_token}",
+    )
+    assert response.status_code == 401
+    assert "error" in response.json()
+
+
+def test_graphql_session_cookie_with_valid_jwt_authenticates_as_jwt_user(
+    client, user, access_token
+):
+    """Valid JWT wins regardless of session cookie presence."""
+    client.force_login(user)
+    response = client.post(
+        "/graphql/",
+        data={"query": "query { landscapes { edges { node { slug } } } }"},
+        content_type="application/json",
+        HTTP_AUTHORIZATION=f"Bearer {access_token}",
+    )
+    assert response.status_code == 200
+    assert "errors" not in response.json()

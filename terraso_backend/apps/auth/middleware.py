@@ -36,6 +36,15 @@ class JWTAuthenticationMiddleware:
         auth_optional = getattr(view_func, "auth_optional", False)
         auth_required = not auth_optional and not self._is_path_public(request.path)
 
+        # JWT is the source of truth for /graphql/ — a Django session cookie
+        # (created by the OAuth /authorize flow and retained by clients like
+        # iOS CFNetwork) must not be allowed to authenticate API requests.
+        # AuthenticationMiddleware ran earlier and may have set request.user
+        # from the session; reset it so the JWT layer below can validate the
+        # actual API credential.
+        if self._is_graphql_request(request):
+            request.user = AnonymousUser()
+
         if request.user.is_authenticated or (not auth_required and not auth_optional):
             return None
 
@@ -51,6 +60,9 @@ class JWTAuthenticationMiddleware:
             request.user = AnonymousUser()
             logger.warning("Invalid JWT token", extra={"error": str(e)})
             return JsonResponse({"error": "Unauthorized request"}, status=401)
+
+    def _is_graphql_request(self, request):
+        return request.path.rstrip("/").endswith("/graphql")
 
     def _is_path_public(self, path):
         for public_path in settings.PUBLIC_BASE_PATHS:
