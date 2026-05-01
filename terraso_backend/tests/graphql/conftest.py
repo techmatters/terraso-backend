@@ -18,6 +18,7 @@ import uuid
 from datetime import timedelta
 
 import pytest
+from django.test import Client
 from django.utils import timezone
 from freezegun import freeze_time
 from graphene_django.utils.testing import graphql_query
@@ -47,6 +48,27 @@ from apps.soil_id.models import SoilData, SoilDataDepthInterval
 from apps.story_map.models import StoryMap
 
 pytestmark = pytest.mark.django_db
+
+
+class JWTAwareClient(Client):
+    """Test client that mints and attaches a JWT on force_login(), so that
+    /graphql/ requests authenticate via the JWT layer.  The F9 fix rejects
+    Django session cookies on /graphql/, so callers that previously relied on
+    force_login() alone need the matching Bearer token to be authenticated."""
+
+    def force_login(self, user, backend=None):
+        super().force_login(user, backend=backend)
+        token = JWTService().create_access_token(user)
+        self.defaults["HTTP_AUTHORIZATION"] = f"Bearer {token}"
+
+    def logout(self):
+        super().logout()
+        self.defaults.pop("HTTP_AUTHORIZATION", None)
+
+
+@pytest.fixture
+def client():
+    return JWTAwareClient()
 
 
 @pytest.fixture
