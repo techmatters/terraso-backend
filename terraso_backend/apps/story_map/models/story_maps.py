@@ -34,6 +34,7 @@ class StoryMap(SlugModel):
     configuration = models.JSONField(blank=True, null=True)
     published_configuration = models.JSONField(blank=True, null=True)
     is_published = models.BooleanField(blank=True, default=False)
+    featured = models.BooleanField(blank=True, default=False)
     published_at = models.DateTimeField(blank=True, null=True)
 
     membership_list = models.ForeignKey(
@@ -65,6 +66,7 @@ class StoryMap(SlugModel):
             configuration=self.configuration,
             created_by=str(self.created_by.id),
             is_published=self.is_published,
+            featured=self.featured,
             slug=self.slug,
             story_map_id=self.story_map_id,
         )

@@ -68,6 +68,7 @@ class StoryMapFilterSet(django_filters.FilterSet):
         fields = {
             "slug": ["exact"],
             "story_map_id": ["exact"],
+            "featured": ["exact"],
         }
 
     def filter_memberships_user_email_not(self, queryset, name, value):
@@ -102,6 +103,7 @@ class StoryMapNode(DjangoObjectType):
             "configuration",
             "published_configuration",
             "is_published",
+            "featured",
             "created_by",
             "created_at",
             "updated_at",

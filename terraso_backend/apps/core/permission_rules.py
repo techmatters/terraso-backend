@@ -66,6 +66,9 @@ def allowed_to_add_landscape_group(user, landscape_id):
 
 @rules.predicate
 def allowed_to_delete_landscape_group(user, landscape_group):
+    if landscape_group is None:
+        return False
+
     return user.is_landscape_manager(landscape_group.landscape.id) or user.is_group_manager(
         landscape_group.group.id
     )

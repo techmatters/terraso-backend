@@ -22,14 +22,23 @@ from .collaboration_roles import ROLE_EDITOR
 
 @rules.predicate
 def allowed_to_view_story_map(user, story_map):
+    if story_map is None:
+        return False
     return story_map.is_published
 
 
 @rules.predicate
 def allowed_to_change_story_map(user, story_map):
+    if story_map is None:
+        return False
+
     is_owner = story_map.created_by == user
     if is_owner:
         return True
+
+    if story_map.membership_list is None:
+        return False
+
     account_membership = (
         story_map.membership_list.memberships.approved_only().filter(user=user).first()
     )
@@ -38,6 +47,8 @@ def allowed_to_change_story_map(user, story_map):
 
 @rules.predicate
 def allowed_to_delete_story_map(user, story_map):
+    if story_map is None:
+        return False
     return story_map.created_by == user
 
 
