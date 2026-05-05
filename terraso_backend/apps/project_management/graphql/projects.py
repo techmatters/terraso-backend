@@ -150,10 +150,15 @@ class ProjectNode(DjangoObjectType):
 
     @classmethod
     def get_queryset(cls, queryset, info):
-        # limit queries to membership lists of projects to which the user belongs
-        user_pk = getattr(info.context.user, "pk", None)
+        # Limit to projects the caller is a member of.  Short-circuit on
+        # anonymous: the membership join uses a LEFT OUTER JOIN, so a naive
+        # filter user_id=None matches projects with zero memberships
+        # (F5 SQL OUTER-JOIN bug).
+        user = info.context.user
+        if user.is_anonymous:
+            return queryset.none()
         return queryset.filter(
-            membership_list__memberships__user_id=user_pk,
+            membership_list__memberships__user_id=user.pk,
             membership_list__memberships__deleted_at__isnull=True,
         )
 

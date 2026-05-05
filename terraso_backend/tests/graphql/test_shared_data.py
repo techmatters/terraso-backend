@@ -56,7 +56,7 @@ def test_data_entries_query(client_query, data_entries, data_entries_memberships
         assert data_entry.name in entries_result
 
 
-def test_data_entry_get_one_by_id(client_query, data_entries):
+def test_data_entry_get_one_by_id(client_query, data_entries, data_entries_memberships):
     data_entry = data_entries[0]
     query = (
         """
@@ -512,7 +512,9 @@ def test_data_entry_shapefil_to_geojson(get_file_mock, client_query, data_entry_
 
 
 @mock.patch("apps.shared_data.services.data_entry_upload_service.get_file")
-def test_data_entry_avoid_fetching_file_for_not_gis_file(get_file_mock, client_query, data_entries):
+def test_data_entry_avoid_fetching_file_for_not_gis_file(
+    get_file_mock, client_query, data_entries, data_entries_memberships
+):
     response = client_query(
         """
         {dataEntry(id: "%s") {
