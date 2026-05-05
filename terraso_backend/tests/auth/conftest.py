@@ -91,6 +91,6 @@ def refresh_token(user):
 
 
 @pytest.fixture
-@freeze_time(timezone.now() - timedelta(days=10))
+@freeze_time(timezone.now() - timedelta(days=60))
 def expired_refresh_token(user):
     return JWTService().create_refresh_token(user)

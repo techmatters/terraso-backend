@@ -389,14 +389,18 @@ def data_entry_kml(users, groups):
     creator_group.membership_list.save_membership(
         creator.email, group_collaboration_roles.ROLE_MEMBER, CollaborationMembership.APPROVED
     )
-    return mixer.blend(
-        DataEntry,
-        created_by=creator,
-        size=100,
-        groups=creator_group,
-        entry_type=DataEntry.ENTRY_TYPE_FILE,
-        resource_type="kml",
+    resource = mixer.blend(
+        SharedResource,
+        target=creator_group,
+        source=mixer.blend(
+            DataEntry,
+            created_by=creator,
+            size=100,
+            entry_type=DataEntry.ENTRY_TYPE_FILE,
+            resource_type="kml",
+        ),
     )
+    return resource.source
 
 
 @pytest.fixture
@@ -421,14 +425,18 @@ def data_entry_shapefile(users, groups):
     creator_group.membership_list.save_membership(
         creator.email, group_collaboration_roles.ROLE_MEMBER, CollaborationMembership.APPROVED
     )
-    return mixer.blend(
-        DataEntry,
-        created_by=creator,
-        size=100,
-        groups=creator_group,
-        entry_type=DataEntry.ENTRY_TYPE_FILE,
-        resource_type="zip",
+    resource = mixer.blend(
+        SharedResource,
+        target=creator_group,
+        source=mixer.blend(
+            DataEntry,
+            created_by=creator,
+            size=100,
+            entry_type=DataEntry.ENTRY_TYPE_FILE,
+            resource_type="zip",
+        ),
     )
+    return resource.source
 
 
 @pytest.fixture

@@ -262,17 +262,29 @@ def test_delete_site_not_allowed(client, site):
     assert len(Site.objects.filter(id=site.id)) == 1
 
 
-def test_mark_site_seen(client, user):
-    client.force_login(user)
+def test_mark_site_seen(client, project, project_user):
+    # The site must live in a project both users belong to: project's manager
+    # creates it, project_user (a viewer) sees it. Without shared project
+    # membership, SiteNode.get_queryset filters the site out for project_user.
+    manager = project.manager_memberships.first().user
+    client.force_login(manager)
     response = graphql_query(
         CREATE_SITE_QUERY,
-        variables={"input": {"name": "site", "latitude": 0, "longitude": 0, "elevation": 0}},
+        variables={
+            "input": {
+                "name": "site",
+                "latitude": 0,
+                "longitude": 0,
+                "elevation": 0,
+                "projectId": str(project.id),
+            }
+        },
         client=client,
     )
     site = response.json()["data"]["addSite"]["site"]
     assert site["seen"] is True
 
-    client.force_login(mixer.blend(User))
+    client.force_login(project_user)
     response = graphql_query(
         "query site($id: ID!){ site(id: $id) { seen } }",
         variables={"id": site["id"]},

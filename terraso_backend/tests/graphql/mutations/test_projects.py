@@ -434,20 +434,18 @@ def test_update_project_role_target_user_not_in_project(project, project_manager
     assert "errors" in payload
 
 
-def test_mark_project_seen(client, user):
-    client.force_login(user)
-    response = graphql_query(
-        CREATE_PROJECT_QUERY,
-        variables={"input": {"name": "project", "privacy": "PUBLIC"}},
-        client=client,
-    )
-    project = response.json()["data"]["addProject"]["project"]
-    assert project["seen"] is True
+def test_mark_project_seen(client, project, project_user):
+    # The "seen" flag is per-user; both users need read access to the
+    # project to test it. Use a project where one user is manager and the
+    # other is a viewer (project_user) — without shared membership,
+    # ProjectNode.get_queryset filters the project out for project_user.
+    manager = project.manager_memberships.first().user
+    project.seen_by.add(manager)
 
-    client.force_login(mixer.blend(User))
+    client.force_login(project_user)
     response = graphql_query(
         "query project($id: ID!){ project(id: $id) { seen } }",
-        variables={"id": project["id"]},
+        variables={"id": str(project.id)},
         client=client,
     )
     assert response.json()["data"]["project"]["seen"] is False
@@ -458,7 +456,7 @@ def test_mark_project_seen(client, user):
             markProjectSeen(input: $input) { project { seen } }
         }
         """,
-        variables={"input": {"id": project["id"]}},
+        variables={"input": {"id": str(project.id)}},
         client=client,
     )
     assert response.json()["data"]["markProjectSeen"]["project"]["seen"] is True

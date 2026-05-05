@@ -64,6 +64,17 @@ class UserNode(DjangoObjectType):
         connection_class = TerrasoConnection
         fields = ("email", "first_name", "last_name", "profile_image", "memberships", "preferences")
 
+    @classmethod
+    def get_queryset(cls, queryset, info):
+        # F1: anonymous users must not enumerate the user table or look up
+        # users by id.  Authenticated callers continue to have access — the
+        # add-team-member flow needs `users(email_Iexact: ...)` for an
+        # email-existence check.  Tightening authenticated access (e.g. to
+        # users sharing a project/landscape/group) is a separate change.
+        if info.context.user.is_anonymous:
+            return queryset.none()
+        return queryset
+
 
 class UserPreferenceNode(DjangoObjectType):
     id = graphene.ID(source="pk", required=True)
