@@ -13,7 +13,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see https://www.gnu.org/licenses/.
 
-"""Cross-tenant mutation probes.
+"""Cross-tenant mutation probes — security-audit dashboard.
 
 For each authenticated mutation that takes a resource id, assert that an
 unrelated user (not an owner, member, or manager of the targeted resource)
@@ -21,6 +21,14 @@ gets rejected.  The mutation base classes (BaseAuthenticatedMutation /
 BaseWriteMutation / BaseDeleteMutation) only check is_authenticated; the
 object-level check is the resolver's responsibility.  These tests verify
 the object-level checks are present and effective.
+
+NOTE on duplication: Several of these mutations also have cross-tenant
+tests in their respective test_*.py files (e.g. updateGroup is also
+tested in test_group_mutations.py).  This file is intentionally a
+centralized audit dashboard — having the security-relevant probes
+collected in one place makes the audit trail easier to grep, review,
+and re-run as a security regression suite.  Do not "DRY up" by deleting
+duplicates here; they earn their keep as audit artifacts.
 
 Pattern:
 1. Set up a resource owned by some user other than the test caller.
