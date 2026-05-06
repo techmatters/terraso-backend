@@ -21,26 +21,46 @@ from apps.core.models.users import USER_PREFS_KEY_GROUP_NOTIFICATIONS
 pytestmark = pytest.mark.django_db
 
 
-def test_users_add(client_query):
-    user_email = "testinuser@example.com"
-    user_password = "123456"
-    response = client_query(
-        """
-        mutation addUser($input: UserAddMutationInput!){
-          addUser(input: $input) {
-            user {
-              id
-              email
-            }
-          }
+_ADD_USER_QUERY = """
+    mutation addUser($input: UserAddMutationInput!){
+      addUser(input: $input) {
+        user {
+          id
+          email
         }
-        """,
-        variables={"input": {"email": user_email, "password": user_password}},
+        errors
+      }
+    }
+"""
+
+
+def test_users_add_as_superuser(client_query, user):
+    """The addUser mutation is gated to superusers (BaseAdminMutation)."""
+    user.is_superuser = True
+    user.is_staff = True
+    user.save()
+
+    response = client_query(
+        _ADD_USER_QUERY,
+        variables={"input": {"email": "newuser@example.com", "password": "123456"}},
     )
     user_result = response.json()["data"]["addUser"]["user"]
-
     assert user_result["id"]
-    assert user_result["email"] == user_email
+    assert user_result["email"] == "newuser@example.com"
+
+
+def test_users_add_rejects_regular_user(client_query, user):
+    """A non-superuser authenticated caller cannot create accounts via addUser."""
+    assert not user.is_superuser
+
+    response = client_query(
+        _ADD_USER_QUERY,
+        variables={"input": {"email": "victim@example.invalid", "password": "123456"}},
+    )
+    payload = response.json()["data"]["addUser"]
+    assert payload["user"] is None
+    assert payload["errors"]
+    assert not User.objects.filter(email="victim@example.invalid").exists()
 
 
 def test_users_update(client_query, users):
