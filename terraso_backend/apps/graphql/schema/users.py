@@ -40,6 +40,23 @@ logger = structlog.get_logger(__name__)
 
 
 class UserFilter(FilterSet):
+    # Substring filters (`email__icontains`, `first_name__icontains`,
+    # `last_name__icontains`) can be used to harvest the user table — e.g.
+    # `users(email_Icontains: "@target.com")` returns every account at a
+    # given domain.  No production client uses them: web/mobile/shared all
+    # call only `users(email)` or `users(email_Iexact: ...)` for the
+    # userProfile and add-team-member flows (verified by grep against
+    # terraso-web-client, terraso-mobile-client, terraso-client-shared).
+    #
+    # The substring filters are kept in the schema for potential future
+    # admin/support workflows but are gated to `is_superuser=True` callers
+    # in `qs` below.  Non-superuser callers using these filters get
+    # `.none()` rather than an error: an empty result keeps the schema
+    # response valid for any client that fires a substring filter
+    # accidentally, and avoids surfacing "you would need superuser to do
+    # this" as introspection-equivalent metadata.
+    ADMIN_ONLY_FILTERS = ("email__icontains", "first_name__icontains", "last_name__icontains")
+
     project = CharFilter(method="filter_user_in_project")
 
     class Meta:
@@ -53,6 +70,17 @@ class UserFilter(FilterSet):
     def filter_user_in_project(self, queryset, name, value):
         memberships = Membership.objects.filter(membership_list__project=value)
         return queryset.filter(collaboration_memberships__in=memberships)
+
+    @property
+    def qs(self):
+        # If any admin-only filter has a non-empty value, require superuser.
+        # `self.data` is the dict of incoming filter args keyed by their
+        # Django ORM lookup name (e.g. "email__icontains").
+        if any(self.data.get(name) for name in self.ADMIN_ONLY_FILTERS):
+            user = getattr(self.request, "user", None) if self.request else None
+            if not (user and user.is_superuser):
+                return super().qs.none()
+        return super().qs
 
 
 class UserNode(DjangoObjectType):
