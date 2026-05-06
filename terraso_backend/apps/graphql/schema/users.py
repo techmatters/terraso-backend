@@ -28,6 +28,7 @@ from apps.core.models.users import USER_PREFS_KEY_ACCOUNT_DELETION, USER_PREFS_K
 from apps.graphql.exceptions import GraphQLNotAllowedException
 
 from .commons import (
+    BaseAdminMutation,
     BaseAuthenticatedMutation,
     BaseDeleteMutation,
     BaseUnauthenticatedMutation,
@@ -86,7 +87,13 @@ class UserPreferenceNode(DjangoObjectType):
         connection_class = TerrasoConnection
 
 
-class UserAddMutation(BaseAuthenticatedMutation):
+# NOTE: Consider removing this mutation entirely. The legitimate user-creation
+# paths in production are /auth/token-exchange (OAuth → JWT bridge) and the
+# Django admin UI. A grep across web-client, mobile-client, client-shared and
+# techmatters scripts found no callers of this mutation; only the test in
+# test_user_mutations.py exercises it. Restricted to superuser/admin in the
+# meantime so a non-admin authenticated account can't mint arbitrary users.
+class UserAddMutation(BaseAdminMutation):
     user = graphene.Field(UserNode)
 
     class Input:
