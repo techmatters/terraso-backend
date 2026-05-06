@@ -47,6 +47,51 @@ def test_users_email_filter_returns_zero_to_anonymous(client_query_no_token, use
     assert body["data"]["users"]["totalCount"] == 0
 
 
+def test_email_iexact_works_for_regular_user(client_query, user, users):
+    """Authenticated callers can still do exact-email lookups (the legitimate
+    add-team-member flow uses email_Iexact)."""
+    target = users[1]
+    response = client_query(
+        'query { users(email_Iexact: "%s") { totalCount edges { node { email } } } }'
+        % target.email
+    )
+    body = response.json()
+    assert body["data"]["users"]["totalCount"] == 1
+    assert body["data"]["users"]["edges"][0]["node"]["email"] == target.email
+
+
+def test_email_icontains_returns_zero_for_regular_user(client_query, user, users):
+    """Substring filters are gated to superusers; a regular authenticated
+    caller using email_Icontains gets an empty result rather than the
+    user table."""
+    domain = "@" + users[1].email.split("@")[1]
+    response = client_query(
+        'query { users(email_Icontains: "%s") { totalCount } }' % domain
+    )
+    assert response.json()["data"]["users"]["totalCount"] == 0
+
+
+def test_email_icontains_works_for_superuser(client_query, user, users):
+    """Superuser can still use the substring filter (kept in schema for
+    potential admin/support workflows)."""
+    user.is_superuser = True
+    user.save()
+    domain = "@" + users[1].email.split("@")[1]
+    response = client_query(
+        'query { users(email_Icontains: "%s") { totalCount } }' % domain
+    )
+    assert response.json()["data"]["users"]["totalCount"] >= 1
+
+
+def test_first_name_icontains_returns_zero_for_regular_user(client_query, user, users):
+    users[1].first_name = "UniqueFirstName"
+    users[1].save()
+    response = client_query(
+        'query { users(firstName_Icontains: "Unique") { totalCount } }'
+    )
+    assert response.json()["data"]["users"]["totalCount"] == 0
+
+
 def test_user_by_id_returns_null_to_anonymous(client_query_no_token, users):
     response = client_query_no_token(
         'query { user(id: "%s") { email firstName lastName } }' % users[0].id
