@@ -102,7 +102,7 @@ def delete_export_tokens_on_membership_removal(sender, instance, **kwargs):
     ).delete()
 
     # Delete user's tokens for all sites in this project
-    site_ids = project.sites.values_list("id", flat=True)
+    site_ids = project.site_set.values_list("id", flat=True)
     ExportToken.objects.filter(
         user_id=user_id,
         resource_type="SITE",
