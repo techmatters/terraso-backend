@@ -78,8 +78,9 @@ jobs:
 
       - name: Set up env
         run: |
-          cp .env.sample .env
-          echo "SENTRY_DSN=${{ secrets.SENTRY_DSN }}" >> .env
+          mkdir -p $HOME/secrets/terraso-backend
+          cp .env.sample $HOME/secrets/terraso-backend/.env
+          echo "SENTRY_DSN=${{ secrets.SENTRY_DSN }}" >> $HOME/secrets/terraso-backend/.env
 
       - name: Login to GHCR
         uses: docker/login-action@v3
@@ -109,8 +110,9 @@ jobs:
 
       - name: Set up env
         run: |
-          cp .env.sample .env
-          echo "SENTRY_DSN=${{ secrets.SENTRY_DSN }}" >> .env
+          mkdir -p $HOME/secrets/terraso-backend
+          cp .env.sample $HOME/secrets/terraso-backend/.env
+          echo "SENTRY_DSN=${{ secrets.SENTRY_DSN }}" >> $HOME/secrets/terraso-backend/.env
 
       - name: Run tests using built Docker image
         env:
@@ -159,9 +161,10 @@ jobs:
 
       - name: set up env
         run: |
-          cp .env.sample .env
-          echo "SENTRY_DSN=${{ secrets.SENTRY_DSN }}" >> .env
-          echo "SOIL_ID_DATABASE_URL=postgresql://postgres:postgres@soil-id-db:5432/soil_id" >> .env
+          mkdir -p $HOME/secrets/terraso-backend
+          cp .env.sample $HOME/secrets/terraso-backend/.env
+          echo "SENTRY_DSN=${{ secrets.SENTRY_DSN }}" >> $HOME/secrets/terraso-backend/.env
+          echo "SOIL_ID_DATABASE_URL=postgresql://postgres:postgres@soil-id-db:5432/soil_id" >> $HOME/secrets/terraso-backend/.env
 
       - name: Run integration tests
         env:

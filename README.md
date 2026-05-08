@@ -10,13 +10,19 @@ platform.
 
 ## Running locally with Docker
 
-Set up your environment file
+Set up your environment file outside the repo (so AI assistants and other
+tools browsing the project can't read it incidentally):
 
 ```sh
-$ cp .env.sample .env
+$ mkdir -p ~/secrets/terraso-backend
+$ cp .env.sample ~/secrets/terraso-backend/.env
 ```
 
-In the `.env` file
+The Makefile and `docker-compose.base.yml` resolve `env_file:` paths
+against `$HOME/secrets/terraso-backend/.env`. Override the location by
+setting `ENV_FILE=/some/other/path` before invoking `make`.
+
+In the env file
 
 -   set values for `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET`based on what you have set up in console.cloud.google.com > APIs & Services > Credentials.
 

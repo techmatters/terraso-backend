@@ -7,7 +7,7 @@ services:
     command: python terraso_backend/manage.py runserver 0.0.0.0:${PORT}
     labels:
       org.techmatters.project: terraso_backend
-    env_file: .env
+    env_file: ${HOME}/secrets/terraso-backend/.env
     ports:
       - '${PORT}:${PORT}'
     stdin_open: true
@@ -20,7 +20,7 @@ services:
     image: postgis/postgis:16-master
     labels:
       org.techmatters.project: terraso_backend
-    env_file: .env
+    env_file: ${HOME}/secrets/terraso-backend/.env
     volumes:
       - postgresql_data:/var/lib/postgresql/data
     hostname: postgres

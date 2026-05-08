@@ -1,5 +1,6 @@
 DC_ENV ?= dev
-DC_FILE_ARG = -f docker-compose.$(DC_ENV).yml
+ENV_FILE ?= $(HOME)/secrets/terraso-backend/.env
+DC_FILE_ARG = --env-file $(ENV_FILE) -f docker-compose.$(DC_ENV).yml
 DC_RUN_CMD ?= docker compose $(DC_FILE_ARG) run --quiet-pull --rm web
 
 ifeq ($(DC_ENV),ci)
