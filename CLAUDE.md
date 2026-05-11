@@ -191,3 +191,24 @@ Each user has their own token per resource. Tokens are automatically deleted whe
 - Token-based export URLs set `request.user` to the token owner (the user who created the token)
 - This allows normal membership filtering to work correctly without special bypass logic
 - CORS for `/export/token/*` URLs is handled by signal in `apps/export/handlers.py`
+
+## Secrets handling
+
+The `.env` file is not in the repo. Real credentials live at
+`~/secrets/terraso-backend/.env` and are loaded at runtime by
+`docker-compose.base.yml` (via the `env_file:` directive) and by the
+Makefile (via `--env-file` for `${PORT}` etc. interpolation) — they are
+not present in your interactive shell environment.
+
+When writing or modifying code or scripts that consume environment
+variables:
+
+- Never print, log, or echo values from `os.environ` (or `process.env`).
+- Never include env values in error messages or stack traces.
+- If verifying a variable is set, print only its presence
+  (`"JWT_SECRET: set"`), never the value.
+- Don't write env values into files inside the project directory.
+- Don't read `~/secrets/**` unless explicitly asked. The
+  `.claude/settings.json` deny list enforces this for Claude Code, but
+  the same expectation applies to any code or script changes you make
+  (e.g. don't add a debug `print(settings.SECRET_KEY)` even temporarily).
