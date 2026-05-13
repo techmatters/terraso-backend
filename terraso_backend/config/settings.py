@@ -244,12 +244,15 @@ LOGGING = {
         "healthcheck_filter": {
             "()": "config.logging_filters.HealthCheckFilter",
         },
+        "sensitive_qs_filter": {
+            "()": "config.logging_filters.SensitiveQueryParamFilter",
+        },
     },
     "handlers": {
         "console": {
             "class": "logging.StreamHandler",
             "formatter": config("LOGS_FORMATTER", default="json_formatter"),
-            "filters": ["healthcheck_filter"],
+            "filters": ["healthcheck_filter", "sensitive_qs_filter"],
         },
     },
     "loggers": {
