@@ -22,7 +22,7 @@ from django.contrib.auth.models import AnonymousUser
 from django.core.exceptions import ImproperlyConfigured, ValidationError
 from django.http.response import JsonResponse
 from django.urls import reverse
-from jwt.exceptions import InvalidTokenError
+from jwt.exceptions import ExpiredSignatureError, InvalidTokenError
 
 from .constants import OAUTH_COOKIE_MAX_AGE_SECONDS, OAUTH_COOKIE_NAME
 from .services import JWTService
@@ -98,6 +98,10 @@ class JWTAuthenticationMiddleware:
 
         try:
             decoded_payload = JWTService().verify_access_token(token)
+        except ExpiredSignatureError as e:
+            # Expected: clients refresh via /auth/tokens and retry.
+            logger.info("JWT access token expired")
+            raise ValidationError(f"Invalid JWT token: {e}")
         except InvalidTokenError as e:
             logger.exception("Failure to verify JWT token", extra={"token": token})
             raise ValidationError(f"Invalid JWT token: {e}")
