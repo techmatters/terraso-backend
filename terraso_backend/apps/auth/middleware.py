@@ -24,7 +24,11 @@ from django.http.response import JsonResponse
 from django.urls import reverse
 from jwt.exceptions import ExpiredSignatureError, InvalidTokenError
 
-from .constants import OAUTH_COOKIE_MAX_AGE_SECONDS, OAUTH_COOKIE_NAME
+from .constants import (
+    OAUTH_COOKIE_MAX_AGE_SECONDS,
+    OAUTH_COOKIE_NAME,
+    SESSION_FLAG_OAUTH_LOGIN,
+)
 from .services import JWTService
 
 logger = structlog.get_logger(__name__)
@@ -140,21 +144,42 @@ class OAuthAuthorizeState:
     def __call__(self, request):
         response = self.get_response(request)
 
-        if request.path == self.uri_path and request.user.is_anonymous:
-            # user accessing OAuth authorize URI and not logged in
-            # we store the URL so OAuth can start after login
-            cookie = request.get_full_path_info()
+        if request.path == self.uri_path:
+            if request.user.is_anonymous:
+                # user accessing OAuth authorize URI and not logged in
+                # we store the URL so OAuth can start after login
+                cookie = request.get_full_path_info()
 
-            response.set_signed_cookie(
-                OAUTH_COOKIE_NAME,
-                cookie,
-                domain=settings.AUTH_COOKIE_DOMAIN,
-                max_age=OAUTH_COOKIE_MAX_AGE_SECONDS,
-                httponly=True,
-                secure=True,
-                # lax - cookie sent from requests not originating from our domain
-                # need this for the oauth flow b/c request coming from third party
-                samesite="Lax",
-            )
+                response.set_signed_cookie(
+                    OAUTH_COOKIE_NAME,
+                    cookie,
+                    domain=settings.AUTH_COOKIE_DOMAIN,
+                    max_age=OAUTH_COOKIE_MAX_AGE_SECONDS,
+                    httponly=True,
+                    secure=True,
+                    # lax - cookie sent from requests not originating from our domain
+                    # need this for the oauth flow b/c request coming from third party
+                    samesite="Lax",
+                )
+            elif request.session.get(SESSION_FLAG_OAUTH_LOGIN) and self._is_grant_redirect(
+                response
+            ):
+                # The OAuth grant has been emitted; the user-agent is leaving
+                # the authorize flow with an auth code. The Django session
+                # that round-tripped them through /oauth/authorize has no
+                # further purpose and would otherwise persist for the
+                # default SESSION_COOKIE_AGE (14d). Flush it so the cookie
+                # doesn't linger past its reason to exist.
+                request.session.flush()
 
         return response
+
+    @staticmethod
+    def _is_grant_redirect(response):
+        """A 30x to the OAuth client's redirect_uri carrying a `code` (auth
+        code flow) or `id_token` (implicit/hybrid flow) is the signal that
+        the grant succeeded. Error redirects use `error=` and are ignored."""
+        if response.status_code not in (301, 302):
+            return False
+        location = response.get("Location", "")
+        return "code=" in location or "id_token=" in location

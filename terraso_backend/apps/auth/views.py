@@ -31,7 +31,11 @@ from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.urls import reverse
 from django.views import View
 
-from .constants import OAUTH_COOKIE_MAX_AGE_SECONDS, OAUTH_COOKIE_NAME
+from .constants import (
+    OAUTH_COOKIE_MAX_AGE_SECONDS,
+    OAUTH_COOKIE_NAME,
+    SESSION_FLAG_OAUTH_LOGIN,
+)
 from .providers import AppleProvider, GoogleProvider, MicrosoftProvider
 from .services import (
     AccountService,
@@ -325,6 +329,11 @@ def terraso_login(request, user, is_first_login=False):
     access_token = jwt_service.create_access_token(user, {"isFirstLogin": is_first_login})
     refresh_token = jwt_service.create_refresh_token(user)
     dj_login(request, user, backend="django.contrib.auth.backends.ModelBackend")
+    # The Django session exists only to round-trip the user through
+    # /oauth/authorize. OAuthAuthorizeState flushes the session once
+    # the grant is emitted; this marker scopes that flush so admin
+    # sessions (also created via dj_login, elsewhere) aren't affected.
+    request.session[SESSION_FLAG_OAUTH_LOGIN] = True
 
     return access_token, refresh_token
 

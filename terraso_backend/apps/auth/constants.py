@@ -15,3 +15,8 @@
 
 OAUTH_COOKIE_NAME = "oauth"
 OAUTH_COOKIE_MAX_AGE_SECONDS = 300  # 5 minutes
+
+# Session key set by terraso_login() and checked by OAuthAuthorizeState
+# to decide whether to flush the session once the OAuth grant completes.
+# Scopes the flush so admin / other sessions are not affected.
+SESSION_FLAG_OAUTH_LOGIN = "created_via_oauth_login"
