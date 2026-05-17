@@ -164,3 +164,115 @@ def test_anonymous_cannot_fetch_project_by_id(client_query_no_token):
     )
     body = response.json()
     assert "errors" in body or body["data"]["project"] is None
+
+
+# --- Q7 / Q12: GroupAssociation scoping for anonymous callers ---
+#
+# Q7 (`groupAssociation(id)`) and Q12 (`groupAssociations(...)`) were
+# inconclusive in Phase 2 because the local DB had no GroupAssociation
+# rows.  These tests build the previously-missing fixture data and
+# pin the **intended public behavior** (product decision 2026-05-17,
+# "Position A"): the parent→child relationship between two Groups is
+# public information, consistent with Q3 (single Group) and Q8 (Groups
+# listing) being public-by-design.
+#
+# What the tests pin:
+#   - Anonymous CAN list non-default-group associations.
+#   - Anonymous CAN fetch a non-default-group association by id.
+#   - The existing default-landscape-group filter in
+#     GroupAssociationNode.get_queryset still excludes associations
+#     where either side is a default-landscape group (those are
+#     system-generated plumbing, not user-meaningful relationships).
+#
+# If product reverses on this — e.g., relationship metadata between
+# Groups turns out to be politically sensitive — these tests should
+# flip to assert anon→none, and GroupAssociationNode.get_queryset
+# gains an `is_anonymous → .none()` short-circuit matching F1/F5.
+
+
+@pytest.fixture
+def group_association_fixture():
+    """Two associations:
+    - assoc_regular: regular_a → regular_b (NOT excluded by the default-group guard)
+    - assoc_default: regular_a → group_in_default_landscape_group (excluded by guard)
+    """
+    from mixer.backend.django import mixer
+
+    from apps.core.models import Group, GroupAssociation, Landscape
+    from apps.core.models.landscapes import LandscapeGroup
+
+    regular_a = mixer.blend(Group, name="anon-probe-regular-a")
+    regular_b = mixer.blend(Group, name="anon-probe-regular-b")
+    in_default = mixer.blend(Group, name="anon-probe-in-default")
+
+    landscape = mixer.blend(Landscape, name="anon-probe-landscape")
+    LandscapeGroup.objects.create(
+        landscape=landscape, group=in_default, is_default_landscape_group=True
+    )
+
+    assoc_regular = GroupAssociation.objects.create(
+        parent_group=regular_a, child_group=regular_b
+    )
+    assoc_default = GroupAssociation.objects.create(
+        parent_group=regular_a, child_group=in_default
+    )
+    return {
+        "assoc_regular": assoc_regular,
+        "assoc_default": assoc_default,
+        "regular_a": regular_a,
+        "regular_b": regular_b,
+        "in_default": in_default,
+    }
+
+
+def test_anonymous_group_associations_listing_returns_non_default_only(
+    client_query_no_token, group_association_fixture
+):
+    """Q12 (Position A — intentionally public):
+    Anonymous can list GroupAssociations between non-default-landscape
+    groups. The default-landscape-group filter still removes plumbing
+    associations from the listing."""
+    response = client_query_no_token(
+        "query { groupAssociations { totalCount edges { node { id } } } }"
+    )
+    body = response.json()
+    expected_id = str(group_association_fixture["assoc_regular"].id)
+    excluded_id = str(group_association_fixture["assoc_default"].id)
+    ids = [edge["node"]["id"] for edge in body["data"]["groupAssociations"]["edges"]]
+    assert expected_id in ids
+    assert excluded_id not in ids
+
+
+def test_anonymous_can_fetch_non_default_group_association_by_id(
+    client_query_no_token, group_association_fixture
+):
+    """Q7 (Position A — intentionally public):
+    Anonymous can fetch a single GroupAssociation between non-default
+    groups. Q3 (single Group) and Q8 (Groups listing) are already
+    public-by-design; the relationship between two public Groups is
+    public information too."""
+    assoc = group_association_fixture["assoc_regular"]
+    response = client_query_no_token(
+        'query { groupAssociation(id: "%s") { id parentGroup { slug } } }' % assoc.id
+    )
+    body = response.json()
+    assert body["data"]["groupAssociation"]["id"] == str(assoc.id)
+    assert (
+        body["data"]["groupAssociation"]["parentGroup"]["slug"]
+        == group_association_fixture["regular_a"].slug
+    )
+
+
+def test_anonymous_cannot_fetch_default_group_association_by_id(
+    client_query_no_token, group_association_fixture
+):
+    """The default-landscape-group filter excludes plumbing associations
+    from every caller, anonymous or not. This is the same behavior an
+    authenticated caller would observe; it's a content filter, not an
+    auth filter."""
+    assoc = group_association_fixture["assoc_default"]
+    response = client_query_no_token(
+        'query { groupAssociation(id: "%s") { id parentGroup { slug } } }' % assoc.id
+    )
+    body = response.json()
+    assert "errors" in body or body["data"]["groupAssociation"] is None
