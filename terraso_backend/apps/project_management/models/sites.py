@@ -110,11 +110,32 @@ class Site(BaseModel):
         return Site.objects.bulk_update(sites, ["owner", "project"])
 
 
-def filter_only_sites_user_owner_or_member(user: User, queryset):
+def filter_visible_sites(user: User, queryset):
+    """Sites an authenticated user is allowed to read:
+       (a) sites they own,
+       (b) sites in a project they're an approved member of, or
+       (c) sites explicitly marked Site.PUBLIC.
+
+    (c) is the "public site" branch: per product (2026-05-18), a site
+    flagged PUBLIC is visible to any authenticated caller, with the
+    intent that the future data-portal feature surfaces them. Write
+    access is unchanged — mutations still go through the per-site
+    permission check (ownership / project-management), so publicness
+    grants read only.
+
+    Anonymous callers are filtered out earlier in SiteNode.get_queryset
+    and don't reach this function.
+
+    `.distinct()` deduplicates rows that match more than one branch
+    (e.g., owner who is also a project member, or a public site whose
+    owner is the caller) — necessary because the membership join can
+    multiply rows per matching membership.
+    """
     is_owner = Q(owner=user)
     is_approved_member = Q(
         project__membership_list__memberships__user=user,
         project__membership_list__memberships__membership_status=CollaborationMembership.APPROVED,
         project__membership_list__memberships__deleted_at__isnull=True,
     )
-    return queryset.filter(is_owner | is_approved_member)
+    is_public = Q(privacy=Site.PUBLIC)
+    return queryset.filter(is_owner | is_approved_member | is_public).distinct()
