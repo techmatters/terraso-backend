@@ -14,11 +14,13 @@
 # along with this program. If not, see https://www.gnu.org/licenses/.
 
 import pytest
+from django.contrib.auth.models import Permission
+from django.contrib.contenttypes.models import ContentType
 from mixer.backend.django import mixer
 
 from apps.collaboration.models import Membership as CollaborationMembership
-from apps.core import landscape_collaboration_roles
-from apps.core.models import Landscape, User
+from apps.core import group_collaboration_roles, landscape_collaboration_roles
+from apps.core.models import Group, Landscape, LandscapeGroup, User
 
 pytestmark = pytest.mark.django_db
 
@@ -47,3 +49,60 @@ def test_user_is_landscape_manager():
     )
 
     assert user.is_landscape_manager(landscape.id) is True
+
+
+def test_user_is_landscape_manager_returns_false_for_none_id():
+    user = mixer.blend(User)
+    group = mixer.blend(Group)
+    group.membership_list.save_membership(
+        user.email, group_collaboration_roles.ROLE_MANAGER, CollaborationMembership.APPROVED
+    )
+
+    assert user.is_landscape_manager(None) is False
+
+
+def test_user_is_group_manager_returns_false_for_none_id():
+    user = mixer.blend(User)
+    landscape = mixer.blend(Landscape)
+    landscape.membership_list.save_membership(
+        user.email, landscape_collaboration_roles.ROLE_MANAGER, CollaborationMembership.APPROVED
+    )
+
+    assert user.is_group_manager(None) is False
+
+
+def test_user_does_not_get_global_group_permissions_from_manager_membership():
+    user = mixer.blend(User, is_staff=True)
+    group = mixer.blend(Group)
+    landscape = mixer.blend(Landscape)
+
+    group.membership_list.save_membership(
+        user.email, group_collaboration_roles.ROLE_MANAGER, CollaborationMembership.APPROVED
+    )
+    landscape.membership_list.save_membership(
+        user.email, landscape_collaboration_roles.ROLE_MANAGER, CollaborationMembership.APPROVED
+    )
+
+    group_content_type = ContentType.objects.get_for_model(Group)
+    landscape_content_type = ContentType.objects.get_for_model(Landscape)
+    landscape_group_content_type = ContentType.objects.get_for_model(LandscapeGroup)
+
+    user.user_permissions.add(
+        Permission.objects.get(codename="view_group", content_type=group_content_type),
+        Permission.objects.get(codename="view_landscape", content_type=landscape_content_type),
+        Permission.objects.get(
+            codename="view_landscapegroup", content_type=landscape_group_content_type
+        ),
+    )
+
+    assert user.has_perm(Group.get_perm("change"), obj=group.id)
+    assert user.has_perm(Group.get_perm("delete"), obj=group.id)
+    assert user.has_perm(Landscape.get_perm("change"), obj=landscape.id)
+    assert user.has_perm(Landscape.get_perm("delete"), obj=landscape.id)
+    assert user.has_perm(LandscapeGroup.get_perm("add"), obj=landscape.id)
+
+    assert not user.has_perm(Group.get_perm("change"))
+    assert not user.has_perm(Group.get_perm("delete"))
+    assert not user.has_perm(Landscape.get_perm("change"))
+    assert not user.has_perm(Landscape.get_perm("delete"))
+    assert not user.has_perm(LandscapeGroup.get_perm("add"))

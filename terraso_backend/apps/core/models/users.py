@@ -118,6 +118,9 @@ class User(SafeDeleteModel, AbstractUser):
         return super().save(*args, **kwargs)
 
     def is_landscape_manager(self, landscape_id):
+        if landscape_id is None:
+            return False
+
         return (
             self.collaboration_memberships.by_role(landscape_collaboration_roles.ROLE_MANAGER)
             .filter(
@@ -127,6 +130,9 @@ class User(SafeDeleteModel, AbstractUser):
         )
 
     def is_group_manager(self, group_id):
+        if group_id is None:
+            return False
+
         return (
             self.collaboration_memberships.by_role(group_collaboration_roles.ROLE_MANAGER)
             .filter(
