@@ -29,9 +29,9 @@ class SiteNote(BaseModel):
     updated_at = models.DateTimeField(auto_now=True)
     author = models.ForeignKey(
         User,
-        null=False,
-        blank=False,
-        on_delete=models.RESTRICT,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
         verbose_name="author of the note",
     )
 
