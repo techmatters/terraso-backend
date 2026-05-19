@@ -29,10 +29,15 @@ class Site(BaseModel):
     class Meta(BaseModel.Meta):
         abstract = False
         constraints = [
+            # At most one of owner / project may be set. Sites with both
+            # null are "orphans" — produced when a user-with-owned-sites
+            # soft-deletes (Site.owner is SET_NULL). Orphans are visible
+            # only via the PUBLIC branch of filter_visible_sites; private
+            # orphans are visible to nobody, which is the intended
+            # consequence of the user's deletion.
             models.CheckConstraint(
-                condition=(models.Q(project__isnull=False) | models.Q(owner__isnull=False))
-                & (models.Q(project__isnull=True) | models.Q(owner__isnull=True)),
-                name="site_must_be_owned_once",
+                condition=models.Q(project__isnull=True) | models.Q(owner__isnull=True),
+                name="site_owned_by_at_most_one",
             )
         ]
 
@@ -46,7 +51,7 @@ class Site(BaseModel):
         User,
         null=True,
         blank=True,
-        on_delete=models.RESTRICT,
+        on_delete=models.SET_NULL,
         verbose_name="owner to which the site belongs",
     )
 
