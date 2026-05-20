@@ -134,20 +134,24 @@ def test_site_note_with_real_author_returns_real_user(client, user, project, pro
 # --- SiteNode.owner resolver ---
 
 
-def test_site_with_null_owner_returns_stub(client):
-    """A PUBLIC site whose owner was deleted (orphan) is visible to any
-    authenticated caller per the 2026-05-18 public-site rule. Its owner
-    field serializes as the stub."""
+def test_site_with_null_owner_returns_stub(client, project, project_user):
+    """A site whose owner FK was nulled (SET_NULL cascade) and is reachable
+    via a project the caller belongs to serializes the owner field as
+    the stub.
+
+    (Visibility via the PUBLIC privacy branch — i.e. strangers reaching
+    orphan public sites — is exercised in test_sites_public_visibility.py
+    on the anonymous-access-scoping branch.)"""
     site = Site.objects.create(
         name="stub-owner-site",
         latitude=0,
         longitude=0,
         elevation=0,
         owner=None,
-        privacy=Site.PUBLIC,
+        project=project,
+        privacy=Site.PRIVATE,
     )
-    stranger = mixer.blend(User)
-    client.force_login(stranger)
+    client.force_login(project_user)
     response = graphql_query(
         'query { site(id: "%s") { owner { id firstName lastName } } }' % site.id,
         client=client,
@@ -162,17 +166,18 @@ def test_site_with_null_owner_returns_stub(client):
 
 
 def test_site_with_real_owner_returns_real_user(client, user):
-    """Sanity: a site with an actual owner serializes the real user."""
+    """Sanity: a site with an actual owner serializes the real user. The
+    caller is the owner themselves (guaranteed visibility regardless of
+    other access-scoping changes)."""
     site = Site.objects.create(
         name="real-owner-site",
         latitude=0,
         longitude=0,
         elevation=0,
         owner=user,
-        privacy=Site.PUBLIC,
+        privacy=Site.PRIVATE,
     )
-    stranger = mixer.blend(User)
-    client.force_login(stranger)
+    client.force_login(user)
     response = graphql_query(
         'query { site(id: "%s") { owner { id email } } }' % site.id, client=client
     )
