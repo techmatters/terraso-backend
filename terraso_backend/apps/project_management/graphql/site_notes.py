@@ -17,11 +17,13 @@ import graphene
 from django.db import transaction
 from graphene_django import DjangoObjectType
 
+from apps.core.models.users import deleted_user_stub
 from apps.graphql.schema.commons import (
     BaseDeleteMutation,
     BaseWriteMutation,
     TerrasoConnection,
 )
+from apps.graphql.schema.users import UserNode
 from apps.project_management.models.site_notes import SiteNote
 from apps.project_management.models.sites import Site
 from apps.project_management.permission_rules import Context
@@ -30,6 +32,12 @@ from apps.project_management.permission_table import SiteAction, check_site_perm
 
 class SiteNoteNode(DjangoObjectType):
     id = graphene.ID(source="pk", required=True)
+    # Explicit field declaration so resolve_author below is honored.
+    # graphene_django's auto-generated FK field does not pick up
+    # resolve_<field> methods on the class (the default resolver path
+    # bypasses them). With an explicit graphene.Field here, the Type
+    # metaclass binds resolve_author as the field's resolver.
+    author = graphene.Field(UserNode, required=True)
 
     class Meta:
         model = SiteNote
@@ -37,6 +45,15 @@ class SiteNoteNode(DjangoObjectType):
         interfaces = (graphene.relay.Node,)
 
         connection_class = TerrasoConnection
+
+    def resolve_author(self, info):
+        # SiteNote.author is SET_NULL when the authoring user is deleted.
+        # Return an in-memory stub so the schema's non-null author contract
+        # holds and old clients (which dereference author.id) don't crash.
+        # See terraso-backend-research/deleted_user_stub_plan.md.
+        if self.author_id is None:
+            return deleted_user_stub()
+        return self.author
 
 
 class SiteNoteAddMutation(BaseWriteMutation):
