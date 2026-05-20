@@ -132,7 +132,9 @@ def test_anon_still_sees_no_sites_when_owner_null(client_query_no_token):
 def test_stranger_sees_public_orphan_site(client, user):
     """A site with owner=None and privacy=PUBLIC remains visible to any
     authenticated caller — the PUBLIC branch of filter_visible_sites
-    doesn't depend on the owner FK."""
+    doesn't depend on the owner FK. The owner field serializes as the
+    deleted-user stub (id = nil UUID), not null — see
+    deleted_user_stub_plan.md."""
     Site.objects.create(
         name="public-orphan",
         latitude=0,
@@ -150,12 +152,11 @@ def test_stranger_sees_public_orphan_site(client, user):
     body = response.json()
     names = [edge["node"]["name"] for edge in body["data"]["sites"]["edges"]]
     assert "public-orphan" in names
-    # The owner field must serialize as None for a null FK.
     public_node = next(
         edge["node"] for edge in body["data"]["sites"]["edges"]
         if edge["node"]["name"] == "public-orphan"
     )
-    assert public_node["owner"] is None
+    assert public_node["owner"]["id"] == "00000000-0000-0000-0000-000000000000"
 
 
 def test_stranger_cannot_see_private_orphan_site(client, user):
@@ -183,8 +184,9 @@ def test_stranger_cannot_see_private_orphan_site(client, user):
 
 
 def test_graphql_note_with_null_author_serializes_cleanly(client, user, project, project_user):
-    """site.notes { author { id firstName } } must serialize a null author
-    as `null`, not error out."""
+    """site.notes { author { id } } must serialize a null-author note
+    cleanly. The resolver substitutes the deleted-user stub (id = nil
+    UUID) instead of `null` — see deleted_user_stub_plan.md."""
     project_user_local = project_user  # already a project member
     site = Site.objects.create(
         name="serialize-test",
@@ -212,4 +214,7 @@ def test_graphql_note_with_null_author_serializes_cleanly(client, user, project,
     notes = body["data"]["site"]["notes"]["edges"]
     by_content = {edge["node"]["content"]: edge["node"] for edge in notes}
     assert by_content["with author"]["author"]["id"] == str(user.id)
-    assert by_content["without author"]["author"] is None
+    assert (
+        by_content["without author"]["author"]["id"]
+        == "00000000-0000-0000-0000-000000000000"
+    )

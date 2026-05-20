@@ -199,3 +199,39 @@ class UserPreference(models.Model):
                 name="unique_user_preference",
             ),
         )
+
+
+# Deleted-user stub: returned by resolvers (SiteNoteNode.author,
+# SiteNode.owner) when the underlying FK is null after a SET_NULL
+# cascade from UserDeleteMutation.  See deleted_user_stub_plan.md
+# in terraso-backend-research for the rationale.
+#
+# Old clients that don't know about the sentinel render `firstName +
+# lastName` verbatim ("Deleted User", English).  New clients import
+# the sentinel id from terraso-client-shared and substitute a
+# locale-aware label via i18n.
+DELETED_USER_ID = "00000000-0000-0000-0000-000000000000"
+DELETED_USER_FIRST_NAME = "Deleted"
+DELETED_USER_LAST_NAME = "User"
+
+
+def deleted_user_stub():
+    """Return an unsaved User instance representing a deleted account.
+
+    Used by GraphQL resolvers to keep the `author: User!` /
+    `owner: User!` schema contract intact when the FK is null on a
+    soft-deleted authoring user.
+
+    `is_active=False` is set explicitly so the stub serializes the
+    semantically-correct value if `is_active` is ever exposed on
+    UserNode, and as defense-in-depth against the stub accidentally
+    reaching Django's `authenticate()` (which rejects inactive users).
+    """
+    return User(
+        id=DELETED_USER_ID,
+        first_name=DELETED_USER_FIRST_NAME,
+        last_name=DELETED_USER_LAST_NAME,
+        email="",
+        profile_image="",
+        is_active=False,
+    )
