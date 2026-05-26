@@ -15,7 +15,7 @@
 
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as DjangoUserAdmin
-from safedelete.admin import SafeDeleteAdmin, SafeDeleteAdminFilter
+from safedelete.admin import SafeDeleteAdmin, SafeDeleteAdminFilter, highlight_deleted
 
 from .models import (
     Group,
@@ -82,12 +82,11 @@ class UserAdmin(SafeDeleteAdmin, DjangoUserAdmin):
     # constraint and produce a less-helpful IntegrityError.
     ordering = ("email",)
     list_display = (
-        "email",
+        highlight_deleted,  # module-level function from safedelete.admin
         "first_name",
         "last_name",
         "created_at",
         "is_staff",
-        "highlight_deleted",
     )
     list_filter = DjangoUserAdmin.list_filter + (SafeDeleteAdminFilter,)
     search_fields = ("email", "first_name", "last_name")
