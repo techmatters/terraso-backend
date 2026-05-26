@@ -47,3 +47,59 @@ def test_user_is_landscape_manager():
     )
 
     assert user.is_landscape_manager(landscape.id) is True
+
+
+# --- undelete (account restoration) ---
+
+
+def test_user_undelete_restores_soft_deleted_account():
+    """SafeDeleteAdmin's "Undelete" action (and any other caller) should
+    restore a soft-deleted user when their email isn't taken."""
+    user = mixer.blend(User, email="restorable@example.test")
+    user.delete()  # soft-delete via SafeDelete
+
+    user.refresh_from_db()
+    assert user.deleted_at is not None
+    assert not User.objects.filter(pk=user.pk).exists()  # default mgr hides
+
+    user.undelete()
+    user.refresh_from_db()
+    assert user.deleted_at is None
+    assert User.objects.filter(pk=user.pk).exists()
+
+
+def test_user_undelete_refuses_when_email_is_taken_by_active_user():
+    """The conditional `unique_active_email` constraint lets a soft-deleted
+    user's email be re-registered while they're in the grace window.
+    Undelete must refuse rather than let the unique constraint blow up
+    with an IntegrityError mid-save."""
+    from django.core.exceptions import ValidationError
+
+    original = mixer.blend(User, email="collision@example.test")
+    original.delete()  # soft-delete
+
+    # Someone else signs up with the same email — allowed by the
+    # conditional unique constraint.
+    new_user = mixer.blend(User, email="collision@example.test")
+    assert new_user.pk != original.pk
+    assert User.objects.filter(email="collision@example.test").count() == 1
+
+    with pytest.raises(ValidationError, match="another active user"):
+        original.undelete()
+
+    # Original stays soft-deleted; the new user is undisturbed.
+    original.refresh_from_db()
+    assert original.deleted_at is not None
+    assert User.objects.filter(pk=new_user.pk, deleted_at__isnull=True).exists()
+
+
+def test_user_undelete_allowed_when_no_email_collision():
+    """Sanity: a different active email doesn't block undelete."""
+    user = mixer.blend(User, email="alone@example.test")
+    user.delete()
+    # Different email exists, but doesn't collide.
+    mixer.blend(User, email="unrelated@example.test")
+
+    user.undelete()
+    user.refresh_from_db()
+    assert user.deleted_at is None

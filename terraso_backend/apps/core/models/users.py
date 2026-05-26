@@ -146,6 +146,36 @@ class User(SafeDeleteModel, AbstractUser):
             entry.save()
         return delete_response
 
+    def undelete(self, *args, **kwargs):
+        """Restore a soft-deleted user, refusing if their email is already
+        in use by another active user.
+
+        Email uniqueness is conditional on `deleted_at__isnull=True` (see
+        Meta.constraints), so a soft-deleted user's email can be re-
+        registered by someone else during the grace window. Letting
+        undelete succeed in that case would raise a generic IntegrityError
+        from the DB. Detect the conflict explicitly and surface a clear
+        message instead.
+
+        NOTE: undelete restores the User row and the soft-deleted related
+        rows (Memberships, etc.), and re-attaches `DataEntry.created_by`
+        via `soft_delete_policy_action`. It does NOT recover
+        `SiteNote.author` or `Site.owner` that were nulled by SET_NULL —
+        those FKs are gone forever. Restoration is partial by design.
+        """
+        from django.core.exceptions import ValidationError
+
+        conflict = (
+            type(self).objects.filter(email=self.email).exclude(pk=self.pk).first()
+        )
+        if conflict is not None:
+            raise ValidationError(
+                f"Cannot undelete user {self.email!r}: another active user "
+                f"with that email already exists (id={conflict.id}). "
+                "Resolve the conflict before undeleting."
+            )
+        return super().undelete(*args, **kwargs)
+
     def full_name(self):
         return _(
             "%(first_name)s %(last_name)s"
