@@ -68,7 +68,9 @@ class CustomStoryMapForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields["membership_list"].required = False
+        membership_list_field = self.fields.get("membership_list")
+        if membership_list_field is not None:
+            membership_list_field.required = False
 
 
 @admin.register(StoryMap)

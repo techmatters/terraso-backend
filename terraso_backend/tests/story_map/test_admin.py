@@ -15,6 +15,8 @@
 
 import pytest
 from django.contrib.admin.sites import site
+from django.contrib.auth.models import Permission
+from django.contrib.contenttypes.models import ContentType
 from django.test import RequestFactory, override_settings
 from django.urls import reverse
 from django.utils import timezone
@@ -190,6 +192,21 @@ def test_story_map_admin_superuser_can_edit_configuration_fields():
 
     assert "configuration" in form_fields
     assert "published_configuration" in form_fields
+
+
+def test_story_map_admin_form_init_handles_missing_membership_list_field(client):
+    admin_user = mixer.blend(User, is_staff=True, is_superuser=False)
+    story_map = mixer.blend("story_map.StoryMap")
+    story_map_content_type = ContentType.objects.get_for_model(StoryMap)
+    admin_user.user_permissions.add(
+        Permission.objects.get(codename="view_storymap", content_type=story_map_content_type)
+    )
+
+    client.force_login(admin_user)
+
+    response = client.get(reverse("admin:story_map_storymap_change", args=[story_map.pk]))
+
+    assert response.status_code == 200
 
 
 @override_settings(WEB_CLIENT_URL="http://localhost:10000")
