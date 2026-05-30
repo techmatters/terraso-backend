@@ -97,9 +97,7 @@ class TestSensitiveQueryParamFilter:
         assert record.msg["request"] == "GET /x?session_token=[REDACTED]&foo=bar"
 
     def test_multiple_sensitive_params_all_redacted(self):
-        record = _record(
-            {"request": "GET /x?code=AAA&access_token=BBB&id_token=CCC&legit=keepme"}
-        )
+        record = _record({"request": "GET /x?code=AAA&access_token=BBB&id_token=CCC&legit=keepme"})
         self.filt.filter(record)
         request = record.msg["request"]
         assert request == (
