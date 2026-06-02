@@ -13,8 +13,13 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see https://www.gnu.org/licenses/.
 
-from django.contrib import admin
+from datetime import timedelta
+
+from django.contrib import admin, messages
 from django.contrib.auth.admin import UserAdmin as DjangoUserAdmin
+from django.utils.html import format_html
+
+from apps.auth.services import JWTService
 
 from .models import (
     Group,
@@ -26,6 +31,19 @@ from .models import (
     User,
     UserPreference,
 )
+
+
+def create_partner_refresh_token(user, ttl: timedelta) -> str:
+    # Long-lived refresh token for partner / service-account API access (2a).
+    # The partner exchanges it at /auth/tokens for short-lived access tokens.
+    # Revoke by unchecking "Active" on the user: RefreshAccessTokenView rejects
+    # refresh for inactive users, so no new access tokens can be minted (existing
+    # access tokens expire within JWT_ACCESS_EXP_DELTA_SECONDS).
+    return JWTService().create_token(
+        user,
+        expiration=int(ttl.total_seconds()),
+        extra_payload={"refresh": True},
+    )
 
 
 @admin.register(Group)
@@ -64,6 +82,45 @@ class UserAdmin(DjangoUserAdmin):
     search_fields = ("email", "first_name", "last_name")
     inlines = [UserPreferenceInline]
     readonly_fields = ["id"]
+    actions = ["mint_partner_refresh_token_10y", "mint_partner_refresh_token_1y"]
+
+    @admin.action(description="Mint 10-year partner refresh token (API / soil-ID access)")
+    def mint_partner_refresh_token_10y(self, request, queryset):
+        self._mint_partner_refresh_token(request, queryset, timedelta(days=365 * 10), "10 years")
+
+    @admin.action(description="Mint 1-year partner refresh token (API / soil-ID access)")
+    def mint_partner_refresh_token_1y(self, request, queryset):
+        self._mint_partner_refresh_token(request, queryset, timedelta(days=365), "1 year")
+
+    def _mint_partner_refresh_token(self, request, queryset, ttl, ttl_label):
+        # Issue one token for a single, deliberately-selected user — intended
+        # for a dedicated service account, not a real person's login.
+        if queryset.count() != 1:
+            self.message_user(
+                request,
+                "Select exactly one user (ideally a dedicated service account).",
+                level=messages.ERROR,
+            )
+            return
+
+        user = queryset.first()
+        token = create_partner_refresh_token(user, ttl)
+        # Surfaced once in the admin UI for the operator to copy. Never logged
+        # or persisted (secrets policy): there is no server-side record of the
+        # token value, which is why it cannot be re-displayed later.
+        self.message_user(
+            request,
+            format_html(
+                "Refresh token for <b>{}</b> (valid {}). Copy it now — it is not "
+                "stored and cannot be shown again:<br><code>{}</code><br>"
+                'Revoke later by unchecking "Active" on this user.',
+                user.email,
+                ttl_label,
+                token,
+            ),
+            level=messages.WARNING,
+        )
+
     fieldsets = (
         (None, {"fields": ("email", "id", "password")}),
         ("Personal info", {"fields": ("first_name", "last_name")}),
