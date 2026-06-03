@@ -24,7 +24,7 @@ from django.contrib.sessions.middleware import SessionMiddleware
 from django.test import RequestFactory
 
 from apps.auth.services import JWTService
-from apps.core.admin import UserAdmin, create_partner_refresh_token
+from apps.core.admin import UserAdmin, UserAdminCreationForm, create_partner_refresh_token
 from apps.core.models import User
 
 pytestmark = pytest.mark.django_db
@@ -36,6 +36,30 @@ def _request_with_messages():
     request.session.save()
     request._messages = FallbackStorage(request)
     return request
+
+
+def test_user_admin_add_view_form_builds_without_username():
+    # Regression: GET /admin/core/user/add/ raised
+    # FieldError(Unknown field(s) (username)) because DjangoUserAdmin's default
+    # add_fieldsets assumes a `username` field this email-based model lacks.
+    request = RequestFactory().get("/admin/core/user/add/")
+    form_class = UserAdmin(User, admin.site).get_form(request, obj=None, change=False)
+    assert "username" not in form_class.base_fields
+    assert "email" in form_class.base_fields
+
+
+def test_user_admin_creation_form_creates_email_user():
+    form = UserAdminCreationForm(
+        data={
+            "email": "partner-bot@example.com",
+            "password1": "Zx9-quoll-thicket-amber",
+            "password2": "Zx9-quoll-thicket-amber",
+        }
+    )
+    assert form.is_valid(), form.errors
+    created = form.save()
+    assert created.email == "partner-bot@example.com"
+    assert User.objects.filter(pk=created.pk).exists()
 
 
 def test_create_partner_refresh_token_is_a_valid_refresh_token(user):

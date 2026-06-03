@@ -17,6 +17,7 @@ from datetime import timedelta
 
 from django.contrib import admin, messages
 from django.contrib.auth.admin import UserAdmin as DjangoUserAdmin
+from django.contrib.auth.forms import UserCreationForm
 from django.utils.html import format_html
 
 from apps.auth.services import JWTService
@@ -75,6 +76,15 @@ class UserPreferenceInline(admin.TabularInline):
     model = UserPreference
 
 
+class UserAdminCreationForm(UserCreationForm):
+    # Django's default UserCreationForm is tied to a `username` field; this
+    # User model is email-based (USERNAME_FIELD = "email", username removed),
+    # so bind the creation form to email instead.
+    class Meta:
+        model = User
+        fields = ("email",)
+
+
 @admin.register(User)
 class UserAdmin(DjangoUserAdmin):
     ordering = ("email",)
@@ -82,6 +92,10 @@ class UserAdmin(DjangoUserAdmin):
     search_fields = ("email", "first_name", "last_name")
     inlines = [UserPreferenceInline]
     readonly_fields = ["id"]
+    add_form = UserAdminCreationForm
+    # DjangoUserAdmin's default add_fieldsets references `username`, which this
+    # model doesn't have — override it to the email-based creation fields.
+    add_fieldsets = ((None, {"classes": ("wide",), "fields": ("email", "password1", "password2")}),)
     actions = ["mint_partner_refresh_token_10y", "mint_partner_refresh_token_1y"]
 
     @admin.action(description="Mint 10-year partner refresh token (API / soil-ID access)")
