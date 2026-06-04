@@ -336,9 +336,7 @@ class TestAllExportTokensQuery:
         # A row with the literal string "None" as user_id wouldn't be created
         # by the production mutation, but verify the resolver doesn't depend
         # on that assumption.
-        ExportToken.objects.create(
-            resource_type="USER", resource_id=str(user.id), user_id="None"
-        )
+        ExportToken.objects.create(resource_type="USER", resource_id=str(user.id), user_id="None")
 
         response = client_query_no_token(ALL_EXPORT_TOKENS_QUERY)
         content = json.loads(response.content)

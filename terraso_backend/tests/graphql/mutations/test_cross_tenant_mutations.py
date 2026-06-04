@@ -39,8 +39,6 @@ Pattern:
    no successful payload, AND the resource state in the DB is unchanged.
 """
 
-import json
-
 import pytest
 from graphene_django.utils.testing import graphql_query
 from mixer.backend.django import mixer
@@ -111,7 +109,7 @@ def test_save_group_membership_cross_tenant_rejected(client):
     client.force_login(attacker)
     response = graphql_query(
         "mutation save($input: GroupMembershipSaveMutationInput!) "
-        '{ saveGroupMembership(input: $input) { errors } }',
+        "{ saveGroupMembership(input: $input) { errors } }",
         variables={
             "input": {
                 "userRole": group_collaboration_roles.ROLE_MANAGER,

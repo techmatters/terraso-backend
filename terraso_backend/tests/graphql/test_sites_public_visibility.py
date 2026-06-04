@@ -131,9 +131,7 @@ def test_private_site_by_id_hidden_from_authenticated_stranger(client, stranger,
     )
 
     _force_login_as(client, stranger)
-    response = graphql_query(
-        'query { site(id: "%s") { id } }' % private_site.id, client=client
-    )
+    response = graphql_query('query { site(id: "%s") { id } }' % private_site.id, client=client)
     body = response.json()
     assert "errors" in body or body["data"]["site"] is None
 
@@ -165,9 +163,7 @@ def test_anonymous_does_not_see_public_site_by_id(client_query_no_token, user):
         privacy=Site.PUBLIC,
         owner=user,
     )
-    response = client_query_no_token(
-        'query { site(id: "%s") { id } }' % public_site.id
-    )
+    response = client_query_no_token('query { site(id: "%s") { id } }' % public_site.id)
     body = response.json()
     assert "errors" in body or body["data"]["site"] is None
 
@@ -243,8 +239,7 @@ def test_public_site_notes_visible_to_authenticated_stranger(client, stranger, u
 
     _force_login_as(client, stranger)
     response = graphql_query(
-        'query { site(id: "%s") { notes { edges { node { id content } } } } }'
-        % public_site.id,
+        'query { site(id: "%s") { notes { edges { node { id content } } } } }' % public_site.id,
         client=client,
     )
     body = response.json()
