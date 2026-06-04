@@ -57,6 +57,15 @@ class UserFilter(FilterSet):
     # this" as introspection-equivalent metadata.
     ADMIN_ONLY_FILTERS = ("email__icontains", "first_name__icontains", "last_name__icontains")
 
+    # Exact-address lookups the production clients depend on: `userProfile`
+    # uses `email`, and the add-member existence check uses `email_Iexact`
+    # (optionally alongside `project`).  Each resolves a single, already-known
+    # address — a one-at-a-time existence oracle, not an enumeration vector —
+    # so it stays open to any authenticated caller.  Anything else (unfiltered,
+    # `project`-only, or a substring filter) is a list/enumeration request and
+    # is denied for non-superusers in `qs`.
+    EXACT_EMAIL_FILTERS = ("email", "email__iexact")
+
     project = CharFilter(method="filter_user_in_project")
 
     class Meta:
@@ -73,14 +82,28 @@ class UserFilter(FilterSet):
 
     @property
     def qs(self):
-        # If any admin-only filter has a non-empty value, require superuser.
-        # `self.data` is the dict of incoming filter args keyed by their
-        # Django ORM lookup name (e.g. "email__icontains").
+        # Default-deny enumeration of the user table.  Any authenticated caller
+        # can self-register (open OAuth signup), so "authenticated" is a near-
+        # public bar; without this gate an account could page the whole `users`
+        # connection (or `users(project: ...)`) and harvest every email, name,
+        # and membership.  `self.data` is the dict of incoming filter args keyed
+        # by their Django ORM lookup name (e.g. "email__iexact").
+        base = super().qs
+        user = getattr(self.request, "user", None) if self.request else None
+        if user and user.is_superuser:
+            return base
+        # Substring filters can harvest the table; superuser only (handled
+        # above).  Checked before the exact-email allowlist so that combining a
+        # substring with an exact email can't slip past the superuser gate.
         if any(self.data.get(name) for name in self.ADMIN_ONLY_FILTERS):
-            user = getattr(self.request, "user", None) if self.request else None
-            if not (user and user.is_superuser):
-                return super().qs.none()
-        return super().qs
+            return base.none()
+        # Non-superusers may only resolve a single known address (the clients'
+        # userProfile / add-member existence flows).  Returning `.none()` rather
+        # than raising keeps the response schema-valid for a client that fires a
+        # broad filter and avoids surfacing "superuser required" as metadata.
+        if any(self.data.get(name) for name in self.EXACT_EMAIL_FILTERS):
+            return base
+        return base.none()
 
 
 class UserNode(DjangoObjectType):
@@ -96,10 +119,10 @@ class UserNode(DjangoObjectType):
     @classmethod
     def get_queryset(cls, queryset, info):
         # F1: anonymous users must not enumerate the user table or look up
-        # users by id.  Authenticated callers continue to have access — the
-        # add-team-member flow needs `users(email_Iexact: ...)` for an
-        # email-existence check.  Tightening authenticated access (e.g. to
-        # users sharing a project/landscape/group) is a separate change.
+        # users by id.  Authenticated, non-enumerating access (the clients'
+        # userProfile / add-member existence lookups) is allowed; broader
+        # enumeration by authenticated callers is denied in `UserFilter.qs`,
+        # which — unlike get_queryset — can see the incoming filter args.
         if info.context.user.is_anonymous:
             return queryset.none()
         return queryset
@@ -113,6 +136,22 @@ class UserPreferenceNode(DjangoObjectType):
         fields = ("key", "value", "user")
         interfaces = (relay.Node,)
         connection_class = TerrasoConnection
+
+    @classmethod
+    def get_queryset(cls, queryset, info):
+        # Preferences (language, notification opt-ins, account-deletion-request)
+        # are personal data. A caller may read only their own — the userProfile
+        # flow fetches the logged-in user's own preferences — while superusers
+        # keep full read access for admin/support. This stops the exact-email
+        # lookup (`users(email: ...)`) from disclosing another user's
+        # preferences via the nested `preferences` connection. Anonymous
+        # callers (already blocked from UserNode) see nothing here too.
+        user = info.context.user
+        if user.is_anonymous:
+            return queryset.none()
+        if user.is_superuser:
+            return queryset
+        return queryset.filter(user=user)
 
 
 # NOTE: Consider removing this mutation entirely. The legitimate user-creation

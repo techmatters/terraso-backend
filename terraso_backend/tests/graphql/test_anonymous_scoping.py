@@ -19,6 +19,8 @@ single-id IDOR via TerrasoRelayNode.get_node_from_global_id bypass)."""
 import pytest
 from graphene_django.utils.testing import graphql_query
 
+from apps.core.models import UserPreference
+
 pytestmark = pytest.mark.django_db
 
 
@@ -52,8 +54,7 @@ def test_email_iexact_works_for_regular_user(client_query, user, users):
     add-team-member flow uses email_Iexact)."""
     target = users[1]
     response = client_query(
-        'query { users(email_Iexact: "%s") { totalCount edges { node { email } } } }'
-        % target.email
+        'query { users(email_Iexact: "%s") { totalCount edges { node { email } } } }' % target.email
     )
     body = response.json()
     assert body["data"]["users"]["totalCount"] == 1
@@ -65,9 +66,7 @@ def test_email_icontains_returns_zero_for_regular_user(client_query, user, users
     caller using email_Icontains gets an empty result rather than the
     user table."""
     domain = "@" + users[1].email.split("@")[1]
-    response = client_query(
-        'query { users(email_Icontains: "%s") { totalCount } }' % domain
-    )
+    response = client_query('query { users(email_Icontains: "%s") { totalCount } }' % domain)
     assert response.json()["data"]["users"]["totalCount"] == 0
 
 
@@ -77,19 +76,72 @@ def test_email_icontains_works_for_superuser(client_query, user, users):
     user.is_superuser = True
     user.save()
     domain = "@" + users[1].email.split("@")[1]
-    response = client_query(
-        'query { users(email_Icontains: "%s") { totalCount } }' % domain
-    )
+    response = client_query('query { users(email_Icontains: "%s") { totalCount } }' % domain)
     assert response.json()["data"]["users"]["totalCount"] >= 1
 
 
 def test_first_name_icontains_returns_zero_for_regular_user(client_query, user, users):
     users[1].first_name = "UniqueFirstName"
     users[1].save()
+    response = client_query('query { users(firstName_Icontains: "Unique") { totalCount } }')
+    assert response.json()["data"]["users"]["totalCount"] == 0
+
+
+def test_authenticated_user_cannot_enumerate_all_users(client_query, user, users):
+    """Open OAuth signup makes "authenticated" a near-public bar, so the
+    unfiltered users connection must not hand a regular caller the whole
+    directory — only exact-email lookups are allowed (see UserFilter.qs)."""
+    response = client_query("query { users { totalCount edges { node { email } } } }")
+    body = response.json()
+    assert body["data"]["users"]["totalCount"] == 0
+    assert body["data"]["users"]["edges"] == []
+
+
+def test_project_filter_without_exact_email_returns_zero_for_regular_user(
+    client_query, user, users
+):
+    """`users(project: ...)` without an exact email is a list/enumeration
+    request (and never checked caller membership), so it is denied for
+    non-superusers regardless of whether the project exists."""
     response = client_query(
-        'query { users(firstName_Icontains: "Unique") { totalCount } }'
+        'query { users(project: "00000000-0000-0000-0000-000000000000") { totalCount } }'
     )
     assert response.json()["data"]["users"]["totalCount"] == 0
+
+
+def test_superuser_can_list_all_users(client_query, user, users):
+    """Superusers retain full enumeration (kept for admin/support workflows)."""
+    user.is_superuser = True
+    user.save()
+    response = client_query("query { users { totalCount } }")
+    assert response.json()["data"]["users"]["totalCount"] == len(users)
+
+
+def test_email_probe_hides_other_users_preferences(client_query, user, users):
+    """The exact-email lookup must not disclose another user's preferences
+    (language, notification opt-ins, account-deletion-request); identity
+    fields still resolve, but the preferences connection is owner-scoped."""
+    target = users[1]
+    UserPreference.objects.create(user=target, key="language", value="es-EC")
+    response = client_query(
+        'query { users(email_Iexact: "%s") { edges { node { email '
+        "preferences { edges { node { key value } } } } } } }" % target.email
+    )
+    node = response.json()["data"]["users"]["edges"][0]["node"]
+    assert node["email"] == target.email
+    assert node["preferences"]["edges"] == []
+
+
+def test_user_can_read_own_preferences(client_query, user, users):
+    """A caller's own preferences stay readable — the userProfile flow loads
+    the logged-in user's language/notification settings this way."""
+    UserPreference.objects.create(user=user, key="language", value="en-US")
+    response = client_query(
+        'query { users(email_Iexact: "%s") { edges { node { '
+        "preferences { edges { node { key value } } } } } } }" % user.email
+    )
+    prefs = response.json()["data"]["users"]["edges"][0]["node"]["preferences"]["edges"]
+    assert any(e["node"]["key"] == "language" and e["node"]["value"] == "en-US" for e in prefs)
 
 
 def test_user_by_id_returns_null_to_anonymous(client_query_no_token, users):
@@ -145,9 +197,7 @@ def test_anonymous_projects_listing_returns_zero(client_query_no_token):
     from apps.project_management.models.projects import Project
 
     Project.objects.create(name="anon-bypass-probe")  # zero memberships
-    response = client_query_no_token(
-        "query { projects { totalCount edges { node { name } } } }"
-    )
+    response = client_query_no_token("query { projects { totalCount edges { node { name } } } }")
     body = response.json()
     assert body["data"]["projects"]["totalCount"] == 0
     assert body["data"]["projects"]["edges"] == []
@@ -159,9 +209,7 @@ def test_anonymous_cannot_fetch_project_by_id(client_query_no_token):
     from apps.project_management.models.projects import Project
 
     p = Project.objects.create(name="anon-by-id-probe")
-    response = client_query_no_token(
-        'query { project(id: "%s") { name privacy } }' % p.id
-    )
+    response = client_query_no_token('query { project(id: "%s") { name privacy } }' % p.id)
     body = response.json()
     assert "errors" in body or body["data"]["project"] is None
 
@@ -210,12 +258,8 @@ def group_association_fixture():
         landscape=landscape, group=in_default, is_default_landscape_group=True
     )
 
-    assoc_regular = GroupAssociation.objects.create(
-        parent_group=regular_a, child_group=regular_b
-    )
-    assoc_default = GroupAssociation.objects.create(
-        parent_group=regular_a, child_group=in_default
-    )
+    assoc_regular = GroupAssociation.objects.create(parent_group=regular_a, child_group=regular_b)
+    assoc_default = GroupAssociation.objects.create(parent_group=regular_a, child_group=in_default)
     return {
         "assoc_regular": assoc_regular,
         "assoc_default": assoc_default,
