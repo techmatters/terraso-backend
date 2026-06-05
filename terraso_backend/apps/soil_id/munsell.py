@@ -12,33 +12,23 @@
 #
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see https://www.gnu.org/licenses/.
-"""Munsell <-> CIELAB conversion, backed by the soil-id lookup table.
+"""Munsell -> CIELAB conversion for soil-ID input.
 
-The lookup table (``LandPKS_munsell_rgb_lab.csv``, a soil-id data asset) is
-keyed by Munsell ``(hue_string, value, chroma)`` -> ``(L, A, B)``, where
-``hue_string`` looks like ``"7.5YR"`` / ``"10R"`` and neutrals use ``"N"``.
-
-Two entry points convert a Munsell color to LAB for the soil-ID algorithm:
+The reference table (``LandPKS_munsell_rgb_lab.csv``) and the actual lookup live
+in the soil-id library (``soil_id.color.munsell_to_lab``), which loads the table
+once at import. This module adds the app-specific layer on top: the 0-100
+continuous hue encoding (``decode_hue``) and parsing of human Munsell strings,
+then delegates the lookup to the library.
 
 - ``munsell_to_lab(hue, value, chroma)`` — numeric form, where ``hue`` is the
   app's 0-100 continuous encoding (hue-family index * 10 + substep).
 - ``munsell_string_to_lab("7.5YR 5/4")`` — the human-written string form.
 """
 
-import csv
-import os
 import re
-import threading
 
-import structlog
-
-logger = structlog.get_logger(__name__)
-
-_lock = threading.Lock()
-
-# Munsell-to-CIELAB lookup table, loaded lazily from the soil-id data files.
-# Keyed by (hue_string, value_int, chroma_int) -> (L, A, B).
-_munsell_lab_table = None
+from soil_id.color import munsell_to_lab as _lib_munsell_to_lab
+from soil_id.config import MUNSELL_COLOR_REF, MUNSELL_REF
 
 # Hue letter names in order, matching the app's colorHue (0-100) encoding.
 _HUE_NAMES = ["R", "YR", "Y", "GY", "G", "BG", "B", "PB", "P", "RP"]
@@ -50,44 +40,6 @@ _NON_NEUTRAL_RE = re.compile(
     r"(?P<value>\d+(?:\.\d+)?)\s*/\s*(?P<chroma>\d+(?:\.\d+)?)\s*$"
 )
 _NEUTRAL_RE = re.compile(r"^\s*[Nn]\s*(?P<value>\d+(?:\.\d+)?)\s*/\s*(?:\d+(?:\.\d+)?)?\s*$")
-
-
-def _load_munsell_lab_table():
-    """Load the Munsell-to-CIELAB lookup table from the soil-id data files."""
-    global _munsell_lab_table
-    if _munsell_lab_table is not None:
-        return _munsell_lab_table
-
-    with _lock:
-        # Double-check after acquiring lock.
-        if _munsell_lab_table is not None:
-            return _munsell_lab_table
-
-        try:
-            from soil_id.config import MUNSELL_RGB_LAB_PATH
-
-            path = MUNSELL_RGB_LAB_PATH
-        except ImportError:
-            path = os.path.join(os.environ.get("DATA_PATH", "Data"), "LandPKS_munsell_rgb_lab.csv")
-
-        table = {}
-        try:
-            with open(path, newline="") as f:
-                for row in csv.DictReader(f):
-                    hue = row["hue"]
-                    value = int(row["value"])
-                    chroma = int(row["chroma"])
-                    table[(hue, value, chroma)] = (
-                        float(row["cielab_l"]),
-                        float(row["cielab_a"]),
-                        float(row["cielab_b"]),
-                    )
-        except FileNotFoundError:
-            logger.warning("Munsell-to-LAB lookup table not found", path=path)
-            table = {}
-
-        _munsell_lab_table = table
-        return _munsell_lab_table
 
 
 def decode_hue(color_hue):
@@ -107,44 +59,42 @@ def decode_hue(color_hue):
     return (substep * 5) / 2, _HUE_NAMES[hue_index]
 
 
+def _lookup(hue_str, value, chroma):
+    """Look up ``(hue_str, value, chroma)`` in the library's reference table.
+
+    Returns a plain-float ``(L, A, B)`` tuple, or None if it isn't in the table.
+    """
+    lab = _lib_munsell_to_lab(MUNSELL_COLOR_REF, MUNSELL_REF, [hue_str, value, chroma])
+    return None if lab is None else tuple(float(component) for component in lab)
+
+
 def munsell_to_lab(color_hue, color_value, color_chroma):
-    """Convert app colorHue/colorValue/colorChroma to CIELAB using the lookup table.
+    """Convert app colorHue/colorValue/colorChroma to CIELAB.
 
     ``color_hue`` is the 0-100 continuous encoding. Returns (L, A, B), or None
-    if the color can't be looked up.
+    if the color isn't in the reference table.
     """
-    table = _load_munsell_lab_table()
-    if not table:
-        return None
-
-    chroma = round(color_chroma)
     value = round(color_value)
-
-    # Neutral color (chroma == 0).
+    chroma = round(color_chroma)
     if chroma == 0:
-        return table.get(("N", value, 0))
-
+        return _lookup("N", value, 0)
     substep, family = decode_hue(color_hue)
-    hue_str = f"{substep:g}{family}"
-    return table.get((hue_str, value, chroma))
+    return _lookup(f"{substep:g}{family}", value, chroma)
 
 
 def munsell_string_to_lab(munsell_string):
-    """Convert a human Munsell string to CIELAB using the lookup table.
+    """Convert a human Munsell string to CIELAB.
 
     Accepts ``"7.5YR 5/4"`` and the neutral form ``"N 5/"`` (case-insensitive).
     Returns (L, A, B), or None if the string can't be parsed or isn't in the
-    lookup table.
+    reference table.
     """
     if not munsell_string:
-        return None
-    table = _load_munsell_lab_table()
-    if not table:
         return None
 
     neutral = _NEUTRAL_RE.match(munsell_string)
     if neutral:
-        return table.get(("N", round(float(neutral.group("value"))), 0))
+        return _lookup("N", round(float(neutral.group("value"))), 0)
 
     match = _NON_NEUTRAL_RE.match(munsell_string)
     if not match:
@@ -153,8 +103,8 @@ def munsell_string_to_lab(munsell_string):
     value = round(float(match.group("value")))
     chroma = round(float(match.group("chroma")))
     if chroma == 0:
-        return table.get(("N", value, 0))
+        return _lookup("N", value, 0)
 
-    # The table key matches munsell_to_lab's formatting, e.g. "7.5YR" / "10R".
+    # The hue string matches the library's key format, e.g. "7.5YR" / "10R".
     hue_str = f"{float(match.group('substep')):g}{match.group('family').upper()}"
-    return table.get((hue_str, value, chroma))
+    return _lookup(hue_str, value, chroma)

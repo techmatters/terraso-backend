@@ -17,8 +17,8 @@ import pytest
 
 from apps.soil_id import munsell
 
-# A tiny stand-in for the real lookup table so these tests don't depend on the
-# downloaded LandPKS_munsell_rgb_lab.csv.
+# A tiny stand-in for the library's reference lookup so these tests don't depend
+# on the downloaded LandPKS_munsell_rgb_lab.csv. Keyed by (hue_str, value, chroma).
 FAKE_TABLE = {
     ("7.5YR", 5, 4): (50.0, 10.0, 20.0),
     ("10R", 4, 6): (40.0, 30.0, 15.0),
@@ -29,7 +29,10 @@ FAKE_TABLE = {
 
 @pytest.fixture
 def fake_table(monkeypatch):
-    monkeypatch.setattr(munsell, "_munsell_lab_table", dict(FAKE_TABLE))
+    def fake_lookup(color_ref, munsell_ref, munsell):
+        return FAKE_TABLE.get((munsell[0], int(munsell[1]), int(munsell[2])))
+
+    monkeypatch.setattr(munsell, "_lib_munsell_to_lab", fake_lookup)
 
 
 def test_string_to_lab_basic(fake_table):
@@ -76,7 +79,7 @@ def test_decode_hue():
     assert munsell.decode_hue(100) == (10, "RP")
 
 
-def test_empty_table_yields_none(monkeypatch):
-    monkeypatch.setattr(munsell, "_munsell_lab_table", {})
+def test_off_table_yields_none(monkeypatch):
+    monkeypatch.setattr(munsell, "_lib_munsell_to_lab", lambda *args: None)
     assert munsell.munsell_string_to_lab("7.5YR 5/4") is None
     assert munsell.munsell_to_lab(17.5, 5, 4) is None
