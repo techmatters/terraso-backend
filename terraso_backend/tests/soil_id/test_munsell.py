@@ -63,6 +63,19 @@ def test_string_and_numeric_forms_agree(fake_table):
     assert munsell.munsell_string_to_lab("10R 4/6") == munsell.munsell_to_lab(10, 4, 6)
 
 
+def test_decode_hue():
+    # Shared 0-100 hue decoder used by munsell_to_lab and the export's
+    # render_munsell_hue. substep is one of 2.5/5/7.5/10; family is the letters.
+    assert munsell.decode_hue(17.5) == (7.5, "YR")
+    assert munsell.decode_hue(22.5) == (2.5, "Y")
+    # The "10X" boundary rolls into the top of the previous family's block.
+    assert munsell.decode_hue(10) == (10, "R")
+    assert munsell.decode_hue(20) == (10, "YR")
+    # 0 and 100 are the same point (10RP).
+    assert munsell.decode_hue(0) == (10, "RP")
+    assert munsell.decode_hue(100) == (10, "RP")
+
+
 def test_empty_table_yields_none(monkeypatch):
     monkeypatch.setattr(munsell, "_munsell_lab_table", {})
     assert munsell.munsell_string_to_lab("7.5YR 5/4") is None

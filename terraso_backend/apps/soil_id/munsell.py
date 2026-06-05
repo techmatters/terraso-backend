@@ -90,6 +90,23 @@ def _load_munsell_lab_table():
         return _munsell_lab_table
 
 
+def decode_hue(color_hue):
+    """Decode a 0-100 continuous Munsell hue into ``(substep, family)``.
+
+    e.g. ``17.5 -> (7.5, "YR")``. ``substep`` is one of 2.5/5/7.5/10 and
+    ``family`` is one of the ten Munsell hue families (R, YR, ..., RP). The
+    0-100 scale is the ten families in order, ten units each; a ``10X`` hue
+    rolls into the top of the previous family's block.
+    """
+    hue = 0 if color_hue == 100 else color_hue
+    hue_index = int(hue // 10)
+    substep = round((hue % 10) / 2.5)
+    if substep == 0:
+        hue_index = (hue_index + 9) % 10
+        substep = 4
+    return (substep * 5) / 2, _HUE_NAMES[hue_index]
+
+
 def munsell_to_lab(color_hue, color_value, color_chroma):
     """Convert app colorHue/colorValue/colorChroma to CIELAB using the lookup table.
 
@@ -107,21 +124,8 @@ def munsell_to_lab(color_hue, color_value, color_chroma):
     if chroma == 0:
         return table.get(("N", value, 0))
 
-    # Decode colorHue (0-100 continuous) to a Munsell hue string.
-    hue = color_hue
-    if hue == 100:
-        hue = 0
-
-    hue_index = int(hue // 10)
-    substep = round((hue % 10) / 2.5)
-
-    if substep == 0:
-        hue_index = (hue_index + 9) % 10
-        substep = 4
-
-    substep = (substep * 5) / 2
-    hue_str = f"{substep:g}{_HUE_NAMES[hue_index]}"
-
+    substep, family = decode_hue(color_hue)
+    hue_str = f"{substep:g}{family}"
     return table.get((hue_str, value, chroma))
 
 

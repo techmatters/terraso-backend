@@ -21,6 +21,7 @@ from django.conf import settings
 
 from apps.soil_id.models.depth_dependent_soil_data import DepthDependentSoilData
 from apps.soil_id.models.soil_data import SoilData
+from apps.soil_id.munsell import decode_hue
 
 from .depth_helpers import depth_key, get_effective_preset, get_visible_intervals
 from .fetch_data import fetch_all_notes_for_site
@@ -91,8 +92,7 @@ def get_enum_label(enum_class, value, fallback=None):
         return code_to_label(value)
 
 
-# Munsell color conversion constants
-non_neutral_color_hues = ["R", "YR", "Y", "GY", "G", "BG", "B", "PB", "P", "RP"]
+# Munsell value steps the app allows; used to snap a continuous value.
 color_values = [2, 2.5, 3, 4, 5, 6, 7, 8, 8.5, 9, 9.5]
 
 # Configuration: Maps field names to their Django enum classes
@@ -327,19 +327,7 @@ def render_munsell_hue(
     if isinstance(color_chroma, (int, float)) and round(color_chroma) == 0:
         return None, "N"
 
-    if color_hue == 100:
-        color_hue = 0
-
-    hue_index = int(color_hue // 10)
-    substep = round((color_hue % 10) / 2.5)
-
-    if substep == 0:
-        hue_index = (hue_index + 9) % 10
-        substep = 4
-
-    substep = (substep * 5) / 2
-
-    return substep, non_neutral_color_hues[hue_index]
+    return decode_hue(color_hue)
 
 
 def munsell_to_string(color: dict) -> str:
