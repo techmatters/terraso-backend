@@ -19,7 +19,6 @@ import structlog
 from django.conf import settings
 
 from apps.graphql.schema.schema import schema
-from apps.soil_id.munsell import munsell_to_lab
 
 from .depth_helpers import depth_key, get_visible_intervals
 
@@ -256,19 +255,19 @@ def fetch_soil_id(site, request):
         if measurement.get("rockFragmentVolume"):
             depth_entry["rockFragmentVolume"] = measurement["rockFragmentVolume"]
 
-        # Convert Munsell color to LAB color if available
+        # Pass Munsell color straight through; the soil-ID API converts it to
+        # LAB (and ignores it if out of gamut). Previously this converted to
+        # colorLAB here, duplicating the API's own conversion.
         if (
             measurement.get("colorHue") is not None
             and measurement.get("colorValue") is not None
             and measurement.get("colorChroma") is not None
         ):
-            lab = munsell_to_lab(
-                measurement["colorHue"],
-                measurement["colorValue"],
-                measurement["colorChroma"],
-            )
-            if lab:
-                depth_entry["colorLAB"] = {"L": lab[0], "A": lab[1], "B": lab[2]}
+            depth_entry["colorMunsellNumeric"] = {
+                "hue": measurement["colorHue"],
+                "value": measurement["colorValue"],
+                "chroma": measurement["colorChroma"],
+            }
 
         data["depthDependentData"].append(depth_entry)
 
