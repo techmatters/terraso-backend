@@ -13,14 +13,13 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see https://www.gnu.org/licenses/.
 
-import csv
-import os
 import threading
 
 import structlog
 from django.conf import settings
 
 from apps.graphql.schema.schema import schema
+from apps.soil_id.munsell import munsell_to_lab
 
 from .depth_helpers import depth_key, get_visible_intervals
 
@@ -36,86 +35,6 @@ _soil_id_cache = {}
 
 # Set to False to disable cache (for development/testing without cache)
 _USE_SOIL_ID_CACHE = True
-
-# Munsell-to-CIELAB lookup table, loaded lazily from the soil-id data files.
-# Keyed by (hue_string, value_int, chroma_int) -> (L, A, B)
-_munsell_lab_table = None
-
-# Hue letter names in order, matching the app's colorHue (0-100) encoding
-_HUE_NAMES = ["R", "YR", "Y", "GY", "G", "BG", "B", "PB", "P", "RP"]
-
-
-def _load_munsell_lab_table():
-    """Load the Munsell-to-CIELAB lookup table from the soil-id data files."""
-    global _munsell_lab_table
-    if _munsell_lab_table is not None:
-        return _munsell_lab_table
-
-    with _cache_lock:
-        # Double-check after acquiring lock
-        if _munsell_lab_table is not None:
-            return _munsell_lab_table
-
-        try:
-            from soil_id.config import MUNSELL_RGB_LAB_PATH
-
-            path = MUNSELL_RGB_LAB_PATH
-        except ImportError:
-            path = os.path.join(os.environ.get("DATA_PATH", "Data"), "LandPKS_munsell_rgb_lab.csv")
-
-        table = {}
-        try:
-            with open(path, newline="") as f:
-                for row in csv.DictReader(f):
-                    hue = row["hue"]
-                    value = int(row["value"])
-                    chroma = int(row["chroma"])
-                    table[(hue, value, chroma)] = (
-                        float(row["cielab_l"]),
-                        float(row["cielab_a"]),
-                        float(row["cielab_b"]),
-                    )
-        except FileNotFoundError:
-            logger.warning("Munsell-to-LAB lookup table not found", path=path)
-            table = {}
-
-        _munsell_lab_table = table
-        return _munsell_lab_table
-
-
-def munsell_to_lab(color_hue, color_value, color_chroma):
-    """Convert app colorHue/colorValue/colorChroma to CIELAB using the lookup table.
-
-    Returns (L, A, B) tuple, or None if the color can't be looked up.
-    """
-    table = _load_munsell_lab_table()
-    if not table:
-        return None
-
-    chroma = round(color_chroma)
-    value = round(color_value)
-
-    # Neutral color (chroma == 0)
-    if chroma == 0:
-        result = table.get(("N", value, 0))
-        return result
-
-    # Decode colorHue (0-100 continuous) to Munsell hue string
-    hue = color_hue
-    if hue == 100:
-        hue = 0
-
-    hue_index = int(hue // 10)
-    substep = round((hue % 10) / 2.5)
-
-    if substep == 0:
-        hue_index = (hue_index + 9) % 10
-        substep = 4
-
-    substep = (substep * 5) / 2
-    hue_str = f"{substep:g}{_HUE_NAMES[hue_index]}"
-
-    return table.get((hue_str, value, chroma))
 
 
 def set_soil_id_cache_enabled(enabled):

@@ -154,13 +154,33 @@ class LABColorInput(graphene.InputObjectType):
     B = graphene.Float(required=True)
 
 
+class MunsellColorInput(graphene.InputObjectType):
+    """Munsell color in numeric form. `hue` is the 0-100 continuous encoding
+    (hue-family index * 10 + substep), matching the app's colorHue."""
+
+    hue = graphene.Float(required=True)
+    value = graphene.Float(required=True)
+    chroma = graphene.Float(required=True)
+
+
 class SoilIdInputDepthDependentData(graphene.InputObjectType):
     """Depth dependent data provided to the soil ID algorithm."""
 
     depth_interval = graphene.Field(DepthIntervalInput, required=True)
     texture = graphene.Field(DepthDependentSoilDataNode.texture_enum())
     rock_fragment_volume = graphene.Field(DepthDependentSoilDataNode.rock_fragment_volume_enum())
+    # Color may be given as CIELAB, a Munsell string, or numeric Munsell. If more
+    # than one is provided they are tried in that order (see resolvers.parse_color).
     color_LAB = graphene.Field(LABColorInput, name="colorLAB")
+    color_munsell = graphene.String(
+        name="colorMunsell",
+        description='Munsell color string, e.g. "7.5YR 5/4" or "N 5/" (neutral).',
+    )
+    color_munsell_numeric = graphene.Field(
+        MunsellColorInput,
+        name="colorMunsellNumeric",
+        description="Munsell color as numeric hue (0-100) / value / chroma.",
+    )
 
 
 class SoilIdInputData(graphene.InputObjectType):

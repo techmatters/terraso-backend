@@ -32,7 +32,7 @@ import os
 
 import pytest
 
-from apps.export.fetch_data import munsell_to_lab
+from apps.soil_id.munsell import munsell_to_lab
 
 # Requires LandPKS_munsell_rgb_lab.csv from `make download-soil-data`.
 pytestmark = pytest.mark.integration

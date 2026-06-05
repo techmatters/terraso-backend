@@ -292,6 +292,12 @@ input SoilIdInputDepthDependentData {
   texture: SoilIdDepthDependentSoilDataTextureChoices = null
   rockFragmentVolume: SoilIdDepthDependentSoilDataRockFragmentVolumeChoices = null
   colorLAB: LABColorInput = null
+
+  """Munsell color string, e.g. "7.5YR 5/4" or "N 5/" (neutral)."""
+  colorMunsell: String
+
+  """Munsell color as numeric hue (0-100) / value / chroma."""
+  colorMunsellNumeric: MunsellColorInput = null
 }
 
 input DepthIntervalInput {
@@ -303,6 +309,16 @@ input LABColorInput {
   L: Float!
   A: Float!
   B: Float!
+}
+
+"""
+Munsell color in numeric form. `hue` is the 0-100 continuous encoding
+(hue-family index * 10 + substep), matching the app's colorHue.
+"""
+input MunsellColorInput {
+  hue: Float!
+  value: Float!
+  chroma: Float!
 }
 
 union SoilIdResult = SoilMatches | SoilIdFailure

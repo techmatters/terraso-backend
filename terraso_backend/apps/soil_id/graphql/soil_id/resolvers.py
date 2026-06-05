@@ -29,7 +29,6 @@ from apps.soil_id.graphql.soil_id.types import (
     DataBasedSoilMatch,
     DataBasedSoilMatches,
     EcologicalSite,
-    LABColorInput,
     LandCapabilityClass,
     SoilIdDepthDependentData,
     SoilIdFailure,
@@ -46,6 +45,7 @@ from apps.soil_id.graphql.types import DepthInterval
 from apps.soil_id.models.depth_dependent_soil_data import DepthDependentSoilData
 from apps.soil_id.models.soil_data import SoilData
 from apps.soil_id.models.soil_id_cache import SoilIdCache
+from apps.soil_id.munsell import munsell_string_to_lab, munsell_to_lab
 
 logger = structlog.get_logger(__name__)
 
@@ -340,10 +340,25 @@ def parse_rock_fragment_volume(rock_fragment_volume):
         return ">60%"
 
 
-def parse_color_LAB(color_LAB: Optional[LABColorInput]):
-    if color_LAB is None:
-        return None
-    return [color_LAB.L, color_LAB.A, color_LAB.B]
+def parse_color(depth):
+    # Color may be supplied as CIELAB, a Munsell string, or numeric Munsell,
+    # tried in that order. A Munsell value that can't be converted to LAB —
+    # e.g. an out-of-gamut, photo-derived color — is ignored: the depth is
+    # treated as having no color rather than failing the request. It's an
+    # infrequent edge case and not worth surfacing to the caller.
+    if depth.color_LAB is not None:
+        return [depth.color_LAB.L, depth.color_LAB.A, depth.color_LAB.B]
+
+    if depth.color_munsell:
+        lab = munsell_string_to_lab(depth.color_munsell)
+        return list(lab) if lab is not None else None
+
+    if depth.color_munsell_numeric is not None:
+        munsell = depth.color_munsell_numeric
+        lab = munsell_to_lab(munsell.hue, munsell.value, munsell.chroma)
+        return list(lab) if lab is not None else None
+
+    return None
 
 
 # Argument type hint would be SoilDataNode.surface_cracks_enum() if that were allowed
@@ -391,7 +406,7 @@ def parse_rank_soils_input_data(
 
         inputs["soilHorizon"].append(parse_texture(depth.texture))
         inputs["rfvDepth"].append(parse_rock_fragment_volume(depth.rock_fragment_volume))
-        inputs["lab_Color"].append(parse_color_LAB(depth.color_LAB))
+        inputs["lab_Color"].append(parse_color(depth))
 
     return inputs
 
