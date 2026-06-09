@@ -116,6 +116,10 @@ setup-git-hooks:
 run: check_rebuild
 	@./scripts/docker.sh "$(DC_FILE_ARG)"
 
+# Convenience wrapper for `USE_LOCAL_SOILID=true make run` (see Makefile header).
+run-local-soilid:
+	@USE_LOCAL_SOILID=true $(MAKE) run
+
 # Run with gunicorn to match production threading behavior.
 # Unlike "make run", this does NOT auto-reload on code changes — restart manually.
 # Reads WEB_CONCURRENCY and GUNICORN_CMD_ARGS from .env (same values used on Render).
