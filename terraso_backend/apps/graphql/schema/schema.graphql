@@ -150,6 +150,11 @@ type SoilSeries {
   name: String!
   taxonomySubgroup: String
   description: String
+
+  """Management guidance; populated for global (WRB) matches."""
+  management: String
+
+  """US only"""
   fullDescriptionUrl: String
 }
 

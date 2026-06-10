@@ -382,6 +382,7 @@ def fetch_soil_id(site, request):
                                 name
                                 taxonomySubgroup
                                 description
+                                management
                                 fullDescriptionUrl
                             }
                             ecologicalSite {

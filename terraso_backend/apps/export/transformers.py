@@ -411,12 +411,14 @@ def flatten_site(site: dict) -> dict:
     matching_soil_info = None
     selected_soil_taxonomy = None
     selected_soil_description = None
+    selected_soil_management = None
     lcc_class = None
     ecological_site_name = None
     ecological_site_id = None
     top_match_soil_series = None
     top_match_taxonomy = None
     top_match_description = None
+    top_match_management = None
     top_match_user_rating = None
     top_match_data_source = None
 
@@ -428,6 +430,7 @@ def flatten_site(site: dict) -> dict:
         top_match_soil_series = top_match_series.get("name")
         top_match_taxonomy = top_match_series.get("taxonomySubgroup")
         top_match_description = top_match_series.get("description")
+        top_match_management = top_match_series.get("management")
         top_match_user_rating = top_match.get("userRating")
         top_match_data_source = top_match.get("dataSource")
 
@@ -442,6 +445,7 @@ def flatten_site(site: dict) -> dict:
                 selected_series = matching_soil_info.get("soilSeries", {})
                 selected_soil_taxonomy = selected_series.get("taxonomySubgroup")
                 selected_soil_description = selected_series.get("description")
+                selected_soil_management = selected_series.get("management")
 
                 # Get land capability class
                 lcc_info = matching_soil_info.get("landCapabilityClass")
@@ -476,10 +480,12 @@ def flatten_site(site: dict) -> dict:
             "Selected soil series": user_selected_soil,
             "Selected soil type taxonomy subgroup": selected_soil_taxonomy,
             "Selected soil description": selected_soil_description,
+            "Selected soil management": selected_soil_management,
             # Top match (best algorithmic match)
             "Top soil series match": top_match_soil_series,
             "Top soil match taxonomy subgroup": top_match_taxonomy,
             "Top soil match description": top_match_description,
+            "Top soil match management": top_match_management,
             # Default to "Unsure" if there's a top match but no explicit rating
             "Top match user rating": (top_match_user_rating or "Unsure")
             if top_match_soil_series

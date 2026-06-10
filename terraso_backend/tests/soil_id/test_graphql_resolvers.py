@@ -1,3 +1,5 @@
+import copy
+
 import pytest
 
 from apps.soil_id.graphql.soil_data.queries import DepthDependentSoilDataNode, SoilDataNode
@@ -344,9 +346,32 @@ def test_resolve_soil_info():
         result.soil_series.full_description_url
         == "https://casoilresource.lawr.ucdavis.edu/sde/?series=randall"
     )
+    # US matches have a plain-string description and no separate management text.
+    assert result.soil_series.management is None
 
     assert result.land_capability_class.capability_class == "6"
     assert result.land_capability_class.sub_class == "w"
+
+
+def test_resolve_soil_info_global_description_and_management():
+    # Global (WRB) matches carry a multilingual siteDescription dict whose text is
+    # delimited with <br> tags. The resolver returns the English description and
+    # management with the tags stripped and whitespace collapsed.
+    soil_match = copy.deepcopy(sample_soil_list_json[0])
+    soil_match["site"]["siteDescription"] = {
+        "Description_en": "Humic Nitisols are productive. <br> They have clayey subsoils.",
+        "Management_en": "Productive soils. <br>  Use band application of phosphate.",
+        "Description_es": "ignored",
+        "Management_es": "ignored",
+    }
+
+    result = resolve_soil_info(soil_match)
+
+    assert (
+        result.soil_series.description
+        == "Humic Nitisols are productive. They have clayey subsoils."
+    )
+    assert result.soil_series.management == "Productive soils. Use band application of phosphate."
 
 
 def test_resolve_soil_match_info():

@@ -14,6 +14,7 @@
 # along with this program. If not, see https://www.gnu.org/licenses/.
 
 import math
+import re
 import threading
 import traceback
 from typing import Optional
@@ -144,21 +145,48 @@ def resolve_land_capability_class(site_data: dict):
     )
 
 
+_BR_TAG_RE = re.compile(r"<br\s*/?>", re.IGNORECASE)
+
+
+def normalize_soil_description(text):
+    """Clean a soil narrative for display.
+
+    The soil-id global database stores WRB descriptions with literal ``<br>``
+    tags (e.g. ``"...soils. <br> They have..."``). Strip those and collapse runs
+    of whitespace to single spaces — matching the hand-cleaned copies the clients
+    render — so the API and exports show the same continuous prose. Returns None
+    for missing, non-string, or empty input.
+    """
+    if not isinstance(text, str):
+        return None
+    cleaned = re.sub(r"\s+", " ", _BR_TAG_RE.sub(" ", text)).strip()
+    return cleaned or None
+
+
 def resolve_soil_info(soil_match: dict):
     soil_id = soil_match["id"]
     site_data = soil_match["site"]["siteData"]
 
     taxonomy_subgroup = site_data["taxsubgrp"] if "taxsubgrp" in site_data else None
     full_description_url = site_data["sdeURL"] if "sdeURL" in site_data else None
-    description = soil_match["site"]["siteDescription"]
-    if not isinstance(description, str):
-        description = None
+
+    # siteDescription is a plain string for US matches (the soil series narrative)
+    # and a multilingual dict for global (WRB) matches. Expose the English text in
+    # both cases, plus the separate management guidance that global matches carry.
+    raw_description = soil_match["site"]["siteDescription"]
+    if isinstance(raw_description, dict):
+        description = normalize_soil_description(raw_description.get("Description_en"))
+        management = normalize_soil_description(raw_description.get("Management_en"))
+    else:
+        description = normalize_soil_description(raw_description)
+        management = None
 
     return SoilInfo(
         soil_series=SoilSeries(
             name=soil_id["component"],
             taxonomy_subgroup=taxonomy_subgroup,
             description=description,
+            management=management,
             full_description_url=full_description_url,
         ),
         land_capability_class=resolve_land_capability_class(site_data),

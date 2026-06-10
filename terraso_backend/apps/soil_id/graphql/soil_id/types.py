@@ -39,7 +39,10 @@ class SoilSeries(graphene.ObjectType):
     name = graphene.String(required=True)
     taxonomy_subgroup = graphene.String()
     description = graphene.String()
-    full_description_url = graphene.String()
+    management = graphene.String(
+        description="Management guidance; populated for global (WRB) matches."
+    )
+    full_description_url = graphene.String(description="US only")
 
 
 class LandCapabilityClass(graphene.ObjectType):
