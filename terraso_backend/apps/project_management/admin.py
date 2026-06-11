@@ -15,29 +15,73 @@
 
 # Register your models here.
 from django.contrib import admin
+from safedelete.admin import SafeDeleteAdmin, SafeDeleteAdminFilter, highlight_deleted
 
-from apps.project_management.models import Project, Site, SitePushHistory
+from apps.project_management.models import Project, Site, SiteNote, SitePushHistory
 
 
 @admin.register(Project)
-class ProjectAdmin(admin.ModelAdmin):
-    readonly_fields = ("membership_list",)
-    list_display = ("name", "created_at")
+class ProjectAdmin(SafeDeleteAdmin):
+    # SafeDeleteAdmin gives:
+    #   - List view that includes soft-deleted rows.
+    #   - "Active / Deleted / All" filter sidebar.
+    #   - highlight_deleted indicator in list_display.
+    #   - "Undelete selected" bulk action.
+    readonly_fields = ("membership_list", "deleted_at")
+    list_display = (
+        highlight_deleted,
+        "name",
+        "privacy",
+        "archived",
+        "deleted_at",
+        "created_at",
+    )
+    list_filter = (SafeDeleteAdminFilter, "privacy", "archived")
+    search_fields = ("name",)
 
 
 @admin.register(Site)
-class SiteAdmin(admin.ModelAdmin):
-    list_display = ("name", "owner", "project__name", "created_at")
-    search_fields = ("name", "owner", "project__name")
+class SiteAdmin(SafeDeleteAdmin):
+    readonly_fields = ("deleted_at",)
+    list_display = (
+        highlight_deleted,
+        "name",
+        "owner",
+        "project__name",
+        "privacy",
+        "archived",
+        "deleted_at",
+        "created_at",
+    )
+    list_filter = (SafeDeleteAdminFilter, "privacy", "archived")
+    search_fields = ("name", "owner__email", "project__name")
 
 
 @admin.register(SitePushHistory)
-class SitePushHistoryAdmin(admin.ModelAdmin):
+class SitePushHistoryAdmin(SafeDeleteAdmin):
+    readonly_fields = ("deleted_at",)
     list_display = [
+        highlight_deleted,
         "updated_at",
         "site__name",
         "changed_by__email",
         "update_succeeded",
+        "deleted_at",
         "update_failure_reason",
     ]
+    list_filter = (SafeDeleteAdminFilter, "update_succeeded")
     search_fields = ["site__name", "changed_by__email", "update_succeeded", "update_failure_reason"]
+
+
+@admin.register(SiteNote)
+class SiteNoteAdmin(SafeDeleteAdmin):
+    readonly_fields = ("deleted_at",)
+    list_display = (
+        highlight_deleted,
+        "site__name",
+        "author__email",
+        "deleted_at",
+        "created_at",
+    )
+    list_filter = (SafeDeleteAdminFilter,)
+    search_fields = ("site__name", "author__email", "content")
