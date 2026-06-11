@@ -14,7 +14,6 @@
 # along with this program. If not, see https://www.gnu.org/licenses/.
 
 import math
-import re
 import threading
 import traceback
 from typing import Optional
@@ -145,24 +144,6 @@ def resolve_land_capability_class(site_data: dict):
     )
 
 
-_BR_TAG_RE = re.compile(r"<br\s*/?>", re.IGNORECASE)
-
-
-def normalize_soil_description(text):
-    """Clean a soil narrative for display.
-
-    The soil-id global database stores WRB descriptions with literal ``<br>``
-    tags (e.g. ``"...soils. <br> They have..."``). Strip those and collapse runs
-    of whitespace to single spaces — matching the hand-cleaned copies the clients
-    render — so the API and exports show the same continuous prose. Returns None
-    for missing, non-string, or empty input.
-    """
-    if not isinstance(text, str):
-        return None
-    cleaned = re.sub(r"\s+", " ", _BR_TAG_RE.sub(" ", text)).strip()
-    return cleaned or None
-
-
 def resolve_soil_info(soil_match: dict):
     soil_id = soil_match["id"]
     site_data = soil_match["site"]["siteData"]
@@ -175,11 +156,13 @@ def resolve_soil_info(soil_match: dict):
     # both cases, plus the separate management guidance that global matches carry.
     raw_description = soil_match["site"]["siteDescription"]
     if isinstance(raw_description, dict):
-        description = normalize_soil_description(raw_description.get("Description_en"))
-        management = normalize_soil_description(raw_description.get("Management_en"))
-    else:
-        description = normalize_soil_description(raw_description)
+        description = raw_description.get("Description_en") or None
+        management = raw_description.get("Management_en") or None
+    elif isinstance(raw_description, str):
+        description = raw_description or None
         management = None
+    else:
+        description = management = None
 
     return SoilInfo(
         soil_series=SoilSeries(

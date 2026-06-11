@@ -354,13 +354,12 @@ def test_resolve_soil_info():
 
 
 def test_resolve_soil_info_global_description_and_management():
-    # Global (WRB) matches carry a multilingual siteDescription dict whose text is
-    # delimited with <br> tags. The resolver returns the English description and
-    # management with the tags stripped and whitespace collapsed.
+    # Global (WRB) matches carry a multilingual siteDescription dict; the resolver
+    # returns the English description and management verbatim.
     soil_match = copy.deepcopy(sample_soil_list_json[0])
     soil_match["site"]["siteDescription"] = {
-        "Description_en": "Humic Nitisols are productive. <br> They have clayey subsoils.",
-        "Management_en": "Productive soils. <br>  Use band application of phosphate.",
+        "Description_en": "Humic Nitisols are productive. They have clayey subsoils.",
+        "Management_en": "Productive soils. Use band application of phosphate.",
         "Description_es": "ignored",
         "Management_es": "ignored",
     }
