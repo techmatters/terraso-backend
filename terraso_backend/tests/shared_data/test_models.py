@@ -14,11 +14,9 @@
 # along with this program. If not, see https://www.gnu.org/licenses/.
 
 import pytest
-from django.db import models
 
 from apps.collaboration.models import Membership as CollaborationMembership
 from apps.core import group_collaboration_roles
-from apps.core.models import User
 from apps.shared_data.models import DataEntry, VisualizationConfig
 
 pytestmark = pytest.mark.django_db
@@ -139,15 +137,20 @@ def test_visualization_config_cannot_be_viewed_by_non_group_members(
     assert user.has_perm(VisualizationConfig.get_perm("view"), obj=visualization_config)
 
 
-def test_delete_user_with_shared_data(user, data_entry):
-    try:
+def test_delete_user_with_shared_data_is_blocked(user, data_entry):
+    """DataEntry.created_by is DO_NOTHING — under the soft-delete gate
+    any user with DataEntries is refused. The previous DataEntry re-link
+    branch in User.soft_delete_policy_action has been removed because
+    it's unreachable on the success path. See
+    backend/docs/user_soft_delete_plan.md, Settled decisions section."""
+    from django.core.exceptions import ValidationError
+
+    with pytest.raises(ValidationError, match="undeletable data"):
         user.delete()
-    except models.deletion.ProtectedError as e:
-        assert False, f"Deleting a user should not raise an exception. {e}"
-    assert not User.objects.filter(id=user.id).exists(), "User should be soft-deleted"
-    assert DataEntry.objects.filter(id=data_entry.id).exists(), "Data entry should not be deleted"
+    user.refresh_from_db()
+    assert user.deleted_at is None
     data_entry.refresh_from_db()
-    assert data_entry.created_by == user, "Data entry should still link to user"
+    assert data_entry.created_by == user
 
 
 def test_data_entry_can_be_viewed_by_story_map_creator(user, story_map_data_entry, story_map):

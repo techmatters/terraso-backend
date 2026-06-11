@@ -133,8 +133,15 @@ class UserUpdateMutation(BaseAuthenticatedMutation):
         return cls(user=user)
 
 
+class BlockerType(graphene.ObjectType):
+    model = graphene.String()
+    field = graphene.String()
+    count = graphene.Int()
+
+
 class UserDeleteMutation(BaseDeleteMutation):
     user = graphene.Field(UserNode)
+    blockers = graphene.List(BlockerType)
     model_class = User
 
     class Input:
@@ -154,7 +161,17 @@ class UserDeleteMutation(BaseDeleteMutation):
                 model_name=User.__name__, operation=MutationTypes.DELETE
             )
 
-        return super().mutate_and_get_payload(root, info, **kwargs)
+        # Pre-check via the shared rule in User.deletion_blockers(). On a
+        # blocked user, return a structured `blockers` payload (user=null)
+        # rather than raising — the client distinguishes "rejected" from
+        # "deleted" by which field is populated. The same gate also fires
+        # inside User.delete() as a safety net if anyone else calls it.
+        user = User.objects.get(pk=_id)
+        blockers = user.deletion_blockers()
+        if blockers:
+            return cls(user=None, blockers=blockers)
+        user.delete()
+        return cls(user=user, blockers=[])
 
 
 class UserPreferenceUpdate(BaseAuthenticatedMutation):

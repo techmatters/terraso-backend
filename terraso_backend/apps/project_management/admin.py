@@ -16,14 +16,12 @@
 # Register your models here.
 from django.contrib import admin
 
-from apps.project_management.models import Project, ProjectSettings, Site, SitePushHistory
-
-admin.site.register(ProjectSettings)
+from apps.project_management.models import Project, Site, SitePushHistory
 
 
 @admin.register(Project)
 class ProjectAdmin(admin.ModelAdmin):
-    readonly_fields = ("membership_list", "settings")
+    readonly_fields = ("membership_list",)
     list_display = ("name", "created_at")
 
 

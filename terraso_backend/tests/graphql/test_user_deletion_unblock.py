@@ -52,9 +52,7 @@ def test_site_note_can_have_null_author():
 def test_site_can_have_null_owner():
     """Schema relaxation: Site.owner was already null=True; just confirm
     it still accepts None after the on_delete change."""
-    site = Site.objects.create(
-        name="orphan-site", latitude=0, longitude=0, elevation=0, owner=None
-    )
+    site = Site.objects.create(name="orphan-site", latitude=0, longitude=0, elevation=0, owner=None)
     assert site.owner is None
 
 
@@ -74,19 +72,18 @@ def test_user_soft_delete_nulls_authored_note(user):
     assert SiteNote.objects.filter(pk=note.pk).exists()
 
 
-def test_user_soft_delete_nulls_owned_site(user):
-    """Same cascade for Site.owner."""
-    site = Site.objects.create(
-        name="kept-site", latitude=0, longitude=0, elevation=0, owner=user
-    )
+def test_user_soft_delete_cascades_to_owned_site(user):
+    """Site.owner is CASCADE under the soft-delete plan (changed from
+    SET_NULL). A deleted user's unaffiliated owned sites die with them.
+    Public unaffiliated sites also die — that's intentional; see
+    backend/docs/user_soft_delete_plan.md, Settled decisions section."""
+    site = Site.objects.create(name="kept-site", latitude=0, longitude=0, elevation=0, owner=user)
     assert site.owner_id == user.pk
 
-    user.delete()
+    user.delete()  # safedelete soft-delete
 
     site.refresh_from_db()
-    assert site.owner is None
-    assert site.name == "kept-site"
-    assert Site.objects.filter(pk=site.pk).exists()
+    assert site.deleted_at is not None
 
 
 # --- is_author and permission rules with null author/owner ---
@@ -119,19 +116,19 @@ def test_site_note_is_author_returns_false_for_null_author():
 def test_anon_still_sees_no_sites_when_owner_null(client_query_no_token):
     """Anonymous gets 0 sites — null owner doesn't accidentally relax this."""
     Site.objects.create(
-        name="anon-orphan", latitude=0, longitude=0, elevation=0, owner=None,
+        name="anon-orphan",
+        latitude=0,
+        longitude=0,
+        elevation=0,
+        owner=None,
         privacy=Site.PRIVATE,
     )
-    response = client_query_no_token(
-        "{ sites { totalCount edges { node { id owner { id } } } } }"
-    )
+    response = client_query_no_token("{ sites { totalCount edges { node { id owner { id } } } } }")
     body = response.json()
     assert body["data"]["sites"]["totalCount"] == 0
 
 
-def test_project_member_sees_orphan_project_site_with_stub_owner(
-    client, project, project_user
-):
+def test_project_member_sees_orphan_project_site_with_stub_owner(client, project, project_user):
     """A site whose owner FK was nulled by the SET_NULL cascade can still
     be reached via its project. When project_user (a project member) views
     it, the owner field serializes as the deleted-user stub (id = nil
@@ -158,7 +155,8 @@ def test_project_member_sees_orphan_project_site_with_stub_owner(
     names = [edge["node"]["name"] for edge in body["data"]["sites"]["edges"]]
     assert "orphan-in-project" in names
     orphan_node = next(
-        edge["node"] for edge in body["data"]["sites"]["edges"]
+        edge["node"]
+        for edge in body["data"]["sites"]["edges"]
         if edge["node"]["name"] == "orphan-in-project"
     )
     assert orphan_node["owner"]["id"] == "00000000-0000-0000-0000-000000000000"
@@ -177,9 +175,7 @@ def test_stranger_cannot_see_private_orphan_site(client, user):
     )
     stranger = mixer.blend(User)
     client.force_login(stranger)
-    response = graphql_query(
-        "{ sites { totalCount edges { node { name } } } }", client=client
-    )
+    response = graphql_query("{ sites { totalCount edges { node { name } } } }", client=client)
     body = response.json()
     names = [edge["node"]["name"] for edge in body["data"]["sites"]["edges"]]
     assert "private-orphan" not in names
@@ -201,17 +197,12 @@ def test_graphql_note_with_null_author_serializes_cleanly(client, user, project,
         project=project,
         privacy=Site.PRIVATE,
     )
-    note_with_author = SiteNote.objects.create(
-        site=site, content="with author", author=user
-    )
-    note_without_author = SiteNote.objects.create(
-        site=site, content="without author", author=None
-    )
+    SiteNote.objects.create(site=site, content="with author", author=user)
+    SiteNote.objects.create(site=site, content="without author", author=None)
 
     client.force_login(project_user_local)
     response = graphql_query(
-        'query { site(id: "%s") { notes { edges { node { content author { id } } } } } }'
-        % site.id,
+        'query { site(id: "%s") { notes { edges { node { content author { id } } } } } }' % site.id,
         client=client,
     )
     body = response.json()
@@ -219,7 +210,4 @@ def test_graphql_note_with_null_author_serializes_cleanly(client, user, project,
     notes = body["data"]["site"]["notes"]["edges"]
     by_content = {edge["node"]["content"]: edge["node"] for edge in notes}
     assert by_content["with author"]["author"]["id"] == str(user.id)
-    assert (
-        by_content["without author"]["author"]["id"]
-        == "00000000-0000-0000-0000-000000000000"
-    )
+    assert by_content["without author"]["author"]["id"] == "00000000-0000-0000-0000-000000000000"

@@ -13,7 +13,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see https://www.gnu.org/licenses/.
 
-from .projects import Project, ProjectMembership, ProjectMembershipList, ProjectSettings
+from .projects import Project, ProjectMembership, ProjectMembershipList
 from .site_notes import SiteNote
 from .site_push_history import SitePushHistory
 from .sites import Site
@@ -22,7 +22,6 @@ __all__ = [
     "Project",
     "ProjectMembership",
     "ProjectMembershipList",
-    "ProjectSettings",
     "Site",
     "SiteNote",
     "SitePushHistory",

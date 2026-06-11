@@ -44,6 +44,11 @@ format: ${VIRTUAL_ENV}/scripts/ruff
 	ruff check terraso_backend --fix
 	ruff format terraso_backend
 
+# DESTRUCTIVE - Only do this to your dev database
+# ARGS=--deletion_gap=0   to hard-delete all soft-deleted rows
+harddelete: check_rebuild
+	$(DC_RUN_CMD) python terraso_backend/manage.py harddelete $(ARGS)
+
 install:
 	uv pip install -r requirements.txt $(UV_FLAGS)
 

@@ -13,8 +13,9 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see https://www.gnu.org/licenses/.
 
-from django.contrib import admin
+from django.contrib import admin, messages
 from django.contrib.auth.admin import UserAdmin as DjangoUserAdmin
+from django.utils.html import format_html, format_html_join
 from safedelete.admin import SafeDeleteAdmin, SafeDeleteAdminFilter, highlight_deleted
 
 from .models import (
@@ -109,6 +110,57 @@ class UserAdmin(SafeDeleteAdmin, DjangoUserAdmin):
         ),
         ("Important dates", {"fields": ("last_login", "date_joined")}),
     )
+
+    def delete_model(self, request, obj):
+        """Pre-check User.deletion_blockers() so staff get a readable banner
+        instead of a raw ValidationError page when the user has undeletable
+        data. The same gate also lives in User.delete() as a safety net."""
+        blockers = obj.deletion_blockers()
+        if blockers:
+            self.message_user(
+                request,
+                self._format_blocker_message(obj, blockers),
+                level=messages.ERROR,
+            )
+            return  # do not call super; user stays undeleted
+        super().delete_model(request, obj)
+
+    def delete_queryset(self, request, queryset):
+        """Bulk delete: partition into deletable/blocked, delete the clean
+        ones individually, surface the skipped ones in a single banner.
+
+        We iterate `user.delete()` per user rather than using the queryset
+        delete so each user's soft_delete_policy_action runs (tearing down
+        sole-manager projects)."""
+        deletable, blocked = [], []
+        for user in queryset:
+            if user.deletion_blockers():
+                blocked.append(user)
+            else:
+                deletable.append(user)
+        for user in deletable:
+            user.delete()
+        if blocked:
+            emails = ", ".join(u.email for u in blocked)
+            self.message_user(
+                request,
+                f"Skipped {len(blocked)} user(s) with undeletable data: {emails}. "
+                "These require manual cleanup before deletion.",
+                level=messages.WARNING,
+            )
+
+    def _format_blocker_message(self, user, blockers):
+        items = format_html_join(
+            "",
+            "<li>{} ({}): {} row(s)</li>",
+            ((b["model"], b["field"], b["count"]) for b in blockers),
+        )
+        return format_html(
+            "Cannot delete user <strong>{}</strong>: user has undeletable "
+            "data and must be cleaned up manually first.<ul>{}</ul>",
+            user.email,
+            items,
+        )
 
 
 @admin.register(TaxonomyTerm)

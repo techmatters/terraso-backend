@@ -15,13 +15,42 @@
 
 import uuid
 
+import structlog
 from django.conf import settings
 from django.contrib.auth.models import AbstractUser, BaseUserManager
-from django.db import models
+from django.core.exceptions import ValidationError
+from django.db import models, transaction
 from django.utils.translation import gettext_lazy as _
-from safedelete.models import SOFT_DELETE_CASCADE, SafeDeleteManager, SafeDeleteModel
+from safedelete.models import HARD_DELETE, SOFT_DELETE_CASCADE, SafeDeleteManager, SafeDeleteModel
 
 from apps.core import group_collaboration_roles, landscape_collaboration_roles
+
+logger = structlog.get_logger(__name__)
+
+# Apps whose models cascade with the user (the "landpks subtree"). These
+# are torn down explicitly in User._soft_delete_with_cascade and
+# Project.soft_delete_policy_action — rather than blocked by the gate —
+# because the schema is set up so the cascade can clean them up safely.
+#
+# Two structural tests in tests/core/models/test_user_deletion_gate.py
+# enforce the invariants this allowlist relies on:
+#   - Test A: every reverse FK from any app to User is classified into
+#     one legal bucket (so a new PROTECT FK to User can't go unnoticed).
+#   - "closure is hard-delete safe": every model in the user-deletion
+#     cascade closure (which includes everything in LANDPKS_APP_LABELS)
+#     is asserted to have no incoming blocking FKs — so the harddelete
+#     cron can purge the closure cleanly when the grace window expires.
+#
+# To add a new domain app whose data should cascade with the user
+# (rather than block at the gate), add its app_label here and confirm
+# the closure structural test still passes.
+LANDPKS_APP_LABELS = {"project_management", "soil_id"}
+# Django internals — reverse FKs to User in these apps are auto-allowed
+# (Django manages them itself).
+SYSTEM_APP_LABELS = {"admin", "auth", "contenttypes", "sessions"}
+# on_delete behaviors that either raise or orphan at hard-delete time,
+# so a row pointing at the User through one of these FKs blocks deletion.
+BLOCKING_ON_DELETE = {"PROTECT", "RESTRICT", "DO_NOTHING"}
 
 USER_PREFS_KEY_GROUP_NOTIFICATIONS = "group_notifications"
 USER_PREFS_KEY_STORY_MAP_NOTIFICATIONS = "story_map_notifications"
@@ -135,16 +164,164 @@ class User(SafeDeleteModel, AbstractUser):
             .exists()
         )
 
-    def soft_delete_policy_action(self, **kwargs):
-        """Relink files to deleted user. The default policy is to set the `created_by` field to
-        null if the user is deleted. However, for a soft deletion we want to keep this link. That
-        way if the user is restored, the created_by is still pointing to the same place."""
-        linked_dataentries = self.dataentry_set.all()
-        delete_response = super().soft_delete_policy_action()
-        for entry in linked_dataentries:
-            entry.created_by = self
-            entry.save()
-        return delete_response
+    def deletion_blockers(self):
+        """Return a list of {model, field, count} dicts for any rows that
+        would block soft-deletion of this user. Empty list means the user
+        is safe to soft-delete.
+
+        Classification rule (see design doc backend/docs/user_soft_delete_plan.md):
+
+          1. Many-to-many reverse relations are skipped — through-rows auto-clean.
+          2. Apps in LANDPKS_APP_LABELS are torn down explicitly in soft_delete_policy_action; SYSTEM_APP_LABELS are Django internals. Both skip.
+          3. collaboration.Membership is a policy special case: non-project approved memberships count as blockers. (Group/Landscape membership is web data we are not yet deleting automatically. Pending memberships are not blockers.)
+          4. Otherwise the on_delete behavior decides: PROTECT / RESTRICT / DO_NOTHING auto-block; CASCADE / SET_NULL / SET_DEFAULT / SET auto-allow (referentially safe at hard-delete).
+          5. Rows that were already soft-deleted should still block (force_visibility=True for SafeDeleteModels) until the harddelete cron purges it, to avoid a crash on harddelete. This means if a user soft-deletes their only story map on day 0, they can't delete their LandPKS account until the hard-delete cron job run on day 30. Because if they also soft-delete their account on day 0, on day 30 the cron could attempt to hard-delete the User before hard-deleting the StoryMap -- whose foreign key to user is DO_NOTHING, which would cause a DB-level integrity error.
+
+        SCOPE — one layer only. This walks ONLY direct reverse FKs from
+        User (`User._meta.related_objects`). It does NOT recurse through
+        related models. A blocking FK pointing at a *descendant* of User
+        in the cascade (e.g. a hypothetical SpecialData.site = ForeignKey(
+        Site, PROTECT) in some future app) is not surfaced here, even
+        though it would crash the harddelete cron when Site is purged.
+
+        Deeper coverage comes from the structural test
+        `test_structural_user_deletion_closure_is_hard_delete_safe` in
+        tests/core/models/test_user_deletion_gate.py, which walks the
+        transitive closure of the cascade and fails CI if any closure
+        model is referenced via a blocking FK. Together, this one-layer
+        check and the closure test cover the full cascade tree.
+        """
+        blockers = []
+        for rel in User._meta.related_objects:
+            if rel.many_to_many:
+                continue  # through-rows auto-cleaned
+            related_model = rel.related_model
+            app = related_model._meta.app_label
+            if app in LANDPKS_APP_LABELS or app in SYSTEM_APP_LABELS:
+                continue
+
+            if related_model._meta.label == "collaboration.Membership":
+                from apps.collaboration.models import Membership
+
+                # Policy override: non-project APPROVED memberships block.
+                # ProjectMembershipList is a proxy of MembershipList; project
+                # lists are distinguished by `membership_list__project__isnull`
+                # (the established pattern; see UserFilter in
+                # apps/graphql/schema/users.py).
+                count = self.collaboration_memberships.filter(
+                    membership_list__project__isnull=True,
+                    membership_status=Membership.APPROVED,
+                ).count()
+                if count > 0:
+                    blockers.append(
+                        {
+                            "model": "collaboration.Membership (non-project, approved)",
+                            "field": "user",
+                            "count": count,
+                        }
+                    )
+                continue
+
+            on_delete_name = rel.on_delete.__name__.upper()
+            if on_delete_name not in BLOCKING_ON_DELETE:
+                continue
+
+            if issubclass(related_model, SafeDeleteModel):
+                base_qs = related_model.objects.all(force_visibility=True)
+            else:
+                base_qs = related_model.objects.all()
+            count = base_qs.filter(**{rel.field.name: self}).count()
+            if count > 0:
+                blockers.append(
+                    {
+                        "model": related_model._meta.label,
+                        "field": rel.field.name,
+                        "count": count,
+                    }
+                )
+        return blockers
+
+    def delete(self, *args, **kwargs):
+        """Gate soft-delete on deletion_blockers(), then tear down sole-manager
+        projects. Hard-delete is intentionally not gated — the harddelete cron
+        is generic and must stay robust; all cleanup happens at the soft-delete
+        boundary.
+
+        Why the project cascade lives here rather than in
+        soft_delete_policy_action: safedelete's SOFT_DELETE_CASCADE soft-deletes
+        the user's Memberships *before* invoking soft_delete_policy_action, so
+        a "sole-manager projects" query that filters on `deleted_at IS NULL`
+        Memberships would find none of them by the time it runs. We capture the
+        project IDs up here, then iterate them after super() returns."""
+        if kwargs.get("force_policy") == HARD_DELETE:
+            return super().delete(*args, **kwargs)
+
+        blockers = self.deletion_blockers()
+        if blockers:
+            logger.warning(
+                "user.delete_blocked",
+                target_user_id=str(self.id),
+                blockers=blockers,
+            )
+            raise ValidationError(
+                f"Cannot delete user {self.email!r}: has undeletable data "
+                f"({len(blockers)} blocking model(s))."
+            )
+        logger.info("user.soft_deleted", target_user_id=str(self.id))
+
+        return self._soft_delete_with_cascade(*args, **kwargs)
+
+    @transaction.atomic
+    def _soft_delete_with_cascade(self, *args, **kwargs):
+        """Soft-delete this user and the sole-manager projects they leave behind.
+
+        Unaffiliated owned sites: handled by Site.owner=CASCADE plus safedelete's
+        SOFT_DELETE_CASCADE; their soil/notes/history subtrees cascade
+        automatically.
+
+        Sole-manager projects: explicit — there's no FK that says "this project
+        belongs to this user". Project.soft_delete_policy_action handles the
+        MembershipList cleanup for each."""
+        from apps.project_management.models import Project
+
+        solo_project_ids = list(self._solo_manager_projects().values_list("pk", flat=True))
+        result = super().delete(*args, **kwargs)
+        for project in Project.objects.filter(pk__in=solo_project_ids):
+            project.delete()
+        return result
+
+    def _solo_manager_projects(self):
+        """Projects where this user is the sole APPROVED, non-soft-deleted
+        manager. Annotated single query instead of a query per project."""
+        from django.db.models import Count, IntegerField, OuterRef, Subquery
+
+        from apps.collaboration.models import Membership
+        from apps.project_management.collaboration_roles import ProjectRole
+        from apps.project_management.models import Project
+
+        # Count approved managers per project (SafeDeleteManager hides
+        # soft-deleted memberships, matching the soundness requirement).
+        manager_count_subquery = (
+            Membership.objects.filter(
+                membership_list__project=OuterRef("pk"),
+                user_role=ProjectRole.MANAGER.value,
+                membership_status=Membership.APPROVED,
+            )
+            .values("membership_list__project")
+            .annotate(c=Count("id"))
+            .values("c")
+        )
+        return (
+            Project.objects.filter(
+                membership_list__memberships__user=self,
+                membership_list__memberships__user_role=ProjectRole.MANAGER.value,
+                membership_list__memberships__membership_status=Membership.APPROVED,
+                membership_list__memberships__deleted_at__isnull=True,
+            )
+            .annotate(manager_count=Subquery(manager_count_subquery, output_field=IntegerField()))
+            .filter(manager_count=1)
+            .distinct()
+        )
 
     def undelete(self, *args, **kwargs):
         """Restore a soft-deleted user, refusing if their email is already
@@ -158,16 +335,13 @@ class User(SafeDeleteModel, AbstractUser):
         message instead.
 
         NOTE: undelete restores the User row and the soft-deleted related
-        rows (Memberships, etc.), and re-attaches `DataEntry.created_by`
-        via `soft_delete_policy_action`. It does NOT recover
-        `SiteNote.author` or `Site.owner` that were nulled by SET_NULL —
-        those FKs are gone forever. Restoration is partial by design.
+        rows (Memberships, sole-manager Projects + their MembershipLists,
+        owned Sites + soil data). It does NOT recover `SiteNote.author`
+        rows nulled at hard-delete (those FKs are gone forever), nor any
+        rows that were refused at the soft-delete gate. Restoration is
+        partial by design.
         """
-        from django.core.exceptions import ValidationError
-
-        conflict = (
-            type(self).objects.filter(email=self.email).exclude(pk=self.pk).first()
-        )
+        conflict = type(self).objects.filter(email=self.email).exclude(pk=self.pk).first()
         if conflict is not None:
             raise ValidationError(
                 f"Cannot undelete user {self.email!r}: another active user "

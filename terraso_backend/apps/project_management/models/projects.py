@@ -12,23 +12,12 @@
 #
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see https://www.gnu.org/licenses/.
-from django.db import models
+from django.db import models, transaction
 
 from apps.collaboration.models import Membership, MembershipList
 from apps.core.models import User
 from apps.core.models.commons import BaseModel
 from apps.project_management.collaboration_roles import ProjectRole
-
-
-class ProjectSettings(BaseModel):
-    """NOTE: Theses settings are currently ignored, and might be removed later"""
-
-    class Meta(BaseModel.Meta):
-        abstract = False
-        verbose_name_plural = "project settings"
-
-    member_can_update_site = models.BooleanField(default=False)
-    member_can_add_site_to_project = models.BooleanField(default=False)
 
 
 class ProjectMembership(Membership):
@@ -74,20 +63,10 @@ class Project(BaseModel):
         default=False,
     )
 
-    settings = models.OneToOneField(ProjectSettings, on_delete=models.PROTECT)
-
     site_instructions = models.TextField(null=True, blank=True)
 
-    @staticmethod
-    def default_settings():
-        settings = ProjectSettings()
-        settings.save()
-        return settings
-
-    # overriding save to ensure we have a group and settings
+    # overriding save to ensure we have a membership_list
     def save(self, *args, **kwargs):
-        if not hasattr(self, "settings"):
-            self.settings = self.default_settings()
         if not hasattr(self, "membership_list"):
             self.membership_list = self.create_membership_list()
         return super(Project, self).save(*args, **kwargs)
@@ -99,6 +78,18 @@ class Project(BaseModel):
             membership_type=MembershipList.MEMBERSHIP_TYPE_OPEN,
             enroll_method=MembershipList.ENROLL_METHOD_JOIN,
         )
+
+    @transaction.atomic
+    def soft_delete_policy_action(self, **kwargs):
+        # Project.membership_list is a forward OneToOne, so neither
+        # Django's collector nor safedelete's SOFT_DELETE_CASCADE reach
+        # it when the Project soft-deletes. Clean it up explicitly so
+        # the guarantee holds for every project-deletion code path
+        # (User-deletion cascade, admin bulk delete, future callers).
+        membership_list = self.membership_list
+        result = super().soft_delete_policy_action()
+        membership_list.delete()  # cascades to its Memberships
+        return result
 
     def user_has_role(self, user: User, role: ProjectRole) -> bool:
         return self.memberships_by_role(role).filter(user=user).exists()

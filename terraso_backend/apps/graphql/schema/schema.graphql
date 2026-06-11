@@ -1901,7 +1901,14 @@ input LandscapeDeleteMutationInput {
 type UserDeleteMutationPayload {
   errors: GenericScalar
   user: UserNode
+  blockers: [BlockerType]
   clientMutationId: String
+}
+
+type BlockerType {
+  model: String
+  field: String
+  count: Int
 }
 
 input UserDeleteMutationInput {

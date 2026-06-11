@@ -30,11 +30,11 @@ class Site(BaseModel):
         abstract = False
         constraints = [
             # At most one of owner / project may be set. Sites with both
-            # null are "orphans" — produced when a user-with-owned-sites
-            # soft-deletes (Site.owner is SET_NULL). Orphans are visible
-            # only via the PUBLIC branch of filter_visible_sites; private
-            # orphans are visible to nobody, which is the intended
-            # consequence of the user's deletion.
+            # null are "orphans" — produced before owner became CASCADE
+            # (Site.owner was SET_NULL). Orphans from before that change
+            # may still exist and are visible only via the PUBLIC branch
+            # of filter_visible_sites. New orphans are no longer produced
+            # by user soft-delete (owner=CASCADE soft-deletes the site).
             models.CheckConstraint(
                 condition=models.Q(project__isnull=True) | models.Q(owner__isnull=True),
                 name="site_owned_by_at_most_one",
@@ -51,7 +51,7 @@ class Site(BaseModel):
         User,
         null=True,
         blank=True,
-        on_delete=models.SET_NULL,
+        on_delete=models.CASCADE,
         verbose_name="owner to which the site belongs",
     )
 
