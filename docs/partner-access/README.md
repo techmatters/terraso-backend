@@ -26,15 +26,15 @@ match.**
 
 | File | Role |
 | --- | --- |
-| `soil_id_request.json` | The lookup input (latitude/longitude + optional soil `data`). Edit this to change the query. |
+| `soil_id_query_params.json` | The lookup input (latitude/longitude + optional soil `data`). Edit this to change the query. |
 | `soil_id_query.py` | Python example (standard library only). |
 | `soil_id_query.sh` | Shell example (requires `curl` + `jq`). Same behavior as the Python script. |
-| `soil_id_response.json` | **Generated** output — the full GraphQL response. Created/overwritten on each run. |
 
 Both scripts are equivalent — they run the query, automatically exchange your
 refresh token for an access token when needed, cache that access token, and
-write the result. Use whichever you prefer, or treat them as a reference for
-your own implementation. By default they talk to `https://api.terraso.org`.
+print the result to stdout. Use whichever you prefer, or treat them as a
+reference for your own implementation. By default they talk to
+`https://api.terraso.org`.
 
 ## Setup
 
@@ -54,8 +54,12 @@ back into it as `access_token`, so subsequent runs reuse it until it expires.
 
 ## Run
 
+The response is printed to **stdout**; status/progress messages go to **stderr**,
+so the output stays clean for piping or redirecting:
+
 ```sh
-python3 soil_id_query.py        # or: ./soil_id_query.sh
+python3 soil_id_query.py | jq             # or: ./soil_id_query.sh | jq
+python3 soil_id_query.py > response.json  # save the response to a file
 ```
 
 Each run:
@@ -65,19 +69,19 @@ Each run:
 2. If the call is rejected because the access token is missing or expired, it
    exchanges the `refresh_token` at `/auth/tokens` for a fresh access token,
    **writes that token back to the tokens file**, and retries once.
-3. Writes the response to `soil_id_response.json`.
+3. Prints the response to stdout (status messages to stderr).
 
 ## Request fields
 
-`soil_id_request.json` holds the variables for the query. Only `latitude` and
+`soil_id_query_params.json` holds the variables for the query. Only `latitude` and
 `longitude` are required; everything else is optional, and the more you supply
 the more accurate the match. These are the only inputs the soil-ID algorithm
 accepts — there are no other fields.
 
 ```json
 {
-  "latitude": 33.81,
-  "longitude": -101.97,
+  "latitude": -0.85497,
+  "longitude": 36.84891,
   "data": {
     "slope": 0.5,
     "surfaceCracks": "NO_CRACKING",
@@ -172,8 +176,10 @@ string form (`"N 5/"`) or set `chroma` to `0`.
   `~/secrets/terraso/tokens.json`.
 - **Result shape.** `soilMatches` returns either `SoilMatches` (with
   `dataRegion` and a ranked list of `matches`) or `SoilIdFailure` (with a
-  `reason` such as `DATA_UNAVAILABLE`). Locations in the US also populate the
-  US-only fields (`slope`, `ecologicalSite`, `landCapabilityClass`).
+  `reason` such as `DATA_UNAVAILABLE`). Each match's `soilInfo.soilSeries`
+  carries the soil `name` and `description`, plus `management` guidance on
+  global (non-US) matches; locations in the US also populate the US-only fields
+  (`slope`, `ecologicalSite`, `landCapabilityClass`).
 - **Inspecting a token (optional).** Purely for debugging or curiosity, you can
   paste a token into <https://jwt.io> to see its decoded contents — there's no
   need to do this for normal use. Hovering over the `exp` field shows when that

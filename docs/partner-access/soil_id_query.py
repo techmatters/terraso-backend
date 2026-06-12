@@ -17,7 +17,7 @@
 
 What it does
 ------------
-1. Reads the sample lookup input from ``soil_id_request.json``.
+1. Reads the lookup input from ``soil_id_query_params.json``.
 2. Reads cached credentials from a tokens file (default
    ``~/secrets/terraso/tokens.json``) and POSTs the ``soilMatches`` GraphQL
    query — requesting every field the ``SoilId`` schema exposes — to
@@ -27,7 +27,7 @@ What it does
    partner refresh token at ``{BASE_URL}/auth/tokens`` for a fresh access
    token, writes that token back to the tokens file (so the next run reuses
    it), and retries the query once.
-4. Writes the full response to ``soil_id_response.json``.
+4. Prints the full response to stdout (status/progress goes to stderr).
 
 Tokens file
 -----------
@@ -67,8 +67,7 @@ import urllib.request
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
-REQUEST_FILE = HERE / "soil_id_request.json"
-RESPONSE_FILE = HERE / "soil_id_response.json"
+REQUEST_FILE = HERE / "soil_id_query_params.json"
 
 BASE_URL = os.environ.get("TERRASO_API_BASE_URL", "https://api.terraso.org").rstrip("/")
 GRAPHQL_URL = f"{BASE_URL}/graphql/"
@@ -97,6 +96,7 @@ query soilMatches($latitude: Float!, $longitude: Float!, $data: SoilIdInputData!
               name
               taxonomySubgroup
               description
+              management
               fullDescriptionUrl
             }
             ecologicalSite { name id url }
@@ -183,7 +183,7 @@ def _refresh_access_token(refresh_token):
     if status != 200 or not access_token:
         # body may contain {"error": "..."}; surface it without any token value.
         sys.exit(f"Token refresh failed (HTTP {status}): {body.get('error', body)}")
-    print("Obtained a fresh access token via the partner refresh token.")
+    print("Obtained a fresh access token via the partner refresh token.", file=sys.stderr)
     return access_token
 
 
@@ -209,13 +209,13 @@ def main():
             '  {"refresh_token": "<your-partner-refresh-token>"}'
         )
 
-    print(f"Querying {GRAPHQL_URL} ...")
+    print(f"Querying {GRAPHQL_URL} ...", file=sys.stderr)
     status, body = run_query(variables, access_token)
 
     if _is_auth_failure(status, body):
         if not refresh_token:
             sys.exit("Access token was rejected and no refresh token is available to renew it.")
-        print("Access token missing/expired. Refreshing and retrying once...")
+        print("Access token missing/expired. Refreshing and retrying once...", file=sys.stderr)
         access_token = _refresh_access_token(refresh_token)
         # Cache the new access token for next time. Keep the original
         # long-lived refresh token rather than the rotated one the endpoint
@@ -223,14 +223,14 @@ def main():
         tokens["refresh_token"] = refresh_token
         tokens["access_token"] = access_token
         _save_tokens(tokens)
-        print(f"Cached the new access token in {TOKENS_FILE}")
+        print(f"Cached the new access token in {TOKENS_FILE}", file=sys.stderr)
         status, body = run_query(variables, access_token)
 
-    RESPONSE_FILE.write_text(json.dumps(body, indent=2) + "\n")
-    print(f"HTTP {status}; response written to {RESPONSE_FILE}")
+    print(json.dumps(body, indent=2))
+    print(f"HTTP {status}", file=sys.stderr)
 
     if body.get("errors"):
-        print("GraphQL returned errors (see the output file).")
+        print("GraphQL returned errors (see the output above).", file=sys.stderr)
         sys.exit(1)
 
 

@@ -23,7 +23,7 @@
 #   3. If rejected because unauthenticated, exchange the refresh token at
 #      {BASE_URL}/auth/tokens for a fresh access token, write it back to the
 #      tokens file, and retry once.
-#   4. Write the response to soil_id_response.json.
+#   4. Print the response to stdout (status/progress goes to stderr).
 #
 # Tokens file (kept OUTSIDE this repo), seeded once with the refresh token you
 # were supplied:
@@ -43,8 +43,7 @@ GRAPHQL_URL="$BASE_URL/graphql/"
 TOKENS_URL="$BASE_URL/auth/tokens"
 
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-REQUEST_FILE="$HERE/soil_id_request.json"
-RESPONSE_FILE="$HERE/soil_id_response.json"
+REQUEST_FILE="$HERE/soil_id_query_params.json"
 TOKENS_FILE="$HOME/secrets/terraso/tokens.json"
 
 # Full soilMatches query — every field the SoilId schema currently exposes.
@@ -64,7 +63,7 @@ query soilMatches($latitude: Float!, $longitude: Float!, $data: SoilIdInputData!
           dataMatch { score rank }
           combinedMatch { score rank }
           soilInfo {
-            soilSeries { name taxonomySubgroup description fullDescriptionUrl }
+            soilSeries { name taxonomySubgroup description management fullDescriptionUrl }
             ecologicalSite { name id url }
             landCapabilityClass { capabilityClass subClass }
             soilData {
@@ -156,7 +155,7 @@ refresh_access_token() {
     echo "Refresh response did not contain an access_token." >&2
     exit 1
   fi
-  echo "Obtained a fresh access token via the partner refresh token."
+  echo "Obtained a fresh access token via the partner refresh token." >&2
 }
 
 save_access_token() {
@@ -171,21 +170,21 @@ save_access_token() {
   chmod 600 "$TOKENS_FILE"
 }
 
-echo "Querying $GRAPHQL_URL ..."
+echo "Querying $GRAPHQL_URL ..." >&2
 run_query
 
 if is_auth_failure; then
-  echo "Access token missing/expired. Refreshing and retrying once..."
+  echo "Access token missing/expired. Refreshing and retrying once..." >&2
   refresh_access_token
   save_access_token
-  echo "Cached the new access token in $TOKENS_FILE"
+  echo "Cached the new access token in $TOKENS_FILE" >&2
   run_query
 fi
 
-jq '.' "$TMP_BODY" >"$RESPONSE_FILE"
-echo "HTTP $HTTP_STATUS; response written to $RESPONSE_FILE"
+jq '.' "$TMP_BODY"
+echo "HTTP $HTTP_STATUS" >&2
 
 if jq -e '.errors' "$TMP_BODY" >/dev/null 2>&1; then
-  echo "GraphQL returned errors (see $RESPONSE_FILE)." >&2
+  echo "GraphQL returned errors (see the output above)." >&2
   exit 1
 fi
