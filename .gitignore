@@ -99,3 +99,6 @@ node_modules/
 # Export documentation CSVs - master is in Google Sheets
 terraso_backend/apps/export/docs/*.csv
 
+# wrb_descriptions_sync.py diff output (see wiki localization guide)
+wrb-out/
+
