@@ -87,8 +87,34 @@ class Project(BaseModel):
         # the guarantee holds for every project-deletion code path
         # (User-deletion cascade, admin bulk delete, future callers).
         membership_list = self.membership_list
-        result = super().soft_delete_policy_action()
-        membership_list.delete()  # cascades to its Memberships
+        result = super().soft_delete_policy_action(**kwargs)
+        # NB: not passing is_cascade=True here even though semantically
+        # this IS a cascade. safedelete's cascade implementation hardcodes
+        # is_cascade=True when recursing into related rows AND forwards
+        # **kwargs, so passing is_cascade=True from the outside trips a
+        # duplicate-keyword TypeError on the recursive call. The cascade
+        # still sets deleted_by_cascade=True on the Memberships beneath
+        # this list, which is what matters; restoration is driven by
+        # Project.undelete's explicit lookup, not the cascade-walker.
+        membership_list.delete()
+        return result
+
+    @transaction.atomic
+    def undelete(self, *args, **kwargs):
+        # Mirror soft_delete_policy_action: safedelete's undelete walks
+        # reverse FKs from Project (Sites, ProjectSoilSettings, etc.) but
+        # never reaches MembershipList, because ML is upstream of Project
+        # in DB terms (the FK column lives on Project, pointing at ML).
+        # We capture the raw FK id and look up via all_objects, because
+        # the related-object accessor (self.membership_list) goes through
+        # the SafeDeleteManager and would skip a soft-deleted ML.
+        from apps.collaboration.models import MembershipList
+
+        membership_list_id = self.membership_list_id
+        result = super().undelete(*args, **kwargs)
+        ml = MembershipList.all_objects.filter(id=membership_list_id).first()
+        if ml is not None and ml.deleted_at is not None:
+            ml.undelete()  # cascades to its Memberships
         return result
 
     def user_has_role(self, user: User, role: ProjectRole) -> bool:

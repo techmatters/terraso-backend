@@ -286,6 +286,11 @@ class User(SafeDeleteModel, AbstractUser):
 
         solo_project_ids = list(self._solo_manager_projects().values_list("pk", flat=True))
         result = super().delete(*args, **kwargs)
+        # NB: not passing is_cascade=True. safedelete hardcodes
+        # is_cascade=True when recursing internally AND forwards **kwargs,
+        # so passing it from the outside trips a duplicate-keyword
+        # TypeError. Restoration on undelete is driven by the explicit
+        # walk in _undelete_solo_manager_projects, not the cascade flag.
         for project in Project.objects.filter(pk__in=solo_project_ids):
             project.delete()
         return result
@@ -323,6 +328,7 @@ class User(SafeDeleteModel, AbstractUser):
             .distinct()
         )
 
+    @transaction.atomic
     def undelete(self, *args, **kwargs):
         """Restore a soft-deleted user, refusing if their email is already
         in use by another active user.
@@ -334,12 +340,16 @@ class User(SafeDeleteModel, AbstractUser):
         from the DB. Detect the conflict explicitly and surface a clear
         message instead.
 
-        NOTE: undelete restores the User row and the soft-deleted related
-        rows (Memberships, sole-manager Projects + their MembershipLists,
-        owned Sites + soil data). It does NOT recover `SiteNote.author`
-        rows nulled at hard-delete (those FKs are gone forever), nor any
-        rows that were refused at the soft-delete gate. Restoration is
-        partial by design.
+        Restores the User row and the soft-deleted related rows (Memberships,
+        owned Sites + soil data + notes — all via safedelete's
+        cascade-walker), plus sole-manager Projects + their MembershipLists
+        + cascade-children (via an explicit walk in
+        _undelete_solo_manager_projects, because Project has no reverse FK
+        to User and isn't reachable from User by safedelete's walker).
+
+        Does NOT recover `SiteNote.author` rows nulled at hard-delete (those
+        FKs are gone forever), nor rows that were refused at the gate.
+        Restoration is partial by design.
         """
         conflict = type(self).objects.filter(email=self.email).exclude(pk=self.pk).first()
         if conflict is not None:
@@ -348,7 +358,35 @@ class User(SafeDeleteModel, AbstractUser):
                 f"with that email already exists (id={conflict.id}). "
                 "Resolve the conflict before undeleting."
             )
-        return super().undelete(*args, **kwargs)
+        result = super().undelete(*args, **kwargs)
+        self._undelete_solo_manager_projects()
+        return result
+
+    def _undelete_solo_manager_projects(self):
+        """Restore Projects this user was the sole manager of at deletion time.
+
+        After super().undelete(), the user's Memberships are restored. Walk
+        their MANAGER memberships: any whose MembershipList belongs to a
+        still-soft-deleted Project is one we explicitly deleted in
+        _soft_delete_with_cascade. Undelete it — Project.undelete in turn
+        restores the MembershipList and its other Memberships, and
+        safedelete's standard cascade-walker handles the Sites / soil data
+        subtree.
+
+        We don't need to re-check sole-manager status here: a Project that's
+        soft-deleted can't have gained new managers in the meantime."""
+        from apps.collaboration.models import Membership
+        from apps.project_management.collaboration_roles import ProjectRole
+        from apps.project_management.models import Project
+
+        manager_memberships = self.collaboration_memberships.filter(
+            user_role=ProjectRole.MANAGER.value,
+            membership_status=Membership.APPROVED,
+        )
+        for m in manager_memberships:
+            project = Project.all_objects.filter(membership_list_id=m.membership_list_id).first()
+            if project is not None and project.deleted_at is not None:
+                project.undelete()
 
     def full_name(self):
         return _(

@@ -549,3 +549,112 @@ def test_project_soft_delete_cleans_up_membership_list():
     assert ml.deleted_at is not None
     membership.refresh_from_db()
     assert membership.deleted_at is not None
+
+
+# ---------------------------------------------------------------------------
+# Undelete — restoring sole-manager Projects and their subtrees
+# ---------------------------------------------------------------------------
+
+
+def test_undelete_restores_sole_manager_project(user):
+    """User.undelete must restore Projects this user was the sole manager
+    of at deletion time. They're not reachable from User via a reverse FK,
+    so safedelete's standard undelete-walker doesn't find them — the
+    explicit walk in _undelete_solo_manager_projects does."""
+    project = mixer.blend(Project)
+    project.add_manager(user)
+
+    user.delete()
+    project.refresh_from_db()
+    assert project.deleted_at is not None  # sanity
+
+    user.undelete()
+    project.refresh_from_db()
+    assert project.deleted_at is None
+
+
+def test_undelete_restores_membership_list_of_sole_manager_project(user):
+    """Project.undelete must restore the MembershipList — ML is upstream
+    of Project in DB terms (the FK column lives on Project), so neither
+    safedelete's cascade-walker nor the FK-accessor reach it without an
+    explicit lookup via all_objects."""
+    project = mixer.blend(Project)
+    project.add_manager(user)
+    ml_id = project.membership_list_id
+
+    user.delete()
+    ml = MembershipList.all_objects.get(pk=ml_id)
+    assert ml.deleted_at is not None  # sanity
+
+    user.undelete()
+    ml.refresh_from_db()
+    assert ml.deleted_at is None
+
+
+def test_undelete_restores_full_sole_manager_subtree(user):
+    """The behavioral round-trip: a sole-managed Project's Sites, soil
+    data, MembershipList, and other Memberships all come back when the
+    user is undeleted. Mirrors the cascade test on the delete side."""
+    other = mixer.blend(User)
+    project = mixer.blend(Project)
+    project.add_manager(user)
+    project.add_contributor(other)
+    site = Site.objects.create(name="ps", latitude=0, longitude=0, elevation=0, project=project)
+    add_soil_data_to_site(site)
+    note = SiteNote.objects.create(site=site, content="n", author=user)
+    ml_id = project.membership_list_id
+    other_membership = CollaborationMembership.objects.get(membership_list_id=ml_id, user=other)
+
+    user.delete()
+    user.undelete()
+
+    project.refresh_from_db()
+    site.refresh_from_db()
+    note.refresh_from_db()
+    other_membership.refresh_from_db()
+    ml = MembershipList.all_objects.get(pk=ml_id)
+
+    assert project.deleted_at is None
+    assert site.deleted_at is None
+    assert note.deleted_at is None
+    assert ml.deleted_at is None
+    assert other_membership.deleted_at is None
+
+
+def test_undelete_does_not_touch_co_managed_projects(user):
+    """Co-managed Projects were never deleted in the first place. They
+    must still be active after the user soft-deletes and then undeletes.
+    Verifies the helper doesn't over-restore."""
+    other = mixer.blend(User)
+    project = mixer.blend(Project)
+    project.add_manager(user)
+    project.add_manager(other)
+
+    user.delete()
+    project.refresh_from_db()
+    assert project.deleted_at is None  # sanity: co-managed survives delete
+
+    user.undelete()
+    project.refresh_from_db()
+    assert project.deleted_at is None  # still active
+
+
+def test_undelete_skips_already_active_managed_projects(user):
+    """If the user's manager Membership points at an already-active
+    Project (e.g. some external admin undeleted it independently between
+    user.delete() and user.undelete()), don't double-undelete it."""
+    project = mixer.blend(Project)
+    project.add_manager(user)
+
+    user.delete()
+    # Simulate an external undelete of the project before user comes back.
+    project.refresh_from_db()
+    project.undelete()
+    project.refresh_from_db()
+    project_deleted_at_before_undelete = project.deleted_at
+    assert project_deleted_at_before_undelete is None
+
+    # User undelete should not crash and the project stays active.
+    user.undelete()
+    project.refresh_from_db()
+    assert project.deleted_at is None
