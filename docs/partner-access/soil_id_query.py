@@ -54,7 +54,7 @@ Security
 --------
 Token values are never printed, logged, or written into this repository. They
 live only in the tokens file (written ``chmod 600``, outside the repo) and in
-memory; only the soil-ID response is written next to this script.
+memory.
 
 Uses only the Python standard library — no pip install required.
 """

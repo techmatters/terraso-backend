@@ -31,8 +31,6 @@
 # The script fills in / refreshes "access_token". The original long-lived
 # refresh token is preserved (the rotated one from each refresh is ignored).
 #
-# Token values are never printed, logged, or written into this repository.
-#
 # Requires: bash, curl, jq.
 
 set -euo pipefail
