@@ -123,13 +123,9 @@ def test_middleware_flushes_session_on_successful_grant_with_marker(user):
 
 def test_middleware_flushes_on_id_token_redirect(user):
     """Implicit/hybrid flow uses ?id_token=... instead of ?code=...; same flush."""
-    request = _build_request_to_authorize(
-        user, session_data={SESSION_FLAG_OAUTH_LOGIN: True}
-    )
+    request = _build_request_to_authorize(user, session_data={SESSION_FLAG_OAUTH_LOGIN: True})
 
-    grant_response = HttpResponseRedirect(
-        "https://client.example.com/cb?id_token=eyJabc&state=xyz"
-    )
+    grant_response = HttpResponseRedirect("https://client.example.com/cb?id_token=eyJabc&state=xyz")
     _run_oauth_middleware(request, grant_response)
 
     assert request.session.session_key is None
@@ -153,9 +149,7 @@ def test_middleware_does_not_flush_session_without_marker(user):
 
 def test_middleware_does_not_flush_on_error_redirect(user):
     """Error redirects (?error=access_denied) are not grant emissions; preserve session."""
-    request = _build_request_to_authorize(
-        user, session_data={SESSION_FLAG_OAUTH_LOGIN: True}
-    )
+    request = _build_request_to_authorize(user, session_data={SESSION_FLAG_OAUTH_LOGIN: True})
     original_key = request.session.session_key
 
     error_response = HttpResponseRedirect(
@@ -170,9 +164,7 @@ def test_middleware_does_not_flush_on_error_redirect(user):
 def test_middleware_does_not_flush_on_non_redirect_response(user):
     """Consent page (200), error page (200), etc. → preserve session.
     Only a real redirect with code/id_token triggers flush."""
-    request = _build_request_to_authorize(
-        user, session_data={SESSION_FLAG_OAUTH_LOGIN: True}
-    )
+    request = _build_request_to_authorize(user, session_data={SESSION_FLAG_OAUTH_LOGIN: True})
     original_key = request.session.session_key
 
     consent_response = HttpResponse("<consent form>", status=200)

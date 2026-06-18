@@ -52,6 +52,10 @@ SYSTEM_APP_LABELS = {"admin", "auth", "contenttypes", "sessions"}
 # so a row pointing at the User through one of these FKs blocks deletion.
 BLOCKING_ON_DELETE = {"PROTECT", "RESTRICT", "DO_NOTHING"}
 
+# Cap pk strings attached to each blocker. `count` is always the true
+# total; renderers show "+N more" from `count - len(ids)`.
+BLOCKER_ID_CAP = 50
+
 USER_PREFS_KEY_GROUP_NOTIFICATIONS = "group_notifications"
 USER_PREFS_KEY_STORY_MAP_NOTIFICATIONS = "story_map_notifications"
 USER_PREFS_KEY_LANGUAGE = "language"
@@ -96,6 +100,32 @@ class UserManager(SafeDeleteManager, BaseUserManager):
             raise ValueError("Superuser must have is_superuser=True.")
 
         return self._create_user(email, password, **extra_fields)
+
+
+class UserDeletionBlockedError(ValidationError):
+    """Raised by `User.delete()` (soft path) when `deletion_blockers()` is
+    non-empty. Subclasses `ValidationError` for backwards compatibility.
+    Carries `.blockers` so callers reuse it without re-querying."""
+
+    def __init__(self, message, blockers):
+        super().__init__(message)
+        self.blockers = blockers
+
+
+def _format_blocker(b):
+    """Render one blocker dict as "<label>: <detail>" for admin banner
+    and HubSpot ticket body. Truncated `ids` show with "(+N more)"."""
+    qualifier = f" ({b['qualifier']})" if b.get("qualifier") else ""
+    label = f"{b['model']}{qualifier} ({b['field']})"
+    ids = b.get("ids") or []
+    extra = b["count"] - len(ids)
+    if not ids:
+        detail = f"{b['count']} row(s)"
+    elif extra > 0:
+        detail = f"{b['count']} row(s); first {len(ids)} IDs: {', '.join(ids)} (+{extra} more)"
+    else:
+        detail = f"{b['count']} row(s); IDs: {', '.join(ids)}"
+    return label, detail
 
 
 class User(SafeDeleteModel, AbstractUser):
@@ -165,31 +195,12 @@ class User(SafeDeleteModel, AbstractUser):
         )
 
     def deletion_blockers(self):
-        """Return a list of {model, field, count} dicts for any rows that
-        would block soft-deletion of this user. Empty list means the user
-        is safe to soft-delete.
+        """Return blocker dicts for rows that would block this user's
+        soft-deletion. Empty list = safe to soft-delete.
 
-        Classification rule (see design doc backend/docs/user_soft_delete_plan.md):
-
-          1. Many-to-many reverse relations are skipped — through-rows auto-clean.
-          2. Apps in LANDPKS_APP_LABELS are torn down explicitly in soft_delete_policy_action; SYSTEM_APP_LABELS are Django internals. Both skip.
-          3. collaboration.Membership is a policy special case: non-project approved memberships count as blockers. (Group/Landscape membership is web data we are not yet deleting automatically. Pending memberships are not blockers.)
-          4. Otherwise the on_delete behavior decides: PROTECT / RESTRICT / DO_NOTHING auto-block; CASCADE / SET_NULL / SET_DEFAULT / SET auto-allow (referentially safe at hard-delete).
-          5. Rows that were already soft-deleted should still block (force_visibility=True for SafeDeleteModels) until the harddelete cron purges it, to avoid a crash on harddelete. This means if a user soft-deletes their only story map on day 0, they can't delete their LandPKS account until the hard-delete cron job run on day 30. Because if they also soft-delete their account on day 0, on day 30 the cron could attempt to hard-delete the User before hard-deleting the StoryMap -- whose foreign key to user is DO_NOTHING, which would cause a DB-level integrity error.
-
-        SCOPE — one layer only. This walks ONLY direct reverse FKs from
-        User (`User._meta.related_objects`). It does NOT recurse through
-        related models. A blocking FK pointing at a *descendant* of User
-        in the cascade (e.g. a hypothetical SpecialData.site = ForeignKey(
-        Site, PROTECT) in some future app) is not surfaced here, even
-        though it would crash the harddelete cron when Site is purged.
-
-        Deeper coverage comes from the structural test
-        `test_structural_user_deletion_closure_is_hard_delete_safe` in
-        tests/core/models/test_user_deletion_gate.py, which walks the
-        transitive closure of the cascade and fails CI if any closure
-        model is referenced via a blocking FK. Together, this one-layer
-        check and the closure test cover the full cascade tree.
+        Shape: `{model, qualifier, field, count, ids}` — see design doc
+        section "Blocker shape". Classification rule, scope (one-layer
+        only), and the structural-test safety net are also in the doc.
         """
         blockers = []
         for rel in User._meta.related_objects:
@@ -203,21 +214,24 @@ class User(SafeDeleteModel, AbstractUser):
             if related_model._meta.label == "collaboration.Membership":
                 from apps.collaboration.models import Membership
 
-                # Policy override: non-project APPROVED memberships block.
-                # ProjectMembershipList is a proxy of MembershipList; project
-                # lists are distinguished by `membership_list__project__isnull`
-                # (the established pattern; see UserFilter in
-                # apps/graphql/schema/users.py).
-                count = self.collaboration_memberships.filter(
+                # Policy override (clause 5 in the design doc): non-project
+                # APPROVED memberships block. Project vs. non-project per
+                # the `membership_list__project__isnull` convention.
+                qs = self.collaboration_memberships.filter(
                     membership_list__project__isnull=True,
                     membership_status=Membership.APPROVED,
-                ).count()
+                )
+                count = qs.count()
                 if count > 0:
                     blockers.append(
                         {
-                            "model": "collaboration.Membership (non-project, approved)",
+                            "model": "collaboration.Membership",
+                            "qualifier": "non-project, approved",
                             "field": "user",
                             "count": count,
+                            "ids": [
+                                str(pk) for pk in qs.values_list("pk", flat=True)[:BLOCKER_ID_CAP]
+                            ],
                         }
                     )
                 continue
@@ -230,13 +244,16 @@ class User(SafeDeleteModel, AbstractUser):
                 base_qs = related_model.objects.all(force_visibility=True)
             else:
                 base_qs = related_model.objects.all()
-            count = base_qs.filter(**{rel.field.name: self}).count()
+            qs = base_qs.filter(**{rel.field.name: self})
+            count = qs.count()
             if count > 0:
                 blockers.append(
                     {
                         "model": related_model._meta.label,
+                        "qualifier": None,
                         "field": rel.field.name,
                         "count": count,
+                        "ids": [str(pk) for pk in qs.values_list("pk", flat=True)[:BLOCKER_ID_CAP]],
                     }
                 )
         return blockers
@@ -263,9 +280,10 @@ class User(SafeDeleteModel, AbstractUser):
                 target_user_id=str(self.id),
                 blockers=blockers,
             )
-            raise ValidationError(
+            raise UserDeletionBlockedError(
                 f"Cannot delete user {self.email!r}: has undeletable data "
-                f"({len(blockers)} blocking model(s))."
+                f"({len(blockers)} blocking model(s)).",
+                blockers=blockers,
             )
         logger.info("user.soft_deleted", target_user_id=str(self.id))
 
@@ -441,6 +459,34 @@ class UserPreference(models.Model):
                 name="unique_user_preference",
             ),
         )
+
+
+class TicketCreationError(Exception):
+    """Raised by `request_account_deletion` when the HubSpot ticket call
+    reports failure. Surfacing this lets the caller retry instead of
+    silently locking the user out via the idempotence check."""
+
+
+def request_account_deletion(user, blockers=None):
+    """Set the pending-deletion pref and file the HubSpot ticket exactly
+    once. Idempotent if the pref is already "true". Caller gates permission.
+
+    Order: ticket BEFORE pref — if HubSpot fails, pref stays "false" so
+    the user can retry. Reverse order would silently lock the user out
+    via the idempotence short-circuit. See design doc for the failure-mode
+    tradeoff.
+    """
+    from apps.core.hubspot import create_account_deletion_ticket
+
+    pref, _ = UserPreference.objects.get_or_create(user=user, key=USER_PREFS_KEY_ACCOUNT_DELETION)
+    if pref.value.lower() == "true":
+        return
+    if not create_account_deletion_ticket(user, blockers=blockers):
+        raise TicketCreationError(
+            f"Failed to file HubSpot account-deletion ticket for {user.email!r}"
+        )
+    pref.value = "true"
+    pref.save()
 
 
 # Deleted-user stub: returned by resolvers (SiteNoteNode.author,

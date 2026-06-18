@@ -189,9 +189,7 @@ def test_site_with_real_owner_returns_real_user(client, user):
 # --- Soft-delete end-to-end ---
 
 
-def test_soft_deleting_user_makes_their_notes_serialize_with_stub(
-    client, project, project_user
-):
+def test_soft_deleting_user_makes_their_notes_serialize_with_stub(client, project, project_user):
     """Drive the full cascade: a user authors a note; the user soft-deletes;
     the note now serializes with the stub author. This is the scenario
     that prompted the plan — the symptom the stub prevents on old clients."""

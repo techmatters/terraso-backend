@@ -27,6 +27,8 @@ two callers that wrap the gate with caller-specific UX:
     banner; bulk-delete partitions blocked vs. clean and surfaces a
     single warning banner."""
 
+from unittest.mock import patch
+
 import pytest
 from django.contrib import messages
 from django.contrib.admin.sites import AdminSite
@@ -66,9 +68,15 @@ def test_mutation_clean_user_returns_user_and_empty_blockers(client_query, users
     assert not User.objects.filter(pk=user.pk).exists()
 
 
-def test_mutation_user_with_blockers_returns_blockers_and_null_user(client_query, users):
+@patch("apps.core.hubspot.create_account_deletion_ticket")
+def test_mutation_user_with_blockers_returns_blockers_and_null_user(
+    mock_ticket, client_query, users
+):
     """Blocked self-delete: payload returns user=null with structured
     blockers; the User row is NOT soft-deleted."""
+    # HubSpot side-effect mocked here so the assertion focuses on the
+    # payload shape; HubSpot integration is covered separately below.
+    mock_ticket.return_value = True
     user = users[0]
     mixer.blend(DataEntry, created_by=user)
 
@@ -81,6 +89,104 @@ def test_mutation_user_with_blockers_returns_blockers_and_null_user(client_query
     # User is still active.
     user.refresh_from_db()
     assert user.deleted_at is None
+
+
+@patch("apps.core.hubspot.create_account_deletion_ticket")
+def test_mutation_blocked_branch_fires_hubspot_ticket_with_blockers(
+    mock_ticket, client_query, users
+):
+    """Blocked self-delete falls back to the manual-cleanup flow: it sets
+    the pending-deletion pref and files a HubSpot ticket whose body
+    includes the blocker details so support can clean up."""
+    from apps.core.models import UserPreference
+    from apps.core.models.users import USER_PREFS_KEY_ACCOUNT_DELETION
+
+    mock_ticket.return_value = True
+    user = users[0]
+    mixer.blend(DataEntry, created_by=user)
+
+    client_query(DELETE_USER_MUTATION, variables={"input": {"id": str(user.id)}}).json()
+
+    # Ticket fired with the blocker list.
+    mock_ticket.assert_called_once()
+    call_kwargs = mock_ticket.call_args.kwargs
+    assert call_kwargs["blockers"]
+    assert any(b["model"] == "shared_data.DataEntry" for b in call_kwargs["blockers"])
+
+    # Pending-deletion pref is now "true" so re-login routes to the pending screen.
+    pref = UserPreference.objects.get(user_id=user.id, key=USER_PREFS_KEY_ACCOUNT_DELETION)
+    assert pref.value.lower() == "true"
+
+
+@patch("apps.core.hubspot.create_account_deletion_ticket")
+def test_mutation_blocked_branch_is_idempotent_on_retry(mock_ticket, client_query, users):
+    """If the user re-fires the mutation while still blocked, the helper
+    short-circuits on the existing 'true' pref — no second ticket."""
+    mock_ticket.return_value = True
+    user = users[0]
+    mixer.blend(DataEntry, created_by=user)
+
+    client_query(DELETE_USER_MUTATION, variables={"input": {"id": str(user.id)}}).json()
+    client_query(DELETE_USER_MUTATION, variables={"input": {"id": str(user.id)}}).json()
+
+    assert mock_ticket.call_count == 1
+
+
+@patch("apps.core.hubspot.create_account_deletion_ticket")
+def test_mutation_blocked_branch_returns_blockers_with_error_when_hubspot_fails(
+    mock_ticket, client_query, users
+):
+    """Blocked + HubSpot down: the payload still carries the structured
+    blockers (so the client knows what blocked it) AND a layered error
+    (so the client knows the support handoff didn't succeed and the
+    pref wasn't set). User stays active, pref stays "false" so retry works."""
+    from apps.core.models import UserPreference
+    from apps.core.models.users import USER_PREFS_KEY_ACCOUNT_DELETION
+
+    mock_ticket.return_value = False  # HubSpot reports failure
+    user = users[0]
+    mixer.blend(DataEntry, created_by=user)
+
+    response = client_query(DELETE_USER_MUTATION, variables={"input": {"id": str(user.id)}}).json()
+    payload = response["data"]["deleteUser"]
+
+    # Blockers populated — client knows what's blocking.
+    assert payload["user"] is None
+    assert payload["blockers"]
+    assert any("DataEntry" in b["model"] for b in payload["blockers"])
+    # Layered error — client knows the ticket failed and can retry.
+    assert payload["errors"]
+    assert "ticket" in payload["errors"][0]["message"].lower()
+    # Pref stays "false" so the retry isn't short-circuited.
+    pending = UserPreference.objects.filter(
+        user_id=user.id, key=USER_PREFS_KEY_ACCOUNT_DELETION, value__iexact="true"
+    )
+    assert not pending.exists()
+    # User remains active.
+    user.refresh_from_db()
+    assert user.deleted_at is None
+
+
+def test_retry_after_clean_delete_is_rejected_at_auth_layer(client_query, users):
+    """After a successful clean delete, retrying the mutation with the
+    same JWT is rejected by the auth middleware (User.objects.get(pk=...)
+    excludes soft-deleted users → "User not found for JWT token" → 401).
+    The mutation never runs. This is the "other-device bouncing" property
+    that lets us drop the explicit re-auth-after-delete code path.
+
+    Not really "idempotence" on the mutation — the clean-delete path is
+    destructive — but locks in graceful handling at the layer that
+    actually owns it."""
+    user = users[0]
+    user.delete()  # soft-delete via the normal path
+
+    response = client_query(DELETE_USER_MUTATION, variables={"input": {"id": str(user.id)}})
+
+    # 401 from auth middleware; mutation never reached.
+    assert response.status_code == 401
+    # User stays soft-deleted; we don't accidentally undelete them.
+    user.refresh_from_db()
+    assert user.deleted_at is not None
 
 
 # ---------------------------------------------------------------------------

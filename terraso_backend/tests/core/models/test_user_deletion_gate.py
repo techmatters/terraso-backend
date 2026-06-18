@@ -349,8 +349,87 @@ def test_landpks_app_relations_never_block(user):
 
 
 # ---------------------------------------------------------------------------
+# Blocker shape: qualifier, ids, BLOCKER_ID_CAP
+# ---------------------------------------------------------------------------
+
+
+def test_blocker_shape_for_plain_fk_blocker(user):
+    """Plain FK blocker (no policy override): qualifier=None, ids has
+    one pk string, count matches ids length."""
+    entry = mixer.blend(DataEntry, created_by=user)
+    blockers = user.deletion_blockers()
+    [b] = [b for b in blockers if b["model"] == "shared_data.DataEntry"]
+    assert b == {
+        "model": "shared_data.DataEntry",
+        "qualifier": None,
+        "field": "created_by",
+        "count": 1,
+        "ids": [str(entry.pk)],
+    }
+
+
+def test_blocker_shape_for_membership_uses_qualifier(user):
+    """Membership policy override: qualifier carries 'non-project,
+    approved', model stays a clean Django label (no embedded prose)."""
+    landscape = mixer.blend(Landscape)
+    CollaborationMembership.objects.create(
+        membership_list=landscape.membership_list,
+        user=user,
+        user_role="MEMBER",
+        membership_status=CollaborationMembership.APPROVED,
+    )
+    blockers = user.deletion_blockers()
+    [b] = [b for b in blockers if b["model"] == "collaboration.Membership"]
+    assert b["model"] == "collaboration.Membership"
+    assert b["qualifier"] == "non-project, approved"
+    assert b["field"] == "user"
+    assert b["count"] == 1
+    assert len(b["ids"]) == 1
+
+
+def test_blocker_ids_cap_truncates_with_accurate_count(user):
+    """When count exceeds BLOCKER_ID_CAP, `count` reports the true total
+    but `ids` truncates to BLOCKER_ID_CAP. Renderers compute "+N more"
+    from `count - len(ids)`."""
+    from apps.core.models.users import BLOCKER_ID_CAP
+
+    over_cap = BLOCKER_ID_CAP + 5
+    for _ in range(over_cap):
+        mixer.blend(DataEntry, created_by=user)
+    blockers = user.deletion_blockers()
+    [b] = [b for b in blockers if b["model"] == "shared_data.DataEntry"]
+    assert b["count"] == over_cap
+    assert len(b["ids"]) == BLOCKER_ID_CAP
+
+
+def test_blocker_ids_are_strings(user):
+    """pks come back as strings (not UUID objects) so the payload survives
+    JSON serialization in both the GraphQL response and HubSpot body."""
+    mixer.blend(DataEntry, created_by=user)
+    blockers = user.deletion_blockers()
+    [b] = [b for b in blockers if b["model"] == "shared_data.DataEntry"]
+    assert all(isinstance(pk, str) for pk in b["ids"])
+
+
+# ---------------------------------------------------------------------------
 # User.delete() gate
 # ---------------------------------------------------------------------------
+
+
+def test_delete_raises_user_deletion_blocked_error_with_blockers_attached(user):
+    """The model raises `UserDeletionBlockedError` (subclass of ValidationError)
+    with the blocker list attached, so callers can reuse it without re-querying."""
+    from apps.core.models.users import UserDeletionBlockedError
+
+    mixer.blend(DataEntry, created_by=user)
+    with pytest.raises(UserDeletionBlockedError) as exc_info:
+        user.delete()
+    # Subclass relationship preserved for backwards-compatibility callers.
+    assert isinstance(exc_info.value, ValidationError)
+    # Blockers attached for downstream consumption.
+    assert any(b["model"] == "shared_data.DataEntry" for b in exc_info.value.blockers)
+    user.refresh_from_db()
+    assert user.deleted_at is None
 
 
 def test_delete_raises_when_blockers_present(user):

@@ -22,9 +22,14 @@ from graphene_django import DjangoObjectType
 
 from apps.auth.services import JWTService
 from apps.collaboration.models import Membership
-from apps.core.hubspot import create_account_deletion_ticket
 from apps.core.models import User, UserPreference
-from apps.core.models.users import USER_PREFS_KEY_ACCOUNT_DELETION, USER_PREFS_KEYS
+from apps.core.models.users import (
+    USER_PREFS_KEY_ACCOUNT_DELETION,
+    USER_PREFS_KEYS,
+    TicketCreationError,
+    UserDeletionBlockedError,
+    request_account_deletion,
+)
 from apps.graphql.exceptions import GraphQLNotAllowedException
 
 from .commons import (
@@ -135,8 +140,10 @@ class UserUpdateMutation(BaseAuthenticatedMutation):
 
 class BlockerType(graphene.ObjectType):
     model = graphene.String()
+    qualifier = graphene.String()  # nullable; None for most blockers
     field = graphene.String()
     count = graphene.Int()
+    ids = graphene.List(graphene.ID)
 
 
 class UserDeleteMutation(BaseDeleteMutation):
@@ -161,16 +168,25 @@ class UserDeleteMutation(BaseDeleteMutation):
                 model_name=User.__name__, operation=MutationTypes.DELETE
             )
 
-        # Pre-check via the shared rule in User.deletion_blockers(). On a
-        # blocked user, return a structured `blockers` payload (user=null)
-        # rather than raising — the client distinguishes "rejected" from
-        # "deleted" by which field is populated. The same gate also fires
-        # inside User.delete() as a safety net if anyone else calls it.
+        # Catch only UserDeletionBlockedError (not generic exceptions) —
+        # see design doc "Three-layer architecture" for why.
         user = User.objects.get(pk=_id)
-        blockers = user.deletion_blockers()
-        if blockers:
-            return cls(user=None, blockers=blockers)
-        user.delete()
+        try:
+            user.delete()
+        except UserDeletionBlockedError as e:
+            # Blocked: route to manual cleanup. If HubSpot is down,
+            # still return the structured blockers so the client knows
+            # what's blocking, with a layered error explaining the
+            # ticket failure so the user can retry.
+            try:
+                request_account_deletion(user, blockers=e.blockers)
+            except TicketCreationError as ticket_err:
+                return cls(
+                    user=None,
+                    blockers=e.blockers,
+                    errors=[{"message": str(ticket_err)}],
+                )
+            return cls(user=None, blockers=e.blockers)
         return cls(user=user, blockers=[])
 
 
@@ -212,15 +228,21 @@ class UserPreferenceUpdate(BaseAuthenticatedMutation):
             )
 
         previous_value = preference.value
-        preference.value = value
-        preference.save()
-
-        if (
+        new_deletion_request = (
             key == USER_PREFS_KEY_ACCOUNT_DELETION
             and previous_value.lower() != "true"
             and value.lower() == "true"
-        ):
-            create_account_deletion_ticket(user)
+        )
+
+        if new_deletion_request:
+            # Helper handles ordering + idempotence; raises on HubSpot failure
+            # so the pref stays "false" and the user can retry (behavior change
+            # from the prior silent-log-and-save).
+            request_account_deletion(user)
+            preference = UserPreference.objects.get(user_id=user.id, key=key)
+        else:
+            preference.value = value
+            preference.save()
 
         return cls(preference=preference)
 

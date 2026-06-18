@@ -113,9 +113,7 @@ def test_graphql_session_only_request_does_not_create_project(client, user):
     assert "errors" in response.json()
 
 
-def test_graphql_session_with_expired_jwt_returns_401(
-    client, user, expired_access_token
-):
+def test_graphql_session_with_expired_jwt_returns_401(client, user, expired_access_token):
     """Session + expired JWT on /graphql/ must be rejected by the JWT layer."""
     client.force_login(user)
     response = client.post(

@@ -1907,8 +1907,10 @@ type UserDeleteMutationPayload {
 
 type BlockerType {
   model: String
+  qualifier: String
   field: String
   count: Int
+  ids: [ID]
 }
 
 input UserDeleteMutationInput {
