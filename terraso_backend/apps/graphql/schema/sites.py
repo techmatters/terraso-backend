@@ -21,6 +21,7 @@ from graphene import relay
 from graphene_django import DjangoObjectType
 from graphene_django.filter import TypedFilter
 
+from apps.core import analytics
 from apps.project_management.graphql.projects import ProjectNode
 from apps.project_management.models import Project, Site, sites
 from apps.project_management.permission_rules import Context
@@ -270,6 +271,14 @@ class SiteDeleteMutation(BaseDeleteMutation):
             cls.not_allowed(MutationTypes.DELETE)
 
         result = super().mutate_and_get_payload(root, info, **kwargs)
+
+        analytics.capture(
+            distinct_id=user.id,
+            event="site_deleted",
+            properties={"site_name": site.name, "in_project": site.project_id is not None},
+            set_props=analytics.user_person_properties(user),
+        )
+
         return result
 
 

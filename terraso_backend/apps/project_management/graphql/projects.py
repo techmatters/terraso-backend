@@ -28,6 +28,7 @@ from apps.collaboration.graphql.memberships import (
     MembershipNodeMixin,
 )
 from apps.collaboration.models import Membership
+from apps.core import analytics
 from apps.core.models import User
 from apps.graphql.schema.commons import (
     BaseAuthenticatedMutation,
@@ -230,6 +231,16 @@ class ProjectDeleteMutation(BaseDeleteMutation):
                 site.project = transfer_project
             Site.objects.bulk_update(project_sites, ["project"])
         result = super().mutate_and_get_payload(root, info, **kwargs)
+
+        analytics.capture(
+            distinct_id=user.id,
+            event="project_deleted",
+            properties={
+                "project_name": project.name,
+                "transferred_sites": "transfer_project_id" in kwargs,
+            },
+            set_props=analytics.user_person_properties(user),
+        )
 
         return result
 

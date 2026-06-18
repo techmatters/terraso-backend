@@ -22,6 +22,7 @@ from graphene_django import DjangoObjectType
 
 from apps.auth.services import JWTService
 from apps.collaboration.models import Membership
+from apps.core import analytics
 from apps.core.hubspot import create_account_deletion_ticket
 from apps.core.models import User, UserPreference
 from apps.core.models.users import USER_PREFS_KEY_ACCOUNT_DELETION, USER_PREFS_KEYS
@@ -175,6 +176,13 @@ class UserAddMutation(BaseAdminMutation):
             kwargs.pop("email"), password=kwargs.pop("password"), **kwargs
         )
 
+        analytics.capture(
+            distinct_id=user.id,
+            event="user_created",
+            properties={"auth_provider": "admin"},
+            set_props=analytics.user_person_properties(user),
+        )
+
         return cls(user=user)
 
 
@@ -239,7 +247,15 @@ class UserDeleteMutation(BaseDeleteMutation):
                 model_name=User.__name__, operation=MutationTypes.DELETE
             )
 
-        return super().mutate_and_get_payload(root, info, **kwargs)
+        result = super().mutate_and_get_payload(root, info, **kwargs)
+
+        analytics.capture(
+            distinct_id=_id,
+            event="user_deleted",
+            set_props=analytics.user_person_properties(request_user),
+        )
+
+        return result
 
 
 class UserPreferenceUpdate(BaseAuthenticatedMutation):

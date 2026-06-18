@@ -18,6 +18,7 @@ graphene-django
 httpx
 openpyxl
 pandas
+posthog
 prettyconf
 psycopg
 pyjwt[crypto]

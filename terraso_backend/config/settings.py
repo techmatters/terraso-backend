@@ -335,6 +335,14 @@ JWT_REFRESH_EXP_DELTA_SECONDS = config(
 )
 JWT_ISS = config("JWT_ISS", default="https://terraso.org")
 
+# PostHog product analytics (server-side event capture). Disabled by default;
+# fully a no-op unless POSTHOG_ENABLED is true AND POSTHOG_API_KEY is set, so
+# dev/test/CI never emit. Uses the same project key as the mobile client so
+# events merge onto one person/project. See apps/core/analytics.py and docs/posthog.md.
+POSTHOG_API_KEY = config("POSTHOG_API_KEY", default="")
+POSTHOG_HOST = config("POSTHOG_HOST", default="https://us.i.posthog.com")
+POSTHOG_ENABLED = config("POSTHOG_ENABLED", default=False, cast=config.boolean)
+
 PROFILE_IMAGES_S3_BUCKET = config("PROFILE_IMAGES_S3_BUCKET", default="")
 PROFILE_IMAGES_BASE_URL = f"https://{PROFILE_IMAGES_S3_BUCKET}"
 

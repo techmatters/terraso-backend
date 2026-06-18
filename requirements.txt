@@ -20,6 +20,10 @@ attrs==25.4.0 \
     #   cattrs
     #   fiona
     #   requests-cache
+backoff==2.2.1 \
+    --hash=sha256:03f829f5bb1923180821643f8753b0502c3b682293992485b0eef2807afa5cba \
+    --hash=sha256:63579f9a0628e06278f7e47b7d7d5b6ce20dc65c5e96a6f3ca99a6adca0396e8
+    # via posthog
 boto3==1.42.15 \
     --hash=sha256:94aabb83e3be3e2ea5ffa530cd5e221e8f4eb65f8d126d097e03d1ab80e5c5ce \
     --hash=sha256:d673c9b6bb9e293e028e354de6701351f1881e3fbeb25d739dd33c4940a30929
@@ -324,6 +328,10 @@ cryptography==46.0.3 \
     # via
     #   jwcrypto
     #   pyjwt
+distro==1.9.0 \
+    --hash=sha256:2fa77c6fd8940f116ee1d6b94a2f90b13b5ea8d019b98bc8bafdcabcdd9bdbed \
+    --hash=sha256:7bffd925d65168f85027d8da9af6bddab658135b840670a223589bc0c8ef02b2
+    # via posthog
 dj-database-url==3.0.1 \
     --hash=sha256:43950018e1eeea486bf11136384aec0fe55b29fe6fd8a44553231b85661d9383 \
     --hash=sha256:8994961efb888fc6bf8c41550870c91f6f7691ca751888ebaa71442b7f84eff8
@@ -761,6 +769,10 @@ platformdirs==4.5.1 \
     # via
     #   requests-cache
     #   soil-id
+posthog==7.19.1 \
+    --hash=sha256:a51a09dcda9c9dd4c19802c3028d234ddd67fd6ac5e946ad873157eea36bf969 \
+    --hash=sha256:e0375837d9e0590c7dc58828524a1c4545ae5f596e5b947de47be8dde0435313
+    # via -r requirements/base.in
 prettyconf==2.3.0 \
     --hash=sha256:9c83eb90472522b0f2bc196f7d561ff8c26a1833f838cc32f948ea4d3973cb64 \
     --hash=sha256:d73e025b25ffb188227c88f15755a7e6bfe57203700a9b6f45146b7d6bc55c67

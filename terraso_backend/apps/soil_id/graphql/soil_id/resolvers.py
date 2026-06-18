@@ -25,6 +25,7 @@ from django.views.decorators.debug import sensitive_variables
 from soil_id import global_soil, us_soil
 from soil_id.utils import find_region_for_location
 
+from apps.core import analytics
 from apps.soil_id.graphql.soil_id.types import (
     DataBasedSoilMatch,
     DataBasedSoilMatches,
@@ -471,7 +472,62 @@ def resolve_data_based_result(
         return SoilIdFailure(reason=SoilIdFailureReason.ALGORITHM_FAILURE)
 
 
+def _capture_soil_id_lookup(info, latitude, longitude, data, result, cache_hit):
+    """Emit the `soil_id_lookup` event. Best-effort; never raises (see docs/posthog.md §4).
+
+    The backend sees *every* lookup — app, web, partner API, direct GraphQL — so it's
+    the single source of truth for soil-ID usage.
+    """
+    try:
+        user = getattr(getattr(info, "context", None), "user", None)
+        if isinstance(result, SoilMatches):
+            status, match_count = "matches", len(result.matches or [])
+        elif isinstance(result, SoilIdFailure):
+            status, match_count = "failure", 0
+        else:
+            status, match_count = "unknown", 0
+        region = getattr(result, "data_region", None)
+        properties = {
+            "latitude": latitude,
+            "longitude": longitude,
+            "status": status,
+            "data_region": getattr(region, "value", None),
+            "has_input_data": data is not None,
+            "match_count": match_count,
+        }
+        if cache_hit is not None:
+            properties["cache_hit"] = cache_hit
+        authed = getattr(user, "is_authenticated", False)
+        analytics.capture(
+            distinct_id=getattr(user, "id", None),
+            event="soil_id_lookup",
+            properties=properties,
+            set_props=analytics.user_person_properties(user) if authed else None,
+        )
+    except Exception:
+        logger.exception("soil_id_lookup analytics capture failed")
+
+
 def resolve_soil_id_result(
+    _parent, _info, latitude: float, longitude: float, data: Optional[SoilIdInputData] = None
+):
+    # Determine cache_hit before the lookup warms the cache; only pay for the
+    # extra (cheap, index-only) query when analytics is actually enabled.
+    cache_hit = None
+    if analytics.is_enabled():
+        try:
+            cache_hit = SoilIdCache.objects.filter(
+                latitude=SoilIdCache.round_coordinate(latitude),
+                longitude=SoilIdCache.round_coordinate(longitude),
+            ).exists()
+        except Exception:
+            cache_hit = None
+    result = _compute_soil_id_result(_parent, _info, latitude, longitude, data)
+    _capture_soil_id_lookup(_info, latitude, longitude, data, result, cache_hit)
+    return result
+
+
+def _compute_soil_id_result(
     _parent, _info, latitude: float, longitude: float, data: Optional[SoilIdInputData] = None
 ):
     try:

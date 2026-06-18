@@ -40,10 +40,12 @@ def create_partner_refresh_token(user, ttl: timedelta) -> str:
     # Revoke by unchecking "Active" on the user: RefreshAccessTokenView rejects
     # refresh for inactive users, so no new access tokens can be minted (existing
     # access tokens expire within JWT_ACCESS_EXP_DELTA_SECONDS).
+    # `service_account` marks this as a long-lived partner/service credential so
+    # analytics can exclude it from human active-user counts (see docs/posthog.md §5).
     return JWTService().create_token(
         user,
         expiration=int(ttl.total_seconds()),
-        extra_payload={"refresh": True},
+        extra_payload={"refresh": True, "service_account": True},
     )
 
 

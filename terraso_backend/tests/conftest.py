@@ -39,6 +39,18 @@ from tests.utils import add_soil_data_to_site
 pytestmark = pytest.mark.django_db
 
 
+@pytest.fixture(autouse=True)
+def _disable_analytics(settings):
+    """Hard-disable PostHog for every test so no real analytics events are ever
+    emitted, regardless of the POSTHOG_* values in the environment / .env. Tests
+    run under the production `config.settings`, which reads these from the env, so
+    without this an enabled local/CI .env would send fixture data to PostHog.
+    Tests that want to assert capture behaviour mock `apps.core.analytics` directly.
+    """
+    settings.POSTHOG_ENABLED = False
+    settings.POSTHOG_API_KEY = ""
+
+
 @pytest.fixture
 def users():
     return mixer.cycle(5).blend(User)
