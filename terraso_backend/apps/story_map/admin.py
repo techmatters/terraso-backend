@@ -15,6 +15,7 @@
 
 from django import forms
 from django.contrib import admin
+from safedelete.admin import SafeDeleteAdmin, SafeDeleteAdminFilter, highlight_deleted
 
 from .models import StoryMap
 
@@ -30,7 +31,14 @@ class CustomStoryMapForm(forms.ModelForm):
 
 
 @admin.register(StoryMap)
-class StoryMapAdmin(admin.ModelAdmin):
-    list_display = ("title", "created_by")
+class StoryMapAdmin(SafeDeleteAdmin):
+    # SafeDeleteAdmin gives:
+    #   - Queryset that includes soft-deleted rows in the list view.
+    #   - "highlight_deleted" indicator in list_display.
+    #   - Active / Deleted / All filter in the sidebar.
+    #   - "Undelete selected" bulk action.
+    list_display = (highlight_deleted, "created_by", "deleted_at", "created_at")
+    list_filter = (SafeDeleteAdminFilter,)
+    search_fields = ("title", "created_by__email")
     raw_id_fields = ("membership_list",)
     form = CustomStoryMapForm
