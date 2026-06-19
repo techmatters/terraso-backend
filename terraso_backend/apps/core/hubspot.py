@@ -40,6 +40,10 @@ def create_account_deletion_ticket(user, blockers=None):
         body_lines += [f"- {label}: {detail}" for label, detail in map(_format_blocker, blockers)]
     body = "\n".join(body_lines)
 
+    if settings.HUBSPOT_DRY_RUN:
+        logger.info("HubSpot dry-run: skipping ticket creation", subject=subject, body=body)
+        return True
+
     headers = {"Content-type": "application/json", "Authorization": settings.HUBSPOT_AUTH_TOKEN}
     data = {
         "fields": [

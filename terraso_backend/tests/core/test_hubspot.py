@@ -20,12 +20,22 @@ the ticket body says so support reps get useful context."""
 from unittest.mock import Mock, patch
 
 import pytest
+from django.test import override_settings
 from mixer.backend.django import mixer
 
 from apps.core.hubspot import create_account_deletion_ticket
 from apps.core.models import User
 
 pytestmark = pytest.mark.django_db
+
+
+@pytest.fixture(autouse=True)
+def _force_real_http(settings):
+    """Body-rendering tests need a real HTTP call to inspect the payload.
+    Force HUBSPOT_DRY_RUN=False here so a local .env enabling dry-run
+    doesn't make these tests pass-by-skipping the network. The one test
+    that specifically exercises the dry-run path re-overrides."""
+    settings.HUBSPOT_DRY_RUN = False
 
 
 def _captured_body(mock_post):
@@ -119,4 +129,15 @@ def test_body_shows_plus_n_more_when_ids_truncated(mock_post):
 def test_returns_false_when_user_has_no_email(mock_post):
     user = User(email="")
     assert create_account_deletion_ticket(user) is False
+    mock_post.assert_not_called()
+
+
+@override_settings(HUBSPOT_DRY_RUN=True)
+@patch("requests.post")
+def test_dry_run_skips_http_call_and_returns_success(mock_post):
+    """Local dev toggle: HUBSPOT_DRY_RUN=True returns success without
+    touching the network, so the blocked self-delete path can be
+    exercised end-to-end without filing real support tickets."""
+    user = mixer.blend(User, email="dev@example.com")
+    assert create_account_deletion_ticket(user, blockers=[]) is True
     mock_post.assert_not_called()
