@@ -40,6 +40,11 @@ BASE_URL="${BASE_URL%/}"
 GRAPHQL_URL="$BASE_URL/graphql/"
 TOKENS_URL="$BASE_URL/auth/tokens"
 
+# Explicit User-Agent: the Cloudflare edge in front of the API bans some
+# default agents (rejected with HTTP 403 "error code: 1010" before the request
+# reaches the backend), so identify the client explicitly.
+USER_AGENT="terraso-partner-soil-id/1.0"
+
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REQUEST_FILE="$HERE/soil_id_query_params.json"
 TOKENS_FILE="$HOME/secrets/terraso/tokens.json"
@@ -114,6 +119,7 @@ run_query() {
   local args=(
     -sS -o "$TMP_BODY" -w '%{http_code}'
     -X POST "$GRAPHQL_URL"
+    -A "$USER_AGENT"
     -H 'Content-Type: application/json'
     --data "$REQUEST_BODY"
   )
@@ -141,6 +147,7 @@ refresh_access_token() {
   local status
   status="$(curl -sS -o "$TMP_REFRESH" -w '%{http_code}' \
     -X POST "$TOKENS_URL" \
+    -A "$USER_AGENT" \
     -H 'Content-Type: application/json' \
     --data "$(jq -n --arg rt "$REFRESH_TOKEN" '{refresh_token: $rt}')")" \
     || { echo "Could not reach $TOKENS_URL" >&2; exit 1; }
