@@ -14,6 +14,7 @@
 # along with this program. If not, see https://www.gnu.org/licenses/.
 
 from django.contrib import admin
+from safedelete.config import HARD_DELETE
 
 from apps.soil_id.models import (
     DepthDependentSoilData,
@@ -72,7 +73,34 @@ class SoilDataAdmin(admin.ModelAdmin):
 
 @admin.register(SoilIdCache)
 class SoilIdCacheAdmin(admin.ModelAdmin):
-    list_display = ["id", "latitude", "longitude"]
+    # SoilIdCache is a SafeDeleteModel, but a soft-deleted cache row is pure dead
+    # weight: get_data() ignores it (forcing a recompute) and save_data() just
+    # revives it on the next lookup. So the admin always HARD-deletes here, to
+    # match `TRUNCATE soil_id_soilidcache` and keep the table from accumulating
+    # soft-deleted ghosts under the plain (latitude, longitude) unique constraint.
+    list_display = ["id", "latitude", "longitude", "data_region", "deleted_at"]
+    list_filter = ["data_region"]
+    actions = ["clear_all_cache"]
+
+    def get_queryset(self, request):
+        # Surface soft-deleted ghosts too, so they're visible and purgeable.
+        return SoilIdCache.all_objects.all()
+
+    def delete_queryset(self, request, queryset):
+        # Built-in "Delete selected" action.
+        queryset.delete(force_policy=HARD_DELETE)
+
+    def delete_model(self, request, obj):
+        # Per-object delete button on the change form.
+        obj.delete(force_policy=HARD_DELETE)
+
+    @admin.action(description="Clear ALL soil ID cache entries (hard delete)")
+    def clear_all_cache(self, request, queryset):
+        # Ignore the selection: clear the entire cache, including any
+        # soft-deleted rows, equivalent to a TRUNCATE.
+        total = SoilIdCache.all_objects.all().count()
+        SoilIdCache.all_objects.all().delete(force_policy=HARD_DELETE)
+        self.message_user(request, f"Cleared soil ID cache: {total} row(s) removed.")
 
 
 @admin.register(SoilDataHistory)
