@@ -88,7 +88,7 @@ class Project(BaseModel):
         # (User-deletion cascade, admin bulk delete, future callers).
         membership_list = self.membership_list
         result = super().soft_delete_policy_action(**kwargs)
-        # NB: not passing is_cascade=True here even though semantically
+        # Note: not passing is_cascade=True here even though semantically
         # this IS a cascade. safedelete's cascade implementation hardcodes
         # is_cascade=True when recursing into related rows AND forwards
         # **kwargs, so passing is_cascade=True from the outside trips a
@@ -96,6 +96,12 @@ class Project(BaseModel):
         # still sets deleted_by_cascade=True on the Memberships beneath
         # this list, which is what matters; restoration is driven by
         # Project.undelete's explicit lookup, not the cascade-walker.
+        #
+        # Minor consequence: the soft-deleted MembershipList row will
+        # have `deleted_by_cascade=False` even when it was deleted as
+        # part of a Project deletion (which is always, since this is the
+        # only place ML.delete() is called from the Project path). The
+        # Memberships beneath the list still correctly read True.
         membership_list.delete()
         return result
 

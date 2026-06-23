@@ -304,11 +304,18 @@ class User(SafeDeleteModel, AbstractUser):
 
         solo_project_ids = list(self._solo_manager_projects().values_list("pk", flat=True))
         result = super().delete(*args, **kwargs)
-        # NB: not passing is_cascade=True. safedelete hardcodes
+        # Note: not passing is_cascade=True. safedelete hardcodes
         # is_cascade=True when recursing internally AND forwards **kwargs,
         # so passing it from the outside trips a duplicate-keyword
         # TypeError. Restoration on undelete is driven by the explicit
         # walk in _undelete_solo_manager_projects, not the cascade flag.
+        #
+        # Minor consequence: the soft-deleted Project row will have
+        # `deleted_by_cascade=False` even though it was semantically
+        # cascade-deleted from this user. Cascade descendants under the
+        # Project (Sites, soil data, etc.) still correctly read True —
+        # those go through safedelete's internal recursion. Only the
+        # explicit Project "root" we delete here is mislabelled.
         for project in Project.objects.filter(pk__in=solo_project_ids):
             project.delete()
         return result
