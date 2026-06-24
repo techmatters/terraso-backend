@@ -18,7 +18,7 @@ import structlog
 from django.apps import apps
 from django.conf import settings
 from django.core.management.base import BaseCommand
-from django.db import models
+from django.db import models, transaction
 from safedelete.models import HARD_DELETE
 
 logger = structlog.get_logger(__name__)
@@ -40,9 +40,19 @@ class Command(BaseCommand):
 
     @staticmethod
     def all_objects(cutoff_date):
+        """All soft-deleted rows past the cutoff, sorted by deleted_at
+        ascending. The sort matters for dependency ordering: dependents
+        purged before their dependencies in the common case, so a single
+        run converges instead of needing a retry the next day.
+
+        Skips proxy models — they share the underlying table with their
+        concrete parent, so without this guard the same row would be
+        queued twice (once as the parent, once as the proxy)."""
         app_models = apps.get_models()
         objects = []
         for model in app_models:
+            if model._meta.proxy:
+                continue
             for field in model._meta.fields:
                 if field.name == "deleted_at" and isinstance(field, models.fields.DateTimeField):
                     objects.extend(
@@ -51,6 +61,7 @@ class Command(BaseCommand):
                         .all()
                     )
                     continue
+        objects.sort(key=lambda o: o.deleted_at)
         return objects
 
     def handle(self, *args, **options):
@@ -58,5 +69,25 @@ class Command(BaseCommand):
         deletion_gap = options["deletion_gap"]
         cutoff_date = exec_time - deletion_gap
         to_delete = self.all_objects(cutoff_date)
+        succeeded = 0
+        failed = 0
         for obj in to_delete:
-            obj.delete(force_policy=HARD_DELETE)
+            # Per-row try/except + atomic isolates each delete: one row's
+            # IntegrityError (e.g. an FK pointing at a not-yet-purged row,
+            # or an admin-undeleted referencer to a soft-deleted target)
+            # logs to Sentry but doesn't abort the batch. The next cron
+            # run picks the row up again and retries.
+            try:
+                with transaction.atomic():
+                    obj.delete(force_policy=HARD_DELETE)
+                succeeded += 1
+            except Exception as err:
+                failed += 1
+                logger.error(
+                    "harddelete.row_failed",
+                    model=type(obj)._meta.label,
+                    pk=str(obj.pk),
+                    error=str(err),
+                    error_type=type(err).__name__,
+                )
+        logger.info("harddelete.run_complete", succeeded=succeeded, failed=failed)

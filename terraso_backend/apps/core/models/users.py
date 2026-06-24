@@ -214,9 +214,11 @@ class User(SafeDeleteModel, AbstractUser):
             if related_model._meta.label == "collaboration.Membership":
                 from apps.collaboration.models import Membership
 
-                # Policy override (clause 5 in the design doc): non-project
-                # APPROVED memberships block. Project vs. non-project per
-                # the `membership_list__project__isnull` convention.
+                # Policy override: non-project APPROVED memberships block
+                # even though Membership.user is CASCADE (the on_delete-floor
+                # rule would otherwise let them through). See design doc
+                # "Defining undeletable data" for rationale. Project vs.
+                # non-project distinguished by `membership_list__project__isnull`.
                 qs = self.collaboration_memberships.filter(
                     membership_list__project__isnull=True,
                     membership_status=Membership.APPROVED,
@@ -240,11 +242,11 @@ class User(SafeDeleteModel, AbstractUser):
             if on_delete_name not in BLOCKING_ON_DELETE:
                 continue
 
-            if issubclass(related_model, SafeDeleteModel):
-                base_qs = related_model.objects.all(force_visibility=True)
-            else:
-                base_qs = related_model.objects.all()
-            qs = base_qs.filter(**{rel.field.name: self})
+            # Only active rows block. A row that's already soft-deleted is
+            # handled by the harddelete cron (which sorts by deleted_at and
+            # is resilient to per-row integrity failures), so it doesn't
+            # need to gate the user.
+            qs = related_model.objects.filter(**{rel.field.name: self})
             count = qs.count()
             if count > 0:
                 blockers.append(

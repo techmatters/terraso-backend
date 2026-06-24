@@ -95,7 +95,7 @@ A reverse relation from another model to `User` is a **deletion blocker** if and
 1. It's a **ForeignKey** (M2M reverse relations skip — through-rows auto-clean), **and**
 2. Its `on_delete` is **PROTECT**, **RESTRICT**, or **DO_NOTHING** (the three behaviors that would either raise or orphan at hard-delete), **and**
 3. The model isn't in the **explicit-cascade allowlist** (`project_management`, `soil_id` — we tear those down ourselves) or the **Django-internals allowlist** (`admin`, `auth`, `contenttypes`, `sessions`), **and**
-4. There are matching rows. **Count includes soft-deleted rows** (`force_visibility=True` for SafeDeleteModels): a not-yet-purged PROTECT/DO_NOTHING row would still crash the cron, so it has to keep blocking until purged.
+4. There are matching **active** rows. Soft-deleted referencing rows do NOT block — the resilient harddelete cron (sort by `deleted_at`, per-row `transaction.atomic` + broad `try/except`, daily retry) handles them in subsequent runs without crashing the batch. See "Cron resilience and the dropped rule 5" in the Concerns section.
 
 Plus one **policy override** layered on top:
 
@@ -149,8 +149,8 @@ class User(SafeDeleteModel, AbstractUser):
             "and N more" hint when display-truncated.
 
         See the rule above for what counts as a blocker. Counts soft-deleted
-        rows too (force_visibility), since a not-yet-purged PROTECT/DO_NOTHING
-        row would still crash the harddelete cron."""
+        rows. Only active rows count — soft-deleted referencers are
+        purged by the resilient harddelete cron in subsequent runs."""
         blockers = []
         for rel in User._meta.related_objects:
             if rel.many_to_many:
@@ -187,7 +187,7 @@ class User(SafeDeleteModel, AbstractUser):
                 continue
 
             if issubclass(related_model, SafeDeleteModel):
-                base_qs = related_model.objects.all(force_visibility=True)
+                base_qs = related_model.objects.all()
             else:
                 base_qs = related_model.objects.all()
             qs = base_qs.filter(**{rel.field.name: self})
@@ -307,7 +307,8 @@ Logs render as JSON to stdout and warnings/errors also reach Sentry. Put the log
     - **`force_policy=HARD_DELETE` is NOT gated**: `user_with_blockers.delete(force_policy=HARD_DELETE)` does not raise (proves the cron path is unaffected).
     - **Membership classification**: one project membership and one Group/Landscape membership for the same user; project one is _not_ a blocker, the other _is_. (Locks the proxy-model traversal.)
     - **Pending membership doesn't block**: a `PENDING`, non-project membership is not counted; an `APPROVED` one is.
-    - **Soft-deleted blockers still block**: soft-delete a user's `StoryMap` (or `DataEntry`), assert `deletion_blockers()` still reports it (proves `force_visibility`).
+    - **Soft-deleted blockers do NOT block** (rule 5 dropped): soft-delete a user's `StoryMap`, assert `deletion_blockers()` no longer reports it. Locks in the new behavior and prevents accidental rule-5 re-introduction.
+    - **Cron resilience**: parametrized over all 6 blocker models — soft-delete the referencer, then the user, assert both are gone within at most 2 cron runs. Covers DO_NOTHING (one run) and PROTECT (two runs, retry convergence). See `tests/core/commands/test_harddelete.py::test_cron_converges_within_two_runs`.
     - **Behavioral cascade test (the big one)**: build the full nested footprint (user → sole-managed project → MembershipList + Memberships → sites → soil data → depth intervals → notes → history) plus a co-managed project (sites + notes), soft-delete the user, assert: (a) sole-managed project + all its descendants soft-deleted, (b) project's MembershipList + Memberships soft-deleted, (c) co-managed project survives, (d) user's Membership in co-managed project soft-deleted, (e) co-managed project's sites survive, (f) DataEntry-re-link branch is _not_ exercised (no DataEntries for this user).
     - Sole-manager detection: sole, co-managed, non-manager.
     - **`Project.soft_delete_policy_action` cleans up MembershipList**: directly soft-delete a Project (outside the user cascade), assert its MembershipList + Memberships are soft-deleted.
@@ -591,7 +592,7 @@ None blocking. Three coordination items:
 ## Settled decisions (do not re-litigate)
 
 - **"Undeletable data" defined by an `on_delete`-floor rule + one policy override**, not a hand-maintained model list. CASCADE/SET_NULL/M2M never block (self-maintaining); PROTECT/RESTRICT/DO_NOTHING auto-block; landpks/system apps skip; collaboration.Membership non-project APPROVED blocks via policy override. New future models classify themselves correctly by their `on_delete` choice.
-- **Soft-deleted blockers still block**: the check counts soft-deleted rows (`force_visibility=True` for SafeDeleteModels). Required for correctness — without it a not-yet-purged PROTECT/DO_NOTHING row slips the gate and the harddelete cron crashes. Accepted cost: a user who just cleaned up their data stays blocked until the cron purges it (≤ `HARD_DELETE_DELETION_GAP` days).
+- ~~**Soft-deleted blockers still block**~~ — **Re-litigated June 2026**: rule 5 was dropped. Now only **active** rows block at the gate. The harddelete cron was hardened (per-row `transaction.atomic` + broad `try/except`, sort by `deleted_at`, proxy-model skip, structured `harddelete.row_failed` log) to handle the cases this rule was originally protecting against. The original concern ("a not-yet-purged PROTECT/DO_NOTHING row would crash the cron") proved less load-bearing than the doc claimed: PROTECT blockers do raise `ProtectedError` on first iteration, but the resilient cron retries them next run after the dependency is purged; DO_NOTHING blockers don't appear to crash at all in our test setup (mechanism unclear — possibly test-mode FK-deferral, possibly a `null=True`-related Django collector path, accepted as a known unknown since the cron's resilience covers either case). Net win for users: the 30-day blocked window after soft-deleting a story map is gone. See `tests/core/commands/test_harddelete.py::test_cron_converges_within_two_runs`.
 - **Gate fires only on soft-delete**, not on `force_policy=HARD_DELETE`. The cron path stays robust; cleanup happens at the soft-delete boundary by design.
 - **`Site.owner` → CASCADE**, drop the explicit unaffiliated-sites loop. Public unaffiliated sites die with their owner alongside private ones.
 - **`ProjectSettings` removed entirely** — model + table + FK + admin + save-time autocreate. Eliminates the only PROTECT FK inside the user-deletion subtree.
@@ -621,6 +622,7 @@ None blocking. Three coordination items:
 - **Mutation uses single-path catch-only; admin path keeps pre-check.** Different patterns by surface: GraphQL builds its own response, so the catch-only flow is clean; Django admin's `_delete_view` wraps `delete_model` with framework bookkeeping (`log_deletion`, `response_delete`) that would emit a contradictory "Successfully deleted" message if we let the model raise. Pre-check on admin returns before that bookkeeping runs.
 - **`request_account_deletion` helper files the HubSpot ticket BEFORE saving the pref.** If HubSpot is down, the pref stays "false" and the call raises — caller's error path lets the user retry. Reverse ordering would create a silent permanent failure if HubSpot were down (pref=true blocks all future retries, no ticket ever exists). The remaining race (pref.save() failing after HubSpot succeeds → duplicate ticket on retry) is vanishingly rare and accepted.
 - **Mobile reuses existing sign-out infrastructure** (`userLoggedOut` action + `signOut` from terraso-client-shared) for the post-delete sign-out path. Bypasses the `hasUnsyncedChanges` guard from `SignOutModal` — unsynced data is being abandoned by definition when the account is deleted.
+- **Harddelete cron is resilient to per-row failures.** Each iteration: sort by `deleted_at` (dependents purged before dependencies in the common case → one-run convergence), wrap `obj.delete(force_policy=HARD_DELETE)` in `transaction.atomic()` so a per-row rollback can't poison subsequent iterations, broad `try/except` so one row's failure doesn't abort the batch, and emit a structured `harddelete.row_failed` log (which Sentry picks up) with model + pk + error info. Proxy models are skipped in `all_objects()` because they share a table with their concrete parent and would otherwise queue the same row twice. The original "no try/except, no sort, abort-on-first-error" cron architecture was the load-bearing reason rule 5 existed; with this hardening rule 5 is no longer needed.
 - **"Account deleted" modal copy includes the deleted email.** Pass-through via navigation state from the post-delete sign-out flow, since the user is signed out by the time the modal renders and we'd otherwise have no identifier to show.
 - **Delete account button is disabled when offline.** Mobile mutations aren't queue-safe; tapping Delete with no network would fail anyway, and a disabled state is clearer UX than a generic error toast after the tap.
 
@@ -642,9 +644,14 @@ None blocking. Three coordination items:
 
 8. **Shell users get raw `ValidationError`**. A developer running `user.delete()` in the shell sees a plain Python traceback rather than the formatted blocker list. Acceptable.
 
-9. **Distant-app drift not caught by structural tests (the "A3" gap).** Structural Test A is one layer deep (direct reverse FKs from User); Structural Test B walks the landpks subtree only. A future web-data app that adds a `CASCADE` FK to User but has `PROTECT` / `DO_NOTHING` between its own models is not classified by either test. Soft-delete succeeds; the hard-delete cron crashes 30 days later when it tries to purge the dependent rows. **Accepted gap.** Mitigation: the cron's crash trips Sentry, the user's data sits soft-deleted (recoverable) until the bug is fixed, and the structural-tests doc explicitly calls out the one-layer scope. Closing the gap fully would require walking the transitive closure beyond landpks, which is meaningfully more complex and chosen against for tractability.
+9. **Distant-app drift not caught by structural tests (the "A3" gap).** Structural Test A is one layer deep (direct reverse FKs from User); Structural Test B walks the landpks subtree only. A future web-data app that adds a `CASCADE` FK to User but has `PROTECT` / `DO_NOTHING` between its own models is not classified by either test. Soft-delete succeeds; the harddelete cron's per-row error handler logs the failure to Sentry, the row sits soft-deleted (recoverable) until the bug is fixed, and the user-facing operation has already completed. The cron-resilience hardening makes this gap less load-bearing than it used to be — partial state is the failure mode, not a crashed cron.
 
-10. **TOCTOU between pre-check and `user.delete()`**. Between `deletion_blockers()` returning `[]` and the model's internal re-check, the same user could create a blocking row from another device (e.g. submit a StoryMap). The model raises `ValidationError`; the mutation catches it specifically, re-fetches the blocker list, files the ticket via `request_account_deletion`, and returns the structured `{user: null, blockers: [...]}` response. Mobile sees the same UX as the pre-check blocked path — no error, just routed to the pending screen. See the "TOCTOU safety" comment in the `UserDeleteMutation` sketch.
+10. **DO_NOTHING crash hypothesis (the rule-5 motivator) — partially debunked.** The original rule 5 assumed that hard-deleting a User with a soft-deleted DO_NOTHING referrer (e.g. a StoryMap) would crash the cron with `IntegrityError`. The hardening work in June 2026 included an empirical convergence test parametrized over all 6 blocker models. Findings:
+   - **PROTECT** referrers do raise `ProtectedError` on first-iteration hard-delete (Django collector behavior) — the cron's try/except + retry handles this, converging within 2 runs.
+   - **DO_NOTHING** referrers (`StoryMap.created_by`, `DataEntry.created_by`) did NOT raise in tests. Possible explanations: test-mode FK-deferral, a `null=True`-related Django collector path, or some safedelete interaction the test environment exposes differently from production. The convergence test passes regardless of mechanism.
+   - **Net**: the cron-resilience architecture handles both cases. The "rule 5 prevents a crash" rationale was only ever load-bearing for PROTECT, and even there the new retry mechanism resolves it. The DO_NOTHING mystery is documented as a known unknown — worth digging into only if production cron failures actually appear.
+
+11. **TOCTOU between pre-check and `user.delete()`**. Between `deletion_blockers()` returning `[]` and the model's internal re-check, the same user could create a blocking row from another device (e.g. submit a StoryMap). The model raises `ValidationError`; the mutation catches it specifically, re-fetches the blocker list, files the ticket via `request_account_deletion`, and returns the structured `{user: null, blockers: [...]}` response. Mobile sees the same UX as the pre-check blocked path — no error, just routed to the pending screen. See the "TOCTOU safety" comment in the `UserDeleteMutation` sketch.
 
 ## Self-service deletion (mobile-client)
 

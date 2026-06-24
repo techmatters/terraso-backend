@@ -328,14 +328,26 @@ def test_membership_classification_mixed(user):
     assert membership_blockers[0]["count"] == 1
 
 
-def test_soft_deleted_blocker_still_blocks(user):
-    """A soft-deleted StoryMap still counts: it's a not-yet-purged
-    DO_NOTHING row that would crash the harddelete cron. force_visibility
-    must include it until the cron sweeps it away."""
+def test_soft_deleted_blocker_does_not_block(user):
+    """Soft-deleted rows no longer block: the resilient harddelete cron
+    (sorts by deleted_at, isolates failures with try/except + atomic per
+    row) handles a not-yet-purged DO_NOTHING row in subsequent runs
+    without crashing the batch."""
     story_map = mixer.blend(StoryMap, created_by=user)
     story_map.delete()  # safedelete soft-delete
     blockers = user.deletion_blockers()
-    assert "story_map.StoryMap" in _blocker_models(blockers)
+    assert "story_map.StoryMap" not in _blocker_models(blockers)
+
+
+def test_active_blocker_still_blocks_alongside_soft_deleted_one(user):
+    """Mixed scenario: one active StoryMap + one soft-deleted StoryMap.
+    The active row blocks; soft-deleted is ignored. Count reflects only
+    the active row."""
+    mixer.blend(StoryMap, created_by=user)  # active
+    soft_deleted = mixer.blend(StoryMap, created_by=user)
+    soft_deleted.delete()
+    [b] = [b for b in user.deletion_blockers() if b["model"] == "story_map.StoryMap"]
+    assert b["count"] == 1
 
 
 def test_landpks_app_relations_never_block(user):
