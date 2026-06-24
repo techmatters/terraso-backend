@@ -13,8 +13,10 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see https://www.gnu.org/licenses/.
 
+from django.apps import apps
 from django.contrib import admin, messages
 from django.contrib.auth.admin import UserAdmin as DjangoUserAdmin
+from django.urls import NoReverseMatch, reverse
 from django.utils.html import format_html, format_html_join
 from safedelete.admin import SafeDeleteAdmin, SafeDeleteAdminFilter, highlight_deleted
 
@@ -32,8 +34,10 @@ from .models.users import _format_blocker
 
 
 @admin.register(Group)
-class GroupAdmin(admin.ModelAdmin):
-    list_display = ("name", "slug", "website", "created_at")
+class GroupAdmin(SafeDeleteAdmin):
+    list_display = (highlight_deleted, "slug", "website", "deleted_at", "created_at")
+    list_filter = (SafeDeleteAdminFilter,)
+    search_fields = ("name", "slug")
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
@@ -41,8 +45,10 @@ class GroupAdmin(admin.ModelAdmin):
 
 
 @admin.register(Landscape)
-class LandscapeAdmin(admin.ModelAdmin):
-    list_display = ("name", "slug", "location", "website", "created_at")
+class LandscapeAdmin(SafeDeleteAdmin):
+    list_display = (highlight_deleted, "slug", "location", "website", "deleted_at", "created_at")
+    list_filter = (SafeDeleteAdminFilter,)
+    search_fields = ("name", "slug", "location")
     raw_id_fields = ("membership_list",)
 
 
@@ -111,6 +117,53 @@ class UserAdmin(SafeDeleteAdmin, DjangoUserAdmin):
         ),
         ("Important dates", {"fields": ("last_login", "date_joined")}),
     )
+
+    def get_deleted_objects(self, objs, request):
+        """Replace Django's collector-based "protected related objects" list
+        with our own from deletion_blockers(). Django over-lists (includes
+        soft-deleted PROTECT rows we consider non-blockers) and under-lists
+        (skips DO_NOTHING rows we consider real blockers). Sourcing from
+        deletion_blockers() makes the admin's confirmation page agree with
+        the GraphQL UserDeleteMutation."""
+        to_delete, model_count, perms_needed, _ = super().get_deleted_objects(objs, request)
+        protected = []
+        for obj in objs:
+            for b in obj.deletion_blockers():
+                protected.append(self._format_blocker_protected(b))
+        return to_delete, model_count, perms_needed, protected
+
+    @staticmethod
+    def _format_blocker_protected(b):
+        """Render a blocker for the admin's "protected related objects"
+        list. IDs link to each row's admin change page when the model is
+        admin-registered; falls back to plain text otherwise."""
+        qualifier = format_html(" ({})", b["qualifier"]) if b.get("qualifier") else ""
+        label = format_html("{}{} ({})", b["model"], qualifier, b["field"])
+        ids = b.get("ids") or []
+        count = b["count"]
+        if not ids:
+            return format_html("{}: {} row(s)", label, count)
+
+        try:
+            model = apps.get_model(b["model"])
+            url_name = f"admin:{model._meta.app_label}_{model._meta.model_name}_change"
+            ids_html = format_html_join(
+                ", ", '<a href="{}">{}</a>', ((reverse(url_name, args=[pk]), pk) for pk in ids)
+            )
+        except (LookupError, NoReverseMatch):
+            ids_html = format_html_join(", ", "{}", ((pk,) for pk in ids))
+
+        extra = count - len(ids)
+        if extra > 0:
+            return format_html(
+                "{}: {} row(s); first {} IDs: {} (+{} more)",
+                label,
+                count,
+                len(ids),
+                ids_html,
+                extra,
+            )
+        return format_html("{}: {} row(s); IDs: {}", label, count, ids_html)
 
     def delete_model(self, request, obj):
         """Pre-check User.deletion_blockers() so staff get a readable banner

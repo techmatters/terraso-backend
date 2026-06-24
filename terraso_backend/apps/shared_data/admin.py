@@ -14,13 +14,16 @@
 # along with this program. If not, see https://www.gnu.org/licenses/.
 
 from django.contrib import admin
+from safedelete.admin import SafeDeleteAdmin, SafeDeleteAdminFilter, highlight_deleted
 
 from .models import DataEntry, VisualizationConfig
 
 
 @admin.register(DataEntry)
-class DataEntryAdmin(admin.ModelAdmin):
-    list_display = ("name", "url", "resource_type", "created_by")
+class DataEntryAdmin(SafeDeleteAdmin):
+    list_display = (highlight_deleted, "name", "url", "resource_type", "created_by", "deleted_at")
+    list_filter = (SafeDeleteAdminFilter,)
+    search_fields = ["name"]
 
 
 @admin.register(VisualizationConfig)
