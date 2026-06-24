@@ -112,7 +112,7 @@ class UserDeletionBlockedError(ValidationError):
         self.blockers = blockers
 
 
-def _format_blocker(b):
+def format_blocker(b):
     """Render one blocker dict as "<label>: <detail>" for admin banner
     and HubSpot ticket body. Truncated `ids` show with "(+N more)"."""
     qualifier = f" ({b['qualifier']})" if b.get("qualifier") else ""

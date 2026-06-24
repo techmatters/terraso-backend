@@ -30,7 +30,7 @@ from .models import (
     User,
     UserPreference,
 )
-from .models.users import _format_blocker
+from .models.users import format_blocker
 
 
 @admin.register(Group)
@@ -204,7 +204,7 @@ class UserAdmin(SafeDeleteAdmin, DjangoUserAdmin):
             )
 
     def _format_blocker_message(self, user, blockers):
-        items = format_html_join("", "<li>{}: {}</li>", (_format_blocker(b) for b in blockers))
+        items = format_html_join("", "<li>{}: {}</li>", (format_blocker(b) for b in blockers))
         return format_html(
             "Cannot delete user <strong>{}</strong>: user has undeletable "
             "data and must be cleaned up manually first.<ul>{}</ul>",

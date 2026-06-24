@@ -24,7 +24,7 @@ logger = structlog.get_logger(__name__)
 def create_account_deletion_ticket(user, blockers=None):
     """Open a HubSpot ticket asking support to delete the user's account.
     `blockers` (if any) are rendered into the body for support context."""
-    from apps.core.models.users import _format_blocker
+    from apps.core.models.users import format_blocker
 
     if not user or not user.email:
         return False
@@ -37,7 +37,7 @@ def create_account_deletion_ticket(user, blockers=None):
     ]
     if blockers:
         body_lines += ["", "Undeletable data blocking automated deletion:"]
-        body_lines += [f"- {label}: {detail}" for label, detail in map(_format_blocker, blockers)]
+        body_lines += [f"- {label}: {detail}" for label, detail in map(format_blocker, blockers)]
     body = "\n".join(body_lines)
 
     if settings.HUBSPOT_DRY_RUN:
