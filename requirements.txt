@@ -426,7 +426,9 @@ fiona==1.10.1 \
     # via -r requirements/base.in
 gdal==3.11.3 \
     --hash=sha256:4c3ad0fae393b5ddb093a7e4b890077839b2a6acdbd19202657fe4e881886efa
-    # via soil-id
+    # via
+    #   -r requirements/base.in
+    #   soil-id
 geopandas==1.1.1 \
     --hash=sha256:1745713f64d095c43e72e08e753dbd271678254b24f2e01db8cdb8debe1d293d \
     --hash=sha256:589e61aaf39b19828843df16cb90234e72897e2579be236f10eee0d052ad98e8
@@ -933,6 +935,7 @@ requests==2.32.5 \
     # via
     #   -r requirements/base.in
     #   django-oauth-toolkit
+    #   posthog
     #   requests-cache
     #   soil-id
 requests-cache==1.2.1 \
@@ -1191,12 +1194,8 @@ six==1.17.0 \
     # via
     #   promise
     #   python-dateutil
-sniffio==1.3.1 \
-    --hash=sha256:2f6da418d1f1e0fddd844478f41680e794e6051915791a034ff65e5f100525a2 \
-    --hash=sha256:f4324edc670a0f49750a81b895f35c3adb843cca46f0530f79fc1babb23789dc
-    # via anyio
-soil-id @ https://github.com/techmatters/soil-id-algorithm/archive/refs/tags/2026-06-12.1.zip \
-    --hash=sha256:1f056383203c2d25fd6243a7b7fb30ebbb5fe6c66b965dc1eb67688833ecd436
+soil-id @ https://github.com/techmatters/soil-id-algorithm/archive/refs/tags/2026-06-24.1.zip \
+    --hash=sha256:fc0491fd6270257ff495cd89ee7dabcc8fa1d35d1668f36f62633d94b57e9020
     # via -r requirements/base.in
 sqlparse==0.5.5 \
     --hash=sha256:12a08b3bf3eec877c519589833aed092e2444e68240a3577e8e26148acc7b1ba \
@@ -1222,9 +1221,12 @@ typing-extensions==4.15.0 \
     --hash=sha256:0cea48d173cc12fa28ecabc3b837ea3cf6f38c6d1136f85cbaaf598984861466 \
     --hash=sha256:f0fa19c6845758ab08074a0cfa8b7aecb71c999ca73d62883bc25cc018c4e548
     # via
+    #   anyio
     #   cattrs
     #   graphene
     #   jwcrypto
+    #   posthog
+    #   psycopg
 tzdata==2025.3 \
     --hash=sha256:06a47e5700f3081aab02b2e513160914ff0694bce9947d6b76ebd6bf57cfc5d1 \
     --hash=sha256:de39c2ca5dc7b0344f2eba86f49d614019d29f060fc4ebc8a417896a620b56a7
