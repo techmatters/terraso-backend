@@ -123,9 +123,6 @@ query soilMatches($latitude: Float!, $longitude: Float!, $data: SoilIdInputData!
 def _post_json(url, payload, access_token=None):
     """POST a JSON body and return (http_status, parsed_json_body)."""
     data = json.dumps(payload).encode("utf-8")
-    # Set an explicit User-Agent: the default "Python-urllib/x.y" is banned by
-    # the Cloudflare edge in front of the API (rejected with HTTP 403 "error
-    # code: 1010" before the request reaches the backend).
     headers = {
         "Content-Type": "application/json",
         "User-Agent": "terraso-partner-soil-id/1.0",
