@@ -32,7 +32,6 @@ from apps.soil_id.models.soil_id_cache import SoilIdCache
 class DepthDependentSoilDataInline(admin.TabularInline):
     model = DepthDependentSoilData
     extra = 0
-    # Inlines show soft-deleted children alongside active ones
     fields = ("depth_interval_start", "depth_interval_end", "deleted_at")
     readonly_fields = ("deleted_at",)
 

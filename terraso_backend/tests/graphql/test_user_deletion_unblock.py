@@ -73,10 +73,8 @@ def test_user_soft_delete_nulls_authored_note(user):
 
 
 def test_user_soft_delete_cascades_to_owned_site(user):
-    """Site.owner is CASCADE under the soft-delete plan (changed from
-    SET_NULL). A deleted user's unaffiliated owned sites die with them.
-    Public unaffiliated sites also die — that's intentional; see
-    backend/docs/user_soft_delete_plan.md, Settled decisions section."""
+    """Site.owner is CASCADE — a deleted user's unaffiliated owned sites
+    die with them, including public ones."""
     site = Site.objects.create(name="kept-site", latitude=0, longitude=0, elevation=0, owner=user)
     assert site.owner_id == user.pk
 

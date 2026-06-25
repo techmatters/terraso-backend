@@ -22,11 +22,6 @@ from apps.project_management.models import Project, Site, SiteNote, SitePushHist
 
 @admin.register(Project)
 class ProjectAdmin(SafeDeleteAdmin):
-    # SafeDeleteAdmin gives:
-    #   - List view that includes soft-deleted rows.
-    #   - "Active / Deleted / All" filter sidebar.
-    #   - highlight_deleted indicator in list_display.
-    #   - "Undelete selected" bulk action.
     readonly_fields = ("membership_list", "deleted_at")
     list_display = (
         highlight_deleted,

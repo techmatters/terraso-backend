@@ -138,11 +138,10 @@ def test_visualization_config_cannot_be_viewed_by_non_group_members(
 
 
 def test_delete_user_with_shared_data_is_blocked(user, data_entry):
-    """DataEntry.created_by is DO_NOTHING — under the soft-delete gate
-    any user with DataEntries is refused. The previous DataEntry re-link
-    branch in User.soft_delete_policy_action has been removed because
-    it's unreachable on the success path. See
-    backend/docs/user_soft_delete_plan.md, Settled decisions section."""
+    """DataEntry.created_by is DO_NOTHING — the soft-delete gate refuses
+    any user with active DataEntries. (The previous DataEntry re-link
+    branch in User.soft_delete_policy_action is unreachable on the
+    success path and has been removed.)"""
     from django.core.exceptions import ValidationError
 
     with pytest.raises(ValidationError, match="undeletable data"):

@@ -13,19 +13,18 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see https://www.gnu.org/licenses/.
 
-"""Presentation-layer tests for the User soft-delete gate
-(backend/docs/user_soft_delete_plan.md).
+"""Presentation-layer tests for the User soft-delete gate.
 
-Model-layer behavior — deletion_blockers(), the User.delete() gate, the
-cascade, the structural drift detectors — is covered by
-tests/core/models/test_user_deletion_gate.py. This file covers the
+Model-layer behavior — `deletion_blockers()`, the `User.delete()` gate,
+the cascade, the structural drift detectors — is covered by
+`tests/core/models/test_user_deletion_gate.py`. This file covers the
 two callers that wrap the gate with caller-specific UX:
 
-  * UserDeleteMutation — returns structured `blockers` payload when
+  * `UserDeleteMutation` — returns structured `blockers` payload when
     blocked, runs the cascade when clean.
-  * UserAdmin.delete_model / delete_queryset — single-delete shows a red
-    banner; bulk-delete partitions blocked vs. clean and surfaces a
-    single warning banner."""
+  * `UserAdmin.delete_model` / `delete_queryset` — single-delete shows
+    a red banner; bulk-delete partitions blocked vs. clean and surfaces
+    a single warning banner."""
 
 from unittest.mock import patch
 

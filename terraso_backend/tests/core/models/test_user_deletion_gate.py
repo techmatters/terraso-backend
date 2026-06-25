@@ -13,26 +13,31 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see https://www.gnu.org/licenses/.
 
-"""Tests for the User soft-delete gate (backend/docs/user_soft_delete_plan.md).
+"""Tests for the User soft-delete gate.
 
 Three layers under test:
 
-  * `User.deletion_blockers()` — the rule that defines undeletable data.
-  * `User.delete()` — the enforcement floor: raises on the soft-delete path
-    when blockers exist; does not fire on `force_policy=HARD_DELETE`.
+  * `User.deletion_blockers()` — defines what counts as undeletable data
+    (PROTECT/RESTRICT/DO_NOTHING reverse FKs to User, plus the
+    non-project APPROVED collaboration.Membership policy override).
+  * `User.delete()` — enforcement: raises `UserDeletionBlockedError` on
+    the soft-delete path when blockers exist; does not fire on
+    `force_policy=HARD_DELETE`.
   * `User.soft_delete_policy_action` / `Project.soft_delete_policy_action`
     — the cascade that tears down the user's landpks footprint and
     sole-manager projects.
 
 Plus structural tests that catch schema drift in CI:
 
-  * **Test A**: every reverse FK to User is classified into exactly one
-    of the five legal buckets.
+  * **Classification test**: every reverse FK to User is classified into
+    exactly one of the five legal buckets (LANDPKS app, system app,
+    Membership special case, CASCADE/SET_NULL/SET, PROTECT/RESTRICT/
+    DO_NOTHING).
   * **Closure test**: the transitive closure of models soft-deleted by
-    `user.delete()` has no model referenced via a blocking FK —
-    PROTECT / RESTRICT / DO_NOTHING — from inside or outside the
-    closure. Together with the gate, this proves the harddelete cron
-    can purge the closure without crashing on a constraint."""
+    `user.delete()` has no model referenced via a PROTECT/RESTRICT/
+    DO_NOTHING FK from inside or outside the closure — proves the
+    harddelete cron can purge the closure without crashing on a
+    constraint."""
 
 import pytest
 from django.core.exceptions import ValidationError
@@ -461,10 +466,8 @@ def test_delete_succeeds_for_landpks_only_user(landpks_user):
 def test_force_hard_delete_is_not_gated(user):
     """The cron path (`force_policy=HARD_DELETE`) intentionally bypasses
     the gate. Verified with a non-project APPROVED Membership — which
-    blocks at the gate (policy override clause 5) but is CASCADE at the
-    DB level, so hard-delete actually succeeds. (DO_NOTHING blockers
-    would also bypass the gate but then crash on FK constraints at the
-    DB — a pre-existing risk acknowledged in the plan, Concerns #6.)"""
+    blocks at the gate (the policy override) but is CASCADE at the DB
+    level, so the hard-delete itself succeeds."""
     landscape = mixer.blend(Landscape)
     CollaborationMembership.objects.create(
         membership_list=landscape.membership_list,

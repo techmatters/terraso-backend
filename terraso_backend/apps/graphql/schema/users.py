@@ -261,8 +261,9 @@ class UserDeleteMutation(BaseDeleteMutation):
                 model_name=User.__name__, operation=MutationTypes.DELETE
             )
 
-        # Catch only UserDeletionBlockedError (not generic exceptions) —
-        # see design doc "Three-layer architecture" for why.
+        # Catch only when there are deletion blockers (and fall back to
+        # manual-cleanup ticket). Other exceptions (DB errors, cascade bugs)
+        # carry no such guarantee and surface honestly so Sentry catches them.
         user = User.objects.get(pk=_id)
         try:
             user.delete()
@@ -272,10 +273,6 @@ class UserDeleteMutation(BaseDeleteMutation):
                 set_props=analytics.user_person_properties(request_user),
             )
         except UserDeletionBlockedError as e:
-            # Blocked: route to manual cleanup. If HubSpot is down,
-            # still return the structured blockers so the client knows
-            # what's blocking, with a layered error explaining the
-            # ticket failure so the user can retry.
             try:
                 request_account_deletion(user, blockers=e.blockers)
                 analytics.capture(
@@ -285,6 +282,7 @@ class UserDeleteMutation(BaseDeleteMutation):
                 )
 
             except TicketCreationError as ticket_err:
+                # If HubSpot is down, still return the structured blockers
                 return cls(
                     user=None,
                     blockers=e.blockers,

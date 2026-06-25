@@ -204,9 +204,26 @@ class User(SafeDeleteModel, AbstractUser):
         """Return blocker dicts for rows that would block this user's
         soft-deletion. Empty list = safe to soft-delete.
 
-        Shape: `{model, qualifier, field, count, ids}` — see design doc
-        section "Blocker shape". Classification rule, scope (one-layer
-        only), and the structural-test safety net are also in the doc.
+        Each blocker is `{model, qualifier, field, count, ids}` where
+        `qualifier` is Optional[str] (None unless the model needs a sub-
+        classification like membership type) and `ids` is up to
+        BLOCKER_ID_CAP pk strings; `count` is the true total so renderers
+        can compute "+N more" when ids are truncated.
+
+        Classification: a reverse FK to User blocks if its on_delete is
+        PROTECT/RESTRICT/DO_NOTHING and the referencing model isn't in
+        LANDPKS_APP_LABELS (handled by an explicit cascade) or
+        SYSTEM_APP_LABELS (Django internals). The single policy override
+        is non-project APPROVED collaboration.Memberships — they're
+        CASCADE at the DB level but flagged as blockers because
+        Group/Landscape membership is web data we don't auto-delete.
+
+        Only active rows count — soft-deleted referencers are handled by
+        the resilient harddelete cron in subsequent runs.
+
+        Walks one layer deep (direct reverse FKs from User). Deeper
+        coverage (transitive cascade closure) is enforced by the
+        structural test in tests/core/models/test_user_deletion_gate.py.
         """
         blockers = []
         for rel in User._meta.related_objects:
@@ -221,10 +238,10 @@ class User(SafeDeleteModel, AbstractUser):
                 from apps.collaboration.models import Membership
 
                 # Policy override: non-project APPROVED memberships block
-                # even though Membership.user is CASCADE (the on_delete-floor
-                # rule would otherwise let them through). See design doc
-                # "Defining undeletable data" for rationale. Project vs.
-                # non-project distinguished by `membership_list__project__isnull`.
+                # even though Membership.user is CASCADE (the on_delete-
+                # floor rule would otherwise let them through). Project
+                # vs. non-project is distinguished by
+                # `membership_list__project__isnull`.
                 qs = self.collaboration_memberships.filter(
                     membership_list__project__isnull=True,
                     membership_status=Membership.APPROVED,
@@ -486,10 +503,9 @@ def request_account_deletion(user, blockers=None):
     """Set the pending-deletion pref and file the HubSpot ticket exactly
     once. Idempotent if the pref is already "true". Caller gates permission.
 
-    Order: ticket BEFORE pref — if HubSpot fails, pref stays "false" so
-    the user can retry. Reverse order would silently lock the user out
-    via the idempotence short-circuit. See design doc for the failure-mode
-    tradeoff.
+    Order: ticket BEFORE pref. If HubSpot fails, pref stays "false" so the
+    caller can retry. Reverse order would silently lock the user out via
+    the idempotence short-circuit (pref stuck at "true" with no ticket).
     """
     from apps.core.hubspot import create_account_deletion_ticket
 

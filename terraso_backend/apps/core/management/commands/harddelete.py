@@ -40,10 +40,8 @@ class Command(BaseCommand):
 
     @staticmethod
     def all_objects(cutoff_date):
-        """All soft-deleted rows past the cutoff, sorted by deleted_at
-        ascending. The sort matters for dependency ordering: dependents
-        purged before their dependencies in the common case, so a single
-        run converges instead of needing a retry the next day.
+        """All soft-deleted rows past the date cutoff, in order of soft-deletion. The sort is for safety in dependency ordering: dependents
+        purged before their dependencies to avoid dangling reference errors.
 
         Skips proxy models — they share the underlying table with their
         concrete parent, so without this guard the same row would be

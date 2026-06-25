@@ -491,8 +491,9 @@ HUBSPOT_ACCOUNT_DELETION_FORM_API_URL = (
     f"https://api.hsforms.com/submissions/v3/integration/submit/"
     f"{HUBSPOT_PORTAL_ID}/{HUBSPOT_ACCOUNT_DELETION_FORM_ID}"
 )
-# When True, when deleting a user but unable to do so immediately, create_account_deletion_ticket skips the HubSpot HTTP call and logs the would-be ticket instead.
-# Generally want to set True et in local .env to not create real tickets.
+# When False: when deleting a user but unable to do so immediately, a hubspot ticket is filed so devs can manually delete the user
+# When True: in the scenario above, skip the HubSpot HTTP call and log the would-be ticket instead.
+# Generally use True in local .env to not create real tickets.
 # Default False in production.
 HUBSPOT_DRY_RUN = config("HUBSPOT_DRY_RUN", default=False, cast=bool)
 

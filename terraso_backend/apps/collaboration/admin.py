@@ -33,11 +33,6 @@ class MembershipInline(admin.TabularInline):
 
 @admin.register(MembershipList)
 class MembershipListAdmin(SafeDeleteAdmin):
-    # SafeDeleteAdmin gives:
-    #   - Queryset that includes soft-deleted rows in the list view.
-    #   - "highlight_deleted" indicator in list_display.
-    #   - Active / Deleted / All filter in the sidebar.
-    #   - "Undelete selected" bulk action.
     @admin.display(ordering="project__name", description="Project")
     def project(self, obj):
         # Reverse OneToOne — only populated for ProjectMembershipLists.

@@ -111,10 +111,7 @@ class SiteNode(DjangoObjectType):
         return cls._meta.fields["privacy"].type.of_type()
 
     def resolve_owner(self, info):
-        # Site.owner is SET_NULL when the owning user is deleted.  Return
-        # an in-memory stub so the schema's owner contract holds and old
-        # clients see a localized-on-the-server-side "Deleted User" rather
-        # than crash. See terraso-backend-research/deleted_user_stub_plan.md.
+        # TODO-cknipe: Delete this, I think
         if self.owner_id is None:
             return deleted_user_stub()
         return self.owner

@@ -29,12 +29,6 @@ class Site(BaseModel):
     class Meta(BaseModel.Meta):
         abstract = False
         constraints = [
-            # At most one of owner / project may be set. Sites with both
-            # null are "orphans" — produced before owner became CASCADE
-            # (Site.owner was SET_NULL). Orphans from before that change
-            # may still exist and are visible only via the PUBLIC branch
-            # of filter_visible_sites. New orphans are no longer produced
-            # by user soft-delete (owner=CASCADE soft-deletes the site).
             models.CheckConstraint(
                 condition=models.Q(project__isnull=True) | models.Q(owner__isnull=True),
                 name="site_owned_by_at_most_one",

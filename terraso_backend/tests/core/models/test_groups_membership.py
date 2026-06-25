@@ -37,11 +37,9 @@ def test_groups_membership_is_created_when_group_member_added():
 
 
 def test_groups_membership_blocks_user_deletion():
-    """Under the soft-delete gate, an APPROVED non-project Membership is
-    a deletion blocker (Group/Landscape membership = undeletable web
-    data). The user can't soft-delete until the membership is cleaned up
-    manually — see backend/docs/user_soft_delete_plan.md, policy
-    override clause 5."""
+    """An APPROVED non-project Membership blocks user soft-deletion
+    (Group/Landscape membership is undeletable web data; the membership
+    has to be cleaned up manually before the user can be deleted)."""
     from django.core.exceptions import ValidationError
 
     user = mixer.blend(User)

@@ -97,26 +97,11 @@ class UserAdminCreationForm(UserCreationForm):
 
 @admin.register(User)
 class UserAdmin(SafeDeleteAdmin, DjangoUserAdmin):
-    # Mixing SafeDeleteAdmin gives:
-    #   - List queryset that includes soft-deleted users (visible alongside
-    #     active ones).
-    #   - "highlight_deleted" indicator in the list display.
-    #   - Filter to slice the list by Active / Deleted / All.
-    #   - Bulk actions: "undelete_selected" (recover) and
-    #     "hard_delete_soft_deleted" (purge — same as the harddelete cron).
-    #
-    # Undelete restores the User row plus soft-deleted related rows
-    # (Memberships) and re-attaches DataEntry.created_by. It does NOT
-    # recover SiteNote.author or Site.owner that were nulled by SET_NULL;
-    # those notes/sites remain permanently attributed to "Deleted User"
-    # (the stub) even after undelete. See user_deletion_lifecycle.md
-    # and account_deletion_author_snapshot_plan.md in
-    # terraso-backend-research for context and possible follow-ups.
-    #
-    # Email-collision safety: User.undelete() refuses if the email is
-    # taken by another active user (admin will surface a ValidationError),
-    # which would otherwise hit the conditional unique_active_email
-    # constraint and produce a less-helpful IntegrityError.
+    # Undelete restores the User row and most other objects deleted as a
+    # result. It does NOT recover SiteNote.author (nulled by SET_NULL);
+    # those notes remain permanently attributed to "Deleted User"
+    # (the stub) even after undelete. Undelete also refuses if the email is taken by another active user
+    # (admin will surface a ValidationError).
     ordering = ("email",)
     list_display = (
         highlight_deleted,  # module-level function from safedelete.admin

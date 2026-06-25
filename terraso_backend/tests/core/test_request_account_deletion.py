@@ -16,7 +16,7 @@
 """Tests for `request_account_deletion(user, blockers=None)` — the shared
 helper that sets the pending-deletion pref and files the HubSpot ticket.
 
-Design contract (see backend/docs/user_soft_delete_plan.md):
+Contract:
   * Ticket fires BEFORE pref save. If HubSpot fails, pref stays "false"
     and `TicketCreationError` is raised so the caller can retry.
   * Idempotent on the second call: if the pref is already "true", no
