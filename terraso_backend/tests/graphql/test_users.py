@@ -21,7 +21,12 @@ from apps.core.models import User
 pytestmark = pytest.mark.django_db
 
 
-def test_users_query(client_query, users):
+def test_users_query(client_query, user, users):
+    # Listing the whole users connection is a superuser-only capability
+    # (UserFilter.qs default-denies enumeration to regular callers); promote
+    # the caller so this exercises node serialization over the full set.
+    user.is_superuser = True
+    user.save()
     response = client_query(
         """
         {users {
@@ -61,7 +66,11 @@ def test_user_get_one_by_id(client_query, users):
     assert user_result["profileImage"] == user.profile_image
 
 
-def test_users_query_has_total_count(client_query, users):
+def test_users_query_has_total_count(client_query, user, users):
+    # Full enumeration is superuser-only (see UserFilter.qs); promote the
+    # caller so totalCount reflects the whole table.
+    user.is_superuser = True
+    user.save()
     response = client_query(
         """
         {users {

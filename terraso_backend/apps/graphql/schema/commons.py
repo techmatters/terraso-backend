@@ -54,9 +54,18 @@ class TerrasoRelayNode(relay.Node):
 
     @staticmethod
     def get_node_from_global_id(info, global_id, only_type=None):
-        return get_nullable_type(info.return_type).graphene_type._meta.model.objects.get(
-            pk=global_id
-        )
+        # Honor the Node's get_queryset so that single-id lookups (e.g.
+        # `query { site(id: $id) { ... } }`) apply the same auth/membership
+        # filters as connection queries (`sites(...)`).  Without this, the
+        # default override of relay.Node.get_node_from_global_id would skip
+        # get_queryset entirely and leak any record by id (F2/F3).
+        node_type = only_type or get_nullable_type(info.return_type).graphene_type
+        model = node_type._meta.model
+        queryset = node_type.get_queryset(model.objects, info)
+        try:
+            return queryset.get(pk=global_id)
+        except model.DoesNotExist:
+            return None
 
 
 class TerrasoConnection(Connection):

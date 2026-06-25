@@ -18,6 +18,7 @@ graphene-django
 httpx
 openpyxl
 pandas
+posthog
 prettyconf
 psycopg
 pyjwt[crypto]
@@ -27,4 +28,4 @@ requests
 rules
 sentry-sdk[django]
 shapely
-soil-id @ https://github.com/techmatters/soil-id-algorithm/archive/f4fdadd.zip
+soil-id @ https://github.com/techmatters/soil-id-algorithm/archive/refs/tags/2026-06-24.1.zip

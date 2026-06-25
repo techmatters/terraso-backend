@@ -22,6 +22,7 @@ from graphene_django import DjangoObjectType
 
 from apps.auth.services import JWTService
 from apps.collaboration.models import Membership
+from apps.core import analytics
 from apps.core.models import User, UserPreference
 from apps.core.models.users import (
     USER_PREFS_KEY_ACCOUNT_DELETION,
@@ -33,6 +34,7 @@ from apps.core.models.users import (
 from apps.graphql.exceptions import GraphQLNotAllowedException
 
 from .commons import (
+    BaseAdminMutation,
     BaseAuthenticatedMutation,
     BaseDeleteMutation,
     BaseUnauthenticatedMutation,
@@ -44,6 +46,32 @@ logger = structlog.get_logger(__name__)
 
 
 class UserFilter(FilterSet):
+    # Substring filters (`email__icontains`, `first_name__icontains`,
+    # `last_name__icontains`) can be used to harvest the user table — e.g.
+    # `users(email_Icontains: "@target.com")` returns every account at a
+    # given domain.  No production client uses them: web/mobile/shared all
+    # call only `users(email)` or `users(email_Iexact: ...)` for the
+    # userProfile and add-team-member flows (verified by grep against
+    # terraso-web-client, terraso-mobile-client, terraso-client-shared).
+    #
+    # The substring filters are kept in the schema for potential future
+    # admin/support workflows but are gated to `is_superuser=True` callers
+    # in `qs` below.  Non-superuser callers using these filters get
+    # `.none()` rather than an error: an empty result keeps the schema
+    # response valid for any client that fires a substring filter
+    # accidentally, and avoids surfacing "you would need superuser to do
+    # this" as introspection-equivalent metadata.
+    ADMIN_ONLY_FILTERS = ("email__icontains", "first_name__icontains", "last_name__icontains")
+
+    # Exact-address lookups the production clients depend on: `userProfile`
+    # uses `email`, and the add-member existence check uses `email_Iexact`
+    # (optionally alongside `project`).  Each resolves a single, already-known
+    # address — a one-at-a-time existence oracle, not an enumeration vector —
+    # so it stays open to any authenticated caller.  Anything else (unfiltered,
+    # `project`-only, or a substring filter) is a list/enumeration request and
+    # is denied for non-superusers in `qs`.
+    EXACT_EMAIL_FILTERS = ("email", "email__iexact")
+
     project = CharFilter(method="filter_user_in_project")
 
     class Meta:
@@ -58,6 +86,31 @@ class UserFilter(FilterSet):
         memberships = Membership.objects.filter(membership_list__project=value)
         return queryset.filter(collaboration_memberships__in=memberships)
 
+    @property
+    def qs(self):
+        # Default-deny enumeration of the user table.  Any authenticated caller
+        # can self-register (open OAuth signup), so "authenticated" is a near-
+        # public bar; without this gate an account could page the whole `users`
+        # connection (or `users(project: ...)`) and harvest every email, name,
+        # and membership.  `self.data` is the dict of incoming filter args keyed
+        # by their Django ORM lookup name (e.g. "email__iexact").
+        base = super().qs
+        user = getattr(self.request, "user", None) if self.request else None
+        if user and user.is_superuser:
+            return base
+        # Substring filters can harvest the table; superuser only (handled
+        # above).  Checked before the exact-email allowlist so that combining a
+        # substring with an exact email can't slip past the superuser gate.
+        if any(self.data.get(name) for name in self.ADMIN_ONLY_FILTERS):
+            return base.none()
+        # Non-superusers may only resolve a single known address (the clients'
+        # userProfile / add-member existence flows).  Returning `.none()` rather
+        # than raising keeps the response schema-valid for a client that fires a
+        # broad filter and avoids surfacing "superuser required" as metadata.
+        if any(self.data.get(name) for name in self.EXACT_EMAIL_FILTERS):
+            return base
+        return base.none()
+
 
 class UserNode(DjangoObjectType):
     id = graphene.ID(source="pk", required=True)
@@ -69,6 +122,17 @@ class UserNode(DjangoObjectType):
         connection_class = TerrasoConnection
         fields = ("email", "first_name", "last_name", "profile_image", "memberships", "preferences")
 
+    @classmethod
+    def get_queryset(cls, queryset, info):
+        # F1: anonymous users must not enumerate the user table or look up
+        # users by id.  Authenticated, non-enumerating access (the clients'
+        # userProfile / add-member existence lookups) is allowed; broader
+        # enumeration by authenticated callers is denied in `UserFilter.qs`,
+        # which — unlike get_queryset — can see the incoming filter args.
+        if info.context.user.is_anonymous:
+            return queryset.none()
+        return queryset
+
 
 class UserPreferenceNode(DjangoObjectType):
     id = graphene.ID(source="pk", required=True)
@@ -79,8 +143,30 @@ class UserPreferenceNode(DjangoObjectType):
         interfaces = (relay.Node,)
         connection_class = TerrasoConnection
 
+    @classmethod
+    def get_queryset(cls, queryset, info):
+        # Preferences (language, notification opt-ins, account-deletion-request)
+        # are personal data. A caller may read only their own — the userProfile
+        # flow fetches the logged-in user's own preferences — while superusers
+        # keep full read access for admin/support. This stops the exact-email
+        # lookup (`users(email: ...)`) from disclosing another user's
+        # preferences via the nested `preferences` connection. Anonymous
+        # callers (already blocked from UserNode) see nothing here too.
+        user = info.context.user
+        if user.is_anonymous:
+            return queryset.none()
+        if user.is_superuser:
+            return queryset
+        return queryset.filter(user=user)
 
-class UserAddMutation(BaseAuthenticatedMutation):
+
+# NOTE: Consider removing this mutation entirely. The legitimate user-creation
+# paths in production are /auth/token-exchange (OAuth → JWT bridge) and the
+# Django admin UI. A grep across web-client, mobile-client, client-shared and
+# techmatters scripts found no callers of this mutation; only the test in
+# test_user_mutations.py exercises it. Restricted to superuser/admin in the
+# meantime so a non-admin authenticated account can't mint arbitrary users.
+class UserAddMutation(BaseAdminMutation):
     user = graphene.Field(UserNode)
 
     class Input:
@@ -93,6 +179,13 @@ class UserAddMutation(BaseAuthenticatedMutation):
     def mutate_and_get_payload(cls, root, info, **kwargs):
         user = User.objects.create_user(
             kwargs.pop("email"), password=kwargs.pop("password"), **kwargs
+        )
+
+        analytics.capture(
+            distinct_id=user.id,
+            event="user_created",
+            properties={"auth_provider": "admin"},
+            set_props=analytics.user_person_properties(user),
         )
 
         return cls(user=user)
@@ -173,6 +266,11 @@ class UserDeleteMutation(BaseDeleteMutation):
         user = User.objects.get(pk=_id)
         try:
             user.delete()
+            analytics.capture(
+                distinct_id=_id,
+                event="user_delete_immediate",
+                set_props=analytics.user_person_properties(request_user),
+            )
         except UserDeletionBlockedError as e:
             # Blocked: route to manual cleanup. If HubSpot is down,
             # still return the structured blockers so the client knows
@@ -180,6 +278,12 @@ class UserDeleteMutation(BaseDeleteMutation):
             # ticket failure so the user can retry.
             try:
                 request_account_deletion(user, blockers=e.blockers)
+                analytics.capture(
+                    distinct_id=_id,
+                    event="user_delete_request",
+                    set_props=analytics.user_person_properties(request_user),
+                )
+
             except TicketCreationError as ticket_err:
                 return cls(
                     user=None,

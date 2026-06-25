@@ -121,10 +121,13 @@ class VisualizationConfigNode(DjangoObjectType):
 
     @classmethod
     def get_queryset(cls, queryset, info):
-        # Only filter for user memberships if the field is not visualizationConfigs
-        # This is because the user can be requesting a visualizations from a parent
-        # node, that should be handling the filtering
-        if info.field_name != "visualizationConfigs":
+        # Apply the ownership filter when this Node is being resolved at the
+        # top level of the query (visualizationConfig(id: ...) or
+        # visualizationConfigs(...)).  When nested under a parent resolver
+        # (e.g. dataEntry { visualizations }), the parent has already done
+        # the appropriate filtering, so trust that and pass the queryset
+        # through unchanged.
+        if info.path.prev is not None:
             return queryset
 
         user_pk = getattr(info.context.user, "pk", False)

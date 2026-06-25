@@ -26,4 +26,10 @@ class Query(graphene.ObjectType):
     def resolve_all_export_tokens(root, info):
         """Get all export tokens for the current user."""
         user = info.context.user
+        # Reject anonymous explicitly. Without this, the filter would resolve
+        # to user_id="None" (the literal string of AnonymousUser().id), which
+        # currently happens to return [] only because no code path mints a
+        # token with that user_id. Don't rely on coincidence.
+        if user.is_anonymous:
+            return []
         return ExportToken.objects.filter(user_id=str(user.id))

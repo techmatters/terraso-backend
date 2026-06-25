@@ -20,9 +20,20 @@ import pytest
 import structlog
 from graphene_django.utils.testing import graphql_query
 
+from apps.auth.services import JWTService
+
 pytestmark = pytest.mark.django_db
 
 logger = structlog.get_logger(__name__)
+
+
+@pytest.fixture
+def auth_headers(user):
+    # Soil ID lookups now require an authenticated caller; attach a JWT for
+    # the test user so these integration tests exercise the real auth path.
+    token = JWTService().create_access_token(user)
+    return {"AUTHORIZATION": f"Bearer {token}"}
+
 
 SOIL_MATCH_FRAGMENTS = """
   fragment soilMatch on SoilMatchInfo {
@@ -145,7 +156,7 @@ for idx, coords in enumerate(us_coordinates):
 
 @pytest.mark.integration
 @pytest.mark.parametrize("coords, with_data", us_tests)
-def test_us_integration(client, coords, with_data):
+def test_us_integration(client, auth_headers, coords, with_data):
     # run it twice to exercise the cache
     for _ in range(0, 2):
         response = graphql_query(
@@ -168,6 +179,7 @@ def test_us_integration(client, coords, with_data):
                 },
             },
             client=client,
+            headers=auth_headers,
         )
 
         assert response.json()["data"] is not None
@@ -201,7 +213,7 @@ def test_us_integration(client, coords, with_data):
 # DEPRECATED
 @pytest.mark.integration
 @pytest.mark.parametrize("coords, with_data", us_tests)
-def test_us_integration_old_endpoint(client, coords, with_data):
+def test_us_integration_old_endpoint(client, auth_headers, coords, with_data):
     # run it twice to exercise the cache
     for _ in range(0, 2):
         response = graphql_query(
@@ -224,6 +236,7 @@ def test_us_integration_old_endpoint(client, coords, with_data):
                 },
             },
             client=client,
+            headers=auth_headers,
         )
 
         assert response.json()["data"] is not None
@@ -294,7 +307,7 @@ def transform_rfv(rfv):
 
 @pytest.mark.integration
 @pytest.mark.parametrize("pedon_id, pedon", pedons)
-def test_global_integration(client, pedon_id, pedon):
+def test_global_integration(client, auth_headers, pedon_id, pedon):
     depth_dependent_data = []
 
     for i, row in pedon.iterrows():
@@ -316,6 +329,7 @@ def test_global_integration(client, pedon_id, pedon):
             },
         },
         client=client,
+        headers=auth_headers,
     )
 
     assert response.json()["data"] is not None
@@ -347,7 +361,7 @@ def test_global_integration(client, pedon_id, pedon):
 # DEPRECATED
 @pytest.mark.integration
 @pytest.mark.parametrize("pedon_id, pedon", pedons)
-def test_global_integration_old_endpoint(client, pedon_id, pedon):
+def test_global_integration_old_endpoint(client, auth_headers, pedon_id, pedon):
     depth_dependent_data = []
 
     for i, row in pedon.iterrows():
@@ -369,6 +383,7 @@ def test_global_integration_old_endpoint(client, pedon_id, pedon):
             },
         },
         client=client,
+        headers=auth_headers,
     )
 
     assert response.json()["data"] is not None

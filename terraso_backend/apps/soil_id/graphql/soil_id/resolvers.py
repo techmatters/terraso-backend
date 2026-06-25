@@ -25,11 +25,11 @@ from django.views.decorators.debug import sensitive_variables
 from soil_id import global_soil, us_soil
 from soil_id.utils import find_region_for_location
 
+from apps.core import analytics
 from apps.soil_id.graphql.soil_id.types import (
     DataBasedSoilMatch,
     DataBasedSoilMatches,
     EcologicalSite,
-    LABColorInput,
     LandCapabilityClass,
     SoilIdDepthDependentData,
     SoilIdFailure,
@@ -46,6 +46,7 @@ from apps.soil_id.graphql.types import DepthInterval
 from apps.soil_id.models.depth_dependent_soil_data import DepthDependentSoilData
 from apps.soil_id.models.soil_data import SoilData
 from apps.soil_id.models.soil_id_cache import SoilIdCache
+from apps.soil_id.munsell import munsell_string_to_lab, munsell_to_lab
 
 logger = structlog.get_logger(__name__)
 
@@ -150,15 +151,26 @@ def resolve_soil_info(soil_match: dict):
 
     taxonomy_subgroup = site_data["taxsubgrp"] if "taxsubgrp" in site_data else None
     full_description_url = site_data["sdeURL"] if "sdeURL" in site_data else None
-    description = soil_match["site"]["siteDescription"]
-    if not isinstance(description, str):
-        description = None
+
+    # siteDescription is a plain string for US matches (the soil series narrative)
+    # and a multilingual dict for global (WRB) matches. Expose the English text in
+    # both cases, plus the separate management guidance that global matches carry.
+    raw_description = soil_match["site"]["siteDescription"]
+    if isinstance(raw_description, dict):
+        description = raw_description.get("Description_en") or None
+        management = raw_description.get("Management_en") or None
+    elif isinstance(raw_description, str):
+        description = raw_description or None
+        management = None
+    else:
+        description = management = None
 
     return SoilInfo(
         soil_series=SoilSeries(
             name=soil_id["component"],
             taxonomy_subgroup=taxonomy_subgroup,
             description=description,
+            management=management,
             full_description_url=full_description_url,
         ),
         land_capability_class=resolve_land_capability_class(site_data),
@@ -329,10 +341,25 @@ def parse_rock_fragment_volume(rock_fragment_volume):
         return ">60%"
 
 
-def parse_color_LAB(color_LAB: Optional[LABColorInput]):
-    if color_LAB is None:
-        return None
-    return [color_LAB.L, color_LAB.A, color_LAB.B]
+def parse_color(depth):
+    # Color may be supplied as CIELAB, a Munsell string, or numeric Munsell,
+    # tried in that order. A Munsell value that can't be converted to LAB —
+    # e.g. an out-of-gamut, photo-derived color — is ignored: the depth is
+    # treated as having no color rather than failing the request. It's an
+    # infrequent edge case and not worth surfacing to the caller.
+    if depth.color_LAB is not None:
+        return [depth.color_LAB.L, depth.color_LAB.A, depth.color_LAB.B]
+
+    if depth.color_munsell:
+        lab = munsell_string_to_lab(depth.color_munsell)
+        return list(lab) if lab is not None else None
+
+    if depth.color_munsell_numeric is not None:
+        munsell = depth.color_munsell_numeric
+        lab = munsell_to_lab(munsell.hue, munsell.value, munsell.chroma)
+        return list(lab) if lab is not None else None
+
+    return None
 
 
 # Argument type hint would be SoilDataNode.surface_cracks_enum() if that were allowed
@@ -380,7 +407,7 @@ def parse_rank_soils_input_data(
 
         inputs["soilHorizon"].append(parse_texture(depth.texture))
         inputs["rfvDepth"].append(parse_rock_fragment_volume(depth.rock_fragment_volume))
-        inputs["lab_Color"].append(parse_color_LAB(depth.color_LAB))
+        inputs["lab_Color"].append(parse_color(depth))
 
     return inputs
 
@@ -445,7 +472,62 @@ def resolve_data_based_result(
         return SoilIdFailure(reason=SoilIdFailureReason.ALGORITHM_FAILURE)
 
 
+def _capture_soil_id_lookup(info, latitude, longitude, data, result, cache_hit):
+    """Emit the `soil_id_lookup` event. Best-effort; never raises (see docs/posthog.md §4).
+
+    The backend sees *every* lookup — app, web, partner API, direct GraphQL — so it's
+    the single source of truth for soil-ID usage.
+    """
+    try:
+        user = getattr(getattr(info, "context", None), "user", None)
+        if isinstance(result, SoilMatches):
+            status, match_count = "matches", len(result.matches or [])
+        elif isinstance(result, SoilIdFailure):
+            status, match_count = "failure", 0
+        else:
+            status, match_count = "unknown", 0
+        region = getattr(result, "data_region", None)
+        properties = {
+            "latitude": latitude,
+            "longitude": longitude,
+            "status": status,
+            "data_region": getattr(region, "value", None),
+            "has_input_data": data is not None,
+            "match_count": match_count,
+        }
+        if cache_hit is not None:
+            properties["cache_hit"] = cache_hit
+        authed = getattr(user, "is_authenticated", False)
+        analytics.capture(
+            distinct_id=getattr(user, "id", None),
+            event="soil_id_lookup",
+            properties=properties,
+            set_props=analytics.user_person_properties(user) if authed else None,
+        )
+    except Exception:
+        logger.exception("soil_id_lookup analytics capture failed")
+
+
 def resolve_soil_id_result(
+    _parent, _info, latitude: float, longitude: float, data: Optional[SoilIdInputData] = None
+):
+    # Determine cache_hit before the lookup warms the cache; only pay for the
+    # extra (cheap, index-only) query when analytics is actually enabled.
+    cache_hit = None
+    if analytics.is_enabled():
+        try:
+            cache_hit = SoilIdCache.objects.filter(
+                latitude=SoilIdCache.round_coordinate(latitude),
+                longitude=SoilIdCache.round_coordinate(longitude),
+            ).exists()
+        except Exception:
+            cache_hit = None
+    result = _compute_soil_id_result(_parent, _info, latitude, longitude, data)
+    _capture_soil_id_lookup(_info, latitude, longitude, data, result, cache_hit)
+    return result
+
+
+def _compute_soil_id_result(
     _parent, _info, latitude: float, longitude: float, data: Optional[SoilIdInputData] = None
 ):
     try:

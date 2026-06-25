@@ -28,6 +28,7 @@ from apps.collaboration.graphql.memberships import (
     MembershipNodeMixin,
 )
 from apps.collaboration.models import Membership
+from apps.core import analytics
 from apps.core.models import User
 from apps.graphql.schema.commons import (
     BaseAuthenticatedMutation,
@@ -150,10 +151,15 @@ class ProjectNode(DjangoObjectType):
 
     @classmethod
     def get_queryset(cls, queryset, info):
-        # limit queries to membership lists of projects to which the user belongs
-        user_pk = getattr(info.context.user, "pk", None)
+        # Limit to projects the caller is a member of.  Short-circuit on
+        # anonymous: the membership join uses a LEFT OUTER JOIN, so a naive
+        # filter user_id=None matches projects with zero memberships
+        # (F5 SQL OUTER-JOIN bug).
+        user = info.context.user
+        if user.is_anonymous:
+            return queryset.none()
         return queryset.filter(
-            membership_list__memberships__user_id=user_pk,
+            membership_list__memberships__user_id=user.pk,
             membership_list__memberships__deleted_at__isnull=True,
         )
 
@@ -225,6 +231,16 @@ class ProjectDeleteMutation(BaseDeleteMutation):
                 site.project = transfer_project
             Site.objects.bulk_update(project_sites, ["project"])
         result = super().mutate_and_get_payload(root, info, **kwargs)
+
+        analytics.capture(
+            distinct_id=user.id,
+            event="project_deleted",
+            properties={
+                "project_name": project.name,
+                "transferred_sites": "transfer_project_id" in kwargs,
+            },
+            set_props=analytics.user_person_properties(user),
+        )
 
         return result
 

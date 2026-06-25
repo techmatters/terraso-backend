@@ -20,6 +20,9 @@ from apps.core.models import Group, Landscape, SharedResource
 
 
 def is_target_manager(user, target):
+    if target is None:
+        return False
+
     if isinstance(target, Group):
         return (
             target.membership_list.memberships.by_role(group_collaboration_roles.ROLE_MANAGER)
@@ -36,6 +39,9 @@ def is_target_manager(user, target):
 
 
 def is_target_member(user, target):
+    if target is None:
+        return False
+
     if target.created_by == user:
         return True
     if target.membership_list is None:
@@ -44,6 +50,9 @@ def is_target_member(user, target):
 
 
 def is_user_allowed_to_view_data_entry(data_entry, user):
+    if data_entry is None:
+        return False
+
     shared_resources = data_entry.shared_resources.all()
     for shared_resource in shared_resources:
         if is_target_member(user, shared_resource.target):
@@ -52,6 +61,9 @@ def is_user_allowed_to_view_data_entry(data_entry, user):
 
 
 def is_user_allowed_to_change_data_entry(data_entry, user):
+    if data_entry is None:
+        return False
+
     shared_resources = data_entry.shared_resources.all()
     for shared_resource in shared_resources:
         if is_target_manager(user, shared_resource.target):
@@ -61,11 +73,17 @@ def is_user_allowed_to_change_data_entry(data_entry, user):
 
 @rules.predicate
 def allowed_to_change_data_entry(user, data_entry):
+    if data_entry is None:
+        return False
+
     return data_entry.created_by == user
 
 
 @rules.predicate
 def allowed_to_delete_data_entry(user, data_entry):
+    if data_entry is None:
+        return False
+
     if data_entry.created_by == user:
         return True
     shared_resources = data_entry.shared_resources.all()
@@ -87,6 +105,9 @@ def allowed_to_view_data_entry(user, data_entry):
 
 @rules.predicate
 def allowed_to_view_visualization_config(user, visualization_config):
+    if visualization_config is None:
+        return False
+
     return is_user_allowed_to_view_data_entry(visualization_config.data_entry, user)
 
 
@@ -97,11 +118,17 @@ def allowed_to_add_visualization_config(user, data_entry):
 
 @rules.predicate
 def allowed_to_change_visualization_config(user, visualization_config):
+    if visualization_config is None:
+        return False
+
     return visualization_config.created_by == user
 
 
 @rules.predicate
 def allowed_to_delete_visualization_config(user, visualization_config):
+    if visualization_config is None:
+        return False
+
     if visualization_config.created_by == user:
         return True
     return is_user_allowed_to_change_data_entry(visualization_config.data_entry, user)

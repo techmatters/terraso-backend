@@ -21,6 +21,7 @@ from django.conf import settings
 
 from apps.soil_id.models.depth_dependent_soil_data import DepthDependentSoilData
 from apps.soil_id.models.soil_data import SoilData
+from apps.soil_id.munsell import decode_hue
 
 from .depth_helpers import depth_key, get_effective_preset, get_visible_intervals
 from .fetch_data import fetch_all_notes_for_site
@@ -91,8 +92,7 @@ def get_enum_label(enum_class, value, fallback=None):
         return code_to_label(value)
 
 
-# Munsell color conversion constants
-non_neutral_color_hues = ["R", "YR", "Y", "GY", "G", "BG", "B", "PB", "P", "RP"]
+# Munsell value steps the app allows; used to snap a continuous value.
 color_values = [2, 2.5, 3, 4, 5, 6, 7, 8, 8.5, 9, 9.5]
 
 # Configuration: Maps field names to their Django enum classes
@@ -327,19 +327,7 @@ def render_munsell_hue(
     if isinstance(color_chroma, (int, float)) and round(color_chroma) == 0:
         return None, "N"
 
-    if color_hue == 100:
-        color_hue = 0
-
-    hue_index = int(color_hue // 10)
-    substep = round((color_hue % 10) / 2.5)
-
-    if substep == 0:
-        hue_index = (hue_index + 9) % 10
-        substep = 4
-
-    substep = (substep * 5) / 2
-
-    return substep, non_neutral_color_hues[hue_index]
+    return decode_hue(color_hue)
 
 
 def munsell_to_string(color: dict) -> str:
@@ -411,12 +399,14 @@ def flatten_site(site: dict) -> dict:
     matching_soil_info = None
     selected_soil_taxonomy = None
     selected_soil_description = None
+    selected_soil_management = None
     lcc_class = None
     ecological_site_name = None
     ecological_site_id = None
     top_match_soil_series = None
     top_match_taxonomy = None
     top_match_description = None
+    top_match_management = None
     top_match_user_rating = None
     top_match_data_source = None
 
@@ -428,6 +418,7 @@ def flatten_site(site: dict) -> dict:
         top_match_soil_series = top_match_series.get("name")
         top_match_taxonomy = top_match_series.get("taxonomySubgroup")
         top_match_description = top_match_series.get("description")
+        top_match_management = top_match_series.get("management")
         top_match_user_rating = top_match.get("userRating")
         top_match_data_source = top_match.get("dataSource")
 
@@ -442,6 +433,7 @@ def flatten_site(site: dict) -> dict:
                 selected_series = matching_soil_info.get("soilSeries", {})
                 selected_soil_taxonomy = selected_series.get("taxonomySubgroup")
                 selected_soil_description = selected_series.get("description")
+                selected_soil_management = selected_series.get("management")
 
                 # Get land capability class
                 lcc_info = matching_soil_info.get("landCapabilityClass")
@@ -476,10 +468,12 @@ def flatten_site(site: dict) -> dict:
             "Selected soil series": user_selected_soil,
             "Selected soil type taxonomy subgroup": selected_soil_taxonomy,
             "Selected soil description": selected_soil_description,
+            "Selected soil management": selected_soil_management,
             # Top match (best algorithmic match)
             "Top soil series match": top_match_soil_series,
             "Top soil match taxonomy subgroup": top_match_taxonomy,
             "Top soil match description": top_match_description,
+            "Top soil match management": top_match_management,
             # Default to "Unsure" if there's a top match but no explicit rating
             "Top match user rating": (top_match_user_rating or "Unsure")
             if top_match_soil_series

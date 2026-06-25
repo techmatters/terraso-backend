@@ -31,6 +31,8 @@ from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.urls import reverse
 from django.views import View
 
+from apps.core import analytics
+
 from .constants import (
     OAUTH_COOKIE_MAX_AGE_SECONDS,
     OAUTH_COOKIE_NAME,
@@ -152,6 +154,14 @@ class AbstractCallbackView(View):
         except Exception as exc:
             logger.exception("Error attempting create access and refresh tokens")
             return HttpResponse(f"Error: {exc}", status=400)
+
+        if created_with_service:
+            analytics.capture(
+                distinct_id=user.id,
+                event="user_created",
+                properties={"auth_provider": created_with_service},
+                set_props=analytics.user_person_properties(user),
+            )
 
         origin = self.state["origin"]
         redirect_uri = self.state["redirectUrl"]
@@ -310,6 +320,16 @@ class RefreshAccessTokenView(View):
 
         access_token, refresh_token = terraso_login(self.request, user)
 
+        # Active-user heartbeat: an active client refreshes once per access-token
+        # lifetime, so this powers PostHog DAU/WAU/MAU (see docs/posthog.md §5). Tag
+        # service accounts so they can be filtered out of human active-user counts.
+        analytics.capture(
+            distinct_id=user.id,
+            event="session_refreshed",
+            properties={"service_account": bool(refresh_payload.get("service_account"))},
+            set_props=analytics.user_person_properties(user),
+        )
+
         return JsonResponse(
             {
                 "access_token": access_token,
@@ -445,6 +465,15 @@ class TokenExchangeView(View):
             )
 
         access_token, refresh_token = terraso_login(request, user)
+
+        if created:
+            analytics.capture(
+                distinct_id=user.id,
+                event="user_created",
+                properties={"auth_provider": contents.get("provider")},
+                set_props=analytics.user_person_properties(user),
+            )
+
         resp_payload = {
             "rtoken": refresh_token,
             "atoken": access_token,

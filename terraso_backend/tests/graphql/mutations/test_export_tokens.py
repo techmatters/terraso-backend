@@ -328,3 +328,17 @@ class TestAllExportTokensQuery:
         tokens = content["data"]["allExportTokens"]
         assert len(tokens) == 1
         assert tokens[0]["token"] == user_token.token
+
+    def test_query_returns_empty_for_anonymous(self, client_query_no_token, user):
+        """Anonymous callers must get an empty list even if a token with
+        user_id=='None' (the literal string) somehow exists in the table."""
+        ExportToken.create_token("USER", str(user.id), str(user.id))
+        # A row with the literal string "None" as user_id wouldn't be created
+        # by the production mutation, but verify the resolver doesn't depend
+        # on that assumption.
+        ExportToken.objects.create(resource_type="USER", resource_id=str(user.id), user_id="None")
+
+        response = client_query_no_token(ALL_EXPORT_TOKENS_QUERY)
+        content = json.loads(response.content)
+        assert "errors" not in content, content.get("errors")
+        assert content["data"]["allExportTokens"] == []

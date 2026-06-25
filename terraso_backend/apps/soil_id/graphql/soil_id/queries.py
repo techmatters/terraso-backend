@@ -16,6 +16,7 @@
 
 import graphene
 
+from apps.graphql.exceptions import GraphQLNotAllowedException
 from apps.soil_id.graphql.soil_id.resolvers import resolve_data_based_result, resolve_soil_id_result
 from apps.soil_id.graphql.soil_id.types import DataBasedResult, SoilIdInputData, SoilIdResult
 
@@ -42,6 +43,13 @@ class SoilId(graphene.ObjectType):
 
 
 def resolve_soil_id(parent, info):
+    # Soil ID lookups require an authenticated caller. Anonymous access was
+    # previously allowed because the resolvers ignored the user entirely;
+    # gate it here at the single entry point so both soilMatches and the
+    # deprecated dataBasedSoilMatches (and any future SoilId field) are
+    # covered. Partner access is granted by issuing a service-account token.
+    if info.context.user.is_anonymous:
+        raise GraphQLNotAllowedException(model_name="SoilId", field="soilId", operation="read")
     return SoilId()
 
 

@@ -52,7 +52,7 @@ type Query {
     """The ID of the object"""
     id: ID!
   ): StoryMapNode!
-  storyMaps(offset: Int, before: String, after: String, first: Int, last: Int, slug: String, storyMapId: String, memberships_User_Email_Not: String, memberships_User_Email: String): StoryMapNodeConnection
+  storyMaps(offset: Int, before: String, after: String, first: Int, last: Int, slug: String, storyMapId: String, featured: Boolean, memberships_User_Email_Not: String, memberships_User_Email: String): StoryMapNodeConnection
   project(
     """The ID of the object"""
     id: ID!
@@ -150,6 +150,11 @@ type SoilSeries {
   name: String!
   taxonomySubgroup: String
   description: String
+
+  """Management guidance; populated for global (WRB) matches."""
+  management: String
+
+  """US only"""
   fullDescriptionUrl: String
 }
 
@@ -287,6 +292,12 @@ input SoilIdInputDepthDependentData {
   texture: SoilIdDepthDependentSoilDataTextureChoices = null
   rockFragmentVolume: SoilIdDepthDependentSoilDataRockFragmentVolumeChoices = null
   colorLAB: LABColorInput = null
+
+  """Munsell color string, e.g. "7.5YR 5/4" or "N 5/" (neutral)."""
+  colorMunsell: String
+
+  """Munsell color as numeric hue (0-100) / value / chroma."""
+  colorMunsellNumeric: MunsellColorInput = null
 }
 
 input DepthIntervalInput {
@@ -298,6 +309,16 @@ input LABColorInput {
   L: Float!
   A: Float!
   B: Float!
+}
+
+"""
+Munsell color in numeric form. `hue` is the 0-100 continuous encoding
+(hue-family index * 10 + substep), matching the app's colorHue.
+"""
+input MunsellColorInput {
+  hue: Float!
+  value: Float!
+  chroma: Float!
 }
 
 union SoilIdResult = SoilMatches | SoilIdFailure
@@ -729,6 +750,7 @@ type StoryMapNode implements Node {
   configuration: JSONString
   publishedConfiguration: JSONString
   isPublished: Boolean!
+  featured: Boolean!
   publishedAt: DateTime
   membershipList: CollaborationMembershipListNode
 }

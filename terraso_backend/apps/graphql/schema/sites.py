@@ -21,6 +21,7 @@ from graphene import relay
 from graphene_django import DjangoObjectType
 from graphene_django.filter import TypedFilter
 
+from apps.core import analytics
 from apps.core.models.users import deleted_user_stub
 from apps.graphql.schema.users import UserNode
 from apps.project_management.graphql.projects import ProjectNode
@@ -103,7 +104,7 @@ class SiteNode(DjangoObjectType):
         user = info.context.user
         if user.is_anonymous:
             return queryset.none()
-        return sites.filter_only_sites_user_owner_or_member(user, queryset)
+        return sites.filter_visible_sites(user, queryset)
 
     @classmethod
     def privacy_enum(cls):
@@ -284,6 +285,14 @@ class SiteDeleteMutation(BaseDeleteMutation):
             cls.not_allowed(MutationTypes.DELETE)
 
         result = super().mutate_and_get_payload(root, info, **kwargs)
+
+        analytics.capture(
+            distinct_id=user.id,
+            event="site_deleted",
+            properties={"site_name": site.name, "in_project": site.project_id is not None},
+            set_props=analytics.user_person_properties(user),
+        )
+
         return result
 
 

@@ -1,0 +1,16 @@
+# Temporary override: run against a LOCAL ../soil-id-algorithm checkout instead
+# of the pinned soil-id release. Mounts the checkout and shadows the installed
+# package via PYTHONPATH — no requirements or image rebuild needed.
+#
+# Use via the *-local make targets while a soil-id change is unreleased:
+#   make run-local        # or test_unit-local / bash-local / lint-local
+#
+# Once requirements/base.in is repinned to the merged soil-id version, go back
+# to the normal targets. Set SOIL_ID_SRC to override the checkout location if
+# it isn't the sibling directory.
+services:
+  web:
+    volumes:
+      - ${SOIL_ID_SRC:-../soil-id-algorithm}:/soil-id-src:ro
+    environment:
+      PYTHONPATH: /soil-id-src

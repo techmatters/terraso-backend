@@ -1,6 +1,17 @@
 DC_ENV ?= dev
 ENV_FILE ?= $(HOME)/secrets/terraso-backend/.env
-DC_FILE_ARG = --env-file $(ENV_FILE) -f docker-compose.$(DC_ENV).yml
+# Extra compose files, threaded through DC_FILE_ARG so they apply to
+# run/test/bash/lint alike. Override directly, e.g.:
+#   make run DC_EXTRA_FILES="-f docker-compose.local-soilid.yml"
+DC_EXTRA_FILES ?=
+# Convenience flag: run against a LOCAL ../soil-id-algorithm checkout (mounts it
+# and shadows the pinned soil-id release via PYTHONPATH) for an unreleased
+# soil-id change. Prefer the one-shot form so it doesn't leak into later
+# commands:  USE_LOCAL_SOILID=true make run
+ifeq ($(USE_LOCAL_SOILID),true)
+	DC_EXTRA_FILES += -f docker-compose.local-soilid.yml
+endif
+DC_FILE_ARG = --env-file $(ENV_FILE) -f docker-compose.$(DC_ENV).yml $(DC_EXTRA_FILES)
 DC_RUN_CMD ?= docker compose $(DC_FILE_ARG) run --quiet-pull --rm web
 
 ifeq ($(DC_ENV),ci)
@@ -109,6 +120,10 @@ setup-git-hooks:
 
 run: check_rebuild
 	@./scripts/docker.sh "$(DC_FILE_ARG)"
+
+# Convenience wrapper for `USE_LOCAL_SOILID=true make run` (see Makefile header).
+run-local-soilid:
+	@USE_LOCAL_SOILID=true $(MAKE) run
 
 # Run with gunicorn to match production threading behavior.
 # Unlike "make run", this does NOT auto-reload on code changes — restart manually.

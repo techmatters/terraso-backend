@@ -15,8 +15,11 @@
 
 from urllib.parse import quote, unquote
 
+import structlog
 from django.contrib.auth import get_user_model
 from django.http import HttpResponse, HttpResponseBadRequest, JsonResponse
+
+from apps.core import analytics
 
 from .fetch_data import fetch_all_notes_for_site, fetch_site_data, fetch_soil_id
 from .fetch_lists import fetch_all_sites, fetch_project_list, fetch_user_owned_sites
@@ -24,6 +27,8 @@ from .formatters import sites_to_csv
 from .html_pages import export_page_html, invalid_token_page
 from .models import ExportToken
 from .transformers import transform_site_data
+
+logger = structlog.get_logger(__name__)
 
 
 def _resolve_export_token(token):
@@ -233,14 +238,55 @@ def _validate_output_format(output_format):
     return None
 
 
-def _export_sites_response(all_sites, output_format, filename):
+def _capture_export_download(request, resource_type, resource_name, output_format, via):
+    """Emit the `export_file_download` event. Best-effort; never raises.
+
+    The backend serves *every* export — shared token links, web, direct URLs — so it
+    is the single source of truth for export usage (see docs/posthog.md §4). For token-based
+    exports `request.user` is the token owner (set by `_setup_token_user`), so we always
+    have a real user to attribute to.
+    """
+    try:
+        user = getattr(request, "user", None)
+        authed = getattr(user, "is_authenticated", False)
+        analytics.capture(
+            distinct_id=getattr(user, "id", None),
+            event="export_file_download",
+            properties={
+                "resource_type": resource_type,  # USER, PROJECT, or SITE
+                "resource_name": resource_name,
+                "format": output_format,
+                "via": via,
+            },
+            set_props=analytics.user_person_properties(user) if authed else None,
+        )
+    except Exception:
+        logger.exception("export_file_download analytics capture failed")
+
+
+def _export_sites_response(
+    all_sites,
+    output_format,
+    filename,
+    request=None,
+    resource_type=None,
+    resource_name=None,
+    via=None,
+):
     """Helper function to generate export response for a list of sites.
 
     Args:
         all_sites: List of site data dicts
         output_format: "raw", "json", or "csv" (must be validated by caller)
         filename: Base filename for Content-Disposition header
+        request: the Django request (enables analytics capture when provided)
+        resource_type: PROJECT / SITE / USER, for analytics
+        resource_name: name of the exported project/site/user, for analytics
+        via: "token" or "id", for analytics
     """
+    if request is not None:
+        _capture_export_download(request, resource_type, resource_name, output_format, via)
+
     # Determine file format (raw uses json file extension)
     format = "json" if output_format == "raw" else output_format
 
@@ -323,7 +369,15 @@ def project_export(request, project_token, project_name, format):
     _setup_token_user(request, export_token)
     filename = _get_resource_name(export_token) or unquote(project_name)
     all_sites = _export_project_sites(export_token.resource_id, request, output_format)
-    return _export_sites_response(all_sites, output_format, filename)
+    return _export_sites_response(
+        all_sites,
+        output_format,
+        filename,
+        request=request,
+        resource_type="PROJECT",
+        resource_name=filename,
+        via="token",
+    )
 
 
 def site_export(request, site_token, site_name, format):
@@ -341,7 +395,15 @@ def site_export(request, site_token, site_name, format):
     _setup_token_user(request, export_token)
     filename = _get_resource_name(export_token) or unquote(site_name)
     all_sites = _export_single_site(export_token.resource_id, request, output_format)
-    return _export_sites_response(all_sites, output_format, filename)
+    return _export_sites_response(
+        all_sites,
+        output_format,
+        filename,
+        request=request,
+        resource_type="SITE",
+        resource_name=filename,
+        via="token",
+    )
 
 
 def user_owned_sites_export(request, user_token, user_name, format):
@@ -359,7 +421,15 @@ def user_owned_sites_export(request, user_token, user_name, format):
     _setup_token_user(request, export_token)
     display_name = _get_resource_name(export_token) or unquote(user_name)
     all_sites = _export_user_owned_sites(export_token.resource_id, request, output_format)
-    return _export_sites_response(all_sites, output_format, f"{display_name}_owned_sites")
+    return _export_sites_response(
+        all_sites,
+        output_format,
+        f"{display_name}_owned_sites",
+        request=request,
+        resource_type="USER",
+        resource_name=display_name,
+        via="token",
+    )
 
 
 def user_all_sites_export(request, user_token, user_name, format):
@@ -377,7 +447,15 @@ def user_all_sites_export(request, user_token, user_name, format):
     _setup_token_user(request, export_token)
     display_name = _get_resource_name(export_token) or unquote(user_name)
     all_sites = _export_user_all_sites(export_token.resource_id, request, output_format)
-    return _export_sites_response(all_sites, output_format, f"{display_name}_and_projects")
+    return _export_sites_response(
+        all_sites,
+        output_format,
+        f"{display_name}_and_projects",
+        request=request,
+        resource_type="USER",
+        resource_name=display_name,
+        via="token",
+    )
 
 
 # ID-based exports (authenticated, enforce permissions)
@@ -401,7 +479,15 @@ def project_export_by_id(request, project_id, project_name, format):
         filename = unquote(project_name)
 
     all_sites = _export_project_sites(project_id, request, output_format)
-    return _export_sites_response(all_sites, output_format, filename)
+    return _export_sites_response(
+        all_sites,
+        output_format,
+        filename,
+        request=request,
+        resource_type="PROJECT",
+        resource_name=filename,
+        via="id",
+    )
 
 
 def site_export_by_id(request, site_id, site_name, format):
@@ -422,7 +508,15 @@ def site_export_by_id(request, site_id, site_name, format):
         filename = unquote(site_name)
 
     all_sites = _export_single_site(site_id, request, output_format)
-    return _export_sites_response(all_sites, output_format, filename)
+    return _export_sites_response(
+        all_sites,
+        output_format,
+        filename,
+        request=request,
+        resource_type="SITE",
+        resource_name=filename,
+        via="id",
+    )
 
 
 def user_owned_sites_export_by_id(request, user_id, user_name, format):
@@ -443,7 +537,15 @@ def user_owned_sites_export_by_id(request, user_id, user_name, format):
         display_name = unquote(user_name)
 
     all_sites = _export_user_owned_sites(user_id, request, output_format)
-    return _export_sites_response(all_sites, output_format, f"{display_name}_owned_sites")
+    return _export_sites_response(
+        all_sites,
+        output_format,
+        f"{display_name}_owned_sites",
+        request=request,
+        resource_type="USER",
+        resource_name=display_name,
+        via="id",
+    )
 
 
 def user_all_sites_export_by_id(request, user_id, user_name, format):
@@ -464,7 +566,15 @@ def user_all_sites_export_by_id(request, user_id, user_name, format):
         display_name = unquote(user_name)
 
     all_sites = _export_user_all_sites(user_id, request, output_format)
-    return _export_sites_response(all_sites, output_format, f"{display_name}_and_projects")
+    return _export_sites_response(
+        all_sites,
+        output_format,
+        f"{display_name}_and_projects",
+        request=request,
+        resource_type="USER",
+        resource_name=display_name,
+        via="id",
+    )
 
 
 # HTML landing pages for export links

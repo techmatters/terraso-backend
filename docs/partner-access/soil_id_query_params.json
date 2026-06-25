@@ -1,0 +1,28 @@
+{
+  "latitude": -0.85497,
+  "longitude": 36.84891,
+  "data": {
+    "slope": 0.5,
+    "surfaceCracks": "NO_CRACKING",
+    "depthDependentData": [
+      {
+        "depthInterval": { "start": 0, "end": 10 },
+        "texture": "CLAY",
+        "rockFragmentVolume": "VOLUME_0_1",
+        "colorLAB": { "L": 20, "A": 30, "B": 40 }
+      },
+      {
+        "depthInterval": { "start": 10, "end": 30 },
+        "texture": "SANDY_LOAM",
+        "rockFragmentVolume": "VOLUME_1_15",
+        "colorMunsell": "7.5YR 5/4"
+      },
+      {
+        "depthInterval": { "start": 30, "end": 50 },
+        "texture": "CLAY_LOAM",
+        "rockFragmentVolume": "VOLUME_15_35",
+        "colorMunsellNumeric": { "hue": 20, "value": 4, "chroma": 3 }
+      }
+    ]
+  }
+}

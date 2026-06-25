@@ -26,12 +26,17 @@ pytestmark = pytest.mark.django_db
 
 
 def test_story_maps_query(client_query, story_maps, users):
+    story_maps[0].featured = True
+    story_maps[0].save(update_fields=["featured"])
+
     response = client_query(
         """
         {storyMaps {
           edges {
             node {
+              id
               title
+              featured
               isPublished
               configuration
               publishedConfiguration
@@ -50,8 +55,43 @@ def test_story_maps_query(client_query, story_maps, users):
     assert len(entries_result) == 9
     for story_map in entries_result:
         assert story_map["isPublished"] is True or story_map["createdBy"]["id"] == str(users[0].id)
+        if story_map["id"] == str(story_maps[0].id):
+            assert story_map["featured"] is True
         if story_map["isPublished"]:
             assert story_map["configuration"] != story_map["publishedConfiguration"]
+
+
+def test_story_maps_filter_by_featured(client_query, story_maps):
+    visible_featured_story_map = story_maps[0]
+    hidden_featured_story_map = story_maps[9]
+
+    visible_featured_story_map.featured = True
+    visible_featured_story_map.save(update_fields=["featured"])
+    hidden_featured_story_map.featured = True
+    hidden_featured_story_map.save(update_fields=["featured"])
+
+    response = client_query(
+        """
+        {storyMaps(featured: true) {
+          edges {
+            node {
+              id
+              featured
+            }
+          }
+        }}
+        """
+    )
+
+    edges = response.json()["data"]["storyMaps"]["edges"]
+    story_maps_result = [edge["node"] for edge in edges]
+
+    assert story_maps_result == [
+        {
+            "id": str(visible_featured_story_map.id),
+            "featured": True,
+        }
+    ]
 
 
 def test_story_maps_filter_by_can_change_by_email(client_query, story_maps, users):
