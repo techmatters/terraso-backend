@@ -23,7 +23,7 @@ from django.forms import ValidationError
 class BaseDepthInterval(models.Model):
     depth_interval_start = models.PositiveIntegerField(blank=True)
     depth_interval_end = models.PositiveIntegerField(
-        blank=True, validators=[MaxValueValidator(200)]
+        blank=True, validators=[MaxValueValidator(300)]
     )
 
     class Meta:

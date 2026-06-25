@@ -17,8 +17,6 @@
 
 from django.db import migrations, models
 
-import apps.soil_id.models.soil_data
-
 
 class Migration(migrations.Migration):
     dependencies = [
@@ -29,10 +27,13 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name="soildata",
             name="depth_intervals",
+            # The custom default/validator functions this field originally used were
+            # removed once the field itself was dropped in migration 0005. `default=list`
+            # is equivalent to the old default (an empty list); validators never affected
+            # the DB schema, so dropping them keeps this historical migration inert.
             field=models.JSONField(
                 blank=True,
-                default=apps.soil_id.models.soil_data.default_depth_intervals,
-                validators=[apps.soil_id.models.soil_data.validate_depth_intervals],
+                default=list,
             ),
         ),
     ]
