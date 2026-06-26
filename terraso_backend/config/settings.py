@@ -223,7 +223,7 @@ if DEBUG:
 else:
     CDN_STATIC_DOMAIN = config("CDN_STATIC_DOMAIN")
     AWS_S3_CUSTOM_DOMAIN = CDN_STATIC_DOMAIN
-    AWS_STORAGE_BUCKET_NAME = CDN_STATIC_DOMAIN
+    AWS_STORAGE_BUCKET_NAME = config("CDN_STATIC_S3_BUCKET", default=CDN_STATIC_DOMAIN)
     STATIC_URL = f"https://{CDN_STATIC_DOMAIN}/"
     STORAGES = {"staticfiles": {"BACKEND": "storages.backends.s3boto3.S3StaticStorage"}}
 
@@ -344,10 +344,14 @@ POSTHOG_HOST = config("POSTHOG_HOST", default="https://us.i.posthog.com")
 POSTHOG_ENABLED = config("POSTHOG_ENABLED", default=False, cast=config.boolean)
 
 PROFILE_IMAGES_S3_BUCKET = config("PROFILE_IMAGES_S3_BUCKET", default="")
-PROFILE_IMAGES_BASE_URL = f"https://{PROFILE_IMAGES_S3_BUCKET}"
+PROFILE_IMAGES_BASE_URL = (
+    f"https://{config('PROFILE_IMAGES_BASE_URL', default=PROFILE_IMAGES_S3_BUCKET)}"
+)
 
 DATA_ENTRY_FILE_S3_BUCKET = config("DATA_ENTRY_FILE_S3_BUCKET", default="")
-DATA_ENTRY_FILE_BASE_URL = f"https://{DATA_ENTRY_FILE_S3_BUCKET}"
+DATA_ENTRY_FILE_BASE_URL = (
+    f"https://{config('DATA_ENTRY_FILE_BASE_URL', default=DATA_ENTRY_FILE_S3_BUCKET)}"
+)
 
 # If types defined as None, then types are guessed from the file extension
 
@@ -423,7 +427,9 @@ DATA_UPLOAD_MAX_MEMORY_SIZE = 70000000  # 70MB
 MEDIA_UPLOAD_MAX_FILE_SIZE = 50000000  # 50MB
 
 STORY_MAP_MEDIA_S3_BUCKET = config("STORY_MAP_MEDIA_S3_BUCKET", default="")
-STORY_MAP_MEDIA_BASE_URL = f"https://{STORY_MAP_MEDIA_S3_BUCKET}"
+STORY_MAP_MEDIA_BASE_URL = (
+    f"https://{config('STORY_MAP_MEDIA_BASE_URL', default=STORY_MAP_MEDIA_S3_BUCKET)}"
+)
 
 PUBLIC_BASE_PATHS = [
     "/admin/",  # Authentication handled by Django
