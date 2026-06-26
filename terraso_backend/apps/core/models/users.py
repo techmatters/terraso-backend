@@ -27,7 +27,8 @@ from apps.core import group_collaboration_roles, landscape_collaboration_roles
 
 logger = structlog.get_logger(__name__)
 
-# Apps whose models cascade with the user (the "landpks subtree"). These
+# Used for User deletion: Apps whose models cascade with the user
+# (the "landpks subtree"). These
 # are torn down explicitly in User._soft_delete_with_cascade and
 # Project.soft_delete_policy_action — rather than blocked by the gate —
 # because the schema is set up so the cascade can clean them up safely.
@@ -520,10 +521,7 @@ def request_account_deletion(user, blockers=None):
     pref.save()
 
 
-# Deleted-user stub: returned by resolvers (SiteNoteNode.author,
-# SiteNode.owner) when the underlying FK is null after a SET_NULL
-# cascade from UserDeleteMutation.  See deleted_user_stub_plan.md
-# in terraso-backend-research for the rationale.
+# Deleted-user stub: returned by SiteNoteNode.author when the FK is null
 #
 # Old clients that don't know about the sentinel render `firstName +
 # lastName` verbatim ("Deleted User", English).  New clients import
@@ -537,9 +535,9 @@ DELETED_USER_LAST_NAME = "User"
 def deleted_user_stub():
     """Return an unsaved User instance representing a deleted account.
 
-    Used by GraphQL resolvers to keep the `author: User!` /
-    `owner: User!` schema contract intact when the FK is null on a
-    soft-deleted authoring user.
+    Used by the SiteNoteNode.author resolver to keep the `author: User!`
+    schema contract intact when the FK is null on a soft-deleted
+    authoring user (SiteNote.author is SET_NULL on cascade).
 
     `is_active=False` is set explicitly so the stub serializes the
     semantically-correct value if `is_active` is ever exposed on

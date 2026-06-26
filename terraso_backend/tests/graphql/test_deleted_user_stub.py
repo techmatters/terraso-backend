@@ -13,11 +13,13 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see https://www.gnu.org/licenses/.
 
-"""Server-side deleted-user stub: when SiteNote.author or Site.owner is
-null (SET_NULL cascade from UserDeleteMutation), the GraphQL resolvers
-return an unsaved User instance with id=DELETED_USER_ID and English
-"Deleted User" name. Old clients that dereference author.id don't crash;
-new clients detect DELETED_USER_ID and substitute a localized label.
+"""Server-side deleted-user stub: when SiteNote.author is null (the
+SET_NULL cascade from UserDeleteMutation nulls it on shared-project
+notes that must survive their author's deletion), the SiteNoteNode
+resolver returns an unsaved User instance with id=DELETED_USER_ID and
+English "Deleted User" name. Old clients that dereference author.id
+don't crash; new clients detect DELETED_USER_ID and substitute a
+localized label.
 
 Plan: terraso-backend-research/deleted_user_stub_plan.md (2026-05-19).
 """
@@ -129,61 +131,6 @@ def test_site_note_with_real_author_returns_real_user(client, user, project, pro
     found = next(e for e in edges if e["node"]["id"] == str(note.id))
     assert found["node"]["author"]["id"] == str(user.id)
     assert found["node"]["author"]["email"] == user.email
-
-
-# --- SiteNode.owner resolver ---
-
-
-def test_site_with_null_owner_returns_stub(client, project, project_user):
-    """A site whose owner FK was nulled (SET_NULL cascade) and is reachable
-    via a project the caller belongs to serializes the owner field as
-    the stub.
-
-    (Visibility via the PUBLIC privacy branch — i.e. strangers reaching
-    orphan public sites — is exercised in test_sites_public_visibility.py
-    on the anonymous-access-scoping branch.)"""
-    site = Site.objects.create(
-        name="stub-owner-site",
-        latitude=0,
-        longitude=0,
-        elevation=0,
-        owner=None,
-        project=project,
-        privacy=Site.PRIVATE,
-    )
-    client.force_login(project_user)
-    response = graphql_query(
-        'query { site(id: "%s") { owner { id firstName lastName } } }' % site.id,
-        client=client,
-    )
-    body = response.json()
-    assert "errors" not in body
-    owner = body["data"]["site"]["owner"]
-    assert owner is not None
-    assert owner["id"] == DELETED_USER_ID
-    assert owner["firstName"] == DELETED_USER_FIRST_NAME
-    assert owner["lastName"] == DELETED_USER_LAST_NAME
-
-
-def test_site_with_real_owner_returns_real_user(client, user):
-    """Sanity: a site with an actual owner serializes the real user. The
-    caller is the owner themselves (guaranteed visibility regardless of
-    other access-scoping changes)."""
-    site = Site.objects.create(
-        name="real-owner-site",
-        latitude=0,
-        longitude=0,
-        elevation=0,
-        owner=user,
-        privacy=Site.PRIVATE,
-    )
-    client.force_login(user)
-    response = graphql_query(
-        'query { site(id: "%s") { owner { id email } } }' % site.id, client=client
-    )
-    body = response.json()
-    assert body["data"]["site"]["owner"]["id"] == str(user.id)
-    assert body["data"]["site"]["owner"]["email"] == user.email
 
 
 # --- Soft-delete end-to-end ---

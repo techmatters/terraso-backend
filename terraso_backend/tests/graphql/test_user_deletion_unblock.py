@@ -17,11 +17,10 @@
 (security_audit_findings.md, side observation 1 under S5; plan doc
 `account_deletion_author_snapshot_plan.md` v2).
 
-`SiteNote.author` and `Site.owner` are now `null=True, SET_NULL`. This
-file pins that the FKs accept null, that the cascade from a soft-deleted
-User actually nulls them out, and that downstream code paths
-(permission checks, site visibility, the is_author method, GraphQL
-serialization) all keep working when the FK is null.
+`SiteNote.author` is `null=True, SET_NULL` — notes on shared project
+sites must survive their author's deletion.
+
+This file pins that the FKs accept null, that the cascade from a soft-deleted User behaves correctly (author nulled), and that downstream code paths (permission checks, site visibility, the is_author method, GraphQL serialization) all keep working when an FK is null.
 
 End-to-end UserDeleteMutation acceptance is a separate task — these
 tests cover the schema/serialization side only.
@@ -73,8 +72,8 @@ def test_user_soft_delete_nulls_authored_note(user):
 
 
 def test_user_soft_delete_cascades_to_owned_site(user):
-    """Site.owner is CASCADE — a deleted user's unaffiliated owned sites
-    die with them, including public ones."""
+    """Soft-deleting the user soft-deletes their unaffiliated owned sites
+    along with them."""
     site = Site.objects.create(name="kept-site", latitude=0, longitude=0, elevation=0, owner=user)
     assert site.owner_id == user.pk
 
@@ -126,17 +125,12 @@ def test_anon_still_sees_no_sites_when_owner_null(client_query_no_token):
     assert body["data"]["sites"]["totalCount"] == 0
 
 
-def test_project_member_sees_orphan_project_site_with_stub_owner(client, project, project_user):
-    """A site whose owner FK was nulled by the SET_NULL cascade can still
-    be reached via its project. When project_user (a project member) views
-    it, the owner field serializes as the deleted-user stub (id = nil
-    UUID) rather than `null` — see deleted_user_stub_plan.md.
-
-    (Visibility via the PUBLIC privacy branch is exercised separately in
-    test_sites_public_visibility.py on the anonymous-access-scoping
-    branch.)"""
+def test_project_member_sees_project_site_with_null_owner(client, project, project_user):
+    """A project-affiliated site has owner=None by design (the check
+    constraint forbids both owner and project being set). When a project
+    member views it, the owner field serializes as `null`."""
     Site.objects.create(
-        name="orphan-in-project",
+        name="project-site",
         latitude=0,
         longitude=0,
         elevation=0,
@@ -151,13 +145,13 @@ def test_project_member_sees_orphan_project_site_with_stub_owner(client, project
     )
     body = response.json()
     names = [edge["node"]["name"] for edge in body["data"]["sites"]["edges"]]
-    assert "orphan-in-project" in names
-    orphan_node = next(
+    assert "project-site" in names
+    project_site_node = next(
         edge["node"]
         for edge in body["data"]["sites"]["edges"]
-        if edge["node"]["name"] == "orphan-in-project"
+        if edge["node"]["name"] == "project-site"
     )
-    assert orphan_node["owner"]["id"] == "00000000-0000-0000-0000-000000000000"
+    assert project_site_node["owner"] is None
 
 
 def test_stranger_cannot_see_private_orphan_site(client, user):

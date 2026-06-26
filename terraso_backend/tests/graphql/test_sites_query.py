@@ -74,10 +74,7 @@ def test_query_site_fields(client, project, project_user):
         assert site_json["privacy"] == site.privacy
         assert site_json["archived"] == site.archived
         if site.owner is None:
-            # SiteNode.owner now returns the deleted-user stub (id = nil
-            # UUID) for sites whose owner FK is null, so old clients never
-            # see `null` here. See deleted_user_stub_plan.md.
-            assert site_json["owner"]["id"] == "00000000-0000-0000-0000-000000000000"
+            assert site_json["owner"] is None
         else:
             assert site_json["owner"]["id"] == str(site.owner.id)
         if site_json["project"] is None:

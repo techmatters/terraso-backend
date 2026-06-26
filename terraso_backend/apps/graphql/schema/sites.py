@@ -22,8 +22,6 @@ from graphene_django import DjangoObjectType
 from graphene_django.filter import TypedFilter
 
 from apps.core import analytics
-from apps.core.models.users import deleted_user_stub
-from apps.graphql.schema.users import UserNode
 from apps.project_management.graphql.projects import ProjectNode
 from apps.project_management.models import Project, Site, sites
 from apps.project_management.permission_rules import Context
@@ -65,9 +63,6 @@ class SiteFilter(django_filters.FilterSet):
 class SiteNode(DjangoObjectType):
     id = graphene.ID(source="pk", required=True)
     seen = graphene.Boolean(required=True)
-    # Explicit field so resolve_owner below is honored (graphene_django's
-    # auto-generated FK field skips resolve_<field> methods on the class).
-    owner = graphene.Field(UserNode)
     soil_data = graphene.Field(
         "apps.soil_id.graphql.soil_data.queries.SoilDataNode",
         required=True,
@@ -109,12 +104,6 @@ class SiteNode(DjangoObjectType):
     @classmethod
     def privacy_enum(cls):
         return cls._meta.fields["privacy"].type.of_type()
-
-    def resolve_owner(self, info):
-        # TODO-cknipe: Delete this, I think
-        if self.owner_id is None:
-            return deleted_user_stub()
-        return self.owner
 
     def resolve_seen(self, info):
         user = info.context.user
