@@ -15,6 +15,7 @@
 import base64
 import os
 import re
+import sys
 from typing import TypedDict
 
 import django
@@ -468,7 +469,12 @@ MAPBOX_API_URL = config("MAPBOX_API_URL", default="https://api.mapbox.com")
 MAPBOX_USERNAME = config("MAPBOX_USERNAME", default="")
 MAPBOX_ACCESS_TOKEN = config("MAPBOX_ACCESS_TOKEN", default="")
 
-if config("SENTRY_DSN", default=""):
+# Never initialize Sentry under pytest: test runs (local or CI) would otherwise
+# report expected validation/permission errors and any test crashes to Sentry,
+# drowning real production signal. Test failures are surfaced by the test runner.
+_RUNNING_TESTS = "pytest" in sys.modules
+
+if config("SENTRY_DSN", default="") and not _RUNNING_TESTS:
     sentry_sdk.init(
         dsn=config("SENTRY_DSN", default=""),
         environment=config("ENV", default="development"),
@@ -482,7 +488,8 @@ if config("SENTRY_DSN", default=""):
     )
 else:
     # structlog is already set up at this point, so we can log nicely.
-    structlog.get_logger().warning("SENTRY_DSN is not defined, continuing without Sentry.")
+    reason = "running under pytest" if _RUNNING_TESTS else "SENTRY_DSN is not defined"
+    structlog.get_logger().warning(f"Continuing without Sentry ({reason}).")
 
 HUBSPOT_AUTH_TOKEN = config("HUBSPOT_AUTH_TOKEN", default="")
 HUBSPOT_PORTAL_ID = config("HUBSPOT_PORTAL_ID", default="")
