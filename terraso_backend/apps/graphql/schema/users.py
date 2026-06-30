@@ -16,6 +16,7 @@
 import graphene
 import rules
 import structlog
+from django.utils import timezone
 from django_filters import CharFilter, FilterSet
 from graphene import relay
 from graphene_django import DjangoObjectType
@@ -265,11 +266,14 @@ class UserDeleteMutation(BaseDeleteMutation):
         # manual-cleanup ticket). Other exceptions (DB errors, cascade bugs)
         # carry no such guarantee and surface honestly so Sentry catches them.
         user = User.objects.get(pk=_id)
+
+        account_age_days = (timezone.now() - user.created_at).days
         try:
             user.delete()
             analytics.capture(
                 distinct_id=_id,
                 event="user_delete_immediate",
+                properties={"account_age_days": account_age_days},
                 set_props=analytics.user_person_properties(request_user),
             )
         except UserDeletionBlockedError as e:
@@ -278,11 +282,18 @@ class UserDeleteMutation(BaseDeleteMutation):
                 analytics.capture(
                     distinct_id=_id,
                     event="user_delete_request",
+                    properties={"account_age_days": account_age_days},
                     set_props=analytics.user_person_properties(request_user),
                 )
 
             except TicketCreationError as ticket_err:
                 # If HubSpot is down, still return the structured blockers
+                analytics.capture(
+                    distinct_id=_id,
+                    event="user_delete_request_failed",
+                    properties={"account_age_days": account_age_days},
+                    set_props=analytics.user_person_properties(request_user),
+                )
                 return cls(
                     user=None,
                     blockers=e.blockers,
