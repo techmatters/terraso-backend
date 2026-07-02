@@ -409,6 +409,21 @@ AWS_ACCESS_KEY_ID = config("AWS_ACCESS_KEY_ID", default="")
 AWS_SECRET_ACCESS_KEY = config("AWS_SECRET_ACCESS_KEY", default="")
 AWS_S3_REGION_NAME = config("AWS_S3_REGION_NAME", default="us-east-2")
 
+# Set to "virtual" to force boto3 to use a consistent host for
+# both signature computation and URL generation. Without this, the endpoint
+# auto-resolution in generate_presigned_url can derive different hosts for
+# signing vs. the actual request, causing SignatureDoesNotMatch errors.
+#
+# New account-private bucket names (no dots) should set this to "virtual".
+# Legacy bucket names with dots (e.g. files.staging.terraso.net) MUST NOT
+# use "virtual" because S3 SSL certificates don't cover bucket names with
+# dots in virtual-hosted style; leave this empty so boto3 auto-detects.
+#
+# See https://github.com/jschneier/django-storages/issues/782 for further
+# possible configuration scenarios.
+if config("AWS_S3_ADDRESSING_STYLE", default="") != "":
+    AWS_S3_ADDRESSING_STYLE = config("AWS_S3_ADDRESSING_STYLE")
+
 if DEBUG:
     EMAIL_BACKEND = "naomi.mail.backends.naomi.NaomiBackend"
     EMAIL_FILE_PATH = "/app/email_preview"
