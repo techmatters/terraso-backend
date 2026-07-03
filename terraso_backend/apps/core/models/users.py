@@ -326,9 +326,13 @@ class User(SafeDeleteModel, AbstractUser):
         Sole-manager projects: explicit — there's no FK that says "this project
         belongs to this user". Project.soft_delete_policy_action handles the
         MembershipList cleanup for each."""
-        from apps.project_management.models import Project
+        from apps.project_management.models import Project, SiteNote
 
         solo_project_ids = list(self._solo_manager_projects().values_list("pk", flat=True))
+        # Preserve authorship before the SET_NULL cascade blanks SiteNote.author.
+        # These notes (on other users' sites) survive this soft-delete with a null
+        # author; stashing the id lets undelete() put the author back.
+        SiteNote.all_objects.filter(author=self).update(saved_author=self.pk)
         result = super().delete(*args, **kwargs)
         # Note: not passing is_cascade=True. safedelete hardcodes
         # is_cascade=True when recursing internally AND forwards **kwargs,
@@ -398,10 +402,13 @@ class User(SafeDeleteModel, AbstractUser):
         _undelete_solo_manager_projects, because Project has no reverse FK
         to User and isn't reachable from User by safedelete's walker).
 
-        Does NOT recover `SiteNote.author` rows nulled at hard-delete (those
-        FKs are gone forever), nor rows that were refused at the gate.
-        Restoration is partial by design.
+        Restores `SiteNote.author` from the `saved_author` shadow stashed at
+        soft-delete time (see _soft_delete_with_cascade). This only works while
+        the user row still exists: once hard-deleted the author is gone forever
+        (as is anything refused at the gate). Restoration is partial by design.
         """
+        from apps.project_management.models import SiteNote
+
         conflict = type(self).objects.filter(email=self.email).exclude(pk=self.pk).first()
         if conflict is not None:
             raise ValidationError(
@@ -411,6 +418,11 @@ class User(SafeDeleteModel, AbstractUser):
             )
         result = super().undelete(*args, **kwargs)
         self._undelete_solo_manager_projects()
+        # Restore authorship blanked by the SET_NULL cascade, and clear the
+        # shadow. Scoped to notes we nulled for this user (author still null).
+        SiteNote.all_objects.filter(saved_author=self.pk, author__isnull=True).update(
+            author=self, saved_author=None
+        )
         return result
 
     def _undelete_solo_manager_projects(self):

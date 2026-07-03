@@ -245,7 +245,7 @@ Order matters: soft-delete the Project first (cascades to Sites and the soil-set
 
 **Project pinned note** — `Project.site_instructions` ([projects.py:79](backend/terraso_backend/apps/project_management/models/projects.py#L79)) is a plain `TextField` on Project. **It has no author column.** Either the project soft-deletes with the user (sole-manager case, note goes with it) or the project survives (text survives, no one to null). Nothing to do.
 
-**Note on undelete asymmetry** — undelete restores the User row and soft-deleted Memberships, but does _not_ restore `SiteNote.author` rows nulled at hard-delete. Per current product direction (undelete is rare), this is accepted. Documented at [admin.py:71-77](backend/terraso_backend/apps/core/admin.py#L71-L77).
+**Note on undelete** — `SiteNote.author` is blanked by the `SET_NULL` cascade when the user soft-deletes, but the author id is stashed into `SiteNote.saved_author` first (in `User._soft_delete_with_cascade`), so `User.undelete()` restores the author and clears the shadow. Only a hard-delete makes the anonymization permanent (the user row is gone).
 
 ### Logging
 
@@ -724,7 +724,6 @@ The existing inline block at [graphql/schema/users.py:218-223](backend/terraso_b
 - Cascading deletion of undeletable data (Groups, Landscapes, StoryMaps, DataEntries, VisualizationConfigs, TaxonomyTerms). Explicitly deferred; manual via HubSpot ticket.
 - Migrating PROTECT FKs (`Group.created_by`, `Landscape.created_by`, `TaxonomyTerm.created_by`, `VisualizationConfig.created_by`) to `SET_NULL`. Not needed — the gate prevents reaching hard-delete on users with rows pointing through those FKs.
 - Migrating DO_NOTHING FKs (`DataEntry.created_by`, `StoryMap.created_by`) to safer behavior. Same reasoning. Worth fixing for code-quality reasons but not blocking this work.
-- Restoring `SiteNote.author` on undelete. Undelete is rare; partial-restoration is the accepted tradeoff.
 - A snapshot/audit table of what was cascaded.
 - Gating the `undelete_selected` and `hard_delete_soft_deleted` admin bulk actions. The gate is soft-delete-only by design (see Concerns #6).
 - An "author" / "last editor" tracker on `Project.site_instructions`.

@@ -34,6 +34,12 @@ class SiteNote(BaseModel):
         on_delete=models.SET_NULL,
         verbose_name="author of the note",
     )
+    # Preserves the author's user id while their account is soft-deleted so
+    # User.undelete() can restore `author`. Deliberately NOT a ForeignKey: it
+    # must survive the author's soft-delete (whose SET_NULL cascade blanks
+    # `author`) and their hard-delete without a dangling constraint. Set by
+    # User._soft_delete_with_cascade, cleared by User.undelete.
+    saved_author = models.UUIDField(null=True, blank=True, editable=False)
 
     def is_author(self, user: User) -> bool:
         return self.author == user
