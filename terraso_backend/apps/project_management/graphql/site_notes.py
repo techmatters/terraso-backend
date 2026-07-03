@@ -41,7 +41,9 @@ class SiteNoteNode(DjangoObjectType):
 
     class Meta:
         model = SiteNote
-        fields = "__all__"
+        # saved_author is an internal shadow for author restore-on-undelete;
+        # never expose it through the API.
+        exclude = ("saved_author",)
         interfaces = (graphene.relay.Node,)
 
         connection_class = TerrasoConnection

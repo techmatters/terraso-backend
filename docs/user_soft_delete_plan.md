@@ -134,8 +134,8 @@ Three schema changes ship alongside the gate:
      └─────────────────────────────────────────────────────┘
 ```
 
-**Rationale:** the runtime path only needs to know *whether* to refuse.
-Enumerating *which rows* is a diagnostic concern — support / engineers
+**Rationale:** the runtime path only needs to know _whether_ to refuse.
+Enumerating _which rows_ is a diagnostic concern — support / engineers
 run it out-of-band before manual cleanup. Keeping that logic out of
 `User.delete()` means the gate has no FK-classification code of its own
 to maintain, and by construction the diagnostic can't disagree with the
@@ -194,21 +194,21 @@ the DB layer, but semantically undeletable at our layer.
 
 ### How this maps onto the current schema
 
-| Relation                                                        | on_delete  | Result                              | Why                                                  |
-| --------------------------------------------------------------- | ---------- | ----------------------------------- | ---------------------------------------------------- |
-| `core.UserPreference.user`                                      | CASCADE    | allow                               | safe + infra                                         |
-| `core.BackgroundTask.created_by`                                | CASCADE    | allow                               | safe + infra                                         |
-| `core.Group.created_by`                                         | PROTECT    | **block**                           | undeletable web data                                 |
-| `core.Landscape.created_by`                                     | PROTECT    | **block**                           | undeletable web data                                 |
-| `core.TaxonomyTerm.created_by`                                  | PROTECT    | **block**                           | undeletable web data                                 |
-| `shared_data.DataEntry.created_by`                              | PROTECT    | **block**                           | undeletable web data                                 |
-| `shared_data.VisualizationConfig.created_by`                    | PROTECT    | **block**                           | undeletable web data                                 |
-| `story_map.StoryMap.created_by`                                 | PROTECT    | **block**                           | undeletable web data                                 |
-| `collaboration.Membership.user`                                 | CASCADE    | **block** if non-project + APPROVED | policy override                                      |
-| `core.Membership.user` (deprecated)                             | CASCADE    | allow                               | deprecated system; lingering rows are CASCADE-safe   |
-| `MembershipList.members`, `Group.members`, `Site.seen_by` (M2M) | —          | allow                               | auto-cleaned through-rows                            |
-| `project_management.*`, `soil_id.*`                             | various    | allow                               | explicit cascade in `User._soft_delete_with_cascade` |
-| `auth.*`, `admin.LogEntry`, `sessions.*`                        | various    | allow                               | Django internals                                     |
+| Relation                                                        | on_delete | Result                              | Why                                                  |
+| --------------------------------------------------------------- | --------- | ----------------------------------- | ---------------------------------------------------- |
+| `core.UserPreference.user`                                      | CASCADE   | allow                               | safe + infra                                         |
+| `core.BackgroundTask.created_by`                                | CASCADE   | allow                               | safe + infra                                         |
+| `core.Group.created_by`                                         | PROTECT   | **block**                           | undeletable web data                                 |
+| `core.Landscape.created_by`                                     | PROTECT   | **block**                           | undeletable web data                                 |
+| `core.TaxonomyTerm.created_by`                                  | PROTECT   | **block**                           | undeletable web data                                 |
+| `shared_data.DataEntry.created_by`                              | PROTECT   | **block**                           | undeletable web data                                 |
+| `shared_data.VisualizationConfig.created_by`                    | PROTECT   | **block**                           | undeletable web data                                 |
+| `story_map.StoryMap.created_by`                                 | PROTECT   | **block**                           | undeletable web data                                 |
+| `collaboration.Membership.user`                                 | CASCADE   | **block** if non-project + APPROVED | policy override                                      |
+| `core.Membership.user` (deprecated)                             | CASCADE   | allow                               | deprecated system; lingering rows are CASCADE-safe   |
+| `MembershipList.members`, `Group.members`, `Site.seen_by` (M2M) | —         | allow                               | auto-cleaned through-rows                            |
+| `project_management.*`, `soil_id.*`                             | various   | allow                               | explicit cascade in `User._soft_delete_with_cascade` |
+| `auth.*`, `admin.LogEntry`, `sessions.*`                        | various   | allow                               | Django internals                                     |
 
 ### The gate — code sketch
 
@@ -316,7 +316,7 @@ closure model, assert no incoming FK is PROTECT / RESTRICT / DO_NOTHING
 — such an FK could raise ProtectedError (ORM) or IntegrityError (DB)
 when the harddelete cron later purges the closure. The soft-delete gate
 catches PROTECT/RESTRICT via safedelete's collector, but the closure
-test also protects against FKs added *during* someone's grace window
+test also protects against FKs added _during_ someone's grace window
 (where the cron sees them but the gate is already past).
 
 Together these prove the schema can't drift into a state where the gate
@@ -378,11 +378,7 @@ sites (`SiteNote.site` is CASCADE).
 soft-deletes with the user (sole-manager case, note goes with it) or the
 project survives (text survives, no one to null). Nothing to do.
 
-**Undelete asymmetry** — undelete restores the User row and soft-deleted
-Memberships, but does _not_ restore `SiteNote.author` rows nulled at
-hard-delete. Per current product direction (undelete is rare), this is
-accepted. Documented at
-[admin.py](../terraso_backend/apps/core/admin.py) on `UserAdmin`.
+**Note on undelete** — `SiteNote.author` is blanked by the `SET_NULL` cascade when the user soft-deletes, but the author id is stashed into `SiteNote.saved_author` first (in `User._soft_delete_with_cascade`), so `User.undelete()` restores the author and clears the shadow. Only a hard-delete makes the anonymization permanent (the user row is gone).
 
 ### Logging
 
@@ -561,7 +557,7 @@ None blocking. Coordination items resolved:
   `_non_project_approved_memberships` method the gate uses, so its
   output is by-construction consistent with the gate.
 - **Blocker shape (internal to the command) is `{model, qualifier,
-  field, count, ids}`.** `qualifier` is Optional[str] (used by the
+field, count, ids}`.** `qualifier` is Optional[str] (used by the
   Membership override). `ids` is capped at `BLOCKER_ID_CAP = 50`;
   `count` is the true total. Renderers compute "+N more" from
   `count - len(ids)`.
@@ -571,7 +567,7 @@ None blocking. Coordination items resolved:
 - **`request_account_deletion(user)` is the shared side-effect helper.**
   Sets the pref + files the HubSpot ticket exactly once (no-op if pref
   is already `"true"`). Called by `UserPreferenceUpdate(ACCOUNT_DELETION,
-  "true")` for legacy clients and by `UserDeleteMutation`'s blocked
+"true")` for legacy clients and by `UserDeleteMutation`'s blocked
   branch. Caller is responsible for permission gating.
 - **HubSpot ticket body is identity-only** (name + email + subject).
   Support runs `show_deletion_blockers` out-of-band for row-level
@@ -651,7 +647,7 @@ None blocking. Coordination items resolved:
    Structural Test B walks the user-deletion closure. A future web-data
    app that adds a `CASCADE` FK to User but has `PROTECT` / `DO_NOTHING`
    between its own models is not classified by either test. At runtime
-   safedelete's collector *does* walk the cascade tree, so the gate
+   safedelete's collector _does_ walk the cascade tree, so the gate
    would still refuse via `ProtectedError`. The cron's per-row
    resilience makes this gap less load-bearing than it used to be.
 
@@ -717,20 +713,20 @@ Three sub-questions verified during planning:
 
 ## Quick code reference
 
-| Where                                                                                                                     | What lives there                                                                          |
-| ------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- |
-| [core/models/users.py](../terraso_backend/apps/core/models/users.py)                                                      | `User.delete()`, `_non_project_approved_memberships`, `_soft_delete_with_cascade`, `_solo_manager_projects`, `UserDeletionBlockedError`, `request_account_deletion` |
-| [core/admin.py](../terraso_backend/apps/core/admin.py)                                                                    | `UserAdmin.delete_view`, `get_actions`, `delete_model`, `delete_queryset`                 |
-| [core/models/commons.py](../terraso_backend/apps/core/models/commons.py)                                                  | `BaseModel = SafeDeleteModel` foundation                                                  |
-| [core/management/commands/show_deletion_blockers.py](../terraso_backend/apps/core/management/commands/show_deletion_blockers.py) | Diagnostic command — collector-based enumeration                                    |
-| [core/management/commands/harddelete.py](../terraso_backend/apps/core/management/commands/harddelete.py)                  | Generic cron — untouched                                                                  |
-| [core/hubspot.py](../terraso_backend/apps/core/hubspot.py)                                                                | `create_account_deletion_ticket` — identity-only body                                     |
-| [project_management/models/sites.py](../terraso_backend/apps/project_management/models/sites.py)                          | `Site.owner = CASCADE`                                                                    |
-| [project_management/models/projects.py](../terraso_backend/apps/project_management/models/projects.py)                    | `Project.soft_delete_policy_action` (MembershipList cleanup); ProjectSettings removed     |
-| [collaboration/models/memberships.py](../terraso_backend/apps/collaboration/models/memberships.py)                        | `Membership`, `MembershipList`                                                            |
-| [graphql/schema/users.py](../terraso_backend/apps/graphql/schema/users.py)                                                | `UserDeleteMutation` — catches `UserDeletionBlockedError`, falls back to `request_account_deletion` |
-| [shared_data/models/data_entries.py](../terraso_backend/apps/shared_data/models/data_entries.py)                          | `DataEntry.created_by = PROTECT` (was DO_NOTHING)                                         |
-| [story_map/models/story_maps.py](../terraso_backend/apps/story_map/models/story_maps.py)                                  | `StoryMap.created_by = PROTECT` (was DO_NOTHING)                                          |
+| Where                                                                                                                            | What lives there                                                                                                                                                    |
+| -------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [core/models/users.py](../terraso_backend/apps/core/models/users.py)                                                             | `User.delete()`, `_non_project_approved_memberships`, `_soft_delete_with_cascade`, `_solo_manager_projects`, `UserDeletionBlockedError`, `request_account_deletion` |
+| [core/admin.py](../terraso_backend/apps/core/admin.py)                                                                           | `UserAdmin.delete_view`, `get_actions`, `delete_model`, `delete_queryset`                                                                                           |
+| [core/models/commons.py](../terraso_backend/apps/core/models/commons.py)                                                         | `BaseModel = SafeDeleteModel` foundation                                                                                                                            |
+| [core/management/commands/show_deletion_blockers.py](../terraso_backend/apps/core/management/commands/show_deletion_blockers.py) | Diagnostic command — collector-based enumeration                                                                                                                    |
+| [core/management/commands/harddelete.py](../terraso_backend/apps/core/management/commands/harddelete.py)                         | Generic cron — untouched                                                                                                                                            |
+| [core/hubspot.py](../terraso_backend/apps/core/hubspot.py)                                                                       | `create_account_deletion_ticket` — identity-only body                                                                                                               |
+| [project_management/models/sites.py](../terraso_backend/apps/project_management/models/sites.py)                                 | `Site.owner = CASCADE`                                                                                                                                              |
+| [project_management/models/projects.py](../terraso_backend/apps/project_management/models/projects.py)                           | `Project.soft_delete_policy_action` (MembershipList cleanup); ProjectSettings removed                                                                               |
+| [collaboration/models/memberships.py](../terraso_backend/apps/collaboration/models/memberships.py)                               | `Membership`, `MembershipList`                                                                                                                                      |
+| [graphql/schema/users.py](../terraso_backend/apps/graphql/schema/users.py)                                                       | `UserDeleteMutation` — catches `UserDeletionBlockedError`, falls back to `request_account_deletion`                                                                 |
+| [shared_data/models/data_entries.py](../terraso_backend/apps/shared_data/models/data_entries.py)                                 | `DataEntry.created_by = PROTECT` (was DO_NOTHING)                                                                                                                   |
+| [story_map/models/story_maps.py](../terraso_backend/apps/story_map/models/story_maps.py)                                         | `StoryMap.created_by = PROTECT` (was DO_NOTHING)                                                                                                                    |
 
 ## Out of scope
 
@@ -741,8 +737,6 @@ Three sub-questions verified during planning:
   `TaxonomyTerm.created_by`, `VisualizationConfig.created_by`) to
   `SET_NULL`. Not needed — the gate prevents reaching hard-delete on
   users with rows pointing through those FKs.
-- Restoring `SiteNote.author` on undelete. Undelete is rare;
-  partial-restoration is the accepted tradeoff.
 - A snapshot/audit table of what was cascaded.
 - Gating the `undelete_selected` and `hard_delete_soft_deleted` admin
   bulk actions. The gate is soft-delete-only by design (see Concerns #5).
