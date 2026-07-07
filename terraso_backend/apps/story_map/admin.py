@@ -78,8 +78,15 @@ class CustomStoryMapForm(forms.ModelForm):
 class StoryMapAdmin(SafeDeleteAdmin):
     config_readonly_fields = ("configuration", "published_configuration")
     readonly_fields = ("web_client_preview",)
-    list_display = (highlight_deleted, "story_map_name", "owner", "is_published", "published_at")
-    list_filter = ("is_published", SafeDeleteAdminFilter)
+    list_display = (
+        highlight_deleted,
+        "story_map_name",
+        "owner",
+        "is_published",
+        "featured",
+        "published_at",
+    )
+    list_filter = ("is_published", "featured", SafeDeleteAdminFilter)
     list_select_related = ("created_by",)
     search_fields = (
         "title",

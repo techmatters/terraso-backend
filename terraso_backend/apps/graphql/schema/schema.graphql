@@ -53,6 +53,7 @@ type Query {
     id: ID!
   ): StoryMapNode!
   storyMaps(offset: Int, before: String, after: String, first: Int, last: Int, slug: String, storyMapId: String, featured: Boolean, memberships_User_Email_Not: String, memberships_User_Email: String): StoryMapNodeConnection
+  featuredStoryMapsRandom(first: Int!): [StoryMapNode!]!
   project(
     """The ID of the object"""
     id: ID!

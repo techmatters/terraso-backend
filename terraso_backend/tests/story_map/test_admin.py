@@ -59,6 +59,7 @@ def test_story_map_admin_changelist_shows_operational_columns_and_filter(client)
         story_map_id="a4bcc157",
         created_by=owner,
         is_published=True,
+        featured=True,
         published_at=timezone.now(),
     )
     draft_story_map = mixer.blend(
@@ -67,6 +68,7 @@ def test_story_map_admin_changelist_shows_operational_columns_and_filter(client)
         story_map_id="draft001",
         created_by=owner,
         is_published=False,
+        featured=False,
     )
 
     client.force_login(admin_user)
@@ -78,6 +80,7 @@ def test_story_map_admin_changelist_shows_operational_columns_and_filter(client)
     assert "Story map name" in response.content.decode()
     assert "Owner" in response.content.decode()
     assert "Is published" in response.content.decode()
+    assert "Featured" in response.content.decode()
     assert "Published at" in response.content.decode()
     assert _get_result_pks(response) == {published_story_map.pk, draft_story_map.pk}
 
@@ -85,6 +88,11 @@ def test_story_map_admin_changelist_shows_operational_columns_and_filter(client)
 
     assert filtered_response.status_code == 200
     assert _get_result_pks(filtered_response) == {published_story_map.pk}
+
+    featured_response = client.get(changelist_url, {"featured__exact": "1"})
+
+    assert featured_response.status_code == 200
+    assert _get_result_pks(featured_response) == {published_story_map.pk}
 
 
 def test_story_map_admin_search_supports_story_map_fields_and_urls(client):

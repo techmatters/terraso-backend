@@ -99,7 +99,13 @@ from .sites import (
     SiteTransferMutation,
     SiteUpdateMutation,
 )
-from .story_maps import StoryMapDeleteMutation, StoryMapNode
+from .story_maps import (
+    StoryMapDeleteMutation,
+    StoryMapNode,
+)
+from .story_maps import (
+    resolve_featured_story_maps_random as resolve_featured_story_maps_random_query,
+)
 from .story_maps_memberships import (
     StoryMapMembershipApproveMutation,
     StoryMapMembershipApproveTokenMutation,
@@ -145,6 +151,11 @@ class Query(ExportQuery, graphene.ObjectType):
     taxonomy_terms = DjangoFilterConnectionField(TaxonomyTermNode)
     story_map = TerrasoRelayNode.Field(StoryMapNode)
     story_maps = DjangoFilterConnectionField(StoryMapNode)
+    featured_story_maps_random = graphene.List(
+        graphene.NonNull(StoryMapNode),
+        first=graphene.Int(required=True),
+        required=True,
+    )
     project = TerrasoRelayNode.Field(ProjectNode)
     projects = DjangoFilterConnectionField(ProjectNode, required=True)
     site = TerrasoRelayNode.Field(SiteNode)
@@ -152,6 +163,9 @@ class Query(ExportQuery, graphene.ObjectType):
     shared_resource = SharedResourceRelayNode.Field()
     soil_id = soil_id
     from .shared_resources import resolve_shared_resource
+
+    def resolve_featured_story_maps_random(self, info, first):
+        return resolve_featured_story_maps_random_query(info, first=first)
 
 
 # All mutations should inherit from BaseWriteMutation or BaseDeleteMutation

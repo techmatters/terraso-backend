@@ -17,7 +17,7 @@ import django_filters
 import graphene
 import rules
 import structlog
-from django.db.models import Q
+from django.db.models import Case, IntegerField, Q, When
 from graphene import relay
 from graphene_django import DjangoObjectType
 
@@ -141,16 +141,37 @@ class StoryMapNode(DjangoObjectType):
 
     @classmethod
     def get_queryset(cls, queryset, info):
-        user_pk = getattr(info.context.user, "pk", False)
+        return get_visible_story_maps_queryset(queryset, info)
 
-        base_query = Q(is_published=True) | Q(created_by=user_pk)
-        membership_query = (
-            Q(membership_list__memberships__user=user_pk) if user_pk is not None else Q()
-        )
 
-        final_query = base_query | membership_query
+def get_visible_story_maps_queryset(queryset, info):
+    user_pk = getattr(info.context.user, "pk", False)
 
-        return queryset.filter(final_query).distinct()
+    base_query = Q(is_published=True) | Q(created_by=user_pk)
+    membership_query = Q(membership_list__memberships__user=user_pk) if user_pk is not None else Q()
+
+    final_query = base_query | membership_query
+
+    return queryset.filter(final_query).distinct()
+
+
+def resolve_featured_story_maps_random(info, *, first):
+    filtered_queryset = get_visible_story_maps_queryset(StoryMap.objects.all(), info).filter(
+        featured=True
+    )
+    story_map_ids = list(filtered_queryset.values_list("pk", flat=True).order_by("?")[:first])
+    if not story_map_ids:
+        return StoryMap.objects.none()
+
+    preserved_order = Case(
+        *[
+            When(pk=story_map_id, then=position)
+            for position, story_map_id in enumerate(story_map_ids)
+        ],
+        output_field=IntegerField(),
+    )
+
+    return filtered_queryset.filter(pk__in=story_map_ids).order_by(preserved_order)
 
 
 class StoryMapDeleteMutation(BaseDeleteMutation):

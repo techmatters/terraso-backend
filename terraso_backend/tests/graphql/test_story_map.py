@@ -94,6 +94,37 @@ def test_story_maps_filter_by_featured(client_query, story_maps):
     ]
 
 
+def test_featured_story_maps_random_returns_visible_random_subset(client_query, story_maps):
+    visible_featured_story_maps = story_maps[:4]
+    hidden_featured_story_map = story_maps[9]
+
+    for story_map in visible_featured_story_maps:
+        story_map.featured = True
+        story_map.save(update_fields=["featured"])
+
+    hidden_featured_story_map.featured = True
+    hidden_featured_story_map.save(update_fields=["featured"])
+
+    response = client_query(
+        """
+        query FeaturedStoryMapsRandom($first: Int!) {
+          featuredStoryMapsRandom(first: $first) {
+            id
+            featured
+          }
+        }
+        """,
+        variables={"first": 3},
+    )
+
+    story_maps_result = response.json()["data"]["featuredStoryMapsRandom"]
+    visible_featured_ids = {str(story_map.id) for story_map in visible_featured_story_maps}
+
+    assert len(story_maps_result) == 3
+    assert {story_map["id"] for story_map in story_maps_result}.issubset(visible_featured_ids)
+    assert all(story_map["featured"] is True for story_map in story_maps_result)
+
+
 def test_story_maps_filter_by_can_change_by_email(client_query, story_maps, users):
     response = client_query(
         """
