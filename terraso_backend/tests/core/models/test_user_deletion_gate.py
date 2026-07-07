@@ -18,8 +18,8 @@
 Three layers under test:
 
   * `User.deletion_blockers()` — defines what counts as undeletable data
-    (PROTECT/RESTRICT/DO_NOTHING reverse FKs to User, plus the
-    non-project APPROVED collaboration.Membership policy override).
+    (PROTECT/RESTRICT reverse FKs to User, plus the non-project APPROVED
+    collaboration.Membership policy override).
   * `User.delete()` — enforcement: raises `UserDeletionBlockedError` on
     the soft-delete path when blockers exist; does not fire on
     `force_policy=HARD_DELETE`.
@@ -31,8 +31,9 @@ Plus structural tests that catch schema drift in CI:
 
   * **Classification test**: every reverse FK to User is classified into
     exactly one of the five legal buckets (LANDPKS app, system app,
-    Membership special case, CASCADE/SET_NULL/SET, PROTECT/RESTRICT/
-    DO_NOTHING).
+    Membership special case, CASCADE/SET_NULL/SET, PROTECT/RESTRICT).
+    Also asserts no DO_NOTHING FKs to User outside LANDPKS_APP_LABELS —
+    new blockers must use PROTECT so safedelete's collector raises them.
   * **Closure test**: the transitive closure of models soft-deleted by
     `user.delete()` has no model referenced via a PROTECT/RESTRICT/
     DO_NOTHING FK from inside or outside the closure — proves the
@@ -88,14 +89,26 @@ def landpks_user():
 
 def test_structural_every_user_fk_is_classified():
     """For every reverse FK to User, assert it falls into exactly one
-    legal bucket. A future PR that adds an unhandled FK fails here."""
+    legal bucket AND that no new DO_NOTHING FKs are added outside
+    LANDPKS_APP_LABELS. A future PR that adds an unhandled FK — or a
+    DO_NOTHING FK that would silently pass safedelete's collector and
+    crash the harddelete cron later — fails here."""
     unclassified = []
+    do_nothing = []
     for rel in User._meta.related_objects:
         # M2M reverse relations are skipped (through-rows auto-clean).
         if rel.many_to_many:
             continue
         related_model = rel.related_model
         app = related_model._meta.app_label
+        on_delete_name = rel.on_delete.__name__.upper()
+
+        # DO_NOTHING is banned outside LANDPKS: safedelete's collector
+        # won't raise for it, so the user would silently soft-delete and
+        # the harddelete cron would crash on the dangling FK. Use PROTECT
+        # instead so the gate refuses via the natural ProtectedError.
+        if on_delete_name == "DO_NOTHING" and app not in LANDPKS_APP_LABELS:
+            do_nothing.append(f"{related_model._meta.label}.{rel.field.name} — use PROTECT instead")
 
         bucket = None
         if app in LANDPKS_APP_LABELS:
@@ -105,7 +118,6 @@ def test_structural_every_user_fk_is_classified():
         elif related_model._meta.label == "collaboration.Membership":
             bucket = "membership-policy-override"
         else:
-            on_delete_name = rel.on_delete.__name__.upper()
             if on_delete_name in BLOCKING_ON_DELETE:
                 bucket = f"auto-block ({on_delete_name})"
             elif on_delete_name in {"CASCADE", "SET_NULL", "SET_DEFAULT", "SET"}:
@@ -120,11 +132,25 @@ def test_structural_every_user_fk_is_classified():
         "Unclassified reverse FK(s) to User — extend deletion_blockers() "
         f"or one of the app-label allowlists: {unclassified}"
     )
+    assert not do_nothing, (
+        f"DO_NOTHING reverse FK(s) to User outside LANDPKS_APP_LABELS: {do_nothing}"
+    )
 
 
 # ---------------------------------------------------------------------------
 # Closure test: the user-deletion cascade is hard-delete-safe
 # ---------------------------------------------------------------------------
+
+
+# Cron risks purging any closure model when there's an incoming FK with
+# one of these on_deletes: PROTECT/RESTRICT raise at the ORM layer, and
+# DO_NOTHING can raise IntegrityError at the DB layer (constraint fires
+# when the FK isn't nullable and the referring row is still present).
+CRON_CANNOT_PURGE = BLOCKING_ON_DELETE | {"DO_NOTHING"}
+
+# Only these on_delete modes cascade through to the referring model —
+# used by _build_user_deletion_closure when walking outward from User.
+CASCADING_ON_DELETE = {"CASCADE", "SET_NULL", "SET_DEFAULT", "SET"}
 
 
 def _build_user_deletion_closure():
@@ -153,8 +179,8 @@ def _build_user_deletion_closure():
             if rel.many_to_many:
                 continue
             on_delete_name = rel.on_delete.__name__.upper()
-            if on_delete_name in BLOCKING_ON_DELETE:
-                continue  # Won't cascade through this rel.
+            if on_delete_name not in CASCADING_ON_DELETE:
+                continue  # PROTECT/RESTRICT/DO_NOTHING don't cascade.
             related_model = rel.related_model
             if related_model._meta.app_label in SYSTEM_APP_LABELS:
                 continue
@@ -174,8 +200,9 @@ def test_structural_user_deletion_closure_is_hard_delete_safe():
     For every model in the user-deletion closure (excluding User
     itself), assert that no FK pointing AT it is PROTECT / RESTRICT /
     DO_NOTHING — regardless of whether the FK originates inside or
-    outside the closure. Such an FK could raise ProtectedError when the
-    harddelete cron later tries to purge the closure model.
+    outside the closure. Such an FK could raise ProtectedError (ORM
+    layer, PROTECT/RESTRICT) or IntegrityError (DB layer, DO_NOTHING)
+    when the harddelete cron later tries to purge the closure model.
 
     User itself is excluded from this check because incoming FKs to
     User are the deletion gate's job — see User.deletion_blockers() and
@@ -209,7 +236,7 @@ def test_structural_user_deletion_closure_is_hard_delete_safe():
             if rel.many_to_many:
                 continue
             on_delete_name = rel.on_delete.__name__.upper()
-            if on_delete_name in BLOCKING_ON_DELETE:
+            if on_delete_name in CRON_CANNOT_PURGE:
                 bad.append(
                     f"{rel.related_model._meta.label}.{rel.field.name} → "
                     f"{model._meta.label} (on_delete={on_delete_name})"
@@ -241,7 +268,7 @@ def test_deletion_blockers_empty_for_brand_new_user():
 
 
 def test_dataentry_created_by_blocks(user):
-    """DataEntry.created_by is DO_NOTHING — must auto-block."""
+    """DataEntry.created_by is PROTECT — must auto-block."""
     mixer.blend(DataEntry, created_by=user)
     blockers = user.deletion_blockers()
     assert "shared_data.DataEntry" in _blocker_models(blockers)
@@ -255,7 +282,7 @@ def test_visualization_config_blocks(user):
 
 
 def test_story_map_blocks(user):
-    """StoryMap.created_by is DO_NOTHING — auto-block."""
+    """StoryMap.created_by is PROTECT — auto-block."""
     mixer.blend(StoryMap, created_by=user)
     blockers = user.deletion_blockers()
     assert "story_map.StoryMap" in _blocker_models(blockers)
@@ -336,8 +363,8 @@ def test_membership_classification_mixed(user):
 def test_soft_deleted_blocker_does_not_block(user):
     """Soft-deleted rows no longer block: the resilient harddelete cron
     (sorts by deleted_at, isolates failures with try/except + atomic per
-    row) handles a not-yet-purged DO_NOTHING row in subsequent runs
-    without crashing the batch."""
+    row) handles a not-yet-purged PROTECT row in subsequent runs without
+    crashing the batch."""
     story_map = mixer.blend(StoryMap, created_by=user)
     story_map.delete()  # safedelete soft-delete
     blockers = user.deletion_blockers()

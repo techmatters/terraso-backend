@@ -281,10 +281,10 @@ def test_admin_get_deleted_objects_uses_our_blocker_list():
     from a list we control: source-of-truth is `deletion_blockers()`, not
     Django's collector. This means:
       * soft-deleted PROTECT rows DON'T appear (Django would list them)
-      * active DO_NOTHING rows DO appear (Django wouldn't)
+      * active blocker rows DO appear
     Locks in agreement between the admin and the GraphQL mutation."""
     target = mixer.blend(User)
-    # Active DataEntry: DO_NOTHING; should appear in `protected` via our gate.
+    # Active DataEntry (PROTECT); should appear in `protected` via our gate.
     entry = mixer.blend(DataEntry, created_by=target)
     # Soft-deleted Group (PROTECT); should NOT appear (it's not an active blocker).
     group = mixer.blend(Group, created_by=target)
@@ -297,7 +297,7 @@ def test_admin_get_deleted_objects_uses_our_blocker_list():
     _, _, _, protected = admin.get_deleted_objects([target], request)
 
     joined = " ".join(str(p) for p in protected)
-    # Active DO_NOTHING blocker shows.
+    # Active blocker shows.
     assert "shared_data.DataEntry" in joined
     # Soft-deleted PROTECT row does NOT show.
     assert "core.Group" not in joined

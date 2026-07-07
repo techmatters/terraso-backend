@@ -77,7 +77,7 @@ class DataEntry(BaseModel):
     url = models.URLField()
     size = models.PositiveBigIntegerField(null=True, blank=True)
 
-    created_by = models.ForeignKey(User, null=True, on_delete=models.DO_NOTHING)
+    created_by = models.ForeignKey(User, null=True, on_delete=models.PROTECT)
     file_removed_at = models.DateTimeField(blank=True, null=True)
 
     shared_resources = GenericRelation(

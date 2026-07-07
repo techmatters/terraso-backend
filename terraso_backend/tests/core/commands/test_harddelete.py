@@ -152,20 +152,13 @@ def test_all_objects_sorted_by_deleted_at(delete_date):
 # ---------------------------------------------------------------------------
 # Cascade / convergence verification across all 6 User-blocker models.
 #
-# Empirical findings while writing these tests:
-#   - DO_NOTHING blockers (StoryMap, DataEntry) — User hard-delete succeeds
-#     in one run regardless of order (the DB-level constraint doesn't
-#     fire for these schemas, possibly because both `created_by` FKs are
-#     null=True; the exact mechanism wasn't dug into).
-#   - PROTECT blockers (Group, Landscape, TaxonomyTerm, VisualizationConfig)
-#     — User hard-delete raises ProtectedError. The cron's try/except +
-#     sort + daily retry is what converges these cases over at most 2
-#     runs: run 1 succeeds purging the blocker, fails on the user;
-#     run 2 picks up the user (no references left) and succeeds.
-#
-# The test asserts the convergence property — at most 2 runs to clean
-# up — which is the property the new cron promises regardless of which
-# on_delete behavior the schema happens to use.
+# All 6 blocker models now use PROTECT (DataEntry.created_by and
+# StoryMap.created_by were migrated from DO_NOTHING to PROTECT so
+# safedelete's collector raises them consistently). User hard-delete
+# raises ProtectedError when the referencer still exists; the cron's
+# try/except + sort + daily retry converges over at most 2 runs:
+# run 1 succeeds purging the blocker, fails on the user; run 2 picks
+# up the user (no references left) and succeeds.
 # ---------------------------------------------------------------------------
 
 
@@ -176,8 +169,8 @@ def test_all_objects_sorted_by_deleted_at(delete_date):
 def test_cron_converges_within_two_runs(blocker_model, delete_date):
     """For each of the 6 User-blocker models: soft-delete the referencer
     first (gate allows it), then the user. After at most 2 cron runs,
-    both are gone. Covers DO_NOTHING (1 run) and PROTECT (2 runs)
-    uniformly."""
+    both are gone. All 6 blocker models are PROTECT, so 2 runs are
+    needed for each."""
     user = mixer.blend(User)
     blocker = mixer.blend(blocker_model, created_by=user)
     blocker.delete()  # soft-delete referencer first so the gate allows user.delete

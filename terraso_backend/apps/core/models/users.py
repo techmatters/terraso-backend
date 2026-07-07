@@ -49,9 +49,11 @@ LANDPKS_APP_LABELS = {"project_management", "soil_id"}
 # Django internals — reverse FKs to User in these apps are auto-allowed
 # (Django manages them itself).
 SYSTEM_APP_LABELS = {"admin", "auth", "contenttypes", "sessions"}
-# on_delete behaviors that either raise or orphan at hard-delete time,
+# on_delete behaviors that raise when the referenced User is deleted,
 # so a row pointing at the User through one of these FKs blocks deletion.
-BLOCKING_ON_DELETE = {"PROTECT", "RESTRICT", "DO_NOTHING"}
+# Note: DO_NOTHING is deliberately excluded — new FKs to User should use
+# PROTECT instead (enforced by a structural test).
+BLOCKING_ON_DELETE = {"PROTECT", "RESTRICT"}
 
 # Cap pk strings attached to each blocker. `count` is always the true
 # total; renderers show "+N more" from `count - len(ids)`.
@@ -212,7 +214,7 @@ class User(SafeDeleteModel, AbstractUser):
         can compute "+N more" when ids are truncated.
 
         Classification: a reverse FK to User blocks if its on_delete is
-        PROTECT/RESTRICT/DO_NOTHING and the referencing model isn't in
+        PROTECT/RESTRICT and the referencing model isn't in
         LANDPKS_APP_LABELS (handled by an explicit cascade) or
         SYSTEM_APP_LABELS (Django internals). The single policy override
         is non-project APPROVED collaboration.Memberships — they're
