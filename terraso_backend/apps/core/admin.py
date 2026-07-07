@@ -15,12 +15,11 @@
 
 from datetime import timedelta
 
-from django.apps import apps
 from django.contrib import admin, messages
 from django.contrib.auth.admin import UserAdmin as DjangoUserAdmin
 from django.contrib.auth.forms import UserCreationForm
-from django.urls import NoReverseMatch, reverse
-from django.utils.html import format_html, format_html_join
+from django.utils.html import format_html
+from django.utils.safestring import mark_safe
 from safedelete.admin import SafeDeleteAdmin, SafeDeleteAdminFilter, highlight_deleted
 
 from apps.auth.services import JWTService
@@ -35,7 +34,20 @@ from .models import (
     User,
     UserPreference,
 )
-from .models.users import format_blocker
+from .models.users import UserDeletionBlockedError
+
+# Advisory shown on both single- and bulk-delete confirmation pages.
+# Django's default "protected related objects" list can over- or
+# under-list the actual blockers (it doesn't know about the Membership
+# policy override, and it renders soft-deleted PROTECT rows we don't
+# consider blockers). Point staff at the diagnostic command for the
+# canonical list.
+_BLOCKER_DIAGNOSTIC_BANNER = mark_safe(
+    "The related-objects list below is Django's default view and may be "
+    "incomplete or inaccurate. Run "
+    "<code>python manage.py show_deletion_blockers &lt;email&gt;</code> "
+    "for the canonical list of what would block deletion."
+)
 
 
 def create_partner_refresh_token(user, ttl: timedelta) -> str:
@@ -179,99 +191,57 @@ class UserAdmin(SafeDeleteAdmin, DjangoUserAdmin):
         ("Important dates", {"fields": ("last_login", "date_joined")}),
     )
 
-    def get_deleted_objects(self, objs, request):
-        """Replace Django's collector-based "protected related objects" list
-        with our own from deletion_blockers(). Django over-lists (includes
-        soft-deleted PROTECT rows we consider non-blockers) and under-lists
-        (skips DO_NOTHING rows we consider real blockers). Sourcing from
-        deletion_blockers() makes the admin's confirmation page agree with
-        the GraphQL UserDeleteMutation."""
-        to_delete, model_count, perms_needed, _ = super().get_deleted_objects(objs, request)
-        protected = []
-        for obj in objs:
-            for b in obj.deletion_blockers():
-                protected.append(self._format_blocker_protected(b))
-        return to_delete, model_count, perms_needed, protected
+    def delete_view(self, request, object_id, extra_context=None):
+        """Fire the diagnostic-command banner on the single-delete
+        confirmation page so staff know Django's default related-objects
+        list isn't the source of truth for what would block deletion."""
+        messages.warning(request, _BLOCKER_DIAGNOSTIC_BANNER)
+        return super().delete_view(request, object_id, extra_context)
 
-    @staticmethod
-    def _format_blocker_protected(b):
-        """Render a blocker for the admin's "protected related objects"
-        list. IDs link to each row's admin change page when the model is
-        admin-registered; falls back to plain text otherwise."""
-        qualifier = format_html(" ({})", b["qualifier"]) if b.get("qualifier") else ""
-        label = format_html("{}{} ({})", b["model"], qualifier, b["field"])
-        ids = b.get("ids") or []
-        count = b["count"]
-        if not ids:
-            return format_html("{}: {} row(s)", label, count)
+    def get_actions(self, request):
+        """Wrap Django's `delete_selected` bulk action to fire the same
+        diagnostic-command banner on the bulk-delete confirmation page.
+        Delegates to the wrapped action for the actual deletion."""
+        actions = super().get_actions(request)
+        if "delete_selected" in actions:
+            original_func, name, description = actions["delete_selected"]
 
-        try:
-            model = apps.get_model(b["model"])
-            url_name = f"admin:{model._meta.app_label}_{model._meta.model_name}_change"
-            ids_html = format_html_join(
-                ", ", '<a href="{}">{}</a>', ((reverse(url_name, args=[pk]), pk) for pk in ids)
-            )
-        except (LookupError, NoReverseMatch):
-            ids_html = format_html_join(", ", "{}", ((pk,) for pk in ids))
+            def with_banner(modeladmin, req, queryset):
+                messages.warning(req, _BLOCKER_DIAGNOSTIC_BANNER)
+                return original_func(modeladmin, req, queryset)
 
-        extra = count - len(ids)
-        if extra > 0:
-            return format_html(
-                "{}: {} row(s); first {} IDs: {} (+{} more)",
-                label,
-                count,
-                len(ids),
-                ids_html,
-                extra,
-            )
-        return format_html("{}: {} row(s); IDs: {}", label, count, ids_html)
+            with_banner.__name__ = original_func.__name__
+            actions["delete_selected"] = (with_banner, name, description)
+        return actions
 
     def delete_model(self, request, obj):
-        """Pre-check User.deletion_blockers() so staff get a readable banner
-        instead of a raw ValidationError page when the user has undeletable
-        data. The same gate also lives in User.delete() as a safety net."""
-        blockers = obj.deletion_blockers()
-        if blockers:
-            self.message_user(
-                request,
-                self._format_blocker_message(obj, blockers),
-                level=messages.ERROR,
-            )
-            return  # do not call super; user stays undeleted
-        super().delete_model(request, obj)
+        """Catch UserDeletionBlockedError so staff see a plain banner
+        pointing at the diagnostic command instead of a ValidationError
+        page. The block itself is enforced by User.delete()."""
+        try:
+            super().delete_model(request, obj)
+        except UserDeletionBlockedError as exc:
+            self.message_user(request, str(exc), level=messages.ERROR)
 
     def delete_queryset(self, request, queryset):
-        """Bulk delete: partition into deletable/blocked, delete the clean
-        ones individually, surface the skipped ones in a single banner.
-
-        We iterate `user.delete()` per user rather than using the queryset
-        delete so each user's soft_delete_policy_action runs (tearing down
-        sole-manager projects)."""
-        deletable, blocked = [], []
+        """Bulk delete: iterate per-user so each user's cascade runs
+        (sole-manager projects torn down individually), catching
+        UserDeletionBlockedError so the batch keeps going. Skipped
+        users are surfaced in a single warning banner."""
+        blocked = []
         for user in queryset:
-            if user.deletion_blockers():
+            try:
+                user.delete()
+            except UserDeletionBlockedError:
                 blocked.append(user)
-            else:
-                deletable.append(user)
-        for user in deletable:
-            user.delete()
         if blocked:
             emails = ", ".join(u.email for u in blocked)
             self.message_user(
                 request,
                 f"Skipped {len(blocked)} user(s) with undeletable data: {emails}. "
-                "These require manual cleanup before deletion.",
+                "Run 'python manage.py show_deletion_blockers <email>' for details.",
                 level=messages.WARNING,
             )
-
-    def _format_blocker_message(self, user, blockers):
-        items = format_html_join("", "<li>{}: {}</li>", (format_blocker(b) for b in blockers))
-        return format_html(
-            "Cannot delete user <strong>{}</strong>: user has undeletable "
-            "data and must be cleaned up manually first.<ul>{}</ul>",
-            user.email,
-            items,
-        )
 
 
 @admin.register(TaxonomyTerm)

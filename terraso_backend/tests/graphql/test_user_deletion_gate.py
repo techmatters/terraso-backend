@@ -36,7 +36,7 @@ from django.test import RequestFactory
 from mixer.backend.django import mixer
 
 from apps.core.admin import UserAdmin
-from apps.core.models import Group, User
+from apps.core.models import User
 from apps.shared_data.models import DataEntry
 
 pytestmark = pytest.mark.django_db
@@ -260,30 +260,47 @@ def test_admin_delete_queryset_partitions_blocked_and_clean():
     assert blocked.email in msgs[0].message
 
 
-def test_admin_get_deleted_objects_uses_our_blocker_list():
-    """The admin's delete-confirmation page lists "protected related objects"
-    from a list we control: source-of-truth is `deletion_blockers()`, not
-    Django's collector. This means:
-      * soft-deleted PROTECT rows DON'T appear (Django would list them)
-      * active blocker rows DO appear
-    Locks in agreement between the admin and the GraphQL mutation."""
-    target = mixer.blend(User)
-    # Active DataEntry (PROTECT); should appear in `protected` via our gate.
-    entry = mixer.blend(DataEntry, created_by=target)
-    # Soft-deleted Group (PROTECT); should NOT appear (it's not an active blocker).
-    group = mixer.blend(Group, created_by=target)
-    group.delete()
-
+def test_admin_delete_view_fires_diagnostic_banner():
+    """The single-delete confirmation page shows a warning message
+    pointing staff at the show_deletion_blockers command, since Django's
+    default related-objects list can over- or under-list actual blockers."""
     staff = mixer.blend(User, is_staff=True, is_superuser=True)
+    target = mixer.blend(User)
+
     admin = UserAdmin(User, AdminSite())
     request = _make_admin_request(staff)
+    # Only need the messages side effect — swallow the response object.
+    try:
+        admin.delete_view(request, str(target.pk))
+    except Exception:
+        pass
 
-    _, _, _, protected = admin.get_deleted_objects([target], request)
+    msgs = _captured_messages(request)
+    assert any(
+        msg.level == messages.WARNING and "show_deletion_blockers" in msg.message for msg in msgs
+    )
 
-    joined = " ".join(str(p) for p in protected)
-    # Active blocker shows.
-    assert "shared_data.DataEntry" in joined
-    # Soft-deleted PROTECT row does NOT show.
-    assert "core.Group" not in joined
-    # IDs render as admin-change-page links.
-    assert f'href="/admin/shared_data/dataentry/{entry.pk}/change/"' in joined
+
+def test_admin_bulk_delete_action_fires_diagnostic_banner():
+    """The wrapped delete_selected action fires the same warning on the
+    bulk-delete confirmation page."""
+    staff = mixer.blend(User, is_staff=True, is_superuser=True)
+
+    admin = UserAdmin(User, AdminSite())
+    request = _make_admin_request(staff)
+    actions = admin.get_actions(request)
+    assert "delete_selected" in actions
+    action_func, _, _ = actions["delete_selected"]
+
+    # Call the wrapped action with an empty queryset — we only want to
+    # verify the message is fired; the delegate's own return value is not
+    # under test here.
+    try:
+        action_func(admin, request, User.objects.none())
+    except Exception:
+        pass
+
+    msgs = _captured_messages(request)
+    assert any(
+        msg.level == messages.WARNING and "show_deletion_blockers" in msg.message for msg in msgs
+    )
