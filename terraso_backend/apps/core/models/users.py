@@ -20,6 +20,7 @@ from django.conf import settings
 from django.contrib.auth.models import AbstractUser, BaseUserManager
 from django.core.exceptions import ValidationError
 from django.db import models, transaction
+from django.db.models.deletion import ProtectedError, RestrictedError
 from django.utils.translation import gettext_lazy as _
 from safedelete.models import HARD_DELETE, SOFT_DELETE_CASCADE, SafeDeleteManager, SafeDeleteModel
 
@@ -106,13 +107,15 @@ class UserManager(SafeDeleteManager, BaseUserManager):
 
 
 class UserDeletionBlockedError(ValidationError):
-    """Raised by `User.delete()` (soft path) when `deletion_blockers()` is
-    non-empty. Subclasses `ValidationError` for backwards compatibility.
-    Carries `.blockers` so callers reuse it without re-querying."""
+    """Raised by `User.delete()` (soft path) when the user has data that
+    would block deletion — either a policy blocker (non-project APPROVED
+    Membership) or a PROTECT/RESTRICT reverse FK that safedelete's
+    collector refused. Subclasses `ValidationError` for backwards
+    compatibility.
 
-    def __init__(self, message, blockers):
-        super().__init__(message)
-        self.blockers = blockers
+    Details of what's blocking aren't carried on the exception; callers
+    who need them run the `show_deletion_blockers` management command.
+    """
 
 
 def format_blocker(b):
@@ -287,35 +290,73 @@ class User(SafeDeleteModel, AbstractUser):
         return blockers
 
     def delete(self, *args, **kwargs):
-        """Gate soft-delete on deletion_blockers(), then tear down sole-manager
-        projects. Hard-delete is intentionally not gated — the harddelete cron
-        is generic and must stay robust; all cleanup happens at the soft-delete
-        boundary.
+        """Gate soft-delete, then tear down sole-manager projects. Two
+        block sources:
+
+          1. Non-project APPROVED Memberships. Membership.user is
+             CASCADE at the DB layer so safedelete's collector won't
+             raise for them, but Group/Landscape membership is web data
+             we don't auto-delete. Checked upfront.
+          2. PROTECT/RESTRICT reverse FKs (Group/Landscape/TaxonomyTerm/
+             VisualizationConfig/StoryMap/DataEntry `created_by`).
+             safedelete's collector raises `ProtectedError`/
+             `RestrictedError` from `super().delete()` before touching
+             the DB — caught here and re-raised as our own type.
+
+        Hard-delete is intentionally not gated — the harddelete cron is
+        generic and must stay robust; all cleanup happens at the
+        soft-delete boundary.
 
         Why the project cascade lives here rather than in
         soft_delete_policy_action: safedelete's SOFT_DELETE_CASCADE soft-deletes
         the user's Memberships *before* invoking soft_delete_policy_action, so
         a "sole-manager projects" query that filters on `deleted_at IS NULL`
         Memberships would find none of them by the time it runs. We capture the
-        project IDs up here, then iterate them after super() returns."""
+        project IDs up here, then iterate them after super() returns.
+
+        Callers who need specifics of what's blocking run
+        `python manage.py show_deletion_blockers <email>`.
+        """
         if kwargs.get("force_policy") == HARD_DELETE:
             return super().delete(*args, **kwargs)
 
-        blockers = self.deletion_blockers()
-        if blockers:
+        if self._non_project_approved_memberships().exists():
             logger.warning(
                 "user.delete_blocked",
                 target_user_id=str(self.id),
-                blockers=blockers,
+                reason="non_project_approved_membership",
             )
-            raise UserDeletionBlockedError(
-                f"Cannot delete user {self.email!r}: has undeletable data "
-                f"({len(blockers)} blocking model(s)).",
-                blockers=blockers,
-            )
-        logger.info("user.soft_deleted", target_user_id=str(self.id))
+            raise UserDeletionBlockedError(self._blocked_message())
 
-        return self._soft_delete_with_cascade(*args, **kwargs)
+        try:
+            result = self._soft_delete_with_cascade(*args, **kwargs)
+        except (ProtectedError, RestrictedError):
+            logger.warning(
+                "user.delete_blocked",
+                target_user_id=str(self.id),
+                reason="protected_fk",
+            )
+            raise UserDeletionBlockedError(self._blocked_message())
+
+        logger.info("user.soft_deleted", target_user_id=str(self.id))
+        return result
+
+    def _non_project_approved_memberships(self):
+        """Policy blocker query: non-project APPROVED Memberships that
+        would otherwise CASCADE with the user."""
+        from apps.collaboration.models import Membership
+
+        return self.collaboration_memberships.filter(
+            membership_list__project__isnull=True,
+            membership_status=Membership.APPROVED,
+        )
+
+    def _blocked_message(self):
+        return (
+            f"Cannot delete user {self.email!r}: undeletable data exists. "
+            f"Run 'python manage.py show_deletion_blockers {self.email}' "
+            "for details."
+        )
 
     @transaction.atomic
     def _soft_delete_with_cascade(self, *args, **kwargs):
@@ -502,7 +543,7 @@ class TicketCreationError(Exception):
     silently locking the user out via the idempotence check."""
 
 
-def request_account_deletion(user, blockers=None):
+def request_account_deletion(user):
     """Set the pending-deletion pref and file the HubSpot ticket exactly
     once. Idempotent if the pref is already "true". Caller gates permission.
 
@@ -515,7 +556,7 @@ def request_account_deletion(user, blockers=None):
     pref, _ = UserPreference.objects.get_or_create(user=user, key=USER_PREFS_KEY_ACCOUNT_DELETION)
     if pref.value.lower() == "true":
         return
-    if not create_account_deletion_ticket(user, blockers=blockers):
+    if not create_account_deletion_ticket(user):
         raise TicketCreationError(
             f"Failed to file HubSpot account-deletion ticket for {user.email!r}"
         )

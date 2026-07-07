@@ -68,13 +68,9 @@ def test_mutation_clean_user_returns_user_and_empty_blockers(client_query, users
 
 
 @patch("apps.core.hubspot.create_account_deletion_ticket")
-def test_mutation_user_with_blockers_returns_blockers_and_null_user(
-    mock_ticket, client_query, users
-):
-    """Blocked self-delete: payload returns user=null with structured
-    blockers; the User row is NOT soft-deleted."""
-    # HubSpot side-effect mocked here so the assertion focuses on the
-    # payload shape; HubSpot integration is covered separately below.
+def test_mutation_blocked_user_returns_null_user(mock_ticket, client_query, users):
+    """Blocked self-delete: payload returns user=null; the User row is
+    NOT soft-deleted (HubSpot integration covered separately below)."""
     mock_ticket.return_value = True
     user = users[0]
     mixer.blend(DataEntry, created_by=user)
@@ -83,20 +79,18 @@ def test_mutation_user_with_blockers_returns_blockers_and_null_user(
     payload = response["data"]["deleteUser"]
 
     assert payload["user"] is None
-    assert payload["blockers"]
-    assert any("DataEntry" in b["model"] for b in payload["blockers"])
     # User is still active.
     user.refresh_from_db()
     assert user.deleted_at is None
 
 
 @patch("apps.core.hubspot.create_account_deletion_ticket")
-def test_mutation_blocked_branch_fires_hubspot_ticket_with_blockers(
+def test_mutation_blocked_branch_files_hubspot_ticket_and_sets_pref(
     mock_ticket, client_query, users
 ):
     """Blocked self-delete falls back to the manual-cleanup flow: it sets
-    the pending-deletion pref and files a HubSpot ticket whose body
-    includes the blocker details so support can clean up."""
+    the pending-deletion pref and files a HubSpot ticket. Support runs
+    the show_deletion_blockers command out-of-band for specifics."""
     from apps.core.models import UserPreference
     from apps.core.models.users import USER_PREFS_KEY_ACCOUNT_DELETION
 
@@ -106,11 +100,7 @@ def test_mutation_blocked_branch_fires_hubspot_ticket_with_blockers(
 
     client_query(DELETE_USER_MUTATION, variables={"input": {"id": str(user.id)}}).json()
 
-    # Ticket fired with the blocker list.
-    mock_ticket.assert_called_once()
-    call_kwargs = mock_ticket.call_args.kwargs
-    assert call_kwargs["blockers"]
-    assert any(b["model"] == "shared_data.DataEntry" for b in call_kwargs["blockers"])
+    mock_ticket.assert_called_once_with(user)
 
     # Pending-deletion pref is now "true" so re-login routes to the pending screen.
     pref = UserPreference.objects.get(user_id=user.id, key=USER_PREFS_KEY_ACCOUNT_DELETION)
@@ -132,13 +122,10 @@ def test_mutation_blocked_branch_is_idempotent_on_retry(mock_ticket, client_quer
 
 
 @patch("apps.core.hubspot.create_account_deletion_ticket")
-def test_mutation_blocked_branch_returns_blockers_with_error_when_hubspot_fails(
-    mock_ticket, client_query, users
-):
-    """Blocked + HubSpot down: the payload still carries the structured
-    blockers (so the client knows what blocked it) AND a layered error
-    (so the client knows the support handoff didn't succeed and the
-    pref wasn't set). User stays active, pref stays "false" so retry works."""
+def test_mutation_blocked_branch_returns_error_when_hubspot_fails(mock_ticket, client_query, users):
+    """Blocked + HubSpot down: the payload carries a layered error (so
+    the client knows the support handoff didn't succeed and the pref
+    wasn't set). User stays active, pref stays "false" so retry works."""
     from apps.core.models import UserPreference
     from apps.core.models.users import USER_PREFS_KEY_ACCOUNT_DELETION
 
@@ -149,10 +136,7 @@ def test_mutation_blocked_branch_returns_blockers_with_error_when_hubspot_fails(
     response = client_query(DELETE_USER_MUTATION, variables={"input": {"id": str(user.id)}}).json()
     payload = response["data"]["deleteUser"]
 
-    # Blockers populated — client knows what's blocking.
     assert payload["user"] is None
-    assert payload["blockers"]
-    assert any("DataEntry" in b["model"] for b in payload["blockers"])
     # Layered error — client knows the ticket failed and can retry.
     assert payload["errors"]
     assert "ticket" in payload["errors"][0]["message"].lower()

@@ -460,9 +460,10 @@ def test_blocker_ids_are_strings(user):
 # ---------------------------------------------------------------------------
 
 
-def test_delete_raises_user_deletion_blocked_error_with_blockers_attached(user):
-    """The model raises `UserDeletionBlockedError` (subclass of ValidationError)
-    with the blocker list attached, so callers can reuse it without re-querying."""
+def test_delete_raises_user_deletion_blocked_error(user):
+    """The model raises `UserDeletionBlockedError` (subclass of
+    ValidationError). The message points to the diagnostic command;
+    exception carries no structured blocker payload."""
     from apps.core.models.users import UserDeletionBlockedError
 
     mixer.blend(DataEntry, created_by=user)
@@ -470,8 +471,7 @@ def test_delete_raises_user_deletion_blocked_error_with_blockers_attached(user):
         user.delete()
     # Subclass relationship preserved for backwards-compatibility callers.
     assert isinstance(exc_info.value, ValidationError)
-    # Blockers attached for downstream consumption.
-    assert any(b["model"] == "shared_data.DataEntry" for b in exc_info.value.blockers)
+    assert "show_deletion_blockers" in str(exc_info.value)
     user.refresh_from_db()
     assert user.deleted_at is None
 

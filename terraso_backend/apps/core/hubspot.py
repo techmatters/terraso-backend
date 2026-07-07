@@ -21,11 +21,12 @@ from django.conf import settings
 logger = structlog.get_logger(__name__)
 
 
-def create_account_deletion_ticket(user, blockers=None):
+def create_account_deletion_ticket(user):
     """Open a HubSpot ticket asking support to delete the user's account.
-    `blockers` (if any) are rendered into the body for support context."""
-    from apps.core.models.users import format_blocker
 
+    Support runs `python manage.py show_deletion_blockers <email>` to see
+    what data is blocking automated deletion for this user.
+    """
     if not user or not user.email:
         return False
 
@@ -35,9 +36,6 @@ def create_account_deletion_ticket(user, blockers=None):
         f"Name: {user.full_name()}",
         f"Email: {user.email}",
     ]
-    if blockers:
-        body_lines += ["", "Undeletable data blocking automated deletion:"]
-        body_lines += [f"- {label}: {detail}" for label, detail in map(format_blocker, blockers)]
     body = "\n".join(body_lines)
 
     if settings.HUBSPOT_DRY_RUN:

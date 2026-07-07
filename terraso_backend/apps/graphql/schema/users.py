@@ -276,9 +276,9 @@ class UserDeleteMutation(BaseDeleteMutation):
                 properties={"account_age_days": account_age_days},
                 set_props=analytics.user_person_properties(request_user),
             )
-        except UserDeletionBlockedError as e:
+        except UserDeletionBlockedError:
             try:
-                request_account_deletion(user, blockers=e.blockers)
+                request_account_deletion(user)
                 analytics.capture(
                     distinct_id=_id,
                     event="user_delete_request",
@@ -287,7 +287,6 @@ class UserDeleteMutation(BaseDeleteMutation):
                 )
 
             except TicketCreationError as ticket_err:
-                # If HubSpot is down, still return the structured blockers
                 analytics.capture(
                     distinct_id=_id,
                     event="user_delete_request_failed",
@@ -296,10 +295,10 @@ class UserDeleteMutation(BaseDeleteMutation):
                 )
                 return cls(
                     user=None,
-                    blockers=e.blockers,
+                    blockers=[],
                     errors=[{"message": str(ticket_err)}],
                 )
-            return cls(user=None, blockers=e.blockers)
+            return cls(user=None, blockers=[])
         return cls(user=user, blockers=[])
 
 

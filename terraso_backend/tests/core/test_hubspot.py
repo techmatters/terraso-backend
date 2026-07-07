@@ -53,76 +53,17 @@ def _ok_response():
 
 
 @patch("requests.post")
-def test_body_omits_blockers_section_when_none_supplied(mock_post):
-    """The non-blocked path (UserPreferenceUpdate) doesn't pass blockers
-    and the ticket body stays clean."""
+def test_body_contains_user_identity_only(mock_post):
+    """Ticket body has just name/email — support runs
+    show_deletion_blockers separately for details."""
     mock_post.return_value = _ok_response()
     user = mixer.blend(User, email="x@example.com")
 
     create_account_deletion_ticket(user)
 
     body = _captured_body(mock_post)
+    assert "x@example.com" in body
     assert "Undeletable data" not in body
-
-
-@patch("requests.post")
-def test_body_includes_blockers_with_qualifier_and_ids(mock_post):
-    """Blockers from UserDeleteMutation's catch branch render with
-    label + count + truncated IDs so support sees what to clean up."""
-    mock_post.return_value = _ok_response()
-    user = mixer.blend(User, email="x@example.com")
-
-    blockers = [
-        {
-            "model": "collaboration.Membership",
-            "qualifier": "non-project, approved",
-            "field": "user",
-            "count": 2,
-            "ids": ["aaa", "bbb"],
-        },
-        {
-            "model": "story_map.StoryMap",
-            "qualifier": None,
-            "field": "created_by",
-            "count": 1,
-            "ids": ["ccc"],
-        },
-    ]
-
-    create_account_deletion_ticket(user, blockers=blockers)
-
-    body = _captured_body(mock_post)
-    assert "Undeletable data blocking automated deletion:" in body
-    # Qualifier appears in parens when set; absent otherwise.
-    assert "collaboration.Membership (non-project, approved) (user)" in body
-    assert "story_map.StoryMap (created_by)" in body
-    # IDs and counts render.
-    assert "2 row(s)" in body and "aaa" in body and "bbb" in body
-    assert "1 row(s)" in body and "ccc" in body
-
-
-@patch("requests.post")
-def test_body_shows_plus_n_more_when_ids_truncated(mock_post):
-    """If a blocker's `ids` is truncated below its `count`, the body
-    surfaces an explicit "+N more" so support knows there are extras."""
-    mock_post.return_value = _ok_response()
-    user = mixer.blend(User, email="x@example.com")
-
-    blockers = [
-        {
-            "model": "shared_data.DataEntry",
-            "qualifier": None,
-            "field": "created_by",
-            "count": 53,
-            "ids": [f"id-{i}" for i in range(50)],
-        }
-    ]
-
-    create_account_deletion_ticket(user, blockers=blockers)
-
-    body = _captured_body(mock_post)
-    assert "53 row(s)" in body
-    assert "(+3 more)" in body
 
 
 @patch("requests.post")
@@ -139,5 +80,5 @@ def test_dry_run_skips_http_call_and_returns_success(mock_post):
     touching the network, so the blocked self-delete path can be
     exercised end-to-end without filing real support tickets."""
     user = mixer.blend(User, email="dev@example.com")
-    assert create_account_deletion_ticket(user, blockers=[]) is True
+    assert create_account_deletion_ticket(user) is True
     mock_post.assert_not_called()

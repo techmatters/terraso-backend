@@ -13,8 +13,8 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see https://www.gnu.org/licenses/.
 
-"""Tests for `request_account_deletion(user, blockers=None)` — the shared
-helper that sets the pending-deletion pref and files the HubSpot ticket.
+"""Tests for `request_account_deletion(user)` — the shared helper that
+sets the pending-deletion pref and files the HubSpot ticket.
 
 Contract:
   * Ticket fires BEFORE pref save. If HubSpot fails, pref stays "false"
@@ -44,31 +44,9 @@ def test_fires_ticket_and_sets_pref_on_first_call(mock_ticket):
 
     request_account_deletion(user)
 
-    mock_ticket.assert_called_once_with(user, blockers=None)
+    mock_ticket.assert_called_once_with(user)
     pref = UserPreference.objects.get(user_id=user.id, key=USER_PREFS_KEY_ACCOUNT_DELETION)
     assert pref.value.lower() == "true"
-
-
-@patch("apps.core.hubspot.create_account_deletion_ticket")
-def test_passes_blockers_through_to_ticket(mock_ticket):
-    """When the helper is called from UserDeleteMutation's catch branch,
-    the blocker list is forwarded into the ticket body so support sees
-    exactly which rows are blocking."""
-    mock_ticket.return_value = True
-    user = mixer.blend(User)
-    blockers = [
-        {
-            "model": "story_map.StoryMap",
-            "qualifier": None,
-            "field": "created_by",
-            "count": 2,
-            "ids": ["abc", "def"],
-        }
-    ]
-
-    request_account_deletion(user, blockers=blockers)
-
-    assert mock_ticket.call_args.kwargs["blockers"] == blockers
 
 
 @patch("apps.core.hubspot.create_account_deletion_ticket")
