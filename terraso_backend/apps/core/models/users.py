@@ -251,8 +251,7 @@ class User(SafeDeleteModel, AbstractUser):
     def _blocked_message(self):
         return (
             f"Cannot delete user {self.email!r}: undeletable data exists. "
-            f"Run 'python manage.py show_deletion_blockers {self.email}' "
-            "for details."
+            f"For details, run 'python manage.py show_deletion_blockers {self.email}' or 'make show-deletion-blockers user={self.email}'."
         )
 
     @transaction.atomic

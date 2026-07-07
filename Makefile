@@ -115,6 +115,11 @@ translate: generate-translations compile-translations
 generate-test-token:
 	$(DC_RUN_CMD) python terraso_backend/manage.py generate_test_token --email $(email)
 
+# Usage: make show-deletion-blockers user=<email-or-id>
+# Lists the rows blocking a User's soft-delete (support diagnostic).
+show-deletion-blockers:
+	$(DC_RUN_CMD) python terraso_backend/manage.py show_deletion_blockers $(user)
+
 setup-git-hooks:
 	@pre-commit install
 

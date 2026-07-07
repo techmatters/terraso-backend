@@ -19,9 +19,14 @@ The runtime gate (`User.delete`) refuses soft-delete when the user has
 undeletable data but doesn't surface which rows. Support / engineers
 run this command to see specifics before manually cleaning up.
 
-Usage:
+Usage (from repo root):
+    make show-deletion-blockers user=foo@example.com
+    make show-deletion-blockers user=<user-uuid>
+
+Or directly:
     python manage.py show_deletion_blockers foo@example.com
     python manage.py show_deletion_blockers <user-uuid>
+
 """
 
 from django.core.exceptions import ValidationError
