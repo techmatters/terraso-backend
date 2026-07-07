@@ -17,7 +17,7 @@ import django_filters
 import graphene
 import rules
 import structlog
-from django.db.models import Case, IntegerField, Q, When
+from django.db.models import Q
 from graphene import relay
 from graphene_django import DjangoObjectType
 
@@ -163,15 +163,7 @@ def resolve_featured_story_maps_random(info, *, first):
     if not story_map_ids:
         return StoryMap.objects.none()
 
-    preserved_order = Case(
-        *[
-            When(pk=story_map_id, then=position)
-            for position, story_map_id in enumerate(story_map_ids)
-        ],
-        output_field=IntegerField(),
-    )
-
-    return filtered_queryset.filter(pk__in=story_map_ids).order_by(preserved_order)
+    return filtered_queryset.filter(pk__in=story_map_ids)
 
 
 class StoryMapDeleteMutation(BaseDeleteMutation):
