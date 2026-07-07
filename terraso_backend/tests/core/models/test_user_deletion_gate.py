@@ -17,9 +17,11 @@
 
 Three layers under test:
 
-  * `User.deletion_blockers()` — defines what counts as undeletable data
+  * Blocker classification — what counts as undeletable data
     (PROTECT/RESTRICT reverse FKs to User, plus the non-project APPROVED
-    collaboration.Membership policy override).
+    collaboration.Membership policy override). Coverage lives in
+    `tests/core/commands/test_show_deletion_blockers.py` since the
+    walker moved to that command.
   * `User.delete()` — enforcement: raises `UserDeletionBlockedError` on
     the soft-delete path when blockers exist; does not fire on
     `force_policy=HARD_DELETE`.
@@ -47,7 +49,7 @@ from safedelete.models import HARD_DELETE
 
 from apps.collaboration.models import Membership as CollaborationMembership
 from apps.collaboration.models import MembershipList
-from apps.core.models import Group, Landscape, TaxonomyTerm, User
+from apps.core.models import Landscape, User
 from apps.core.models.users import (
     BLOCKING_ON_DELETE,
     LANDPKS_APP_LABELS,
@@ -55,8 +57,7 @@ from apps.core.models.users import (
 )
 from apps.project_management.models import Project, Site
 from apps.project_management.models.site_notes import SiteNote
-from apps.shared_data.models import DataEntry, VisualizationConfig
-from apps.story_map.models import StoryMap
+from apps.shared_data.models import DataEntry
 from tests.utils import add_soil_data_to_site
 
 pytestmark = pytest.mark.django_db
@@ -129,8 +130,9 @@ def test_structural_every_user_fk_is_classified():
             )
 
     assert not unclassified, (
-        "Unclassified reverse FK(s) to User — extend deletion_blockers() "
-        f"or one of the app-label allowlists: {unclassified}"
+        "Unclassified reverse FK(s) to User — extend the walker in "
+        "apps/core/management/commands/show_deletion_blockers.py or one "
+        f"of the app-label allowlists: {unclassified}"
     )
     assert not do_nothing, (
         f"DO_NOTHING reverse FK(s) to User outside LANDPKS_APP_LABELS: {do_nothing}"
@@ -205,8 +207,8 @@ def test_structural_user_deletion_closure_is_hard_delete_safe():
     when the harddelete cron later tries to purge the closure model.
 
     User itself is excluded from this check because incoming FKs to
-    User are the deletion gate's job — see User.deletion_blockers() and
-    Test A.
+    User are the deletion gate's job — see the walker in
+    show_deletion_blockers and Test A.
 
     Two failure modes this catches:
 
@@ -218,9 +220,9 @@ def test_structural_user_deletion_closure_is_hard_delete_safe():
 
     2. **External-to-closure blocking FK**: e.g. a future app adding
        SpecialData.site = ForeignKey(Site, PROTECT). The gate doesn't
-       see SpecialData — deletion_blockers() only walks reverse FKs one
-       level from User — so without this test the failure would
-       surface as a runtime cron crash rather than a CI failure.
+       see SpecialData — the walker only walks reverse FKs one level
+       from User — so without this test the failure would surface as
+       a runtime cron crash rather than a CI failure.
 
     If this test fires, the options are: change the FK to CASCADE /
     SET_NULL, add the originating model's app to LANDPKS_APP_LABELS so
@@ -247,212 +249,6 @@ def test_structural_user_deletion_closure_is_hard_delete_safe():
         "blocking FK(s) — the harddelete cron would crash when these "
         f"models are purged: {bad}"
     )
-
-
-# ---------------------------------------------------------------------------
-# deletion_blockers() — coverage for each kind of undeletable data
-# ---------------------------------------------------------------------------
-
-
-def _blocker_models(blockers):
-    return {b["model"] for b in blockers}
-
-
-def test_deletion_blockers_empty_for_landpks_only_user(landpks_user):
-    assert landpks_user.deletion_blockers() == []
-
-
-def test_deletion_blockers_empty_for_brand_new_user():
-    user = mixer.blend(User)
-    assert user.deletion_blockers() == []
-
-
-def test_dataentry_created_by_blocks(user):
-    """DataEntry.created_by is PROTECT — must auto-block."""
-    mixer.blend(DataEntry, created_by=user)
-    blockers = user.deletion_blockers()
-    assert "shared_data.DataEntry" in _blocker_models(blockers)
-
-
-def test_visualization_config_blocks(user):
-    """VisualizationConfig.created_by is PROTECT — auto-block."""
-    mixer.blend(VisualizationConfig, created_by=user)
-    blockers = user.deletion_blockers()
-    assert "shared_data.VisualizationConfig" in _blocker_models(blockers)
-
-
-def test_story_map_blocks(user):
-    """StoryMap.created_by is PROTECT — auto-block."""
-    mixer.blend(StoryMap, created_by=user)
-    blockers = user.deletion_blockers()
-    assert "story_map.StoryMap" in _blocker_models(blockers)
-
-
-def test_group_created_by_blocks(user):
-    mixer.blend(Group, created_by=user)
-    blockers = user.deletion_blockers()
-    assert "core.Group" in _blocker_models(blockers)
-
-
-def test_landscape_created_by_blocks(user):
-    mixer.blend(Landscape, created_by=user)
-    blockers = user.deletion_blockers()
-    assert "core.Landscape" in _blocker_models(blockers)
-
-
-def test_taxonomy_term_created_by_blocks(user):
-    mixer.blend(TaxonomyTerm, created_by=user)
-    blockers = user.deletion_blockers()
-    assert "core.TaxonomyTerm" in _blocker_models(blockers)
-
-
-def test_non_project_approved_membership_blocks(user):
-    """Policy override: a non-project APPROVED Membership blocks even
-    though Membership.user is CASCADE."""
-    landscape = mixer.blend(Landscape)
-    CollaborationMembership.objects.create(
-        membership_list=landscape.membership_list,
-        user=user,
-        user_role="MEMBER",
-        membership_status=CollaborationMembership.APPROVED,
-    )
-    blockers = user.deletion_blockers()
-    assert any("Membership" in b["model"] for b in blockers)
-
-
-def test_pending_membership_does_not_block(user):
-    """Pending invites are CASCADE-safe; only APPROVED counts."""
-    landscape = mixer.blend(Landscape)
-    CollaborationMembership.objects.create(
-        membership_list=landscape.membership_list,
-        user=user,
-        user_role="MEMBER",
-        membership_status=CollaborationMembership.PENDING,
-    )
-    blockers = user.deletion_blockers()
-    assert not any("Membership" in b["model"] for b in blockers)
-
-
-def test_project_membership_does_not_block(user):
-    """Project memberships are torn down by the cascade — not blockers."""
-    project = mixer.blend(Project)
-    project.add_manager(user)
-    blockers = user.deletion_blockers()
-    assert not any("Membership" in b["model"] for b in blockers)
-
-
-def test_membership_classification_mixed(user):
-    """One project membership and one Group/Landscape membership for the
-    same user: only the non-project one shows up as a blocker. Locks the
-    project__isnull traversal through the MembershipList → Project hop."""
-    project = mixer.blend(Project)
-    project.add_manager(user)
-    landscape = mixer.blend(Landscape)
-    CollaborationMembership.objects.create(
-        membership_list=landscape.membership_list,
-        user=user,
-        user_role="MEMBER",
-        membership_status=CollaborationMembership.APPROVED,
-    )
-    blockers = user.deletion_blockers()
-    membership_blockers = [b for b in blockers if "Membership" in b["model"]]
-    assert len(membership_blockers) == 1
-    assert membership_blockers[0]["count"] == 1
-
-
-def test_soft_deleted_blocker_does_not_block(user):
-    """Soft-deleted rows no longer block: the resilient harddelete cron
-    (sorts by deleted_at, isolates failures with try/except + atomic per
-    row) handles a not-yet-purged PROTECT row in subsequent runs without
-    crashing the batch."""
-    story_map = mixer.blend(StoryMap, created_by=user)
-    story_map.delete()  # safedelete soft-delete
-    blockers = user.deletion_blockers()
-    assert "story_map.StoryMap" not in _blocker_models(blockers)
-
-
-def test_active_blocker_still_blocks_alongside_soft_deleted_one(user):
-    """Mixed scenario: one active StoryMap + one soft-deleted StoryMap.
-    The active row blocks; soft-deleted is ignored. Count reflects only
-    the active row."""
-    mixer.blend(StoryMap, created_by=user)  # active
-    soft_deleted = mixer.blend(StoryMap, created_by=user)
-    soft_deleted.delete()
-    [b] = [b for b in user.deletion_blockers() if b["model"] == "story_map.StoryMap"]
-    assert b["count"] == 1
-
-
-def test_landpks_app_relations_never_block(user):
-    """Sanity: the explicit-cascade allowlist holds even for a heavy
-    landpks footprint."""
-    Site.objects.create(name="s", latitude=0, longitude=0, elevation=0, owner=user)
-    project = mixer.blend(Project)
-    project.add_manager(user)
-    Site.objects.create(name="s2", latitude=0, longitude=0, elevation=0, project=project)
-    assert user.deletion_blockers() == []
-
-
-# ---------------------------------------------------------------------------
-# Blocker shape: qualifier, ids, BLOCKER_ID_CAP
-# ---------------------------------------------------------------------------
-
-
-def test_blocker_shape_for_plain_fk_blocker(user):
-    """Plain FK blocker (no policy override): qualifier=None, ids has
-    one pk string, count matches ids length."""
-    entry = mixer.blend(DataEntry, created_by=user)
-    blockers = user.deletion_blockers()
-    [b] = [b for b in blockers if b["model"] == "shared_data.DataEntry"]
-    assert b == {
-        "model": "shared_data.DataEntry",
-        "qualifier": None,
-        "field": "created_by",
-        "count": 1,
-        "ids": [str(entry.pk)],
-    }
-
-
-def test_blocker_shape_for_membership_uses_qualifier(user):
-    """Membership policy override: qualifier carries 'non-project,
-    approved', model stays a clean Django label (no embedded prose)."""
-    landscape = mixer.blend(Landscape)
-    CollaborationMembership.objects.create(
-        membership_list=landscape.membership_list,
-        user=user,
-        user_role="MEMBER",
-        membership_status=CollaborationMembership.APPROVED,
-    )
-    blockers = user.deletion_blockers()
-    [b] = [b for b in blockers if b["model"] == "collaboration.Membership"]
-    assert b["model"] == "collaboration.Membership"
-    assert b["qualifier"] == "non-project, approved"
-    assert b["field"] == "user"
-    assert b["count"] == 1
-    assert len(b["ids"]) == 1
-
-
-def test_blocker_ids_cap_truncates_with_accurate_count(user):
-    """When count exceeds BLOCKER_ID_CAP, `count` reports the true total
-    but `ids` truncates to BLOCKER_ID_CAP. Renderers compute "+N more"
-    from `count - len(ids)`."""
-    from apps.core.models.users import BLOCKER_ID_CAP
-
-    over_cap = BLOCKER_ID_CAP + 5
-    for _ in range(over_cap):
-        mixer.blend(DataEntry, created_by=user)
-    blockers = user.deletion_blockers()
-    [b] = [b for b in blockers if b["model"] == "shared_data.DataEntry"]
-    assert b["count"] == over_cap
-    assert len(b["ids"]) == BLOCKER_ID_CAP
-
-
-def test_blocker_ids_are_strings(user):
-    """pks come back as strings (not UUID objects) so the payload survives
-    JSON serialization in both the GraphQL response and HubSpot body."""
-    mixer.blend(DataEntry, created_by=user)
-    blockers = user.deletion_blockers()
-    [b] = [b for b in blockers if b["model"] == "shared_data.DataEntry"]
-    assert all(isinstance(pk, str) for pk in b["ids"])
 
 
 # ---------------------------------------------------------------------------
@@ -503,7 +299,8 @@ def test_force_hard_delete_is_not_gated(user):
         membership_status=CollaborationMembership.APPROVED,
     )
     # Sanity: gate would refuse a soft-delete.
-    assert user.deletion_blockers()
+    with pytest.raises(ValidationError, match="undeletable data"):
+        user.delete()
 
     # Hard-delete bypasses the gate cleanly.
     user.delete(force_policy=HARD_DELETE)

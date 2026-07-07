@@ -56,10 +56,6 @@ SYSTEM_APP_LABELS = {"admin", "auth", "contenttypes", "sessions"}
 # PROTECT instead (enforced by a structural test).
 BLOCKING_ON_DELETE = {"PROTECT", "RESTRICT"}
 
-# Cap pk strings attached to each blocker. `count` is always the true
-# total; renderers show "+N more" from `count - len(ids)`.
-BLOCKER_ID_CAP = 50
-
 USER_PREFS_KEY_GROUP_NOTIFICATIONS = "group_notifications"
 USER_PREFS_KEY_STORY_MAP_NOTIFICATIONS = "story_map_notifications"
 USER_PREFS_KEY_LANGUAGE = "language"
@@ -116,22 +112,6 @@ class UserDeletionBlockedError(ValidationError):
     Details of what's blocking aren't carried on the exception; callers
     who need them run the `show_deletion_blockers` management command.
     """
-
-
-def format_blocker(b):
-    """Render one blocker dict as "<label>: <detail>" for admin banner
-    and HubSpot ticket body. Truncated `ids` show with "(+N more)"."""
-    qualifier = f" ({b['qualifier']})" if b.get("qualifier") else ""
-    label = f"{b['model']}{qualifier} ({b['field']})"
-    ids = b.get("ids") or []
-    extra = b["count"] - len(ids)
-    if not ids:
-        detail = f"{b['count']} row(s)"
-    elif extra > 0:
-        detail = f"{b['count']} row(s); first {len(ids)} IDs: {', '.join(ids)} (+{extra} more)"
-    else:
-        detail = f"{b['count']} row(s); IDs: {', '.join(ids)}"
-    return label, detail
 
 
 class User(SafeDeleteModel, AbstractUser):
@@ -205,89 +185,6 @@ class User(SafeDeleteModel, AbstractUser):
             )
             .exists()
         )
-
-    def deletion_blockers(self):
-        """Return blocker dicts for rows that would block this user's
-        soft-deletion. Empty list = safe to soft-delete.
-
-        Each blocker is `{model, qualifier, field, count, ids}` where
-        `qualifier` is Optional[str] (None unless the model needs a sub-
-        classification like membership type) and `ids` is up to
-        BLOCKER_ID_CAP pk strings; `count` is the true total so renderers
-        can compute "+N more" when ids are truncated.
-
-        Classification: a reverse FK to User blocks if its on_delete is
-        PROTECT/RESTRICT and the referencing model isn't in
-        LANDPKS_APP_LABELS (handled by an explicit cascade) or
-        SYSTEM_APP_LABELS (Django internals). The single policy override
-        is non-project APPROVED collaboration.Memberships — they're
-        CASCADE at the DB level but flagged as blockers because
-        Group/Landscape membership is web data we don't auto-delete.
-
-        Only active rows count — soft-deleted referencers are handled by
-        the resilient harddelete cron in subsequent runs.
-
-        Walks one layer deep (direct reverse FKs from User). Deeper
-        coverage (transitive cascade closure) is enforced by the
-        structural test in tests/core/models/test_user_deletion_gate.py.
-        """
-        blockers = []
-        for rel in User._meta.related_objects:
-            if rel.many_to_many:
-                continue  # through-rows auto-cleaned
-            related_model = rel.related_model
-            app = related_model._meta.app_label
-            if app in LANDPKS_APP_LABELS or app in SYSTEM_APP_LABELS:
-                continue
-
-            if related_model._meta.label == "collaboration.Membership":
-                from apps.collaboration.models import Membership
-
-                # Policy override: non-project APPROVED memberships block
-                # even though Membership.user is CASCADE (the on_delete-
-                # floor rule would otherwise let them through). Project
-                # vs. non-project is distinguished by
-                # `membership_list__project__isnull`.
-                qs = self.collaboration_memberships.filter(
-                    membership_list__project__isnull=True,
-                    membership_status=Membership.APPROVED,
-                )
-                count = qs.count()
-                if count > 0:
-                    blockers.append(
-                        {
-                            "model": "collaboration.Membership",
-                            "qualifier": "non-project, approved",
-                            "field": "user",
-                            "count": count,
-                            "ids": [
-                                str(pk) for pk in qs.values_list("pk", flat=True)[:BLOCKER_ID_CAP]
-                            ],
-                        }
-                    )
-                continue
-
-            on_delete_name = rel.on_delete.__name__.upper()
-            if on_delete_name not in BLOCKING_ON_DELETE:
-                continue
-
-            # Only active rows block. A row that's already soft-deleted is
-            # handled by the harddelete cron (which sorts by deleted_at and
-            # is resilient to per-row integrity failures), so it doesn't
-            # need to gate the user.
-            qs = related_model.objects.filter(**{rel.field.name: self})
-            count = qs.count()
-            if count > 0:
-                blockers.append(
-                    {
-                        "model": related_model._meta.label,
-                        "qualifier": None,
-                        "field": rel.field.name,
-                        "count": count,
-                        "ids": [str(pk) for pk in qs.values_list("pk", flat=True)[:BLOCKER_ID_CAP]],
-                    }
-                )
-        return blockers
 
     def delete(self, *args, **kwargs):
         """Gate soft-delete, then tear down sole-manager projects. Two

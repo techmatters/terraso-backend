@@ -232,17 +232,8 @@ class UserUpdateMutation(BaseAuthenticatedMutation):
         return cls(user=user)
 
 
-class BlockerType(graphene.ObjectType):
-    model = graphene.String()
-    qualifier = graphene.String()  # nullable; None for most blockers
-    field = graphene.String()
-    count = graphene.Int()
-    ids = graphene.List(graphene.ID)
-
-
 class UserDeleteMutation(BaseDeleteMutation):
     user = graphene.Field(UserNode)
-    blockers = graphene.List(BlockerType)
     model_class = User
 
     class Input:
@@ -293,13 +284,9 @@ class UserDeleteMutation(BaseDeleteMutation):
                     properties={"account_age_days": account_age_days},
                     set_props=analytics.user_person_properties(request_user),
                 )
-                return cls(
-                    user=None,
-                    blockers=[],
-                    errors=[{"message": str(ticket_err)}],
-                )
-            return cls(user=None, blockers=[])
-        return cls(user=user, blockers=[])
+                return cls(user=None, errors=[{"message": str(ticket_err)}])
+            return cls(user=None)
+        return cls(user=user)
 
 
 class UserPreferenceUpdate(BaseAuthenticatedMutation):

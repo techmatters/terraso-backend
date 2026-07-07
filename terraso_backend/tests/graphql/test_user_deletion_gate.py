@@ -15,16 +15,20 @@
 
 """Presentation-layer tests for the User soft-delete gate.
 
-Model-layer behavior — `deletion_blockers()`, the `User.delete()` gate,
-the cascade, the structural drift detectors — is covered by
-`tests/core/models/test_user_deletion_gate.py`. This file covers the
-two callers that wrap the gate with caller-specific UX:
+Model-layer behavior — the `User.delete()` gate, the cascade, and the
+structural drift detectors — is covered by
+`tests/core/models/test_user_deletion_gate.py`. Blocker-inventory
+coverage lives in `tests/core/commands/test_show_deletion_blockers.py`.
+This file covers the two callers that wrap the gate with caller-
+specific UX:
 
-  * `UserDeleteMutation` — returns structured `blockers` payload when
-    blocked, runs the cascade when clean.
+  * `UserDeleteMutation` — returns `user=null` when blocked and files
+    a HubSpot ticket + sets the pending pref; runs the cascade when
+    clean.
   * `UserAdmin.delete_model` / `delete_queryset` — single-delete shows
     a red banner; bulk-delete partitions blocked vs. clean and surfaces
-    a single warning banner."""
+    a single warning banner. Both confirmation pages get a diagnostic
+    banner pointing at the show_deletion_blockers command."""
 
 from unittest.mock import patch
 
@@ -50,20 +54,18 @@ DELETE_USER_MUTATION = """
 mutation deleteUser($input: UserDeleteMutationInput!) {
   deleteUser(input: $input) {
     user { email }
-    blockers { model field count }
     errors
   }
 }
 """
 
 
-def test_mutation_clean_user_returns_user_and_empty_blockers(client_query, users):
-    """Clean self-delete: payload returns the user, blockers=[]."""
+def test_mutation_clean_user_returns_user(client_query, users):
+    """Clean self-delete: payload returns the user; row is gone."""
     user = users[0]
     response = client_query(DELETE_USER_MUTATION, variables={"input": {"id": str(user.id)}}).json()
     payload = response["data"]["deleteUser"]
     assert payload["user"]["email"] == user.email
-    assert payload["blockers"] == []
     assert not User.objects.filter(pk=user.pk).exists()
 
 
