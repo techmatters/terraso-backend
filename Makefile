@@ -1,9 +1,17 @@
 DC_ENV ?= dev
 ENV_FILE ?= $(HOME)/secrets/terraso-backend/.env
+include $(ENV_FILE)
 # Extra compose files, threaded through DC_FILE_ARG so they apply to
 # run/test/bash/lint alike. Override directly, e.g.:
 #   make run DC_EXTRA_FILES="-f docker-compose.local-soilid.yml"
 DC_EXTRA_FILES ?=
+# Soil ID database: include the soil-id-db container by default. Set to
+# "false" to skip it entirely (saves ~2 GB download, faster startup).
+# US soil matching still works; only global (HWSD) lookups need it.
+SOIL_ID_DATABASE_ENABLED ?= true
+ifeq ($(SOIL_ID_DATABASE_ENABLED),true)
+	DC_EXTRA_FILES += -f docker-compose.soilid.yml
+endif
 # Convenience flag: run against a LOCAL ../soil-id-algorithm checkout (mounts it
 # and shadows the pinned soil-id release via PYTHONPATH) for an unreleased
 # soil-id change. Prefer the one-shot form so it doesn't leak into later

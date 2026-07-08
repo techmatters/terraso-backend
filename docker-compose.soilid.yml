@@ -1,0 +1,19 @@
+# Override: start the soil-id-db container alongside the web service.
+#
+# Included by default (SOIL_ID_DATABASE_ENABLED=true in Makefile).
+# Omit this file to skip the ~2 GB global soil database download entirely:
+#   make run SOIL_ID_DATABASE_ENABLED=false
+# or set SOIL_ID_DATABASE_ENABLED=false in your .env.
+#
+# US soil matching still works without it — only global (HWSD) lookups
+# need the soil-id-db. The Django app will gracefully degrade on the
+# Python side when the database isn't reachable.
+services:
+  web:
+    depends_on:
+      soil-id-db:
+        condition: service_healthy
+  soil-id-db:
+    extends:
+      file: docker-compose.base.yml
+      service: soil-id-db
