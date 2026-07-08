@@ -103,6 +103,31 @@ def test_one_rows_exception_does_not_abort_batch(delete_date):
     assert not Group.objects.all(force_visibility=True).filter(id=two.id).exists()
 
 
+def test_failed_row_is_logged_with_model_and_pk(delete_date):
+    """Each failed hard-delete emits a structured log line identifying
+    the row (model label + pk) and the exception, so operators can
+    triage without re-running the cron."""
+    obj = mixer.blend(Group)
+    _soft_delete_at(obj, delete_date)
+
+    def always_fail(self, *args, **kwargs):
+        raise RuntimeError("simulated failure")
+
+    with (
+        patch.object(Group, "delete", always_fail),
+        patch("apps.core.management.commands.harddelete.logger") as mock_logger,
+    ):
+        call_command("harddelete")
+
+    mock_logger.error.assert_any_call(
+        "harddelete.row_failed",
+        model="core.Group",
+        pk=str(obj.id),
+        error="simulated failure",
+        error_type="RuntimeError",
+    )
+
+
 def test_retry_next_run_succeeds_after_transient_failure(delete_date):
     """Daily-retry convergence: a row that failed on one run is picked up
     by the next run and succeeds when the underlying condition (e.g. a

@@ -75,16 +75,19 @@ class Command(BaseCommand):
             # or an admin-undeleted referencer to a soft-deleted target)
             # logs to Sentry but doesn't abort the batch. The next cron
             # run picks the row up again and retries.
+            model_label = type(obj)._meta.label
+            pk = str(obj.pk)
             try:
                 with transaction.atomic():
                     obj.delete(force_policy=HARD_DELETE)
                 succeeded += 1
+                logger.info("harddelete.row_succeeded", model=model_label, pk=pk)
             except Exception as err:
                 failed += 1
                 logger.error(
                     "harddelete.row_failed",
-                    model=type(obj)._meta.label,
-                    pk=str(obj.pk),
+                    model=model_label,
+                    pk=pk,
                     error=str(err),
                     error_type=type(err).__name__,
                 )
