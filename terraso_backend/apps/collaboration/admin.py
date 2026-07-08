@@ -39,18 +39,34 @@ class MembershipListAdmin(SafeDeleteAdmin):
         # Returns None for Group/Landscape membership lists.
         return getattr(obj, "project", None)
 
+    @admin.display(ordering="group__name", description="Group")
+    def group(self, obj):
+        return obj.group.first()
+
+    @admin.display(ordering="landscape__name", description="Landscape")
+    def landscape(self, obj):
+        return obj.landscape.first()
+
     list_display = (
         highlight_deleted,
         "project",
-        "id",
-        "membership_type",
-        "enroll_method",
+        "group",
+        "landscape",
         "deleted_at",
         "created_at",
     )
     list_filter = (SafeDeleteAdminFilter, "membership_type", "enroll_method")
     inlines = [MembershipInline]
-    search_fields = ["project__name", "id"]
+    search_fields = ["project__name", "group__name", "landscape__name", "id"]
+    readonly_fields = ("id", "project", "group", "landscape")
+    fields = (
+        "id",
+        "project",
+        "group",
+        "landscape",
+        "membership_type",
+        "enroll_method",
+    )
 
 
 @admin.register(Membership)
