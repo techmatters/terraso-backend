@@ -30,7 +30,7 @@ logger = structlog.get_logger(__name__)
 
 # User-deletion policy note: the LandPKS domain apps (project_management,
 # soil_id) cascade with the user via safedelete's SOFT_DELETE_CASCADE
-# plus the explicit sole-manager-projects walk in
+# plus the explicit solo-manager-projects walk in
 # User._soft_delete_with_cascade / Project.soft_delete_policy_action. FKs
 # to User from other apps are either CASCADE (torn down by safedelete)
 # or PROTECT/RESTRICT (blocked by the gate; see User.delete). Structural
@@ -168,7 +168,7 @@ class User(SafeDeleteModel, AbstractUser):
         )
 
     def delete(self, *args, **kwargs):
-        """Gate soft-delete, then tear down sole-manager projects. Two
+        """Gate soft-delete, then tear down solo-manager projects. Two
         block sources:
 
           1. Non-project APPROVED Memberships. Membership.user is
@@ -188,7 +188,7 @@ class User(SafeDeleteModel, AbstractUser):
         Why the project cascade lives here rather than in
         soft_delete_policy_action: safedelete's SOFT_DELETE_CASCADE soft-deletes
         the user's Memberships *before* invoking soft_delete_policy_action, so
-        a "sole-manager projects" query that filters on `deleted_at IS NULL`
+        a "solo-manager projects" query that filters on `deleted_at IS NULL`
         Memberships would find none of them by the time it runs. We capture the
         project IDs up here, then iterate them after super() returns.
 
@@ -237,38 +237,28 @@ class User(SafeDeleteModel, AbstractUser):
 
     @transaction.atomic
     def _soft_delete_with_cascade(self, *args, **kwargs):
-        """Soft-delete this user and the sole-manager projects they leave behind.
-
-        Unaffiliated owned sites: handled by Site.owner=CASCADE plus safedelete's
-        SOFT_DELETE_CASCADE; their soil/notes/history subtrees cascade
-        automatically.
-
-        Sole-manager projects: explicit — there's no FK that says "this project
-        belongs to this user". Project.soft_delete_policy_action handles the
-        MembershipList cleanup for each."""
-        from apps.project_management.models import Project, SiteNote
-
+        """Soft-delete this user. Includes cascade deletion plus special logic that safedelete's cascade can't reach."""
         solo_project_ids = list(self._solo_manager_projects().values_list("pk", flat=True))
-        # Preserve authorship before the SET_NULL cascade blanks SiteNote.author.
-        # These notes (on other users' sites) survive this soft-delete with a null
-        # author; stashing the id lets undelete() put the author back.
-        SiteNote.all_objects.filter(author=self).update(saved_author=self.pk)
+        self._stash_site_note_authorship()
         result = super().delete(*args, **kwargs)
-        # Note: not passing is_cascade=True. safedelete hardcodes
-        # is_cascade=True when recursing internally AND forwards **kwargs,
-        # so passing it from the outside trips a duplicate-keyword
-        # TypeError. Restoration on undelete is driven by the explicit
-        # walk in _undelete_solo_manager_projects, not the cascade flag.
-        #
-        # Minor consequence: the soft-deleted Project row will have
-        # `deleted_by_cascade=False` even though it was semantically
-        # cascade-deleted from this user. Cascade descendants under the
-        # Project (Sites, soil data, etc.) still correctly read True —
-        # those go through safedelete's internal recursion. Only the
-        # explicit Project "root" we delete here is mislabelled.
-        for project in Project.objects.filter(pk__in=solo_project_ids):
-            project.delete()
+        self._soft_delete_solo_manager_projects(solo_project_ids)
         return result
+
+    def _stash_site_note_authorship(self):
+        """Copy `author` → `saved_author` on SiteNotes we authored, before
+        the SET_NULL cascade blanks `author`. `undelete` reads `saved_author`
+        to restore the link — only works if the user row has not been hard=deleted."""
+        from apps.project_management.models import SiteNote
+
+        SiteNote.all_objects.filter(author=self).update(saved_author=self.pk)
+
+    def _soft_delete_solo_manager_projects(self, project_ids):
+        """Soft-delete the captured projects.
+        Note: don't pass is_cascade=True, because safedelete sets it during its own recursion and passing it again trips a duplicate-keyword TypeError. Consequence: the Project row shows `deleted_by_cascade=False` (descendants still read True)."""
+        from apps.project_management.models import Project
+
+        for project in Project.objects.filter(pk__in=project_ids):
+            project.delete()
 
     def _solo_manager_projects(self):
         """Projects where this user is the sole APPROVED, non-soft-deleted
@@ -305,30 +295,9 @@ class User(SafeDeleteModel, AbstractUser):
 
     @transaction.atomic
     def undelete(self, *args, **kwargs):
-        """Restore a soft-deleted user, refusing if their email is already
-        in use by another active user.
-
-        Email uniqueness is conditional on `deleted_at__isnull=True` (see
-        Meta.constraints), so a soft-deleted user's email can be re-
-        registered by someone else during the grace window. Letting
-        undelete succeed in that case would raise a generic IntegrityError
-        from the DB. Detect the conflict explicitly and surface a clear
-        message instead.
-
-        Restores the User row and the soft-deleted related rows (Memberships,
-        owned Sites + soil data + notes — all via safedelete's
-        cascade-walker), plus sole-manager Projects + their MembershipLists
-        + cascade-children (via an explicit walk in
-        _undelete_solo_manager_projects, because Project has no reverse FK
-        to User and isn't reachable from User by safedelete's walker).
-
-        Restores `SiteNote.author` from the `saved_author` shadow stashed at
-        soft-delete time (see _soft_delete_with_cascade). This only works while
-        the user row still exists: once hard-deleted the author is gone forever
-        (as is anything refused at the gate). Restoration is partial by design.
-        """
-        from apps.project_management.models import SiteNote
-
+        """Restore this user plus what was cleaned up alongside them (like solo-manager projects, SiteNote authorship).
+        Refuses if another active user has taken the email during the grace window — the unique_active_email constraint would otherwise raise IntegrityError.
+        Restoration only works for soft-deleted objects; anything hard-deleted is gone forever."""
         conflict = type(self).objects.filter(email=self.email).exclude(pk=self.pk).first()
         if conflict is not None:
             raise ValidationError(
@@ -338,26 +307,17 @@ class User(SafeDeleteModel, AbstractUser):
             )
         result = super().undelete(*args, **kwargs)
         self._undelete_solo_manager_projects()
-        # Restore authorship blanked by the SET_NULL cascade, and clear the
-        # shadow. Scoped to notes we nulled for this user (author still null).
-        SiteNote.all_objects.filter(saved_author=self.pk, author__isnull=True).update(
-            author=self, saved_author=None
-        )
+        self._restore_site_note_authorship()
         return result
 
     def _undelete_solo_manager_projects(self):
-        """Restore Projects this user was the sole manager of at deletion time.
-
-        After super().undelete(), the user's Memberships are restored. Walk
-        their MANAGER memberships: any whose MembershipList belongs to a
-        still-soft-deleted Project is one we explicitly deleted in
-        _soft_delete_with_cascade. Undelete it — Project.undelete in turn
-        restores the MembershipList and its other Memberships, and
-        safedelete's standard cascade-walker handles the Sites / soil data
-        subtree.
-
-        We don't need to re-check sole-manager status here: a Project that's
-        soft-deleted can't have gained new managers in the meantime."""
+        """Mirror of _soft_delete_solo_manager_projects. After super()
+        restores the user's Memberships, any MANAGER membership whose
+        MembershipList belongs to a still-soft-deleted Project is one we
+        explicitly deleted at soft-delete time. Undelete it — Project.undelete
+        restores the MembershipList + other Memberships; safedelete's cascade
+        handles Sites + soil data. No solo-manager re-check needed: a
+        soft-deleted Project can't have gained new managers meanwhile."""
         from apps.collaboration.models import Membership
         from apps.project_management.collaboration_roles import ProjectRole
         from apps.project_management.models import Project
@@ -370,6 +330,14 @@ class User(SafeDeleteModel, AbstractUser):
             project = Project.all_objects.filter(membership_list_id=m.membership_list_id).first()
             if project is not None and project.deleted_at is not None:
                 project.undelete()
+
+    def _restore_site_note_authorship(self):
+        """Mirror of _stash_site_note_authorship."""
+        from apps.project_management.models import SiteNote
+
+        SiteNote.all_objects.filter(saved_author=self.pk, author__isnull=True).update(
+            author=self, saved_author=None
+        )
 
     def full_name(self):
         return _(
