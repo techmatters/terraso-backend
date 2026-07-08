@@ -26,18 +26,14 @@ Usage (from repo root):
 Or directly:
     python manage.py show_deletion_blockers foo@example.com
     python manage.py show_deletion_blockers <user-uuid>
-
 """
 
+from django.contrib.admin.utils import NestedObjects
 from django.core.exceptions import ValidationError
 from django.core.management.base import BaseCommand, CommandError
+from django.db import router
 
 from apps.core.models import User
-from apps.core.models.users import (
-    BLOCKING_ON_DELETE,
-    LANDPKS_APP_LABELS,
-    SYSTEM_APP_LABELS,
-)
 
 # Cap pk strings attached to each blocker so this stays readable for
 # users with a large footprint. `count` is always the true total.
@@ -75,85 +71,91 @@ def _find_user(identifier):
 
 
 def deletion_blockers(user):
-    """Return blocker dicts for rows that would block this user's
-    soft-deletion. Empty list = safe to soft-delete.
+    """Return blocker dicts matching what `User.delete()` would refuse on.
+
+    Two sources — the same two the gate checks:
+
+      1. PROTECT/RESTRICT rows — Django's `NestedObjects` collector
+         reports these in `.protected`. safedelete's SOFT_DELETE_CASCADE
+         raises `ProtectedError` from the same collector output, so this
+         side stays in lock-step with the runtime gate by construction
+         (no separate FK-classification logic to drift).
+
+      2. Non-project APPROVED Memberships — `Membership.user` is CASCADE
+         at the DB layer so the collector doesn't flag them, but the
+         gate refuses them as a policy blocker. We call the same method
+         (`User._non_project_approved_memberships`) the gate uses.
+
+    Only active rows count: `.protected` includes soft-deleted rows, so
+    we filter by `deleted_at IS NULL` just like safedelete does before
+    raising. Soft-deleted rows are handled by the harddelete cron.
 
     Each blocker is `{model, qualifier, field, count, ids}` where
-    `qualifier` is Optional[str] (None unless the model needs a sub-
-    classification like membership type) and `ids` is up to
-    BLOCKER_ID_CAP pk strings; `count` is the true total so renderers
-    can compute "+N more" when ids are truncated.
-
-    Classification: a reverse FK to User blocks if its on_delete is
-    PROTECT/RESTRICT and the referencing model isn't in
-    LANDPKS_APP_LABELS (handled by an explicit cascade) or
-    SYSTEM_APP_LABELS (Django internals). The single policy override
-    is non-project APPROVED collaboration.Memberships — they're
-    CASCADE at the DB level but flagged as blockers because
-    Group/Landscape membership is web data we don't auto-delete.
-
-    Only active rows count — soft-deleted referencers are handled by
-    the resilient harddelete cron in subsequent runs.
-
-    Walks one layer deep (direct reverse FKs from User). Deeper
-    coverage (transitive cascade closure) is enforced by the
-    structural test in tests/core/models/test_user_deletion_gate.py.
+    `qualifier` is Optional[str] (None for FK blockers, populated for
+    the Membership policy override) and `ids` is up to BLOCKER_ID_CAP
+    pk strings; `count` is the true total.
     """
-    blockers = []
-    for rel in User._meta.related_objects:
-        if rel.many_to_many:
-            continue  # through-rows auto-cleaned
-        related_model = rel.related_model
-        app = related_model._meta.app_label
-        if app in LANDPKS_APP_LABELS or app in SYSTEM_APP_LABELS:
-            continue
+    blockers = _collect_fk_blockers(user)
 
-        if related_model._meta.label == "collaboration.Membership":
-            from apps.collaboration.models import Membership
-
-            # Policy override: non-project APPROVED memberships block
-            # even though Membership.user is CASCADE (the on_delete-
-            # floor rule would otherwise let them through). Project
-            # vs. non-project is distinguished by
-            # `membership_list__project__isnull`.
-            qs = user.collaboration_memberships.filter(
-                membership_list__project__isnull=True,
-                membership_status=Membership.APPROVED,
-            )
-            count = qs.count()
-            if count > 0:
-                blockers.append(
-                    {
-                        "model": "collaboration.Membership",
-                        "qualifier": "non-project, approved",
-                        "field": "user",
-                        "count": count,
-                        "ids": [str(pk) for pk in qs.values_list("pk", flat=True)[:BLOCKER_ID_CAP]],
-                    }
-                )
-            continue
-
-        on_delete_name = rel.on_delete.__name__.upper()
-        if on_delete_name not in BLOCKING_ON_DELETE:
-            continue
-
-        # Only active rows block. A row that's already soft-deleted is
-        # handled by the harddelete cron (which sorts by deleted_at and
-        # is resilient to per-row integrity failures), so it doesn't
-        # need to gate the user.
-        qs = related_model.objects.filter(**{rel.field.name: user})
-        count = qs.count()
-        if count > 0:
-            blockers.append(
-                {
-                    "model": related_model._meta.label,
-                    "qualifier": None,
-                    "field": rel.field.name,
-                    "count": count,
-                    "ids": [str(pk) for pk in qs.values_list("pk", flat=True)[:BLOCKER_ID_CAP]],
-                }
-            )
+    # Policy blocker safedelete can't see (Membership.user is CASCADE).
+    memberships = user._non_project_approved_memberships()
+    memb_count = memberships.count()
+    if memb_count > 0:
+        blockers.append(
+            {
+                "model": "collaboration.Membership",
+                "qualifier": "non-project, approved",
+                "field": "user",
+                "count": memb_count,
+                "ids": [
+                    str(pk) for pk in memberships.values_list("pk", flat=True)[:BLOCKER_ID_CAP]
+                ],
+            }
+        )
     return blockers
+
+
+def _collect_fk_blockers(user):
+    """PROTECT/RESTRICT rows reachable from the user, sourced from the
+    same Django collector safedelete raises from.
+
+    Grouped by (model, field) so the output shape matches the Membership
+    entry — one dict per blocker kind, with pk strings capped."""
+    collector = NestedObjects(using=router.db_for_write(type(user)))
+    collector.collect([user])
+
+    active_protected = [
+        obj for obj in collector.protected if getattr(obj, "deleted_at", None) is None
+    ]
+
+    by_key = {}
+    for obj in active_protected:
+        field = _find_fk_to_user(obj, user)
+        by_key.setdefault((obj._meta.label, field), []).append(obj)
+
+    return [
+        {
+            "model": model_label,
+            "qualifier": None,
+            "field": field_name,
+            "count": len(objs),
+            "ids": [str(o.pk) for o in objs[:BLOCKER_ID_CAP]],
+        }
+        for (model_label, field_name), objs in sorted(by_key.items())
+    ]
+
+
+def _find_fk_to_user(obj, user):
+    """Return the name of the FK on `obj` that points at `user`.
+
+    Every model this codebase reaches via `.protected` from a User has
+    exactly one such FK (typically `created_by`). Iterate concrete FK
+    fields and match by referenced pk to avoid a DB fetch."""
+    for f in obj._meta.concrete_fields:
+        if f.is_relation and f.related_model is type(user):
+            if getattr(obj, f.attname, None) == user.pk:
+                return f.name
+    return "?"
 
 
 def format_blocker(b):

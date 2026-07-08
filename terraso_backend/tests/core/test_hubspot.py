@@ -13,9 +13,10 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see https://www.gnu.org/licenses/.
 
-"""Tests for `create_account_deletion_ticket` — focused on the body
-content sent to HubSpot. The HTTP call itself is mocked; we assert what
-the ticket body says so support reps get useful context."""
+"""Tests for `create_account_deletion_ticket` — the HTTP call is
+mocked; we assert on the body payload and on the dry-run / no-email
+short-circuits. The ticket body is deliberately minimal (user identity
+only); support runs `show_deletion_blockers` out-of-band for details."""
 
 from unittest.mock import Mock, patch
 

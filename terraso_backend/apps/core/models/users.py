@@ -28,33 +28,14 @@ from apps.core import group_collaboration_roles, landscape_collaboration_roles
 
 logger = structlog.get_logger(__name__)
 
-# Used for User deletion: Apps whose models cascade with the user
-# (the "landpks subtree"). These
-# are torn down explicitly in User._soft_delete_with_cascade and
-# Project.soft_delete_policy_action — rather than blocked by the gate —
-# because the schema is set up so the cascade can clean them up safely.
-#
-# Two structural tests in tests/core/models/test_user_deletion_gate.py
-# enforce the invariants this allowlist relies on:
-#   - Test A: every reverse FK from any app to User is classified into
-#     one legal bucket (so a new PROTECT FK to User can't go unnoticed).
-#   - "closure is hard-delete safe": every model in the user-deletion
-#     cascade closure (which includes everything in LANDPKS_APP_LABELS)
-#     is asserted to have no incoming blocking FKs — so the harddelete
-#     cron can purge the closure cleanly when the grace window expires.
-#
-# To add a new domain app whose data should cascade with the user
-# (rather than block at the gate), add its app_label here and confirm
-# the closure structural test still passes.
-LANDPKS_APP_LABELS = {"project_management", "soil_id"}
-# Django internals — reverse FKs to User in these apps are auto-allowed
-# (Django manages them itself).
-SYSTEM_APP_LABELS = {"admin", "auth", "contenttypes", "sessions"}
-# on_delete behaviors that raise when the referenced User is deleted,
-# so a row pointing at the User through one of these FKs blocks deletion.
-# Note: DO_NOTHING is deliberately excluded — new FKs to User should use
-# PROTECT instead (enforced by a structural test).
-BLOCKING_ON_DELETE = {"PROTECT", "RESTRICT"}
+# User-deletion policy note: the LandPKS domain apps (project_management,
+# soil_id) cascade with the user via safedelete's SOFT_DELETE_CASCADE
+# plus the explicit sole-manager-projects walk in
+# User._soft_delete_with_cascade / Project.soft_delete_policy_action. FKs
+# to User from other apps are either CASCADE (torn down by safedelete)
+# or PROTECT/RESTRICT (blocked by the gate; see User.delete). Structural
+# tests in tests/core/models/test_user_deletion_gate.py enforce the
+# invariants this partition relies on.
 
 USER_PREFS_KEY_GROUP_NOTIFICATIONS = "group_notifications"
 USER_PREFS_KEY_STORY_MAP_NOTIFICATIONS = "story_map_notifications"

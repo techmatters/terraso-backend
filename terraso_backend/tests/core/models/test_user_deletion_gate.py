@@ -15,19 +15,18 @@
 
 """Tests for the User soft-delete gate.
 
-Three layers under test:
+Two layers under test here:
 
-  * Blocker classification — what counts as undeletable data
-    (PROTECT/RESTRICT reverse FKs to User, plus the non-project APPROVED
-    collaboration.Membership policy override). Coverage lives in
-    `tests/core/commands/test_show_deletion_blockers.py` since the
-    walker moved to that command.
   * `User.delete()` — enforcement: raises `UserDeletionBlockedError` on
     the soft-delete path when blockers exist; does not fire on
     `force_policy=HARD_DELETE`.
   * `User.soft_delete_policy_action` / `Project.soft_delete_policy_action`
     — the cascade that tears down the user's landpks footprint and
     sole-manager projects.
+
+Blocker enumeration (which rows count, per-model coverage) is tested in
+`tests/core/commands/test_show_deletion_blockers.py`, since that logic
+lives entirely in the diagnostic command now.
 
 Plus structural tests that catch schema drift in CI:
 
@@ -50,17 +49,36 @@ from safedelete.models import HARD_DELETE
 from apps.collaboration.models import Membership as CollaborationMembership
 from apps.collaboration.models import MembershipList
 from apps.core.models import Landscape, User
-from apps.core.models.users import (
-    BLOCKING_ON_DELETE,
-    LANDPKS_APP_LABELS,
-    SYSTEM_APP_LABELS,
-)
 from apps.project_management.models import Project, Site
 from apps.project_management.models.site_notes import SiteNote
 from apps.shared_data.models import DataEntry
 from tests.utils import add_soil_data_to_site
 
 pytestmark = pytest.mark.django_db
+
+
+# Schema-invariant constants used by the structural tests below.
+# Kept in the test file (rather than in users.py) because after the
+# collector-based show_deletion_blockers refactor no runtime code path
+# reads them — only these tests do.
+
+# Domain apps whose data cascades with the user (LandPKS subtree). New
+# FKs to User from these apps are exempt from the "block-at-gate" rule
+# because User._soft_delete_with_cascade / Project.soft_delete_policy_action
+# tear their rows down explicitly. Add a new app_label here (and confirm
+# the closure test still passes) when introducing a domain app whose
+# data should cascade rather than block.
+LANDPKS_APP_LABELS = {"project_management", "soil_id"}
+
+# Django internals — reverse FKs to User in these apps are auto-allowed
+# (Django manages them itself).
+SYSTEM_APP_LABELS = {"admin", "auth", "contenttypes", "sessions"}
+
+# on_delete behaviors that raise (via safedelete's collector or DB) when
+# the referenced User is deleted, so a row pointing at the User through
+# one of these FKs blocks deletion. DO_NOTHING is deliberately excluded —
+# new FKs to User should use PROTECT instead (enforced by test A below).
+BLOCKING_ON_DELETE = {"PROTECT", "RESTRICT"}
 
 
 # ---------------------------------------------------------------------------
@@ -130,9 +148,10 @@ def test_structural_every_user_fk_is_classified():
             )
 
     assert not unclassified, (
-        "Unclassified reverse FK(s) to User — extend the walker in "
-        "apps/core/management/commands/show_deletion_blockers.py or one "
-        f"of the app-label allowlists: {unclassified}"
+        "Unclassified reverse FK(s) to User — classify by adding the "
+        "on_delete to BLOCKING_ON_DELETE (block-at-gate) or the "
+        "CASCADING allowlist (auto-cascade), or by adding the app to "
+        f"LANDPKS_APP_LABELS / SYSTEM_APP_LABELS: {unclassified}"
     )
     assert not do_nothing, (
         f"DO_NOTHING reverse FK(s) to User outside LANDPKS_APP_LABELS: {do_nothing}"
@@ -207,8 +226,9 @@ def test_structural_user_deletion_closure_is_hard_delete_safe():
     when the harddelete cron later tries to purge the closure model.
 
     User itself is excluded from this check because incoming FKs to
-    User are the deletion gate's job — see the walker in
-    show_deletion_blockers and Test A.
+    User are the deletion gate's job — safedelete's collector raises
+    `ProtectedError` for PROTECT/RESTRICT FKs at soft-delete time, and
+    Test A above enforces classification of every reverse FK to User.
 
     Two failure modes this catches:
 
@@ -218,11 +238,14 @@ def test_structural_user_deletion_closure_is_hard_delete_safe():
        ordering across models, so we can't rely on the dependent row
        being purged first.
 
-    2. **External-to-closure blocking FK**: e.g. a future app adding
-       SpecialData.site = ForeignKey(Site, PROTECT). The gate doesn't
-       see SpecialData — the walker only walks reverse FKs one level
-       from User — so without this test the failure would surface as
-       a runtime cron crash rather than a CI failure.
+    2. **External-to-closure blocking FK**: e.g. a future app adds
+       SpecialData.site = ForeignKey(Site, PROTECT). The soft-delete
+       gate would catch this (safedelete's collector walks the whole
+       cascade tree), but the harddelete cron runs against already-
+       soft-deleted users — a new external PROTECT/RESTRICT/DO_NOTHING
+       FK added during someone's grace window would crash the cron.
+       This test surfaces the risk in CI so schema changes don't
+       silently break it.
 
     If this test fires, the options are: change the FK to CASCADE /
     SET_NULL, add the originating model's app to LANDPKS_APP_LABELS so

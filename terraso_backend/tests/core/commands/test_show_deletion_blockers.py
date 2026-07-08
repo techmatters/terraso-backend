@@ -18,9 +18,10 @@
 Split into two layers:
 
   * Unit tests of `deletion_blockers()` — one per kind of blocker
-    (PROTECT/RESTRICT FKs across apps + the non-project APPROVED
-    collaboration.Membership policy override + LANDPKS cascade
-    allowlist + SYSTEM app allowlist + soft-deleted-referencer skip).
+    (PROTECT FKs across apps + the non-project APPROVED
+    collaboration.Membership policy override, plus negative cases:
+    pending/project memberships don't block, soft-deleted referencers
+    don't block, LandPKS-cascade rows don't block).
 
   * End-to-end tests of the command — user lookup by email/ID, error
     paths, output format (empty case, populated case, truncation).
@@ -141,6 +142,22 @@ def test_soft_deleted_blocker_does_not_block():
     story_map.delete()
     [b] = [b for b in deletion_blockers(user) if b["model"] == "story_map.StoryMap"] or [None]
     assert b is None
+
+
+def test_landpks_only_user_has_no_blockers():
+    """LandPKS-cascade rows (Sites, soil data) don't appear as blockers —
+    they cascade with the user via safedelete's SOFT_DELETE_CASCADE. The
+    collector reaches them but they're not in `.protected`, so nothing
+    surfaces."""
+    from apps.project_management.models import Site
+    from apps.project_management.models.site_notes import SiteNote
+
+    user = mixer.blend(User)
+    site = Site.objects.create(
+        name="unaffiliated", latitude=0, longitude=0, elevation=0, owner=user
+    )
+    SiteNote.objects.create(site=site, content="note", author=user)
+    assert deletion_blockers(user) == []
 
 
 def test_ids_truncated_at_cap():
