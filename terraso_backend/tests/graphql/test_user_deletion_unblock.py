@@ -42,24 +42,18 @@ pytestmark = pytest.mark.django_db
 
 def test_site_note_can_have_null_author():
     """Schema relaxation: SiteNote.author is now nullable."""
-    site = mixer.blend(Site)
+    site = mixer.blend(Site, owner=mixer.blend(User))
     note = SiteNote.objects.create(site=site, content="orphan note", author=None)
     assert note.author is None
     assert note.content == "orphan note"
 
 
-def test_site_can_have_null_owner():
-    """Schema relaxation: Site.owner was already null=True; just confirm
-    it still accepts None after the on_delete change."""
-    site = Site.objects.create(name="orphan-site", latitude=0, longitude=0, elevation=0, owner=None)
-    assert site.owner is None
-
-
 def test_user_soft_delete_nulls_authored_note(user):
-    """Cascade behavior: deleting (soft-deleting) the author leaves the
-    note in place with author=None. This is the whole point of the
-    schema change — UserDeleteMutation no longer hits a RestrictedError."""
-    site = mixer.blend(Site)
+    """Cascade behavior: deleting the author leaves a note they wrote on
+    someone else's site in place with author=None. Site is owned by a
+    different user so `owner=CASCADE` doesn't take the whole site down."""
+    other = mixer.blend(User)
+    site = mixer.blend(Site, owner=other)
     note = SiteNote.objects.create(site=site, content="kept note", author=user)
     assert note.author_id == user.pk
 
@@ -90,39 +84,22 @@ def test_site_note_is_author_returns_false_for_null_author():
     """SiteNote.is_author(user) was already null-safe because `None == user`
     is False, but pin it explicitly — the equality protects against the
     deleted-author case."""
-    site = mixer.blend(Site)
+    site = mixer.blend(Site, owner=mixer.blend(User))
     note = SiteNote.objects.create(site=site, content="x", author=None)
     user = mixer.blend(User)
     assert note.is_author(user) is False
 
 
 # Note: permission rules use bare `site.owner == user` equality, which is
-# inherently null-safe (`None == user` → False).  Pre-implementation grep
+# inherently null-safe (`None == user` → False). Pre-implementation grep
 # (security_audit_findings.md notes 2026-05-19) confirmed no deref of
-# `.author` / `.owner` exists in any permission_rules file.  An explicit
-# unit test would have to navigate the `require_unaffiliated_site` /
-# `require_affiliated_site` precondition checks, which raise on orphan
-# sites by design — those preconditions are enforced at the visibility
-# layer (orphans are invisible to all callers except via the PUBLIC
-# branch), so they never reach the permission-rule layer in practice.
+# `.author` / `.owner` exists in any permission_rules file. Site.owner
+# can only be null on project-affiliated sites (site_must_be_owned_once
+# constraint), so the null-owner permission path is exercised by
+# test_project_member_sees_project_site_with_null_owner below.
 
 
-# --- Site visibility with null owner (regression for filter_visible_sites) ---
-
-
-def test_anon_still_sees_no_sites_when_owner_null(client_query_no_token):
-    """Anonymous gets 0 sites — null owner doesn't accidentally relax this."""
-    Site.objects.create(
-        name="anon-orphan",
-        latitude=0,
-        longitude=0,
-        elevation=0,
-        owner=None,
-        privacy=Site.PRIVATE,
-    )
-    response = client_query_no_token("{ sites { totalCount edges { node { id owner { id } } } } }")
-    body = response.json()
-    assert body["data"]["sites"]["totalCount"] == 0
+# --- Site visibility with null owner on project-affiliated sites ---
 
 
 def test_project_member_sees_project_site_with_null_owner(client, project, project_user):
@@ -152,25 +129,6 @@ def test_project_member_sees_project_site_with_null_owner(client, project, proje
         if edge["node"]["name"] == "project-site"
     )
     assert project_site_node["owner"] is None
-
-
-def test_stranger_cannot_see_private_orphan_site(client, user):
-    """A site with owner=None and privacy=PRIVATE is visible to nobody —
-    it doesn't match owner, membership, or public branches."""
-    Site.objects.create(
-        name="private-orphan",
-        latitude=0,
-        longitude=0,
-        elevation=0,
-        owner=None,
-        privacy=Site.PRIVATE,
-    )
-    stranger = mixer.blend(User)
-    client.force_login(stranger)
-    response = graphql_query("{ sites { totalCount edges { node { name } } } }", client=client)
-    body = response.json()
-    names = [edge["node"]["name"] for edge in body["data"]["sites"]["edges"]]
-    assert "private-orphan" not in names
 
 
 # --- GraphQL serialization of null author/owner ---
