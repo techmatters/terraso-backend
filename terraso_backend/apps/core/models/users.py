@@ -28,15 +28,6 @@ from apps.core import group_collaboration_roles, landscape_collaboration_roles
 
 logger = structlog.get_logger(__name__)
 
-# User-deletion policy note: the LandPKS domain apps (project_management,
-# soil_id) cascade with the user via safedelete's SOFT_DELETE_CASCADE
-# plus the explicit solo-manager-projects walk in
-# User._soft_delete_with_cascade / Project.soft_delete_policy_action. FKs
-# to User from other apps are either CASCADE (torn down by safedelete)
-# or PROTECT/RESTRICT (blocked by the gate; see User.delete). Structural
-# tests in tests/core/models/test_user_deletion_gate.py enforce the
-# invariants this partition relies on.
-
 USER_PREFS_KEY_GROUP_NOTIFICATIONS = "group_notifications"
 USER_PREFS_KEY_STORY_MAP_NOTIFICATIONS = "story_map_notifications"
 USER_PREFS_KEY_LANGUAGE = "language"
@@ -193,7 +184,9 @@ class User(SafeDeleteModel, AbstractUser):
         project IDs up here, then iterate them after super() returns.
 
         Callers who need specifics of what's blocking run
-        `python manage.py show_deletion_blockers <email>`.
+        `python manage.py show_deletion_blockers <email>`
+
+        See tests/core/models/test_user_deletion_gate.py.
         """
         if kwargs.get("force_policy") == HARD_DELETE:
             return super().delete(*args, **kwargs)

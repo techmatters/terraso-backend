@@ -81,39 +81,16 @@ class Project(BaseModel):
 
     @transaction.atomic
     def soft_delete_policy_action(self, **kwargs):
-        # Project.membership_list is a forward OneToOne, so neither
-        # Django's collector nor safedelete's SOFT_DELETE_CASCADE reach
-        # it when the Project soft-deletes. Clean it up explicitly so
-        # the guarantee holds for every project-deletion code path
-        # (User-deletion cascade, admin bulk delete, future callers).
+        # Cascade skips forward OneToOnes, so MembershipList won't be deleted unless we do it manually.
         membership_list = self.membership_list
         result = super().soft_delete_policy_action(**kwargs)
-        # Note: not passing is_cascade=True here even though semantically
-        # this IS a cascade. safedelete's cascade implementation hardcodes
-        # is_cascade=True when recursing into related rows AND forwards
-        # **kwargs, so passing is_cascade=True from the outside trips a
-        # duplicate-keyword TypeError on the recursive call. The cascade
-        # still sets deleted_by_cascade=True on the Memberships beneath
-        # this list, which is what matters; restoration is driven by
-        # Project.undelete's explicit lookup, not the cascade-walker.
-        #
-        # Minor consequence: the soft-deleted MembershipList row will
-        # have `deleted_by_cascade=False` even when it was deleted as
-        # part of a Project deletion (which is always, since this is the
-        # only place ML.delete() is called from the Project path). The
-        # Memberships beneath the list still correctly read True.
+        # Don't pass is_cascade=True — safedelete sets it internally and forwarding it again raises TypeError. Side effect: the ML row's `deleted_by_cascade` stays False; harmless because Project.undelete looks it up explicitly.
         membership_list.delete()
         return result
 
     @transaction.atomic
     def undelete(self, *args, **kwargs):
-        # Mirror soft_delete_policy_action: safedelete's undelete walks
-        # reverse FKs from Project (Sites, ProjectSoilSettings, etc.) but
-        # never reaches MembershipList, because ML is upstream of Project
-        # in DB terms (the FK column lives on Project, pointing at ML).
-        # We capture the raw FK id and look up via all_objects, because
-        # the related-object accessor (self.membership_list) goes through
-        # the SafeDeleteManager and would skip a soft-deleted ML.
+        # Mirror of soft_delete_policy_action — cascade skips the forward OneToOne, so restore MembershipList manually. Use all_objects because self.membership_list goes through SafeDeleteManager and hides soft-deleted rows.
         from apps.collaboration.models import MembershipList
 
         membership_list_id = self.membership_list_id

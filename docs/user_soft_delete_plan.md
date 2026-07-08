@@ -77,7 +77,10 @@ Three schema changes ship alongside the gate:
    a deleted user's unaffiliated sites should die with them, public ones
    included. `SiteNote.author` stays `SET_NULL` — notes on shared
    project sites must survive the author's deletion with the author
-   nulled; that's a different scenario.
+   nulled; that's a different scenario. The `site_owned_by_at_most_one`
+   check constraint (added alongside the SET_NULL work to permit orphans)
+   is re-tightened to `site_must_be_owned_once` (XOR) since no runtime
+   path produces orphans under CASCADE.
 
 2. **`ProjectSettings` is removed entirely.** The model was vestigial —
    its docstring said _"These settings are currently ignored, and might
@@ -621,10 +624,13 @@ field, count, ids}`.** `qualifier` is Optional[str] (used by the
    (`_solo_manager_projects`) annotates each project's manager
    Membership count and filters to count == 1 with user present.
 
-4. **`Site` check constraint**. The constraint at
+4. **`Site` check constraint**. The `site_must_be_owned_once` constraint at
    [sites.py](../terraso_backend/apps/project_management/models/sites.py)
-   ensures at most one of `owner`/`project` is set. With `owner=CASCADE`
-   no new orphans are produced by user deletion.
+   enforces XOR: exactly one of `owner`/`project` must be set. With
+   `owner=CASCADE` and `project=CASCADE`, no runtime path can produce an
+   orphan, so the tighter invariant holds — `Site.is_unaffiliated`
+   (`owner is not None`) and any caller inferring "affiliated ⇒ has
+   project" stay sound.
 
 5. **`hard_delete_soft_deleted` admin action**. Calls
    `.delete(force_policy=HARD_DELETE)`. The gate does NOT fire there.

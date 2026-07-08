@@ -13,17 +13,24 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see https://www.gnu.org/licenses/.
 
-"""Schema-relaxation tests for the user-deletion unblock work
-(security_audit_findings.md, side observation 1 under S5; plan doc
-`account_deletion_author_snapshot_plan.md` v2).
+"""Null-handling tests for `SiteNote.author` and `Site.owner`.
 
-`SiteNote.author` is `null=True, SET_NULL` — notes on shared project
-sites must survive their author's deletion.
+Under the current user-deletion design (docs/user_soft_delete_plan.md):
 
-This file pins that the FKs accept null, that the cascade from a soft-deleted User behaves correctly (author nulled), and that downstream code paths (permission checks, site visibility, the is_author method, GraphQL serialization) all keep working when an FK is null.
+- `SiteNote.author` is `null=True, SET_NULL` — notes on shared/project
+  sites survive their author's deletion with `author=NULL`; the
+  SiteNoteNode resolver substitutes `deleted_user_stub` so old clients
+  don't crash dereferencing `author.id`.
+- `Site.owner` is `null=True` but only for project-affiliated sites
+  (per the `site_must_be_owned_once` XOR constraint). When an
+  unaffiliated site's owner is soft-deleted, the site CASCADE-deletes
+  rather than orphaning.
 
-End-to-end UserDeleteMutation acceptance is a separate task — these
-tests cover the schema/serialization side only.
+This file covers model behavior, permission-rule null-safety, and
+GraphQL serialization of null `author`/`owner`. Related coverage lives
+in `tests/core/models/test_user_deletion_gate.py` (gate + full cascade),
+`tests/graphql/test_deleted_user_stub.py` (stub end-to-end), and
+`tests/core/models/test_sitenote_author_restore.py` (undelete round-trip).
 """
 
 import pytest

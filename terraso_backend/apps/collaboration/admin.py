@@ -21,8 +21,6 @@ from .models import Membership, MembershipList
 
 class MembershipInline(admin.TabularInline):
     model = Membership
-    # Show soft-deleted memberships alongside active ones in the inline,
-    # so the full historical state of a MembershipList is visible.
     fields = ("user", "pending_email", "user_role", "membership_status", "deleted_at")
     readonly_fields = ("deleted_at",)
     extra = 0

@@ -49,7 +49,8 @@ class SiteNoteNode(DjangoObjectType):
         connection_class = TerrasoConnection
 
     def resolve_author(self, info):
-        # SiteNote.author is SET_NULL when the authoring user is deleted.
+        # SiteNote.author is SET_NULL when the authoring user is deleted and
+        # site still exists.
         # Return an in-memory stub so the schema's non-null author contract
         # holds and old clients (which dereference author.id) don't crash.
         # See terraso-backend-research/deleted_user_stub_plan.md.

@@ -109,11 +109,6 @@ class UserAdminCreationForm(UserCreationForm):
 
 @admin.register(User)
 class UserAdmin(SafeDeleteAdmin, DjangoUserAdmin):
-    # Undelete restores the User row and most other objects deleted as a
-    # result. It does NOT recover SiteNote.author (nulled by SET_NULL);
-    # those notes remain permanently attributed to "Deleted User"
-    # (the stub) even after undelete. Undelete also refuses if the email is taken by another active user
-    # (admin will surface a ValidationError).
     ordering = ("email",)
     list_display = (
         highlight_deleted,  # module-level function from safedelete.admin
@@ -225,7 +220,7 @@ class UserAdmin(SafeDeleteAdmin, DjangoUserAdmin):
 
     def delete_queryset(self, request, queryset):
         """Bulk delete: iterate per-user so each user's cascade runs
-        (sole-manager projects torn down individually), catching
+        (solo-manager projects torn down individually), catching
         UserDeletionBlockedError so the batch keeps going. Skipped
         users are surfaced in a single warning banner."""
         blocked = []

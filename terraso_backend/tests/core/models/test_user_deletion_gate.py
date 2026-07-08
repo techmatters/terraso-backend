@@ -22,7 +22,7 @@ Two layers under test here:
     `force_policy=HARD_DELETE`.
   * `User.soft_delete_policy_action` / `Project.soft_delete_policy_action`
     — the cascade that tears down the user's landpks footprint and
-    sole-manager projects.
+    solo-manager projects.
 
 Blocker enumeration (which rows count, per-model coverage) is tested in
 `tests/core/commands/test_show_deletion_blockers.py`, since that logic
@@ -89,7 +89,7 @@ BLOCKING_ON_DELETE = {"PROTECT", "RESTRICT"}
 @pytest.fixture
 def landpks_user():
     """A user whose only footprint is landpks data: an unaffiliated site
-    with soil data + depth intervals + a note, plus a sole-manager
+    with soil data + depth intervals + a note, plus a solo-manager
     project that also has sites + soil data + a note. Used to verify the
     cascade tears down the full nested tree."""
     user = mixer.blend(User)
@@ -187,7 +187,7 @@ def _build_user_deletion_closure():
         manages those itself and we don't want to walk into them.
       - Augment with all LANDPKS_APP_LABELS models. The cascade reaches
         them explicitly via User._soft_delete_with_cascade /
-        Project.soft_delete_policy_action (e.g. sole-manager Projects,
+        Project.soft_delete_policy_action (e.g. solo-manager Projects,
         project-affiliated Sites), even when they aren't Django-
         reachable from User via reverse FKs."""
     from django.apps import apps as django_apps
@@ -445,7 +445,7 @@ def test_full_nested_cascade(user):
 
 
 # ---------------------------------------------------------------------------
-# Sole-manager detection
+# Solo-manager detection
 # ---------------------------------------------------------------------------
 
 
@@ -493,7 +493,7 @@ def test_project_soft_delete_cleans_up_membership_list():
 
 
 # ---------------------------------------------------------------------------
-# Undelete — restoring sole-manager Projects and their subtrees
+# Undelete — restoring solo-manager Projects and their subtrees
 # ---------------------------------------------------------------------------
 
 
