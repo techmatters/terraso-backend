@@ -28,12 +28,15 @@ Or directly:
     python manage.py show_deletion_blockers <user-uuid>
 """
 
+import structlog
 from django.contrib.admin.utils import NestedObjects
 from django.core.exceptions import ValidationError
 from django.core.management.base import BaseCommand, CommandError
 from django.db import router
 
 from apps.core.models import User
+
+logger = structlog.get_logger(__name__)
 
 # Cap pk strings attached to each blocker so this stays readable for
 # users with a large footprint. `count` is always the true total.
@@ -155,6 +158,15 @@ def _find_fk_to_user(obj, user):
         if f.is_relation and f.related_model is type(user):
             if getattr(obj, f.attname, None) == user.pk:
                 return f.name
+    # Reachable only if a future model shows up in `.protected` without a
+    # direct concrete FK to User. Log so the surprise surfaces in Sentry
+    # instead of silently rendering as `(?)` in the diagnostic output.
+    logger.warning(
+        "show_deletion_blockers.fk_not_found",
+        model=obj._meta.label,
+        pk=str(obj.pk),
+        user_id=str(user.pk),
+    )
     return "?"
 
 

@@ -140,8 +140,7 @@ def test_soft_deleted_blocker_does_not_block():
     user = mixer.blend(User)
     story_map = mixer.blend(StoryMap, created_by=user)
     story_map.delete()
-    [b] = [b for b in deletion_blockers(user) if b["model"] == "story_map.StoryMap"] or [None]
-    assert b is None
+    assert not any(b["model"] == "story_map.StoryMap" for b in deletion_blockers(user))
 
 
 def test_landpks_only_user_has_no_blockers():
