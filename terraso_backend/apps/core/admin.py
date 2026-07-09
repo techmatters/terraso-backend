@@ -19,7 +19,6 @@ from django.contrib import admin, messages
 from django.contrib.auth.admin import UserAdmin as DjangoUserAdmin
 from django.contrib.auth.forms import UserCreationForm
 from django.utils.html import format_html
-from django.utils.safestring import mark_safe
 from safedelete.admin import SafeDeleteAdmin, SafeDeleteAdminFilter, highlight_deleted
 
 from apps.auth.services import JWTService
@@ -35,19 +34,6 @@ from .models import (
     UserPreference,
 )
 from .models.users import UserDeletionBlockedError
-
-# Advisory shown on both single- and bulk-delete confirmation pages.
-# Django's default "protected related objects" list can over- or
-# under-list the actual blockers (it doesn't know about the Membership
-# policy override, and it renders soft-deleted PROTECT rows we don't
-# consider blockers). Point staff at the diagnostic command for the
-# canonical list.
-_BLOCKER_DIAGNOSTIC_BANNER = mark_safe(
-    "The related-objects list below is Django's default view and may be "
-    "incomplete or inaccurate. Run "
-    "<code>python manage.py show_deletion_blockers &lt;email&gt;</code> "
-    "for the canonical list of what would block deletion."
-)
 
 
 def create_partner_refresh_token(user, ttl: timedelta) -> str:
@@ -186,54 +172,93 @@ class UserAdmin(SafeDeleteAdmin, DjangoUserAdmin):
         ("Important dates", {"fields": ("last_login", "date_joined")}),
     )
 
-    def delete_view(self, request, object_id, extra_context=None):
-        """Fire the diagnostic-command banner on the single-delete
-        confirmation page so staff know Django's default related-objects
-        list isn't the source of truth for what would block deletion."""
-        messages.warning(request, _BLOCKER_DIAGNOSTIC_BANNER)
-        return super().delete_view(request, object_id, extra_context)
+    def get_deleted_objects(self, objs, request):
+        """Never refuse at the confirmation-page level (`protected=[]` always)
+        — `User.delete()` is the source of truth; `delete_model` /
+        `delete_queryset` catch `UserDeletionBlockedError` and surface a
+        "Skipped" warning banner. On the confirmation-page render, also fire
+        a warning banner listing the actual blockers (via `deletion_blockers`,
+        the same source `show_deletion_blockers` uses) so staff can preview
+        why the delete will be skipped — with a pointer at the CLI for
+        row-level detail.
 
-    def get_actions(self, request):
-        """Wrap Django's `delete_selected` bulk action to fire the same
-        diagnostic-command banner on the bulk-delete confirmation page.
-        Delegates to the wrapped action for the actual deletion."""
-        actions = super().get_actions(request)
-        if "delete_selected" in actions:
-            original_func, name, description = actions["delete_selected"]
+        Gated on `not request.POST.get("post")` so the banner fires only on
+        the confirmation-page render, not on the delete POST cycle (which
+        would persist the banner through the post-delete redirect)."""
+        from apps.core.management.commands.show_deletion_blockers import (
+            deletion_blockers,
+            format_blocker,
+        )
 
-            def with_banner(modeladmin, req, queryset):
-                messages.warning(req, _BLOCKER_DIAGNOSTIC_BANNER)
-                return original_func(modeladmin, req, queryset)
+        to_delete, model_count, perms_needed, _ = super().get_deleted_objects(objs, request)
 
-            with_banner.__name__ = original_func.__name__
-            actions["delete_selected"] = (with_banner, name, description)
-        return actions
+        if objs and not request.POST.get("post"):
+            summaries = []
+            for obj in objs:
+                for b in deletion_blockers(obj):
+                    label, detail = format_blocker(b)
+                    summaries.append(f"{label}: {detail}")
+            if summaries:
+                preview = "; ".join(summaries[:5])
+                more = f" (+{len(summaries) - 5} more)" if len(summaries) > 5 else ""
+                messages.warning(
+                    request,
+                    f"Deletion would be blocked by: {preview}{more}. "
+                    "Run 'python manage.py show_deletion_blockers <email>' for row-level detail.",
+                )
+
+        return to_delete, model_count, perms_needed, []
+
+    def message_user(
+        self, request, message, level=messages.INFO, extra_tags="", fail_silently=False
+    ):
+        """Suppress Django's stock "was deleted successfully" / "Successfully
+        deleted N users" message when we've partially or fully blocked the
+        deletion. Django's success message is hardcoded off the queryset
+        count (bulk) or fires unconditionally after delete_model (single),
+        neither of which reflects reality if any user was skipped."""
+        if level == messages.SUCCESS and getattr(request, "_deletion_was_blocked", False):
+            return
+        super().message_user(request, message, level, extra_tags, fail_silently)
 
     def delete_model(self, request, obj):
-        """Catch UserDeletionBlockedError so staff see a plain banner
-        pointing at the diagnostic command instead of a ValidationError
-        page. The block itself is enforced by User.delete()."""
+        """Catch UserDeletionBlockedError and surface a "Skipped" warning
+        banner mirroring the bulk-delete phrasing. Marks the request so
+        `message_user` suppresses Django's forthcoming "was deleted
+        successfully" message from `response_delete`."""
         try:
             super().delete_model(request, obj)
-        except UserDeletionBlockedError as exc:
-            self.message_user(request, str(exc), level=messages.ERROR)
+        except UserDeletionBlockedError:
+            request._deletion_was_blocked = True
+            self.message_user(
+                request,
+                f"Skipped 1 user with undeletable data: {obj.email}. "
+                "Run 'python manage.py show_deletion_blockers <email>' for details.",
+                level=messages.WARNING,
+            )
 
     def delete_queryset(self, request, queryset):
         """Bulk delete: iterate per-user so each user's cascade runs
         (solo-manager projects torn down individually), catching
-        UserDeletionBlockedError so the batch keeps going. Skipped
-        users are surfaced in a single warning banner."""
+        UserDeletionBlockedError so the batch keeps going. Marks the
+        request when anything was skipped so `message_user` suppresses
+        Django's "Successfully deleted N users" (which counts the whole
+        queryset, not the actual deletions)."""
         blocked = []
+        deleted = 0
         for user in queryset:
             try:
                 user.delete()
+                deleted += 1
             except UserDeletionBlockedError:
                 blocked.append(user)
         if blocked:
+            request._deletion_was_blocked = True
             emails = ", ".join(u.email for u in blocked)
+            prefix = f"Deleted {deleted} user(s). " if deleted else ""
             self.message_user(
                 request,
-                f"Skipped {len(blocked)} user(s) with undeletable data: {emails}. "
+                f"{prefix}Skipped {len(blocked)} user(s) with undeletable data: {emails}. "
                 "Run 'python manage.py show_deletion_blockers <email>' for details.",
                 level=messages.WARNING,
             )

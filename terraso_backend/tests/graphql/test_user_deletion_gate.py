@@ -222,8 +222,10 @@ def test_admin_delete_model_shows_banner_and_skips_delete_for_blocked_user():
     assert blocked.deleted_at is None  # NOT deleted
     msgs = _captured_messages(request)
     assert len(msgs) == 1
-    assert msgs[0].level == messages.ERROR
-    assert "undeletable data" in msgs[0].message
+    assert msgs[0].level == messages.WARNING
+    assert "Skipped 1 user" in msgs[0].message
+    assert blocked.email in msgs[0].message
+    assert "show_deletion_blockers" in msgs[0].message
 
 
 def test_admin_delete_model_deletes_clean_user():
@@ -262,47 +264,111 @@ def test_admin_delete_queryset_partitions_blocked_and_clean():
     assert blocked.email in msgs[0].message
 
 
-def test_admin_delete_view_fires_diagnostic_banner():
-    """The single-delete confirmation page shows a warning message
-    pointing staff at the show_deletion_blockers command, since Django's
-    default related-objects list can over- or under-list actual blockers."""
+def test_admin_suppresses_success_message_when_single_delete_blocked():
+    """When `delete_model` catches UserDeletionBlockedError, Django's stock
+    "was deleted successfully" (fired by `response_delete` right after)
+    must be suppressed — otherwise staff see red-error + green-success
+    banners side by side."""
     staff = mixer.blend(User, is_staff=True, is_superuser=True)
     target = mixer.blend(User)
+    mixer.blend(DataEntry, created_by=target)  # blocker
 
     admin = UserAdmin(User, AdminSite())
     request = _make_admin_request(staff)
-    # Only need the messages side effect — swallow the response object.
-    try:
-        admin.delete_view(request, str(target.pk))
-    except Exception:
-        pass
+    admin.delete_model(request, target)
+    # Simulate Django's forthcoming success message from response_delete.
+    admin.message_user(request, "was deleted successfully", level=messages.SUCCESS)
 
     msgs = _captured_messages(request)
-    assert any(
-        msg.level == messages.WARNING and "show_deletion_blockers" in msg.message for msg in msgs
-    )
+    assert not any(m.level == messages.SUCCESS for m in msgs)
 
 
-def test_admin_bulk_delete_action_fires_diagnostic_banner():
-    """The wrapped delete_selected action fires the same warning on the
-    bulk-delete confirmation page."""
+def test_admin_suppresses_success_message_when_any_bulk_delete_blocked():
+    """delete_selected fires 'Successfully deleted N users' from the queryset
+    count, ignoring what was actually deleted. Suppress it when any user
+    was skipped so the count isn't misleading."""
     staff = mixer.blend(User, is_staff=True, is_superuser=True)
+    clean = mixer.blend(User)
+    blocked = mixer.blend(User)
+    mixer.blend(DataEntry, created_by=blocked)
 
     admin = UserAdmin(User, AdminSite())
     request = _make_admin_request(staff)
-    actions = admin.get_actions(request)
-    assert "delete_selected" in actions
-    action_func, _, _ = actions["delete_selected"]
-
-    # Call the wrapped action with an empty queryset — we only want to
-    # verify the message is fired; the delegate's own return value is not
-    # under test here.
-    try:
-        action_func(admin, request, User.objects.none())
-    except Exception:
-        pass
+    qs = User.objects.filter(pk__in=[clean.pk, blocked.pk])
+    admin.delete_queryset(request, qs)
+    # Simulate Django's forthcoming success message from delete_selected.
+    admin.message_user(request, "Successfully deleted 2 users.", level=messages.SUCCESS)
 
     msgs = _captured_messages(request)
-    assert any(
-        msg.level == messages.WARNING and "show_deletion_blockers" in msg.message for msg in msgs
+    assert not any(m.level == messages.SUCCESS for m in msgs)
+
+
+def test_admin_get_deleted_objects_never_refuses():
+    """The confirmation button always renders — protected is always empty.
+    `User.delete()` is the source of truth; blocked deletes surface as
+    a "Skipped" warning after clicking confirm. Verified even with an
+    active DataEntry (real blocker) — Django would normally refuse, we
+    let the confirmation render."""
+    staff = mixer.blend(User, is_staff=True, is_superuser=True)
+    target = mixer.blend(User)
+    mixer.blend(DataEntry, created_by=target)  # active PROTECT FK
+
+    admin = UserAdmin(User, AdminSite())
+    request = _make_admin_request(staff)
+    _to_delete, _model_count, _perms_needed, protected = admin.get_deleted_objects(
+        [target], request
     )
+    assert protected == []
+
+
+def test_admin_get_deleted_objects_fires_warning_when_blockers_exist():
+    """On the confirmation-page render, an informative warning lists the
+    actual blockers (via `deletion_blockers`, the same source
+    `show_deletion_blockers` uses) and points staff at the CLI for
+    row-level detail."""
+    staff = mixer.blend(User, is_staff=True, is_superuser=True)
+    target = mixer.blend(User)
+    mixer.blend(DataEntry, created_by=target)
+
+    admin = UserAdmin(User, AdminSite())
+    request = _make_admin_request(staff)
+    admin.get_deleted_objects([target], request)
+
+    msgs = _captured_messages(request)
+    warnings_ = [m for m in msgs if m.level == messages.WARNING]
+    assert any("Deletion would be blocked by" in m.message for m in warnings_)
+    assert any("shared_data.DataEntry" in m.message for m in warnings_)
+    assert any("show_deletion_blockers" in m.message for m in warnings_)
+
+
+def test_admin_get_deleted_objects_no_warning_when_clean():
+    """No blockers → no warning banner. Confirmation page renders
+    without any noise."""
+    staff = mixer.blend(User, is_staff=True, is_superuser=True)
+    target = mixer.blend(User)  # nothing blocking
+
+    admin = UserAdmin(User, AdminSite())
+    request = _make_admin_request(staff)
+    admin.get_deleted_objects([target], request)
+
+    warnings_ = [m for m in _captured_messages(request) if m.level == messages.WARNING]
+    assert warnings_ == []
+
+
+def test_admin_get_deleted_objects_ignores_soft_deleted_blockers():
+    """Soft-deleted PROTECT rows shouldn't surface in the blockers list
+    — `deletion_blockers` filters them, so they don't appear in the
+    warning banner."""
+    from apps.story_map.models import StoryMap
+
+    staff = mixer.blend(User, is_staff=True, is_superuser=True)
+    target = mixer.blend(User)
+    story_map = mixer.blend(StoryMap, created_by=target)
+    story_map.delete()  # soft-delete
+
+    admin = UserAdmin(User, AdminSite())
+    request = _make_admin_request(staff)
+    admin.get_deleted_objects([target], request)
+
+    warnings_ = [m for m in _captured_messages(request) if m.level == messages.WARNING]
+    assert warnings_ == []  # nothing to report — soft-deleted rows filtered
