@@ -1,6 +1,8 @@
 DC_ENV ?= dev
 ENV_FILE ?= $(HOME)/secrets/terraso-backend/.env
-include $(ENV_FILE)
+ifneq (,$(wildcard ./.env))
+	include $(ENV_FILE)
+endif
 # Extra compose files, threaded through DC_FILE_ARG so they apply to
 # run/test/bash/lint alike. Override directly, e.g.:
 #   make run DC_EXTRA_FILES="-f docker-compose.local-soilid.yml"
