@@ -191,7 +191,7 @@ class User(SafeDeleteModel, AbstractUser):
         if kwargs.get("force_policy") == HARD_DELETE:
             return super().delete(*args, **kwargs)
 
-        if self._blockers_exist():
+        if self._special_blockers_exist():
             raise UserDeletionBlockedError(self._blocked_message())
 
         try:
@@ -207,7 +207,7 @@ class User(SafeDeleteModel, AbstractUser):
         logger.info("user.soft_deleted", target_user_id=str(self.id))
         return result
 
-    def _blockers_exist(self):
+    def _special_blockers_exist(self):
         "Any additional blockers to deleting a User, outside of the PROTECT/RESTRICT reverse foreign keys."
         "NOTE! If logic is added or changed here, please update the show_deletion_blockers.py script to report blockers accordingly"
 
