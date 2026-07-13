@@ -94,14 +94,17 @@ def test_story_maps_filter_by_featured(client_query, story_maps):
     ]
 
 
-def test_featured_story_maps_random_returns_visible_random_subset(client_query, story_maps):
-    visible_featured_story_maps = story_maps[:4]
+def test_featured_story_maps_random_returns_published_random_subset(client_query, story_maps):
+    visible_featured_story_maps = [story_maps[0], story_maps[1], story_maps[5], story_maps[6]]
+    unpublished_featured_story_map = story_maps[2]
     hidden_featured_story_map = story_maps[9]
 
     for story_map in visible_featured_story_maps:
         story_map.featured = True
         story_map.save(update_fields=["featured"])
 
+    unpublished_featured_story_map.featured = True
+    unpublished_featured_story_map.save(update_fields=["featured"])
     hidden_featured_story_map.featured = True
     hidden_featured_story_map.save(update_fields=["featured"])
 

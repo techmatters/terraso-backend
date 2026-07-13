@@ -156,14 +156,7 @@ def get_visible_story_maps_queryset(queryset, info):
 
 
 def resolve_featured_story_maps_random(info, *, first):
-    filtered_queryset = get_visible_story_maps_queryset(StoryMap.objects.all(), info).filter(
-        featured=True
-    )
-    story_map_ids = list(filtered_queryset.values_list("pk", flat=True).order_by("?")[:first])
-    if not story_map_ids:
-        return StoryMap.objects.none()
-
-    return filtered_queryset.filter(pk__in=story_map_ids)
+    return StoryMap.objects.filter(is_published=True, featured=True).order_by("?")[:first]
 
 
 class StoryMapDeleteMutation(BaseDeleteMutation):
