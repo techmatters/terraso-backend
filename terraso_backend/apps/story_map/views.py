@@ -166,6 +166,32 @@ class StoryMapUpdateView(AuthenticationRequiredMixin, FormView):
                 signed_url = story_map_media_upload_service.get_signed_url(featured_image["url"])
                 story_map.configuration["featuredImage"]["signedUrl"] = signed_url
 
+        # Inject fresh geojsonSignedUrl for data layers
+        if "dataLayers" in story_map.configuration:
+            data_layers = story_map.configuration["dataLayers"]
+            layer_ids = [
+                layer.get("id")
+                for layer in data_layers.values()
+                if isinstance(layer, dict) and layer.get("id")
+            ]
+            if layer_ids:
+                from apps.shared_data.models.visualization_config import VisualizationConfig
+                from apps.shared_data.services import geojson_upload_service
+
+                vcs = {
+                    str(vc.id): vc
+                    for vc in VisualizationConfig.objects.filter(id__in=layer_ids).only(
+                        "id", "geojson_s3_key"
+                    )
+                }
+                for layer_id, layer in data_layers.items():
+                    if isinstance(layer, dict) and layer.get("id"):
+                        vc = vcs.get(str(layer["id"]))
+                        if vc and vc.geojson_s3_key:
+                            layer["geojsonSignedUrl"] = geojson_upload_service.get_signed_url(
+                                vc.geojson_s3_key
+                            )
+
         return JsonResponse(story_map.to_dict(), status=201)
 
 

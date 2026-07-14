@@ -15,36 +15,21 @@
 
 import csv
 import json
-import threading
 
 import pandas
 import structlog
 from django.conf import settings
+from django.core.files.base import ContentFile
 
-from apps.core.gis.mapbox import create_tileset, remove_tileset
 from apps.core.gis.parsers import parse_file_to_geojson
 from apps.core.models.groups import Group
 from apps.core.models.landscapes import Landscape
-from apps.shared_data.services import data_entry_upload_service
+from apps.shared_data.services import data_entry_upload_service, geojson_upload_service
 from apps.story_map.models.story_maps import StoryMap
 
 from .models import VisualizationConfig
 
 logger = structlog.get_logger(__name__)
-
-
-class AsyncTaskHandler:
-    def start_task(self, method, args):
-        t = threading.Thread(target=method, args=[*args], daemon=True)
-        t.start()
-
-
-def start_create_mapbox_tileset_task(visualization_id):
-    AsyncTaskHandler().start_task(create_mapbox_tileset, [visualization_id])
-
-
-def start_remove_mapbox_tileset_task(tileset_id):
-    AsyncTaskHandler().start_task(remove_mapbox_tileset, [tileset_id])
 
 
 def get_rows_from_file(data_entry):
@@ -60,20 +45,8 @@ def get_rows_from_file(data_entry):
         return [df.columns.tolist()] + rows
     else:
         raise Exception(
-            "Invalid file type for creating mapbox tileset",
+            "Invalid file type for processing data entry",
             extra={"file_type": type, "data_entry_id": data_entry.id},
-        )
-
-
-def remove_mapbox_tileset(tileset_id):
-    if tileset_id is None:
-        return
-    try:
-        remove_tileset(tileset_id)
-    except Exception as error:
-        logger.exception(
-            "Error deleting mapbox tileset",
-            extra={"tileset_id": tileset_id, "error": str(error)},
         )
 
 
@@ -87,13 +60,13 @@ def get_owner_name(visualization):
     return "Unknown"
 
 
-def _get_geojson_from_dataset(data_entry, visualization):
+def _get_geojson_from_dataset(data_entry, configuration):
     rows = get_rows_from_file(data_entry)
 
     first_row = rows[0]
 
-    dataset_config = visualization.configuration["datasetConfig"]
-    annotate_config = visualization.configuration["annotateConfig"]
+    dataset_config = configuration["datasetConfig"]
+    annotate_config = configuration["annotateConfig"]
 
     longitude_column = dataset_config["longitude"]
     longitude_index = first_row.index(longitude_column)
@@ -165,51 +138,98 @@ def get_geojson_from_data_entry(data_entry, visualization):
     is_gis = f".{data_entry.resource_type}" in settings.DATA_ENTRY_GIS_TYPES.keys()
 
     if is_dataset:
-        return _get_geojson_from_dataset(data_entry, visualization)
+        return _get_geojson_from_dataset(data_entry, visualization.configuration)
 
     if is_gis:
         return _get_geojson_from_gis(data_entry)
 
 
-def create_mapbox_tileset(visualization_id):
-    logger.info("Creating mapbox tileset", visualization_id=visualization_id)
+def upload_geojson_to_s3(visualization_id):
+    """Upload GeoJSON to S3 for an existing VC (used by Update mutation).
+
+    Unlike upload_geojson_to_s3_precreate, this degrades gracefully:
+    if the data entry type has no spatial data, it logs a warning and
+    returns None without modifying the VC's current S3 key.
+    """
+    logger.info("Uploading geojson to S3", visualization_id=visualization_id)
     visualization = VisualizationConfig.objects.get(pk=visualization_id)
     data_entry = visualization.data_entry
-    owner_name = get_owner_name(visualization)
-
-    # You cannot update a Mapbox tileset. We have to delete it and create a new one.
-    remove_mapbox_tileset(visualization.mapbox_tileset_id)
 
     try:
-        geojson = get_geojson_from_data_entry(data_entry, visualization)
-        logger.info(
-            "Geojson generated for mapbox tileset",
-            visualization_id=visualization_id,
-            features=len(geojson["features"]),
+        path = upload_geojson_to_s3_precreate(
+            visualization.id, data_entry, visualization.configuration
+        )
+    except ValueError:
+        logger.warning(
+            "Skipping S3 upload: data entry type has no spatial data",
+            extra={
+                "visualization_id": visualization_id,
+                "resource_type": data_entry.resource_type,
+            },
+        )
+        return None
+
+    if path is None:
+        return None
+
+    # Clean up old S3 key if it exists (after new upload succeeds)
+    old_key = visualization.geojson_s3_key
+    visualization.geojson_s3_key = path
+    visualization.save()
+
+    if old_key:
+        try:
+            geojson_upload_service.delete_file(old_key)
+        except Exception as e:
+            logger.warning(
+                "Failed to delete old S3 key",
+                extra={"key": old_key, "error": str(e)},
+            )
+
+    logger.info("Geojson uploaded to S3", visualization_id=visualization_id, key=path)
+    return path
+
+
+def upload_geojson_to_s3_precreate(vc_id, data_entry, configuration):
+    """Upload GeoJSON to S3 for a VC that hasn't been created yet.
+
+    Args:
+        vc_id: UUID for the VC (used to construct the S3 path)
+        data_entry: DataEntry instance
+        configuration: dict or JSON string (the VC's configuration field)
+
+    Returns the S3 key, or None if no GeoJSON could be generated.
+    Raises on S3 failure (e.g. S3 timeout, credential error).
+    """
+    config = json.loads(configuration) if isinstance(configuration, str) else configuration
+
+    is_dataset = f".{data_entry.resource_type}" in settings.DATA_ENTRY_SPREADSHEET_TYPES.keys()
+    is_gis = f".{data_entry.resource_type}" in settings.DATA_ENTRY_GIS_TYPES.keys()
+
+    if is_dataset:
+        geojson = _get_geojson_from_dataset(data_entry, config)
+    elif is_gis:
+        geojson = _get_geojson_from_gis(data_entry)
+    else:
+        logger.warning(
+            "Cannot generate geojson: data entry type has no spatial data",
+            extra={"vc_id": str(vc_id), "resource_type": data_entry.resource_type},
+        )
+        raise ValueError(
+            f"Data entry type '{data_entry.resource_type}' does not contain "
+            "spatial data and cannot be used for map visualizations."
         )
 
-        # Include the environment in the title and description when calling the Mapbox API.
-        # Adding the environment to the title allows us to distinguish between environments
-        # in the Mapbox studio UI.
-        title = f"{settings.ENV} - {visualization.title}"[:64]
-        description = f"{settings.ENV} - {owner_name} - {visualization.title}"
+    if geojson is None:
+        logger.warning(
+            "GeoJSON generation returned None",
+            extra={"vc_id": str(vc_id)},
+        )
+        return None
 
-        id = str(visualization.id).replace("-", "")
-        tileset_id = create_tileset(id, geojson, title, description)
-        logger.info(
-            "Mapbox tileset created",
-            visualization_id=visualization_id,
-            tileset_id=tileset_id,
-        )
-        visualization.mapbox_tileset_id = tileset_id
-        visualization.save()
-        logger.info(
-            "Mapbox tileset id saved",
-            visualization_id=visualization_id,
-            tileset_id=tileset_id,
-        )
-    except Exception as error:
-        logger.exception(
-            "Error creating mapbox tileset",
-            extra={"data_entry_id": visualization.data_entry.id, "error": str(error)},
-        )
+    file_content = ContentFile(json.dumps(geojson).encode("utf-8"))
+    file_name = f"{vc_id}.geojson"
+    path = geojson_upload_service.upload_file_get_path(
+        str(vc_id), file_content, file_name=file_name
+    )
+    return path

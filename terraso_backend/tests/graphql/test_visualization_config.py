@@ -368,3 +368,37 @@ def test_visualization_configs_returns_only_for_story_map_creator(
 # NOTE: The following geojson tests were removed because they test existing functionality,
 # not the new story map ownership feature added in PR #1755. These tests belong in a separate
 # test suite for geojson resolution logic and are not required for validating story map ownership.
+
+
+def test_visualization_config_geojson_signed_url(client_query, visualization_configs):
+    """VC with null geojson_s3_key returns null signed URL."""
+    vc = visualization_configs[0]
+    query = """
+        query getVc($id: ID!) {
+          visualizationConfig(id: $id) {
+            geojsonSignedUrl
+            geojson
+          }
+        }
+    """
+    response = client_query(query, variables={"id": str(vc.id)})
+    result = response.json()["data"]["visualizationConfig"]
+    assert result["geojsonSignedUrl"] is None
+
+
+def test_visualization_config_geojson_null_when_s3_key_set(client_query, visualization_configs):
+    """VC with geojson_s3_key returns null geojson (inline) and null signed URL."""
+    vc = visualization_configs[0]
+    vc.geojson_s3_key = "geojson/test-id/test-file.geojson"
+    vc.save()
+    query = """
+        query getVc($id: ID!) {
+          visualizationConfig(id: $id) {
+            geojsonSignedUrl
+            geojson
+          }
+        }
+    """
+    response = client_query(query, variables={"id": str(vc.id)})
+    result = response.json()["data"]["visualizationConfig"]
+    assert result["geojson"] is None

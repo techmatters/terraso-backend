@@ -14,7 +14,6 @@
 # along with this program. If not, see https://www.gnu.org/licenses/.
 
 from django.conf import settings
-from storages.backends.s3boto3 import S3Boto3Storage
 
 from apps.storage.services import UploadService
 
