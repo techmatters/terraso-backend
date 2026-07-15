@@ -1,5 +1,8 @@
 # User soft-delete — design and current state
 
+This doc was written by Claude in 2026 July when the user deletion feature was first created.
+It was updated as the feature was implemented, but no guarantees that it's up-to-date.
+
 ## TL;DR
 
 When a User is soft-deleted (via Django admin, the GraphQL `UserDeleteMutation`, or a shell `user.delete()`):
@@ -225,12 +228,7 @@ class User(SafeDeleteModel, AbstractUser):
         if kwargs.get("force_policy") == HARD_DELETE:
             return super().delete(*args, **kwargs)
 
-        if self._non_project_approved_memberships().exists():
-            logger.warning(
-                "user.delete_blocked",
-                target_user_id=str(self.id),
-                reason="non_project_approved_membership",
-            )
+        if self._special_blockers_exist():
             raise UserDeletionBlockedError(self._blocked_message())
 
         try:
@@ -245,6 +243,19 @@ class User(SafeDeleteModel, AbstractUser):
 
         logger.info("user.soft_deleted", target_user_id=str(self.id))
         return result
+
+    def _special_blockers_exist(self):
+        """Wrapper for non-on_delete-derived blockers. Currently just the
+        non-project APPROVED Membership check; kept as a named seam so
+        future policy blockers can slot in without touching delete()."""
+        if self._non_project_approved_memberships().exists():
+            logger.warning(
+                "user.delete_blocked",
+                target_user_id=str(self.id),
+                reason="non_project_approved_membership",
+            )
+            return True
+        return False
 
     def _non_project_approved_memberships(self):
         from apps.collaboration.models import Membership
@@ -315,11 +326,11 @@ refactor no runtime code path reads them.
 
 **Test B: the user-deletion closure is hard-delete-safe.** Walk the
 transitive closure of models soft-deleted by `user.delete()`. For every
-closure model, assert no incoming FK is PROTECT / RESTRICT / DO_NOTHING
+closure model, assert no incoming FK is PROTECT / RESTRICT / DO*NOTHING
 — such an FK could raise ProtectedError (ORM) or IntegrityError (DB)
 when the harddelete cron later purges the closure. The soft-delete gate
 catches PROTECT/RESTRICT via safedelete's collector, but the closure
-test also protects against FKs added _during_ someone's grace window
+test also protects against FKs added \_during* someone's grace window
 (where the cron sees them but the gate is already past).
 
 Together these prove the schema can't drift into a state where the gate
@@ -403,53 +414,39 @@ Logs render as JSON to stdout and warnings/errors also reach Sentry.
 
 ### Schema changes
 
-1. **Migration: change `Site.owner` to `CASCADE`**.
-2. **Migration: remove `ProjectSettings`** — drop the `settings` field
-   on `Project`, drop the `ProjectSettings` model + table.
-3. **Migration: `DataEntry.created_by` and `StoryMap.created_by`
-   DO_NOTHING → PROTECT**.
+Three FK moves and one new column: `Site.owner` (SET_NULL → CASCADE, with
+its check constraint re-tightened to XOR); `DataEntry.created_by` and
+`StoryMap.created_by` (DO_NOTHING → PROTECT); `ProjectSettings` model +
+`Project.settings` field dropped; and a `SiteNote.saved_author` shadow
+column added so `User.undelete()` can restore authorship that the
+`SET_NULL` cascade would otherwise blank out (see "Note on undelete" above).
 
 ### Files touched
 
-1. **`apps/core/models/users.py`** — `UserDeletionBlockedError`,
-   `User.delete()` (Membership check + try/except),
-   `_non_project_approved_memberships()`, `_blocked_message()`,
-   `_soft_delete_with_cascade()`, `_solo_manager_projects()`,
-   `_undelete_solo_manager_projects()`. `request_account_deletion(user)`
-   helper for the pref+ticket side-effect.
+**The gate** lives on `User.delete()`: `_special_blockers_exist()` for
+the Membership policy check, a try/except around `super().delete()` for
+PROTECT/RESTRICT, and `_soft_delete_with_cascade()` which owns the
+sole-manager-project loop and the `SiteNote.saved_author` stash.
+`User.undelete()` restores both. `request_account_deletion(user)` is the
+pref+ticket side-effect the mutation calls on the blocked branch.
 
-2. **`apps/core/admin.py`** — `UserAdmin.delete_view` and
-   `get_actions` fire a diagnostic-command banner on the confirmation
-   pages. `delete_model` catches `UserDeletionBlockedError` and surfaces
-   a plain "run script" banner. `delete_queryset` iterates per-user with
-   try/except so the batch keeps going and surfaces blocked users in a
-   single warning banner.
+**Callers** wrap the gate with per-surface UX. `UserAdmin` — single and
+bulk delete surface a banner pointing at the diagnostic command;
+per-user try/except so a batch keeps going past blocked users.
+`UserDeleteMutation` — blocked branch fires the ticket, returns
+`user=null`; clean branch returns the user; no `blockers` payload
+field (client only needs which branch fired). `create_account_deletion_ticket`
+renders identity-only (name + email + subject); support runs the
+diagnostic for row detail.
 
-3. **`apps/graphql/schema/users.py`** — `UserDeleteMutation` catches
-   `UserDeletionBlockedError`, calls `request_account_deletion(user)`
-   (files HubSpot ticket + sets pending pref), and returns `user=null`
-   on the blocked branch. Clean path returns `user=<obj>`. The mutation
-   payload has no `blockers` field — the client only needs to know
-   which branch fired.
+**The diagnostic** is `apps/core/management/commands/show_deletion_blockers.py`,
+invoked as `make show-deletion-blockers user=<email>` (dev) or
+`python manage.py show_deletion_blockers <email>` (prod). Uses Django's
+`NestedObjects` collector plus `_non_project_approved_memberships()` — the
+same two sources the gate reads from, so it can't drift.
 
-4. **`apps/core/hubspot.py`** — `create_account_deletion_ticket(user)`
-   renders an identity-only body (name + email + subject). Support runs
-   the diagnostic command out of band for row-level detail.
-
-5. **`apps/core/management/commands/show_deletion_blockers.py`** — new.
-   Uses `NestedObjects` + `_non_project_approved_memberships` and
-   groups results by (model, field). Callable as
-   `make show-deletion-blockers user=<email>` (dev) or
-   `python manage.py show_deletion_blockers <email>` (prod shell).
-
-6. **`apps/project_management/models/projects.py`** — added
-   `Project.soft_delete_policy_action` override for MembershipList
-   cleanup; removed `ProjectSettings` class + auto-create logic.
-
-7. **`apps/project_management/models/sites.py`** — `Site.owner` change.
-
-8. **`apps/shared_data/models/data_entries.py`,
-   `apps/story_map/models/story_maps.py`** — on_delete change.
+**Model changes**: `Project.soft_delete_policy_action` for MembershipList
+cleanup; `SiteNote.saved_author` UUID field; `ProjectSettings` gone.
 
 ### Tests
 
