@@ -1,6 +1,6 @@
 DC_ENV ?= dev
 ENV_FILE ?= $(HOME)/secrets/terraso-backend/.env
-ifneq (,$(wildcard ./.env))
+ifneq (,$(wildcard $(ENV_FILE)))
 	include $(ENV_FILE)
 endif
 # Extra compose files, threaded through DC_FILE_ARG so they apply to
