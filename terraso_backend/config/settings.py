@@ -25,6 +25,7 @@ from django.utils.encoding import force_str
 from django.utils.translation import gettext_lazy as _
 from django.views.debug import SafeExceptionReporterFilter
 from prettyconf import config
+from prettyconf.casts import Boolean
 
 # Monkey patching force_text function to make the application work with Django
 # 4.0. This is necessary until graphene-django fully supports the new Django
@@ -495,7 +496,7 @@ HUBSPOT_ACCOUNT_DELETION_FORM_API_URL = (
 # When True: in the scenario above, skip the HubSpot HTTP call and log the would-be ticket instead.
 # Generally use True in local .env to not create real tickets.
 # Default False in production.
-HUBSPOT_DRY_RUN = config("HUBSPOT_DRY_RUN", default=False, cast=bool)
+HUBSPOT_DRY_RUN = config("HUBSPOT_DRY_RUN", default=False, cast=Boolean())
 
 # 30,000 seemed to be the goldilocks between high enough to pull in a decent number of soils, but not so high that it killed perf / pulled in too many soils. We also tried 10,000 and 100,000.
 GLOBAL_SOIL_ID_BUFFER_DISTANCE = config(
