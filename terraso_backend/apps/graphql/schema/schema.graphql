@@ -742,6 +742,7 @@ type VisualizationConfigNode implements Node {
   owner: OwnerNode
   dataEntry: DataEntryNode
   geojson: JSONString
+  geojsonSignedUrl: String
 }
 
 """
