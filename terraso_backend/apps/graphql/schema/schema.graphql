@@ -329,6 +329,16 @@ A ranked group of soil matches based on a coordinate pair and soil data.
 type SoilMatches {
   dataRegion: SoilIdDataRegionChoices!
   matches: [SoilMatch!]!
+
+  """
+  US only. Width of the 90% prediction interval for available water storage in the top 100cm across the matched soils in the AOI. Smaller = the soils are more functionally similar. Null when unavailable (e.g. fewer than two distinct components, or global).
+  """
+  awsPiw90: Float
+
+  """
+  US only. Per-property information gain (soil input variable importance).
+  """
+  soilDataValue: [SoilDataValueEntry!]
 }
 
 """A soil match based on a coordinate pair and soil data."""
@@ -339,6 +349,18 @@ type SoilMatch {
   locationMatch: SoilMatchInfo!
   dataMatch: SoilMatchInfo
   combinedMatch: SoilMatchInfo
+}
+
+"""
+Information gain of a single simulated soil property (US only).
+
+Higher information gain = the property is more useful for distinguishing
+the matched soils from one another.
+"""
+type SoilDataValueEntry {
+  """Simulated property + depth, e.g. 'texture_0', 'rfv_class_30'."""
+  soilProperty: String!
+  informationGain: Float!
 }
 
 type GroupNode implements Node {

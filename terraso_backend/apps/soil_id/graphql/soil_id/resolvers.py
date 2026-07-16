@@ -31,6 +31,7 @@ from apps.soil_id.graphql.soil_id.types import (
     DataBasedSoilMatches,
     EcologicalSite,
     LandCapabilityClass,
+    SoilDataValueEntry,
     SoilIdDepthDependentData,
     SoilIdFailure,
     SoilIdFailureReason,
@@ -424,6 +425,33 @@ def resolve_data_based_soil_matches(soil_list_json: dict, rank_json: dict):
     return DataBasedSoilMatches(matches=ranked_matches)
 
 
+def resolve_aws_piw90(soil_list_json: dict):
+    value = soil_list_json.get("AWS_PIW90")
+    # Guard against the "Data not available" sentinel and NaN; bools are not valid here.
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        return None
+    if math.isnan(value):
+        return None
+    return float(value)
+
+
+def resolve_soil_data_value(soil_list_json: dict):
+    value = soil_list_json.get("Soil Data Value")
+    if not isinstance(value, list):  # missing, or "Data not available"
+        return None
+    entries = []
+    for item in value:
+        if not isinstance(item, (list, tuple)) or len(item) != 2:
+            continue
+        soil_property, gain = item
+        if isinstance(gain, bool) or not isinstance(gain, (int, float)) or math.isnan(gain):
+            continue
+        entries.append(
+            SoilDataValueEntry(soil_property=str(soil_property), information_gain=float(gain))
+        )
+    return entries
+
+
 def resolve_soil_matches(
     data_region: SoilIdCache.DataRegion, soil_list_json: dict, rank_json: dict
 ):
@@ -434,7 +462,12 @@ def resolve_soil_matches(
                 resolve_soil_match(data_region, soil_list_json["soilList"], ranked_match)
             )
 
-    return SoilMatches(data_region=data_region, matches=ranked_matches)
+    return SoilMatches(
+        data_region=data_region,
+        matches=ranked_matches,
+        aws_piw90=resolve_aws_piw90(soil_list_json),
+        soil_data_value=resolve_soil_data_value(soil_list_json),
+    )
 
 
 # DEPRECATED

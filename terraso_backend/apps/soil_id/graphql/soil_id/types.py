@@ -129,11 +129,37 @@ class DataBasedSoilMatches(graphene.ObjectType):
     matches = graphene.List(graphene.NonNull(DataBasedSoilMatch), required=True)
 
 
+class SoilDataValueEntry(graphene.ObjectType):
+    """Information gain of a single simulated soil property (US only).
+
+    Higher information gain = the property is more useful for distinguishing
+    the matched soils from one another.
+    """
+
+    soil_property = graphene.String(
+        required=True,
+        description="Simulated property + depth, e.g. 'texture_0', 'rfv_class_30'.",
+    )
+    information_gain = graphene.Float(required=True)
+
+
 class SoilMatches(graphene.ObjectType):
     """A ranked group of soil matches based on a coordinate pair and soil data."""
 
     data_region = DataRegion(required=True)
     matches = graphene.List(graphene.NonNull(SoilMatch), required=True)
+    aws_piw90 = graphene.Float(
+        description=(
+            "US only. Width of the 90% prediction interval for available water "
+            "storage in the top 100cm across the matched soils in the AOI. "
+            "Smaller = the soils are more functionally similar. Null when "
+            "unavailable (e.g. fewer than two distinct components, or global)."
+        )
+    )
+    soil_data_value = graphene.List(
+        graphene.NonNull(SoilDataValueEntry),
+        description="US only. Per-property information gain (soil input variable importance).",
+    )
 
 
 class DataBasedResult(graphene.Union):
