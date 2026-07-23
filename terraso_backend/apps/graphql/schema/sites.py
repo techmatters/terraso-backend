@@ -270,6 +270,7 @@ class SiteDeleteMutation(BaseDeleteMutation):
         if not check_site_permission(user, SiteAction.DELETE, Context(site=site)):
             cls.not_allowed(MutationTypes.DELETE)
 
+        # Note: If site deletion cascade logic or model changes in the backend, you may want to also change the mobile-client logic in the deleteSite.fulfilled reducer (as there will likely be duplicate logic there until site deletion is supported offline and we remove this mutation)
         result = super().mutate_and_get_payload(root, info, **kwargs)
 
         analytics.capture(
