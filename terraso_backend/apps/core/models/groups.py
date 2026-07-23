@@ -12,7 +12,7 @@
 #
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see https://www.gnu.org/licenses/.
-from typing import Literal, Union
+from typing import Literal
 
 from django.contrib.contenttypes.fields import GenericRelation
 from django.db import models, transaction
@@ -164,7 +164,7 @@ class Group(SlugModel):
     def _add_user(
         self,
         user: User,
-        role: Union[Literal["manager"], Literal["member"]],
+        role: Literal["manager", "member"],
     ):
         from apps.collaboration.models import Membership
 

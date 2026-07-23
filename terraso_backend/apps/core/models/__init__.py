@@ -23,16 +23,16 @@ from .users import User, UserPreference
 
 __all__ = [
     "BackgroundTask",
+    "BaseModel",
     "Group",
     "GroupAssociation",
     "Landscape",
-    "LandscapeGroup",
     "LandscapeDevelopmentStrategy",
+    "LandscapeGroup",
     "Membership",
-    "BaseModel",
+    "SharedResource",
     "SlugModel",
+    "TaxonomyTerm",
     "User",
     "UserPreference",
-    "TaxonomyTerm",
-    "SharedResource",
 ]

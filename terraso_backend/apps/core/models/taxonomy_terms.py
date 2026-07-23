@@ -53,7 +53,7 @@ class TaxonomyTerm(SlugModel):
     field_to_slug = "value_original"
 
     def __str__(self):
-        return "{}.{}".format(self.type, self.slug)
+        return f"{self.type}.{self.slug}"
 
     class Meta(SlugModel.Meta):
         _ignore_unique_fields = ["slug"]

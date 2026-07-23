@@ -13,7 +13,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see https://www.gnu.org/licenses/.
 
-from typing import List, Self
+from typing import Self
 
 from django.core.validators import MaxValueValidator
 from django.db import models
@@ -45,7 +45,7 @@ class BaseDepthInterval(models.Model):
 
     # validates that depth intervals do not overlap
     @staticmethod
-    def validate_intervals(intervals: List[Self]):
+    def validate_intervals(intervals: list[Self]):
         intervals.sort(key=lambda interval: interval.depth_interval_start)
         for index, interval in enumerate(intervals):
             if (

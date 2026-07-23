@@ -12,7 +12,7 @@
 #
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see https://www.gnu.org/licenses/.
-from typing import List, Self, Union
+from typing import Self
 
 from django.db import models
 from django.db.models import Q
@@ -95,7 +95,7 @@ class Site(BaseModel):
         self.owner = user
         self.save()
 
-    def owned_by(self, obj: Union[Project, User]):
+    def owned_by(self, obj: Project | User):
         return obj == self.owner or obj == self.project
 
     def human_readable(self) -> str:
@@ -105,7 +105,7 @@ class Site(BaseModel):
         self.seen_by.add(user)
 
     @classmethod
-    def bulk_change_project(cls, sites: List[Self], project: Project):
+    def bulk_change_project(cls, sites: list[Self], project: Project):
         for site in sites:
             site.owner = None
             site.project = project

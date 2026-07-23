@@ -69,7 +69,7 @@ class Project(BaseModel):
     def save(self, *args, **kwargs):
         if not hasattr(self, "membership_list"):
             self.membership_list = self.create_membership_list()
-        return super(Project, self).save(*args, **kwargs)
+        return super().save(*args, **kwargs)
 
     @staticmethod
     def create_membership_list() -> MembershipList:

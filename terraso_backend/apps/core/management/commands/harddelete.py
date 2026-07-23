@@ -12,7 +12,7 @@
 #
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see https://www.gnu.org/licenses/.
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 import structlog
 from django.apps import apps
@@ -63,7 +63,7 @@ class Command(BaseCommand):
         return objects
 
     def handle(self, *args, **options):
-        exec_time = datetime.now(timezone.utc)
+        exec_time = datetime.now(UTC)
         deletion_gap = options["deletion_gap"]
         cutoff_date = exec_time - deletion_gap
         to_delete = self.all_objects(cutoff_date)

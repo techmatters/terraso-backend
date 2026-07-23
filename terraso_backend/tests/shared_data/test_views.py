@@ -116,7 +116,7 @@ def test_create_data_entry_file_type_different_from_extension(
     data_entry_payload["data_file"] = (
         SimpleUploadedFile(
             name="data_file.pdf",
-            content="this is a text file with json extension".encode(),
+            content=b"this is a text file with json extension",
             content_type="application/pdf",
         ),
     )
@@ -140,7 +140,7 @@ def test_create_data_entry_file_type_csv(logged_client, upload_url, data_entry_p
     data_entry_payload["data_file"] = (
         SimpleUploadedFile(
             name="data_file.csv",
-            content="col1,col2\nval1,val2".encode(),
+            content=b"col1,col2\nval1,val2",
             content_type="text/csv",
         ),
     )
@@ -164,7 +164,7 @@ def test_create_data_entry_file_invalid_type(logged_client, upload_url, data_ent
     data_entry_payload["data_file"] = (
         SimpleUploadedFile(
             name="data_file.txt",
-            content="this is a text file".encode(),
+            content=b"this is a text file",
             content_type="text/plain",
         ),
     )

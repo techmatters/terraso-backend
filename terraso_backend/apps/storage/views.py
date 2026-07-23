@@ -42,7 +42,7 @@ class UserProfileImageView(AuthenticationRequiredMixin, FormView):
             user.profile_image = profile_image_service.upload_file(user_id, file_obj)
             user.save()
         except Exception:
-            message = "Failed to upload profile image. User ID: {}".format(user_id)
+            message = f"Failed to upload profile image. User ID: {user_id}"
             logger.exception(message)
             return JsonResponse({"error": message}, status=500)
 
@@ -74,9 +74,7 @@ class LandscapeProfileImageView(AuthenticationRequiredMixin, FormView):
         landscape = entry_form.cleaned_data["landscape"]
 
         if not rules.test_rule("allowed_to_change_landscape", user, landscape.id):
-            message = "Not allowed to upload profile image. Landscape Slug: {}".format(
-                landscape.slug
-            )
+            message = f"Not allowed to upload profile image. Landscape Slug: {landscape.slug}"
             logger.exception(message)
             return JsonResponse({"errors": [{"message": [message]}]}, status=400)
 
@@ -85,7 +83,7 @@ class LandscapeProfileImageView(AuthenticationRequiredMixin, FormView):
             landscape.profile_image = entry_form.cleaned_data["url"]
             landscape.save()
         except Exception:
-            message = "Failed to upload profile image. Landscape Slug: {}".format(landscape.slug)
+            message = f"Failed to upload profile image. Landscape Slug: {landscape.slug}"
             logger.exception(message)
             return JsonResponse({"errors": [{"message": [message]}]}, status=500)
 

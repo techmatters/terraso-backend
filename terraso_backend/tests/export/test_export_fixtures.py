@@ -277,8 +277,7 @@ def normalize_csv_for_comparison(csv_content, ignore_columns=None):
     Returns:
         Normalized CSV string with rows sorted by Site ID for stable comparison.
     """
-    if csv_content.startswith("\ufeff"):
-        csv_content = csv_content[1:]
+    csv_content = csv_content.removeprefix("\ufeff")
 
     if ignore_columns is None:
         ignore_columns = IGNORE_CSV_COLUMNS

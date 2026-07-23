@@ -14,7 +14,7 @@
 # along with this program. If not, see https://www.gnu.org/licenses/.
 
 import csv
-from datetime import datetime
+from datetime import UTC, datetime
 from io import StringIO
 
 from .transformers import flatten_site
@@ -29,9 +29,7 @@ def format_timestamp_for_csv(iso_timestamp):
         dt = datetime.fromisoformat(iso_timestamp.replace("Z", "+00:00"))
         # Convert to UTC if timezone-aware
         if dt.tzinfo is not None:
-            from datetime import timezone
-
-            dt = dt.astimezone(timezone.utc)
+            dt = dt.astimezone(UTC)
         # Format as YYYY-MM-DD HH:MM:SS (now in UTC)
         return dt.strftime("%Y-%m-%d %H:%M:%S")
     except (ValueError, AttributeError):
@@ -51,7 +49,7 @@ def sites_to_csv(sites):
     for row in flattened_sites:
         # Replace newlines with return symbol in Site notes field
         # U+23CE (⏎) is the "Return Symbol" - visually indicates line breaks without causing Excel parsing issues
-        if "Site notes" in row and row["Site notes"]:
+        if row.get("Site notes"):
             notes = row["Site notes"]
             # Format timestamps in notes (format: "content | email | 2025-11-11T17:42:15.065624+00:00")
             # Split by semicolon (multiple notes) then by pipe (note fields)

@@ -14,8 +14,6 @@
 # along with this program. If not, see https://www.gnu.org/licenses/.
 
 
-from typing import Optional
-
 from django.db import models
 from soil_id.us_soil import SoilListOutputData
 
@@ -54,7 +52,7 @@ class SoilIdCache(BaseModel):
         latitude: float,
         longitude: float,
         data: SoilListOutputData | str,
-        data_region: Optional[DataRegion],
+        data_region: DataRegion | None,
     ):
         if isinstance(data, str):
             data_to_save = {"failure_reason": data}

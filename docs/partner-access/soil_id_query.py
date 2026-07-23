@@ -208,7 +208,7 @@ def main():
     if not refresh_token and not access_token:
         sys.exit(
             f"No credentials found. Create {TOKENS_FILE} containing the partner "
-            'refresh token you were supplied:\n'
+            "refresh token you were supplied:\n"
             '  {"refresh_token": "<your-partner-refresh-token>"}'
         )
 

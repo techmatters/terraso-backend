@@ -15,7 +15,7 @@
 
 import enum
 import json
-from typing import Any, Optional
+from typing import Any
 
 import structlog
 from django.core.exceptions import NON_FIELD_ERRORS, ValidationError
@@ -187,7 +187,7 @@ class BaseAuthenticatedMutation(BaseMutation):
 
 
 class BaseWriteMutation(BaseAuthenticatedMutation):
-    skip_field_validation: Optional[list[str]] = None
+    skip_field_validation: list[str] | None = None
 
     @classmethod
     def mutate_and_get_payload(cls, root, info, **kwargs):
@@ -270,7 +270,7 @@ class BaseWriteMutation(BaseAuthenticatedMutation):
     def assign_graphql_fields_to_model_instance(
         model_instance: models.Model,
         fields: dict[str, Any],
-        skip_field_validation: Optional[list[str]] = None,
+        skip_field_validation: list[str] | None = None,
     ):
         for attr, value in fields.items():
             if isinstance(value, enum.Enum):

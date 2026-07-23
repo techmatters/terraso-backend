@@ -16,7 +16,7 @@
 import ipaddress
 from contextlib import contextmanager
 from datetime import timedelta
-from typing import Any, Optional
+from typing import Any
 from urllib.parse import urlparse
 from uuid import uuid4
 
@@ -244,7 +244,7 @@ class AccountService:
             user.profile_image = profile_image_service.upload_url(user_id, profile_image_url)
             user.save()
         except Exception:
-            logger.exception("Failed to upload profile image. User ID: {}".format(user_id))
+            logger.exception(f"Failed to upload profile image. User ID: {user_id}")
 
 
 class JWTService:
@@ -355,7 +355,7 @@ class PlausibleService:
 
     @classmethod
     def _prepare_body_params(
-        cls, event_name: str, event_url: str, referrer: str, props: Optional[dict[str, Any]]
+        cls, event_name: str, event_url: str, referrer: str, props: dict[str, Any] | None
     ):
         return {
             "domain": urlparse(cls.FRONTEND_URL).hostname,
@@ -386,7 +386,7 @@ class PlausibleService:
         user_agent: str,
         ip_address: str,
         event_url: str,
-        props: Optional[dict[str, Any]] = None,
+        props: dict[str, Any] | None = None,
         referrer: str = "",
     ) -> None:
         """Send a tracking event to Plausible through the HTTP API.
