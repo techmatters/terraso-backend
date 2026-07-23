@@ -230,6 +230,8 @@ class ProjectDeleteMutation(BaseDeleteMutation):
             for site in project_sites:
                 site.project = transfer_project
             Site.objects.bulk_update(project_sites, ["project"])
+
+        # Note: If project deletion cascade logic or model changes in the backend, you may want to also change the mobile-client logic in the deleteProject.fulfilled reducer (as there will likely be duplicate logic there until project deletion is supported offline and we remove this mutation)
         result = super().mutate_and_get_payload(root, info, **kwargs)
 
         analytics.capture(
