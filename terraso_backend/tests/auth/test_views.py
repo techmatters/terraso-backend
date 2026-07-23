@@ -140,7 +140,7 @@ def test_get_google_callback_redirect_domain_allowed_by_CORS(
     assert state["redirectUrl"] == "/tools"
 
 
-@override_settings(CORS_ALLOWED_ORIGIN_REGEXES=["https://.*\.onrender\.com"])
+@override_settings(CORS_ALLOWED_ORIGIN_REGEXES=[r"https://.*\.onrender\.com"])
 def test_get_google_callback_redirect_domain_allowed_by_CORS_regex(
     client, access_tokens_google, respx_mock
 ):

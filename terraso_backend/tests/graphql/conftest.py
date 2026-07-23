@@ -472,11 +472,13 @@ def visualization_configs(users, groups):
         VisualizationConfig,
         created_by=creator,
         readable_id=secrets.token_hex(4),
-        data_entry=lambda: mixer.blend(
-            SharedResource,
-            target=creator_group,
-            source=lambda: mixer.blend(DataEntry, created_by=creator, size=100),
-        ).source,
+        data_entry=lambda: (
+            mixer.blend(
+                SharedResource,
+                target=creator_group,
+                source=lambda: mixer.blend(DataEntry, created_by=creator, size=100),
+            ).source
+        ),
         owner=creator_group,
     )
     return visualizations
@@ -492,11 +494,13 @@ def visualization_config_processing(users, groups):
     visualizations = mixer.cycle(5).blend(
         VisualizationConfig,
         created_by=creator,
-        data_entry=lambda: mixer.blend(
-            SharedResource,
-            target=creator_group,
-            source=lambda: mixer.blend(DataEntry, created_by=creator, size=100),
-        ).source,
+        data_entry=lambda: (
+            mixer.blend(
+                SharedResource,
+                target=creator_group,
+                source=lambda: mixer.blend(DataEntry, created_by=creator, size=100),
+            ).source
+        ),
         owner=creator_group,
         mapbox_tileset_id=lambda: uuid.uuid4(),
         mapbox_tileset_status=VisualizationConfig.MAPBOX_TILESET_PENDING,

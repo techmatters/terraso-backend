@@ -21,6 +21,6 @@ class ExportConfig(AppConfig):
     name = "apps.export"
 
     def ready(self):
-        import apps.export.handlers  # noqa: F401
-        import apps.export.permission_rules  # noqa: F401
+        import apps.export.handlers
+        import apps.export.permission_rules
         import apps.export.signals  # noqa: F401

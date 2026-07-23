@@ -13,7 +13,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see https://www.gnu.org/licenses/.
 
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 import pytest
 
@@ -227,7 +227,7 @@ def test_visualization_configs_with_deleted_data_entry(client_query, visualizati
     visualization_config_a.data_entry.shared_resources.create(target=groups[-1])
     visualization_config_b.data_entry.shared_resources.create(target=groups[-1])
 
-    visualization_config_b.data_entry.deleted_at = datetime.now(timezone.utc) - (
+    visualization_config_b.data_entry.deleted_at = datetime.now(UTC) - (
         Command.DEFAULT_DELETION_GAP + timedelta(days=1)
     )
     visualization_config_b.data_entry.save(keep_deleted=True)

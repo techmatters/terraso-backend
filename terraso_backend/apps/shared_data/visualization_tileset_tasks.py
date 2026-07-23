@@ -78,9 +78,7 @@ def remove_mapbox_tileset(tileset_id):
 
 
 def get_owner_name(visualization):
-    if isinstance(visualization.owner, Landscape):
-        return visualization.owner.name
-    elif isinstance(visualization.owner, Group):
+    if isinstance(visualization.owner, Landscape) or isinstance(visualization.owner, Group):
         return visualization.owner.name
     elif isinstance(visualization.owner, StoryMap):
         return visualization.owner.title

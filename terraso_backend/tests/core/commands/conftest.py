@@ -14,7 +14,7 @@
 # along with this program. If not, see https://www.gnu.org/licenses/.
 
 
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 import pytest
 
@@ -28,9 +28,9 @@ def deletion_gap():
 
 @pytest.fixture
 def delete_date(deletion_gap):
-    return datetime.now(timezone.utc) - (deletion_gap + timedelta(days=1))
+    return datetime.now(UTC) - (deletion_gap + timedelta(days=1))
 
 
 @pytest.fixture
 def no_delete_date(deletion_gap):
-    return datetime.now(timezone.utc) - (deletion_gap - timedelta(days=1))
+    return datetime.now(UTC) - (deletion_gap - timedelta(days=1))

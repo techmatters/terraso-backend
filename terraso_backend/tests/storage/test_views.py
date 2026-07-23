@@ -34,7 +34,7 @@ def landscape_profile_image_payload(landscape):
         landscape=landscape.slug,
         data_file=SimpleUploadedFile(
             name="profile_image.jpeg",
-            content="test content".encode(),
+            content=b"test content",
             content_type="image/jpeg",
         ),
     )

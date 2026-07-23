@@ -18,7 +18,6 @@ import binascii
 import functools
 import json
 import re
-from typing import Optional
 from urllib.parse import urlparse
 
 import httpx
@@ -364,7 +363,7 @@ class TokenExchangeView(View):
         email: str = "",
         given_name: str = "",
         family_name: str = "",
-        picture: Optional[str] = None,
+        picture: str | None = None,
         apple_sub: str = "",
         **kwargs,
     ):

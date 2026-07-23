@@ -15,7 +15,6 @@
 
 import math
 import re
-from typing import Optional, Tuple
 
 from django.conf import settings
 
@@ -319,8 +318,8 @@ def process_depth_data(site):
 
 
 def render_munsell_hue(
-    color_hue: Optional[float], color_chroma: Optional[float]
-) -> Tuple[Optional[float], Optional[str]]:
+    color_hue: float | None, color_chroma: float | None
+) -> tuple[float | None, str | None]:
     if color_hue is None:
         return None, None
 

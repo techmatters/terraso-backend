@@ -113,7 +113,7 @@ def test_update_upload_media(logged_client, users):
         "publish": "false",
         "files": SimpleUploadedFile(
             name="audio_file.mp3",
-            content="content".encode(),
+            content=b"content",
             content_type="audio/mp3",
         ),
         "configuration": json.dumps(
@@ -157,7 +157,7 @@ def test_update_oversized_media_upload(mock_get_size, logged_client, users):
         "publish": "false",
         "files": SimpleUploadedFile(
             name="audio_file.mp3",
-            content="content".encode(),
+            content=b"content",
             content_type="audio/mp3",
         ),
         "configuration": json.dumps(
@@ -202,7 +202,7 @@ def test_update_upload_media_invalid(logged_client, users):
         "publish": "false",
         "files": SimpleUploadedFile(
             name="audio_file.MOV",
-            content="content".encode(),
+            content=b"content",
             content_type="movie/MOV",
         ),
         "configuration": json.dumps(
@@ -246,12 +246,12 @@ def test_update_upload_multiple_media_invalid(logged_client, users):
         "files": [
             SimpleUploadedFile(
                 name="audio_file.mp4",
-                content="content".encode(),
+                content=b"content",
                 content_type="video/mp4",
             ),
             SimpleUploadedFile(
                 name="audio_file.MOV",
-                content="content".encode(),
+                content=b"content",
                 content_type="movie/MOV",
             ),
         ],
@@ -330,7 +330,7 @@ def test_add_upload_featured_image(logged_client, users):
         "publish": "false",
         "files": SimpleUploadedFile(
             name="featured_image.jpg",
-            content="content".encode(),
+            content=b"content",
             content_type="image/jpeg",
         ),
         "configuration": json.dumps(
@@ -369,7 +369,7 @@ def test_update_upload_featured_image(logged_client, users):
         "publish": "false",
         "files": SimpleUploadedFile(
             name="featured_image.png",
-            content="content".encode(),
+            content=b"content",
             content_type="image/png",
         ),
         "configuration": json.dumps(
@@ -422,7 +422,7 @@ def test_update_featured_image_cleanup(logged_client, users):
         "publish": "false",
         "files": SimpleUploadedFile(
             name="new_image.jpg",
-            content="content".encode(),
+            content=b"content",
             content_type="image/jpeg",
         ),
         "configuration": json.dumps(

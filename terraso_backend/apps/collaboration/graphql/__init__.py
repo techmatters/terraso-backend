@@ -20,7 +20,7 @@ from .memberships import (
 )
 
 __all__ = [
-    "CollaborationMembershipNode",
-    "CollaborationMembershipListNode",
     "BaseMembershipSaveMutation",
+    "CollaborationMembershipListNode",
+    "CollaborationMembershipNode",
 ]

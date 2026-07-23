@@ -16,7 +16,6 @@
 import math
 import threading
 import traceback
-from typing import Optional
 
 import psycopg
 import structlog
@@ -63,13 +62,13 @@ def soil_id_database_connection():
     return conn
 
 
-def resolve_texture(texture: Optional[str | float]):
+def resolve_texture(texture: str | float | None):
     if not isinstance(texture, str) or texture == "" or texture.upper() == "UNKNOWN":
         return None
     return texture.upper().replace(" ", "_")
 
 
-def resolve_rock_fragment_volume(rock_fragment_volume: Optional[int | float | str]):
+def resolve_rock_fragment_volume(rock_fragment_volume: float | str | None):
     if not (isinstance(rock_fragment_volume, float) or isinstance(rock_fragment_volume, int)):
         return None
     elif rock_fragment_volume <= 1:
@@ -180,7 +179,7 @@ def resolve_soil_info(soil_match: dict):
     )
 
 
-def resolve_soil_match_info(score: Optional[float], rank: Optional[str]):
+def resolve_soil_match_info(score: float | None, rank: str | None):
     if score is None or rank is None:
         return None
     return SoilMatchInfo(score=score, rank=int(rank) - 1)
@@ -308,7 +307,7 @@ def resolve_soil_match(
     )
 
 
-def parse_data_region(data_region: Optional[str]):
+def parse_data_region(data_region: str | None):
     if data_region is None:
         return None
     elif data_region == "US":
@@ -374,9 +373,7 @@ def parse_surface_cracks(surface_cracks: SoilData.SurfaceCracks):
     return surface_cracks.value == SoilData.SurfaceCracks.DEEP_VERTICAL_CRACKS.value
 
 
-def parse_rank_soils_input_data(
-    data: Optional[SoilIdInputData], data_region: SoilIdCache.DataRegion
-):
+def parse_rank_soils_input_data(data: SoilIdInputData | None, data_region: SoilIdCache.DataRegion):
     # TODO: pass in values for elevation and bedrock
     inputs = {
         "topDepth": [],
@@ -472,7 +469,7 @@ def resolve_soil_matches(
 
 # DEPRECATED
 def resolve_data_based_result(
-    _parent, _info, latitude: float, longitude: float, data: Optional[SoilIdInputData] = None
+    _parent, _info, latitude: float, longitude: float, data: SoilIdInputData | None = None
 ):
     try:
         list_result = get_list_soils_output(latitude=latitude, longitude=longitude)
@@ -489,9 +486,7 @@ def resolve_data_based_result(
                 list_output_data=list_output,
                 **parse_rank_soils_input_data(data, data_region),
             )
-        elif data_region == SoilIdCache.DataRegion.GLOBAL:
-            return SoilIdFailure(reason=SoilIdFailureReason.DATA_UNAVAILABLE)
-        elif data_region is None:
+        elif data_region == SoilIdCache.DataRegion.GLOBAL or data_region is None:
             return SoilIdFailure(reason=SoilIdFailureReason.DATA_UNAVAILABLE)
         else:
             raise ValueError(f"Unknown data region: {data_region}")
@@ -542,7 +537,7 @@ def _capture_soil_id_lookup(info, latitude, longitude, data, result, cache_hit):
 
 
 def resolve_soil_id_result(
-    _parent, _info, latitude: float, longitude: float, data: Optional[SoilIdInputData] = None
+    _parent, _info, latitude: float, longitude: float, data: SoilIdInputData | None = None
 ):
     # Determine cache_hit before the lookup warms the cache; only pay for the
     # extra (cheap, index-only) query when analytics is actually enabled.
@@ -561,7 +556,7 @@ def resolve_soil_id_result(
 
 
 def _compute_soil_id_result(
-    _parent, _info, latitude: float, longitude: float, data: Optional[SoilIdInputData] = None
+    _parent, _info, latitude: float, longitude: float, data: SoilIdInputData | None = None
 ):
     try:
         list_result = get_list_soils_output(latitude=latitude, longitude=longitude)

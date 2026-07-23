@@ -31,8 +31,8 @@ sample_soil_infos = [
         soil_series=SoilSeries(
             name="Yemassee",
             taxonomy_subgroup="Aeric Endoaquults",
-            description="The Yemassee series consists of very deep, somewhat poorly drained, moderately permeable, loamy soils that formed in marine sediments. These soils are on terraces and broad flats of the lower Coastal Plain. Slopes range from 0 to 2 percent.",  # noqa: E501   <- flake8 ignore line length
-            full_description_url="https://casoilresource.lawr.ucdavis.edu/sde/?series=yemassee",  # noqa: E501   <- flake8 ignore line length
+            description="The Yemassee series consists of very deep, somewhat poorly drained, moderately permeable, loamy soils that formed in marine sediments. These soils are on terraces and broad flats of the lower Coastal Plain. Slopes range from 0 to 2 percent.",
+            full_description_url="https://casoilresource.lawr.ucdavis.edu/sde/?series=yemassee",
         ),
         ecological_site=EcologicalSite(
             name="Loamy Rise, Moderately Wet",
@@ -60,8 +60,8 @@ sample_soil_infos = [
         soil_series=SoilSeries(
             name="Randall",
             taxonomy_subgroup="Ustic Epiaquerts",
-            description="The Randall series consists of very deep, poorly drained, very slowly permeable soils that formed in clayey lacustrine sediments derived from the Blackwater Draw Formation of Pleistocene age. These nearly level soils are on the floor of playa basins 3 to 15 m (10 to 50 ft) below the surrounding plain and range in size from 10 to more than 150 acres. Slope ranges from 0 to 1 percent. Mean annual precipitation is 483 mm (19 in), and mean annual temperature is 15 degrees C (59 degrees F).",  # noqa: E501   <- flake8 ignore line length
-            full_description_url="https://casoilresource.lawr.ucdavis.edu/sde/?series=randall",  # noqa: E501   <- flake8 ignore line length
+            description="The Randall series consists of very deep, poorly drained, very slowly permeable soils that formed in clayey lacustrine sediments derived from the Blackwater Draw Formation of Pleistocene age. These nearly level soils are on the floor of playa basins 3 to 15 m (10 to 50 ft) below the surrounding plain and range in size from 10 to more than 150 acres. Slope ranges from 0 to 1 percent. Mean annual precipitation is 483 mm (19 in), and mean annual temperature is 15 degrees C (59 degrees F).",
+            full_description_url="https://casoilresource.lawr.ucdavis.edu/sde/?series=randall",
         ),
         land_capability_class=LandCapabilityClass(capability_class="4", sub_class="s-a"),
         soil_data=SoilIdSoilData(

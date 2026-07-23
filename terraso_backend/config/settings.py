@@ -531,4 +531,4 @@ GLOBAL_SOIL_ID_BUFFER_DISTANCE = config(
     "GLOBAL_SOIL_ID_BUFFER_DISTANCE", default="30000", cast=config.eval
 )
 
-import config.graphql_log  # noqa: E402, F401 — registers django_structlog signal receivers
+import config.graphql_log

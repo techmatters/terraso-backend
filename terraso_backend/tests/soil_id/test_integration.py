@@ -158,7 +158,7 @@ for idx, coords in enumerate(us_coordinates):
 @pytest.mark.parametrize("coords, with_data", us_tests)
 def test_us_integration(client, auth_headers, coords, with_data):
     # run it twice to exercise the cache
-    for _ in range(0, 2):
+    for _ in range(2):
         response = graphql_query(
             SOIL_ID_MATCHES_QUERY,
             variables={
@@ -215,7 +215,7 @@ def test_us_integration(client, auth_headers, coords, with_data):
 @pytest.mark.parametrize("coords, with_data", us_tests)
 def test_us_integration_old_endpoint(client, auth_headers, coords, with_data):
     # run it twice to exercise the cache
-    for _ in range(0, 2):
+    for _ in range(2):
         response = graphql_query(
             DATA_BASED_MATCHES_QUERY,
             variables={

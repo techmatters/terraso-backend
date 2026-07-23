@@ -16,6 +16,6 @@
 from .memberships import Membership, MembershipList
 
 __all__ = [
-    "MembershipList",
     "Membership",
+    "MembershipList",
 ]

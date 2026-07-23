@@ -77,13 +77,13 @@ def test_update_soil_data(client, user, site):
     for attr, value in new_data.items():
         assert payload[attr] == value
 
-    cleared_data = dict({k: None for k in new_data.keys()}, siteId=str(site.id))
+    cleared_data = dict({k: None for k in new_data}, siteId=str(site.id))
     response = graphql_query(
         UPDATE_SOIL_DATA_QUERY, variables={"input": cleared_data}, client=client
     )
     payload = response.json()["data"]["updateSoilData"]["soilData"]
     assert response.json()["data"]["updateSoilData"]["errors"] is None
-    for attr in new_data.keys():
+    for attr in new_data:
         assert payload[attr] is None
 
     partial_data = {"siteId": str(site.id)}
@@ -92,7 +92,7 @@ def test_update_soil_data(client, user, site):
     )
     payload = response.json()["data"]["updateSoilData"]["soilData"]
     assert response.json()["data"]["updateSoilData"]["errors"] is None
-    for attr in new_data.keys():
+    for attr in new_data:
         assert payload[attr] is None
 
 
@@ -343,7 +343,7 @@ def test_update_depth_dependent_soil_data(client, user, site):
     new_data.pop("depthInterval")
 
     cleared_data = dict(
-        {k: None for k in new_data.keys()},
+        {k: None for k in new_data},
         siteId=str(site.id),
         depthInterval={"start": 0, "end": 10},
     )
@@ -354,7 +354,7 @@ def test_update_depth_dependent_soil_data(client, user, site):
     payload = response.json()["data"]["updateDepthDependentSoilData"]["soilData"][
         "depthDependentData"
     ][0]
-    for attr in new_data.keys():
+    for attr in new_data:
         assert payload[attr] is None
 
     partial_data = {"siteId": str(site.id), "depthInterval": {"start": 0, "end": 10}}
@@ -365,7 +365,7 @@ def test_update_depth_dependent_soil_data(client, user, site):
     payload = response.json()["data"]["updateDepthDependentSoilData"]["soilData"][
         "depthDependentData"
     ][0]
-    for attr in new_data.keys():
+    for attr in new_data:
         assert payload[attr] is None
 
 

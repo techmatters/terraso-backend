@@ -184,7 +184,6 @@ class Command(BaseCommand):
                 user = User.objects.get(id=user_id)
             else:
                 user = None
-            pass
             if session_pk := options.get("save_session"):
                 session = Session.objects.get(session_key=session_pk)
             else:
@@ -243,10 +242,10 @@ class Command(BaseCommand):
                 if app_label == "core":
                     for version in self.CORE_MIGRATIONS_TO_SKIP:
                         management.call_command(
-                            "migrate", "core", "{0:0>4}".format(version - 1), verbosity=0
+                            "migrate", "core", f"{version - 1:0>4}", verbosity=0
                         )
                         management.call_command(
-                            "migrate", "core", "{0:0>4}".format(version), fake=True, verbosity=0
+                            "migrate", "core", f"{version:0>4}", fake=True, verbosity=0
                         )
                     management.call_command("migrate", "core", verbosity=0)
                 kwargs = {}

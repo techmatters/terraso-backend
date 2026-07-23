@@ -241,7 +241,7 @@ class SiteUpdateMutation(BaseWriteMutation):
             client_time = datetime.now()
 
         metadata = {}
-        for key in kwargs.keys():
+        for key in kwargs:
             if key == "id":
                 continue
             metadata[key] = getattr(site, key)
