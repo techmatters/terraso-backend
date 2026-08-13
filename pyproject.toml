@@ -3,12 +3,70 @@ name = "terraso_backend"
 readme = "README.md"
 version = "1.0"
 license = { file = "LICENSE" }
-requires-python = ">=3.12"
+requires-python = ">=3.13"
+dependencies = [
+    "boto3==1.43.71",
+    "dj-database-url==3.1.2",
+    "django==6.1",
+    "django-cors-headers==4.9.0",
+    "django-dirtyfields==1.9.9",
+    "django-filter==26.1",
+    "django-naomi==0.8",
+    "django-oauth-toolkit==3.4.0",
+    "django-safedelete==1.4.1",
+    "django-ses==4.7.2",
+    "django-storages==1.14.6",
+    "django-structlog==10.1.0",
+    "fiona==1.10.1",
+    "gdal==3.11.3",
+    "geopandas==1.1.4",
+    "graphene-django==3.2.3",
+    "gunicorn==26.0.0",
+    "httpx==0.28.1",
+    "openpyxl==3.1.5",
+    "pandas==3.0.5",
+    "posthog==7.39.0",
+    "prettyconf==3.0.1",
+    "psycopg==3.3.4",
+    "pyjwt[crypto]==2.13.0",
+    "pyproj==3.7.2",
+    "python-magic==0.4.27",
+    "requests==2.34.2",
+    "rules==3.5",
+    "sentry-sdk[django]==2.68.0",
+    "shapely==2.1.2",
+    "soil-id",
+]
+
+[dependency-groups]
+lint = ["ruff==0.14.10"]
+dev = [
+    { include-group = "lint" },
+    "deepdiff==9.1.0",
+    "freezegun==1.5.5",
+    "gdown==6.1.0",
+    "ipdb==0.13.13",
+    "jsonpath-ng==1.8.0",
+    "mixer==7.2.2",
+    "moto==5.2.2",
+    "pre-commit==4.6.2",
+    "pytest==9.1.1",
+    "pytest-cov==7.1.0",
+    "pytest-django==4.14.0",
+    "respx==0.23.1",
+]
+
+[tool.uv.sources]
+soil-id = { url = "https://github.com/techmatters/soil-id-algorithm/archive/refs/tags/2026-07-20.0.zip" }
+
+[tool.uv]
+no-binary-package = ["fiona"]
+required-version = ">=0.6.0"
 
 [tool.ruff]
 exclude = ["migrations"]
 line-length = 100
-required-version = ">=0.12.11"
+required-version = "==0.14.10"
 
 [tool.ruff.lint.isort]
 known-first-party = ["apps"]

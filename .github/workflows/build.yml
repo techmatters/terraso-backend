@@ -141,13 +141,14 @@ jobs:
         if: ${{ hashFiles('Data/*') == '' }}
         uses: astral-sh/setup-uv@v7
         with:
+          version: 0.12.0
           enable-cache: true
-          cache-dependency-glob: 'requirements**.txt'
+          cache-dependency-glob: 'uv.lock'
 
       - name: Install Python dependencies and download data
         if: ${{ hashFiles('Data/*') == '' }}
         run: |
-          make install-dev DC_ENV=ci
+          make install-dev-tools DC_ENV=ci
           make download-soil-data
 
       - name: Login to GHCR

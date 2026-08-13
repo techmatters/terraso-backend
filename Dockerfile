@@ -1,5 +1,5 @@
 FROM python:3.13.17-slim-trixie
-COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
+COPY --from=ghcr.io/astral-sh/uv:0.12.0 /uv /uvx /bin/
 
 RUN adduser --disabled-password terraso
 
@@ -18,13 +18,14 @@ RUN apt-get update && \
 
 WORKDIR /app
 
-COPY --chown=terraso:terraso requirements.txt /app
+COPY --chown=terraso:terraso pyproject.toml uv.lock /app/
 COPY --chown=terraso:terraso Makefile /app
 
 USER terraso
 
 RUN uv venv /home/terraso/venv
 ENV VIRTUAL_ENV=/home/terraso/venv
+ENV UV_PROJECT_ENVIRONMENT=/home/terraso/venv
 ENV PATH="/home/terraso/venv/bin:$PATH"
 
 RUN make install
