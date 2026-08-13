@@ -61,9 +61,9 @@ clean:
 createsuperuser: check_rebuild
 	$(DC_RUN_CMD) python terraso_backend/manage.py createsuperuser
 
-format: ${VIRTUAL_ENV}/scripts/ruff
-	ruff check terraso_backend --fix
-	ruff format terraso_backend
+format:
+	uv run --only-group lint ruff check terraso_backend --fix
+	uv run --only-group lint ruff format terraso_backend
 
 # DESTRUCTIVE - Only do this to your dev database
 # ARGS=--deletion_gap=0   to hard-delete all soft-deleted rows
@@ -71,10 +71,15 @@ harddelete: check_rebuild
 	$(DC_RUN_CMD) python terraso_backend/manage.py harddelete $(ARGS)
 
 install:
-	uv pip install -r requirements.txt $(UV_FLAGS)
+	uv sync --frozen --no-default-groups $(UV_FLAGS)
 
 install-dev:
-	uv pip install -r requirements-dev.txt $(UV_FLAGS)
+	uv sync --frozen --group dev $(UV_FLAGS)
+
+# Dev tools ONLY (no project deps) — used by CI host for the soil-data step;
+# deliberately avoids building fiona/gdal on the runner.
+install-dev-tools:
+	uv sync --frozen --only-group dev $(UV_FLAGS)
 
 lint: check_api_schema check_migrations
 ifeq ($(DC_ENV),ci)
@@ -87,16 +92,10 @@ else
 endif
 
 lock:
-	CUSTOM_COMPILE_COMMAND="make lock" uv pip compile --upgrade --generate-hashes --emit-build-options requirements/base.in requirements/deploy.in -o requirements.txt
+	uv lock --upgrade
 
 lock-package:
-	CUSTOM_COMPILE_COMMAND="make lock" uv pip compile --upgrade-package $(PACKAGE) --generate-hashes --emit-build-options requirements/base.in requirements/deploy.in -o requirements.txt
-
-lock-dev:
-	CUSTOM_COMPILE_COMMAND="make lock-dev" uv pip compile --upgrade --generate-hashes --emit-build-options requirements/dev.in -o requirements-dev.txt
-
-lock-package-dev:
-	CUSTOM_COMPILE_COMMAND="make lock-dev" uv pip compile --upgrade-package $(PACKAGE) --generate-hashes --emit-build-options requirements/dev.in  -o requirements-dev.txt
+	uv lock --upgrade-package $(PACKAGE)
 
 migrate: check_rebuild
 	$(DC_RUN_CMD) python terraso_backend/manage.py migrate --no-input $(APP_MIGRATION_NAME)
@@ -215,5 +214,3 @@ download-soil-data:
 	gdown 1v4I9edYf0ybls-vnfvmmLSPdDipmNSBS; \
 	gdown 1PYk-aWaWFyABzP0-stgTaFI0Vp8rV5IM \
 
-${VIRTUAL_ENV}/scripts/ruff:
-	uv pip install ruff
