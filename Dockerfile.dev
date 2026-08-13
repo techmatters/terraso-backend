@@ -1,6 +1,4 @@
 ARG BASE_IMAGE=techmatters/terraso_backend
 FROM ${BASE_IMAGE}
 
-COPY --chown=terraso:terraso requirements-dev.txt /app
-
 RUN make install-dev
