@@ -5,10 +5,10 @@ build_hash()
 {
     if [[ "$(uname -s)" == "Darwin" ]]; then
         # macOS support
-        md5 -r requirements/base.in requirements/deploy.in requirements/dev.in requirements.txt requirements-dev.txt > .rebuild
+        md5 -r pyproject.toml uv.lock > .rebuild
     else
         # Linux support
-        md5sum requirements/base.in requirements/deploy.in requirements/dev.in requirements.txt requirements-dev.txt > .rebuild
+        md5sum pyproject.toml uv.lock > .rebuild
     fi
 }
 
@@ -16,7 +16,7 @@ check_hash()
 {
     if [[ "$(uname -s)" == "Darwin" ]]; then
         # macOS support
-        md5 -r requirements/base.in requirements/deploy.in requirements/dev.in requirements.txt requirements-dev.txt | diff .rebuild - > /dev/null 2>&1
+        md5 -r pyproject.toml uv.lock | diff .rebuild - > /dev/null 2>&1
         echo $?
     else
         # Linux support
