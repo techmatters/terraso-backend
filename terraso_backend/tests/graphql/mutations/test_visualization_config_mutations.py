@@ -14,6 +14,7 @@
 # along with this program. If not, see https://www.gnu.org/licenses/.
 
 from unittest import mock
+from unittest.mock import patch
 
 import pytest
 
@@ -22,10 +23,11 @@ from apps.shared_data.models import VisualizationConfig
 pytestmark = pytest.mark.django_db
 
 
-@mock.patch("apps.graphql.schema.visualization_config.start_create_mapbox_tileset_task")
+@mock.patch("apps.graphql.schema.visualization_config.upload_geojson_to_s3_precreate")
 def test_visualization_config_add(
-    mock_create_tileset, client_query, groups, data_entries, data_entries_memberships
+    mock_upload_precreate, client_query, groups, data_entries, data_entries_memberships
 ):
+    mock_upload_precreate.return_value = "geojson/test-uuid/test-vc.geojson"
     group_id = str(groups[0].id)
     data_entry_id = str(data_entries[0].id)
     new_data = {
@@ -67,13 +69,14 @@ def test_visualization_config_add(
         "owner": {"id": group_id},
         "dataEntry": {"id": data_entry_id},
     }
-    mock_create_tileset.assert_called_once()
+    mock_upload_precreate.assert_called_once()
 
 
-@mock.patch("apps.graphql.schema.visualization_config.start_create_mapbox_tileset_task")
+@mock.patch("apps.graphql.schema.visualization_config.upload_geojson_to_s3_precreate")
 def test_visualization_config_add_works_for_duplicated_title(
-    mock_create_tileset, client_query, visualization_configs, data_entries
+    mock_upload_precreate, client_query, visualization_configs, data_entries
 ):
+    mock_upload_precreate.return_value = "geojson/test-uuid/test-vc.geojson"
     new_data = {
         "title": visualization_configs[0].title,
         "configuration": '{"key": "value"}',
@@ -103,12 +106,12 @@ def test_visualization_config_add_works_for_duplicated_title(
     assert result["title"] == visualization_configs[0].title
     assert result["readableId"] is not None
 
-    mock_create_tileset.assert_called_once()
+    mock_upload_precreate.assert_called_once()
 
 
-@mock.patch("apps.graphql.schema.visualization_config.start_create_mapbox_tileset_task")
+@mock.patch("apps.graphql.schema.visualization_config.upload_geojson_to_s3")
 def test_visualization_config_update_by_creator_works(
-    mock_create_tileset, client_query, visualization_configs
+    mock_upload_geojson, client_query, visualization_configs
 ):
     old_visualization_config = visualization_configs[0]
 
@@ -132,12 +135,12 @@ def test_visualization_config_update_by_creator_works(
     result = response.json()["data"]["updateVisualizationConfig"]["visualizationConfig"]
 
     assert result == new_data
-    mock_create_tileset.assert_called_once()
+    mock_upload_geojson.assert_called_once()
 
 
-@mock.patch("apps.graphql.schema.visualization_config.start_create_mapbox_tileset_task")
+@mock.patch("apps.graphql.schema.visualization_config.upload_geojson_to_s3")
 def test_visualization_config_update_by_non_creator_fails_due_permission_check(
-    mock_create_tileset, client_query, visualization_configs, users
+    mock_upload_geojson, client_query, visualization_configs, users
 ):
     old_visualization_config = visualization_configs[0]
 
@@ -170,12 +173,12 @@ def test_visualization_config_update_by_non_creator_fails_due_permission_check(
         "update_not_allowed"
         in response["data"]["updateVisualizationConfig"]["errors"][0]["message"]
     )
-    mock_create_tileset.assert_not_called()
+    mock_upload_geojson.assert_not_called()
 
 
-@mock.patch("apps.graphql.schema.visualization_config.start_remove_mapbox_tileset_task")
+@patch("apps.graphql.schema.visualization_config.geojson_upload_service.delete_file")
 def test_visualization_config_delete_by_creator_works(
-    mock_remove_tileset, client_query, visualization_configs
+    mock_delete_file, client_query, visualization_configs
 ):
     old_visualization_config = visualization_configs[0]
 
@@ -199,12 +202,15 @@ def test_visualization_config_delete_by_creator_works(
 
     assert visualization_config_result["configuration"] == old_visualization_config.configuration
     assert not VisualizationConfig.objects.filter(id=old_visualization_config.id)
-    mock_remove_tileset.assert_called_once()
+    # Verify S3 cleanup was called
+    if old_visualization_config.geojson_s3_key:
+        mock_delete_file.assert_called_once_with(old_visualization_config.geojson_s3_key)
+    else:
+        mock_delete_file.assert_not_called()
 
 
-@mock.patch("apps.graphql.schema.visualization_config.start_remove_mapbox_tileset_task")
 def test_visualization_config_delete_by_non_creator_fails_due_permission_check(
-    mock_remove_tileset, client_query, visualization_configs, users
+    client_query, visualization_configs, users
 ):
     old_visualization_config = visualization_configs[0]
 
@@ -234,13 +240,13 @@ def test_visualization_config_delete_by_non_creator_fails_due_permission_check(
         "delete_not_allowed"
         in response["data"]["deleteVisualizationConfig"]["errors"][0]["message"]
     )
-    mock_remove_tileset.assert_not_called()
 
 
-@mock.patch("apps.graphql.schema.visualization_config.start_create_mapbox_tileset_task")
+@mock.patch("apps.graphql.schema.visualization_config.upload_geojson_to_s3_precreate")
 def test_visualization_config_add_with_story_map_owner(
-    mock_create_tileset, client_query, story_maps, story_map_data_entry
+    mock_upload_precreate, client_query, story_maps, story_map_data_entry
 ):
+    mock_upload_precreate.return_value = "geojson/test-uuid/test-vc.geojson"
     story_map = story_maps[0]
     story_map_id = str(story_map.id)
     data_entry_id = str(story_map_data_entry.id)
@@ -284,13 +290,13 @@ def test_visualization_config_add_with_story_map_owner(
     assert result["configuration"] == '{"key": "value"}'
     assert result["owner"]["id"] == story_map_id
     assert result["owner"]["title"] == story_map.title
-    assert result["dataEntry"]["id"] == data_entry_id
-    mock_create_tileset.assert_called_once()
+    assert result["dataEntry"]["id"] == str(story_map_data_entry.id)
+    mock_upload_precreate.assert_called_once()
 
 
-@mock.patch("apps.graphql.schema.visualization_config.start_create_mapbox_tileset_task")
+@mock.patch("apps.graphql.schema.visualization_config.upload_geojson_to_s3_precreate")
 def test_visualization_config_add_fails_with_invalid_story_map(
-    mock_create_tileset, client_query, data_entries, users
+    mock_upload_precreate, client_query, data_entries, users
 ):
     invalid_story_map_id = "00000000-0000-0000-0000-000000000000"
     data_entry_id = str(data_entries[0].id)
@@ -320,4 +326,43 @@ def test_visualization_config_add_fails_with_invalid_story_map(
 
     assert "errors" in response["data"]["addVisualizationConfig"]
     assert response["data"]["addVisualizationConfig"]["visualizationConfig"] is None
-    mock_create_tileset.assert_not_called()
+    mock_upload_precreate.assert_not_called()
+
+
+@patch("apps.graphql.schema.visualization_config.upload_geojson_to_s3_precreate")
+def test_visualization_config_add_s3_failure_no_zombie(
+    mock_upload_precreate, client_query, groups, data_entries, data_entries_memberships
+):
+    """When S3 upload fails, no VC row is created."""
+    mock_upload_precreate.side_effect = Exception("S3 timeout")
+
+    group_id = str(groups[0].id)
+    data_entry_id = str(data_entries[0].id)
+    new_data = {
+        "title": "Test title",
+        "configuration": '{"key": "value"}',
+        "ownerId": group_id,
+        "ownerType": "group",
+        "dataEntryId": data_entry_id,
+    }
+
+    response = client_query(
+        """
+        mutation addVisualizationConfig($input: VisualizationConfigAddMutationInput!) {
+          addVisualizationConfig(input: $input) {
+            visualizationConfig {
+              id
+            }
+            errors
+          }
+        }
+        """,
+        variables={"input": new_data},
+    )
+
+    json_response = response.json()
+    # Should have errors and no VC data
+    assert json_response["data"]["addVisualizationConfig"]["visualizationConfig"] is None
+    assert json_response["data"]["addVisualizationConfig"]["errors"] is not None
+    # No VC should exist in DB
+    assert VisualizationConfig.objects.count() == 0

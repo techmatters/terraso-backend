@@ -54,6 +54,7 @@ class VisualizationConfig(SlugModel):
     mapbox_tileset_status = models.CharField(
         max_length=128, choices=MAPBOX_TILESET_STATUSES, default=MAPBOX_TILESET_PENDING
     )
+    geojson_s3_key = models.CharField(max_length=512, blank=True, null=True)
     data_entry = models.ForeignKey(
         DataEntry, on_delete=models.CASCADE, related_name="visualizations"
     )

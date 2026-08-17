@@ -23,7 +23,7 @@ from graphene_django import DjangoObjectType
 
 from apps.graphql.exceptions import GraphQLNotAllowedException
 from apps.story_map.models.story_maps import StoryMap
-from apps.story_map.services import story_map_media_upload_service
+from apps.story_map.views import refresh_story_map_config_urls
 
 from .commons import BaseDeleteMutation, TerrasoConnection
 from .constants import MutationTypes
@@ -41,18 +41,8 @@ def _resolve_configuration(story_map, info, field):
         return None
 
     config = getattr(story_map, field)
-    if "chapters" in config:
-        for chapter in getattr(story_map, field)["chapters"]:
-            media = chapter.get("media")
-            if media and "url" in media and media["type"].startswith(("image", "audio", "video")):
-                signed_url = story_map_media_upload_service.get_signed_url(media["url"])
-                chapter["media"]["signedUrl"] = signed_url
 
-    if "featuredImage" in config:
-        featured_image = config["featuredImage"]
-        if featured_image and "url" in featured_image:
-            signed_url = story_map_media_upload_service.get_signed_url(featured_image["url"])
-            config["featuredImage"]["signedUrl"] = signed_url
+    refresh_story_map_config_urls(config)
 
     return config
 

@@ -25,18 +25,18 @@ from graphene import relay
 from graphene_django import DjangoObjectType
 
 from apps.collaboration.models import Membership as CollaborationMembership
-from apps.core.gis.mapbox import get_publish_status
 from apps.core.models import Group, Landscape, SharedResource
 from apps.graphql.exceptions import GraphQLNotAllowedException
 from apps.graphql.schema.data_entries import DataEntryNode
 from apps.graphql.schema.story_maps import StoryMapNode
+from apps.shared_data.geojson_upload import (
+    get_geojson_from_data_entry,
+    upload_geojson_to_s3,
+    upload_geojson_to_s3_precreate,
+)
 from apps.shared_data.models.data_entries import DataEntry
 from apps.shared_data.models.visualization_config import VisualizationConfig
-from apps.shared_data.visualization_tileset_tasks import (
-    get_geojson_from_data_entry,
-    start_create_mapbox_tileset_task,
-    start_remove_mapbox_tileset_task,
-)
+from apps.shared_data.services import geojson_upload_service
 from apps.story_map.models.story_maps import StoryMap
 
 from ..exceptions import GraphQLNotFoundException
@@ -100,6 +100,7 @@ class VisualizationConfigNode(DjangoObjectType):
     owner = graphene.Field(OwnerNode)
     data_entry = graphene.Field(DataEntryNode)
     geojson = graphene.JSONString()
+    geojson_signed_url = graphene.String()
 
     class Meta:
         model = VisualizationConfig
@@ -114,6 +115,7 @@ class VisualizationConfigNode(DjangoObjectType):
             "created_at",
             "mapbox_tileset_id",
             "mapbox_tileset_status",
+            "geojson_signed_url",
         )
         interfaces = (relay.Node,)
         filterset_class = VisualizationConfigFilterSet
@@ -185,21 +187,11 @@ class VisualizationConfigNode(DjangoObjectType):
         return self.data_entry
 
     def resolve_mapbox_tileset_id(self, info):
-        if self.mapbox_tileset_id is None:
-            return None
-        if self.mapbox_tileset_status == VisualizationConfig.MAPBOX_TILESET_READY:
-            return self.mapbox_tileset_id
-
-        # Check if tileset ready to be published and update status
-        if self.mapbox_tileset_id:
-            published = get_publish_status(self.mapbox_tileset_id)
-            if published:
-                self.mapbox_tileset_status = VisualizationConfig.MAPBOX_TILESET_READY
-                self.save()
-
         return self.mapbox_tileset_id
 
     def resolve_geojson(self, info):
+        if self.geojson_s3_key is not None:
+            return None
         if (
             self.mapbox_tileset_id is not None
             and self.mapbox_tileset_status == VisualizationConfig.MAPBOX_TILESET_READY
@@ -207,6 +199,11 @@ class VisualizationConfigNode(DjangoObjectType):
             return None
 
         return get_geojson_from_data_entry(self.data_entry, self)
+
+    def resolve_geojson_signed_url(self, info):
+        if not self.geojson_s3_key:
+            return None
+        return geojson_upload_service.get_signed_url(self.geojson_s3_key)
 
 
 class VisualizationConfigAddMutation(BaseWriteMutation):
@@ -225,6 +222,8 @@ class VisualizationConfigAddMutation(BaseWriteMutation):
     @classmethod
     @transaction.atomic
     def mutate_and_get_payload(cls, root, info, **kwargs):
+        import uuid
+
         user = info.context.user
 
         model_class = VisualizationConfig.get_target_model_class_from_type_name(
@@ -265,6 +264,11 @@ class VisualizationConfigAddMutation(BaseWriteMutation):
                 model_name=VisualizationConfig.__name__, operation=MutationTypes.CREATE
             )
 
+        # Upload GeoJSON to S3 first — VC is only created if S3 succeeds
+        vc_id = uuid.uuid4()
+        configuration = kwargs.get("configuration", "{}")
+        s3_key = upload_geojson_to_s3_precreate(vc_id, data_entry, configuration)
+
         kwargs["data_entry"] = data_entry
 
         if not cls.is_update(kwargs):
@@ -274,10 +278,11 @@ class VisualizationConfigAddMutation(BaseWriteMutation):
 
         kwargs["readable_id"] = secrets.token_hex(4)
 
-        result = super().mutate_and_get_payload(root, info, **kwargs)
+        # Build the VC instance with pre-generated ID and S3 key
+        vc_instance = VisualizationConfig(id=vc_id, geojson_s3_key=s3_key)
+        kwargs["model_instance"] = vc_instance
 
-        # Create mapbox tileset
-        start_create_mapbox_tileset_task(result.visualization_config.id)
+        result = super().mutate_and_get_payload(root, info, **kwargs)
 
         return cls(visualization_config=result.visualization_config)
 
@@ -307,8 +312,16 @@ class VisualizationConfigUpdateMutation(BaseWriteMutation):
 
         result = super().mutate_and_get_payload(root, info, **kwargs)
 
-        # Create mapbox tileset
-        start_create_mapbox_tileset_task(result.visualization_config.id)
+        # Upload geojson to S3 (synchronous) and refresh to get latest key
+        try:
+            upload_geojson_to_s3(result.visualization_config.id)
+            result.visualization_config.refresh_from_db()
+        except Exception:
+            logger.exception(
+                "Failed to upload geojson to S3 during VC update",
+                extra={"vc_id": str(result.visualization_config.id)},
+            )
+            raise
 
         return cls(visualization_config=result.visualization_config)
 
@@ -335,7 +348,14 @@ class VisualizationConfigDeleteMutation(BaseDeleteMutation):
                 model_name=VisualizationConfig.__name__, operation=MutationTypes.DELETE
             )
 
-        # Delete mapbox tileset
-        start_remove_mapbox_tileset_task(visualization_config.mapbox_tileset_id)
+        # Delete the S3 GeoJSON file if it exists (Fix #12)
+        if visualization_config.geojson_s3_key:
+            try:
+                geojson_upload_service.delete_file(visualization_config.geojson_s3_key)
+            except Exception as e:
+                logger.warning(
+                    "Failed to delete S3 file during VC deletion",
+                    extra={"key": visualization_config.geojson_s3_key, "error": str(e)},
+                )
 
         return super().mutate_and_get_payload(root, info, **kwargs)

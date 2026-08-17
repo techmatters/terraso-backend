@@ -258,7 +258,7 @@ def test_story_map_by_membership_email_not_filter(client_query, story_map_user_m
     assert len(story_maps_result) == 4
 
 
-@mock.patch("apps.graphql.schema.story_maps.story_map_media_upload_service.get_signed_url")
+@mock.patch("apps.story_map.services.story_map_media_upload_service.get_signed_url")
 def test_story_maps_published_media_signed_url(
     mocked_get_signed_url, client_query, story_maps, users
 ):

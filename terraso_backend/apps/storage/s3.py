@@ -17,5 +17,17 @@ from django.conf import settings
 from storages.backends.s3boto3 import S3Boto3Storage
 
 
-class ProfileImageStorage(S3Boto3Storage):
+class TerrasoFileStorage(S3Boto3Storage):
+    """
+    Base for all Terraso S3 storage backends that serve user data.
+
+    Explicitly sets custom_domain=None so signed URLs use the regional
+    S3 endpoint instead of inheriting AWS_S3_CUSTOM_DOMAIN (which is
+    set globally for the static files CDN and does not serve user data).
+    """
+
+    custom_domain = None
+
+
+class ProfileImageStorage(TerrasoFileStorage):
     bucket_name = settings.PROFILE_IMAGES_S3_BUCKET
