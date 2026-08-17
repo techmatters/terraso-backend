@@ -30,6 +30,8 @@ from django.views.generic.edit import FormView
 
 from apps.auth.mixins import AuthenticationRequiredMixin
 from apps.core.exceptions import ErrorContext, ErrorMessage
+from apps.shared_data.models.visualization_config import VisualizationConfig
+from apps.shared_data.services import geojson_upload_service
 from apps.storage.file_utils import is_file_upload_oversized
 
 from .forms import StoryMapForm
@@ -37,6 +39,45 @@ from .models import StoryMap
 from .services import story_map_media_upload_service
 
 logger = structlog.get_logger(__name__)
+
+
+def refresh_story_map_config_urls(config):
+    if "chapters" in config:
+        for chapter in config["chapters"]:
+            media = chapter.get("media")
+            if media and "url" in media and media["type"].startswith(("image", "audio", "video")):
+                signed_url = story_map_media_upload_service.get_signed_url(media["url"])
+                chapter["media"]["signedUrl"] = signed_url
+
+    if "featuredImage" in config:
+        featured_image = config["featuredImage"]
+        if featured_image and "url" in featured_image:
+            signed_url = story_map_media_upload_service.get_signed_url(featured_image["url"])
+            config["featuredImage"]["signedUrl"] = signed_url
+
+    if "dataLayers" in config:
+        data_layers = config["dataLayers"]
+        layer_ids = [
+            layer.get("id")
+            for layer in data_layers.values()
+            if isinstance(layer, dict) and layer.get("id")
+        ]
+        if layer_ids:
+            vcs = {
+                str(vc.id): vc
+                for vc in VisualizationConfig.objects.filter(id__in=layer_ids).only(
+                    "id", "geojson_s3_key"
+                )
+            }
+            for layer_id, layer in data_layers.items():
+                if isinstance(layer, dict) and layer.get("id"):
+                    vc = vcs.get(str(layer["id"]))
+                    if vc and vc.geojson_s3_key:
+                        layer["geojsonSignedUrl"] = geojson_upload_service.get_signed_url(
+                            vc.geojson_s3_key
+                        )
+
+    return config
 
 
 class StoryMapAddView(AuthenticationRequiredMixin, FormView):
@@ -154,43 +195,7 @@ class StoryMapUpdateView(AuthenticationRequiredMixin, FormView):
         except IntegrityError as exc:
             return handle_integrity_error(exc)
 
-        for chapter in story_map.configuration["chapters"]:
-            media = chapter.get("media")
-            if media and "url" in media and media["type"].startswith(("image", "audio", "video")):
-                signed_url = story_map_media_upload_service.get_signed_url(media["url"])
-                chapter["media"]["signedUrl"] = signed_url
-
-        if story_map.configuration.get("featuredImage"):
-            featured_image = story_map.configuration["featuredImage"]
-            if "url" in featured_image:
-                signed_url = story_map_media_upload_service.get_signed_url(featured_image["url"])
-                story_map.configuration["featuredImage"]["signedUrl"] = signed_url
-
-        # Inject fresh geojsonSignedUrl for data layers
-        if "dataLayers" in story_map.configuration:
-            data_layers = story_map.configuration["dataLayers"]
-            layer_ids = [
-                layer.get("id")
-                for layer in data_layers.values()
-                if isinstance(layer, dict) and layer.get("id")
-            ]
-            if layer_ids:
-                from apps.shared_data.models.visualization_config import VisualizationConfig
-                from apps.shared_data.services import geojson_upload_service
-
-                vcs = {
-                    str(vc.id): vc
-                    for vc in VisualizationConfig.objects.filter(id__in=layer_ids).only(
-                        "id", "geojson_s3_key"
-                    )
-                }
-                for layer_id, layer in data_layers.items():
-                    if isinstance(layer, dict) and layer.get("id"):
-                        vc = vcs.get(str(layer["id"]))
-                        if vc and vc.geojson_s3_key:
-                            layer["geojsonSignedUrl"] = geojson_upload_service.get_signed_url(
-                                vc.geojson_s3_key
-                            )
+        refresh_story_map_config_urls(story_map.configuration)
 
         return JsonResponse(story_map.to_dict(), status=201)
 

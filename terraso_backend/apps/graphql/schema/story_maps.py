@@ -23,7 +23,7 @@ from graphene_django import DjangoObjectType
 
 from apps.graphql.exceptions import GraphQLNotAllowedException
 from apps.story_map.models.story_maps import StoryMap
-from apps.story_map.services import story_map_media_upload_service
+from apps.story_map.views import refresh_story_map_config_urls
 
 from .commons import BaseDeleteMutation, TerrasoConnection
 from .constants import MutationTypes
@@ -41,43 +41,8 @@ def _resolve_configuration(story_map, info, field):
         return None
 
     config = getattr(story_map, field)
-    if "chapters" in config:
-        for chapter in getattr(story_map, field)["chapters"]:
-            media = chapter.get("media")
-            if media and "url" in media and media["type"].startswith(("image", "audio", "video")):
-                signed_url = story_map_media_upload_service.get_signed_url(media["url"])
-                chapter["media"]["signedUrl"] = signed_url
 
-    if "featuredImage" in config:
-        featured_image = config["featuredImage"]
-        if featured_image and "url" in featured_image:
-            signed_url = story_map_media_upload_service.get_signed_url(featured_image["url"])
-            config["featuredImage"]["signedUrl"] = signed_url
-
-    if "dataLayers" in config:
-        data_layers = config["dataLayers"]
-        layer_ids = [
-            layer.get("id")
-            for layer in data_layers.values()
-            if isinstance(layer, dict) and layer.get("id")
-        ]
-        if layer_ids:
-            from apps.shared_data.models.visualization_config import VisualizationConfig
-            from apps.shared_data.services import geojson_upload_service
-
-            vcs = {
-                str(vc.id): vc
-                for vc in VisualizationConfig.objects.filter(id__in=layer_ids).only(
-                    "id", "geojson_s3_key"
-                )
-            }
-            for layer_id, layer in data_layers.items():
-                if isinstance(layer, dict) and layer.get("id"):
-                    vc = vcs.get(str(layer["id"]))
-                    if vc and vc.geojson_s3_key:
-                        layer["geojsonSignedUrl"] = geojson_upload_service.get_signed_url(
-                            vc.geojson_s3_key
-                        )
+    refresh_story_map_config_urls(config)
 
     return config
 
