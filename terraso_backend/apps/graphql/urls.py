@@ -13,7 +13,6 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see https://www.gnu.org/licenses/.
 
-from django.conf import settings
 from django.urls import path
 from django.views.decorators.csrf import csrf_exempt
 
@@ -25,11 +24,5 @@ app_name = "apps.graphql"
 
 urlpatterns = [
     path("docs", TerrasoGraphQLDocs.as_view()),
+    path("", csrf_exempt(auth_optional(TerrasoGraphQLView.as_view(graphiql=True)))),
 ]
-
-if settings.DEBUG:
-    urlpatterns.append(
-        path("", csrf_exempt(auth_optional(TerrasoGraphQLView.as_view(graphiql=True))))
-    )
-else:
-    urlpatterns.append(path("", csrf_exempt(auth_optional(TerrasoGraphQLView.as_view()))))
