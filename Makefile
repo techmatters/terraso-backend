@@ -195,25 +195,25 @@ bash:
 # They're stored in Google Drive here: https://drive.google.com/drive/folders/1s1jNPyYCHy7FfWAhqmOBDliklzvfnKO_
 # We'd like to remove the need for this step, which is tracked upstream here: https://github.com/techmatters/soil-id-algorithm/issues/51
 # List of files:
-#   1tN23iVe6X1fcomcfveVp4w3Pwd0HJuTe: LandPKS_munsell_rgb_lab.csv
-#   1WUa9e3vTWPi6G8h4OI3CBUZP5y7tf1Li: gsmsoilmu_a_us.shx
-#   1l9MxC0xENGmI_NmGlBY74EtlD6SZid_a: gsmsoilmu_a_us.shp
-#   1asGnnqe0zI2v8xuOszlsNmZkOSl7cJ2n: gsmsoilmu_a_us.sbx
-#   185Qjb9pJJn4AzOissiTz283tINrDqgI0: gsmsoilmu_a_us.sbn
-#   1P3xl1YRlfcMjfO_4PM39tkrrlL3hoLzv: gsmsoilmu_a_us.prj
-#   1K0GkqxhZiVUND6yfFmaI7tYanLktekyp: gsmsoilmu_a_us.dbf
-#   1z7foFFHv_mTsuxMYnfOQRvXT5LKYlYFN: SoilID_US_Areas.shz
+#   1HpJK681LAbCkJE_Wqyb1ayP4Gb46zULD: LandPKS_munsell_rgb_lab.csv
+#   1HWg2-PEvdeltf72XMeM_pc9TJWGJvyAV: gsmsoilmu_a_us.shx
+#   1MoR5E3InvVNcMERvyMBK47iN3Imgx3TJ: gsmsoilmu_a_us.shp
+#   1qBC624vGRIV5yht1itAPpifI9bU4ix_q: gsmsoilmu_a_us.sbx
+#   1krQl5g5-UjmAuiBtv6aE1k49GHbvt8hQ: gsmsoilmu_a_us.sbn
+#   1Vm0_0uw_QSszj6OEinmF5QyGNAJZp2zt: gsmsoilmu_a_us.prj
+#   1v4I9edYf0ybls-vnfvmmLSPdDipmNSBS: gsmsoilmu_a_us.dbf
+#   1PYk-aWaWFyABzP0-stgTaFI0Vp8rV5IM: SoilID_US_Areas.shz
 download-soil-data:
 	mkdir -p Data
 	cd Data; \
-	gdown 1tN23iVe6X1fcomcfveVp4w3Pwd0HJuTe; \
-	gdown 1WUa9e3vTWPi6G8h4OI3CBUZP5y7tf1Li; \
-	gdown 1l9MxC0xENGmI_NmGlBY74EtlD6SZid_a; \
-	gdown 1asGnnqe0zI2v8xuOszlsNmZkOSl7cJ2n; \
-	gdown 185Qjb9pJJn4AzOissiTz283tINrDqgI0; \
-	gdown 1P3xl1YRlfcMjfO_4PM39tkrrlL3hoLzv; \
-	gdown 1K0GkqxhZiVUND6yfFmaI7tYanLktekyp; \
-	gdown 1z7foFFHv_mTsuxMYnfOQRvXT5LKYlYFN \
+	gdown 1HpJK681LAbCkJE_Wqyb1ayP4Gb46zULD; \
+	gdown 1HWg2-PEvdeltf72XMeM_pc9TJWGJvyAV; \
+	gdown 1MoR5E3InvVNcMERvyMBK47iN3Imgx3TJ; \
+	gdown 1qBC624vGRIV5yht1itAPpifI9bU4ix_q; \
+	gdown 1krQl5g5-UjmAuiBtv6aE1k49GHbvt8hQ; \
+	gdown 1Vm0_0uw_QSszj6OEinmF5QyGNAJZp2zt; \
+	gdown 1v4I9edYf0ybls-vnfvmmLSPdDipmNSBS; \
+	gdown 1PYk-aWaWFyABzP0-stgTaFI0Vp8rV5IM \
 
 ${VIRTUAL_ENV}/scripts/ruff:
 	uv pip install ruff
