@@ -16,12 +16,18 @@ repos:
     hooks:
     -   id: pre-commit-update
 
--   repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.15.22
+-   repo: local
     hooks:
     -   id: ruff-check
-        args: [--fix]
+        name: ruff check
+        entry: uv run --only-group lint ruff check --fix
+        language: system
+        types: [python]
     -   id: ruff-format
+        name: ruff format
+        entry: uv run --only-group lint ruff format
+        language: system
+        types: [python]
 
 -   repo: https://github.com/compilerla/conventional-pre-commit
     rev: v4.4.0
