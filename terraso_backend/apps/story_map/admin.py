@@ -13,38 +13,25 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see https://www.gnu.org/licenses/.
 
-from urllib.parse import unquote, urlparse
+from urllib.parse import urlparse
 
 from django import forms
 from django.conf import settings
-from django.contrib import admin
+from django.contrib import admin, messages
+from django.core.exceptions import PermissionDenied, ValidationError
+from django.http import HttpResponseRedirect
+from django.template.response import TemplateResponse
+from django.urls import path, reverse
 from django.utils.html import format_html
 from safedelete.admin import SafeDeleteAdmin, SafeDeleteAdminFilter, highlight_deleted
 
+from .import_service import extract_story_map_lookup, import_story_map
 from .models import StoryMap
 
-
-def _extract_story_map_lookup(search_term):
-    normalized_search_term = unquote(search_term.strip())
-    if not normalized_search_term:
-        return None
-
-    parsed_url = urlparse(normalized_search_term)
-    candidate_path = (
-        parsed_url.path if parsed_url.scheme or parsed_url.netloc else normalized_search_term
-    )
-    path_segments = [segment for segment in candidate_path.split("/") if segment]
-
-    if "story-maps" in path_segments:
-        story_maps_index = path_segments.index("story-maps")
-        path_segments = path_segments[story_maps_index + 1 :]
-
-    if not path_segments:
-        return None
-
-    story_map_id = path_segments[0]
-    slug = path_segments[1] if len(path_segments) > 1 else None
-    return story_map_id, slug
+STORY_MAP_URL_HELP_TEXT = (
+    "e.g. https://app.terraso.org/tools/story-maps/<id>/<slug> — the story map must be "
+    "published in the source environment"
+)
 
 
 def _get_story_map_web_client_url(story_map, *, embed=False):
@@ -74,8 +61,25 @@ class CustomStoryMapForm(forms.ModelForm):
             membership_list_field.required = False
 
 
+class StoryMapImportForm(forms.Form):
+    story_map_url = forms.URLField(
+        label="Story map URL",
+        help_text=STORY_MAP_URL_HELP_TEXT,
+    )
+    source_api_base_url = forms.URLField(
+        label="Source backend base URL",
+        initial="https://api.terraso.org",
+        help_text="Base URL of the source environment's backend API",
+    )
+    owner_email = forms.EmailField(
+        label="New owner email",
+        help_text="Existing user in this environment who will own the imported story map",
+    )
+
+
 @admin.register(StoryMap)
 class StoryMapAdmin(SafeDeleteAdmin):
+    change_list_template = "admin/story_map/storymap/change_list.html"
     config_readonly_fields = ("configuration", "published_configuration")
     readonly_fields = ("web_client_preview",)
     list_display = (
@@ -129,6 +133,53 @@ class StoryMapAdmin(SafeDeleteAdmin):
             embed_url=embed_url,
         )
 
+    def get_urls(self):
+        urls = super().get_urls()
+        import_urls = [
+            path(
+                "import/",
+                self.admin_site.admin_view(self.import_view),
+                name="story_map_storymap_import",
+            ),
+        ]
+        return import_urls + urls
+
+    def import_view(self, request):
+        if not request.user.has_perm(self.model.get_perm("change")):
+            raise PermissionDenied
+
+        form = StoryMapImportForm(request.POST or None)
+
+        if request.method == "POST" and form.is_valid():
+            try:
+                story_map, warnings = import_story_map(
+                    story_map_url=form.cleaned_data["story_map_url"],
+                    source_api_base_url=form.cleaned_data["source_api_base_url"],
+                    owner_email=form.cleaned_data["owner_email"],
+                )
+            except ValidationError as exc:
+                message_dict = getattr(exc, "message_dict", None) or {None: exc.messages}
+                for field, field_errors in message_dict.items():
+                    form.add_error(field if field in form.fields else None, field_errors)
+            else:
+                for warning in warnings:
+                    messages.warning(request, warning)
+                messages.success(
+                    request,
+                    f"Imported story map '{story_map.title}' (owned by {story_map.created_by.email}).",
+                )
+                return HttpResponseRedirect(
+                    reverse("admin:story_map_storymap_change", args=[story_map.pk])
+                )
+
+        context = {
+            **self.admin_site.each_context(request),
+            "title": "Import story map",
+            "form": form,
+            "opts": self.model._meta,
+        }
+        return TemplateResponse(request, "admin/story_map/storymap/import_form.html", context)
+
     def get_fields(self, request, obj=None):
         fields = list(super().get_fields(request, obj))
         if obj is None or not obj.is_published:
@@ -147,7 +198,7 @@ class StoryMapAdmin(SafeDeleteAdmin):
         filtered_queryset = queryset
         queryset, use_distinct = super().get_search_results(request, queryset, search_term)
 
-        story_map_lookup = _extract_story_map_lookup(search_term)
+        story_map_lookup = extract_story_map_lookup(search_term)
         if not story_map_lookup:
             return queryset, use_distinct
 
