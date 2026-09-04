@@ -15,8 +15,10 @@
 
 from django.conf import settings
 
-from apps.storage.s3 import TerrasoFileStorage
+from apps.storage.s3 import ExactKeyWriteStorageMixin, GzipStorageMixin, TerrasoFileStorage
 from apps.storage.services import UploadService
+
+GEOJSON_CONTENT_TYPE = "application/geo+json"
 
 
 class DataEntryFileStorage(TerrasoFileStorage):
@@ -31,9 +33,14 @@ class DataEntryUploadService(UploadService):
 data_entry_upload_service = DataEntryUploadService()
 
 
-class GeoJsonFileStorage(TerrasoFileStorage):
+class GeoJsonFileStorage(GzipStorageMixin, ExactKeyWriteStorageMixin, TerrasoFileStorage):
     bucket_name = settings.DATA_ENTRY_FILE_S3_BUCKET
     querystring_expire = 86400  # 24-hour signed URL expiry
+
+    def _get_write_parameters(self, name, content=None):
+        params = super()._get_write_parameters(name, content)
+        params["ContentType"] = GEOJSON_CONTENT_TYPE
+        return params
 
 
 class GeoJsonUploadService(UploadService):

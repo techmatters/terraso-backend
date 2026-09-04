@@ -13,8 +13,16 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see https://www.gnu.org/licenses/.
 
+import gzip
+
 from django.conf import settings
+from django.core.files.base import ContentFile
 from storages.backends.s3boto3 import S3Boto3Storage
+
+# gzip level for compressed objects, pinned below gzip's default of 9
+# as levels beyond 6 can start taking seconds of CPU time for very
+# little compression gains
+GZIP_COMPRESS_LEVEL = 6
 
 
 class TerrasoFileStorage(S3Boto3Storage):
@@ -27,6 +35,41 @@ class TerrasoFileStorage(S3Boto3Storage):
     """
 
     custom_domain = None
+
+
+class GzipStorageMixin:
+    """Gzip-compresses every object the storage writes."""
+
+    def _gzip_content(self, content):
+        if content.seekable():
+            content.seek(0)
+        # mtime=0 keeps the output deterministic: identical input produces
+        # identical bytes (good for caching).
+        return ContentFile(
+            gzip.compress(content.read(), compresslevel=GZIP_COMPRESS_LEVEL, mtime=0)
+        )
+
+    def _save(self, name, content):
+        return super()._save(name, self._gzip_content(content))
+
+    def _get_write_parameters(self, name, content=None):
+        params = super()._get_write_parameters(name, content)
+        params["ContentEncoding"] = "gzip"
+        return params
+
+
+class ExactKeyWriteStorageMixin:
+    """Adds ``overwrite()``, a write that keeps the exact key it was given.
+
+    TEMPORARY CODE: its only caller is the ``compress_existing_geojson``
+    backfill command, which runs once per bucket. Delete this mixin together
+    with that command once the backfill has run in production -- nothing else
+    here is expected to outlive it.
+    """
+
+    def overwrite(self, name, content):
+        """Write ``content`` to exactly ``name``, even if that key already exists."""
+        return self._save(name, content)
 
 
 class ProfileImageStorage(TerrasoFileStorage):
