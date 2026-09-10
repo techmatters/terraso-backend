@@ -15,11 +15,13 @@
 
 
 import graphene
+from graphene.types.generic import GenericScalar
 
 from apps.graphql.exceptions import GraphQLNotAllowedException
 from apps.soil_id.graphql.soil_id.resolvers import (
     resolve_data_based_result,
     resolve_elevation,
+    resolve_soil_id_explanation,
     resolve_soil_id_result,
 )
 from apps.soil_id.graphql.soil_id.types import DataBasedResult, SoilIdInputData, SoilIdResult
@@ -53,6 +55,21 @@ class SoilId(graphene.ObjectType):
         description=(
             "Point elevation in meters (Mapbox Terrain-RGB), or null if unavailable. "
             "Same source as the soil-ID ranking's server-side elevation fallback."
+        ),
+    )
+
+    soil_id_explanation = graphene.Field(
+        GenericScalar,
+        latitude=graphene.Float(required=True),
+        longitude=graphene.Float(required=True),
+        data=graphene.Argument(SoilIdInputData),
+        resolver=resolve_soil_id_explanation,
+        description=(
+            "Full scoring trace (JSON) for the ranking at this location: how each "
+            "candidate's location / horizon / site / color score was computed. Feeds "
+            "the offline explain report (scripts/render_soil_explain.py in "
+            "soil-id-algorithm). Null when unavailable (algorithm failure, no data, "
+            "or a soil-id build without explain support)."
         ),
     )
 
