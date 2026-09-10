@@ -1,8 +1,10 @@
 import copy
+from unittest import mock
 
 import pytest
 
 from apps.soil_id.graphql.soil_data.queries import DepthDependentSoilDataNode, SoilDataNode
+from apps.soil_id.graphql.soil_id import resolvers
 from apps.soil_id.graphql.soil_id.resolvers import (
     parse_rock_fragment_volume,
     parse_surface_cracks,
@@ -12,6 +14,7 @@ from apps.soil_id.graphql.soil_id.resolvers import (
     resolve_land_capability_class,
     resolve_rock_fragment_volume,
     resolve_soil_data,
+    resolve_soil_id_explanation,
     resolve_soil_info,
     resolve_soil_match,
     resolve_soil_match_info,
@@ -493,3 +496,64 @@ def test_parse_surface_cracks():
     assert parse_surface_cracks(SoilData.SurfaceCracks.NO_CRACKING) is False
     assert parse_surface_cracks(SoilData.SurfaceCracks.SURFACE_CRACKING_ONLY) is False
     assert parse_surface_cracks(SoilData.SurfaceCracks.DEEP_VERTICAL_CRACKS) is True
+
+
+class _DummyRecorder:
+    """Stand-in for soil_id.explain.Recorder (the pinned soil-id build may not
+    ship it yet); the resolver only constructs and forwards it."""
+
+
+def test_resolve_soil_id_explanation_global():
+    fake_trace = {"version": "1", "region": "GLOBAL", "candidates": []}
+    with (
+        mock.patch.object(resolvers, "_Recorder", _DummyRecorder),
+        mock.patch.object(
+            resolvers,
+            "get_list_soils_output",
+            return_value=(SoilIdCache.DataRegion.GLOBAL, mock.MagicMock()),
+        ),
+        mock.patch.object(resolvers, "soil_id_database_connection", return_value=mock.MagicMock()),
+        mock.patch.object(
+            resolvers.global_soil,
+            "rank_soils_global",
+            return_value={"explanation": fake_trace, "other": "ignored"},
+        ) as rank,
+    ):
+        result = resolve_soil_id_explanation(None, None, latitude=0.14, longitude=35.9, data=None)
+
+    assert result == fake_trace
+    # the explain Recorder was forwarded to the algorithm
+    assert isinstance(rank.call_args.kwargs["explain"], _DummyRecorder)
+
+
+def test_resolve_soil_id_explanation_us_forwards_recorder():
+    fake_trace = {"version": "1", "region": "US"}
+    with (
+        mock.patch.object(resolvers, "_Recorder", _DummyRecorder),
+        mock.patch.object(
+            resolvers,
+            "get_list_soils_output",
+            return_value=(SoilIdCache.DataRegion.US, mock.MagicMock()),
+        ),
+        mock.patch.object(
+            resolvers.us_soil, "rank_soils", return_value={"explanation": fake_trace}
+        ) as rank,
+    ):
+        result = resolve_soil_id_explanation(None, None, latitude=33.8, longitude=-101.9)
+
+    assert result == fake_trace
+    assert isinstance(rank.call_args.kwargs["explain"], _DummyRecorder)
+
+
+def test_resolve_soil_id_explanation_none_without_explain_support():
+    # A pinned soil-id build that predates the explain layer -> field is null.
+    with mock.patch.object(resolvers, "_Recorder", None):
+        assert resolve_soil_id_explanation(None, None, latitude=0.0, longitude=0.0) is None
+
+
+def test_resolve_soil_id_explanation_none_on_unavailable_location():
+    with (
+        mock.patch.object(resolvers, "_Recorder", _DummyRecorder),
+        mock.patch.object(resolvers, "get_list_soils_output", return_value="Data_unavailable"),
+    ):
+        assert resolve_soil_id_explanation(None, None, latitude=0.0, longitude=0.0) is None
