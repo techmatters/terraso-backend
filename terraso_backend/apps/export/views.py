@@ -100,6 +100,18 @@ def _flatten_soil_id(soil_id_data):
     return soil_matches
 
 
+def _pop_explanation(soil_id_data):
+    """Extract and remove the scoring trace from a raw fetch_soil_id result.
+
+    Removing it here keeps the remaining soil_id data clean for flattening/output,
+    and lets the trace be re-attached verbatim (bypassing null-stripping) later.
+    Returns the trace dict, or None if absent.
+    """
+    if not isinstance(soil_id_data, dict):
+        return None
+    return soil_id_data.get("soilId", {}).pop("soilIdExplanation", None)
+
+
 def _inject_user_ratings_into_matches(soil_id_data, user_ratings):
     """
     Inject user ratings into soil matches based on soil series name.
@@ -137,6 +149,17 @@ def _process_sites(site_ids, request, output_format="json"):
         request: Django request object
         output_format: "raw", "json", or "csv" - determines processing strategy
     """
+    # Opt-in scoring trace (?explain=true). Read here so it doesn't have to thread
+    # through every export view. The trace is stashed on a temp `_explanation` key
+    # and re-attached verbatim to JSON output by _export_sites_response (which must
+    # bypass null-stripping — the trace intentionally contains nulls the renderer
+    # relies on).
+    include_explain = str(getattr(request, "GET", {}).get("explain", "")).lower() in (
+        "true",
+        "1",
+        "yes",
+    )
+
     all_sites = []
     for site_id in site_ids:
         site_data = fetch_site_data(site_id, request)
@@ -146,12 +169,17 @@ def _process_sites(site_ids, request, output_format="json"):
             # Include notes and soil_id data that would normally be fetched separately
             # Keep soilMetadata in raw output, don't inject userRating into matches
             site_data["notes"] = fetch_all_notes_for_site(site_id, request)
-            site_data["soil_id"] = fetch_soil_id(site_data, request)
+            soil_id_raw = fetch_soil_id(site_data, request, include_explain=include_explain)
+            explanation = _pop_explanation(soil_id_raw) if include_explain else None
+            site_data["soil_id"] = soil_id_raw
+            if explanation is not None:
+                site_data["_explanation"] = explanation
             all_sites.append(site_data)
         else:
             # Full transformation for CSV/JSON export
             # Fetch soil_id BEFORE transformation since it needs original enum codes
-            soil_id_raw = fetch_soil_id(site_data, request)
+            soil_id_raw = fetch_soil_id(site_data, request, include_explain=include_explain)
+            explanation = _pop_explanation(soil_id_raw) if include_explain else None
             # Flatten the nested soilId.soilMatches structure
             soil_id_data = _flatten_soil_id(soil_id_raw)
             # Inject user ratings into soil matches (ratings are keyed by soil series name)
@@ -159,6 +187,8 @@ def _process_sites(site_ids, request, output_format="json"):
             _inject_user_ratings_into_matches(soil_id_data, user_ratings)
             transformed_site = transform_site_data(site_data, request)
             transformed_site["soil_id"] = soil_id_data
+            if explanation is not None:
+                transformed_site["_explanation"] = explanation
             # Preserve selected soil name for CSV export (needed when no soil matches exist)
             # This allows us to show user's selection even when soil ID API returns no matches
             selected_soil_id = site_data.get("soilMetadata", {}).get("selectedSoilId")
@@ -294,8 +324,17 @@ def _export_sites_response(
     decoded_filename = unquote(filename)
     full_filename = f"{decoded_filename}.{format}"
 
+    # Pull any explain traces (?explain=true) aside before null-stripping / CSV
+    # flattening; they're re-attached verbatim to JSON output only. The trace
+    # intentionally contains nulls the renderer relies on, so it must NOT be
+    # passed through _strip_null_values.
+    explanations = [site.pop("_explanation", None) for site in all_sites]
+
     if format == "json":
         cleaned_sites = _strip_null_values(all_sites)
+        for site, explanation in zip(cleaned_sites, explanations):
+            if explanation is not None:
+                site["soilIdExplanation"] = explanation
         response = JsonResponse({"sites": cleaned_sites})
         response["Content-Disposition"] = _make_content_disposition(full_filename)
         return response
