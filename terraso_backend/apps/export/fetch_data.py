@@ -239,18 +239,24 @@ def fetch_site_data(site_id, request):
     return res.data["site"]
 
 
-def fetch_soil_id(site, request):
+def fetch_soil_id(site, request, include_explain=False):
     """Fetch soil ID data for a site using its coordinate and soil data.
 
     If cache is enabled and data exists for this site, returns cached data
     instead of making an external API call.
+
+    When ``include_explain`` is set, the response also carries
+    ``soilId.soilIdExplanation`` — the full scoring trace (JSON) for the ranking
+    at this site — for the offline explain report.
     """
     site_id = site.get("id")
 
-    # Check cache first (if enabled)
-    with _cache_lock:
-        if _USE_SOIL_ID_CACHE and site_id and str(site_id) in _soil_id_cache:
-            return _soil_id_cache[str(site_id)]
+    # Check cache first (if enabled). The in-memory cache stores the non-explain
+    # shape, so skip it when the trace was requested.
+    if not include_explain:
+        with _cache_lock:
+            if _USE_SOIL_ID_CACHE and site_id and str(site_id) in _soil_id_cache:
+                return _soil_id_cache[str(site_id)]
 
     latitude = site.get("latitude")
     longitude = site.get("longitude")
@@ -315,10 +321,19 @@ def fetch_soil_id(site, request):
 
     # print("query SoilID Latitude ", latitude, "Longitude ", longitude, "Data ", data)
 
+    # Optionally also request the full scoring trace (same lat/lon/data). Injected
+    # via a placeholder so the surrounding query keeps its literal { } braces.
+    explanation_field = (
+        "soilIdExplanation(latitude: $latitude, longitude: $longitude, data: $data)"
+        if include_explain
+        else ""
+    )
+
     # GraphQL query
     gql = """
     query SoilId($latitude: Float!, $longitude: Float!, $data: SoilIdInputData) {
         soilId {
+            __EXPLANATION_FIELD__
             soilMatches(latitude: $latitude, longitude: $longitude, data: $data) {
                 ... on SoilMatches {
                     dataRegion
@@ -376,6 +391,7 @@ def fetch_soil_id(site, request):
         }
     }
     """
+    gql = gql.replace("__EXPLANATION_FIELD__", explanation_field)
 
     res = schema.execute(
         gql,
