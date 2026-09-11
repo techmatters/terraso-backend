@@ -213,6 +213,9 @@ class SoilIdInputData(graphene.InputObjectType):
     """Soil data provided to the soil ID algorithm."""
 
     slope = graphene.Float()
+    # Optional so existing clients keep working; when omitted the backend falls
+    # back to a server-side elevation lookup (see apps.soil_id.elevation).
+    elevation = graphene.Float()
     surface_cracks = SoilDataNode.surface_cracks_enum()
     depth_dependent_data = graphene.List(
         graphene.NonNull(SoilIdInputDepthDependentData), required=True

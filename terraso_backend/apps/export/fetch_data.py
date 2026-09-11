@@ -13,6 +13,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see https://www.gnu.org/licenses/.
 
+import math
 import threading
 
 import structlog
@@ -34,6 +35,44 @@ _soil_id_cache = {}
 
 # Set to False to disable cache (for development/testing without cache)
 _USE_SOIL_ID_CACHE = True
+
+
+# Low edge (%) of each qualitative slope class, matching the ranges in
+# SoilData.SlopeSteepness. The mobile app sends a numeric slope for the soil-ID
+# match; for a categorical slope it uses the low edge of the class range, so we
+# mirror that here to score the same Site component the app does.
+_SLOPE_SELECT_LOW_EDGE_PCT = {
+    "FLAT": 0.0,  # 0-2%
+    "GENTLE": 2.0,  # 2-5%
+    "MODERATE": 5.0,  # 5-10%
+    "ROLLING": 10.0,  # 10-15%
+    "HILLY": 15.0,  # 15-30%
+    "STEEP": 30.0,  # 30-50%
+    "MODERATELY_STEEP": 50.0,  # 50-60%
+    "VERY_STEEP": 60.0,  # 60-100%
+    "STEEPEST": 100.0,  # 100%+
+}
+
+
+def _slope_percent(soil_data):
+    """Single numeric slope (percent) for the soil-ID query, mirroring the app.
+
+    Priority: explicit percent > degree (converted) > qualitative select low edge.
+    Returns None when no slope was recorded. Passing the qualitative slope matters:
+    without it the US Site score loses a feature and can drop out entirely, so the
+    export's ``properties`` score would omit the Site component the app includes.
+    """
+    percent = soil_data.get("slopeSteepnessPercent")
+    if percent is not None:
+        return float(percent)
+    degree = soil_data.get("slopeSteepnessDegree")
+    if degree is not None:
+        # percent = tan(degrees) * 100
+        return round(math.tan(math.radians(degree)) * 100, 1)
+    select = soil_data.get("slopeSteepnessSelect")
+    if select is not None:
+        return _SLOPE_SELECT_LOW_EDGE_PCT.get(select)
+    return None
 
 
 def set_soil_id_cache_enabled(enabled):
@@ -222,9 +261,12 @@ def fetch_soil_id(site, request):
     # Extract soil data from the site
     soil_data = site.get("soilData", {})
 
-    # Build the data structure for soil ID query
+    # Build the data structure for soil ID query. Pass the site's stored
+    # elevation (the client-resolved value) so the ranking uses the same
+    # elevation the app shows, rather than a separate server-side lookup.
     data = {
-        "slope": soil_data.get("slopeSteepnessDegree"),
+        "slope": _slope_percent(soil_data),
+        "elevation": site.get("elevation"),
         "surfaceCracks": soil_data.get("surfaceCracksSelect", "NO_CRACKING"),
         "depthDependentData": [],
     }
