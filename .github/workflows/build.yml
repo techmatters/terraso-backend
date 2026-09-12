@@ -162,6 +162,9 @@ jobs:
           mkdir -p $HOME/secrets/terraso-backend
           cp .env.sample $HOME/secrets/terraso-backend/.env
           echo "SOIL_ID_DATABASE_URL=postgresql://postgres:postgres@soil-id-db:5432/soil_id" >> $HOME/secrets/terraso-backend/.env
+          # Optional: enables the live Mapbox elevation smoke test. Absent on
+          # fork PRs (secrets aren't shared), where that test skips itself.
+          echo "MAPBOX_ACCESS_TOKEN=${{ secrets.MAPBOX_ACCESS_TOKEN }}" >> $HOME/secrets/terraso-backend/.env
 
       - name: Run integration tests
         env:
