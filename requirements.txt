@@ -1191,8 +1191,8 @@ six==1.17.0 \
     # via
     #   promise
     #   python-dateutil
-soil-id @ https://github.com/techmatters/soil-id-algorithm/archive/refs/tags/2026-07-20.0.zip \
-    --hash=sha256:65b5bd825c9e9ad6b6f4312f7b276b43a2b350167c97d94131aa42eea5e3f857
+soil-id @ https://github.com/techmatters/soil-id-algorithm/archive/a29eef598b7028f133881aa2f241951d1e5f81e8.zip \
+    --hash=sha256:6e979b40a3a3f631be373f34f9b92340b5804ea98b9f45d2a0de8d7184bad98b
     # via -r requirements/base.in
 sqlparse==0.5.5 \
     --hash=sha256:12a08b3bf3eec877c519589833aed092e2444e68240a3577e8e26148acc7b1ba \
