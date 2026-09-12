@@ -271,6 +271,7 @@ enum SoilIdFailureReason {
 """Soil data provided to the soil ID algorithm."""
 input SoilIdInputData {
   slope: Float
+  elevation: Float
   surfaceCracks: SoilIdSoilDataSurfaceCracksSelectChoices
   depthDependentData: [SoilIdInputDepthDependentData!]!
 }
