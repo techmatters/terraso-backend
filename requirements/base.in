@@ -18,6 +18,7 @@ graphene-django
 httpx
 openpyxl
 pandas
+pillow
 posthog
 prettyconf
 psycopg
