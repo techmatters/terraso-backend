@@ -345,6 +345,13 @@ POSTHOG_API_KEY = config("POSTHOG_API_KEY", default="")
 POSTHOG_HOST = config("POSTHOG_HOST", default="https://us.i.posthog.com")
 POSTHOG_ENABLED = config("POSTHOG_ENABLED", default=False, cast=config.boolean)
 
+# Mapbox token for the server-side Terrain-RGB point-elevation lookup used by the
+# soil-ID ranking fallback (apps/soil_id/elevation.py). This is unrelated to the
+# Mapbox visualization tilesets removed in #2069 — it's the Terrain-RGB DEM, kept
+# as a distinct dependency. Empty by default -> the fallback is skipped, so
+# dev/test/CI without a token degrade gracefully.
+MAPBOX_ACCESS_TOKEN = config("MAPBOX_ACCESS_TOKEN", default="")
+
 PROFILE_IMAGES_S3_BUCKET = config("PROFILE_IMAGES_S3_BUCKET", default="")
 PROFILE_IMAGES_BASE_URL = (
     f"https://{config('PROFILE_IMAGES_BASE_URL', default=PROFILE_IMAGES_S3_BUCKET)}"
