@@ -55,6 +55,16 @@ logger = structlog.get_logger(__name__)
 _soil_id_thread_local = threading.local()
 
 
+def resolve_elevation(parent, info, latitude: float, longitude: float):
+    """Point elevation in meters (Mapbox Terrain-RGB), or None if unavailable.
+
+    Same source the soil-ID ranking uses for its server-side fallback, so a
+    client can fetch and store the identical elevation it will be ranked
+    against — instead of a separate provider that would diverge.
+    """
+    return mapbox_elevation(latitude, longitude)
+
+
 @sensitive_variables()
 def soil_id_database_connection():
     conn = getattr(_soil_id_thread_local, "connection", None)

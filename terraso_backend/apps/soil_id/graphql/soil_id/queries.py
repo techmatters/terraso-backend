@@ -17,7 +17,11 @@
 import graphene
 
 from apps.graphql.exceptions import GraphQLNotAllowedException
-from apps.soil_id.graphql.soil_id.resolvers import resolve_data_based_result, resolve_soil_id_result
+from apps.soil_id.graphql.soil_id.resolvers import (
+    resolve_data_based_result,
+    resolve_elevation,
+    resolve_soil_id_result,
+)
 from apps.soil_id.graphql.soil_id.types import DataBasedResult, SoilIdInputData, SoilIdResult
 
 
@@ -39,6 +43,17 @@ class SoilId(graphene.ObjectType):
         longitude=graphene.Float(required=True),
         data=graphene.Argument(SoilIdInputData),
         resolver=resolve_soil_id_result,
+    )
+
+    elevation = graphene.Field(
+        graphene.Float,
+        latitude=graphene.Float(required=True),
+        longitude=graphene.Float(required=True),
+        resolver=resolve_elevation,
+        description=(
+            "Point elevation in meters (Mapbox Terrain-RGB), or null if unavailable. "
+            "Same source as the soil-ID ranking's server-side elevation fallback."
+        ),
     )
 
 
