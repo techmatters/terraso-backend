@@ -25,7 +25,8 @@ from PIL import Image
 
 from apps.soil_id import elevation as elevation_module
 from apps.soil_id.elevation import _lonlat_to_tile, mapbox_elevation
-from apps.soil_id.graphql.soil_id.resolvers import parse_rank_soils_input_data
+from apps.soil_id.graphql.soil_id import resolvers as resolvers_module
+from apps.soil_id.graphql.soil_id.resolvers import parse_rank_soils_input_data, resolve_elevation
 from apps.soil_id.models.soil_id_cache import SoilIdCache
 
 
@@ -136,3 +137,24 @@ def test_lonlat_to_tile_centers_origin():
     xf, yf = _lonlat_to_tile(0.0, 0.0, 1)
     assert xf == pytest.approx(1.0)
     assert yf == pytest.approx(1.0)
+
+
+def test_resolve_elevation_delegates_to_mapbox(monkeypatch):
+    # The soilId.elevation query is a thin wrapper over mapbox_elevation so the
+    # app and the server-side ranking fallback share one elevation source.
+    seen = {}
+
+    def fake(latitude, longitude):
+        seen.update(latitude=latitude, longitude=longitude)
+        return 123.4
+
+    monkeypatch.setattr(resolvers_module, "mapbox_elevation", fake)
+    result = resolve_elevation(None, None, latitude=45.5, longitude=-122.1)
+    assert result == 123.4
+    assert seen == {"latitude": 45.5, "longitude": -122.1}
+
+
+def test_resolve_elevation_passes_through_none(monkeypatch):
+    # Unavailable elevation -> null (never raises).
+    monkeypatch.setattr(resolvers_module, "mapbox_elevation", lambda latitude, longitude: None)
+    assert resolve_elevation(None, None, latitude=0.0, longitude=0.0) is None
