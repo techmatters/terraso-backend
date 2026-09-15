@@ -21,6 +21,7 @@ from apps.graphql.exceptions import GraphQLNotAllowedException
 from apps.soil_id.graphql.soil_id.resolvers import (
     resolve_data_based_result,
     resolve_elevation,
+    resolve_soil_id_algorithm_version,
     resolve_soil_id_explanation,
     resolve_soil_id_result,
 )
@@ -70,6 +71,17 @@ class SoilId(graphene.ObjectType):
             "the offline explain report (scripts/render_soil_explain.py in "
             "soil-id-algorithm). Null when unavailable (algorithm failure, no data, "
             "or a soil-id build without explain support)."
+        ),
+    )
+
+    soil_id_algorithm_version = graphene.Field(
+        graphene.String,
+        resolver=resolve_soil_id_algorithm_version,
+        description=(
+            "Semver (MAJOR.MINOR.PATCH) of the installed soil-ID algorithm, or null. "
+            "Clients cache soil-ID match results and flush them when MAJOR or MINOR "
+            "changes (a result-affecting release); a PATCH bump does not change "
+            "rankings and does not trigger a flush. Clients poll this on sync."
         ),
     )
 
