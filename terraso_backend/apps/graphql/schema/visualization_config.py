@@ -30,7 +30,6 @@ from apps.graphql.exceptions import GraphQLNotAllowedException
 from apps.graphql.schema.data_entries import DataEntryNode
 from apps.graphql.schema.story_maps import StoryMapNode
 from apps.shared_data.geojson_upload import (
-    get_geojson_from_data_entry,
     upload_geojson_to_s3,
     upload_geojson_to_s3_precreate,
 )
@@ -99,7 +98,6 @@ class VisualizationConfigNode(DjangoObjectType):
     id = graphene.ID(source="pk", required=True)
     owner = graphene.Field(OwnerNode)
     data_entry = graphene.Field(DataEntryNode)
-    geojson = graphene.JSONString()
     geojson_signed_url = graphene.String()
 
     class Meta:
@@ -188,17 +186,6 @@ class VisualizationConfigNode(DjangoObjectType):
 
     def resolve_mapbox_tileset_id(self, info):
         return self.mapbox_tileset_id
-
-    def resolve_geojson(self, info):
-        if self.geojson_s3_key is not None:
-            return None
-        if (
-            self.mapbox_tileset_id is not None
-            and self.mapbox_tileset_status == VisualizationConfig.MAPBOX_TILESET_READY
-        ):
-            return None
-
-        return get_geojson_from_data_entry(self.data_entry, self)
 
     def resolve_geojson_signed_url(self, info):
         if not self.geojson_s3_key:
