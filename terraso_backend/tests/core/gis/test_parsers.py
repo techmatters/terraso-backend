@@ -35,6 +35,75 @@ SHAPEFILE_TEST_FILES = [
     ("resources/gis/shapefile_sample_2.zip", "resources/gis/shapefile_sample_2_geojson.json"),
 ]
 
+KML_BARE_AMPERSAND = """<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://www.opengis.net/kml/2.2">
+<Document>
+	<name>Trail Network</name>
+	<Placemark>
+		<name>Trail & Bluffs</name>
+		<Point>
+			<coordinates>-77.95,-1.65,0</coordinates>
+		</Point>
+	</Placemark>
+</Document>
+</kml>
+"""
+
+KML_PRE_ESCAPED_AMPERSAND = KML_BARE_AMPERSAND.replace("Trail & Bluffs", "Trail &amp; Bluffs")
+
+KML_CDATA_BARE_AMPERSAND = KML_BARE_AMPERSAND.replace(
+    "<name>Trail & Bluffs</name>", "<name><![CDATA[Trail & Bluffs]]></name>"
+)
+
+
+@pytest.fixture
+def kml_file(request):
+    """Write KML content to a named temp file (parse_file_to_geojson needs .name)."""
+    contents = request.param
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".kml", delete=False) as f:
+        f.write(contents)
+
+    yield f.name
+
+    os.unlink(f.name)
+
+
+@pytest.mark.parametrize("kml_file", [KML_BARE_AMPERSAND], indirect=True)
+def test_parse_kml_file_bare_ampersand(kml_file):
+    """KML with a bare '&' in <name> parses (bytes-level escape repair)."""
+    with open(kml_file, "rb") as file:
+        geojson = parse_file_to_geojson(file)
+
+    assert geojson["type"] == "FeatureCollection"
+    assert len(geojson["features"]) >= 1
+
+
+@pytest.mark.parametrize("kml_file", [KML_PRE_ESCAPED_AMPERSAND], indirect=True)
+def test_parse_kml_file_pre_escaped_ampersand_not_double_escaped(kml_file):
+    """KML already using '&amp;' parses; the ampersand survives as '&'."""
+    with open(kml_file, "rb") as file:
+        geojson = parse_file_to_geojson(file)
+
+    assert len(geojson["features"]) >= 1
+    properties = geojson["features"][0]["properties"]
+    values = [v for v in properties.values() if isinstance(v, str)]
+    assert "Trail & Bluffs" in values
+    assert not any("&amp;" in v for v in values)
+
+
+@pytest.mark.parametrize("kml_file", [KML_CDATA_BARE_AMPERSAND], indirect=True)
+def test_parse_kml_file_bare_ampersand_inside_cdata_preserved(kml_file):
+    """A bare '&' inside CDATA is literal text: it must NOT be escaped."""
+    with open(kml_file, "rb") as file:
+        geojson = parse_file_to_geojson(file)
+
+    assert len(geojson["features"]) >= 1
+    properties = geojson["features"][0]["properties"]
+    values = [v for v in properties.values() if isinstance(v, str)]
+    assert "Trail & Bluffs" in values
+    assert not any("&amp;" in v for v in values)
+
+
 GPX_CONTENT = """<?xml version="1.0" standalone="yes"?>
 <gpx xmlns="http://www.topografix.com/GPX/1/1" version="1.1"
 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
