@@ -27,6 +27,8 @@ def test_resolve_returns_installed_soil_id_version():
     assert resolve_soil_id_algorithm_version(None, None) == installed
 
 
-def test_resolve_version_is_none_or_dotted():
+def test_resolve_version_is_dotted():
+    # Every supported build ships a version, so the resolver always returns a
+    # dotted semver — never None (the field is non-null in the schema).
     v = resolve_soil_id_algorithm_version(None, None)
-    assert v is None or re.fullmatch(r"\d+(\.\d+)+", v), v
+    assert v is not None and re.fullmatch(r"\d+(\.\d+)+", v), v
