@@ -63,10 +63,10 @@ class SoilId(graphene.ObjectType):
     )
 
     soil_id_algorithm_version = graphene.Field(
-        graphene.String,
+        graphene.NonNull(graphene.String),
         resolver=resolve_soil_id_algorithm_version,
         description=(
-            "Semver (MAJOR.MINOR.PATCH) of the installed soil-ID algorithm, or null. "
+            "Semver (MAJOR.MINOR.PATCH) of the installed soil-ID algorithm. "
             "Clients cache soil-ID match results and flush them when MAJOR or MINOR "
             "changes (a result-affecting release); a PATCH bump does not change "
             "rankings and does not trigger a flush. Clients poll this on sync."
