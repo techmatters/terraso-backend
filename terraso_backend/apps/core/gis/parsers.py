@@ -13,8 +13,10 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see https://www.gnu.org/licenses/.
 
+import io
 import json
 import os
+import re
 import shutil
 import uuid
 import zipfile
@@ -92,8 +94,35 @@ def _get_kml_gdf(file_buffer):
     return combined_gdf
 
 
+# Matches bare ampersands only: ampersands that are not part of a valid
+# XML entity (&amp; &lt; &gt; &quot; &apos; or a numeric reference).
+_BARE_AMPERSAND_RE = re.compile(rb"&(?!amp;|lt;|gt;|quot;|apos;|#\d+;|#x[0-9a-fA-F]+;)")
+_CDATA_RE = re.compile(rb"<!\[CDATA\[.*?\]\]>", re.DOTALL)
+
+
+def _escape_bare_ampersands(kml_bytes):
+    """Return KML bytes with bare '&' escaped to '&amp;'.
+
+    Common KML producers emit raw '&' inside <name>/<description>, which
+    makes the XML not well-formed and crashes fiona. Replacing bare
+    ampersands is a no-op on well-formed XML, so the repair is applied
+    unilaterally. CDATA sections are preserved verbatim: their content
+    is literal text (e.g. '...&nbsp;...' in descriptions), not entities.
+    """
+    parts = []
+    position = 0
+    for match in _CDATA_RE.finditer(kml_bytes):
+        parts.append(_BARE_AMPERSAND_RE.sub(b"&amp;", kml_bytes[position : match.start()]))
+        parts.append(match.group(0))
+        position = match.end()
+    parts.append(_BARE_AMPERSAND_RE.sub(b"&amp;", kml_bytes[position:]))
+    return b"".join(parts)
+
+
 def parse_kml_file(file_buffer):
-    gdf = _get_kml_gdf(file_buffer)
+    file_buffer.seek(0)
+    repaired = io.BytesIO(_escape_bare_ampersands(file_buffer.read()))
+    gdf = _get_kml_gdf(repaired)
 
     def row_to_dict(row):
         row_dict = row.to_dict()
