@@ -23,14 +23,13 @@ import structlog
 from config.settings import GLOBAL_SOIL_ID_BUFFER_DISTANCE, SOIL_ID_DATABASE_URL
 from django.views.decorators.debug import sensitive_variables
 from soil_id import global_soil, us_soil
-from soil_id.utils import find_region_for_location
 
-try:
-    # Read from the submodule (not `from soil_id import __version__`) so it works
-    # even on an older pinned soil-id that doesn't re-export it from the package.
-    from soil_id.__version__ import __version__ as SOIL_ID_ALGORITHM_VERSION
-except ImportError:  # pragma: no cover - very old soil-id builds
-    SOIL_ID_ALGORITHM_VERSION = None
+# Read from the submodule (not `from soil_id import __version__`) so it works
+# even on an older pinned soil-id that doesn't re-export it from the package.
+# Every supported build ships a version, so a missing __version__ is a packaging
+# error we fail loudly on at import rather than serving a null to clients.
+from soil_id.__version__ import __version__ as SOIL_ID_ALGORITHM_VERSION
+from soil_id.utils import find_region_for_location
 
 try:
     # Optional: only present in soil-id builds that ship the explain/trace layer.
@@ -81,7 +80,7 @@ def resolve_elevation(parent, info, latitude: float, longitude: float):
 
 
 def resolve_soil_id_algorithm_version(parent, info):
-    """Semver of the installed soil-id algorithm (MAJOR.MINOR.PATCH), or None.
+    """Semver of the installed soil-id algorithm (MAJOR.MINOR.PATCH).
 
     Clients cache soil-ID match results and flush them when MAJOR or MINOR
     changes (a result-affecting release); a PATCH bump does not change rankings

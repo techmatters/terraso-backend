@@ -117,9 +117,9 @@ type SoilId {
   soilIdExplanation(latitude: Float!, longitude: Float!, data: SoilIdInputData): GenericScalar
 
   """
-  Semver (MAJOR.MINOR.PATCH) of the installed soil-ID algorithm, or null. Clients cache soil-ID match results and flush them when MAJOR or MINOR changes (a result-affecting release); a PATCH bump does not change rankings and does not trigger a flush. Clients poll this on sync.
+  Semver (MAJOR.MINOR.PATCH) of the installed soil-ID algorithm. Clients cache soil-ID match results and flush them when MAJOR or MINOR changes (a result-affecting release); a PATCH bump does not change rankings and does not trigger a flush. Clients poll this on sync.
   """
-  soilIdAlgorithmVersion: String
+  soilIdAlgorithmVersion: String!
 }
 
 """DEPRECATED"""
