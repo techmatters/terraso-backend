@@ -8,6 +8,9 @@ type Query {
 
   """Soil ID algorithm Queries"""
   soilId: SoilId!
+
+  """Third-party-backed data lookups."""
+  lookup: Lookup!
   group(
     """The ID of the object"""
     id: ID!
@@ -100,16 +103,19 @@ enum ExportExportTokenResourceTypeChoices {
   SITE
 }
 
+"""Third-party-backed data lookups (elevation, ...)."""
+type Lookup {
+  """
+  Point elevation in meters (Mapbox Terrain-RGB), or null if unavailable. Same source as the soil-ID ranking's server-side elevation fallback.
+  """
+  elevation(latitude: Float!, longitude: Float!): Float
+}
+
 """Soil ID algorithm queries."""
 type SoilId {
   """DEPRECATED"""
   dataBasedSoilMatches(latitude: Float!, longitude: Float!, data: SoilIdInputData): DataBasedResult!
   soilMatches(latitude: Float!, longitude: Float!, data: SoilIdInputData): SoilIdResult!
-
-  """
-  Point elevation in meters (Mapbox Terrain-RGB), or null if unavailable. Same source as the soil-ID ranking's server-side elevation fallback.
-  """
-  elevation(latitude: Float!, longitude: Float!): Float
 
   """
   Full scoring trace (JSON) for the ranking at this location: how each candidate's location / horizon / site / color score was computed. Feeds the offline explain report (scripts/render_soil_explain.py in soil-id-algorithm). Null when unavailable (algorithm failure, no data, or a soil-id build without explain support).
