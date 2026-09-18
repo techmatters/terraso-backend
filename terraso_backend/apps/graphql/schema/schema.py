@@ -45,6 +45,8 @@ from apps.soil_id.graphql.soil_data.mutations import (
 )
 from apps.soil_id.graphql.soil_data.push_mutation import SoilDataPush
 from apps.soil_id.graphql.soil_id.queries import soil_id
+
+from .lookup import lookup
 from apps.soil_id.graphql.soil_metadata.mutations import SoilMetadataUpdateMutation
 from apps.soil_id.graphql.soil_project.mutations import (
     ProjectSoilSettingsDeleteDepthIntervalMutation,
@@ -162,6 +164,7 @@ class Query(ExportQuery, graphene.ObjectType):
     sites = DjangoFilterConnectionField(SiteNode, required=True)
     shared_resource = SharedResourceRelayNode.Field()
     soil_id = soil_id
+    lookup = lookup
     from .shared_resources import resolve_shared_resource
 
     def resolve_featured_story_maps_random(self, info, first):
