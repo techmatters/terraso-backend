@@ -103,14 +103,6 @@ enum ExportExportTokenResourceTypeChoices {
   SITE
 }
 
-"""Third-party-backed data lookups (elevation, ...)."""
-type Lookup {
-  """
-  Point elevation in meters (Mapbox Terrain-RGB), or null if unavailable. Same source as the soil-ID ranking's server-side elevation fallback.
-  """
-  elevation(latitude: Float!, longitude: Float!): Float
-}
-
 """Soil ID algorithm queries."""
 type SoilId {
   """DEPRECATED"""
@@ -392,6 +384,14 @@ GraphQL scalar value that could be:
 String, Boolean, Int, Float, List or Object.
 """
 scalar GenericScalar
+
+"""Third-party-backed data lookups (elevation, ...)."""
+type Lookup {
+  """
+  Point elevation in meters (Mapbox Terrain-RGB), or null if unavailable. Same source as the soil-ID ranking's server-side elevation fallback.
+  """
+  elevation(latitude: Float!, longitude: Float!): Float
+}
 
 type GroupNode implements Node {
   slug: String!
