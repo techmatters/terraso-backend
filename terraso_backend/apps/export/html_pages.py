@@ -15,7 +15,7 @@
 
 from urllib.parse import quote
 
-from django.http import HttpResponse
+from django.http import HttpResponse, HttpResponseRedirect
 from django.templatetags.static import static
 
 
@@ -126,6 +126,19 @@ def export_page_html(name, resource_type, csv_url, json_url, request=None):
         json_url: URL for JSON download (will be URL-encoded for safe HTML/JS use)
         request: Django request object (optional, for building absolute URLs)
     """
+    # --- soil-ID explain hook (removable) -------------------------------------
+    # `?explain=true` on a landing page redirects to the standalone explain
+    # report (apps.explain), which renders the soil-ID scoring trace as HTML.
+    # Kept as a self-contained block so the whole feature can be removed by
+    # deleting apps/explain/, its include() in config/urls.py, and these lines.
+    if request is not None and str(request.GET.get("explain", "")).lower() in (
+        "true",
+        "1",
+        "yes",
+    ):
+        return HttpResponseRedirect(request.path.replace("/export/", "/explain/", 1))
+    # --- end explain hook -----------------------------------------------------
+
     # URL-encode the URLs for safe use in HTML attributes and JavaScript
     # quote() with safe="" encodes everything except alphanumerics and _.-~
     # We need to preserve path structure, so use safe="/:."
