@@ -383,6 +383,18 @@ def test_resolve_soil_match_info():
     assert result.rank == 0
 
 
+def test_resolve_soil_match_info_missing():
+    assert resolve_soil_match_info(None, "1") is None
+    assert resolve_soil_match_info(0.5, None) is None
+
+
+@pytest.mark.parametrize("rank", ["Not ranked", "Not Displayed", ""])
+def test_resolve_soil_match_info_non_numeric_rank(rank):
+    # The algorithm can score a component but leave it without a numeric rank,
+    # emitting sentinel strings. These must resolve to None, not crash on int().
+    assert resolve_soil_match_info(0.5, rank) is None
+
+
 def test_resolve_soil_match():
     result = resolve_soil_match(
         SoilIdCache.DataRegion.US,
@@ -407,6 +419,20 @@ def test_resolve_soil_match():
     assert result.distance_to_nearest_map_unit_m == 90.0
     assert result.data_match is None
     assert result.combined_match is None
+
+
+def test_resolve_soil_match_not_ranked_data_group():
+    # Regression for TERRASO-BACKEND-2FF: a displayed component can carry a valid
+    # score_data while its rank_data_group is the sentinel "Not ranked". The rank
+    # sentinel must not crash resolution; the data match just resolves to None.
+    ranked_match = generate_sample_rank_json(location_only=False)[0]
+    ranked_match["rank_data_group"] = "Not ranked"
+
+    result = resolve_soil_match(SoilIdCache.DataRegion.US, sample_soil_list_json, ranked_match)
+
+    assert result.data_match is None
+    # a numeric location rank is still resolved normally
+    assert result.location_match.rank == 0
 
 
 # DEPRECATED

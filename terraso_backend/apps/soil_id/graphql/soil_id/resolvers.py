@@ -218,7 +218,14 @@ def resolve_soil_info(soil_match: dict):
 def resolve_soil_match_info(score: Optional[float], rank: Optional[str]):
     if score is None or rank is None:
         return None
-    return SoilMatchInfo(score=score, rank=int(rank) - 1)
+    try:
+        rank_index = int(rank) - 1
+    except (ValueError, TypeError):
+        # The algorithm may score a component but not assign it a numeric rank,
+        # emitting sentinel strings like "Not ranked" or "Not Displayed" instead.
+        # Treat those as "no match info" rather than crashing on int().
+        return None
+    return SoilMatchInfo(score=score, rank=rank_index)
 
 
 def resolve_list_output_failure(
