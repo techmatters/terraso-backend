@@ -72,6 +72,35 @@ def test_upload_geojson_to_s3_dataset_success(
 
 
 @patch("apps.shared_data.geojson_upload.data_entry_upload_service.get_file")
+@patch("apps.shared_data.geojson_upload.geojson_upload_service.upload_file_get_path")
+def test_upload_geojson_to_s3_dataset_uses_first_column_as_annotation_title(
+    mock_upload_path, mock_get_file, visualization_config
+):
+    expected_title = "First marker"
+    visualization_config.configuration = {
+        "datasetConfig": {
+            "longitude": "lng",
+            "latitude": "lat",
+        },
+        "annotateConfig": {
+            "annotationTitle": "Title",
+            "dataPoints": [],
+        },
+    }
+    visualization_config.save()
+    mock_get_file.return_value = io.StringIO(
+        f"Title,lat,lng\n{expected_title},-78.48306234911033,-0.1805502450716432"
+    )
+    mock_upload_path.return_value = "geojson/test-id/test-vc-id.geojson"
+
+    upload_geojson_to_s3(visualization_config.id)
+
+    uploaded_file = mock_upload_path.call_args.args[1]
+    uploaded_content = json.loads(uploaded_file.read().decode("utf-8"))
+    assert uploaded_content["features"][0]["properties"]["title"] == expected_title
+
+
+@patch("apps.shared_data.geojson_upload.data_entry_upload_service.get_file")
 def test_upload_geojson_to_s3_no_geojson(mock_get_file, visualization_config):
     """When resource type is not spreadsheet or GIS, returns None without crashing."""
     visualization_config.data_entry.resource_type = "pdf"

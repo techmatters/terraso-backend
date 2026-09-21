@@ -44,16 +44,14 @@ def get_rows_from_file(data_entry):
         rows = df.values.tolist()
         return [df.columns.tolist()] + rows
     else:
-        raise Exception(
+        raise Exception(  # noqa: TRY002
             "Invalid file type for processing data entry",
             extra={"file_type": type, "data_entry_id": data_entry.id},
         )
 
 
 def get_owner_name(visualization):
-    if isinstance(visualization.owner, Landscape):
-        return visualization.owner.name
-    elif isinstance(visualization.owner, Group):
+    if isinstance(visualization.owner, (Landscape, Group)):
         return visualization.owner.name
     elif isinstance(visualization.owner, StoryMap):
         return visualization.owner.title
@@ -102,7 +100,7 @@ def _get_geojson_from_dataset(data_entry, configuration):
         ]
 
         properties = {
-            "title": row[title_index] if title_index else None,
+            "title": row[title_index] if title_index is not None else None,
             "fields": json.dumps(fields),
         }
 
@@ -134,8 +132,10 @@ def _get_geojson_from_gis(data_entry):
 
 
 def get_geojson_from_data_entry(data_entry, visualization):
-    is_dataset = f".{data_entry.resource_type}" in settings.DATA_ENTRY_SPREADSHEET_TYPES.keys()
-    is_gis = f".{data_entry.resource_type}" in settings.DATA_ENTRY_GIS_TYPES.keys()
+    is_dataset = (
+        f".{data_entry.resource_type}" in settings.DATA_ENTRY_SPREADSHEET_TYPES.keys()  # noqa: SIM118
+    )
+    is_gis = f".{data_entry.resource_type}" in settings.DATA_ENTRY_GIS_TYPES.keys()  # noqa: SIM118
 
     if is_dataset:
         return _get_geojson_from_dataset(data_entry, visualization.configuration)
@@ -180,7 +180,7 @@ def upload_geojson_to_s3(visualization_id):
     if old_key:
         try:
             geojson_upload_service.delete_file(old_key)
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.warning(
                 "Failed to delete old S3 key",
                 extra={"key": old_key, "error": str(e)},
@@ -203,8 +203,10 @@ def upload_geojson_to_s3_precreate(vc_id, data_entry, configuration):
     """
     config = json.loads(configuration) if isinstance(configuration, str) else configuration
 
-    is_dataset = f".{data_entry.resource_type}" in settings.DATA_ENTRY_SPREADSHEET_TYPES.keys()
-    is_gis = f".{data_entry.resource_type}" in settings.DATA_ENTRY_GIS_TYPES.keys()
+    is_dataset = (
+        f".{data_entry.resource_type}" in settings.DATA_ENTRY_SPREADSHEET_TYPES.keys()  # noqa: SIM118
+    )
+    is_gis = f".{data_entry.resource_type}" in settings.DATA_ENTRY_GIS_TYPES.keys()  # noqa: SIM118
 
     if is_dataset:
         geojson = _get_geojson_from_dataset(data_entry, config)
