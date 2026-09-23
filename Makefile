@@ -24,10 +24,6 @@ endif
 DC_FILE_ARG = --env-file $(ENV_FILE) -f docker-compose.$(DC_ENV).yml $(DC_EXTRA_FILES)
 DC_RUN_CMD ?= docker compose $(DC_FILE_ARG) run --quiet-pull --rm web
 
-ifeq ($(DC_ENV),ci)
-	UV_FLAGS = "--system"
-endif
-
 SCHEMA_BUILD_CMD = $(DC_RUN_CMD) python terraso_backend/manage.py graphql_schema --schema apps.graphql.schema.schema.schema --out=-.graphql
 SCHEMA_BUILD_FILE = terraso_backend/apps/graphql/schema/schema.graphql
 api_schema:
@@ -61,9 +57,9 @@ clean:
 createsuperuser: check_rebuild
 	$(DC_RUN_CMD) python terraso_backend/manage.py createsuperuser
 
-format: ${VIRTUAL_ENV}/scripts/ruff
-	ruff check terraso_backend --fix
-	ruff format terraso_backend
+format:
+	uv run --only-group lint ruff check terraso_backend --fix
+	uv run --only-group lint ruff format terraso_backend
 
 # DESTRUCTIVE - Only do this to your dev database
 # ARGS=--deletion_gap=0   to hard-delete all soft-deleted rows
@@ -71,10 +67,15 @@ harddelete: check_rebuild
 	$(DC_RUN_CMD) python terraso_backend/manage.py harddelete $(ARGS)
 
 install:
-	uv pip install -r requirements.txt $(UV_FLAGS)
+	uv sync --frozen --no-default-groups
 
 install-dev:
-	uv pip install -r requirements-dev.txt $(UV_FLAGS)
+	uv sync --frozen --group dev
+
+# Dev tools ONLY (no project deps) — used by CI host for the soil-data step;
+# deliberately avoids building fiona/gdal on the runner.
+install-dev-tools:
+	uv sync --frozen --only-group dev
 
 lint: check_api_schema check_migrations
 ifeq ($(DC_ENV),ci)
@@ -87,16 +88,10 @@ else
 endif
 
 lock:
-	CUSTOM_COMPILE_COMMAND="make lock" uv pip compile --upgrade --generate-hashes --emit-build-options requirements/base.in requirements/deploy.in -o requirements.txt
+	uv lock --upgrade
 
 lock-package:
-	CUSTOM_COMPILE_COMMAND="make lock" uv pip compile --upgrade-package $(PACKAGE) --generate-hashes --emit-build-options requirements/base.in requirements/deploy.in -o requirements.txt
-
-lock-dev:
-	CUSTOM_COMPILE_COMMAND="make lock-dev" uv pip compile --upgrade --generate-hashes --emit-build-options requirements/dev.in -o requirements-dev.txt
-
-lock-package-dev:
-	CUSTOM_COMPILE_COMMAND="make lock-dev" uv pip compile --upgrade-package $(PACKAGE) --generate-hashes --emit-build-options requirements/dev.in  -o requirements-dev.txt
+	uv lock --upgrade-package $(PACKAGE)
 
 migrate: check_rebuild
 	$(DC_RUN_CMD) python terraso_backend/manage.py migrate --no-input $(APP_MIGRATION_NAME)
@@ -206,14 +201,12 @@ bash:
 download-soil-data:
 	mkdir -p Data
 	cd Data; \
-	gdown 1HpJK681LAbCkJE_Wqyb1ayP4Gb46zULD; \
-	gdown 1HWg2-PEvdeltf72XMeM_pc9TJWGJvyAV; \
-	gdown 1MoR5E3InvVNcMERvyMBK47iN3Imgx3TJ; \
-	gdown 1qBC624vGRIV5yht1itAPpifI9bU4ix_q; \
-	gdown 1krQl5g5-UjmAuiBtv6aE1k49GHbvt8hQ; \
-	gdown 1Vm0_0uw_QSszj6OEinmF5QyGNAJZp2zt; \
-	gdown 1v4I9edYf0ybls-vnfvmmLSPdDipmNSBS; \
-	gdown 1PYk-aWaWFyABzP0-stgTaFI0Vp8rV5IM \
+	uv run --only-group dev gdown 1HpJK681LAbCkJE_Wqyb1ayP4Gb46zULD; \
+	uv run --only-group dev gdown 1HWg2-PEvdeltf72XMeM_pc9TJWGJvyAV; \
+	uv run --only-group dev gdown 1MoR5E3InvVNcMERvyMBK47iN3Imgx3TJ; \
+	uv run --only-group dev gdown 1qBC624vGRIV5yht1itAPpifI9bU4ix_q; \
+	uv run --only-group dev gdown 1krQl5g5-UjmAuiBtv6aE1k49GHbvt8hQ; \
+	uv run --only-group dev gdown 1Vm0_0uw_QSszj6OEinmF5QyGNAJZp2zt; \
+	uv run --only-group dev gdown 1v4I9edYf0ybls-vnfvmmLSPdDipmNSBS; \
+	uv run --only-group dev gdown 1PYk-aWaWFyABzP0-stgTaFI0Vp8rV5IM \
 
-${VIRTUAL_ENV}/scripts/ruff:
-	uv pip install ruff
