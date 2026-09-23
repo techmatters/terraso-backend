@@ -15,11 +15,15 @@
 
 import gzip
 import json
+import uuid
 
 from django.conf import settings
-from django.core.management.base import BaseCommand
+from django.core.management.base import BaseCommand, CommandError
 
-from apps.shared_data.geojson_upload import get_geojson_from_data_entry
+from apps.shared_data.geojson_upload import (
+    get_geojson_from_data_entry,
+    upload_geojson_to_s3,
+)
 from apps.shared_data.models import VisualizationConfig
 from apps.shared_data.services import geojson_upload_service
 
@@ -38,6 +42,12 @@ STATUSES = (
     "NO_GEOJSON",
     "GENERATION_ERROR",
 )
+
+# Statuses that regeneration can fix: generation succeeded but the stored
+# object is missing (GENERATES), unreadable (UNREADABLE) or outdated (DIFF).
+# MATCH needs no repair; STALE/NO_GEOJSON/GENERATION_ERROR mean generation
+# yields nothing or fails, so re-running it cannot help.
+REPAIRABLE_STATUSES = ("DIFF", "UNREADABLE", "GENERATES")
 
 # Objects written through GzipStorageMixin are stored gzip-compressed (with
 # Content-Encoding: gzip so browsers transparently decompress); legacy plain
@@ -68,42 +78,132 @@ class Command(BaseCommand):
     help = (
         "Re-runs the GeoJSON generation pipeline for every CSV/dataset and KML "
         "visualization config and compares the result with the object on S3, "
-        "flagging any diffs. Read-only: never writes to S3 or the database."
+        "flagging any diffs. Pass VC ids to check only those configs. With "
+        "--repair, regenerate the S3 object for statuses where regeneration "
+        "can fix the mismatch (DIFF, UNREADABLE, GENERATES by default; "
+        "--repair=STATUS[,STATUS...] restricts the set)."
     )
 
     def add_arguments(self, parser):
         parser.add_argument(
-            "--limit",
-            type=int,
+            "--repair",
+            nargs="?",
+            const="",
             default=None,
-            help="Check at most N visualization configs (for smoke runs).",
+            metavar="STATUS[,STATUS...]",
+            help=(
+                "Regenerate the S3 geojson for VCs whose status is in the "
+                "repair set. Bare --repair repairs DIFF, UNREADABLE and "
+                "GENERATES; --repair=DIFF,GENERATES restricts the set "
+                "(names must be valid statuses)."
+            ),
+        )
+        parser.add_argument(
+            "vc_ids",
+            nargs="*",
+            metavar="VC_ID",
+            help="Optional visualization config UUIDs: check (and repair) only these.",
         )
 
     def handle(self, *args, **options):
-        vcs = (
-            VisualizationConfig.objects.filter(
-                data_entry__isnull=False,
-                data_entry__deleted_at__isnull=True,
-                data_entry__resource_type__in=RESOURCE_TYPES,
+        repair_statuses = self._resolve_repair_statuses(options["repair"])
+
+        if options["vc_ids"]:
+            vcs, missing = self._resolve_named_vcs(options["vc_ids"])
+            for missing_id in missing:
+                self.stdout.write(f"WARNING  vc={missing_id} not found")
+        else:
+            vcs = (
+                VisualizationConfig.objects.filter(
+                    data_entry__isnull=False,
+                    data_entry__deleted_at__isnull=True,
+                    data_entry__resource_type__in=RESOURCE_TYPES,
+                )
+                .select_related("data_entry")
+                .order_by("created_at")
             )
-            .select_related("data_entry")
-            .order_by("created_at")
-        )
-        if options["limit"]:
-            vcs = vcs[: options["limit"]]
 
         counts = dict.fromkeys(STATUSES, 0)
+        repaired = 0
+        repair_failed = 0
         for vc in vcs:
+            if vc.data_entry_id is None:
+                self.stdout.write(f"SKIPPED  vc={vc.id} ({vc.title}) — no data entry")
+                continue
             status, detail = self._check_vc(vc)
             counts[status] += 1
+            suffix = ""
+            if repair_statuses and status in repair_statuses:
+                ok, outcome = self._repair_vc(vc)
+                suffix = f" (REPAIRED -> {outcome})" if ok else f" (REPAIR_FAILED: {outcome})"
+                if ok:
+                    repaired += 1
+                else:
+                    repair_failed += 1
             self.stdout.write(
-                f"{status:<16} vc={vc.id} ({vc.title}) de={vc.data_entry.resource_type} — {detail}"
+                f"{status:<16} vc={vc.id} ({vc.title}) "
+                f"de={vc.data_entry.resource_type} — {detail}{suffix}"
             )
 
         self.stdout.write(self.style.SUCCESS("\nSummary"))
         for status in STATUSES:
             if counts[status]:
                 self.stdout.write(f"  {status:<16} {counts[status]}")
+        if repaired:
+            self.stdout.write(f"  {'REPAIRED':<16} {repaired}")
+        if repair_failed:
+            self.stdout.write(f"  {'REPAIR_FAILED':<16} {repair_failed}")
+
+    def _resolve_repair_statuses(self, repair_arg):
+        """Turn the --repair argument into the set of statuses to repair.
+
+        Bare --repair (empty string) means the default repairable set;
+        --repair=DIFF,GENERATES restricts it. Names are validated against
+        STATUSES to catch typos; valid but non-repairable names are accepted
+        yet never trigger a repair.
+        """
+        if repair_arg is None:
+            return set()
+        tokens = [token.strip().upper() for token in repair_arg.split(",") if token.strip()]
+        invalid = [token for token in tokens if token not in STATUSES]
+        if invalid:
+            raise CommandError(
+                f"Unknown status for --repair: {', '.join(invalid)}. "
+                f"Valid statuses: {', '.join(STATUSES)}."
+            )
+        for token in tokens:
+            if token not in REPAIRABLE_STATUSES:
+                self.stdout.write(f"WARNING  status {token} is not repairable; it will be skipped")
+        if not tokens:
+            return set(REPAIRABLE_STATUSES)
+        return set(tokens) & set(REPAIRABLE_STATUSES)
+
+    def _resolve_named_vcs(self, vc_ids):
+        """Resolve explicit VC ids (in order), reporting unresolvable ones."""
+        vcs = []
+        missing = []
+        for token in vc_ids:
+            try:
+                vc_uuid = uuid.UUID(token)
+            except ValueError:
+                missing.append(token)
+                continue
+            vc = VisualizationConfig.objects.filter(pk=vc_uuid).first()
+            if vc is None:
+                missing.append(token)
+                continue
+            vcs.append(vc)
+        return vcs, missing
+
+    def _repair_vc(self, vc):
+        """Regenerate the S3 object for one VC. Returns (ok, key or error)."""
+        try:
+            new_key = upload_geojson_to_s3(vc.id)
+        except Exception as e:  # noqa: BLE001 - a repair must never abort the run
+            return False, f"{type(e).__name__}: {e}"
+        if not new_key:
+            return False, "generation returned no data"
+        return True, new_key
 
     def _check_vc(self, vc):
         """Re-run generation for one VC and compare with its S3 object."""
@@ -116,6 +216,11 @@ class Command(BaseCommand):
             if vc.geojson_s3_key:
                 return "STALE", f"S3 key {vc.geojson_s3_key} is set but generation yields nothing"
             return "NO_GEOJSON", "generation returned no features"
+
+        # Normalize to the JSON round-trip form the uploader serializes:
+        # shapely mapping() yields coordinate tuples, while the stored object
+        # (JSON through S3) has lists — compare apples to apples.
+        generated = json.loads(json.dumps(generated))
 
         if not vc.geojson_s3_key:
             return "GENERATES", (

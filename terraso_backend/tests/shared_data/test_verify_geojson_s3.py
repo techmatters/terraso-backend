@@ -18,12 +18,13 @@
 import gzip
 import io
 import json
+import uuid
 from io import StringIO
 from unittest.mock import patch
 
 import pytest
 from django.conf import settings
-from django.core.management import call_command
+from django.core.management import CommandError, call_command
 
 from apps.shared_data.models import DataEntry, VisualizationConfig
 
@@ -206,6 +207,308 @@ def test_unreadable_s3_object_is_flagged(mock_source, mock_stored, visualization
     output = run_command()
 
     assert "UNREADABLE" in output
+
+
+TUPLE_COORDS_GEOJSON = {
+    "type": "FeatureCollection",
+    "features": [
+        {
+            "type": "Feature",
+            "geometry": {"type": "Point", "coordinates": (-77.95, -1.65)},
+            "properties": {"title": None, "fields": '[{"label": "Name", "value": "site"}]'},
+        }
+    ],
+}
+
+
+@patch("apps.shared_data.services.geojson_upload_service.get_file")
+@patch("apps.shared_data.geojson_upload.data_entry_upload_service.get_file")
+def test_tuple_vs_list_coordinates_compare_equal(mock_source, mock_stored, visualization_config):
+    """Shapely mapping() tuples vs JSON list coordinates must count as MATCH."""
+    set_config(visualization_config, geojson_s3_key="geojson/x/vc.geojson")
+    mock_source.return_value = bytes_io(CSV_CONTENT)
+    mock_stored.return_value = bytes_io(json.dumps(GENERATED_GEOJSON))
+
+    with patch(
+        "apps.shared_data.management.commands.verify_geojson_s3.get_geojson_from_data_entry",
+        return_value=TUPLE_COORDS_GEOJSON,
+    ) as mock_generate:
+        output = run_command()
+
+    mock_generate.assert_called_once()
+    assert "MATCH" in output
+    assert "identical to S3" in output
+    assert "DIFF" not in output
+
+
+@patch("apps.shared_data.services.geojson_upload_service.get_file")
+@patch("apps.shared_data.geojson_upload.data_entry_upload_service.get_file")
+def test_list_vs_tuple_coordinates_compare_equal(mock_source, mock_stored, visualization_config):
+    """Shapely tuple coordinates are list-normalized before storage round-trip."""
+    set_config(visualization_config, geojson_s3_key="geojson/x/vc.geojson")
+    mock_source.return_value = bytes_io(CSV_CONTENT)
+    mock_stored.return_value = bytes_io(json.dumps(TUPLE_COORDS_GEOJSON))
+
+    with patch(
+        "apps.shared_data.management.commands.verify_geojson_s3.get_geojson_from_data_entry",
+        return_value=GENERATED_GEOJSON,
+    ):
+        output = run_command()
+
+    assert "MATCH" in output
+    assert "identical to S3" in output
+    assert "DIFF" not in output
+
+
+@patch("apps.shared_data.services.geojson_upload_service.get_file")
+@patch("apps.shared_data.geojson_upload.data_entry_upload_service.get_file")
+def test_tuple_vs_list_coordinates_flagged_with_diff(
+    mock_source, mock_stored, visualization_config
+):
+    """Legitimate coordinate diffs are still reported after normalization."""
+    set_config(visualization_config, geojson_s3_key="geojson/x/vc.geojson")
+    mock_source.return_value = bytes_io(CSV_CONTENT)
+    mock_stored.return_value = bytes_io(json.dumps(GENERATED_GEOJSON))
+
+    with patch(
+        "apps.shared_data.management.commands.verify_geojson_s3.get_geojson_from_data_entry",
+        return_value=STORED_DIFFERENT_GEOJSON,
+    ):
+        output = run_command()
+
+    assert "DIFF" in output
+    assert "first differing feature 0: geometry" in output
+
+
+REPAIRED_KEY = "geojson/new/xyz.geojson"
+
+
+@patch("apps.shared_data.management.commands.verify_geojson_s3.upload_geojson_to_s3")
+@patch("apps.shared_data.services.geojson_upload_service.get_file")
+@patch("apps.shared_data.geojson_upload.data_entry_upload_service.get_file")
+def test_repair_bare_repairs_diff_vc(mock_source, mock_stored, mock_repair, visualization_config):
+    """Bare --repair regenerates S3 geojson for a DIFF status."""
+    set_config(visualization_config, geojson_s3_key="geojson/x/vc.geojson")
+    mock_source.return_value = bytes_io(CSV_CONTENT)
+    mock_stored.return_value = bytes_io(json.dumps(STORED_DIFFERENT_GEOJSON))
+    mock_repair.return_value = REPAIRED_KEY
+
+    output = run_command(repair="")
+
+    mock_repair.assert_called_once_with(visualization_config.id)
+    assert "DIFF" in output
+    assert f"REPAIRED -> {REPAIRED_KEY}" in output
+
+
+@patch("apps.shared_data.management.commands.verify_geojson_s3.upload_geojson_to_s3")
+@patch("apps.shared_data.services.geojson_upload_service.get_file")
+@patch("apps.shared_data.geojson_upload.data_entry_upload_service.get_file")
+def test_repair_bare_does_not_touch_match_vc(
+    mock_source, mock_stored, mock_repair, visualization_config
+):
+    """Bare --repair must not regenerate a VC whose status is MATCH."""
+    set_config(visualization_config, geojson_s3_key="geojson/x/vc.geojson")
+    mock_source.return_value = bytes_io(CSV_CONTENT)
+    mock_stored.return_value = bytes_io(json.dumps(GENERATED_GEOJSON))
+
+    output = run_command(repair="")
+
+    mock_repair.assert_not_called()
+    assert "REPAIRED" not in output
+    assert "MATCH" in output
+
+
+@patch("apps.shared_data.management.commands.verify_geojson_s3.upload_geojson_to_s3")
+@patch("apps.shared_data.services.geojson_upload_service.get_file")
+@patch("apps.shared_data.geojson_upload.data_entry_upload_service.get_file")
+def test_repair_bare_repairs_generates_vc(
+    mock_source, mock_stored, mock_repair, visualization_config
+):
+    """GENERATES (nothing on S3 yet) is repairable with bare --repair."""
+    set_config(visualization_config)
+    mock_source.return_value = bytes_io(CSV_CONTENT)
+    mock_repair.return_value = REPAIRED_KEY
+
+    output = run_command(repair="")
+
+    mock_repair.assert_called_once_with(visualization_config.id)
+    assert f"REPAIRED -> {REPAIRED_KEY}" in output
+
+
+@patch("apps.shared_data.management.commands.verify_geojson_s3.upload_geojson_to_s3")
+@patch("apps.shared_data.services.geojson_upload_service.get_file")
+@patch("apps.shared_data.geojson_upload.data_entry_upload_service.get_file")
+def test_repair_bare_repairs_unreadable_vc(
+    mock_source, mock_stored, mock_repair, visualization_config
+):
+    """UNREADABLE (missing/corrupt S3 object) is repairable with bare --repair."""
+    set_config(visualization_config, geojson_s3_key="geojson/x/vc.geojson")
+    mock_source.return_value = bytes_io(CSV_CONTENT)
+    mock_stored.side_effect = FileNotFoundError("The specified key does not exist.")
+    mock_repair.return_value = REPAIRED_KEY
+
+    output = run_command(repair="")
+
+    mock_repair.assert_called_once_with(visualization_config.id)
+    assert f"REPAIRED -> {REPAIRED_KEY}" in output
+
+
+@patch("apps.shared_data.management.commands.verify_geojson_s3.upload_geojson_to_s3")
+@patch("apps.shared_data.services.geojson_upload_service.get_file")
+@patch("apps.shared_data.geojson_upload.data_entry_upload_service.get_file")
+def test_repair_filtered_skips_status_not_in_repair_set(
+    mock_source, mock_stored, mock_repair, visualization_config
+):
+    """--repair=DIFF must not touch a GENERATES VC (status filter applies)."""
+    set_config(visualization_config)
+    mock_source.return_value = bytes_io(CSV_CONTENT)
+
+    output = run_command(repair="DIFF")
+
+    mock_repair.assert_not_called()
+    assert "REPAIRED" not in output
+    assert "GENERATES" in output
+
+
+@patch("apps.shared_data.management.commands.verify_geojson_s3.upload_geojson_to_s3")
+@patch("apps.shared_data.services.geojson_upload_service.get_file")
+@patch("apps.shared_data.geojson_upload.data_entry_upload_service.get_file")
+def test_repair_filtered_repairs_requested_status(
+    mock_source, mock_stored, mock_repair, visualization_config
+):
+    """--repair=GENERATES repairs a GENERATES VC (explicit status opt-in)."""
+    set_config(visualization_config)
+    mock_source.return_value = bytes_io(CSV_CONTENT)
+    mock_repair.return_value = REPAIRED_KEY
+
+    output = run_command(repair="GENERATES")
+
+    mock_repair.assert_called_once_with(visualization_config.id)
+    assert f"REPAIRED -> {REPAIRED_KEY}" in output
+
+
+def test_repair_valid_but_non_repairable_status_is_accepted_and_skipped():
+    """--repair=STALE is valid but never triggers a repair; warning is printed."""
+    output = run_command(repair="STALE")
+
+    assert "STALE is not repairable" in output
+    assert "REPAIRED" not in output
+
+
+def test_repair_with_unknown_status_name_raises_command_error():
+    """Status names are validated against STATUSES to catch typos."""
+    with pytest.raises(CommandError) as excinfo:
+        run_command(repair="BOGUS")
+
+    assert "BOGUS" in str(excinfo.value)
+    assert "MATCH" in str(excinfo.value)
+
+
+@patch("apps.shared_data.management.commands.verify_geojson_s3.upload_geojson_to_s3")
+@patch("apps.shared_data.services.geojson_upload_service.get_file")
+@patch("apps.shared_data.geojson_upload.data_entry_upload_service.get_file")
+def test_repair_failure_is_reported_and_run_continues(
+    mock_source, mock_stored, mock_repair, visualization_config
+):
+    """A failed repair (None return or raised error) never aborts the run."""
+    set_config(visualization_config, geojson_s3_key="geojson/x/vc.geojson")
+    mock_source.return_value = bytes_io(CSV_CONTENT)
+    mock_stored.return_value = bytes_io(json.dumps(STORED_DIFFERENT_GEOJSON))
+    mock_repair.return_value = None
+
+    output = run_command(repair="")
+
+    assert "REPAIR_FAILED" in output
+    assert "Summary" in output
+
+
+@patch("apps.shared_data.management.commands.verify_geojson_s3.upload_geojson_to_s3")
+@patch("apps.shared_data.services.geojson_upload_service.get_file")
+@patch("apps.shared_data.geojson_upload.data_entry_upload_service.get_file")
+def test_repair_raising_error_is_reported_as_failure(
+    mock_source, mock_stored, mock_repair, visualization_config
+):
+    """An exception during repair becomes REPAIR_FAILED with type and message."""
+    set_config(visualization_config, geojson_s3_key="geojson/x/vc.geojson")
+    mock_source.return_value = bytes_io(CSV_CONTENT)
+    mock_stored.return_value = bytes_io(json.dumps(STORED_DIFFERENT_GEOJSON))
+    mock_repair.side_effect = RuntimeError("S3 bucket unavailable")
+
+    output = run_command(repair="")
+
+    assert "REPAIR_FAILED" in output
+    assert "RuntimeError" in output
+    assert "S3 bucket unavailable" in output
+
+
+@patch("apps.shared_data.services.geojson_upload_service.get_file")
+@patch("apps.shared_data.geojson_upload.data_entry_upload_service.get_file")
+def test_positional_ids_limit_scope(
+    mock_source, mock_stored, visualization_config, visualization_config_b
+):
+    """Positional VC ids restrict the run to exactly the named VCs."""
+    set_config(visualization_config, geojson_s3_key="geojson/x/vc.geojson")
+    set_config(visualization_config_b, geojson_s3_key="geojson/x/vc.geojson")
+    mock_source.return_value = bytes_io(CSV_CONTENT)
+    mock_stored.return_value = bytes_io(json.dumps(GENERATED_GEOJSON))
+
+    output = run_command(vc_ids=[str(visualization_config_b.id)])
+
+    assert output.count("vc=") == 1
+    assert str(visualization_config_b.id) in output
+    assert str(visualization_config.id) not in output
+
+
+@patch("apps.shared_data.services.geojson_upload_service.get_file")
+@patch("apps.shared_data.geojson_upload.data_entry_upload_service.get_file")
+def test_positional_ids_warn_on_unknown_uuid(mock_source, mock_stored, visualization_config):
+    """An unknown UUID is warned about and the command still completes."""
+    set_config(visualization_config, geojson_s3_key="geojson/x/vc.geojson")
+    mock_source.return_value = bytes_io(CSV_CONTENT)
+    mock_stored.return_value = bytes_io(json.dumps(GENERATED_GEOJSON))
+
+    unknown = str(uuid.uuid4())
+    output = run_command(vc_ids=[unknown])
+
+    assert "WARNING" in output
+    assert f"vc={unknown}" in output
+    assert "not found" in output
+    assert "Summary" in output
+
+
+@patch("apps.shared_data.management.commands.verify_geojson_s3.upload_geojson_to_s3")
+@patch("apps.shared_data.services.geojson_upload_service.get_file")
+@patch("apps.shared_data.geojson_upload.data_entry_upload_service.get_file")
+def test_repair_with_positional_ids_only_repairs_named_vcs(
+    mock_source, mock_stored, mock_repair, visualization_config, visualization_config_kml
+):
+    """--repair composes with positional ids: only the named VC is touched."""
+    set_config(visualization_config, geojson_s3_key="geojson/x/vc.geojson")
+    mock_source.return_value = bytes_io(CSV_CONTENT)
+    mock_stored.return_value = bytes_io(json.dumps(STORED_DIFFERENT_GEOJSON))
+    mock_repair.return_value = REPAIRED_KEY
+
+    output = run_command(repair="", vc_ids=[str(visualization_config.id)])
+
+    mock_repair.assert_called_once_with(visualization_config.id)
+    assert f"REPAIRED -> {REPAIRED_KEY}" in output
+
+
+@patch("apps.shared_data.services.geojson_upload_service.get_file")
+@patch(
+    "apps.shared_data.management.commands.verify_geojson_s3.get_geojson_from_data_entry",
+    return_value=STORED_DIFFERENT_GEOJSON,
+)
+def test_positional_ids_bypass_type_scope_filter(
+    mock_generate, mock_stored, visualization_config_gpx
+):
+    """Explicitly named out-of-scope VCs (e.g. GPX) are still checked."""
+    set_config(visualization_config_gpx, geojson_s3_key="geojson/x/vc.geojson")
+    mock_stored.return_value = bytes_io(json.dumps(GENERATED_GEOJSON))
+    output = run_command(vc_ids=[str(visualization_config_gpx.id)])
+
+    assert "DIFF" in output
+    assert str(visualization_config_gpx.id) in output
 
 
 @patch("apps.shared_data.services.geojson_upload_service.get_file")
