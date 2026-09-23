@@ -37,27 +37,32 @@ _soil_id_cache = {}
 _USE_SOIL_ID_CACHE = True
 
 
-# Low edge (%) of each qualitative slope class, matching the ranges in
-# SoilData.SlopeSteepness. The mobile app sends a numeric slope for the soil-ID
-# match; for a categorical slope it uses the low edge of the class range, so we
-# mirror that here to score the same Site component the app does.
-_SLOPE_SELECT_LOW_EDGE_PCT = {
-    "FLAT": 0.0,  # 0-2%
-    "GENTLE": 2.0,  # 2-5%
-    "MODERATE": 5.0,  # 5-10%
-    "ROLLING": 10.0,  # 10-15%
-    "HILLY": 15.0,  # 15-30%
-    "STEEP": 30.0,  # 30-50%
-    "MODERATELY_STEEP": 50.0,  # 50-60%
-    "VERY_STEEP": 60.0,  # 60-100%
-    "STEEPEST": 100.0,  # 100%+
+# Midpoint (%) of each qualitative slope class, matching the ranges in
+# SoilData.SlopeSteepness. For a categorical slope the app/export must pick one
+# representative percent; the midpoint is on average closer to the true slope than
+# the low edge, which systematically understates it (by up to half a class width
+# for wide classes like HILLY 15-30 or STEEP 30-50). Tuning against the US bulk
+# test estimated ~+0.5 pt top-1 vs the low edge, recovering the measured-slope
+# ceiling. STEEPEST is open-ended, so it stays at its low edge (100).
+# NOTE: the mobile client applies the same category->percent mapping independently;
+# keep it in sync (update to midpoints there too) or export and app scores diverge.
+_SLOPE_SELECT_MIDPOINT_PCT = {
+    "FLAT": 1.0,  # 0-2%
+    "GENTLE": 3.5,  # 2-5%
+    "MODERATE": 7.5,  # 5-10%
+    "ROLLING": 12.5,  # 10-15%
+    "HILLY": 22.5,  # 15-30%
+    "STEEP": 40.0,  # 30-50%
+    "MODERATELY_STEEP": 55.0,  # 50-60%
+    "VERY_STEEP": 80.0,  # 60-100%
+    "STEEPEST": 100.0,  # 100%+ (open-ended; low edge)
 }
 
 
 def _slope_percent(soil_data):
     """Single numeric slope (percent) for the soil-ID query, mirroring the app.
 
-    Priority: explicit percent > degree (converted) > qualitative select low edge.
+    Priority: explicit percent > degree (converted) > qualitative select midpoint.
     Returns None when no slope was recorded. Passing the qualitative slope matters:
     without it the US Site score loses a feature and can drop out entirely, so the
     export's ``properties`` score would omit the Site component the app includes.
@@ -71,7 +76,7 @@ def _slope_percent(soil_data):
         return round(math.tan(math.radians(degree)) * 100, 1)
     select = soil_data.get("slopeSteepnessSelect")
     if select is not None:
-        return _SLOPE_SELECT_LOW_EDGE_PCT.get(select)
+        return _SLOPE_SELECT_MIDPOINT_PCT.get(select)
     return None
 
 
