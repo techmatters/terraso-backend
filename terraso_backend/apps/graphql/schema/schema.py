@@ -45,8 +45,6 @@ from apps.soil_id.graphql.soil_data.mutations import (
 )
 from apps.soil_id.graphql.soil_data.push_mutation import SoilDataPush
 from apps.soil_id.graphql.soil_id.queries import soil_id
-
-from .lookup import lookup
 from apps.soil_id.graphql.soil_metadata.mutations import SoilMetadataUpdateMutation
 from apps.soil_id.graphql.soil_project.mutations import (
     ProjectSoilSettingsDeleteDepthIntervalMutation,
@@ -92,6 +90,7 @@ from .landscapes_memberships import (
     LandscapeMembershipDeleteMutation,
     LandscapeMembershipSaveMutation,
 )
+from .lookup import lookup
 from .shared_resources import SharedResourceRelayNode, SharedResourceUpdateMutation
 from .sites import (
     SiteAddMutation,
