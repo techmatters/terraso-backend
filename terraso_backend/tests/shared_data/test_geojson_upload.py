@@ -94,7 +94,7 @@ def test_upload_geojson_to_s3_dataset_uses_first_column_as_annotation_title(
         },
     }
     visualization_config.save()
-    mock_get_file.return_value = io.StringIO(
+    mock_get_file.return_value = make_csv_bytes(
         f"Title,lat,lng\n{expected_title},-78.48306234911033,-0.1805502450716432"
     )
     mock_upload_path.return_value = "geojson/test-id/test-vc-id.geojson"
