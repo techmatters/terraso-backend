@@ -47,9 +47,7 @@ def resolve_lookup(parent, info):
     # Third-party lookups burn provider quota (Mapbox, etc.); require an
     # authenticated caller so anonymous clients can't hammer them.
     if info.context.user.is_anonymous:
-        raise GraphQLNotAllowedException(
-            model_name="Lookup", field="lookup", operation="read"
-        )
+        raise GraphQLNotAllowedException(model_name="Lookup", field="lookup", operation="read")
     return Lookup()
 
 
