@@ -105,6 +105,11 @@ type SoilId {
   """DEPRECATED"""
   dataBasedSoilMatches(latitude: Float!, longitude: Float!, data: SoilIdInputData): DataBasedResult!
   soilMatches(latitude: Float!, longitude: Float!, data: SoilIdInputData): SoilIdResult!
+
+  """
+  Point elevation in meters (Mapbox Terrain-RGB), or null if unavailable. Same source as the soil-ID ranking's server-side elevation fallback.
+  """
+  elevation(latitude: Float!, longitude: Float!): Float
 }
 
 """DEPRECATED"""
