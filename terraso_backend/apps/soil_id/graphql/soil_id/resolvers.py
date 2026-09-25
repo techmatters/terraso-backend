@@ -25,6 +25,14 @@ from django.views.decorators.debug import sensitive_variables
 from soil_id import global_soil, us_soil
 from soil_id.utils import find_region_for_location
 
+try:
+    # Optional: only present in soil-id builds that ship the explain/trace layer.
+    # Imported under a private name so it can be patched in tests and so an older
+    # pinned soil-id doesn't break schema import.
+    from soil_id.explain import Recorder as _Recorder
+except ImportError:  # pragma: no cover - depends on the pinned soil-id build
+    _Recorder = None
+
 from apps.core import analytics
 from apps.soil_id.elevation import mapbox_elevation
 from apps.soil_id.graphql.soil_id.types import (
@@ -620,3 +628,54 @@ def _compute_soil_id_result(
     except Exception:
         logger.error(traceback.format_exc())
         return SoilIdFailure(reason=SoilIdFailureReason.ALGORITHM_FAILURE)
+
+
+def resolve_soil_id_explanation(
+    _parent, _info, latitude: float, longitude: float, data: Optional[SoilIdInputData] = None
+):
+    """Full scoring trace (JSON) for the ranking at this location.
+
+    Mirrors resolve_soil_id_result but asks the algorithm to record how every
+    candidate's location/horizon/site/color score was computed (by passing an
+    explain Recorder), and returns that trace (rank_output["explanation"]) rather
+    than the matches. Feeds the offline "explain" HTML report.
+
+    Returns None (rather than raising) when the trace can't be produced — an
+    algorithm failure, an unavailable location, or a pinned soil-id build that
+    predates the explain layer — so the field is simply null in those cases.
+    """
+    if _Recorder is None:
+        logger.warning("soil_id_explanation: soil-id build has no explain support")
+        return None
+    try:
+        list_result = get_list_soils_output(latitude=latitude, longitude=longitude)
+        if isinstance(list_result, str):
+            return None
+
+        data_region, list_output = list_result
+        recorder = _Recorder()
+
+        if data_region == SoilIdCache.DataRegion.US:
+            rank_output = us_soil.rank_soils(
+                lat=latitude,
+                lon=longitude,
+                list_output_data=list_output,
+                explain=recorder,
+                **parse_rank_soils_input_data(data, data_region),
+            )
+        elif data_region == SoilIdCache.DataRegion.GLOBAL:
+            rank_output = global_soil.rank_soils_global(
+                lat=latitude,
+                lon=longitude,
+                list_output_data=list_output,
+                connection=soil_id_database_connection(),
+                explain=recorder,
+                **parse_rank_soils_input_data(data, data_region),
+            )
+        else:
+            return None
+
+        return rank_output.get("explanation")
+    except Exception:
+        logger.error(traceback.format_exc())
+        return None

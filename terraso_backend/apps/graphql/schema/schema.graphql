@@ -110,6 +110,11 @@ type SoilId {
   Point elevation in meters (Mapbox Terrain-RGB), or null if unavailable. Same source as the soil-ID ranking's server-side elevation fallback.
   """
   elevation(latitude: Float!, longitude: Float!): Float
+
+  """
+  Full scoring trace (JSON) for the ranking at this location: how each candidate's location / horizon / site / color score was computed. Feeds the offline explain report (scripts/render_soil_explain.py in soil-id-algorithm). Null when unavailable (algorithm failure, no data, or a soil-id build without explain support).
+  """
+  soilIdExplanation(latitude: Float!, longitude: Float!, data: SoilIdInputData): GenericScalar
 }
 
 """DEPRECATED"""
@@ -369,6 +374,13 @@ type SoilDataValueEntry {
   soilProperty: String!
   informationGain: Float!
 }
+
+"""
+The `GenericScalar` scalar type represents a generic
+GraphQL scalar value that could be:
+String, Boolean, Int, Float, List or Object.
+"""
+scalar GenericScalar
 
 type GroupNode implements Node {
   slug: String!
@@ -1795,13 +1807,6 @@ type GroupAddMutationPayload {
   group: GroupNode
   clientMutationId: String
 }
-
-"""
-The `GenericScalar` scalar type represents a generic
-GraphQL scalar value that could be:
-String, Boolean, Int, Float, List or Object.
-"""
-scalar GenericScalar
 
 input GroupAddMutationInput {
   name: String!
