@@ -8,6 +8,9 @@ type Query {
 
   """Soil ID algorithm Queries"""
   soilId: SoilId!
+
+  """Third-party-backed data lookups."""
+  lookup: Lookup!
   group(
     """The ID of the object"""
     id: ID!
@@ -107,14 +110,14 @@ type SoilId {
   soilMatches(latitude: Float!, longitude: Float!, data: SoilIdInputData): SoilIdResult!
 
   """
-  Point elevation in meters (Mapbox Terrain-RGB), or null if unavailable. Same source as the soil-ID ranking's server-side elevation fallback.
-  """
-  elevation(latitude: Float!, longitude: Float!): Float
-
-  """
   Full scoring trace (JSON) for the ranking at this location: how each candidate's location / horizon / site / color score was computed. Feeds the offline explain report (scripts/render_soil_explain.py in soil-id-algorithm). Null when unavailable (algorithm failure, no data, or a soil-id build without explain support).
   """
   soilIdExplanation(latitude: Float!, longitude: Float!, data: SoilIdInputData): GenericScalar
+
+  """
+  Semver (MAJOR.MINOR.PATCH) of the installed soil-ID algorithm. Clients cache soil-ID match results and flush them when MAJOR or MINOR changes (a result-affecting release); a PATCH bump does not change rankings and does not trigger a flush. Clients poll this on sync.
+  """
+  soilIdAlgorithmVersion: String!
 }
 
 """DEPRECATED"""
@@ -381,6 +384,14 @@ GraphQL scalar value that could be:
 String, Boolean, Int, Float, List or Object.
 """
 scalar GenericScalar
+
+"""Third-party-backed data lookups (elevation, ...)."""
+type Lookup {
+  """
+  Point elevation in meters (Mapbox Terrain-RGB), or null if unavailable. Same source as the soil-ID ranking's server-side elevation fallback.
+  """
+  elevation(latitude: Float!, longitude: Float!): Float
+}
 
 type GroupNode implements Node {
   slug: String!

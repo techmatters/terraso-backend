@@ -140,7 +140,7 @@ def test_lonlat_to_tile_centers_origin():
 
 
 def test_resolve_elevation_delegates_to_mapbox(monkeypatch):
-    # The soilId.elevation query is a thin wrapper over mapbox_elevation so the
+    # The lookup.elevation query is a thin wrapper over mapbox_elevation so the
     # app and the server-side ranking fallback share one elevation source.
     seen = {}
 

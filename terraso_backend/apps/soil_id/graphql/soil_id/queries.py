@@ -20,7 +20,7 @@ from graphene.types.generic import GenericScalar
 from apps.graphql.exceptions import GraphQLNotAllowedException
 from apps.soil_id.graphql.soil_id.resolvers import (
     resolve_data_based_result,
-    resolve_elevation,
+    resolve_soil_id_algorithm_version,
     resolve_soil_id_explanation,
     resolve_soil_id_result,
 )
@@ -47,17 +47,6 @@ class SoilId(graphene.ObjectType):
         resolver=resolve_soil_id_result,
     )
 
-    elevation = graphene.Field(
-        graphene.Float,
-        latitude=graphene.Float(required=True),
-        longitude=graphene.Float(required=True),
-        resolver=resolve_elevation,
-        description=(
-            "Point elevation in meters (Mapbox Terrain-RGB), or null if unavailable. "
-            "Same source as the soil-ID ranking's server-side elevation fallback."
-        ),
-    )
-
     soil_id_explanation = graphene.Field(
         GenericScalar,
         latitude=graphene.Float(required=True),
@@ -70,6 +59,17 @@ class SoilId(graphene.ObjectType):
             "the offline explain report (scripts/render_soil_explain.py in "
             "soil-id-algorithm). Null when unavailable (algorithm failure, no data, "
             "or a soil-id build without explain support)."
+        ),
+    )
+
+    soil_id_algorithm_version = graphene.Field(
+        graphene.NonNull(graphene.String),
+        resolver=resolve_soil_id_algorithm_version,
+        description=(
+            "Semver (MAJOR.MINOR.PATCH) of the installed soil-ID algorithm. "
+            "Clients cache soil-ID match results and flush them when MAJOR or MINOR "
+            "changes (a result-affecting release); a PATCH bump does not change "
+            "rankings and does not trigger a flush. Clients poll this on sync."
         ),
     )
 

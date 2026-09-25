@@ -90,6 +90,7 @@ from .landscapes_memberships import (
     LandscapeMembershipDeleteMutation,
     LandscapeMembershipSaveMutation,
 )
+from .lookup import lookup
 from .shared_resources import SharedResourceRelayNode, SharedResourceUpdateMutation
 from .sites import (
     SiteAddMutation,
@@ -162,6 +163,7 @@ class Query(ExportQuery, graphene.ObjectType):
     sites = DjangoFilterConnectionField(SiteNode, required=True)
     shared_resource = SharedResourceRelayNode.Field()
     soil_id = soil_id
+    lookup = lookup
     from .shared_resources import resolve_shared_resource
 
     def resolve_featured_story_maps_random(self, info, first):
