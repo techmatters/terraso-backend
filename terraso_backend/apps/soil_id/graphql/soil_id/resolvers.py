@@ -26,6 +26,7 @@ from soil_id import global_soil, us_soil
 from soil_id.utils import find_region_for_location
 
 from apps.core import analytics
+from apps.soil_id.elevation import mapbox_elevation
 from apps.soil_id.graphql.soil_id.types import (
     DataBasedSoilMatch,
     DataBasedSoilMatches,
@@ -377,7 +378,7 @@ def parse_surface_cracks(surface_cracks: SoilData.SurfaceCracks):
 def parse_rank_soils_input_data(
     data: Optional[SoilIdInputData], data_region: SoilIdCache.DataRegion
 ):
-    # TODO: pass in values for elevation and bedrock
+    # TODO: pass in a value for bedrock
     inputs = {
         "topDepth": [],
         "bottomDepth": [],
@@ -399,6 +400,9 @@ def parse_rank_soils_input_data(
 
     if data_region == SoilIdCache.DataRegion.US:
         inputs["pSlope"] = data.slope
+        # Client-supplied elevation (if any). When None, _compute_soil_id_result
+        # fills it from a server-side lookup.
+        inputs["pElev"] = data.elevation
 
     depths = data.depth_dependent_data
 
@@ -571,12 +575,19 @@ def _compute_soil_id_result(
 
         data_region, list_output = list_result
 
+        rank_inputs = parse_rank_soils_input_data(data, data_region)
+
         if data_region == SoilIdCache.DataRegion.US:
+            # Elevation feeds the US Site score. Prefer the client-supplied
+            # value; otherwise fall back to a server-side lookup (reported to
+            # Sentry on failure). None -> the ranking runs without elevation.
+            if rank_inputs.get("pElev") is None:
+                rank_inputs["pElev"] = mapbox_elevation(latitude, longitude)
             rank_output = us_soil.rank_soils(
                 lat=latitude,
                 lon=longitude,
                 list_output_data=list_output,
-                **parse_rank_soils_input_data(data, data_region),
+                **rank_inputs,
             )
         elif data_region == SoilIdCache.DataRegion.GLOBAL:
             rank_output = global_soil.rank_soils_global(
@@ -584,7 +595,7 @@ def _compute_soil_id_result(
                 lon=longitude,
                 list_output_data=list_output,
                 connection=soil_id_database_connection(),
-                **parse_rank_soils_input_data(data, data_region),
+                **rank_inputs,
             )
         elif data_region is None:
             return SoilIdFailure(reason=SoilIdFailureReason.DATA_UNAVAILABLE)
