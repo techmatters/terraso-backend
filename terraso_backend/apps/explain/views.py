@@ -28,7 +28,7 @@ contract, so this whole feature can be removed or relocated freely.
 
 import json
 import urllib.request
-from urllib.parse import urlsplit, urlunsplit
+from urllib.parse import unquote, urlsplit, urlunsplit
 
 import structlog
 from django.http import HttpResponse
@@ -90,7 +90,8 @@ def explain_report(request, resource_type, token, name):
 
     # The app (and this report) surface a single site's explanation; a multi-site
     # export renders its first site, matching the render script's behavior.
-    trace = sites[0].get("soilIdExplanation")
+    site = sites[0]
+    trace = site.get("soilIdExplanation")
     if not trace:
         return _error_page(
             "No soil-ID explanation is available for this site "
@@ -98,4 +99,13 @@ def explain_report(request, resource_type, token, name):
             status=404,
         )
 
-    return HttpResponse(render_html(trace), content_type="text/html")
+    # Title the report with the site's display name — from the export JSON, falling
+    # back to the URL name (mirrors the export landing page). render_html HTML-escapes
+    # it. Guard the kwarg so an older pinned soil-id (whose render_html predates
+    # site_name) still renders, just without the title.
+    site_name = site.get("name") or unquote(name)
+    try:
+        html = render_html(trace, site_name=site_name)
+    except TypeError:
+        html = render_html(trace)
+    return HttpResponse(html, content_type="text/html")
