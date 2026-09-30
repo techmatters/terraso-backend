@@ -2,9 +2,9 @@
 #    uv pip compile --generate-hashes --emit-build-options requirements/base.in requirements/deploy.in -o requirements.txt
 --no-binary fiona
 
-anyio==4.12.0 \
-    --hash=sha256:73c693b567b0c55130c104d0b43a9baf3aa6a31fc6110116509f27bf75e21ec0 \
-    --hash=sha256:dad2376a628f98eeca4881fc56cd06affd18f659b17a747d3ff0307ced94b1bb
+anyio==4.15.1 \
+    --hash=sha256:6152fdbbf9a77fdec97731721bebf7c4c44f7c29b424b0065826173efc7ed101 \
+    --hash=sha256:9f28306018cbd6d329e64a36d58256edff76dd996fe423bc957326e578b82a94
     # via httpx
 asgiref==3.11.0 \
     --hash=sha256:13acff32519542a1736223fb79a715acdebe24286d98e8b164a73085f40da2c4 \
