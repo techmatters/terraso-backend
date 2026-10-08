@@ -30,8 +30,8 @@ In the env file
 
 -   set values for `MICROSOFT_CLIENT_ID` and either `MICROSOFT_CLIENT_SECRET` (less secure) or both `MICROSOFT_PRIVATE_KEY` and `MICROSOFT_CERTIFICATE_THUMBPRINT` based on what you have set up on portal.azure.com > App Registrations > [App Name] > Certificates & Secrets
 
-Start building the Docker images (make sure there's `requirements.txt`
-file created before building the images):
+Start building the Docker images (dependencies are declared in
+`pyproject.toml` and locked in `uv.lock`, both committed to the repo):
 
 ```sh
 $ make build
@@ -213,14 +213,8 @@ following command
 $ make lock
 ```
 
-It is also possible to lock development dependencies with:
-
-```sh
-$ make lock-dev
-```
-
-The lock process creates/updates the files `requirements.txt` and
-`requirements-dev.txt`. With these files in place it's possible to
+The lock process updates the `uv.lock` file, which pins both runtime
+and development dependencies. With the lock in place it's possible to
 install dependencies running:
 
 ```sh
