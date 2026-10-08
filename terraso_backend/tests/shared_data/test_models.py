@@ -13,6 +13,8 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see https://www.gnu.org/licenses/.
 
+from urllib.parse import parse_qs, urlparse
+
 import pytest
 
 from apps.collaboration.models import Membership as CollaborationMembership
@@ -30,9 +32,10 @@ def test_data_entry_get_s3_object_name(user, data_entry, data_entry_filename):
     assert data_entry.s3_object_name == f"{user.id}/{data_entry_filename}"
 
 
-def test_data_entry_get_signed_url(settings, data_entry):
-    assert data_entry.s3_object_name in data_entry.signed_url
-    assert "X-Amz-Expires" in data_entry.signed_url
+def test_data_entry_get_signed_url(data_entry, s3_presign_region):
+    signed_url = data_entry.signed_url
+    assert data_entry.s3_object_name in signed_url
+    assert s3_presign_region.query_params <= set(parse_qs(urlparse(signed_url).query))
 
 
 def test_data_entry_can_be_updated_by_its_creator(user, data_entry):

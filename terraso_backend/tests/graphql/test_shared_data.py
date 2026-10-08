@@ -19,6 +19,7 @@ import tempfile
 import zipfile
 from importlib import resources
 from unittest import mock
+from urllib.parse import parse_qs, urlparse
 
 import geopandas as gpd
 import pytest
@@ -232,7 +233,11 @@ def test_data_entries_returns_only_for_users_groups(
 
 
 def test_data_entries_returns_url(
-    client_query, data_entry_current_user_file, data_entry_current_user_link, data_entry_other_user
+    client_query,
+    data_entry_current_user_file,
+    data_entry_current_user_link,
+    data_entry_other_user,
+    s3_presign_region,
 ):
     # It's being done a request for all data entries, but only the data entries
     # from logged user's group is expected to return.
@@ -256,10 +261,13 @@ def test_data_entries_returns_url(
     assert len(entries_result) == 2
     assert entries_result[0]["id"] == str(data_entry_current_user_file.id)
     assert entries_result[0]["entryType"] == "FILE"
-    assert "X-Amz-Expires" in entries_result[0]["url"]
+    file_query = parse_qs(urlparse(entries_result[0]["url"]).query)
+    assert s3_presign_region.query_params <= set(file_query)
     assert entries_result[1]["id"] == str(data_entry_current_user_link.id)
     assert entries_result[1]["entryType"] == "LINK"
-    assert "X-Amz-Expires" not in entries_result[1]["url"]
+    # LINK entries are returned as-is, never presigned (neither SigV2 nor SigV4)
+    assert "X-Amz-" not in entries_result[1]["url"]
+    assert "AWSAccessKeyId" not in entries_result[1]["url"]
 
 
 def test_data_entries_anonymous_user(client_query_no_token, data_entries):

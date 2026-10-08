@@ -16,6 +16,7 @@
 import json
 import uuid
 from importlib import resources
+from typing import NamedTuple
 
 import pytest
 from django.conf import settings
@@ -33,6 +34,7 @@ from apps.project_management.collaboration_roles import ProjectRole
 from apps.project_management.models import Project, Site
 from apps.shared_data.models.data_entries import DataEntry
 from apps.shared_data.models.visualization_config import VisualizationConfig
+from apps.shared_data.services import DataEntryFileStorage
 from apps.story_map.models.story_maps import StoryMap
 from tests.utils import add_soil_data_to_site
 
@@ -49,6 +51,40 @@ def _disable_analytics(settings):
     """
     settings.POSTHOG_ENABLED = False
     settings.POSTHOG_API_KEY = ""
+
+
+class S3Presign(NamedTuple):
+    """Expected shape of an S3 presigned URL for one signing region."""
+
+    region: str
+    query_params: set[str]
+
+
+# Presigned-URL query parameters produced by each S3 signing path. us-east-1
+# resolves to the legacy global S3 endpoint, which presigns with SigV2 (HmacV1)
+# query auth; every other region presigns with SigV4.
+S3_PRESIGN_QUERY_PARAMS = {
+    "us-east-1": {"AWSAccessKeyId", "Signature", "Expires"},
+    "us-east-2": {"X-Amz-Algorithm", "X-Amz-Expires", "X-Amz-Signature"},
+}
+
+
+@pytest.fixture(params=sorted(S3_PRESIGN_QUERY_PARAMS))
+def s3_presign_region(request, settings, monkeypatch):
+    """Run the test under every S3 signing region, covering both presign paths.
+
+    Swaps the data entry model's storage for one bound to the parametrized
+    region, so the result doesn't depend on the AWS_S3_REGION_NAME of the
+    environment running the tests. Returns the region name along with the
+    presigned-URL query parameters its signing path must produce.
+    """
+    region = request.param
+    settings.AWS_S3_REGION_NAME = region
+    monkeypatch.setattr(
+        "apps.shared_data.models.data_entries.data_entry_file_storage",
+        DataEntryFileStorage(custom_domain=None),
+    )
+    return S3Presign(region=region, query_params=S3_PRESIGN_QUERY_PARAMS[region])
 
 
 @pytest.fixture
