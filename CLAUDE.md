@@ -27,8 +27,8 @@ Terraso Backend is a Django-based GraphQL API that powers a collaborative platfo
 - `make check_api_schema` - Verify GraphQL schema consistency
 
 ### Dependencies
-- `make lock` - Lock production dependencies to requirements.txt
-- `make lock-dev` - Lock development dependencies
+- `make lock` - Update all dependencies and regenerate `uv.lock`
+- `make lock-package PACKAGE=name` - Update a single dependency
 - `make install` - Install production dependencies
 - `make install-dev` - Install development dependencies
 
@@ -134,8 +134,8 @@ When using `graphene.Enum` types in mutation arguments:
   ```
 
 ### Dependencies
-- Check existing `requirements.txt` for available libraries
-- Use `uv pip compile` for dependency management (not pip-tools)
+- Check existing `pyproject.toml` for available libraries
+- Use uv project mode (`pyproject.toml` + `uv.lock`) for dependency management (not pip-tools)
 - GDAL and Cython required for local development
 
 ### Testing

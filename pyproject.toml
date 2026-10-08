@@ -25,6 +25,7 @@ dependencies = [
     "httpx==0.28.1",
     "openpyxl==3.1.5",
     "pandas==2.3.3",
+    "pillow==12.3.0",
     "posthog==7.19.1",
     "prettyconf==2.3.0",
     "psycopg==3.2.10",
@@ -57,7 +58,7 @@ dev = [
 ]
 
 [tool.uv.sources]
-soil-id = { url = "https://github.com/techmatters/soil-id-algorithm/archive/refs/tags/2026-07-20.0.zip" }
+soil-id = { url = "https://github.com/techmatters/soil-id-algorithm/archive/refs/tags/2026-09-30.0.zip" }
 
 [tool.uv]
 no-binary-package = ["fiona"]
