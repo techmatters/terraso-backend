@@ -65,6 +65,60 @@ def test_unpublished_map_is_hidden_from_visitors_but_remains_editable(
     assert json.loads(node["configuration"])["title"] == "Draft"
 
 
+@pytest.mark.parametrize("media_field", ["media", "mediaItems"])
+def test_story_map_refreshes_all_media_urls(
+    media_field, client_query, client_query_no_token, users
+):
+    items = [
+        {"id": media_type, "type": media_type, "url": media_type, "signedUrl": "expired"}
+        for media_type in ("image/jpeg", "audio/mp3", "video/mp4")
+    ]
+    embedded = {"type": "embedded", "source": "youtube", "url": "embed"}
+    chapters = (
+        [{"media": item} for item in [*items, embedded]]
+        if media_field == "media"
+        else [{"mediaItems": [*items, embedded], "mediaPresentation": "carousel"}]
+    )
+    config = {"chapters": chapters, "featuredImage": {"url": "featured"}}
+    story = mixer.blend(
+        StoryMap,
+        created_by=users[0],
+        is_published=True,
+        configuration=config,
+        published_configuration=config,
+    )
+    query = "query($id: ID!) { storyMap(id: $id) { configuration publishedConfiguration } }"
+    with mock.patch(
+        "apps.story_map.views.story_map_media_upload_service.get_signed_url",
+        side_effect=lambda path: f"{path}?fresh",
+    ) as sign:
+        owner_read = client_query(query, variables={"id": str(story.pk)}).json()
+        public_read = client_query_no_token(query, variables={"id": str(story.pk)}).json()
+    assert "errors" not in owner_read
+    assert "errors" not in public_read
+    assert public_read["data"]["storyMap"]["configuration"] is None
+    for result in [
+        owner_read["data"]["storyMap"]["configuration"],
+        owner_read["data"]["storyMap"]["publishedConfiguration"],
+        public_read["data"]["storyMap"]["publishedConfiguration"],
+    ]:
+        refreshed = json.loads(result)
+        media = (
+            [chapter["media"] for chapter in refreshed["chapters"]]
+            if media_field == "media"
+            else refreshed["chapters"][0]["mediaItems"]
+        )
+        assert media == [
+            *[{**item, "signedUrl": item["url"] + "?fresh"} for item in items],
+            embedded,
+        ]
+        assert refreshed["featuredImage"]["signedUrl"] == "featured?fresh"
+    assert sign.call_count == 12
+    story.refresh_from_db()
+    assert story.configuration == config
+    assert story.published_configuration == config
+
+
 def test_story_maps_query(client_query, story_maps, users):
     story_maps[0].featured = True
     story_maps[0].save(update_fields=["featured"])
@@ -170,18 +224,13 @@ def test_featured_story_maps_random_returns_published_random_subset(client_query
 
 def test_story_maps_filter_by_can_change_by_email(client_query, story_maps, users):
     response = client_query(
-        f"""
-        {{storyMaps(memberships_User_Email_Not: "{users[0].email}") {{
-          edges {{
-            node {{
-              id
-              createdBy {{
-                email
-              }}
-            }}
-          }}
-        }}}}
-        """
+        """query ($email: String!) {
+          storyMaps(memberships_User_Email_Not: $email) {
+            edges { node { id createdBy { email } } }
+          }
+        }
+        """,
+        variables={"email": users[0].email},
     )
 
     edges = response.json()["data"]["storyMaps"]["edges"]
@@ -226,18 +275,13 @@ def test_story_maps_anonymous_user(client_query_no_token, story_maps):
 
 def test_story_map_by_membership_email_filter_no_results(client_query, users):
     response = client_query(
-        f"""
-        {{storyMaps(memberships_User_Email: "{users[2].email}") {{
-          edges {{
-            node {{
-              id
-              createdBy {{
-                email
-              }}
-            }}
-          }}
-        }}}}
-        """
+        """query ($email: String!) {
+          storyMaps(memberships_User_Email: $email) {
+            edges { node { id createdBy { email } } }
+          }
+        }
+        """,
+        variables={"email": users[2].email},
     )
 
     edges = response.json()["data"]["storyMaps"]["edges"]
@@ -252,18 +296,13 @@ def test_story_map_by_membership_email_filter(client_query, story_map_user_membe
     membership.save()
 
     response = client_query(
-        f"""
-        {{storyMaps(memberships_User_Email: "{users[2].email}") {{
-          edges {{
-            node {{
-              id
-              createdBy {{
-                email
-              }}
-            }}
-          }}
-        }}}}
-        """
+        """query ($email: String!) {
+          storyMaps(memberships_User_Email: $email) {
+            edges { node { id createdBy { email } } }
+          }
+        }
+        """,
+        variables={"email": users[2].email},
     )
 
     edges = response.json()["data"]["storyMaps"]["edges"]
@@ -274,18 +313,13 @@ def test_story_map_by_membership_email_filter(client_query, story_map_user_membe
 
 def test_story_map_by_membership_email_not_filter(client_query, story_map_user_memberships, users):
     response = client_query(
-        f"""
-        {{storyMaps(memberships_User_Email_Not: "{users[0].email}") {{
-          edges {{
-            node {{
-              id
-              createdBy {{
-                email
-              }}
-            }}
-          }}
-        }}}}
-        """
+        """query ($email: String!) {
+          storyMaps(memberships_User_Email_Not: $email) {
+            edges { node { id createdBy { email } } }
+          }
+        }
+        """,
+        variables={"email": users[0].email},
     )
 
     edges = response.json()["data"]["storyMaps"]["edges"]
