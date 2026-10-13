@@ -41,13 +41,35 @@ from .services import story_map_media_upload_service
 logger = structlog.get_logger(__name__)
 
 
+def _chapter_media_items(chapter):
+    if not isinstance(chapter, dict):
+        raise ValidationError("Invalid Media Type")
+
+    if "mediaItems" in chapter:
+        items = chapter["mediaItems"]
+        if not isinstance(items, list):
+            raise ValidationError("Invalid Media Type")
+    else:
+        media = chapter.get("media")
+        items = [] if media is None else [media]
+
+    if any(
+        not isinstance(item, dict)
+        or not isinstance(item.get("type"), str)
+        or not item["type"].startswith(("image", "audio", "video", "embedded"))
+        for item in items
+    ):
+        raise ValidationError("Invalid Media Type")
+
+    return items
+
+
 def refresh_story_map_config_urls(config):
     if "chapters" in config:
         for chapter in config["chapters"]:
-            media = chapter.get("media")
-            if media and "url" in media and media["type"].startswith(("image", "audio", "video")):
-                signed_url = story_map_media_upload_service.get_signed_url(media["url"])
-                chapter["media"]["signedUrl"] = signed_url
+            for media in _chapter_media_items(chapter):
+                if "url" in media and media["type"].startswith(("image", "audio", "video")):
+                    media["signedUrl"] = story_map_media_upload_service.get_signed_url(media["url"])
 
     if "featuredImage" in config:
         featured_image = config["featuredImage"]
@@ -69,7 +91,7 @@ def refresh_story_map_config_urls(config):
                     "id", "geojson_s3_key"
                 )
             }
-            for layer_id, layer in data_layers.items():
+            for layer in data_layers.values():
                 if isinstance(layer, dict) and layer.get("id"):
                     vc = vcs.get(str(layer["id"]))
                     if vc and vc.geojson_s3_key:
@@ -91,9 +113,7 @@ class StoryMapAddView(AuthenticationRequiredMixin, FormView):
         form_data["created_by"] = request.user
         form_data["is_published"] = publish
         form_data["published_at"] = (
-            timezone.make_aware(datetime.now(), timezone.get_current_timezone())
-            if form_data["is_published"]
-            else None
+            datetime.now(tz=timezone.get_current_timezone()) if form_data["is_published"] else None
         )
 
         entry_form = StoryMapForm(data=form_data)
@@ -132,6 +152,8 @@ class StoryMapAddView(AuthenticationRequiredMixin, FormView):
         except IntegrityError as exc:
             return handle_integrity_error(exc)
 
+        refresh_story_map_config_urls(story_map.configuration)
+
         return JsonResponse(story_map.to_dict(), status=201)
 
 
@@ -157,9 +179,7 @@ class StoryMapUpdateView(AuthenticationRequiredMixin, FormView):
         story_map.title = form_data["title"]
 
         if publish:
-            story_map.published_at = timezone.make_aware(
-                datetime.now(), timezone.get_current_timezone()
-            )
+            story_map.published_at = datetime.now(tz=timezone.get_current_timezone())
             story_map.is_published = True
 
         new_config = json.loads(form_data["configuration"])
@@ -217,9 +237,10 @@ def _upload_file(request, content_id):
 
 def _extract_media_urls(config):
     chapter_urls = [
-        chapter["media"]["url"]
+        media["url"]
         for chapter in config.get("chapters", [])
-        if chapter.get("media") and "url" in chapter["media"]
+        for media in _chapter_media_items(chapter)
+        if "url" in media and media["type"].startswith(("image", "audio", "video"))
     ]
 
     featured_url = (
@@ -233,11 +254,12 @@ def _extract_media_urls(config):
 
 def _upload_chapter_media(config, request):
     for chapter in config.get("chapters", []):
-        media = chapter.get("media")
-        if media and "contentId" in media:
-            url = _upload_file(request, media["contentId"])
-            if url:
-                chapter["media"] = {"url": url, "type": media["type"]}
+        for media in _chapter_media_items(chapter):
+            if "contentId" in media and not media["type"].startswith("embedded"):
+                url = _upload_file(request, media["contentId"])
+                if url:
+                    media["url"] = url
+                    del media["contentId"]
 
 
 def _upload_featured_image(config, request):
@@ -298,11 +320,14 @@ def handle_config_media(new_config, story_map, request):
 
 def is_valid_media_type(config):
     if "chapters" in config:
-        return all(
-            chapter.get("media") is None
-            or chapter["media"]["type"].startswith(("image", "audio", "video", "embedded"))
-            for chapter in config["chapters"]
-        )
+        if not isinstance(config["chapters"], list):
+            return False
+        try:
+            for chapter in config["chapters"]:
+                _chapter_media_items(chapter)
+        except ValidationError:
+            return False
+        return True
 
 
 def handle_integrity_error(exc):
