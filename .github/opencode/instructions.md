@@ -32,6 +32,11 @@ to every subagent you launch.
   base image may already be built; if it is not, the first invocation builds it.
   Set `SOIL_ID_DATABASE_ENABLED=false` on the make command line to skip pulling
   a ~2 GB soil database image when it is not needed.
+- **Do not reach for `DC_ENV=ci`.** The repo's own workflow runs `make ...
+  DC_ENV=ci`, but `docker-compose.ci.yml` has no source bind mount: it tests
+  whatever source is baked into a prebuilt image, so your edits would be
+  invisible to it. This runner is configured so that the default `DC_ENV=dev`
+  path works, including translations.
 - **`make lint` is not just lint.** It runs `check_api_schema` (the committed
   `schema.graphql` must match the live schema) and `check_migrations` (no
   ungenerated model migrations) before Ruff. A dependency bump that changes
