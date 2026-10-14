@@ -6,23 +6,24 @@ name: agentic dependency upgrade
 # ---------------------------------------------------------------------------
 # Security model
 # ---------------------------------------------------------------------------
-# There is exactly one job and one workspace. The agent runs with *no* GitHub
-# credential in the environment: the repository credential is minted from a
-# GitHub App in the last step, after the agent has exited.
+# One job, one workspace, one rule: the agent runs with *no* GitHub credential,
+# and the repository credential is minted from a GitHub App only after the agent
+# has exited. `persist-credentials: false` on the checkout is what makes that
+# hold -- by default actions/checkout writes the workflow token into .git/config
+# as an http extraheader, which would leave a usable credential sitting in the
+# workspace for the agent to push with.
 #
-# Two things make that hold in practice, and both are required:
+# Beyond that, the agent and the credential-bearing step share a runner and a
+# user, so the agent can influence the step that follows it: it has write access
+# to the workspace (including scripts/push-stack.sh) and to $GITHUB_ENV and
+# $GITHUB_PATH. That is accepted deliberately rather than papered over with
+# hardening that a same-user agent would defeat anyway. The token is scoped to
+# this repository and must not be able to push to `main` (see branch protection),
+# so the realistic worst case is junk branches and junk PRs -- which is exactly
+# what the human review on those PRs is for.
 #
-#   1. `persist-credentials: false` on the checkout. By default, actions/checkout
-#      writes the workflow token into .git/config as an http extraheader, which
-#      would leave a usable credential sitting in the workspace for the agent to
-#      push with.
-#   2. The push/PR step runs a copy of scripts/push-stack.sh extracted from the
-#      trusted base ref (`git show origin/<base>:...`), not the working-tree copy,
-#      and sanitises the environment and git config first. The agent can edit the
-#      working tree, so the working tree is not a trustworthy source of code that
-#      is about to hold a credential.
-#
-# Residual risk is documented in the review notes for this workflow.
+# If this ever needs to be a real boundary rather than a convention, the agent
+# and the publish step have to move into separate jobs with separate runners.
 # ---------------------------------------------------------------------------
 
 on:
@@ -73,8 +74,12 @@ env:
   # Activates .github/opencode/ as an extra config directory for CI only.
   OPENCODE_CONFIG_DIR: ${{ github.workspace }}/.github/opencode
   # Pinned so a run can't drift onto a different version mid-week.
-  OPENCODE_VERSION: "1.18.35"
+  OPENCODE_VERSION: "2.0.24"
   UV_VERSION: "0.12.0"
+  # The soil-id database container is only needed for global (HWSD) lookups and
+  # is otherwise a ~2 GB pull. Unit tests do not need it; integration tests do
+  # (and integration tests are not part of this workflow).
+  SOIL_ID_DATABASE_ENABLED: "false"
   # Keep OpenCode's data (including its logs, which are the only useful artifact
   # from a failed agent run) inside $RUNNER_TEMP so the upload path below is
   # unambiguous.
@@ -139,19 +144,6 @@ jobs:
           mkdir -p "$HOME/secrets/terraso-backend"
           cp .env.sample "$HOME/secrets/terraso-backend/.env"
 
-      # Pin the base commit now, before the agent can touch anything. The trusted
-      # copy of push-stack.sh is later read through this SHA rather than through
-      # `origin/<base>`: a ref can be moved with `git update-ref`, a SHA cannot --
-      # it can only be made to disappear, which fails loudly.
-      - name: Pin base commit
-        id: base_sha
-        run: |
-          set -euo pipefail
-          base="${{ steps.base.outputs.base }}"
-          sha="$(git rev-parse "refs/remotes/origin/${base}")"
-          echo "sha=${sha}" >> "$GITHUB_OUTPUT"
-          echo "Base branch ${base} pinned at ${sha}"
-
       # Everything below runs `docker compose ... run web` against a bind-mounted
       # workspace (docker-compose.dev.yml mounts `.:/app`). The image's user is
       # `terraso` (uid 1000) and on GitHub-hosted runners the checkout is owned by
@@ -183,15 +175,12 @@ jobs:
       - name: Install lint dependencies
         run: uv sync --frozen --only-group lint
 
+      # v2 accepts unknown keys and invalid enum values without complaint
+      # (verified: `share: false` and a nonsense `update` both pass), so there is
+      # no config-validation gate to put here. A bad config shows up as an auth or
+      # startup error from `opencode run` instead, within seconds.
       - name: Install OpenCode
-        run: npm install --global "opencode-ai@${OPENCODE_VERSION}"
-
-      # Cheap, and it fails before any tokens are spent. The config schema is
-      # strict: a mistyped key or a wrong value type is a hard error at startup,
-      # and the failure mode otherwise is an agent that runs with the wrong
-      # permissions halfway through a long job.
-      - name: Validate OpenCode config
-        run: opencode debug config > /dev/null
+        run: npm install --global "@opencode/cli@${OPENCODE_VERSION}"
 
       # Commits made by the agent need an identity. This is not a credential.
       - name: Configure git identity
@@ -279,33 +268,9 @@ jobs:
           (steps.agent.outcome == 'success' || steps.agent.outcome == 'failure')
         env:
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
-          BASE_BRANCH: ${{ steps.base.outputs.base }}
-          BASE_SHA: ${{ steps.base_sha.outputs.sha }}
         run: |
           set -euo pipefail
-
-          # The agent had write access to this workspace, so nothing in it is
-          # trusted -- including this script. Run the copy from the pinned base
-          # commit instead of the working tree. The environment is sanitised
-          # first: GIT_DIR / GIT_WORK_TREE / GIT_CONFIG_* / PATH can be planted
-          # through $GITHUB_ENV and $GITHUB_PATH, and would otherwise redirect
-          # the extraction itself at a repository the agent controls.
-          unset GIT_DIR GIT_WORK_TREE GIT_INDEX_FILE GIT_OBJECT_DIRECTORY \
-                GIT_ALTERNATE_OBJECT_DIRECTORIES GIT_CONFIG_GLOBAL GIT_CONFIG_SYSTEM \
-                GIT_CONFIG_COUNT GIT_SSH GIT_SSH_COMMAND GIT_ASKPASS SSH_ASKPASS \
-                GH_CONFIG_DIR GH_HOST GH_REPO GH_ENTERPRISE_TOKEN 2>/dev/null || true
-          unset HTTP_PROXY HTTPS_PROXY ALL_PROXY http_proxy https_proxy all_proxy 2>/dev/null || true
-          export PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
-
-          [ -x /usr/bin/git ] || { echo "::error::/usr/bin/git is missing"; exit 1; }
-
-          TRUSTED_SCRIPT="$RUNNER_TEMP/push-stack.sh"
-          GIT_CONFIG_GLOBAL=/dev/null GIT_CONFIG_SYSTEM=/dev/null \
-            /usr/bin/git -c core.hooksPath=/dev/null \
-            show "${BASE_SHA}:scripts/push-stack.sh" > "$TRUSTED_SCRIPT"
-
-          chmod +x "$TRUSTED_SCRIPT"
-          bash "$TRUSTED_SCRIPT" "$BASE_BRANCH"
+          scripts/push-stack.sh "${{ steps.base.outputs.base }}"
 
       - name: Upload opencode logs
         if: failure() || cancelled()

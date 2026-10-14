@@ -6,9 +6,10 @@ on:
     branches:
       - main
       - staging
+  # Every pull request, regardless of base. Note that stacked pull requests are
+  # evaluated against the base of the *stack*, so a stack opened against main
+  # runs this whole workflow once per layer.
   pull_request:
-    branches:
-      - main
 
 permissions:
   contents: read

@@ -22,6 +22,11 @@ email_preview
 # Claude Code local settings
 .claude/settings.local.json
 
+# OpenCode writes a local-server password here when it uses the background
+# service. CI uses --standalone, which does not, but OPENCODE_CONFIG_DIR
+# points into the workspace so keep it out of commits either way.
+.github/opencode/service.json
+
 # Distribution / packaging
 .Python
 build/
