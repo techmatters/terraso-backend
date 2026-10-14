@@ -57,10 +57,11 @@ git config --global user.email "terraso-dep-upgrader[bot]@users.noreply.github.c
 git config --global commit.gpgsign false
 git config --global advice.detachedHead false
 
-# Fail before spending any tokens if the CI config is invalid. The schema is
-# strict, so this catches mistyped keys and wrong value types up front.
-log "validating opencode config"
-opencode debug config >/dev/null
+# Fail before spending any tokens if the binary is unusable.
+log "opencode $(opencode --version 2>/dev/null || echo '(version unknown)')"
+log "model:    $OPENCODE_MODEL"
+log "base:     $BASE_BRANCH"
+log "config:   $OPENCODE_CONFIG_DIR"
 
 # The agent must not be able to *push* even if it tries: there is no token in
 # the environment, and the checkout was made with persist-credentials: false.
@@ -79,7 +80,12 @@ come up with a grouping for related updates, and for each group launch a subagen
 
 after you create each branch and commit the `pyproject.toml`/`uv.lock` changes for it, resume that group's subagent and tell it to implement any changes it needs to make for those dependency upgrades, committing them to the current branch. note that this process will be necessarily serial.
 
-once you have all branches stacked up, launch a subagent to run `make test_unit` and `make lint` and then do one round of follow-up fixes (committed to the appropriate branch in the stack). this should be the first time you run tests in this process, ensure subagents launched before this point know not to run the tests. the command may take a while since it will need to install the docker image.
+two constraints for the sake of runner time — please respect them exactly:
+
+- linting must not require building a docker image. do not run `make lint`: run the linter directly on the host instead, on each branch as you build it, with `uv run --only-group lint ruff check terraso_backend` and `uv run --only-group lint ruff format --diff terraso_backend`.
+- `make test_unit` must only ever be run while checked out on the top of the stack. every branch changes `pyproject.toml`/`uv.lock`, and checking out a different branch forces docker to rebuild the image, so the suite runs exactly once per verification round, at the top. if a fix belongs on a lower branch, commit it there, rebase the branches above it, then check out the top again before re-running.
+
+once you have all branches stacked up, launch a subagent to run `make test_unit` and then do one round of follow-up fixes (committed to the appropriate branch in the stack). this should be the first time you run tests in this process, ensure subagents launched before this point know not to run the tests. the command may take a while since it will need to install the docker image.
 
 note that the subagent should not then re-run the tests after it has committed the fixes, it should just report whether the original run was green and what changes it made, if any. then launch a new subagent with the same instructions as the previous until things are green, or until it seems the agents aren't able to make progress.
 
@@ -98,9 +104,14 @@ drain_opencode_logs() {
   echo "::endgroup::"
 }
 
+# --standalone gives the run a private server instead of the shared background
+# service. This matters on a CI runner: the environment (including
+# OPENCODE_API_KEY) belongs to this process, and the private server is the one
+# that makes the model requests.
 log "starting agent run"
 set +e
 opencode run \
+  --standalone \
   --model "$OPENCODE_MODEL" \
   --title "weekly dependency upgrade $(date -u +%Y-%m-%d)" \
   --auto \

@@ -13,6 +13,10 @@ to every subagent you launch.
   `deps/YYYY-MM-DD-HH-MM/<group-name>`, and make each branch a real descendant
   of the branch below it (create it from the current HEAD, do not rebase it onto
   an unrelated base).
+- **Reading the top of the stack matters.** The same script starts at whatever
+  branch HEAD points to and walks *down* to its base. If HEAD is on a stray
+  branch that is not part of the chain, that branch gets the PRs and the real top
+  gets none. Finish with HEAD checked out at the top of the stack.
 - **`uv tree --outdated -d 1 --exclude-newer="7 days"` rewrites `uv.lock`.** It
   re-resolves and records the cutoff as an `[options] exclude-newer-span` entry,
   so `uv.lock` is dirty as a side effect of merely *looking* at outdated
@@ -27,19 +31,26 @@ to every subagent you launch.
   --exclude-newer "7 days"`).
 - **Dependency pins are exact (`==`)**, so an upgrade is a literal string change
   in `pyproject.toml` plus the matching lock update.
-- **The real Make targets are `make test_unit` and `make lint`** (underscore, not
-  hyphen). Both run inside Docker via `docker compose` and both are slow. The
-  base image may already be built; if it is not, the first invocation builds it.
-  Set `SOIL_ID_DATABASE_ENABLED=false` on the make command line to skip pulling
-  a ~2 GB soil database image when it is not needed.
+- **The lint group is installed on the host**, which is why linting needs no
+  Docker image at all: `uv run --only-group lint ruff check terraso_backend` and
+  `uv run --only-group lint ruff format --diff terraso_backend`. This is the same
+  toolchain `make format` uses.
+- **`make test_unit` is Docker-only and expensive.** It depends on
+  `check_rebuild`, which rebuilds the image whenever `md5sum pyproject.toml
+  uv.lock` differs from the gitignored `.rebuild` file — so *any* branch switch
+  that changes the lock triggers a full rebuild. Run it only at the top of the
+  stack. The first invocation also builds the base image.
 - **Do not reach for `DC_ENV=ci`.** The repo's own workflow runs `make ...
   DC_ENV=ci`, but `docker-compose.ci.yml` has no source bind mount: it tests
   whatever source is baked into a prebuilt image, so your edits would be
   invisible to it. This runner is configured so that the default `DC_ENV=dev`
   path works, including translations.
-- **`make lint` is not just lint.** It runs `check_api_schema` (the committed
-  `schema.graphql` must match the live schema) and `check_migrations` (no
-  ungenerated model migrations) before Ruff. A dependency bump that changes
-  Django/GraphQL/serialization behaviour can legitimately fail either of those.
+- **The soil-id database is disabled here** (`SOIL_ID_DATABASE_ENABLED=false`),
+  because it is a ~2 GB pull only needed for global (HWSD) lookups. Do not
+  re-enable it: nothing in `make test_unit` needs it, and integration tests are
+  not part of this workflow.
+- **`make lint` is not available to you** (it is Docker-based, see above). Its
+  `check_api_schema` and `check_migrations` steps therefore do not run here;
+  `.github/workflows/build.yml` runs them on the pull requests you produce.
 - **Do not start the dev server or the database.** Nothing here needs a running
-  app; `make test_unit` and `make lint` bring up what they need themselves.
+  app; `make test_unit` brings up what it needs itself.

@@ -5,31 +5,24 @@
 # Usage:
 #   GH_TOKEN=... scripts/push-stack.sh <base-branch>
 #
-# <base-branch> is what the bottom PR targets. The layer order is derived from
-# commit ancestry rather than from anything the agent reported, so the stack is
-# correct even if the agent's own bookkeeping is wrong; a stack that does not
-# line up is a hard error rather than a misleading set of PRs.
+# <base-branch> is what the bottom PR targets. Layer order is derived from commit
+# ancestry rather than from anything the agent reported, so the stack is correct
+# even if the agent's own bookkeeping is wrong; a chain that does not line up is a
+# hard error rather than a misleading set of PRs.
 #
-# ---------------------------------------------------------------------------
-# SECURITY -- this is the only script in the job that holds a credential.
-# ---------------------------------------------------------------------------
-# The agent ran earlier in the same job, as the same user, with write access to
-# this workspace. Nothing reachable from the workspace can be trusted:
+# SECURITY POSTURE
+#   This script runs from the working tree, which the agent had write access to,
+#   and it holds an app installation token. That is a deliberate choice, not an
+#   oversight: the token is scoped to this repository and cannot push to `main`
+#   (keep `main` protected), so the worst case is junk branches and junk PRs,
+#   which is what the human review on those PRs is for.
 #
-#   * The workflow invokes a copy extracted from the trusted base ref
-#     (`git show origin/<base>:scripts/push-stack.sh`), not the working tree.
-#   * Environment variables the agent could have planted through $GITHUB_ENV are
-#     cleared below: git's own redirection variables, gh's config/host
-#     overrides, proxies, and TLS trust roots.
-#   * git runs with GIT_CONFIG_GLOBAL/SYSTEM=/dev/null, an empty
-#     credential.helper list, and core.hooksPath pointed at an empty directory,
-#     so no config file or hook can inject a credential helper, rewrite the
-#     push destination, or observe the token.
+#   There is deliberately no hardening here. The agent shares the runner and the
+#   user with this script, so anything file- or environment-based -- pinning a
+#   hash of this file, scrubbing .git/config, clearing $GITHUB_ENV redirectors --
+#   can be defeated from the preceding step. If this ever needs to be a real
+#   boundary, the agent and the publish step have to run in separate jobs.
 #
-# What this does NOT defend against is a compromised runner or a compromised
-# `gh`/`git`/`node` on it; that is out of scope for a workflow-level boundary.
-# ---------------------------------------------------------------------------
-
 set -euo pipefail
 
 BASE="${1:-}"
@@ -45,76 +38,23 @@ warn() { printf '::warning::%s\n' "$*" >&2; }
 log() { printf '%s\n' "$*"; }
 
 : "${GH_TOKEN:?GH_TOKEN must be set}"
+command -v gh >/dev/null 2>&1 || die "gh is not on PATH"
+command -v git >/dev/null 2>&1 || die "git is not on PATH"
 : "${GITHUB_REPOSITORY:?GITHUB_REPOSITORY must be set}"
-REPO="$GITHUB_REPOSITORY"
-REMOTE_URL="https://github.com/${REPO}.git"
+REPO="${GITHUB_REPOSITORY}"
 
-# ---------------------------------------------------------------------------
-# 1. Refuse to be steered by anything the agent could have written to $GITHUB_ENV
-# ---------------------------------------------------------------------------
-# shellcheck disable=SC2086
-{
-  unset BASH_ENV ENV LD_PRELOAD LD_LIBRARY_PATH
-  unset GIT_DIR GIT_WORK_TREE GIT_INDEX_FILE GIT_OBJECT_DIRECTORY
-  unset GIT_ALTERNATE_OBJECT_DIRECTORIES GIT_CONFIG_GLOBAL GIT_CONFIG_SYSTEM
-  unset GIT_CONFIG_COUNT GIT_SSH GIT_SSH_COMMAND GIT_ASKPASS SSH_ASKPASS
-  unset GH_CONFIG_DIR GH_HOST GH_REPO GH_ENTERPRISE_TOKEN GITHUB_TOKEN
-  unset HTTP_PROXY HTTPS_PROXY ALL_PROXY http_proxy https_proxy all_proxy
-  unset SSL_CERT_FILE SSL_CERT_DIR CURL_CA_BUNDLE REQUESTS_CA_BUNDLE
-} 2>/dev/null || true
-
-# A fixed PATH: an appended entry could shadow `git` or `gh` with something the
-# agent wrote. Fails loudly if the tools live elsewhere on a given runner image.
-export PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
-
-command -v git >/dev/null 2>&1 || die "git is not on the sanitised PATH"
-command -v gh >/dev/null 2>&1 || die "gh is not on the sanitised PATH"
-
-# gh must not read a config.yml the agent could have edited.
-GH_CONFIG_DIR="$(mktemp -d)"; export GH_CONFIG_DIR
-
-# git must not read any config file outside this script's control.
-export GIT_CONFIG_GLOBAL=/dev/null
-export GIT_CONFIG_SYSTEM=/dev/null
-export GIT_CONFIG_NOSYSTEM=1
-export GIT_TERMINAL_PROMPT=0
-
-EMPTY_HOOKS="$(mktemp -d)"
-GIT=(git -c "core.hooksPath=${EMPTY_HOOKS}")
-# The empty credential.helper resets the helper list; only gh's helper remains.
-PUSH=(git -c "core.hooksPath=${EMPTY_HOOKS}"
-      -c credential.helper=
-      -c "credential.helper=!gh auth git-credential")
-
-# ---------------------------------------------------------------------------
-# 2. Scrub the workspace-local git config
-# ---------------------------------------------------------------------------
-scrub_local_git_config() {
-  local key
-  "${GIT[@]}" config --local --replace-all core.hooksPath "$EMPTY_HOOKS" 2>/dev/null || true
-  "${GIT[@]}" config --local --unset-all core.sshCommand 2>/dev/null || true
-  while IFS= read -r key; do
-    [ -n "$key" ] || continue
-    case "$key" in
-      url.*|credential.*|http.*|alias.*|filter.*|remote.*.pushurl|remote.*.proxy|\
-      diff.*.textconv|diff.*.command|core.sshcommand|core.gitproxy|core.pager|\
-      core.editor|core.fsmonitor|sequence.editor|gpg.program)
-        "${GIT[@]}" config --local --unset-all "$key" 2>/dev/null || true
-        ;;
-    esac
-  done < <("${GIT[@]}" config --local --list 2>/dev/null | awk -F= '{print $1}')
-}
+# Make `git push` use the app token. This configures gh as git's credential
+# helper in the global git config; gh reads GH_TOKEN from the environment.
+gh auth setup-git
 
 log "repo:        ${REPO}"
 log "base branch: ${BASE}"
 
-"${GIT[@]}" rev-parse --verify --quiet "refs/heads/${BASE}" >/dev/null \
+git rev-parse --verify --quiet "refs/heads/${BASE}" >/dev/null \
   || die "base branch '${BASE}' does not exist locally"
 
-scrub_local_git_config
-
 # ---------------------------------------------------------------------------
-# 3. Discover the stack: walk down from the top to the base
+# 1. Discover the stack: walk down from the top to the base
 # ---------------------------------------------------------------------------
 # Only local branches are considered. A fresh CI checkout has the base branch
 # plus whatever the agent created, so branches pushed by earlier runs cannot be
@@ -140,22 +80,22 @@ while IFS= read -r branch; do
     "${BRANCH_PREFIX}"*) ;;
     *) continue ;;
   esac
-  if "${GIT[@]}" merge-base --is-ancestor "refs/heads/${BASE}" "refs/heads/${branch}"; then
+  if git merge-base --is-ancestor "refs/heads/${BASE}" "refs/heads/${branch}"; then
     candidates+=("$branch")
   else
     warn "ignoring ${branch}: it is not a descendant of ${BASE}"
   fi
-done < <("${GIT[@]}" for-each-ref --format='%(refname:short)' 'refs/heads/')
+done < <(git for-each-ref --format='%(refname:short)' 'refs/heads/')
 
 [ "${#candidates[@]}" -gt 0 ] || die "no ${BRANCH_PREFIX}* branches found on top of ${BASE}"
 
 commits_above_base() {
-  "${GIT[@]}" rev-list --count "refs/heads/${BASE}..refs/heads/${1}"
+  git rev-list --count "refs/heads/${BASE}..refs/heads/${1}"
 }
 
 # Prefer HEAD as the top of the stack (the agent is asked to finish there), and
 # fall back to the deepest branch when it is not.
-head_ref="$("${GIT[@]}" rev-parse --abbrev-ref HEAD)"
+head_ref="$(git rev-parse --abbrev-ref HEAD)"
 top=""
 for branch in "${candidates[@]}"; do
   if [ "$branch" = "$head_ref" ]; then
@@ -184,7 +124,7 @@ while [ "$current" != "$BASE" ]; do
   parent_depth="$(commits_above_base "$BASE")"
   for branch in "${candidates[@]}"; do
     [ "$branch" = "$current" ] && continue
-    "${GIT[@]}" merge-base --is-ancestor "refs/heads/${branch}" "refs/heads/${current}" || continue
+    git merge-base --is-ancestor "refs/heads/${branch}" "refs/heads/${current}" || continue
     depth="$(commits_above_base "$branch")"
     if [ "$depth" -ge "$parent_depth" ]; then
       parent="$branch"
@@ -217,7 +157,7 @@ done
 # on the PRs would be a fiction (and the Stacks API would reject the stack).
 prev="$BASE"
 for branch in "${chain[@]}"; do
-  "${GIT[@]}" merge-base --is-ancestor "refs/heads/${prev}" "refs/heads/${branch}" \
+  git merge-base --is-ancestor "refs/heads/${prev}" "refs/heads/${branch}" \
     || die "${branch} is not stacked on ${prev}; refusing to open a misleading stack"
   prev="$branch"
 done
@@ -225,7 +165,7 @@ done
 log "stack (bottom -> top): ${chain[*]}"
 
 # ---------------------------------------------------------------------------
-# 4. Push each layer and open (or refresh) its PR
+# 2. Push each layer and open (or refresh) its PR
 # ---------------------------------------------------------------------------
 pr_numbers=()
 pr_urls=()
@@ -242,14 +182,16 @@ for idx in "${!chain[@]}"; do
   log ""
   log "── layer ${layer}/${total}: ${branch}  (base: ${parent})"
 
-  "${PUSH[@]}" push --quiet --force "$REMOTE_URL" \
-    "refs/heads/${branch}:refs/heads/${branch}" \
+  # --force because a re-run of the same workflow reuses the branch names that
+  # the agent derives from a timestamp; these branches are bot-owned and guarded
+  # by the deps/ prefix filter above.
+  git push --quiet --force origin "refs/heads/${branch}:refs/heads/${branch}" \
     || die "failed to push ${branch}"
 
   # PR title comes from the layer's earliest commit -- the one that introduced
   # the pyproject/lock change -- so it describes the layer rather than the last
   # fix that touched it.
-  title="$("${GIT[@]}" log --reverse --format='%s' \
+  title="$(git log --reverse --format='%s' \
     "refs/heads/${parent}..refs/heads/${branch}" | sed -n 1p)"
   title="${title:-update dependency group ${branch##*/}}"
   # .github/workflows/check-commits.yml validates PR titles against a
@@ -264,9 +206,9 @@ for idx in "${!chain[@]}"; do
     printf 'Automated dependency upgrade — layer %s of %s.\n\n' "$layer" "$total"
     printf 'Targets `%s`.\n\n' "$parent"
     printf '### Commits\n\n'
-    "${GIT[@]}" log --reverse --format='* %s' "refs/heads/${parent}..refs/heads/${branch}"
+    git log --reverse --format='* %s' "refs/heads/${parent}..refs/heads/${branch}"
     printf '\n'
-    "${GIT[@]}" log --reverse --format='%b' "refs/heads/${parent}..refs/heads/${branch}" \
+    git log --reverse --format='%b' "refs/heads/${parent}..refs/heads/${branch}" \
       | sed '/^$/d'
     printf '\n---\n\n'
     printf 'Opened by the `agentic dependency upgrade` workflow. Review this layer only.\n'
@@ -293,7 +235,7 @@ for idx in "${!chain[@]}"; do
 done
 
 # ---------------------------------------------------------------------------
-# 5. Link the pull requests into a formal stack
+# 3. Link the pull requests into a formal stack
 # ---------------------------------------------------------------------------
 # The PR bases already form a stack; this is what makes GitHub render it as one.
 if [ "${#pr_numbers[@]}" -lt 2 ]; then
@@ -320,9 +262,6 @@ else
           warn "the Stacks API is unavailable here (stacked PRs may not be enabled for ${REPO})."
           warn "The PRs are still based on each other; GitHub will offer to link them into a stack."
           ;;
-        *403*|*Forbidden*)
-          warn "the app token is not permitted to create stacks: ${out}"
-          ;;
         *)
           # 422 means the PR chain itself does not form a valid stack -- our bug.
           die "failed to create the stack: ${out}"
@@ -333,9 +272,9 @@ else
 fi
 
 # ---------------------------------------------------------------------------
-# 6. Report
+# 4. Report
 # ---------------------------------------------------------------------------
-head_ref="$("${GIT[@]}" rev-parse --abbrev-ref HEAD)"
+head_ref="$(git rev-parse --abbrev-ref HEAD)"
 top="${chain[$((total - 1))]}"
 if [ "$head_ref" = "$top" ]; then
   log "HEAD is at the top of the stack (${top})"
