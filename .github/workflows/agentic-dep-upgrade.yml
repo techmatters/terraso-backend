@@ -1,0 +1,262 @@
+name: agentic dependency upgrade
+
+# Weekly dependency upgrade performed by an OpenCode agent, which proposes the
+# work as a stack of pull requests (one layer per dependency group).
+#
+# ---------------------------------------------------------------------------
+# Security model
+# ---------------------------------------------------------------------------
+# There is exactly one job and one workspace. The agent runs with *no* GitHub
+# credential in the environment: the repository credential is minted from a
+# GitHub App in the last step, after the agent has exited.
+#
+# Two things make that hold in practice, and both are required:
+#
+#   1. `persist-credentials: false` on the checkout. By default, actions/checkout
+#      writes the workflow token into .git/config as an http extraheader, which
+#      would leave a usable credential sitting in the workspace for the agent to
+#      push with.
+#   2. The push/PR step runs a copy of scripts/push-stack.sh extracted from the
+#      trusted base ref (`git show origin/<base>:...`), not the working-tree copy,
+#      and sanitises the environment and git config first. The agent can edit the
+#      working tree, so the working tree is not a trustworthy source of code that
+#      is about to hold a credential.
+#
+# Residual risk is documented in the review notes for this workflow.
+# ---------------------------------------------------------------------------
+
+on:
+  # Sunday daytime. GitHub cron is UTC, so this is ~10:00 US/Eastern in summer
+  # and ~09:00 in winter. Adjust if "daytime Sunday" means a different zone.
+  schedule:
+    - cron: "0 14 * * 0"
+
+  # Pre-merge testing. `push` fires as soon as this file is on a branch, which
+  # is the only trigger that works before this file reaches the default branch:
+  # both `pull_request` and `workflow_dispatch` require the workflow definition
+  # to exist on the default branch before GitHub will offer to run it.
+  #
+  # These two triggers are scaffolding for testing this workflow before it lands.
+  # Delete them once the workflow is on the default branch and the weekly cron is
+  # the only thing you want driving it.
+  push:
+    branches:
+      - ci/agentic-dep-upgrade
+  pull_request:
+    branches:
+      - ci/agentic-dep-upgrade
+    types: [opened, synchronize, reopened]
+
+  # Manual run. `base_branch` selects what the stack is built on.
+  workflow_dispatch:
+    inputs:
+      base_branch:
+        description: "Branch to stack the dependency branches on"
+        required: true
+        default: "ci/agentic-dep-upgrade"
+        type: string
+
+# One run at a time per ref: two overlapping runs would race to create the same
+# shapes of branches and PRs.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+# Least privilege for the workflow token. The push/PR step does not use this
+# token at all -- it uses a GitHub App installation token -- so this can stay
+# read-only, which is what makes an accidental credential leak in the agent step
+# far less interesting.
+permissions:
+  contents: read
+
+env:
+  # Activates .github/opencode/ as an extra config directory for CI only.
+  OPENCODE_CONFIG_DIR: ${{ github.workspace }}/.github/opencode
+  # Pinned so a run can't drift onto a different version mid-week.
+  OPENCODE_VERSION: "1.18.35"
+  UV_VERSION: "0.12.0"
+  # Keep OpenCode's data (including its logs, which are the only useful artifact
+  # from a failed agent run) inside $RUNNER_TEMP so the upload path below is
+  # unambiguous.
+  XDG_DATA_HOME: ${{ runner.temp }}/opencode-data
+
+jobs:
+  upgrade:
+    runs-on: ubuntu-latest
+    # The agent loop builds Docker images and runs the unit suite repeatedly.
+    timeout-minutes: 330
+    # Never run this on a fork PR: the app private key is withheld from fork
+    # runs, so the job would fail anyway, and the run is not useful there.
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.fork == false
+
+    steps:
+      - name: Resolve base branch
+        id: base
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          INPUT_BASE: ${{ inputs.base_branch }}
+          PR_BASE: ${{ github.base_ref }}
+          PUSH_REF: ${{ github.ref_name }}
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+        run: |
+          set -euo pipefail
+          case "$EVENT_NAME" in
+            workflow_dispatch) base="$INPUT_BASE" ;;
+            pull_request)      base="$PR_BASE" ;;
+            push)              base="$PUSH_REF" ;;
+            schedule)          base="$DEFAULT_BRANCH" ;;
+            *) echo "::error::unhandled event: $EVENT_NAME"; exit 1 ;;
+          esac
+          if [ -z "$base" ]; then
+            echo "::error::could not determine a base branch for event $EVENT_NAME"
+            exit 1
+          fi
+          echo "base=$base" >> "$GITHUB_OUTPUT"
+          echo "Base branch: $base"
+
+      # persist-credentials: false is the security boundary -- see the header.
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ steps.base.outputs.base }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      # docker-compose.base.yml has `env_file: $HOME/secrets/terraso-backend/.env`
+      # and the Makefile reads the same path, so this must exist before any
+      # docker compose or make target runs. Same dance as .github/workflows/build.yml.
+      - name: Set up env file
+        run: |
+          set -euo pipefail
+          mkdir -p "$HOME/secrets/terraso-backend"
+          cp .env.sample "$HOME/secrets/terraso-backend/.env"
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
+        with:
+          version: ${{ env.UV_VERSION }}
+          enable-cache: true
+          cache-dependency-glob: "uv.lock"
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.13.7"
+
+      # `--only-group lint` deliberately avoids the `dev` group: it skips
+      # building fiona/GDAL on the runner (see the Makefile's install-dev-tools).
+      - name: Install lint dependencies
+        run: uv sync --frozen --only-group lint
+
+      - name: Install OpenCode
+        run: npm install --global "opencode-ai@${OPENCODE_VERSION}"
+
+      # Cheap, and it fails before any tokens are spent. The config schema is
+      # strict: a mistyped key or a wrong value type is a hard error at startup,
+      # and the failure mode otherwise is an agent that runs with the wrong
+      # permissions halfway through a long job.
+      - name: Validate OpenCode config
+        run: opencode debug config > /dev/null
+
+      # Commits made by the agent need an identity. This is not a credential.
+      - name: Configure git identity
+        run: |
+          set -euo pipefail
+          git config --global user.name "terraso-dep-upgrader"
+          git config --global user.email "terraso-dep-upgrader[bot]@users.noreply.github.com"
+          git config --global commit.gpgsign false
+
+      # Not strictly required, but the base image builds GDAL from a Debian
+      # snapshot plus the AWS CLI, and `make test_unit` would otherwise spend
+      # the agent's first turn waiting on it. Doing it here also means a failure
+      # in the image build is reported as an image build failure rather than as
+      # something the agent tried to "fix".
+      - name: Pre-build Docker images
+        run: make build
+
+      # The agent. No GH_TOKEN / GITHUB_TOKEN in the environment on purpose.
+      # `--auto` covers permission prompts that this config does not enumerate
+      # (for example `doom_loop`), which would otherwise stall a headless run.
+      - name: Run dependency upgrade agent
+        id: agent
+        env:
+          OPENCODE_API_KEY: ${{ secrets.OPENCODE_API_KEY }}
+        run: |
+          set -euo pipefail
+          scripts/agentic-dep-upgrade.sh "${{ steps.base.outputs.base }}"
+
+      # "Everything is already current" is a legitimate weekly outcome, and it
+      # looks identical to "the agent gave up early". Either way there is nothing
+      # to push, so don't fail the run -- and don't mint a credential for work
+      # that doesn't exist.
+      - name: Check whether the agent produced a stack
+        id: produced
+        run: |
+          set -euo pipefail
+          if git for-each-ref --format='%(refname:short)' 'refs/heads/' | grep -q '^deps/'; then
+            echo "has_stack=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "has_stack=false" >> "$GITHUB_OUTPUT"
+            {
+              echo "## Agentic dependency upgrade"
+              echo
+              echo "The agent created no \`deps/*\` branches. Either every dependency"
+              echo "is already on a version released at least a week ago, or the run"
+              echo "stopped early. Check the job log before assuming it is a no-op."
+            } >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      # ---------------------------------------------------------------------
+      # Everything below this line may hold a repository credential.
+      # ---------------------------------------------------------------------
+
+      # A GitHub App installation token rather than GITHUB_TOKEN: pull requests
+      # opened with GITHUB_TOKEN do not trigger `pull_request` workflows, so the
+      # generated PRs would never see CI. The private key is only exposed to
+      # this and the following step.
+      - name: Mint app token
+        id: app-token
+        if: steps.produced.outputs.has_stack == 'true'
+        uses: actions/create-github-app-token@v2
+        with:
+          app-id: ${{ vars.DEP_UPGRADER_APP_ID }}
+          private-key: ${{ secrets.DEP_UPGRADER_APP_PRIVATE_KEY }}
+          permission-contents: write
+          permission-pull-requests: write
+
+      # Runs even if the agent failed, so a partial (but coherent) stack still
+      # gets pushed and reviewed; the job is still red because the agent step
+      # failed.
+      - name: Push branches and open stacked PRs
+        if: |
+          steps.produced.outputs.has_stack == 'true' &&
+          (steps.agent.outcome == 'success' || steps.agent.outcome == 'failure')
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          BASE_BRANCH: ${{ steps.base.outputs.base }}
+        run: |
+          set -euo pipefail
+
+          # The agent had write access to this workspace, so nothing in it is
+          # trusted -- including this script. Run the copy from the trusted base
+          # ref instead. GIT_CONFIG_GLOBAL/SYSTEM are pinned so that no config
+          # file the agent could have edited influences where that blob is read
+          # from.
+          TRUSTED_SCRIPT="$RUNNER_TEMP/push-stack.sh"
+          GIT_CONFIG_GLOBAL=/dev/null GIT_CONFIG_SYSTEM=/dev/null \
+            git -c core.hooksPath=/dev/null \
+            show "origin/${BASE_BRANCH}:scripts/push-stack.sh" > "$TRUSTED_SCRIPT"
+
+          chmod +x "$TRUSTED_SCRIPT"
+          bash "$TRUSTED_SCRIPT" "$BASE_BRANCH"
+
+      - name: Upload opencode logs
+        if: failure() || cancelled()
+        uses: actions/upload-artifact@v4
+        with:
+          name: opencode-logs
+          path: |
+            ${{ runner.temp }}/opencode-data/
+            ${{ runner.temp }}/opencode-logs/
+          if-no-files-found: ignore
+          retention-days: 7
