@@ -96,7 +96,9 @@ scrub_local_git_config() {
   while IFS= read -r key; do
     [ -n "$key" ] || continue
     case "$key" in
-      url.*|credential.*|http.*extraheader|remote.origin.pushurl)
+      url.*|credential.*|http.*|alias.*|filter.*|remote.*.pushurl|remote.*.proxy|\
+      diff.*.textconv|diff.*.command|core.sshcommand|core.gitproxy|core.pager|\
+      core.editor|core.fsmonitor|sequence.editor|gpg.program)
         "${GIT[@]}" config --local --unset-all "$key" 2>/dev/null || true
         ;;
     esac
@@ -112,11 +114,25 @@ log "base branch: ${BASE}"
 scrub_local_git_config
 
 # ---------------------------------------------------------------------------
-# 3. Discover the stack: the agent's branches, ordered by commit ancestry
+# 3. Discover the stack: walk down from the top to the base
 # ---------------------------------------------------------------------------
 # Only local branches are considered. A fresh CI checkout has the base branch
 # plus whatever the agent created, so branches pushed by earlier runs cannot be
 # mistaken for this run's work.
+#
+# The chain comes from commit ancestry, not from anything the agent reported:
+# start at the top of the stack, repeatedly step to the closest ancestor that is
+# also one of our branches, and stop when the base branch is reached. Each step
+# is verified with `merge-base --is-ancestor`.
+#
+# Deliberately not a global sort by commit count: two branches can sit at the
+# same depth (a stray sibling rather than a chain), and ordering by depth alone
+# either silently drops one of them or yields a chain whose PR bases are a
+# fiction. Walking down from the top ignores strays and reports them instead.
+#
+# NB: the pattern must not be 'refs/heads/*' -- git's ref globbing is
+# segment-aware, so a single '*' does not match 'refs/heads/deps/2026-.../x'.
+# A bare prefix lists everything and the `case` below does the filtering.
 candidates=()
 while IFS= read -r branch; do
   [ "$branch" = "$BASE" ] && continue
@@ -129,25 +145,73 @@ while IFS= read -r branch; do
   else
     warn "ignoring ${branch}: it is not a descendant of ${BASE}"
   fi
-# NB: the pattern must not be 'refs/heads/*' -- git's ref globbing is
-# segment-aware, so a single '*' does not match 'refs/heads/deps/2026-.../x'.
-# A bare prefix lists everything and the `case` below does the filtering.
 done < <("${GIT[@]}" for-each-ref --format='%(refname:short)' 'refs/heads/')
 
 [ "${#candidates[@]}" -gt 0 ] || die "no ${BRANCH_PREFIX}* branches found on top of ${BASE}"
 
-chain=()
-while read -r _ b; do
-  [ -n "$b" ] && chain+=("$b")
-done < <(
+commits_above_base() {
+  "${GIT[@]}" rev-list --count "refs/heads/${BASE}..refs/heads/${1}"
+}
+
+# Prefer HEAD as the top of the stack (the agent is asked to finish there), and
+# fall back to the deepest branch when it is not.
+head_ref="$("${GIT[@]}" rev-parse --abbrev-ref HEAD)"
+top=""
+for branch in "${candidates[@]}"; do
+  if [ "$branch" = "$head_ref" ]; then
+    top="$branch"
+    break
+  fi
+done
+if [ -z "$top" ]; then
+  top="${candidates[0]}"
   for branch in "${candidates[@]}"; do
-    printf '%s %s\n' \
-      "$("${GIT[@]}" rev-list --count "refs/heads/${BASE}..refs/heads/${branch}")" \
-      "$branch"
-  done | sort -n -k1,1 -u
-)
+    if [ "$(commits_above_base "$branch")" -gt "$(commits_above_base "$top")" ]; then
+      top="$branch"
+    fi
+  done
+  warn "HEAD is ${head_ref}, which is not a ${BRANCH_PREFIX}* branch; using ${top} as the top of the stack"
+fi
+
+chain_rev=()
+current="$top"
+steps=0
+while [ "$current" != "$BASE" ]; do
+  steps=$((steps + 1))
+  [ "$steps" -le 500 ] || die "gave up walking down from ${top}: no path back to ${BASE}"
+
+  parent="$BASE"
+  parent_depth="$(commits_above_base "$BASE")"
+  for branch in "${candidates[@]}"; do
+    [ "$branch" = "$current" ] && continue
+    "${GIT[@]}" merge-base --is-ancestor "refs/heads/${branch}" "refs/heads/${current}" || continue
+    depth="$(commits_above_base "$branch")"
+    if [ "$depth" -ge "$parent_depth" ]; then
+      parent="$branch"
+      parent_depth="$depth"
+    fi
+  done
+
+  chain_rev+=("$current")
+  current="$parent"
+done
+
+chain=()
+for ((i = ${#chain_rev[@]} - 1; i >= 0; i--)); do
+  chain+=("${chain_rev[i]}")
+done
 
 [ "${#chain[@]}" -gt 0 ] || die "could not order the ${BRANCH_PREFIX}* branches"
+
+# Anything not on the path is not part of this stack and gets no PR. Say so
+# rather than dropping it quietly.
+for branch in "${candidates[@]}"; do
+  on_path=""
+  for chained in "${chain[@]}"; do
+    if [ "$chained" = "$branch" ]; then on_path=1; break; fi
+  done
+  [ -n "$on_path" ] || warn "${branch} is not part of the chain from ${top} to ${BASE}; it will get no pull request"
+done
 
 # Each layer must actually sit on the one below it, otherwise the bases we set
 # on the PRs would be a fiction (and the Stacks API would reject the stack).
@@ -186,7 +250,7 @@ for idx in "${!chain[@]}"; do
   # the pyproject/lock change -- so it describes the layer rather than the last
   # fix that touched it.
   title="$("${GIT[@]}" log --reverse --format='%s' \
-    "refs/heads/${parent}..refs/heads/${branch}" | head -n1)"
+    "refs/heads/${parent}..refs/heads/${branch}" | sed -n 1p)"
   title="${title:-update dependency group ${branch##*/}}"
   # .github/workflows/check-commits.yml validates PR titles against a
   # conventional-commit pattern, so synthesise a conforming one if needed.
@@ -246,7 +310,7 @@ else
   else
     # Already stacked (for example a re-run that refreshed existing PRs)?
     already="$(gh api "repos/${REPO}/stacks?pull_request=${pr_numbers[0]}" \
-      --jq '.stacks[0].number // empty' 2>/dev/null || true)"
+      --jq '.[0].number // empty' 2>/dev/null || true)"
     if [ -n "$already" ]; then
       log "stack #${already} already exists; left as is"
     else
