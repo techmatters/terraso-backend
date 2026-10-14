@@ -1,0 +1,119 @@
+#!/usr/bin/env bash
+#
+# agentic-dep-upgrade.sh -- run the weekly dependency-upgrade agent.
+#
+# Usage:
+#   OPENCODE_API_KEY=... scripts/agentic-dep-upgrade.sh [base-branch]
+#
+# The base branch defaults to the currently checked-out branch. The agent runs
+# with no GitHub credentials: it may only make local commits. Pushing the
+# resulting branch stack and opening pull requests is a separate, later step
+# (scripts/push-stack.sh) that runs in a different environment.
+#
+set -euo pipefail
+
+BASE_BRANCH="${1:-$(git rev-parse --abbrev-ref HEAD)}"
+
+REPO_ROOT="$(git rev-parse --show-toplevel)"
+cd "$REPO_ROOT"
+
+: "${OPENCODE_API_KEY:?OPENCODE_API_KEY must be set}"
+
+OPENCODE_MODEL="${OPENCODE_MODEL:-opencode-go/mimo-v2.6-pro}"
+
+# CI config lives under .github/ so it never shadows a developer's own
+# opencode.json. OPENCODE_CONFIG_DIR is loaded after the global config and after
+# any project .opencode/ directory, so it wins for CI without affecting them.
+export OPENCODE_CONFIG_DIR="${OPENCODE_CONFIG_DIR:-$REPO_ROOT/.github/opencode}"
+
+RUN_DIR="${RUNNER_TEMP:-/tmp}/opencode-logs"
+mkdir -p "$RUN_DIR"
+
+log() { printf '[agentic-dep-upgrade] %s\n' "$*"; }
+
+command -v opencode >/dev/null 2>&1 || {
+  echo "::error::opencode is not on PATH" >&2
+  exit 1
+}
+command -v uv >/dev/null 2>&1 || {
+  echo "::error::uv is not on PATH" >&2
+  exit 1
+}
+
+log "opencode $(opencode --version 2>/dev/null || echo '(version unknown)')"
+log "model:    $OPENCODE_MODEL"
+log "base:     $BASE_BRANCH"
+log "config:   $OPENCODE_CONFIG_DIR"
+
+git rev-parse --verify --quiet "refs/heads/${BASE_BRANCH}" >/dev/null || {
+  echo "::error::base branch '${BASE_BRANCH}' is not checked out locally" >&2
+  exit 1
+}
+
+# Commits made by the agent need an identity. This is not a credential; it just
+# has to exist before the agent starts committing.
+git config --global user.name "terraso-dep-upgrader"
+git config --global user.email "terraso-dep-upgrader[bot]@users.noreply.github.com"
+git config --global commit.gpgsign false
+git config --global advice.detachedHead false
+
+# Fail before spending any tokens if the CI config is invalid. The schema is
+# strict, so this catches mistyped keys and wrong value types up front.
+log "validating opencode config"
+opencode debug config >/dev/null
+
+# The agent must not be able to *push* even if it tries: there is no token in
+# the environment, and the checkout was made with persist-credentials: false.
+# It is told so explicitly in .github/opencode/instructions.md, and the prompt
+# below expects local branches only.
+if git config --get remote.origin.url >/dev/null 2>&1; then
+  log "remote.origin.url is present but carries no credential"
+fi
+
+read -r -d '' PROMPT <<'PROMPT_EOF' || true
+you are doing a weekly dependency update for this repo.
+
+please update the package versions in pyproject.toml to the latest versions that have been released for at least a week. you can find the right packages to upgrade to by running `uv tree --outdated -d 1 --exclude-newer="7 days"`.
+
+come up with a grouping for related updates, and for each group launch a subagent to read through the changelogs for the updated packages and determine whether there are any issues for the codebase. triage the subagents' findings in order to create stacked branches based on the current branch in order of how impactful the upgrade is, with the most impactful upgrades highest in the stack. the branch name format is `deps/YYYY-MM-DD-HH-MM/{your-name-for-this-group}`.
+
+after you create each branch and commit the `pyproject.toml`/`uv.lock` changes for it, resume that group's subagent and tell it to implement any changes it needs to make for those dependency upgrades, committing them to the current branch. note that this process will be necessarily serial.
+
+once you have all branches stacked up, launch a subagent to run `make test_unit` and `make lint` and then do one round of follow-up fixes (committed to the appropriate branch in the stack). this should be the first time you run tests in this process, ensure subagents launched before this point know not to run the tests. the command may take a while since it will need to install the docker image.
+
+note that the subagent should not then re-run the tests after it has committed the fixes, it should just report whether the original run was green and what changes it made, if any. then launch a new subagent with the same instructions as the previous until things are green, or until it seems the agents aren't able to make progress.
+
+conclude by ensuring that the repo is checked out at the top of the stack. also ensure throughout this process that commit messages contain a clear but concise description of the changes made and why they were made.
+PROMPT_EOF
+
+drain_opencode_logs() {
+  local log_dir="${XDG_DATA_HOME:-$HOME/.local/share}/opencode/log"
+  [ -d "$log_dir" ] || return 0
+  local newest
+  newest="$(find "$log_dir" -type f -name '*.log' -printf '%T@ %p\n' 2>/dev/null |
+    sort -n | tail -n1 | cut -d' ' -f2-)"
+  [ -n "$newest" ] || return 0
+  echo "::group::tail of $(basename "$newest")"
+  tail -n 200 "$newest"
+  echo "::endgroup::"
+}
+
+log "starting agent run"
+set +e
+opencode run \
+  --model "$OPENCODE_MODEL" \
+  --title "weekly dependency upgrade $(date -u +%Y-%m-%d)" \
+  --auto \
+  "$PROMPT" 2>&1 | tee "$RUN_DIR/agentic-dep-upgrade.log"
+status="${PIPESTATUS[0]}"
+set -e
+
+if [ "$status" -ne 0 ]; then
+  echo "::error::opencode exited with status ${status}"
+  drain_opencode_logs
+  exit "$status"
+fi
+
+log "agent run finished"
+log "local branches now present:"
+git for-each-ref --format='  %(refname:short)' 'refs/heads/'
