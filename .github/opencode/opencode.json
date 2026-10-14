@@ -1,0 +1,72 @@
+{
+  // CI-only OpenCode configuration.
+  //
+  // This file lives under .github/ so it never shows up as an `opencode.json`
+  // in the repo root. The workflow activates it with:
+  //
+  //   OPENCODE_CONFIG_DIR=<repo>/.github/opencode
+  //
+  // OPENCODE_CONFIG_DIR is an extra `.opencode`-style directory, loaded *after*
+  // the global config and after any project `.opencode/`, so everything here
+  // wins over developer-local configuration without affecting it.
+  //
+  // NOTE ON KEY NAMES: the `permission` block below uses OpenCode v1 names
+  // (v1.18.x), which is what the workflow pins. `task` is v1's name for the
+  // "launch a subagent" permission and `bash` is v1's name for shell.
+  // OpenCode v2 uses `permissions` (a rule array) with `shell`/`subagent`
+  // instead. If the workflow is ever moved to the v2 line (@opencode/cli),
+  // this block has to be rewritten.
+  //
+  // Verified against opencode 1.18.25: invalid *values* are hard errors at
+  // startup (`opencode debug config` exits 1, which is why the workflow gates on
+  // it), but unknown keys are silently ignored. So a stale key here fails
+  // quietly rather than loudly -- re-check this file when bumping the pin.
+  "$schema": "https://opencode.ai/config.json",
+
+  // Model is pinned here so a run cannot silently drift onto a different model.
+  // Provider env var for `opencode-go` is OPENCODE_API_KEY.
+  "model": "opencode-go/mimo-v2.6-pro",
+
+  // Never self-upgrade inside CI: the workflow pins an exact version.
+  "autoupdate": false,
+
+  // Do not publish session transcripts to a public URL.
+  // (v1 requires "manual" | "auto" | "disabled" -- `false` is a schema error.)
+  "share": "disabled",
+
+  // This runs unattended: there is nobody to answer a prompt, so every tool the
+  // agent needs is granted explicitly. `external_directory` is included on
+  // purpose because a headless run cannot answer the prompt it otherwise
+  // raises; it defaults to "ask".
+  "permission": {
+    "read": "allow",
+    "edit": "allow",
+    "bash": "allow",
+    "task": "allow",
+    "webfetch": "allow",
+    // `websearch` is available because the provider is `opencode-go`; it is
+    // otherwise gated behind OPENCODE_ENABLE_EXA / OPENCODE_ENABLE_PARALLEL.
+    "websearch": "allow",
+    "external_directory": "allow"
+  },
+
+  // CI-specific extra context. Array fields are concatenated by OpenCode's
+  // config merge, so this is *in addition to* the built-in "*.md" defaults.
+  "instructions": [".github/opencode/instructions.md"],
+
+  "agent": {
+    // A deliberately unambitious subagent: `mode: subagent` is the whole
+    // definition. It declares no `permission` and no `model`, so it resolves to
+    // the permissions and model configured above -- i.e. it inherits exactly
+    // what the primary agent has, rather than being capped more tightly.
+    //
+    // (Worth being precise about: OpenCode merges agent permissions over the
+    // *global* config, it does not derive them from the launching session. So
+    // "inherits from parent" here means "inherits from this file's global
+    // block", which is the all-allow policy above.)
+    "general-purpose": {
+      "description": "General purpose agent with the same permissions as the parent. Use for researching changelogs and for multi-step implementation work.",
+      "mode": "subagent"
+    }
+  }
+}
