@@ -128,10 +128,13 @@ class Command(BaseCommand):
                     m2m_relations.append(field)
             if not (foreign_keys or m2m_relations):
                 continue
-            # reset foreign keys pointing to new ID to point to old ID
+            # reset foreign keys pointing to new ID to point to old ID.
+            # Use the unfiltered base manager: django-safedelete 1.5 makes bulk
+            # update() on the default/all managers skip soft-deleted rows, but a
+            # restore must remap FKs on every row (including soft-deleted ones).
             old_user_fk = {field.name: str(old_user_id) for field in foreign_keys}
             new_user_fk = {field.name: str(new_user_id) for field in foreign_keys}
-            model.objects.filter(**new_user_fk).update(**old_user_fk)
+            model._base_manager.filter(**new_user_fk).update(**old_user_fk)
 
             # reset old m2m relations pointing to user
             if not m2m_relations:
