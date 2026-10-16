@@ -19,11 +19,12 @@ cd "$REPO_ROOT"
 
 : "${OPENCODE_API_KEY:?OPENCODE_API_KEY must be set}"
 
-OPENCODE_MODEL="${OPENCODE_MODEL:-opencode-go/deepseek-v4.1-flash}"
-
 # CI config lives under .github/ so it never shadows a developer's own
 # opencode.json. OPENCODE_CONFIG_DIR is loaded after the global config and after
 # any project .opencode/ directory, so it wins for CI without affecting them.
+#
+# The model and its reasoning-effort variant are whatever that config says: this
+# script deliberately does not pass --model, so the two cannot drift apart.
 export OPENCODE_CONFIG_DIR="${OPENCODE_CONFIG_DIR:-$REPO_ROOT/.github/opencode}"
 
 RUN_DIR="${RUNNER_TEMP:-/tmp}/opencode-logs"
@@ -40,10 +41,11 @@ command -v uv >/dev/null 2>&1 || {
   exit 1
 }
 
+# Fail before spending any tokens if the binary is unusable.
 log "opencode $(opencode --version 2>/dev/null || echo '(version unknown)')"
-log "model:    $OPENCODE_MODEL"
-log "base:     $BASE_BRANCH"
 log "config:   $OPENCODE_CONFIG_DIR"
+log "model:    from the config above, not passed on the command line"
+log "base:     $BASE_BRANCH"
 
 git rev-parse --verify --quiet "refs/heads/${BASE_BRANCH}" >/dev/null || {
   echo "::error::base branch '${BASE_BRANCH}' is not checked out locally" >&2
@@ -55,12 +57,6 @@ git rev-parse --verify --quiet "refs/heads/${BASE_BRANCH}" >/dev/null || {
 # that running this by hand can never rewrite a developer's git config. If you do
 # run it locally and the repo has no identity, the agent's first `git commit` will
 # fail with "Please tell me who you are".
-
-# Fail before spending any tokens if the binary is unusable.
-log "opencode $(opencode --version 2>/dev/null || echo '(version unknown)')"
-log "model:    $OPENCODE_MODEL"
-log "base:     $BASE_BRANCH"
-log "config:   $OPENCODE_CONFIG_DIR"
 
 # The agent must not be able to *push* even if it tries: there is no token in
 # the environment, and the checkout was made with persist-credentials: false.
@@ -77,7 +73,7 @@ please update the package versions in pyproject.toml to the latest versions that
 
 come up with a grouping for related updates, and for each group launch a subagent to read through the changelogs for the updated packages and determine whether there are any issues for the codebase. triage the subagents' findings in order to create stacked branches based on the current branch in order of how impactful the upgrade is, with the most impactful upgrades highest in the stack. the branch name format is `deps/YYYY-MM-DD-HH-MM/{your-name-for-this-group}`.
 
-create each branch and commit the `pyproject.toml`/`uv.lock` changes for it. then create a separate worktree for each branch, and resume each branch's group's subagent in parallel, telling it to implement any changes it needs to make for those dependency updates. when all the changes are in, rebase the branches on each other so the stack's shape is proper again.
+create each branch and commit the `pyproject.toml`/`uv.lock` changes for it. then create a separate worktree for each branch — outside the repo, because the repo is bind-mounted into docker — and resume each branch's group's subagent in parallel, telling it to implement any changes it needs to make for those dependency updates. when all the changes are in, remove the worktrees (git will not rebase a branch that is checked out in another worktree) and rebase the branches on each other so the stack's shape is proper again.
 
 two constraints for the sake of runner time — please respect them exactly:
 
@@ -111,7 +107,6 @@ log "starting agent run"
 set +e
 opencode run \
   --standalone \
-  --model "$OPENCODE_MODEL" \
   --title "monthly dependency upgrade $(date -u +%Y-%m-%d)" \
   --auto \
   "$PROMPT" 2>&1 | tee "$RUN_DIR/agentic-dep-upgrade.log"
