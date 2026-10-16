@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# agentic-dep-upgrade.sh -- run the weekly dependency-upgrade agent.
+# agentic-dep-upgrade.sh -- run the monthly dependency-upgrade agent.
 #
 # Usage:
 #   OPENCODE_API_KEY=... scripts/agentic-dep-upgrade.sh [base-branch]
@@ -72,7 +72,7 @@ if git config --get remote.origin.url >/dev/null 2>&1; then
 fi
 
 read -r -d '' PROMPT <<'PROMPT_EOF' || true
-you are doing a weekly dependency update for this repo.
+you are doing a monthly dependency update for this repo.
 
 please update the package versions in pyproject.toml to the latest versions that have been released for at least a week. you can find the right packages to upgrade to by running `uv tree --outdated -d 1 --exclude-newer="7 days"`.
 
@@ -113,7 +113,7 @@ set +e
 opencode run \
   --standalone \
   --model "$OPENCODE_MODEL" \
-  --title "weekly dependency upgrade $(date -u +%Y-%m-%d)" \
+  --title "monthly dependency upgrade $(date -u +%Y-%m-%d)" \
   --auto \
   "$PROMPT" 2>&1 | tee "$RUN_DIR/agentic-dep-upgrade.log"
 status="${PIPESTATUS[0]}"

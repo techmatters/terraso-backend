@@ -54,7 +54,7 @@ gh auth setup-git
 
 head_branch="$(git rev-parse --abbrev-ref HEAD)"
 
-# The weekly run has no work to do more often than you would think: every pin is
+# A monthly run has no work to do more often than you would think: every pin is
 # already on a version that is at least a week old.
 if [ "$head_branch" = "$BASE" ]; then
   log "Nothing to push: HEAD is ${BASE}."
