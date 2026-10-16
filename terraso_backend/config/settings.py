@@ -99,6 +99,12 @@ INSTALLED_APPS = [
 # See https://docs.djangoproject.com/en/4.2/ref/contrib/sites/
 SITE_ID = 1
 
+# Django 6.0 changed the default from AutoField to BigAutoField. All of our models
+# define an explicit UUID primary key (apps.core.models.commons.BaseModel) or a
+# BigAutoField, but shared_data/story_map have no AppConfig, so set this explicitly
+# to keep auto-created primary keys stable and avoid migration drift.
+DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
 if DEBUG:
     INSTALLED_APPS += [
         "naomi",
