@@ -29,7 +29,10 @@
 
   // Pinned so a run cannot silently drift onto another model.
   // The `opencode-go` integration authenticates from OPENCODE_API_KEY.
-  "model": "opencode-go/mimo-v2.6-pro",
+  //
+  // Note this is overridden by the `--model` flag that
+  // scripts/agentic-dep-upgrade.sh passes, so the two have to be kept in step.
+  "model": "opencode-go/deepseek-v4.1-flash",
 
   // Never self-upgrade inside CI: the workflow pins an exact version.
   "update": "disable",

@@ -252,8 +252,14 @@ jobs:
           set -euo pipefail
           scripts/push-stack.sh "${{ steps.base.outputs.base }}"
 
+      # Uploaded on every run, not just failures: a green run's logs are what you
+      # compare against when a later run goes wrong, and the agent's own narrative
+      # is useful even when it did nothing. Note this means the full session
+      # database (opencode-data/) is retained for successful runs too, which
+      # includes the transcript -- message parts, tool inputs and outputs, and
+      # reasoning when the model produced it.
       - name: Upload opencode logs
-        if: failure() || cancelled()
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: opencode-logs
