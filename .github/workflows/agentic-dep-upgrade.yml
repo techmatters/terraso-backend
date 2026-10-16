@@ -86,10 +86,6 @@ env:
   # is otherwise a ~2 GB pull. Unit tests do not need it; integration tests do
   # (and integration tests are not part of this workflow).
   SOIL_ID_DATABASE_ENABLED: "false"
-  # Keep OpenCode's data (including its logs, which are the only useful artifact
-  # from a failed agent run) inside $RUNNER_TEMP so the upload path below is
-  # unambiguous.
-  XDG_DATA_HOME: ${{ runner.temp }}/opencode-data
 
 jobs:
   upgrade:
@@ -215,6 +211,11 @@ jobs:
         id: agent
         env:
           OPENCODE_API_KEY: ${{ secrets.OPENCODE_API_KEY }}
+          # Step-level, because `runner` is not an available context in the
+          # workflow- or job-level env blocks (only github, inputs, matrix, needs,
+          # secrets, strategy and vars are). Keeps OpenCode's data -- including the
+          # log the upload step below looks for -- under $RUNNER_TEMP.
+          XDG_DATA_HOME: ${{ runner.temp }}/opencode-data
         run: |
           set -euo pipefail
           scripts/agentic-dep-upgrade.sh "${{ steps.base.outputs.base }}"
