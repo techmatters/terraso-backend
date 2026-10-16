@@ -73,7 +73,11 @@ def get_rows_from_file(data_entry):
     elif type.startswith("xls"):
         file = data_entry_upload_service.get_file(data_entry.s3_object_name, "rb")
         df = pandas.read_excel(file, dtype=str)
-        rows = df.values.tolist()
+        # pandas 3 infers its new dedicated `str` dtype for these columns and
+        # `DataFrame.values` may then return an ExtensionArray-backed object;
+        # `to_numpy(dtype=object)` keeps the previous nested-list-of-cells shape
+        # (missing cells stay NaN, which the caller already handles).
+        rows = df.to_numpy(dtype=object).tolist()
         return [df.columns.tolist()] + rows
     else:
         raise Exception(  # noqa: TRY002
