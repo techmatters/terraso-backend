@@ -52,10 +52,15 @@ git rev-parse --verify --quiet "refs/heads/${BASE_BRANCH}" >/dev/null || {
 
 # Commits made by the agent need an identity. This is not a credential; it just
 # has to exist before the agent starts committing.
-git config --global user.name "terraso-dep-upgrader"
-git config --global user.email "terraso-dep-upgrader[bot]@users.noreply.github.com"
-git config --global commit.gpgsign false
-git config --global advice.detachedHead false
+#
+# Repo-local on purpose. This script also gets run by hand on a developer machine,
+# where writing to the global config would silently replace someone's name, email
+# and gpgsign setting. CI is unaffected: the agent only ever commits inside this
+# one checkout.
+git config --local user.name "terraso-dep-upgrader"
+git config --local user.email "terraso-dep-upgrader[bot]@users.noreply.github.com"
+git config --local commit.gpgsign false
+git config --local advice.detachedHead false
 
 # Fail before spending any tokens if the binary is unusable.
 log "opencode $(opencode --version 2>/dev/null || echo '(version unknown)')"

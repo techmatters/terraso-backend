@@ -188,13 +188,8 @@ jobs:
       - name: Install OpenCode
         run: npm install --global "@opencode/cli@${OPENCODE_VERSION}"
 
-      # Commits made by the agent need an identity. This is not a credential.
-      - name: Configure git identity
-        run: |
-          set -euo pipefail
-          git config --global user.name "terraso-dep-upgrader"
-          git config --global user.email "terraso-dep-upgrader[bot]@users.noreply.github.com"
-          git config --global commit.gpgsign false
+      # The agent sets its own commit identity (repo-local) inside
+      # scripts/agentic-dep-upgrade.sh, so there is nothing to configure here.
 
       # Not strictly required, but the base image builds GDAL from a Debian
       # snapshot plus the AWS CLI, and `make test_unit` would otherwise spend
