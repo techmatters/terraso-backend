@@ -209,36 +209,12 @@ jobs:
           set -euo pipefail
           scripts/agentic-dep-upgrade.sh "${{ steps.base.outputs.base }}"
 
-      # "Everything is already current" is a legitimate weekly outcome, and it
-      # looks identical to "the agent gave up early". Either way there is nothing
-      # to push, so don't fail the run -- and don't mint a credential for work
-      # that doesn't exist.
-      - name: Check whether the agent produced a stack
-        id: produced
-        if: always()
-        run: |
-          set -euo pipefail
-          # No pipe into an early-exiting consumer here: with `set -o pipefail`, a
-          # SIGPIPE on the producer would fail the step for no good reason.
-          mapfile -t branches < <(git for-each-ref --format='%(refname:short)' 'refs/heads/')
-          has_stack=false
-          for branch in "${branches[@]}"; do
-            case "$branch" in
-              deps/*) has_stack=true; break ;;
-            esac
-          done
-          if [ "$has_stack" = "true" ]; then
-            echo "has_stack=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "has_stack=false" >> "$GITHUB_OUTPUT"
-            {
-              echo "## Agentic dependency upgrade"
-              echo
-              echo "The agent created no \`deps/*\` branches. Either every dependency"
-              echo "is already on a version released at least a week ago, or the run"
-              echo "stopped early. Check the job log before assuming it is a no-op."
-            } >> "$GITHUB_STEP_SUMMARY"
-          fi
+      # Note that "there was nothing to upgrade" is a normal weekly outcome, and it
+      # looks identical to "the agent gave up early". Both are handled the same way
+      # from here: push-stack.sh reports "Nothing to push" when HEAD is still the
+      # base branch. A *failed* agent run is a failed job, and its partial work is
+      # discarded deliberately -- the steps below are skipped by default step
+      # semantics, and the `if` conditions spell that out.
 
       # ---------------------------------------------------------------------
       # Everything below this line may hold a repository credential.
@@ -250,7 +226,7 @@ jobs:
       # this and the following step.
       - name: Mint app token
         id: app-token
-        if: steps.produced.outputs.has_stack == 'true'
+        if: steps.agent.outcome == 'success'
         uses: actions/create-github-app-token@v2
         with:
           app-id: ${{ vars.DEP_UPGRADER_APP_ID }}
@@ -258,14 +234,8 @@ jobs:
           permission-contents: write
           permission-pull-requests: write
 
-      # Runs even if the agent failed, so a partial (but coherent) stack still
-      # gets pushed and reviewed; the job is still red because the agent step
-      # failed.
       - name: Push branches and open stacked PRs
-        if: |
-          always() &&
-          steps.produced.outputs.has_stack == 'true' &&
-          (steps.agent.outcome == 'success' || steps.agent.outcome == 'failure')
+        if: steps.agent.outcome == 'success'
         env:
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
         run: |
@@ -281,4 +251,4 @@ jobs:
             ${{ runner.temp }}/opencode-data/
             ${{ runner.temp }}/opencode-logs/
           if-no-files-found: ignore
-          retention-days: 7
+          retention-days: 30
