@@ -1356,7 +1356,7 @@ wheels = [
 
 [[package]]
 name = "posthog"
-version = "7.19.1"
+version = "7.66.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "backoff" },
@@ -1364,9 +1364,9 @@ dependencies = [
     { name = "requests" },
     { name = "typing-extensions" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/51/17/0a5993d9c43384c90073ba63bf4a92cd57da03fdfed3eab892d0a8b6c5ac/posthog-7.19.1.tar.gz", hash = "sha256:e0375837d9e0590c7dc58828524a1c4545ae5f596e5b947de47be8dde0435313", size = 238888, upload-time = "2026-06-15T11:23:40.737Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/2e/53/940a242098ffab4159428662bac6cb92f6851753b975a64d7634cdef769d/posthog-7.66.0.tar.gz", hash = "sha256:2d0f12bf3358dfe1885eae7efa155b67161ca3da1e1db9a8f2bb2b4417a3cfa6", size = 749453, upload-time = "2026-10-08T14:32:46.642Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/e0/39/213a38e253c4b965c5d9c2daa25401cd1a64d14739a099c3c96ded99aa42/posthog-7.19.1-py3-none-any.whl", hash = "sha256:a51a09dcda9c9dd4c19802c3028d234ddd67fd6ac5e946ad873157eea36bf969", size = 279263, upload-time = "2026-06-15T11:23:38.977Z" },
+    { url = "https://files.pythonhosted.org/packages/a9/cb/561d65a335881810564d51b7a00cc7661e38703836f70f14f1b64b6d794d/posthog-7.66.0-py3-none-any.whl", hash = "sha256:8bd94000f7373879b4fee7201c328a90e8bd65210cb2e09a43836f2fdc27ed57", size = 876284, upload-time = "2026-10-08T14:32:44.855Z" },
 ]
 
 [[package]]
@@ -1983,15 +1983,15 @@ wheels = [
 
 [[package]]
 name = "sentry-sdk"
-version = "2.48.0"
+version = "2.71.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "certifi" },
     { name = "urllib3" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/40/f0/0e9dc590513d5e742d7799e2038df3a05167cba084c6ca4f3cdd75b55164/sentry_sdk-2.48.0.tar.gz", hash = "sha256:5213190977ff7fdff8a58b722fb807f8d5524a80488626ebeda1b5676c0c1473", size = 384828, upload-time = "2025-12-16T14:55:41.722Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/67/93/9ef70bfb7346c778caf09b7cd10c17c33f601f2d17019fa1aedcda738b5f/sentry_sdk-2.71.0.tar.gz", hash = "sha256:7beb27a22f06396f3a05510c3da6ea10e1c79e02e859993c27ce4ff074e296d6", size = 1052358, upload-time = "2026-09-28T14:04:00.645Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/4d/19/8d77f9992e5cbfcaa9133c3bf63b4fbbb051248802e1e803fed5c552fbb2/sentry_sdk-2.48.0-py2.py3-none-any.whl", hash = "sha256:6b12ac256769d41825d9b7518444e57fa35b5642df4c7c5e322af4d2c8721172", size = 414555, upload-time = "2025-12-16T14:55:40.152Z" },
+    { url = "https://files.pythonhosted.org/packages/a4/f6/b3e68b2e08e9a52e6c8a279ca2fc0d3a535f3886222375f54ef9efbd694d/sentry_sdk-2.71.0-py3-none-any.whl", hash = "sha256:9ed36b4c206048aa67b5ddba0a6e28d59fc55cf10d60f5f7aea2c3917184bf4a", size = 534254, upload-time = "2026-09-28T14:03:58.668Z" },
 ]
 
 [package.optional-dependencies]
@@ -2222,7 +2222,7 @@ requires-dist = [
     { name = "openpyxl", specifier = "==3.1.5" },
     { name = "pandas", specifier = "==2.3.3" },
     { name = "pillow", specifier = "==12.3.0" },
-    { name = "posthog", specifier = "==7.19.1" },
+    { name = "posthog", specifier = "==7.66.0" },
     { name = "prettyconf", specifier = "==2.3.0" },
     { name = "psycopg", specifier = "==3.2.10" },
     { name = "pyjwt", extras = ["crypto"], specifier = "==2.10.1" },
@@ -2230,7 +2230,7 @@ requires-dist = [
     { name = "python-magic", specifier = "==0.4.27" },
     { name = "requests", specifier = "==2.32.5" },
     { name = "rules", specifier = "==3.5" },
-    { name = "sentry-sdk", extras = ["django"], specifier = "==2.48.0" },
+    { name = "sentry-sdk", extras = ["django"], specifier = "==2.71.0" },
     { name = "shapely", specifier = "==2.1.2" },
     { name = "soil-id", url = "https://github.com/techmatters/soil-id-algorithm/archive/refs/tags/2026-09-30.0.zip" },
 ]
