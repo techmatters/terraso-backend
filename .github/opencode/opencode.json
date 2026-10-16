@@ -28,11 +28,12 @@
   "$schema": "https://opencode.ai/config.json",
 
   // Pinned so a run cannot silently drift onto another model.
-  // The `opencode-go` integration authenticates from OPENCODE_API_KEY.
   //
-  // Note this is overridden by the `--model` flag that
-  // scripts/agentic-dep-upgrade.sh passes, so the two have to be kept in step.
-  "model": "opencode-go/deepseek-v4.1-flash",
+  // `#max` is the reasoning-effort variant; this model advertises low/high/max.
+  // Nothing else pins a model -- scripts/agentic-dep-upgrade.sh deliberately does
+  // not pass --model -- so this line is the single source of truth for the agent
+  // and for every subagent it launches.
+  "model": "opencode-go/deepseek-v4.1-flash#max",
 
   // Never self-upgrade inside CI: the workflow pins an exact version.
   "update": "disable",
