@@ -46,7 +46,11 @@ def test_group_associations_query(client_query, group_associations):
         (assoc.parent_group.slug, assoc.child_group.slug) for assoc in group_associations
     ]
 
-    assert associations_expected == associations_returned
+    # The groupAssociations query has no orderBy and GroupAssociation.Meta declares
+    # no ordering, so the API guarantees no particular row order. Compare the result
+    # as a multiset (order-insensitive) to avoid a flaky assertion on Postgres heap
+    # order while keeping failure diffs readable.
+    assert sorted(associations_expected) == sorted(associations_returned)
 
 
 def test_group_association_get_one_by_id(client_query, group_associations):
