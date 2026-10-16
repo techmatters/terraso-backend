@@ -1,6 +1,6 @@
 name: agentic dependency upgrade
 
-# Weekly dependency upgrade performed by an OpenCode agent, which proposes the
+# Monthly dependency upgrade performed by an OpenCode agent, which proposes the
 # work as a stack of pull requests (one layer per dependency group).
 #
 # ---------------------------------------------------------------------------
@@ -27,10 +27,16 @@ name: agentic dependency upgrade
 # ---------------------------------------------------------------------------
 
 on:
-  # Sunday daytime. GitHub cron is UTC, so this is ~10:00 US/Eastern in summer
-  # and ~09:00 in winter. Adjust if "daytime Sunday" means a different zone.
+  # First of the month, daytime in the US. GitHub cron is UTC, so this is ~10:00
+  # US/Eastern in summer and ~09:00 in winter.
+  #
+  # "First Sunday of the month" is not expressible here: GitHub cron is plain
+  # 5-field cron, which has no nth-weekday support (no Quartz-style `#`), and the
+  # usual `0 14 1-7 * 0` trick means "day 1-7 OR Sunday", which is not the same
+  # thing. Doing it properly needs a guard step that checks the date, so the 1st
+  # is the simpler contract.
   schedule:
-    - cron: "0 14 * * 0"
+    - cron: "0 14 1 * *"
 
   # Pre-merge testing. `push` fires as soon as this file is on a branch, which
   # is the only trigger that works before this file reaches the default branch:
@@ -38,8 +44,8 @@ on:
   # to exist on the default branch before GitHub will offer to run it.
   #
   # These two triggers are scaffolding for testing this workflow before it lands.
-  # Delete them once the workflow is on the default branch and the weekly cron is
-  # the only thing you want driving it.
+  # Delete them once the workflow is on the default branch and the monthly cron
+  # is the only thing you want driving it.
   push:
     branches:
       - ci/agentic-dep-upgrade
@@ -209,7 +215,7 @@ jobs:
           set -euo pipefail
           scripts/agentic-dep-upgrade.sh "${{ steps.base.outputs.base }}"
 
-      # Note that "there was nothing to upgrade" is a normal weekly outcome, and it
+      # Note that "there was nothing to upgrade" is a normal monthly outcome, and it
       # looks identical to "the agent gave up early". Both are handled the same way
       # from here: push-stack.sh reports "Nothing to push" when HEAD is still the
       # base branch. A *failed* agent run is a failed job, and its partial work is
