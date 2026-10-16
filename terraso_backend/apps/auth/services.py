@@ -321,7 +321,7 @@ class JWTService:
         return decoded
 
     def _verify_token(self, token):
-        return jwt.decode(token, self.JWT_SECRET, algorithms=self.JWT_ALGORITHM)
+        return jwt.decode(token, self.JWT_SECRET, algorithms=[self.JWT_ALGORITHM])
 
     def _get_base_payload(self, user):
         return {
@@ -460,9 +460,9 @@ class TokenExchangeService:
 
     @staticmethod
     def _verify_payload(token, signing_key, client_id):
-        if "kty" not in signing_key._jwk_data:
+        if not signing_key.key_type:
             raise TokenExchangeException("kty header missing in mobile JWT token")
-        algorithms = [signing_key._jwk_data.get("alg", "RS256")]
+        algorithms = [signing_key.algorithm_name]
         return jwt.decode(token, signing_key.key, algorithms=algorithms, audience=client_id)
 
     @staticmethod
