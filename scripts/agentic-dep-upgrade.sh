@@ -50,17 +50,11 @@ git rev-parse --verify --quiet "refs/heads/${BASE_BRANCH}" >/dev/null || {
   exit 1
 }
 
-# Commits made by the agent need an identity. This is not a credential; it just
-# has to exist before the agent starts committing.
-#
-# Repo-local on purpose. This script also gets run by hand on a developer machine,
-# where writing to the global config would silently replace someone's name, email
-# and gpgsign setting. CI is unaffected: the agent only ever commits inside this
-# one checkout.
-git config --local user.name "terraso-dep-upgrader"
-git config --local user.email "terraso-dep-upgrader[bot]@users.noreply.github.com"
-git config --local commit.gpgsign false
-git config --local advice.detachedHead false
+# Note that this script deliberately does not configure a commit identity. The
+# workflow does that (globally, on a disposable runner) before calling this, so
+# that running this by hand can never rewrite a developer's git config. If you do
+# run it locally and the repo has no identity, the agent's first `git commit` will
+# fail with "Please tell me who you are".
 
 # Fail before spending any tokens if the binary is unusable.
 log "opencode $(opencode --version 2>/dev/null || echo '(version unknown)')"
