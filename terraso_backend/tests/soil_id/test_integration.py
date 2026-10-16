@@ -283,7 +283,9 @@ sampled_ids = [
 ]
 
 random_pedons_df = test_data_df[test_data_df["ID"].isin(sampled_ids)]
-pedons = random_pedons_df.groupby("ID")
+# pytest 9.1 (and pandas 3): parametrize argvalues must be a Collection, not a
+# bare iterable like a groupby result.
+pedons = list(random_pedons_df.groupby("ID"))
 
 
 def transform_texture(texture):

@@ -40,21 +40,21 @@ dependencies = [
 ]
 
 [dependency-groups]
-lint = ["ruff==0.14.10"]
+lint = ["ruff==0.16.10"]
 dev = [
     { include-group = "lint" },
-    "deepdiff==8.6.1",
+    "deepdiff==9.1.0",
     "freezegun==1.5.5",
-    "gdown==5.2.0",
+    "gdown==6.4.2",
     "ipdb==0.13.13",
-    "jsonpath-ng==1.7.0",
+    "jsonpath-ng==1.9.1",
     "mixer==7.2.2",
-    "moto==5.1.19",
-    "pre-commit==4.5.1",
-    "pytest==9.0.2",
-    "pytest-cov==7.0.0",
-    "pytest-django==4.11.1",
-    "respx==0.22.0",
+    "moto==5.2.3",
+    "pre-commit==4.6.2",
+    "pytest==9.1.1",
+    "pytest-cov==7.1.0",
+    "pytest-django==4.14.0",
+    "respx==0.23.1",
 ]
 
 [tool.uv.sources]
@@ -67,11 +67,12 @@ required-version = ">=0.6.0"
 [tool.ruff]
 exclude = ["migrations"]
 line-length = 100
-required-version = "==0.14.10"
+required-version = "==0.16.10"
 
 [tool.ruff.lint.isort]
 known-first-party = ["apps"]
 
 [tool.ruff.lint]
+select = ["E4", "E7", "E9", "F"]
 extend-select = ["I"]
 extend-ignore = ["E203"]
