@@ -18,6 +18,8 @@ dependencies = [
     "django-storages==1.14.6",
     "django-structlog==9.1.1",
     "fiona==1.10.1",
+    # Held at 3.11.x: the third-party soil-id dependency pins gdal==3.11.*, and the
+    # Dockerfile pins system libgdal 3.11.3 to match. Do not upgrade until soil-id relaxes.
     "gdal==3.11.3",
     "geopandas==1.2.0",
     "graphene-django==3.2.3",
