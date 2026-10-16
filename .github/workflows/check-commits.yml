@@ -1,9 +1,10 @@
 name: check-commits
 
 on:
+  # Every pull request, whatever its base. This is what validates the titles and
+  # bodies of the pull requests the dependency-upgrade workflow generates, so it
+  # needs to see PRs based on a branch other than main too.
   pull_request:
-    branches:
-      - main
     types:
       - opened
       - edited
