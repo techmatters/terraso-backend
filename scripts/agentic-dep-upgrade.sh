@@ -19,7 +19,7 @@ cd "$REPO_ROOT"
 
 : "${OPENCODE_API_KEY:?OPENCODE_API_KEY must be set}"
 
-OPENCODE_MODEL="${OPENCODE_MODEL:-opencode-go/mimo-v2.6-pro}"
+OPENCODE_MODEL="${OPENCODE_MODEL:-opencode-go/deepseek-v4.1-flash}"
 
 # CI config lives under .github/ so it never shadows a developer's own
 # opencode.json. OPENCODE_CONFIG_DIR is loaded after the global config and after
@@ -77,7 +77,7 @@ please update the package versions in pyproject.toml to the latest versions that
 
 come up with a grouping for related updates, and for each group launch a subagent to read through the changelogs for the updated packages and determine whether there are any issues for the codebase. triage the subagents' findings in order to create stacked branches based on the current branch in order of how impactful the upgrade is, with the most impactful upgrades highest in the stack. the branch name format is `deps/YYYY-MM-DD-HH-MM/{your-name-for-this-group}`.
 
-after you create each branch and commit the `pyproject.toml`/`uv.lock` changes for it, resume that group's subagent and tell it to implement any changes it needs to make for those dependency upgrades, committing them to the current branch. note that this process will be necessarily serial.
+create each branch and commit the `pyproject.toml`/`uv.lock` changes for it. then create a separate worktree for each branch, and resume each branch's group's subagent in parallel, telling it to implement any changes it needs to make for those dependency updates. when all the changes are in, rebase the branches on each other so the stack's shape is proper again.
 
 two constraints for the sake of runner time — please respect them exactly:
 
