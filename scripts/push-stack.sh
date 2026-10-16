@@ -5,10 +5,15 @@
 # Usage:
 #   GH_TOKEN=... scripts/push-stack.sh <base-branch>
 #
-# <base-branch> is what the bottom PR targets. Layer order is derived from commit
-# ancestry rather than from anything the agent reported, so the stack is correct
-# even if the agent's own bookkeeping is wrong; a chain that does not line up is a
-# hard error rather than a misleading set of PRs.
+# This assumes the happy path: HEAD is checked out at the top of a stack of
+# `deps/*` branches, each sitting on the one below it, and the bottom one sitting
+# on <base-branch>. Anything else is an error rather than something to recover
+# from.
+#
+# It is also not idempotent: if the branches or the pull requests already exist,
+# it fails. There is no force-push and no "update the existing PR" path -- a
+# re-run either finds that HEAD is the base branch (nothing to do) or it fails
+# loudly.
 #
 # SECURITY POSTURE
 #   This script runs from the working tree, which the agent had write access to,
@@ -34,138 +39,81 @@ fi
 BRANCH_PREFIX="deps/"
 
 die() { printf '::error::%s\n' "$*" >&2; exit 1; }
-warn() { printf '::warning::%s\n' "$*" >&2; }
 log() { printf '%s\n' "$*"; }
 
 : "${GH_TOKEN:?GH_TOKEN must be set}"
+: "${GITHUB_REPOSITORY:?GITHUB_REPOSITORY must be set}"
+REPO="$GITHUB_REPOSITORY"
+
 command -v gh >/dev/null 2>&1 || die "gh is not on PATH"
 command -v git >/dev/null 2>&1 || die "git is not on PATH"
-: "${GITHUB_REPOSITORY:?GITHUB_REPOSITORY must be set}"
-REPO="${GITHUB_REPOSITORY}"
 
-# Make `git push` use the app token. This configures gh as git's credential
-# helper in the global git config; gh reads GH_TOKEN from the environment.
+# Make `git push` use the app token: this installs gh as git's credential helper
+# in the global git config, and gh reads GH_TOKEN from the environment.
 gh auth setup-git
 
-log "repo:        ${REPO}"
-log "base branch: ${BASE}"
+head_branch="$(git rev-parse --abbrev-ref HEAD)"
+
+# The weekly run has no work to do more often than you would think: every pin is
+# already on a version that is at least a week old.
+if [ "$head_branch" = "$BASE" ]; then
+  log "Nothing to push: HEAD is ${BASE}."
+  exit 0
+fi
+
+case "$head_branch" in
+  "${BRANCH_PREFIX}"*) ;;
+  *) die "HEAD is ${head_branch}, which is not a ${BRANCH_PREFIX}* branch" ;;
+esac
 
 git rev-parse --verify --quiet "refs/heads/${BASE}" >/dev/null \
   || die "base branch '${BASE}' does not exist locally"
 
-# ---------------------------------------------------------------------------
-# 1. Discover the stack: walk down from the top to the base
-# ---------------------------------------------------------------------------
-# Only local branches are considered. A fresh CI checkout has the base branch
-# plus whatever the agent created, so branches pushed by earlier runs cannot be
-# mistaken for this run's work.
-#
-# The chain comes from commit ancestry, not from anything the agent reported:
-# start at the top of the stack, repeatedly step to the closest ancestor that is
-# also one of our branches, and stop when the base branch is reached. Each step
-# is verified with `merge-base --is-ancestor`.
-#
-# Deliberately not a global sort by commit count: two branches can sit at the
-# same depth (a stray sibling rather than a chain), and ordering by depth alone
-# either silently drops one of them or yields a chain whose PR bases are a
-# fiction. Walking down from the top ignores strays and reports them instead.
-#
-# NB: the pattern must not be 'refs/heads/*' -- git's ref globbing is
-# segment-aware, so a single '*' does not match 'refs/heads/deps/2026-.../x'.
-# A bare prefix lists everything and the `case` below does the filtering.
-candidates=()
-while IFS= read -r branch; do
-  [ "$branch" = "$BASE" ] && continue
-  case "$branch" in
-    "${BRANCH_PREFIX}"*) ;;
-    *) continue ;;
-  esac
-  if git merge-base --is-ancestor "refs/heads/${BASE}" "refs/heads/${branch}"; then
-    candidates+=("$branch")
-  else
-    warn "ignoring ${branch}: it is not a descendant of ${BASE}"
-  fi
+base_tip="$(git rev-parse "refs/heads/${BASE}")"
+top_tip="$(git rev-parse "refs/heads/${head_branch}")"
+
+git merge-base --is-ancestor "$base_tip" "$top_tip" \
+  || die "${head_branch} is not built on ${BASE}"
+
+# The walk below only ever sees the layers underneath HEAD, so it cannot tell on
+# its own that HEAD is the top. Check that directly: nothing else may sit above it.
+while IFS= read -r other; do
+  [ "$other" = "$head_branch" ] && continue
+  git merge-base --is-ancestor "$top_tip" "refs/heads/${other}" \
+    && die "HEAD is ${head_branch}, but ${other} is stacked above it; check out the top of the stack"
 done < <(git for-each-ref --format='%(refname:short)' 'refs/heads/')
 
-[ "${#candidates[@]}" -gt 0 ] || die "no ${BRANCH_PREFIX}* branches found on top of ${BASE}"
+# Work out the stack. Every layer was created from the tip of the layer below it,
+# so walking the top branch's history from newest to oldest and picking out the
+# commits that have a branch pointing at them yields the layers in order, ending
+# when the base branch's tip is reached.
+declare -A branch_at_tip=()
+while read -r commit name; do
+  branch_at_tip["$commit"]="$name"
+done < <(git for-each-ref --format='%(objectname) %(refname:short)' 'refs/heads/')
 
-commits_above_base() {
-  git rev-list --count "refs/heads/${BASE}..refs/heads/${1}"
-}
+chain_rev=()  # top -> bottom
+while read -r commit; do
+  [ "$commit" = "$base_tip" ] && break
+  name="${branch_at_tip[$commit]:-}"
+  [ -n "$name" ] && chain_rev+=("$name")
+done < <(git rev-list --topo-order "$top_tip")
 
-# Prefer HEAD as the top of the stack (the agent is asked to finish there), and
-# fall back to the deepest branch when it is not.
-head_ref="$(git rev-parse --abbrev-ref HEAD)"
-top=""
-for branch in "${candidates[@]}"; do
-  if [ "$branch" = "$head_ref" ]; then
-    top="$branch"
-    break
-  fi
-done
-if [ -z "$top" ]; then
-  top="${candidates[0]}"
-  for branch in "${candidates[@]}"; do
-    if [ "$(commits_above_base "$branch")" -gt "$(commits_above_base "$top")" ]; then
-      top="$branch"
-    fi
-  done
-  warn "HEAD is ${head_ref}, which is not a ${BRANCH_PREFIX}* branch; using ${top} as the top of the stack"
-fi
+[ "${#chain_rev[@]}" -gt 0 ] \
+  || die "no ${BRANCH_PREFIX}* branches between ${BASE} and ${head_branch}"
+[ "${chain_rev[0]}" = "$head_branch" ] \
+  || die "HEAD is ${head_branch}, but the top of the stack is ${chain_rev[0]}"
 
-chain_rev=()
-current="$top"
-steps=0
-while [ "$current" != "$BASE" ]; do
-  steps=$((steps + 1))
-  [ "$steps" -le 500 ] || die "gave up walking down from ${top}: no path back to ${BASE}"
-
-  parent="$BASE"
-  parent_depth="$(commits_above_base "$BASE")"
-  for branch in "${candidates[@]}"; do
-    [ "$branch" = "$current" ] && continue
-    git merge-base --is-ancestor "refs/heads/${branch}" "refs/heads/${current}" || continue
-    depth="$(commits_above_base "$branch")"
-    if [ "$depth" -ge "$parent_depth" ]; then
-      parent="$branch"
-      parent_depth="$depth"
-    fi
-  done
-
-  chain_rev+=("$current")
-  current="$parent"
-done
-
-chain=()
+chain=()  # bottom -> top
 for ((i = ${#chain_rev[@]} - 1; i >= 0; i--)); do
   chain+=("${chain_rev[i]}")
 done
 
-[ "${#chain[@]}" -gt 0 ] || die "could not order the ${BRANCH_PREFIX}* branches"
-
-# Anything not on the path is not part of this stack and gets no PR. Say so
-# rather than dropping it quietly.
-for branch in "${candidates[@]}"; do
-  on_path=""
-  for chained in "${chain[@]}"; do
-    if [ "$chained" = "$branch" ]; then on_path=1; break; fi
-  done
-  [ -n "$on_path" ] || warn "${branch} is not part of the chain from ${top} to ${BASE}; it will get no pull request"
-done
-
-# Each layer must actually sit on the one below it, otherwise the bases we set
-# on the PRs would be a fiction (and the Stacks API would reject the stack).
-prev="$BASE"
-for branch in "${chain[@]}"; do
-  git merge-base --is-ancestor "refs/heads/${prev}" "refs/heads/${branch}" \
-    || die "${branch} is not stacked on ${prev}; refusing to open a misleading stack"
-  prev="$branch"
-done
-
+log "base branch: ${BASE}"
 log "stack (bottom -> top): ${chain[*]}"
 
 # ---------------------------------------------------------------------------
-# 2. Push each layer and open (or refresh) its PR
+# Push each layer and open its pull request
 # ---------------------------------------------------------------------------
 pr_numbers=()
 pr_urls=()
@@ -180,17 +128,14 @@ for idx in "${!chain[@]}"; do
   layer="$((idx + 1))"
 
   log ""
-  log "── layer ${layer}/${total}: ${branch}  (base: ${parent})"
+  log "-- layer ${layer}/${total}: ${branch}  (base: ${parent})"
 
-  # --force because a re-run of the same workflow reuses the branch names that
-  # the agent derives from a timestamp; these branches are bot-owned and guarded
-  # by the deps/ prefix filter above.
-  git push --quiet --force origin "refs/heads/${branch}:refs/heads/${branch}" \
-    || die "failed to push ${branch}"
+  git push --quiet origin "refs/heads/${branch}:refs/heads/${branch}" \
+    || die "could not push ${branch}: it already exists on the remote with different history"
 
-  # PR title comes from the layer's earliest commit -- the one that introduced
-  # the pyproject/lock change -- so it describes the layer rather than the last
-  # fix that touched it.
+  # The PR title comes from the layer's earliest commit -- the one that introduced
+  # the pyproject/lock change -- so it describes the layer rather than the last fix
+  # that touched it.
   title="$(git log --reverse --format='%s' \
     "refs/heads/${parent}..refs/heads/${branch}" | sed -n 1p)"
   title="${title:-update dependency group ${branch##*/}}"
@@ -214,74 +159,37 @@ for idx in "${!chain[@]}"; do
     printf 'Opened by the `agentic dependency upgrade` workflow. Review this layer only.\n'
   } > "$body_file"
 
-  existing="$(gh pr list --repo "$REPO" --head "$branch" --state open \
-    --json number --jq '.[0].number // empty')"
-
-  if [ -n "$existing" ]; then
-    gh pr edit --repo "$REPO" "$existing" \
-      --title "$title" --body-file "$body_file" >/dev/null
-    number="$existing"
-    url="$(gh pr view --repo "$REPO" "$existing" --json url --jq '.url')"
-    log "   updated PR #${number}: ${url}"
-  else
-    url="$(gh pr create --repo "$REPO" --base "$parent" --head "$branch" \
-      --title "$title" --body-file "$body_file")"
-    number="$(gh pr view --repo "$REPO" "$url" --json number --jq '.number')"
-    log "   opened PR #${number}: ${url}"
-  fi
+  url="$(gh pr create --repo "$REPO" --base "$parent" --head "$branch" \
+    --title "$title" --body-file "$body_file")" \
+    || die "could not open a pull request for ${branch}"
+  number="$(gh pr view --repo "$REPO" "$url" --json number --jq '.number')"
+  log "   opened PR #${number}: ${url}"
 
   pr_numbers+=("$number")
   pr_urls+=("$url")
 done
 
 # ---------------------------------------------------------------------------
-# 3. Link the pull requests into a formal stack
+# Link the pull requests into a formal stack
 # ---------------------------------------------------------------------------
 # The PR bases already form a stack; this is what makes GitHub render it as one.
 if [ "${#pr_numbers[@]}" -lt 2 ]; then
-  warn "only ${#pr_numbers[@]} PR(s) opened; a stack needs at least two layers"
+  log ""
+  log "only ${#pr_numbers[@]} layer, so there is no stack to form"
 else
   stack_args=()
   for number in "${pr_numbers[@]}"; do
     stack_args+=(-f "pull_requests[]=${number}")
   done
-
-  if out="$(gh api --method POST "repos/${REPO}/stacks" "${stack_args[@]}" 2>&1)"; then
-    log ""
-    log "created a stack of ${#pr_numbers[@]} layers"
-  else
-    # Already stacked (for example a re-run that refreshed existing PRs)?
-    already="$(gh api "repos/${REPO}/stacks?pull_request=${pr_numbers[0]}" \
-      --jq '.[0].number // empty' 2>/dev/null || true)"
-    if [ -n "$already" ]; then
-      log "stack #${already} already exists; left as is"
-    else
-      case "$out" in
-        # Entitlement/availability problem, not a problem with the PRs.
-        *"Not Found"*|*404*)
-          warn "the Stacks API is unavailable here (stacked PRs may not be enabled for ${REPO})."
-          warn "The PRs are still based on each other; GitHub will offer to link them into a stack."
-          ;;
-        *)
-          # 422 means the PR chain itself does not form a valid stack -- our bug.
-          die "failed to create the stack: ${out}"
-          ;;
-      esac
-    fi
-  fi
+  out="$(gh api --method POST "repos/${REPO}/stacks" "${stack_args[@]}" 2>&1)" \
+    || die "failed to link the pull requests into a stack: ${out}"
+  log ""
+  log "created a stack of ${#pr_numbers[@]} layers"
 fi
 
 # ---------------------------------------------------------------------------
-# 4. Report
+# Report
 # ---------------------------------------------------------------------------
-head_ref="$(git rev-parse --abbrev-ref HEAD)"
-top="${chain[$((total - 1))]}"
-if [ "$head_ref" = "$top" ]; then
-  log "HEAD is at the top of the stack (${top})"
-else
-  warn "HEAD is ${head_ref}, but the top of the stack is ${top}"
-fi
-
 if [ -n "${GITHUB_STEP_SUMMARY:-}" ]; then
   {
     printf '## Dependency upgrade stack\n\n'
