@@ -6,7 +6,7 @@ license = { file = "LICENSE" }
 requires-python = ">=3.13"
 dependencies = [
     "boto3==1.43.110",
-    "dj-database-url==3.0.1",
+    "dj-database-url==3.1.2",
     "django==5.2.7",
     "django-cors-headers==4.9.0",
     "django-dirtyfields==1.9.7",
@@ -27,9 +27,9 @@ dependencies = [
     "pandas==2.3.3",
     "pillow==12.3.0",
     "posthog==7.66.0",
-    "prettyconf==2.3.0",
-    "psycopg==3.2.10",
-    "pyjwt[crypto]==2.10.1",
+    "prettyconf==3.0.1",
+    "psycopg==3.3.6",
+    "pyjwt[crypto]==2.15.1",
     "pyproj==3.7.2",
     "python-magic==0.4.27",
     "requests==2.34.2",

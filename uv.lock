@@ -433,14 +433,14 @@ wheels = [
 
 [[package]]
 name = "dj-database-url"
-version = "3.0.1"
+version = "3.1.2"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "django" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/75/05/2ec51009f4ce424877dbd8ad95868faec0c3494ed0ff1635f9ab53d9e0ee/dj_database_url-3.0.1.tar.gz", hash = "sha256:8994961efb888fc6bf8c41550870c91f6f7691ca751888ebaa71442b7f84eff8", size = 12556, upload-time = "2025-07-02T09:40:11.424Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/03/f6/00b625e9d371b980aa261011d0dc906a16444cb688f94215e0dc86996eb5/dj_database_url-3.1.2.tar.gz", hash = "sha256:63c20e4bbaa51690dfd4c8d189521f6bf6bc9da9fcdb23d95d2ee8ee87f9ec62", size = 11490, upload-time = "2026-02-19T15:30:23.638Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/aa/5e/86a43c6fdaa41c12d58e4ff3ebbfd6b71a7cb0360a08614e3754ef2e9afb/dj_database_url-3.0.1-py3-none-any.whl", hash = "sha256:43950018e1eeea486bf11136384aec0fe55b29fe6fd8a44553231b85661d9383", size = 8808, upload-time = "2025-07-02T09:40:26.326Z" },
+    { url = "https://files.pythonhosted.org/packages/cf/a9/57c66006373381f1d3e5bd94216f1d371228a89f443d3030e010f73dd198/dj_database_url-3.1.2-py3-none-any.whl", hash = "sha256:544e015fee3efa5127a1eb1cca465f4ace578265b3671fe61d0ed7dbafb5ec8a", size = 8953, upload-time = "2026-02-19T15:30:39.37Z" },
 ]
 
 [[package]]
@@ -1344,11 +1344,11 @@ wheels = [
 
 [[package]]
 name = "prettyconf"
-version = "2.3.0"
+version = "3.0.1"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/01/09/4610455726515805d034eaee4e663481a4e60db42007cfd373f0b09595a1/prettyconf-2.3.0.tar.gz", hash = "sha256:d73e025b25ffb188227c88f15755a7e6bfe57203700a9b6f45146b7d6bc55c67", size = 13540, upload-time = "2025-03-25T19:46:00.504Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/f2/78/59fa76870a0ee304f696e530807a4833eaed0aa8fbca93b09c7a70efc6b0/prettyconf-3.0.1.tar.gz", hash = "sha256:0604e2046346ffa4c69fd56e428e45b980c6ad6d618540ab5dfc73dbc31b8f46", size = 30492, upload-time = "2026-08-04T21:56:54.605Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/88/2b/c5006566fd2482285f069ee508eb2a872cd0bfb2d41e3fa011c05bb7ff37/prettyconf-2.3.0-py3-none-any.whl", hash = "sha256:9c83eb90472522b0f2bc196f7d561ff8c26a1833f838cc32f948ea4d3973cb64", size = 9907, upload-time = "2025-03-25T19:45:59.078Z" },
+    { url = "https://files.pythonhosted.org/packages/72/b2/5b60479a992c74db87501a1f7a9dfa4fd621415a0390b013bbd53387a451/prettyconf-3.0.1-py3-none-any.whl", hash = "sha256:4e7a2e0c50076c94b918749d0109b6cc51667202c0511553b628cbe4290edee8", size = 11812, upload-time = "2026-08-04T21:56:53.548Z" },
 ]
 
 [[package]]
@@ -1383,14 +1383,14 @@ wheels = [
 
 [[package]]
 name = "psycopg"
-version = "3.2.10"
+version = "3.3.6"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "tzdata", marker = "sys_platform == 'win32'" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/a9/f1/0258a123c045afaf3c3b60c22ccff077bceeb24b8dc2c593270899353bd0/psycopg-3.2.10.tar.gz", hash = "sha256:0bce99269d16ed18401683a8569b2c5abd94f72f8364856d56c0389bcd50972a", size = 160380, upload-time = "2025-09-08T09:13:37.775Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/76/26/3ea4ca5eaea1c0debcdf7ee7c1613fbe721dc27a03c461c0817ffd8a0601/psycopg-3.3.6.tar.gz", hash = "sha256:c081f2250df751a943036e42db6df4571c66cd0aabe8291a7a506512b12007d2", size = 168171, upload-time = "2026-09-18T13:22:55.152Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/4a/90/422ffbbeeb9418c795dae2a768db860401446af0c6768bc061ce22325f58/psycopg-3.2.10-py3-none-any.whl", hash = "sha256:ab5caf09a9ec42e314a21f5216dbcceac528e0e05142e42eea83a3b28b320ac3", size = 206586, upload-time = "2025-09-08T09:07:50.121Z" },
+    { url = "https://files.pythonhosted.org/packages/4e/de/748bd7609c71cae5d737f0ba9192f19329f70180ecda8fff3cac02c5abe3/psycopg-3.3.6-py3-none-any.whl", hash = "sha256:a1db9f7148b06a28606767efaca51fa6f9398c5c0a3810519be69d7000bdb631", size = 215490, upload-time = "2026-09-18T13:15:29.374Z" },
 ]
 
 [[package]]
@@ -1431,11 +1431,11 @@ wheels = [
 
 [[package]]
 name = "pyjwt"
-version = "2.10.1"
+version = "2.15.1"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/e7/46/bd74733ff231675599650d3e47f361794b22ef3e3770998dda30d3b63726/pyjwt-2.10.1.tar.gz", hash = "sha256:3cc5772eb20009233caf06e9d8a0577824723b44e6648ee0a2aedb6cf9381953", size = 87785, upload-time = "2024-11-28T03:43:29.933Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/43/ea/5194e52748b0da83d71e082d75496eaec6e58f419f5e184786ded517e6a9/pyjwt-2.15.1.tar.gz", hash = "sha256:4f259e80cdfb6b3fc18a7de51fd1ef9ec79652f25019bae68975ca2468a34df8", size = 121252, upload-time = "2026-09-28T18:40:42.598Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/61/ad/689f02752eeec26aed679477e80e632ef1b682313be70793d798c1d5fc8f/PyJWT-2.10.1-py3-none-any.whl", hash = "sha256:dcdd193e30abefd5debf142f9adfcdd2b58004e644f25406ffaebd50bd98dacb", size = 22997, upload-time = "2024-11-28T03:43:27.893Z" },
+    { url = "https://files.pythonhosted.org/packages/50/ca/44de4e75f8aadc457f0634be3b542815078ded46dca30efb960edeecad6e/pyjwt-2.15.1-py3-none-any.whl", hash = "sha256:42d59d631f7768a1028a64c7ff581a9bf7519804daf91fc5b6c56e30eec5e193", size = 33860, upload-time = "2026-09-28T18:40:41.429Z" },
 ]
 
 [package.optional-dependencies]
@@ -2160,7 +2160,7 @@ lint = [
 [package.metadata]
 requires-dist = [
     { name = "boto3", specifier = "==1.43.110" },
-    { name = "dj-database-url", specifier = "==3.0.1" },
+    { name = "dj-database-url", specifier = "==3.1.2" },
     { name = "django", specifier = "==5.2.7" },
     { name = "django-cors-headers", specifier = "==4.9.0" },
     { name = "django-dirtyfields", specifier = "==1.9.7" },
@@ -2181,9 +2181,9 @@ requires-dist = [
     { name = "pandas", specifier = "==2.3.3" },
     { name = "pillow", specifier = "==12.3.0" },
     { name = "posthog", specifier = "==7.66.0" },
-    { name = "prettyconf", specifier = "==2.3.0" },
-    { name = "psycopg", specifier = "==3.2.10" },
-    { name = "pyjwt", extras = ["crypto"], specifier = "==2.10.1" },
+    { name = "prettyconf", specifier = "==3.0.1" },
+    { name = "psycopg", specifier = "==3.3.6" },
+    { name = "pyjwt", extras = ["crypto"], specifier = "==2.15.1" },
     { name = "pyproj", specifier = "==3.7.2" },
     { name = "python-magic", specifier = "==0.4.27" },
     { name = "requests", specifier = "==2.34.2" },
