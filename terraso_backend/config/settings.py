@@ -433,6 +433,15 @@ AWS_S3_REGION_NAME = config("AWS_S3_REGION_NAME", default="us-east-2")
 if config("AWS_S3_ADDRESSING_STYLE", default="") != "":
     AWS_S3_ADDRESSING_STYLE = config("AWS_S3_ADDRESSING_STYLE")
 
+# botocore 1.43 defaults S3 presigned URLs to Signature Version 2 in legacy
+# regions (such as us-east-1) where S3 still accepts it. SigV2 leaves more
+# query parameters unsigned and silently drops conditional/Range headers, so
+# pin the signature version to keep the SigV4 signed URLs (X-Amz-Signature /
+# X-Amz-Expires) that this code produced before the boto3 upgrade. This is
+# also the setup botocore's own presigned-URL warning recommends; django-storages
+# passes this setting through to the S3 client's botocore Config.
+AWS_S3_SIGNATURE_VERSION = "s3v4"
+
 if DEBUG:
     EMAIL_BACKEND = "naomi.mail.backends.naomi.NaomiBackend"
     EMAIL_FILE_PATH = "/app/email_preview"
