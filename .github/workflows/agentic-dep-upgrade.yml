@@ -81,11 +81,11 @@ env:
   OPENCODE_CONFIG_DIR: ${{ github.workspace }}/.github/opencode
   # Pinned so a run can't drift onto a different version mid-week.
   OPENCODE_VERSION: "2.0.24"
-  UV_VERSION: "0.12.0"
   # The soil-id database container is only needed for global (HWSD) lookups and
   # is otherwise a ~2 GB pull. Unit tests do not need it; integration tests do
   # (and integration tests are not part of this workflow).
   SOIL_ID_DATABASE_ENABLED: "false"
+  UV_VERSION: "0.12.0"
 
 jobs:
   upgrade:
@@ -137,14 +137,10 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
 
-      # docker-compose.base.yml has `env_file: $HOME/secrets/terraso-backend/.env`
-      # and the Makefile reads the same path, so this must exist before any
-      # docker compose or make target runs. Same dance as .github/workflows/build.yml.
-      - name: Set up env file
+      - name: Set up env
         run: |
-          set -euo pipefail
-          mkdir -p "$HOME/secrets/terraso-backend"
-          cp .env.sample "$HOME/secrets/terraso-backend/.env"
+          mkdir -p $HOME/secrets/terraso-backend
+          cp .env.sample $HOME/secrets/terraso-backend/.env
 
       # Everything below runs `docker compose ... run web` against a bind-mounted
       # workspace (docker-compose.dev.yml mounts `.:/app`). The image's user is
