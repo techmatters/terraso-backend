@@ -110,7 +110,8 @@ class UserAdmin(SafeDeleteAdmin, DjangoUserAdmin):
     add_form = UserAdminCreationForm
     # DjangoUserAdmin's default add_fieldsets references `username`, which this
     # model doesn't have — override it to the email-based creation fields.
-    add_fieldsets = ((None, {"classes": ("wide",), "fields": ("email", "password1", "password2")}),)
+    # (No `classes`: Django 6.1 removed the `wide` admin CSS class.)
+    add_fieldsets = ((None, {"fields": ("email", "password1", "password2")}),)
     actions = [
         *SafeDeleteAdmin.actions,
         "mint_partner_refresh_token_10y",

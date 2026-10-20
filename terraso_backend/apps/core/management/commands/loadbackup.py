@@ -131,6 +131,15 @@ class Command(BaseCommand):
             # reset foreign keys pointing to new ID to point to old ID
             old_user_fk = {field.name: str(old_user_id) for field in foreign_keys}
             new_user_fk = {field.name: str(new_user_id) for field in foreign_keys}
+            # NB since django-safedelete 1.5, bulk update() respects the
+            # soft-delete visibility filter, so this (default-manager) update
+            # only reaches alive rows. That is deliberately fine here: backups
+            # are dumped through the default manager (see backup.py's dumpdata,
+            # which omits --all), so soft-deleted rows are never restored, and
+            # every table is dropped before loaddata — no soft-deleted row can
+            # exist when this remap runs. Leave un-opted-in (unlike the site
+            # note authorship stash in models/users.py, which must reach
+            # soft-deleted rows).
             model.objects.filter(**new_user_fk).update(**old_user_fk)
 
             # reset old m2m relations pointing to user

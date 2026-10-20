@@ -22,6 +22,7 @@ from django.core.exceptions import ValidationError
 from django.db import models, transaction
 from django.db.models.deletion import ProtectedError, RestrictedError
 from django.utils.translation import gettext_lazy as _
+from safedelete.config import DELETED_VISIBLE
 from safedelete.models import HARD_DELETE, SOFT_DELETE_CASCADE, SafeDeleteManager, SafeDeleteModel
 
 from apps.core import group_collaboration_roles, landscape_collaboration_roles
@@ -252,7 +253,14 @@ class User(SafeDeleteModel, AbstractUser):
         to restore the link — only works if the user row has not been hard=deleted."""
         from apps.project_management.models import SiteNote
 
-        SiteNote.all_objects.filter(author=self).update(saved_author=self.pk)
+        # force_visibility=DELETED_VISIBLE: since django-safedelete 1.5,
+        # bulk update() applies the soft-delete visibility filter, which would
+        # restrict this to alive rows. Stashing must also reach soft-deleted
+        # notes (e.g. a note soft-deleted with its site by this same delete),
+        # matching the unfiltered pre-1.5 update() behavior.
+        SiteNote.all_objects.all(force_visibility=DELETED_VISIBLE).filter(author=self).update(
+            saved_author=self.pk
+        )
 
     def _soft_delete_solo_manager_projects(self, project_ids):
         """Soft-delete the captured projects.
@@ -337,9 +345,12 @@ class User(SafeDeleteModel, AbstractUser):
         """Mirror of _stash_site_note_authorship."""
         from apps.project_management.models import SiteNote
 
-        SiteNote.all_objects.filter(saved_author=self.pk, author__isnull=True).update(
-            author=self, saved_author=None
-        )
+        # force_visibility=DELETED_VISIBLE: see _stash_site_note_authorship —
+        # the restore must reach soft-deleted notes too (django-safedelete 1.5
+        # restricts bulk update() to alive rows otherwise).
+        SiteNote.all_objects.all(force_visibility=DELETED_VISIBLE).filter(
+            saved_author=self.pk, author__isnull=True
+        ).update(author=self, saved_author=None)
 
     def full_name(self):
         return _(
