@@ -17,6 +17,7 @@ import json
 from unittest import mock
 
 import pytest
+from django.urls import reverse
 from mixer.backend.django import mixer
 
 from apps.collaboration.models import Membership, MembershipList
@@ -77,6 +78,45 @@ def test_story_map_refreshes_all_media_urls(
     story.refresh_from_db()
     assert story.configuration == config
     assert story.published_configuration == config
+
+
+def test_unpublished_map_is_hidden_from_visitors_but_remains_editable(
+    logged_client, client_query, client_query_no_token, users
+):
+    story_map = mixer.blend(
+        StoryMap,
+        created_by=users[0],
+        configuration={"title": "Draft", "chapters": []},
+        published_configuration={"title": "Published", "chapters": []},
+        is_published=True,
+        featured=True,
+        membership_list=None,
+    )
+    query = """
+        query MapAccess($storyMapId: String!) {
+          storyMaps(storyMapId: $storyMapId) {
+            edges { node { id configuration publishedConfiguration isPublished } }
+          }
+          featuredStoryMapsRandom(first: 10) { id }
+        }
+    """
+    variables = {"storyMapId": story_map.story_map_id}
+    assert (
+        len(client_query_no_token(query, variables=variables).json()["data"]["storyMaps"]["edges"])
+        == 1
+    )
+    response = logged_client.post(
+        reverse("story_map:update"), data={"id": story_map.pk, "unpublish": "true"}
+    )
+    assert response.status_code == 201
+
+    visitor_data = client_query_no_token(query, variables=variables).json()["data"]
+    assert visitor_data["storyMaps"]["edges"] == []
+    assert visitor_data["featuredStoryMapsRandom"] == []
+    owner_data = client_query(query, variables=variables).json()["data"]
+    node = owner_data["storyMaps"]["edges"][0]["node"]
+    assert node["isPublished"] is False
+    assert json.loads(node["configuration"])["title"] == "Draft"
 
 
 def test_story_maps_query(client_query, story_maps, users):

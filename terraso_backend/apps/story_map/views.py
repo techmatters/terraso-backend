@@ -17,7 +17,6 @@ import json
 import secrets
 import uuid
 from dataclasses import asdict
-from datetime import datetime
 
 import rules
 import structlog
@@ -112,9 +111,7 @@ class StoryMapAddView(AuthenticationRequiredMixin, FormView):
 
         form_data["created_by"] = request.user
         form_data["is_published"] = publish
-        form_data["published_at"] = (
-            datetime.now(tz=timezone.get_current_timezone()) if form_data["is_published"] else None
-        )
+        form_data["published_at"] = timezone.now() if form_data["is_published"] else None
 
         entry_form = StoryMapForm(data=form_data)
         if not entry_form.is_valid():
@@ -162,7 +159,8 @@ class StoryMapUpdateView(AuthenticationRequiredMixin, FormView):
         user = request.user
         form_data = request.POST.copy()
 
-        publish = form_data["publish"] == "true"
+        publish = form_data.get("publish") == "true"
+        unpublish = form_data.get("unpublish") == "true"
 
         story_map = StoryMap.objects.get(id=form_data["id"])
 
@@ -176,10 +174,23 @@ class StoryMapUpdateView(AuthenticationRequiredMixin, FormView):
             )
             return JsonResponse({"errors": [{"message": [asdict(error_message)]}]}, status=400)
 
+        if publish and unpublish:
+            error_message = ErrorMessage(
+                code="Cannot publish and unpublish simultaneously",
+                context=ErrorContext(model="StoryMap", field=NON_FIELD_ERRORS),
+            )
+            return JsonResponse({"errors": [{"message": [asdict(error_message)]}]}, status=400)
+
+        if unpublish:
+            story_map.is_published = False
+            story_map.published_at = None
+            story_map.save(update_fields=["is_published", "published_at", "updated_at"])
+            return JsonResponse(story_map.to_dict(), status=201)
+
         story_map.title = form_data["title"]
 
         if publish:
-            story_map.published_at = datetime.now(tz=timezone.get_current_timezone())
+            story_map.published_at = timezone.now()
             story_map.is_published = True
 
         new_config = json.loads(form_data["configuration"])
@@ -211,7 +222,11 @@ class StoryMapUpdateView(AuthenticationRequiredMixin, FormView):
             )
 
         try:
-            story_map.save()
+            # Draft saves must not restore publication state read before an unpublish.
+            update_fields = ["title", "slug", "configuration", "updated_at"]
+            if publish:
+                update_fields.extend(["is_published", "published_at", "published_configuration"])
+            story_map.save(update_fields=update_fields)
         except IntegrityError as exc:
             return handle_integrity_error(exc)
 
