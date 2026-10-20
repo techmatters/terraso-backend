@@ -146,17 +146,26 @@ for idx in "${!chain[@]}"; do
   fi
   log "   title: ${title}"
 
+  # One level-4 heading per commit, with that commit's body printed directly
+  # under it -- bodies rewritten as a separate block cannot be attributed to a
+  # commit, and they lose their internal blank lines. `git log --format='%b'`
+  # emits the body verbatim (interior blank lines, indentation and trailing
+  # whitespace included), so nothing here may filter or re-wrap it; the old
+  # `sed '/^$/d'` pass deleted every blank line inside every body. `$(...)`
+  # trims only the trailing newlines, which is what lets the blank line before
+  # the next heading be printed deliberately.
   body_file="$(mktemp)"
   {
-    printf 'Automated dependency upgrade — layer %s of %s.\n\n' "$layer" "$total"
-    printf 'Targets `%s`.\n\n' "$parent"
     printf '### Commits\n\n'
-    git log --reverse --format='* %s' "refs/heads/${parent}..refs/heads/${branch}"
-    printf '\n'
-    git log --reverse --format='%b' "refs/heads/${parent}..refs/heads/${branch}" \
-      | sed '/^$/d'
-    printf '\n---\n\n'
-    printf 'Opened by the `agentic dependency upgrade` workflow. Review this layer only.\n'
+    while IFS= read -r commit; do
+      printf '#### %s\n\n' "$(git log -1 --format='%s' "$commit")"
+      commit_body="$(git log -1 --format='%b' "$commit")"
+      if [ -n "$commit_body" ]; then
+        printf '%s\n\n' "$commit_body"
+      fi
+    done < <(git rev-list --reverse "refs/heads/${parent}..refs/heads/${branch}")
+    printf -- '---\n\n'
+    printf 'Opened by the `agentic dependency upgrade` workflow.\n'
   } > "$body_file"
 
   url="$(gh pr create --repo "$REPO" --base "$parent" --head "$branch" \
@@ -177,9 +186,16 @@ if [ "${#pr_numbers[@]}" -lt 2 ]; then
   log ""
   log "only ${#pr_numbers[@]} layer, so there is no stack to form"
 else
+  # `-F` (--field, typed), not `-f` (--raw-field, always a string), and do not
+  # "simplify" this back: `-f` sends every value as a JSON string, so the pull
+  # request numbers arrive as "2112" and the endpoint rejects the whole array
+  # with a 422 ("is not of type integer") -- after the PRs are already open.
+  # `-F` runs the value through gh's magic type conversion (see
+  # pkg/cmd/api/fields.go: parseFields -> magicFieldValue -> strconv.Atoi)
+  # *before* the `key[]` array expansion, so each element is a real JSON number.
   stack_args=()
   for number in "${pr_numbers[@]}"; do
-    stack_args+=(-f "pull_requests[]=${number}")
+    stack_args+=(-F "pull_requests[]=${number}")
   done
   out="$(gh api --method POST "repos/${REPO}/stacks" "${stack_args[@]}" 2>&1)" \
     || die "failed to link the pull requests into a stack: ${out}"
