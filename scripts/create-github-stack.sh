@@ -1,33 +1,13 @@
 #!/usr/bin/env bash
 #
-# push-stack.sh -- push the agent's dependency branches and open one PR per layer.
+# create-github-stack.sh -- create a GitHub PR stack out of a stack of branches.
 #
 # Usage:
 #   GH_TOKEN=... scripts/push-stack.sh <base-branch>
 #
-# This assumes the happy path: HEAD is checked out at the top of a stack of
-# `deps/*` branches, each sitting on the one below it, and the bottom one sitting
-# on <base-branch>. Anything else is an error rather than something to recover
-# from.
-#
-# It is also not idempotent: if the branches or the pull requests already exist,
-# it fails. There is no force-push and no "update the existing PR" path -- a
-# re-run either finds that HEAD is the base branch (nothing to do) or it fails
-# loudly.
-#
-# SECURITY POSTURE
-#   This script runs from the working tree, which the agent had write access to,
-#   and it holds an app installation token. That is a deliberate choice, not an
-#   oversight: the token is scoped to this repository and cannot push to `main`
-#   (keep `main` protected), so the worst case is junk branches and junk PRs,
-#   which is what the human review on those PRs is for.
-#
-#   There is deliberately no hardening here. The agent shares the runner and the
-#   user with this script, so anything file- or environment-based -- pinning a
-#   hash of this file, scrubbing .git/config, clearing $GITHUB_ENV redirectors --
-#   can be defeated from the preceding step. If this ever needs to be a real
-#   boundary, the agent and the publish step have to run in separate jobs.
-#
+# Assumes that HEAD is checked out at the top of a stack of branches, each sitting
+# on the one below it, and the bottom one sitting on <base-branch>. Errors if that
+# is not true.
 set -euo pipefail
 
 BASE="${1:-}"
@@ -202,30 +182,3 @@ else
   log ""
   log "created a stack of ${#pr_numbers[@]} layers"
 fi
-
-# ---------------------------------------------------------------------------
-# Report
-# ---------------------------------------------------------------------------
-if [ -n "${GITHUB_STEP_SUMMARY:-}" ]; then
-  {
-    printf '## Dependency upgrade stack\n\n'
-    printf 'Base branch: `%s`\n\n' "$BASE"
-    printf '| layer | branch | base | PR |\n'
-    printf '| --- | --- | --- | --- |\n'
-    for idx in "${!chain[@]}"; do
-      parent="$BASE"
-      if [ "$idx" -gt 0 ]; then
-        parent="${chain[$((idx - 1))]}"
-      fi
-      printf '| %s | `%s` | `%s` | %s |\n' \
-        "$((idx + 1))" "${chain[$idx]}" "$parent" "${pr_urls[$idx]}"
-    done
-    printf '\n'
-  } >> "$GITHUB_STEP_SUMMARY"
-fi
-
-log ""
-log "done: ${#pr_urls[@]} pull request(s)"
-for url in "${pr_urls[@]}"; do
-  log "  ${url}"
-done
