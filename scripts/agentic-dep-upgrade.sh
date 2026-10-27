@@ -20,7 +20,7 @@ come up with a grouping for related updates, and for each group launch a subagen
 
 create each branch and commit the `pyproject.toml`/`uv.lock` changes for it.
 
-then, working one branch at a time from the bottom in serial, resume that branch's subagent, telling it to implement any changes it needs to make for those dependency updates. for the sake of runner time, DO NOT run verification commands or ANYTHING that could cause the docker images to build. linting and testing will happen later.
+then, working one branch at a time from the bottom in serial, resume that branch's subagent, telling it to implement any changes it needs to make for those dependency updates. for the sake of runner time, DO NOT run verification commands or ANYTHING that could cause the docker images to build. a separate step runs `make format`, `make lint` and `make test` once you are finished, and re-prompts you with whatever fails.
 
 when all the changes are in, rebase the branches on each other so the stack's shape is proper again.
 

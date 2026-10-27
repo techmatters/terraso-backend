@@ -107,6 +107,19 @@ jobs:
           set -euo pipefail
           scripts/agentic-dep-upgrade.sh "${{ steps.base.outputs.base }}"
 
+      # The agent is not asked to validate its own work. This runs the real
+      # checks at the top of the stack and hands any failures to a fresh agent
+      # run, which fixes the layer responsible and rebases the stack.
+      - name: Validate and repair the stack
+        id: validate
+        if: steps.agent.outcome == 'success'
+        env:
+          OPENCODE_API_KEY: ${{ secrets.OPENCODE_API_KEY }}
+          XDG_DATA_HOME: ${{ runner.temp }}/opencode-data
+        run: |
+          set -euo pipefail
+          scripts/agentic-dep-validate.sh "${{ steps.base.outputs.base }}"
+
       # A GitHub App installation token rather than GITHUB_TOKEN: pull requests
       # opened with GITHUB_TOKEN do not trigger `pull_request` workflows, so the
       # generated PRs would never see CI. The private key is only exposed to

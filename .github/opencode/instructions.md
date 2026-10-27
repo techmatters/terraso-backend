@@ -31,6 +31,15 @@ to every subagent you launch.
   --exclude-newer "7 days"`).
 - **Dependency pins are exact (`==`)**, so an upgrade is a literal string change
   in `pyproject.toml` plus the matching lock update.
+- **Never change the GDAL version.** Leave `gdal` in `pyproject.toml`, the
+  `libgdal`/snapshot pinning in `Dockerfile`, and every `gdal` entry in
+  `uv.lock` exactly as you find them. The Python bindings are compiled from
+  source against the native `libgdal-dev` headers, so the two versions only work
+  when they are equal, and the bindings' `setup.py` refuses to build when the
+  binding is the newer of the two. Those numbers move by hand, together, and
+  deliberately — never as part of a dependency bump. `fiona`, `pyogrio`,
+  `libkml-dev` and the rest of the GDAL family are in the same boat: leave them
+  alone.
 - **The lint group is installed on the host**, which is why linting needs no
   Docker image at all: `uv run --only-group lint ruff check terraso_backend` and
   `uv run --only-group lint ruff format --diff terraso_backend`. This is the same
