@@ -141,7 +141,7 @@ jobs:
         run: |
           set -euo pipefail
           gh auth setup-git
-          scripts/push-stack.sh "${{ steps.base.outputs.base }}"
+          scripts/create-github-stack.sh "${{ steps.base.outputs.base }}"
 
       - name: Upload opencode logs
         if: always()
