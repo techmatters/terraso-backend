@@ -255,9 +255,9 @@ class User(SafeDeleteModel, AbstractUser):
 
         # safedelete 1.5+ filters bulk updates on `all_objects` to visible rows
         # unless visibility is forced; soft-deleted notes need the shadow too.
-        SiteNote.all_objects.filter(author=self).all(
-            force_visibility=DELETED_VISIBLE
-        ).update(saved_author=self.pk)
+        SiteNote.all_objects.filter(author=self).all(force_visibility=DELETED_VISIBLE).update(
+            saved_author=self.pk
+        )
 
     def _soft_delete_solo_manager_projects(self, project_ids):
         """Soft-delete the captured projects.
