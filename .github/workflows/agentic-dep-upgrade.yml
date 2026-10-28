@@ -69,15 +69,7 @@ jobs:
         run: |
           mkdir -p $HOME/secrets/terraso-backend
           cp .env.sample $HOME/secrets/terraso-backend/.env
-
-      # Unlike in ordinary CI steps, we want the source code in the container
-      # to be modifiable without having to rebuild the container, since the
-      # agent may make fixes. There's a mismatch between the user ID of the
-      # GitHub runner and the user ID inside the Docker container which this
-      # line smoothes over. Please let me know if there's a less ugly fix for
-      # this.
-      - name: Make the workspace writable by the container user
-        run: chmod -R a+rwX "$GITHUB_WORKSPACE"
+          echo "MAPBOX_ACCESS_TOKEN=${{ secrets.MAPBOX_ACCESS_TOKEN }}" >> $HOME/secrets/terraso-backend/.env
 
       - name: Install uv
         uses: astral-sh/setup-uv@v7
@@ -107,9 +99,16 @@ jobs:
           set -euo pipefail
           scripts/agentic-dep-upgrade.sh "${{ steps.base.outputs.base }}"
 
-      # The agent is not asked to validate its own work. This runs the real
-      # checks at the top of the stack and hands any failures to a fresh agent
-      # run, which fixes the layer responsible and rebases the stack.
+      - name: Download the soil-id test data
+        if: steps.agent.outcome == 'success'
+        run: |
+          set -euo pipefail
+          make download-soil-data
+          # gdown 6 writes these files 0600; this container runs as another uid.
+          chmod -R a+rX Data
+
+      # The agent does not validate its own work: this runs the checks at the top
+      # of the stack and hands failures to a fresh agent run to repair.
       - name: Validate and repair the stack
         id: validate
         if: steps.agent.outcome == 'success'
@@ -143,13 +142,34 @@ jobs:
           gh auth setup-git
           scripts/create-github-stack.sh "${{ steps.base.outputs.base }}"
 
-      - name: Upload opencode logs
+      - name: Archive local repository state
+        if: always()
+        run: |
+          set -euo pipefail
+          base="${{ steps.base.outputs.base }}"
+          out="${{ runner.temp }}/dep-upgrade-repo/repo-state.bundle"
+          mkdir -p "$(dirname "$out")"
+          refs=()
+          if git rev-parse --verify --quiet "refs/heads/${base}" >/dev/null; then
+            refs+=("refs/heads/${base}")
+          fi
+          mapfile -t deps < <(git for-each-ref --format='%(refname)' 'refs/heads/deps/')
+          refs+=("${deps[@]}")
+          if [ "${#refs[@]}" -eq 0 ]; then
+            echo "no local branches worth archiving"
+            exit 0
+          fi
+          git bundle create "$out" "${refs[@]}"
+          git bundle list-heads "$out"
+
+      - name: Upload run logs
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: opencode-logs
+          name: dep-upgrade-logs
           path: |
             ${{ runner.temp }}/opencode-data/
             ${{ runner.temp }}/opencode-logs/
+            ${{ runner.temp }}/dep-upgrade-repo/
           if-no-files-found: ignore
           retention-days: 30
