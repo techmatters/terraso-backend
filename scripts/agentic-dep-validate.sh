@@ -6,11 +6,9 @@
 # Usage:
 #   scripts/agentic-dep-validate.sh <base-branch>
 #
-# Expects the repo checked out at the top of a stack of branches sitting on
-# <base-branch>. Runs `make format`, `make lint` and `make test` there;
-# if anything fails, a fresh agent run is given the output and expected to
-# fix the layer that caused it and rebase the stack. Repeats up to two more
-# times, then fails.
+# Expects the repo checked out at the top of a stack of branches on <base-branch>.
+# Runs `make format`, builds an image, and runs the checks against that image; on
+# failure a fresh agent run repairs the layer responsible. Two repairs, then fail.
 set -euo pipefail
 
 read -r -d '' REPAIR_PROMPT <<'PROMPT_EOF' || true
@@ -22,12 +20,10 @@ commit each fix to the branch that owns it. after changing a branch, rebase the 
 
 do not change dependency versions to make a failure go away, and do not touch the gdal version at all. fix the code, not the pins. if a failure really is a behaviour change in an upgraded package, say so in the commit message.
 
-do not run the validation yourself: `make test` rebuilds the docker images, and switching branches has to do that again, so it is not worth it. the caller re-runs validation when you are done.
+do not run the validation yourself. the caller re-runs validation when you are done.
 
 finish with the repo checked out at the top of the stack.
 PROMPT_EOF
-
-export UV_EXCLUDE_NEWER="${UV_EXCLUDE_NEWER:-7 days}"
 
 BASE_BRANCH="${1:-}"
 if [ -z "$BASE_BRANCH" ]; then
@@ -42,6 +38,13 @@ export OPENCODE_CONFIG_DIR="${OPENCODE_CONFIG_DIR:-$REPO_ROOT/.github/opencode}"
 
 RUN_DIR="${RUNNER_TEMP:-/tmp}/opencode-logs"
 mkdir -p "$RUN_DIR"
+
+# Validate like `build.yml`: an image from this tree, and the CI compose file,
+# which mounts no source over /app.
+BASE_IMAGE="terraso-backend-ci:dep-upgrade"
+DEV_IMAGE="terraso-backend-ci-dev:dep-upgrade"
+export DC_ENV=ci
+export TERRASO_BACKEND_WEB_DOCKER_IMAGE="$DEV_IMAGE"
 
 # One validation run, then up to two repair runs.
 MAX_ATTEMPTS=3
@@ -61,6 +64,17 @@ log "base:     $BASE_BRANCH"
 git rev-parse --verify --quiet "refs/heads/${BASE_BRANCH}" >/dev/null \
   || die "base branch '${BASE_BRANCH}' does not exist locally"
 
+# The CI compose file takes the image from TERRASO_BACKEND_WEB_DOCKER_IMAGE, so it
+# has to be this branch's before any target runs.
+build_image() {
+  local attempt="$1" logf="${RUN_DIR}/validate-${attempt}-build.log"
+  log "building the image"
+  {
+    docker build --file Dockerfile --tag "$BASE_IMAGE" .
+    docker build --file Dockerfile.dev --tag "$DEV_IMAGE" --build-arg "BASE_IMAGE=$BASE_IMAGE" .
+  } 2>&1 | tee "$logf"
+}
+
 # Fails unless HEAD is the top of the stack: nothing else may sit above it.
 assert_head_is_top() {
   local head top other
@@ -78,9 +92,8 @@ assert_head_is_top() {
   done < <(git for-each-ref --format='%(refname:short)' 'refs/heads/')
 }
 
-# Every layer was created from the tip of the layer below it, so walking the top
-# branch's history and picking out the commits with a branch pointing at them
-# yields the layers. Printed bottom first.
+# Each layer was created from the tip of the layer below it, so branch tips along
+# the top branch's history give the layers. Printed bottom first.
 stack_branches() {
   local base_tip top_tip sha name i
   local -a rev=()
@@ -99,11 +112,21 @@ stack_branches() {
   done
 }
 
-# Writes the case for a repair run to $2, or leaves it empty if everything
-# passed. Runs all three targets so that one repair run can address all of it.
+# Writes the case for a repair run to $2, or leaves it empty on success. `make
+# format` stays on the host because it is what produces the edits to commit.
 run_validation() {
   local attempt="$1" out="$2" target logf
-  for target in format lint test; do
+  logf="${RUN_DIR}/validate-${attempt}-format.log"
+  log "make format"
+  if ! make format 2>&1 | tee "$logf"; then
+    printf '### make format failed\n\n%s\n\n' "$(tail -n "$TAIL_LINES" "$logf")" >>"$out"
+  fi
+  if ! build_image "$attempt"; then
+    printf '### docker image build failed\n\n%s\n\n' \
+      "$(tail -n "$TAIL_LINES" "${RUN_DIR}/validate-${attempt}-build.log")" >>"$out"
+    return 0
+  fi
+  for target in lint test_ci_unit test_ci_integration; do
     logf="${RUN_DIR}/validate-${attempt}-${target}.log"
     log "make ${target}"
     if ! make "$target" 2>&1 | tee "$logf"; then

@@ -40,26 +40,5 @@ to every subagent you launch.
   deliberately — never as part of a dependency bump. `fiona`, `pyogrio`,
   `libkml-dev` and the rest of the GDAL family are in the same boat: leave them
   alone.
-- **The lint group is installed on the host**, which is why linting needs no
-  Docker image at all: `uv run --only-group lint ruff check terraso_backend` and
-  `uv run --only-group lint ruff format --diff terraso_backend`. This is the same
-  toolchain `make format` uses.
-- **`make test_unit` is Docker-only and expensive.** It depends on
-  `check_rebuild`, which rebuilds the image whenever `md5sum pyproject.toml
-  uv.lock` differs from the gitignored `.rebuild` file — so *any* branch switch
-  that changes the lock triggers a full rebuild. Run it only at the top of the
-  stack. The first invocation also builds the base image.
-- **Do not reach for `DC_ENV=ci`.** The repo's own workflow runs `make ...
-  DC_ENV=ci`, but `docker-compose.ci.yml` has no source bind mount: it tests
-  whatever source is baked into a prebuilt image, so your edits would be
-  invisible to it. This runner is configured so that the default `DC_ENV=dev`
-  path works, including translations.
-- **The soil-id database is disabled here** (`SOIL_ID_DATABASE_ENABLED=false`),
-  because it is a ~2 GB pull only needed for global (HWSD) lookups. Do not
-  re-enable it: nothing in `make test_unit` needs it, and integration tests are
-  not part of this workflow.
-- **`make lint` is not available to you** (it is Docker-based, see above). Its
-  `check_api_schema` and `check_migrations` steps therefore do not run here;
-  `.github/workflows/build.yml` runs them on the pull requests you produce.
 - **Do not start the dev server or the database.** Nothing here needs a running
-  app; `make test_unit` brings up what it needs itself.
+  app.
