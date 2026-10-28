@@ -7,7 +7,7 @@ requires-python = ">=3.13"
 dependencies = [
     "boto3==1.43.116",
     "dj-database-url==3.1.2",
-    "django==5.2.7",
+    "django==6.1.2",
     "django-cors-headers==4.9.0",
     "django-dirtyfields==1.9.9",
     "django-filter==26.2",

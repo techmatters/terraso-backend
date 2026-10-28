@@ -18,18 +18,30 @@ from urllib.parse import parse_qs, urlparse
 import pytest
 from django.contrib.auth.models import AnonymousUser
 from django.contrib.sessions.backends.db import SessionStore
-from django.core import signing
 from django.http import HttpResponse, HttpResponseRedirect
 from django.test import RequestFactory
 from django.urls import reverse
 from mixer.backend.django import mixer
 from oauth2_provider.models import Application
 
-from apps.auth.constants import SESSION_FLAG_OAUTH_LOGIN
+from apps.auth.constants import OAUTH_COOKIE_NAME, SESSION_FLAG_OAUTH_LOGIN
 from apps.auth.middleware import OAuthAuthorizeState
 from apps.auth.views import terraso_login
 
 pytestmark = pytest.mark.django_db
+
+
+def _unsign_oauth_cookie(cookie_value):
+    """Decode the OAuth return-URL cookie through Django's request API.
+
+    Django 6.1 changed the salt derivation used by ``set_signed_cookie()``, so
+    tests must not construct a signer with the historical ``salt="oauth"``.
+    Round-tripping through ``get_signed_cookie()`` exercises the same public
+    code path the application uses and stays independent of Django internals.
+    """
+    request = RequestFactory().get("/")
+    request.COOKIES[OAUTH_COOKIE_NAME] = cookie_value
+    return request.get_signed_cookie(OAUTH_COOKIE_NAME)
 
 
 @pytest.fixture
@@ -52,9 +64,7 @@ def test_unauthenticated_user_accessing_auth_point_gets_cookie_set(
     resp = client.get(authorize_url, params)
     if not logged_in:
         assert (cookie := resp.cookies.get("oauth", None))
-        # default salt is the key
-        signer = signing.get_cookie_signer(salt="oauth")
-        url = urlparse(signer.unsign(cookie.value))
+        url = urlparse(_unsign_oauth_cookie(cookie.value))
         assert url.path == authorize_url
         assert parse_qs(url.query) == params
     else:
@@ -202,8 +212,7 @@ def test_middleware_anonymous_branch_still_sets_oauth_cookie(client, oauth_appli
     )
     resp = client.get(authorize_url, params)
     assert (cookie := resp.cookies.get("oauth", None))
-    signer = signing.get_cookie_signer(salt="oauth")
-    url = urlparse(signer.unsign(cookie.value))
+    url = urlparse(_unsign_oauth_cookie(cookie.value))
     assert url.path == authorize_url
 
 
