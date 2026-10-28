@@ -510,6 +510,10 @@ if config("SENTRY_DSN", default="") and not _RUNNING_TESTS:
         # of sampled transactions.
         # We recommend adjusting this value in production.
         profiles_sample_rate=1.0,
+        # Sentry >= 2.61 no longer truncates long string values by default.
+        # Keep the old 100k cap so large GeoJSON values in exception locals
+        # cannot push events past Sentry's 1 MiB limit and get dropped.
+        max_value_length=100_000,
     )
 else:
     # structlog is already set up at this point, so we can log nicely.

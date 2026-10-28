@@ -5,7 +5,7 @@ version = "1.0"
 license = { file = "LICENSE" }
 requires-python = ">=3.13"
 dependencies = [
-    "boto3==1.42.15",
+    "boto3==1.43.116",
     "dj-database-url==3.0.1",
     "django==5.2.7",
     "django-cors-headers==4.9.0",
@@ -26,7 +26,7 @@ dependencies = [
     "openpyxl==3.1.5",
     "pandas==2.3.3",
     "pillow==13.0.0",
-    "posthog==7.19.1",
+    "posthog==7.73.2",
     "prettyconf==3.0.1",
     "psycopg==3.3.6",
     "pyjwt[crypto]==2.15.1",
@@ -34,7 +34,7 @@ dependencies = [
     "python-magic==0.4.27",
     "requests==2.34.2",
     "rules==3.5",
-    "sentry-sdk[django]==2.48.0",
+    "sentry-sdk[django]==2.72.0",
     "shapely==2.1.2",
     "soil-id",
 ]
