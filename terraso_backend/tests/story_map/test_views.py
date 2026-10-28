@@ -20,7 +20,11 @@ from unittest.mock import patch
 import pytest
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.urls import reverse
+from django.utils import timezone
 from mixer.backend.django import mixer
+
+from apps.collaboration.models import Membership, MembershipList
+from apps.story_map.collaboration_roles import ROLE_EDITOR
 
 pytestmark = pytest.mark.django_db
 
@@ -104,6 +108,141 @@ def test_update_form_unauthorized(logged_client):
     assert len(response.json()["errors"]) == 1
 
 
+@pytest.mark.parametrize("as_editor", [False, True])
+def test_unpublish_preserves_draft_and_published_snapshot(logged_client, users, as_editor):
+    membership_list = mixer.blend(MembershipList)
+    if as_editor:
+        mixer.blend(
+            Membership,
+            membership_list=membership_list,
+            user=users[0],
+            user_role=ROLE_EDITOR,
+            membership_status=Membership.APPROVED,
+        )
+    draft = {"title": "Latest draft", "chapters": []}
+    published = {"title": "Public version", "chapters": []}
+    story_map = mixer.blend(
+        "story_map.StoryMap",
+        created_by=users[1] if as_editor else users[0],
+        membership_list=membership_list,
+        configuration=draft,
+        published_configuration=published,
+        is_published=True,
+        published_at=timezone.now(),
+    )
+    identity = (story_map.title, story_map.slug, story_map.story_map_id)
+    data = {"id": story_map.pk, "unpublish": "true"}
+
+    for _ in range(2):
+        response = logged_client.post(reverse("story_map:update"), data=data)
+        assert response.status_code == 201
+        assert response.json()["is_published"] is False
+        assert response.json()["published_at"] is None
+
+    story_map.refresh_from_db()
+    assert story_map.configuration == draft
+    assert story_map.published_configuration == published
+    assert (story_map.title, story_map.slug, story_map.story_map_id) == identity
+    assert story_map.membership_list == membership_list
+    assert story_map.published_at is None
+
+    response = logged_client.post(
+        reverse("story_map:update"),
+        data={
+            "id": story_map.pk,
+            "title": story_map.title,
+            "configuration": json.dumps(draft),
+            "publish": "true",
+        },
+    )
+    assert response.status_code == 201
+    story_map.refresh_from_db()
+    assert story_map.is_published
+    assert story_map.published_at is not None
+    assert story_map.published_configuration == draft
+    assert (story_map.slug, story_map.story_map_id) == identity[1:]
+
+
+@pytest.mark.parametrize("membership_status", [Membership.PENDING, None])
+def test_unpublish_requires_owner_or_approved_editor(logged_client, users, membership_status):
+    membership_list = mixer.blend(MembershipList)
+    if membership_status:
+        mixer.blend(
+            Membership,
+            membership_list=membership_list,
+            user=users[0],
+            user_role=ROLE_EDITOR,
+            membership_status=membership_status,
+        )
+    story_map = mixer.blend(
+        "story_map.StoryMap",
+        created_by=users[1],
+        membership_list=membership_list,
+        is_published=True,
+    )
+    response = logged_client.post(
+        reverse("story_map:update"), data={"id": story_map.pk, "unpublish": "true"}
+    )
+    assert response.status_code == 400
+    assert response.json()["errors"]
+    story_map.refresh_from_db()
+    assert story_map.is_published
+
+
+def test_unpublish_rejects_simultaneous_publish(logged_client, users):
+    story_map = mixer.blend("story_map.StoryMap", created_by=users[0], is_published=True)
+    response = logged_client.post(
+        reverse("story_map:update"),
+        data={"id": story_map.pk, "publish": "true", "unpublish": "true"},
+    )
+    assert response.status_code == 400
+    assert response.json()["errors"]
+    story_map.refresh_from_db()
+    assert story_map.is_published
+
+
+def test_draft_save_does_not_change_publication_or_restore_concurrent_unpublish(
+    logged_client, users
+):
+    published = {"title": "Public version", "chapters": []}
+    published_at = timezone.now()
+    story_map = mixer.blend(
+        "story_map.StoryMap",
+        created_by=users[0],
+        configuration=published,
+        published_configuration=published,
+        is_published=True,
+        published_at=published_at,
+    )
+    draft = {"title": "New draft", "chapters": []}
+    data = {
+        "id": story_map.pk,
+        "title": story_map.title,
+        "configuration": json.dumps(draft),
+        "publish": "false",
+    }
+    assert logged_client.post(reverse("story_map:update"), data=data).status_code == 201
+    story_map.refresh_from_db()
+    assert story_map.is_published
+    assert story_map.published_at == published_at
+    assert story_map.published_configuration == published
+
+    def unpublish_during_save(config, instance, request):
+        response = logged_client.post(
+            reverse("story_map:update"), data={"id": story_map.pk, "unpublish": "true"}
+        )
+        assert response.status_code == 201
+        return config
+
+    with patch("apps.story_map.views.handle_config_media", side_effect=unpublish_during_save):
+        assert logged_client.post(reverse("story_map:update"), data=data).status_code == 201
+    story_map.refresh_from_db()
+    assert story_map.configuration == draft
+    assert story_map.published_configuration == published
+    assert not story_map.is_published
+    assert story_map.published_at is None
+
+
 def test_update_upload_media(logged_client, users):
     story_map = mixer.blend("story_map.StoryMap", created_by=users[0])
     url = reverse("story_map:update")
@@ -113,7 +252,7 @@ def test_update_upload_media(logged_client, users):
         "publish": "false",
         "files": SimpleUploadedFile(
             name="audio_file.mp3",
-            content="content".encode(),
+            content=b"content",
             content_type="audio/mp3",
         ),
         "configuration": json.dumps(
@@ -157,7 +296,7 @@ def test_update_oversized_media_upload(mock_get_size, logged_client, users):
         "publish": "false",
         "files": SimpleUploadedFile(
             name="audio_file.mp3",
-            content="content".encode(),
+            content=b"content",
             content_type="audio/mp3",
         ),
         "configuration": json.dumps(
@@ -202,7 +341,7 @@ def test_update_upload_media_invalid(logged_client, users):
         "publish": "false",
         "files": SimpleUploadedFile(
             name="audio_file.MOV",
-            content="content".encode(),
+            content=b"content",
             content_type="movie/MOV",
         ),
         "configuration": json.dumps(
@@ -246,12 +385,12 @@ def test_update_upload_multiple_media_invalid(logged_client, users):
         "files": [
             SimpleUploadedFile(
                 name="audio_file.mp4",
-                content="content".encode(),
+                content=b"content",
                 content_type="video/mp4",
             ),
             SimpleUploadedFile(
                 name="audio_file.MOV",
-                content="content".encode(),
+                content=b"content",
                 content_type="movie/MOV",
             ),
         ],
@@ -330,7 +469,7 @@ def test_add_upload_featured_image(logged_client, users):
         "publish": "false",
         "files": SimpleUploadedFile(
             name="featured_image.jpg",
-            content="content".encode(),
+            content=b"content",
             content_type="image/jpeg",
         ),
         "configuration": json.dumps(
@@ -369,7 +508,7 @@ def test_update_upload_featured_image(logged_client, users):
         "publish": "false",
         "files": SimpleUploadedFile(
             name="featured_image.png",
-            content="content".encode(),
+            content=b"content",
             content_type="image/png",
         ),
         "configuration": json.dumps(
@@ -422,7 +561,7 @@ def test_update_featured_image_cleanup(logged_client, users):
         "publish": "false",
         "files": SimpleUploadedFile(
             name="new_image.jpg",
-            content="content".encode(),
+            content=b"content",
             content_type="image/jpeg",
         ),
         "configuration": json.dumps(
