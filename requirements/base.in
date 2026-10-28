@@ -1,4 +1,6 @@
 boto3
+# floor required to keep the eMudhra-compromised intermediates untrusted
+certifi>=2026.10.19
 dj-database-url
 django
 django-cors-headers
