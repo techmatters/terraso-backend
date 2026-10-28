@@ -9,7 +9,7 @@ dependencies = [
     # floor to keep the eMudhra-compromised intermediates untrusted
     "certifi==2026.10.23",
     "dj-database-url==3.1.2",
-    "django==5.2.7",
+    "django==6.1.2",
     "django-cors-headers==4.9.0",
     "django-dirtyfields==1.9.9",
     "django-filter==26.2",
