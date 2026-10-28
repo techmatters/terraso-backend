@@ -22,6 +22,7 @@ from django.core.exceptions import ValidationError
 from django.db import models, transaction
 from django.db.models.deletion import ProtectedError, RestrictedError
 from django.utils.translation import gettext_lazy as _
+from safedelete.config import DELETED_VISIBLE
 from safedelete.models import HARD_DELETE, SOFT_DELETE_CASCADE, SafeDeleteManager, SafeDeleteModel
 
 from apps.core import group_collaboration_roles, landscape_collaboration_roles
@@ -252,7 +253,11 @@ class User(SafeDeleteModel, AbstractUser):
         to restore the link — only works if the user row has not been hard=deleted."""
         from apps.project_management.models import SiteNote
 
-        SiteNote.all_objects.filter(author=self).update(saved_author=self.pk)
+        # safedelete 1.5+ filters bulk updates on `all_objects` to visible rows
+        # unless visibility is forced; soft-deleted notes need the shadow too.
+        SiteNote.all_objects.filter(author=self).all(
+            force_visibility=DELETED_VISIBLE
+        ).update(saved_author=self.pk)
 
     def _soft_delete_solo_manager_projects(self, project_ids):
         """Soft-delete the captured projects.
@@ -337,9 +342,9 @@ class User(SafeDeleteModel, AbstractUser):
         """Mirror of _stash_site_note_authorship."""
         from apps.project_management.models import SiteNote
 
-        SiteNote.all_objects.filter(saved_author=self.pk, author__isnull=True).update(
-            author=self, saved_author=None
-        )
+        SiteNote.all_objects.filter(saved_author=self.pk, author__isnull=True).all(
+            force_visibility=DELETED_VISIBLE
+        ).update(author=self, saved_author=None)
 
     def full_name(self):
         return _(

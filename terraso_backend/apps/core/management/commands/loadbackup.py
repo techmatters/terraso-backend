@@ -30,6 +30,8 @@ from django.db import connection
 from django.db.models.fields import URLField
 from django.db.models.fields.related import ForeignKey, ManyToManyField
 from psycopg import sql
+from safedelete.config import DELETED_VISIBLE
+from safedelete.models import SafeDeleteModel
 
 from apps.core.models import User
 
@@ -131,7 +133,15 @@ class Command(BaseCommand):
             # reset foreign keys pointing to new ID to point to old ID
             old_user_fk = {field.name: str(old_user_id) for field in foreign_keys}
             new_user_fk = {field.name: str(new_user_id) for field in foreign_keys}
-            model.objects.filter(**new_user_fk).update(**old_user_fk)
+            if issubclass(model, SafeDeleteModel):
+                # safedelete 1.5+ filters bulk updates to visible rows by
+                # default; restored backups must remap soft-deleted rows too.
+                queryset = model.all_objects.filter(**new_user_fk).all(
+                    force_visibility=DELETED_VISIBLE
+                )
+            else:
+                queryset = model.objects.filter(**new_user_fk)
+            queryset.update(**old_user_fk)
 
             # reset old m2m relations pointing to user
             if not m2m_relations:
