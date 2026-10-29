@@ -1,0 +1,175 @@
+name: agentic dependency upgrade
+
+# Monthly dependency upgrade performed by an OpenCode agent, which proposes the
+# work as a stack of pull requests (one layer per dependency group).
+
+on:
+  # First of the month.
+  schedule:
+    - cron: "0 0 1 * *"
+
+  # REMOVE BEFORE MERGING.
+  push:
+    branches:
+      - ci/agentic-dep-upgrade
+
+  workflow_dispatch:
+    inputs:
+      base_branch:
+        description: "Branch to stack the dependency branches on"
+        required: false
+        type: string
+
+# Note we use a GitHub App Token with contents: write and pull_requests: write later.
+permissions:
+  contents: read
+
+env:
+  # Activates .github/opencode/ as an extra config directory for CI only.
+  OPENCODE_CONFIG_DIR: ${{ github.workspace }}/.github/opencode
+  OPENCODE_VERSION: "2.0.24"
+  UV_VERSION: "0.13.4"
+
+jobs:
+  upgrade:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Resolve base branch
+        id: base
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          INPUT_BASE: ${{ inputs.base_branch }}
+          PR_BASE: ${{ github.base_ref }}
+          PUSH_REF: ${{ github.ref_name }}
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+        run: |
+          set -euo pipefail
+          case "$EVENT_NAME" in
+            workflow_dispatch) base="$INPUT_BASE" ;;
+            push)              base="$PUSH_REF" ;;
+            schedule)          base="$DEFAULT_BRANCH" ;;
+            *) echo "::error::unhandled event: $EVENT_NAME"; exit 1 ;;
+          esac
+          if [ -z "$base" ]; then
+            echo "::error::could not determine a base branch for event $EVENT_NAME"
+            exit 1
+          fi
+          echo "base=$base" >> "$GITHUB_OUTPUT"
+          echo "Base branch: $base"
+
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ steps.base.outputs.base }}
+          fetch-depth: 0
+          persist-credentials: false # will do later with the GH_TOKEN
+
+      - name: Set up env
+        run: |
+          mkdir -p $HOME/secrets/terraso-backend
+          cp .env.sample $HOME/secrets/terraso-backend/.env
+          echo "MAPBOX_ACCESS_TOKEN=${{ secrets.MAPBOX_ACCESS_TOKEN }}" >> $HOME/secrets/terraso-backend/.env
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
+        with:
+          version: ${{ env.UV_VERSION }}
+          enable-cache: true
+          cache-dependency-glob: "uv.lock"
+
+      - name: Install OpenCode
+        run: npm install --global "@opencode/cli@${OPENCODE_VERSION}"
+
+      # Commits made by the agent need an identity. This is not a credential.
+      - name: Configure git identity
+        run: |
+          set -euo pipefail
+          git config --global user.name "terraso-dep-upgrader"
+          git config --global user.email "terraso-dep-upgrader[bot]@users.noreply.github.com"
+          git config --global commit.gpgsign false
+          git config --global advice.detachedHead false
+
+      - name: Run dependency upgrade agent
+        id: agent
+        env:
+          OPENCODE_API_KEY: ${{ secrets.OPENCODE_API_KEY }}
+          XDG_DATA_HOME: ${{ runner.temp }}/opencode-data
+        run: |
+          set -euo pipefail
+          scripts/agentic-dep-upgrade.sh "${{ steps.base.outputs.base }}"
+
+      - name: Download the soil-id test data
+        if: steps.agent.outcome == 'success'
+        run: |
+          set -euo pipefail
+          make download-soil-data
+          # gdown 6 writes these files 0600; this container runs as another uid.
+          chmod -R a+rX Data
+
+      # The agent does not validate its own work: this runs the checks at the top
+      # of the stack and hands failures to a fresh agent run to repair.
+      - name: Validate and repair the stack
+        id: validate
+        if: steps.agent.outcome == 'success'
+        env:
+          OPENCODE_API_KEY: ${{ secrets.OPENCODE_API_KEY }}
+          XDG_DATA_HOME: ${{ runner.temp }}/opencode-data
+        run: |
+          set -euo pipefail
+          scripts/agentic-dep-validate.sh "${{ steps.base.outputs.base }}"
+
+      # A GitHub App installation token rather than GITHUB_TOKEN: pull requests
+      # opened with GITHUB_TOKEN do not trigger `pull_request` workflows, so the
+      # generated PRs would never see CI. The private key is only exposed to
+      # this and the following step.
+      - name: Mint app token
+        id: app-token
+        if: steps.agent.outcome == 'success'
+        uses: actions/create-github-app-token@v2
+        with:
+          app-id: ${{ vars.DEP_UPGRADER_APP_ID }}
+          private-key: ${{ secrets.DEP_UPGRADER_APP_PRIVATE_KEY }}
+          permission-contents: write
+          permission-pull-requests: write
+
+      - name: Push branches and open stacked PRs
+        if: steps.agent.outcome == 'success'
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+        run: |
+          set -euo pipefail
+          gh auth setup-git
+          scripts/create-github-stack.sh "${{ steps.base.outputs.base }}"
+
+      - name: Archive local repository state
+        if: always()
+        run: |
+          set -euo pipefail
+          base="${{ steps.base.outputs.base }}"
+          out="${{ runner.temp }}/dep-upgrade-repo/repo-state.bundle"
+          mkdir -p "$(dirname "$out")"
+          refs=()
+          if git rev-parse --verify --quiet "refs/heads/${base}" >/dev/null; then
+            refs+=("refs/heads/${base}")
+          fi
+          mapfile -t deps < <(git for-each-ref --format='%(refname)' 'refs/heads/deps/')
+          refs+=("${deps[@]}")
+          if [ "${#refs[@]}" -eq 0 ]; then
+            echo "no local branches worth archiving"
+            exit 0
+          fi
+          git bundle create "$out" "${refs[@]}"
+          git bundle list-heads "$out"
+
+      - name: Upload run logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: dep-upgrade-logs
+          path: |
+            ${{ runner.temp }}/opencode-data/
+            ${{ runner.temp }}/opencode-logs/
+            ${{ runner.temp }}/dep-upgrade-repo/
+          if-no-files-found: ignore
+          retention-days: 30
