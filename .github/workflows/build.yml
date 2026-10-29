@@ -141,7 +141,7 @@ jobs:
         if: ${{ hashFiles('Data/*') == '' }}
         uses: astral-sh/setup-uv@v7
         with:
-          version: 0.12.0
+          version: 0.13.4
           enable-cache: true
           cache-dependency-glob: 'uv.lock'
 

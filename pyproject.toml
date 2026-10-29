@@ -64,7 +64,7 @@ soil-id = { url = "https://github.com/techmatters/soil-id-algorithm/archive/refs
 
 [tool.uv]
 no-binary-package = ["fiona"]
-required-version = ">=0.6.0"
+required-version = ">=0.13.4"
 
 [tool.ruff]
 exclude = ["migrations"]
