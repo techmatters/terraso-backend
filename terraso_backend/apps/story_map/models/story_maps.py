@@ -13,7 +13,10 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see https://www.gnu.org/licenses/.
 
+from typing import ClassVar
+
 from django.db import models
+from rules.predicates import Predicate
 from safedelete.models import SOFT_DELETE
 
 from apps.collaboration.models import MembershipList
@@ -42,7 +45,7 @@ class StoryMap(SlugModel):
     )
 
     field_to_slug = "title"
-    fields_to_trim = ["title"]
+    fields_to_trim: ClassVar[list[str]] = ["title"]
 
     class Meta(BaseModel.Meta):
         constraints = (
@@ -53,23 +56,24 @@ class StoryMap(SlugModel):
             ),
         )
         verbose_name_plural = "Story Maps"
-        rules_permissions = {
+        rules_permissions: ClassVar[dict[str, Predicate]] = {
             "change": perm_rules.allowed_to_change_story_map,
             "delete": perm_rules.allowed_to_delete_story_map,
             "view": perm_rules.allowed_to_view_story_map,
         }
 
     def to_dict(self):
-        return dict(
-            id=str(self.id),
-            title=self.title,
-            configuration=self.configuration,
-            created_by=str(self.created_by.id),
-            is_published=self.is_published,
-            featured=self.featured,
-            slug=self.slug,
-            story_map_id=self.story_map_id,
-        )
+        return {
+            "id": str(self.id),
+            "title": self.title,
+            "configuration": self.configuration,
+            "created_by": str(self.created_by.id),
+            "is_published": self.is_published,
+            "published_at": self.published_at,
+            "featured": self.featured,
+            "slug": self.slug,
+            "story_map_id": self.story_map_id,
+        }
 
     def __str__(self):
         return self.title
