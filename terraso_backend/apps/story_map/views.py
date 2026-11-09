@@ -17,7 +17,6 @@ import json
 import secrets
 import uuid
 from dataclasses import asdict
-from datetime import datetime
 
 import rules
 import structlog
@@ -112,9 +111,7 @@ class StoryMapAddView(AuthenticationRequiredMixin, FormView):
 
         form_data["created_by"] = request.user
         form_data["is_published"] = publish
-        form_data["published_at"] = (
-            datetime.now(tz=timezone.get_current_timezone()) if form_data["is_published"] else None
-        )
+        form_data["published_at"] = timezone.now() if form_data["is_published"] else None
 
         entry_form = StoryMapForm(data=form_data)
         if not entry_form.is_valid():
@@ -179,7 +176,7 @@ class StoryMapUpdateView(AuthenticationRequiredMixin, FormView):
         story_map.title = form_data["title"]
 
         if publish:
-            story_map.published_at = datetime.now(tz=timezone.get_current_timezone())
+            story_map.published_at = timezone.now()
             story_map.is_published = True
 
         new_config = json.loads(form_data["configuration"])
