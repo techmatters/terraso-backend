@@ -130,6 +130,11 @@ generate-test-token:
 show-deletion-blockers:
 	$(DC_RUN_CMD) python terraso_backend/manage.py show_deletion_blockers $(user)
 
+# Usage: make project-site-areas [ARGS="--output areas.csv"]
+# CSV of the area (ha) each project's sites cover, plus the total. Use --output for a clean CSV, since make echoes the command into stdout.
+project-site-areas:
+	$(DC_RUN_CMD) python terraso_backend/manage.py project_site_areas $(ARGS)
+
 setup-git-hooks:
 	@pre-commit install
 
