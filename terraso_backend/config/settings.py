@@ -418,6 +418,12 @@ AWS_ACCESS_KEY_ID = config("AWS_ACCESS_KEY_ID", default="")
 AWS_SECRET_ACCESS_KEY = config("AWS_SECRET_ACCESS_KEY", default="")
 AWS_S3_REGION_NAME = config("AWS_S3_REGION_NAME", default="us-east-2")
 
+# Local S3 (MinIO/silo) support. Empty/None in production so boto3 targets real
+# AWS S3; a developer sets this in their local .env (e.g. http://<LAN-IP>:9000)
+# to point all S3 storage at a local, S3-compatible server. django-storages
+# passes this straight to boto3 as endpoint_url. See docs/local_s3_plan.md.
+AWS_S3_ENDPOINT_URL = config("AWS_S3_ENDPOINT_URL", default=None)
+
 # Set to "virtual" to force boto3 to use a consistent host for
 # both signature computation and URL generation. Without this, the endpoint
 # auto-resolution in generate_presigned_url can derive different hosts for

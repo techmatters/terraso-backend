@@ -18,6 +18,11 @@ $ mkdir -p ~/secrets/terraso-backend
 $ cp env.sample ~/secrets/terraso-backend/.env
 ```
 
+If you already have a `.env` and just want to pull in new keys/comments from
+an updated `env.sample`, run `python3 scripts/refresh_env.py` instead — it
+backs up your current `.env`, rebuilds it from the template, and re-applies
+your existing values.
+
 The Makefile and `docker-compose.base.yml` resolve `env_file:` paths
 against `$HOME/secrets/terraso-backend/.env`. Override the location by
 setting `ENV_FILE=/some/other/path` before invoking `make`.
