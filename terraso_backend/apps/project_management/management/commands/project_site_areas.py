@@ -15,7 +15,7 @@
 
 """Report the area covered by each project's sites, as CSV.
 
-A project's area is the convex hull around its sites (deleted and archived ones excluded), measured on the WGS84 ellipsoid. Projects with fewer than 3 distinct, non-collinear sites get 0. The output ends with the sum of all project areas, so overlapping projects are counted more than once.
+A project's area is the convex hull around its sites (deleted and archived ones excluded), measured on the WGS84 ellipsoid. Projects with fewer than 3 distinct, non-collinear sites get 0. The output ends with two totals: the sum of all project areas (overlapping projects counted more than once) and the unique area covered (overlaps counted once).
 
 Usage:
     python manage.py project_site_areas                     # CSV to stdout
@@ -30,11 +30,15 @@ from itertools import pairwise
 from django.core.management.base import BaseCommand
 from django.db import connection
 from pyproj import Geod
-from shapely.geometry import MultiPoint
+from shapely import get_parts, segmentize, unary_union
+from shapely.affinity import translate
+from shapely.geometry import MultiPoint, Polygon, box
+from shapely.geometry.polygon import orient
 
 from apps.project_management.models import Project, Site
 
 CSV_COLUMNS = ["project_id", "project_name", "site_count", "area_ha"]
+MAX_SEGMENT_DEGREES = 0.01  # ~1 km
 SQ_METERS_PER_HECTARE = 10_000
 WGS84 = Geod(ellps="WGS84")
 
@@ -58,8 +62,10 @@ class Command(BaseCommand):
             write_csv(rows, self.stdout)
             self.stdout.write("")
 
-        total = sum(row["area_ha"] for row in rows)
-        self.stdout.write(f"Total area (ha): {total:.2f}")
+        project_area_sum = sum(row["area_ha"] for row in rows)
+        self.stdout.write(f"Sum of project areas (ha): {project_area_sum:.2f}")
+        unique_area = unique_area_ha([row["hull"] for row in rows])
+        self.stdout.write(f"Unique area covered (ha): {unique_area:.2f}")
 
 
 @contextmanager
@@ -85,30 +91,52 @@ def project_areas():
     for project_id, lon, lat in sites:
         coords_by_project[project_id].append((lon, lat))
 
-    rows = [
-        {
-            "project_id": project.id,
-            "project_name": project.name,
-            "site_count": len(coords_by_project[project.id]),
-            "area_ha": hull_area_ha(coords_by_project[project.id]),
-        }
-        for project in projects
-    ]
+    rows = []
+    for project in projects:
+        coords = coords_by_project[project.id]
+        hull = convex_hull(coords)
+        rows.append(
+            {
+                "project_id": project.id,
+                "project_name": project.name,
+                "site_count": len(coords),
+                "area_ha": geodesic_area_ha(hull),
+                "hull": hull,
+            }
+        )
     rows.sort(key=lambda row: (-row["area_ha"], row["project_name"]))
     return rows
 
 
-def hull_area_ha(coords):
-    """Geodesic area in hectares of the convex hull around (lon, lat) points."""
+def convex_hull(coords):
+    """Convex hull around (lon, lat) points; an empty Polygon when they enclose no area."""
     if len(coords) < 3:
-        return 0.0
+        return Polygon()
     hull = MultiPoint(unwrap_antimeridian(coords)).convex_hull
     # Duplicate or collinear points collapse to a Point or LineString, which encloses no area.
-    if hull.geom_type != "Polygon":
-        return 0.0
-    lons, lats = hull.exterior.xy
-    area_m2, _perimeter = WGS84.polygon_area_perimeter(lons, lats)
-    return abs(area_m2) / SQ_METERS_PER_HECTARE
+    return hull if hull.geom_type == "Polygon" else Polygon()
+
+
+def geodesic_area_ha(geometry):
+    """Area in hectares of the polygons in a geometry on the WGS84 ellipsoid, excluding holes."""
+    # Shapes are drawn with straight edges on a flat lon/lat map but pyproj joins vertices by the shortest path on the globe, which bulges away from the drawn edge over long distances. A merged outline has different vertices than each project, so it bulges differently and can measure smaller than a project inside it; extra vertices make pyproj follow the drawn edges.
+    geometry = segmentize(geometry, MAX_SEGMENT_DEGREES)
+    polygons = [p for p in get_parts(geometry) if p.geom_type == "Polygon" and not p.is_empty]
+    # pyproj's area sign follows ring direction; orient() makes outer rings positive and holes negative.
+    area_m2 = sum(WGS84.geometry_area_perimeter(orient(polygon))[0] for polygon in polygons)
+    return area_m2 / SQ_METERS_PER_HECTARE
+
+
+def unique_area_ha(hulls):
+    """Area in hectares covered by at least one hull, so overlaps count once."""
+    return geodesic_area_ha(unary_union([_within_world_longitudes(hull) for hull in hulls]))
+
+
+def _within_world_longitudes(hull):
+    """Move any part of a hull east of 180° (see unwrap_antimeridian) back to -180°…, so hulls on either side of the line overlap where they should when merged."""
+    in_range = hull.intersection(box(-180, -90, 180, 90))
+    past_180 = hull.intersection(box(180, -90, 540, 90))
+    return unary_union([in_range, translate(past_180, xoff=-360)])
 
 
 def unwrap_antimeridian(coords):
