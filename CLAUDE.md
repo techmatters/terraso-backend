@@ -151,7 +151,7 @@ When using `graphene.Enum` types in mutation arguments:
 
 ## Environment Setup
 
-1. Copy `.env.sample` to `.env`
+1. Copy `env.sample` to `.env`
 2. Configure OAuth credentials for Google, Apple, Microsoft
 3. Run `make build` to build Docker images
 4. Run `make migrate` for initial database setup

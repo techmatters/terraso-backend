@@ -286,7 +286,7 @@ structlog.configure(
     cache_logger_on_first_use=True,
 )
 
-# See .env.sample for description of the log levels
+# See env.sample for description of the log levels
 GRAPHQL_LOG_LEVEL = config("GRAPHQL_LOG_LEVEL", default="names")
 
 GRAPHENE = {

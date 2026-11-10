@@ -15,7 +15,7 @@ tools browsing the project can't read it incidentally):
 
 ```sh
 $ mkdir -p ~/secrets/terraso-backend
-$ cp .env.sample ~/secrets/terraso-backend/.env
+$ cp env.sample ~/secrets/terraso-backend/.env
 ```
 
 The Makefile and `docker-compose.base.yml` resolve `env_file:` paths
