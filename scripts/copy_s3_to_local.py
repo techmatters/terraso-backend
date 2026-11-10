@@ -44,6 +44,7 @@ Usage:
   python3 scripts/copy_s3_to_local.py               # prompts for env, then copies
   python3 scripts/copy_s3_to_local.py --from prod   # skip the env prompt
   python3 scripts/copy_s3_to_local.py --dry-run     # preview (transfers nothing)
+  python3 scripts/copy_s3_to_local.py --reset       # empty local buckets first, then copy
 """
 
 import argparse
@@ -181,12 +182,46 @@ def prompt_env():
         print(f"  please enter one of: {', '.join(ENVS)} (Ctrl-C to cancel)")
 
 
+def empty_dest_buckets(dest_buckets, endpoint, dst_key, dst_secret, env_base, dry_run):
+    """Empty each local destination bucket before copying (--reset). Empty
+    semantics: objects are removed, the bucket itself is kept. Only the copy's
+    target buckets are touched; a bucket that doesn't exist yet is left for the
+    mirror to create. Only ever acts on the local silo (dst), never the source."""
+    if dry_run:
+        print("[RESET — DRY RUN] would empty these local buckets first:")
+        for b in dest_buckets:
+            print(f"    dst/{b}")
+        print()
+        return 0
+
+    bucket_list = " ".join(dest_buckets)
+    # bucket names come from the .env template (plain tokens), safe to inline.
+    script = (
+        f'mcli alias set dst {endpoint} "$DST_KEY" "$DST_SECRET" >/dev/null && '
+        f'for b in {bucket_list}; do '
+        'if mcli ls "dst/$b" >/dev/null 2>&1; then '
+        'echo "  emptying dst/$b"; mcli rm --recursive --force "dst/$b" >/dev/null; '
+        'else echo "  dst/$b absent — the copy will create it"; fi; '
+        'done'
+    )
+    env_vars = {**env_base, "DST_KEY": dst_key, "DST_SECRET": dst_secret}
+    cmd = ["docker", "run", "--rm", "-e", "DST_KEY", "-e", "DST_SECRET",
+           SILO_IMAGE, "sh", "-c", script]
+    print("[RESET] emptying destination buckets before copy:")
+    result = subprocess.run(cmd, env=env_vars)
+    print()
+    return result.returncode
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--from", dest="from_env", choices=ENVS,
                     help="source environment (skip the interactive prompt)")
     ap.add_argument("--dry-run", action="store_true",
                     help="show what would copy (mcli mirror --dry-run); transfer nothing")
+    ap.add_argument("--reset", action="store_true",
+                    help="empty the destination (local silo) buckets before copying, so "
+                         "the result exactly matches the source (buckets kept, objects removed)")
     ap.add_argument("--debug", action="store_true",
                     help="pass --debug to mcli to print the S3 API calls")
     args = ap.parse_args()
@@ -231,10 +266,19 @@ def main():
     print(f"  dest   : {endpoint}  (local silo)")
     print(f"  dst key: {mask(dst_key)}  (the local silo root user, e.g. terraso-local)")
     print(f"  image  : {SILO_IMAGE}")
+    if args.reset:
+        print("  reset  : destination buckets will be EMPTIED first (--reset)")
     print("  buckets:")
     for s_bucket, d_bucket in pairs.items():
         print(f"    s3://{s_bucket}  ->  {d_bucket}")
     print()
+
+    if args.reset:
+        reset_rc = empty_dest_buckets(
+            sorted(set(pairs.values())), endpoint, dst_key, dst_secret, env_base, args.dry_run
+        )
+        if reset_rc != 0 and not args.dry_run:
+            sys.exit(f"ERROR: reset failed (mcli exited {reset_rc}); aborting before copy.")
 
     rc = 0
     for s_bucket, d_bucket in pairs.items():
