@@ -55,8 +55,8 @@ import shutil
 import sys
 from datetime import datetime
 
-SECRETS_DIR = os.path.expanduser(os.environ.get("TERRASO_SECRETS_DIR", "~/secrets/terraso-backend"))
-ENV_PATH = os.path.join(SECRETS_DIR, ".env")
+ENV_DIR = os.path.expanduser(os.environ.get("TERRASO_SECRETS_DIR", "~/secrets/terraso-backend"))
+ENV_PATH = os.path.join(ENV_DIR, ".env")
 
 _SCRIPT_DIR = os.path.dirname(os.path.realpath(__file__))
 _REPO_ROOT = os.path.dirname(_SCRIPT_DIR)
@@ -220,7 +220,7 @@ def main():
 
     # 1. Back up the current .env.
     stamp = datetime.now().strftime("%Y%m%d-%H%M%S")
-    backup_path = os.path.join(SECRETS_DIR, f".env.{stamp}")
+    backup_path = os.path.join(ENV_DIR, f".env.{stamp}")
     if os.path.exists(backup_path):
         sys.exit(f"ERROR: backup already exists at {backup_path}; aborting.")
     shutil.copy2(ENV_PATH, backup_path)
