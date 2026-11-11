@@ -39,7 +39,7 @@ class UserProfileImageView(AuthenticationRequiredMixin, FormView):
 
         user_id = str(user.id)
         try:
-            user.profile_image = profile_image_service.upload_file(user_id, file_obj)
+            user.profile_image = profile_image_service.upload_file_get_path(user_id, file_obj)
             user.save()
         except Exception:
             message = "Failed to upload profile image. User ID: {}".format(user_id)

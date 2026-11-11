@@ -61,9 +61,9 @@ def test_create_landscape_profile_image_successfully(
 ):
     url = reverse("terraso_storage:landscape-profile-image")
     with patch(
-        "apps.storage.forms.profile_image_upload_service.upload_file"
+        "apps.storage.forms.profile_image_upload_service.upload_file_get_path"
     ) as mocked_upload_service:
-        mocked_upload_service.return_value = "https://example.org/uploaded_file.jpeg"
+        mocked_upload_service.return_value = "landscape-id/profile-image"
 
         response = logged_client.post(url, landscape_profile_image_payload)
 
@@ -84,9 +84,9 @@ def test_create_oversized_profile_image(
     url = reverse("terraso_storage:landscape-profile-image")
     mock_get_size.return_value = 50000001
     with patch(
-        "apps.storage.forms.profile_image_upload_service.upload_file"
+        "apps.storage.forms.profile_image_upload_service.upload_file_get_path"
     ) as mocked_upload_service:
-        mocked_upload_service.return_value = "https://example.org/uploaded_file.jpeg"
+        mocked_upload_service.return_value = "landscape-id/profile-image"
 
         response = logged_client.post(url, landscape_profile_image_payload)
 

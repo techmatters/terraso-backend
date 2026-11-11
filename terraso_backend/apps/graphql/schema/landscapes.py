@@ -32,6 +32,7 @@ from apps.core.models import (
     TaxonomyTerm,
 )
 from apps.graphql.exceptions import GraphQLNotAllowedException
+from apps.storage.services import build_profile_image_url
 
 from .commons import BaseDeleteMutation, BaseWriteMutation, TerrasoConnection
 from .constants import MutationTypes
@@ -67,6 +68,11 @@ class LandscapeNode(DjangoObjectType, SharedResourcesMixin):
     id = graphene.ID(source="pk", required=True)
     area_types = graphene.List(graphene.String)
     center_coordinates = graphene.Field(Point)
+    # profile_image stores a bare S3 key; resolve it to a full, servable URL
+    # using the current PROFILE_IMAGES_BASE_URL (see resolve_profile_image).
+    # required=True keeps the schema type String! (matching the old auto-mapped
+    # field); the resolver returns "" rather than None for an unset image.
+    profile_image = graphene.String(required=True)
 
     class Meta:
         model = Landscape
@@ -95,6 +101,9 @@ class LandscapeNode(DjangoObjectType, SharedResourcesMixin):
         connection_class = TerrasoConnection
 
     area_scalar_ha = graphene.Float()
+
+    def resolve_profile_image(self, info):
+        return build_profile_image_url(self.profile_image)
 
     @classmethod
     def get_queryset(cls, queryset, info):

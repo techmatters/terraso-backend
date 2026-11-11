@@ -16,6 +16,8 @@
 from django.http import JsonResponse
 from django.views import View
 
+from apps.storage.services import build_profile_image_url
+
 from .models import Landscape, TaxonomyTerm
 
 
@@ -63,7 +65,7 @@ class LandscapeExportView(View):
             "areaTypes": landscape.area_types,
             "areaScalarHa": landscape.area_scalar_m2 / 10000 if landscape.area_scalar_m2 else None,
             "population": landscape.population,
-            "profileImage": landscape.profile_image,
+            "profileImage": build_profile_image_url(landscape.profile_image),
             "profileImageDescription": landscape.profile_image_description,
             "taxonomyTerms": [
                 {

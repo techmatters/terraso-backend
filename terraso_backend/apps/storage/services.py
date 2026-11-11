@@ -32,7 +32,7 @@ class UploadService:
     def base_url(self):
         raise NotImplementedError()
 
-    def upload_url(self, user_id, url):
+    def _content_file_from_url(self, url):
         content, content_type = self._download_from_url(url)
         uploaded = ContentFile(content)
         # The storage key has no extension, so django-storages can't guess the
@@ -41,7 +41,13 @@ class UploadService:
         # (octet-stream + nosniff makes clients download rather than render it).
         if content_type:
             uploaded.content_type = content_type
-        return self.upload_file(user_id, uploaded)
+        return uploaded
+
+    def upload_url(self, user_id, url):
+        return self.upload_file(user_id, self._content_file_from_url(url))
+
+    def upload_url_get_path(self, user_id, url):
+        return self.upload_file_get_path(user_id, self._content_file_from_url(url))
 
     def upload_file(self, user_id, file, file_name=None):
         if not file_name:
@@ -118,3 +124,23 @@ class ProfileImageService(UploadService):
 
 
 profile_image_upload_service = ProfileImageService()
+
+
+def build_profile_image_url(stored_value):
+    """Build the servable URL for a stored User/Landscape ``profile_image`` value.
+
+    New rows store only the S3 object key (e.g. ``"<id>/profile-image_2"``); we
+    prepend the current ``PROFILE_IMAGES_BASE_URL`` so the URL always points at
+    the configured S3 target (local silo, CDN, …) rather than a value frozen at
+    upload time. Empty stays empty.
+    """
+    if not stored_value:
+        return ""
+    # TEMPORARY — delete once the `strip_profile_image_prefixes` management
+    # command has run in every environment (local, staging, prod). Until then,
+    # rows created before this change still hold a full URL; pass those through
+    # unchanged so nothing double-prefixes during the transition. Once every row
+    # holds a bare key, this branch is dead code and should be removed.
+    if stored_value.startswith(("http://", "https://")):
+        return stored_value
+    return f"{settings.PROFILE_IMAGES_BASE_URL}/{stored_value}"

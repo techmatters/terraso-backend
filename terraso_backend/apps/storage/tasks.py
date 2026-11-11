@@ -48,7 +48,7 @@ def _update_profile_image(user_id, profile_image_url):
     profile_image_service = ProfileImageService()
 
     try:
-        user.profile_image = profile_image_service.upload_url(user_id, profile_image_url)
+        user.profile_image = profile_image_service.upload_url_get_path(user_id, profile_image_url)
         user.save()
     except Exception:
         logger.exception("Failed to upload profile image. User ID: {}".format(user_id))
