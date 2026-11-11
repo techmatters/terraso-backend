@@ -25,17 +25,16 @@ Usage:
 import csv
 import math
 from collections import defaultdict
-from contextlib import contextmanager
 from itertools import pairwise
 
 from django.core.management.base import BaseCommand
-from django.db import connection
 from pyproj import Geod
 from shapely import get_parts, segmentize, unary_union
 from shapely.affinity import translate
 from shapely.geometry import MultiPoint, Polygon, box
 from shapely.geometry.polygon import orient
 
+from apps.core.management.read_only import read_only_session
 from apps.project_management.models import Project, Site
 
 CSV_COLUMNS = ["project_id", "project_name", "site_count", "area_ha"]
@@ -51,7 +50,7 @@ class Command(BaseCommand):
         parser.add_argument("--output", help="Write the CSV to this path instead of stdout")
 
     def handle(self, *args, **options):
-        with _read_only_session():
+        with read_only_session():
             rows = project_areas()
         self._warn_about_invalid_sites(rows)
 
@@ -79,18 +78,6 @@ class Command(BaseCommand):
                     f"Skipped {row['invalid_site_count']} site(s) with invalid coordinates in project "
                     f"{row['project_name']!r} ({row['project_id']})"
                 )
-
-
-@contextmanager
-def _read_only_session():
-    # Guards against accidental writes when this runs against staging/prod; same approach as read_only_shell.
-    with connection.cursor() as cursor:
-        cursor.execute("SET default_transaction_read_only = on")
-    try:
-        yield
-    finally:
-        with connection.cursor() as cursor:
-            cursor.execute("RESET default_transaction_read_only")
 
 
 def project_areas():

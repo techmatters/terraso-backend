@@ -18,10 +18,12 @@ from io import StringIO
 
 import pytest
 from django.core.management import call_command
+from django.db import InternalError
 from mixer.backend.django import mixer
 from shapely.geometry import box
 
 from apps.core.models import User
+from apps.project_management.management.commands import project_site_areas
 from apps.project_management.management.commands.project_site_areas import (
     convex_hull,
     geodesic_area_ha,
@@ -238,6 +240,18 @@ def test_command_skips_sites_with_invalid_coordinates_and_warns():
     assert err.getvalue() == (
         f"Skipped 2 site(s) with invalid coordinates in project 'Bad sites' ({project.id})\n"
     )
+
+
+@pytest.mark.django_db(transaction=True)
+def test_command_reads_projects_in_read_only_session(monkeypatch):
+    # transaction=True because the default db fixture runs each test inside an already-open transaction, which default_transaction_read_only doesn't affect.
+    def write_during_report():
+        with pytest.raises(InternalError, match="read-only transaction"):
+            mixer.blend(User)
+        return []
+
+    monkeypatch.setattr(project_site_areas, "project_areas", write_during_report)
+    _run_command()
 
 
 @pytest.mark.django_db
