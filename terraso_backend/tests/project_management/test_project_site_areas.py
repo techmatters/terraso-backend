@@ -194,7 +194,7 @@ def test_command_lists_projects_largest_first_with_totals():
     assert float(rows[1]["area_ha"]) == pytest.approx(SQUARE_HA, rel=1e-3)
     assert rows[2]["area_ha"] == "0.00"
     big_ha = hull_area_ha(BIG_SQUARE)
-    assert totals == _totals(big_ha + hull_area_ha(SQUARE), big_ha)
+    assert totals == _totals(round(big_ha, 2) + round(hull_area_ha(SQUARE), 2), big_ha)
 
 
 @pytest.mark.django_db
@@ -211,6 +211,33 @@ def test_command_excludes_deleted_and_archived_data():
     assert [row["project_name"] for row in rows] == ["Live"]
     assert rows[0]["site_count"] == "4"
     assert float(rows[0]["area_ha"]) == pytest.approx(SQUARE_HA, rel=1e-3)
+
+
+@pytest.mark.django_db
+def test_command_measures_out_of_range_longitudes_as_the_same_place():
+    # -190° is the same meridian as 170°; unnormalized, this hull was clipped out of the unique area entirely.
+    _project_with_sites("Wrapped", shifted(SQUARE, -190))
+
+    rows, totals = _parse_stdout(_run_command())
+
+    assert float(rows[0]["area_ha"]) == pytest.approx(SQUARE_HA, rel=1e-3)
+    assert float(totals[1].split(": ")[1]) == pytest.approx(SQUARE_HA, rel=1e-3)
+
+
+@pytest.mark.django_db
+def test_command_skips_sites_with_invalid_coordinates_and_warns():
+    project = _project_with_sites("Bad sites", SQUARE)
+    mixer.blend(Site, project=project, longitude=0.005, latitude=95, archived=False)
+    mixer.blend(Site, project=project, longitude=float("inf"), latitude=0.005, archived=False)
+    err = StringIO()
+
+    rows, _ = _parse_stdout(_run_command(stderr=err))
+
+    assert rows[0]["site_count"] == "4"
+    assert float(rows[0]["area_ha"]) == pytest.approx(SQUARE_HA, rel=1e-3)
+    assert err.getvalue() == (
+        f"Skipped 2 site(s) with invalid coordinates in project 'Bad sites' ({project.id})\n"
+    )
 
 
 @pytest.mark.django_db

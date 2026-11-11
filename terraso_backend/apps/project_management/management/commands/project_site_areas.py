@@ -15,7 +15,7 @@
 
 """Report the area covered by each project's sites, as CSV.
 
-A project's area is the convex hull around its sites (deleted and archived ones excluded), measured on the WGS84 ellipsoid. Projects with fewer than 3 distinct, non-collinear sites get 0. The output ends with two totals: the sum of all project areas (overlapping projects counted more than once) and the unique area covered (overlaps counted once).
+A project's area is the convex hull around its sites (deleted and archived ones excluded), measured on the WGS84 ellipsoid. Projects with fewer than 3 distinct, non-collinear sites get 0. Sites with impossible coordinates are left out, with a warning on stderr. The output ends with two totals: the sum of all project areas (overlapping projects counted more than once) and the unique area covered (overlaps counted once).
 
 Usage:
     python manage.py project_site_areas                     # CSV to stdout
@@ -23,6 +23,7 @@ Usage:
 """
 
 import csv
+import math
 from collections import defaultdict
 from contextlib import contextmanager
 from itertools import pairwise
@@ -52,20 +53,32 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         with _read_only_session():
             rows = project_areas()
+        self._warn_about_invalid_sites(rows)
 
         output = options["output"]
         if output:
-            with open(output, "w", newline="") as f:
+            # Not utf-8-sig: the BOM only helps Excel, and the CSV is mostly opened in Google Sheets.
+            with open(output, "w", newline="", encoding="utf-8") as f:
                 write_csv(rows, f)
             self.stdout.write(f"Wrote {len(rows)} projects to {output}")
         else:
             write_csv(rows, self.stdout)
             self.stdout.write("")
 
-        project_area_sum = sum(row["area_ha"] for row in rows)
+        # Sum the rounded values so the total matches what adding up the CSV column gives.
+        project_area_sum = sum(round(row["area_ha"], 2) for row in rows)
         self.stdout.write(f"Sum of project areas (ha): {project_area_sum:.2f}")
         unique_area = unique_area_ha([row["hull"] for row in rows])
         self.stdout.write(f"Unique area covered (ha): {unique_area:.2f}")
+
+    def _warn_about_invalid_sites(self, rows):
+        # stderr, so the warning doesn't end up inside CSV written to stdout.
+        for row in rows:
+            if row["invalid_site_count"]:
+                self.stderr.write(
+                    f"Skipped {row['invalid_site_count']} site(s) with invalid coordinates in project "
+                    f"{row['project_name']!r} ({row['project_id']})"
+                )
 
 
 @contextmanager
@@ -85,11 +98,16 @@ def project_areas():
     projects = list(Project.objects.filter(archived=False).only("id", "name"))
 
     coords_by_project = defaultdict(list)
+    invalid_counts = defaultdict(int)
     sites = Site.objects.filter(project__in=projects, archived=False).values_list(
         "project_id", "longitude", "latitude"
     )
     for project_id, lon, lat in sites:
-        coords_by_project[project_id].append((lon, lat))
+        # The backend doesn't validate coordinate ranges, and out-of-range values break the hull math (NaN areas, hulls clipped out of the unique area).
+        if is_valid_coordinate(lon, lat):
+            coords_by_project[project_id].append((normalize_longitude(lon), lat))
+        else:
+            invalid_counts[project_id] += 1
 
     rows = []
     for project in projects:
@@ -100,12 +118,23 @@ def project_areas():
                 "project_id": project.id,
                 "project_name": project.name,
                 "site_count": len(coords),
+                "invalid_site_count": invalid_counts[project.id],
                 "area_ha": geodesic_area_ha(hull),
                 "hull": hull,
             }
         )
     rows.sort(key=lambda row: (-row["area_ha"], row["project_name"]))
     return rows
+
+
+def is_valid_coordinate(lon, lat):
+    # Comparisons with NaN are False, so NaN latitudes fail the range check too.
+    return math.isfinite(lon) and -90 <= lat <= 90
+
+
+def normalize_longitude(lon):
+    """The same longitude in [-180, 180), e.g. -190 -> 170."""
+    return (lon + 180) % 360 - 180
 
 
 def convex_hull(coords):
