@@ -74,6 +74,7 @@ services:
       /bin/sh -c "
       until mcli alias set local http://s3:9000 $$AWS_ACCESS_KEY_ID $$AWS_SECRET_ACCESS_KEY; do echo 'waiting for s3...'; sleep 1; done;
       env | while IFS= read -r kv; do case $$kv in *_S3_BUCKET=?*) mcli mb --ignore-existing local/$${kv#*=} ;; esac; done;
+      if [ -n \"$$PROFILE_IMAGES_S3_BUCKET\" ]; then mcli anonymous set download local/$$PROFILE_IMAGES_S3_BUCKET; fi;
       echo 'buckets ready';
       "
 

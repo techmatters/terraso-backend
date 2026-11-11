@@ -35,6 +35,12 @@ In the env file
 
 -   set values for `MICROSOFT_CLIENT_ID` and either `MICROSOFT_CLIENT_SECRET` (less secure) or both `MICROSOFT_PRIVATE_KEY` and `MICROSOFT_CERTIFICATE_THUMBPRINT` based on what you have set up on portal.azure.com > App Registrations > [App Name] > Certificates & Secrets
 
+-   (optional) local S3: file storage targets real AWS by default. To serve
+    uploads from a local, S3-compatible silo instead, opt in by uncommenting the
+    two `AWS_S3_ENDPOINT_URL` / `AWS_S3_ADDRESSING_STYLE` lines in the `LOCAL SILO`
+    block and filling in your machine's LAN IP — see that block's comments in
+    `env.sample`. `make run` then starts the silo container automatically.
+
 Start building the Docker images (make sure there's `requirements.txt`
 file created before building the images):
 

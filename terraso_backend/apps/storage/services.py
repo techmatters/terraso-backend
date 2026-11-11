@@ -33,8 +33,15 @@ class UploadService:
         raise NotImplementedError()
 
     def upload_url(self, user_id, url):
-        file = self._download_from_url(url)
-        return self.upload_file(user_id, ContentFile(file))
+        content, content_type = self._download_from_url(url)
+        uploaded = ContentFile(content)
+        # The storage key has no extension, so django-storages can't guess the
+        # MIME type and would fall back to application/octet-stream. Carry the
+        # source's Content-Type through so the object is served as a real image
+        # (octet-stream + nosniff makes clients download rather than render it).
+        if content_type:
+            uploaded.content_type = content_type
+        return self.upload_file(user_id, uploaded)
 
     def upload_file(self, user_id, file, file_name=None):
         if not file_name:
@@ -76,8 +83,8 @@ class UploadService:
         return f"{self.base_url}/{object_name_prefix}/{clean_filename}"
 
     def _download_from_url(self, url):
-        with urllib.request.urlopen(url) as file:
-            return file.read()
+        with urllib.request.urlopen(url) as response:
+            return response.read(), response.headers.get_content_type()
 
     def _uniquify(self, path):
         path_object = pathlib.Path(path)

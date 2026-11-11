@@ -55,9 +55,7 @@ import shutil
 import sys
 from datetime import datetime
 
-SECRETS_DIR = os.path.expanduser(
-    os.environ.get("TERRASO_SECRETS_DIR", "~/secrets/terraso-backend")
-)
+SECRETS_DIR = os.path.expanduser(os.environ.get("TERRASO_SECRETS_DIR", "~/secrets/terraso-backend"))
 ENV_PATH = os.path.join(SECRETS_DIR, ".env")
 
 _SCRIPT_DIR = os.path.dirname(os.path.realpath(__file__))
@@ -183,8 +181,7 @@ def rebuild_lines(sample_lines, backup_lines):
             new_keys.append(k)
             seen.add(k)
     # b. Your values with no slot in the template, preserved (status kept).
-    orphans = [(k, val, com) for (s, k), (val, com) in backup_vals.items()
-               if (s, k) not in used]
+    orphans = [(k, val, com) for (s, k), (val, com) in backup_vals.items() if (s, k) not in used]
 
     if new_keys:
         out += [
@@ -244,11 +241,15 @@ def main():
     def names(keys):
         return ", ".join(keys) if keys else "(none)"
 
-    print(f"Backed up current .env -> {backup_path}")
-    print(f"Rebuilt {ENV_PATH} from {SAMPLE_PATH}")
-    print(f"Preserved {len(stats['substituted'])} of your value(s) (per block, keeping commented/active status).")
+    print(f"Backed up .env -> {backup_path}")  # codeql[py/clear-text-logging-sensitive-data]
+    print(f"Rebuilt {ENV_PATH} from {SAMPLE_PATH}")  # codeql[py/clear-text-logging-sensitive-data]
+    print(
+        f"Preserved {len(stats['substituted'])} of your value(s) (per block, keeping commented/active status)."
+    )
     print(f"New template keys to review ({len(stats['new_keys'])}): {names(stats['new_keys'])}")
-    print(f"Orphan keys preserved at end ({len(stats['orphan_keys'])}): {names(stats['orphan_keys'])}")
+    print(
+        f"Orphan keys preserved at end ({len(stats['orphan_keys'])}): {names(stats['orphan_keys'])}"
+    )
 
 
 if __name__ == "__main__":

@@ -158,6 +158,18 @@ When using `graphene.Enum` types in mutation arguments:
 4. Run `make migrate` for initial database setup
 5. Use `make run` to start development server
 
+### Local S3 (optional, opt-in)
+
+File storage (profile images, data-entry files, story-map media) targets real
+AWS by default. A local S3-compatible silo (`pgsty/silo`, a MinIO fork) is
+available for dev but is **opt-in**: uncomment `AWS_S3_ENDPOINT_URL` +
+`AWS_S3_ADDRESSING_STYLE` in the `LOCAL SILO` block of `env.sample` and fill in
+your LAN IP. Setting the endpoint both routes the app's S3 at the silo and makes
+`make run` start the silo container (`docker-compose.s3.yml`). The endpoint ships
+**commented** on purpose — CI copies `env.sample` verbatim, and an active
+`<YOUR-LAN-IP>` placeholder is an invalid boto3 endpoint that breaks every
+S3-touching test. Never commit it active.
+
 ## Soil Data Special Requirements
 
 The soil_id app requires external data files downloaded with `make download-soil-data`. These files are stored in Google Drive and needed for soil identification algorithms.

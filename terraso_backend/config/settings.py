@@ -353,9 +353,20 @@ POSTHOG_ENABLED = config("POSTHOG_ENABLED", default=False, cast=config.boolean)
 MAPBOX_ACCESS_TOKEN = config("MAPBOX_ACCESS_TOKEN", default="")
 
 PROFILE_IMAGES_S3_BUCKET = config("PROFILE_IMAGES_S3_BUCKET", default="")
-PROFILE_IMAGES_BASE_URL = (
-    f"https://{config('PROFILE_IMAGES_BASE_URL', default=PROFILE_IMAGES_S3_BUCKET)}"
-)
+# Profile images are the one media type served to clients as a permanent,
+# UNSIGNED public URL (GraphQL returns the stored string verbatim), so the
+# host must be publicly reachable:
+#   • prod/staging -> PROFILE_IMAGES_BASE_URL is the CDN host (images.terraso.org)
+#   • local silo   -> no CDN; serve straight from the path-style S3 endpoint
+#                     (<endpoint>/<bucket>). The silo bucket must allow anonymous
+#                     download for this to load (see docker-compose.s3.yml).
+_profile_images_base_url = config("PROFILE_IMAGES_BASE_URL", default="")
+if _profile_images_base_url:
+    PROFILE_IMAGES_BASE_URL = f"https://{_profile_images_base_url}"
+elif config("AWS_S3_ENDPOINT_URL", default=None):
+    PROFILE_IMAGES_BASE_URL = f"{config('AWS_S3_ENDPOINT_URL')}/{PROFILE_IMAGES_S3_BUCKET}"
+else:
+    PROFILE_IMAGES_BASE_URL = f"https://{PROFILE_IMAGES_S3_BUCKET}"
 
 DATA_ENTRY_FILE_S3_BUCKET = config("DATA_ENTRY_FILE_S3_BUCKET", default="")
 DATA_ENTRY_FILE_BASE_URL = (
