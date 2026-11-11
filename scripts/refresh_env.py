@@ -55,8 +55,8 @@ import shutil
 import sys
 from datetime import datetime
 
-ENV_DIR = os.path.expanduser(os.environ.get("TERRASO_SECRETS_DIR", "~/secrets/terraso-backend"))
-ENV_PATH = os.path.join(ENV_DIR, ".env")
+SECRETS_DIR = os.path.expanduser(os.environ.get("TERRASO_SECRETS_DIR", "~/secrets/terraso-backend"))
+ENV_PATH = os.path.join(SECRETS_DIR, ".env")
 
 _SCRIPT_DIR = os.path.dirname(os.path.realpath(__file__))
 _REPO_ROOT = os.path.dirname(_SCRIPT_DIR)
@@ -220,7 +220,8 @@ def main():
 
     # 1. Back up the current .env.
     stamp = datetime.now().strftime("%Y%m%d-%H%M%S")
-    backup_path = os.path.join(ENV_DIR, f".env.{stamp}")
+    backup_name = f".env.{stamp}"
+    backup_path = os.path.join(SECRETS_DIR, backup_name)
     if os.path.exists(backup_path):
         sys.exit(f"ERROR: backup already exists at {backup_path}; aborting.")
     shutil.copy2(ENV_PATH, backup_path)
@@ -237,12 +238,15 @@ def main():
         f.write("\n".join(out) + "\n")
     shutil.copymode(backup_path, ENV_PATH)
 
-    # Summary — names, counts, and paths only. No values.
+    # Summary — names, counts, and non-secret paths only. No values, and nothing
+    # derived from SECRETS_DIR: CodeQL's name-based heuristic flags logging any
+    # value that flows from the TERRASO_SECRETS_DIR read (even though it's just a
+    # path), so log the backup's filename and the template path, not the full dir.
     def names(keys):
         return ", ".join(keys) if keys else "(none)"
 
-    print(f"Backed up current .env -> {backup_path}")
-    print(f"Rebuilt {ENV_PATH} from {SAMPLE_PATH}")
+    print(f"Backed up current .env -> {backup_name}")
+    print(f"Rebuilt .env from {SAMPLE_PATH}")
     print(
         f"Preserved {len(stats['substituted'])} of your value(s) (per block, keeping commented/active status)."
     )
