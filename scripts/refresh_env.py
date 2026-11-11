@@ -241,8 +241,8 @@ def main():
     def names(keys):
         return ", ".join(keys) if keys else "(none)"
 
-    print(f"Backed up .env -> {backup_path}")  # codeql[py/clear-text-logging-sensitive-data]
-    print(f"Rebuilt {ENV_PATH} from {SAMPLE_PATH}")  # codeql[py/clear-text-logging-sensitive-data]
+    print(f"Backed up current .env -> {backup_path}")
+    print(f"Rebuilt {ENV_PATH} from {SAMPLE_PATH}")
     print(
         f"Preserved {len(stats['substituted'])} of your value(s) (per block, keeping commented/active status)."
     )
