@@ -1,11 +1,9 @@
-FROM python:3.13.7-slim-trixie
+FROM python:3.13.17-slim-trixie
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
 
 RUN adduser --disabled-password terraso
 
 ENV PATH=/home/terraso/.local/bin:$PATH
-# see https://github.com/aws/aws-cli/tags for list of versions
-ENV AWS_CLI_VERSION=2.8.12
 
 # Add Debian snapshot archive for GDAL 3.11.3 (frozen version for reproducible builds)
 # Using snapshot ensures system GDAL matches Python gdal==3.11.3 bindings
@@ -15,10 +13,7 @@ RUN printf 'Types: deb\nURIs: http://snapshot.debian.org/archive/debian/20250822
 RUN apt-get update && \
     apt-get install -q -y --no-install-recommends \
                      build-essential libpq-dev dnsutils libmagic-dev mailcap gettext \
-                     libkml-dev libgdal-dev gdal-bin unzip curl ca-certificates && \
-    curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip" && \
-    unzip awscliv2.zip && \
-    ./aws/install && \
+                     libkml-dev libgdal-dev gdal-bin ca-certificates && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
