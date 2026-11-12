@@ -7,8 +7,9 @@ on:
       - main
       - staging
   pull_request:
-    branches:
-      - main
+    # No `branches:` filter — fire on PRs targeting any branch so stacked
+    # PRs (PR-to-PR) get CI too. With a `branches: [main]` filter, only PRs
+    # based on main would build, and stacked PRs would sit silent.
 
 permissions:
   contents: read
