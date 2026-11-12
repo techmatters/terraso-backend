@@ -286,7 +286,7 @@ structlog.configure(
     cache_logger_on_first_use=True,
 )
 
-# See .env.sample for description of the log levels
+# See env.sample for description of the log levels
 GRAPHQL_LOG_LEVEL = config("GRAPHQL_LOG_LEVEL", default="names")
 
 GRAPHENE = {
@@ -353,9 +353,20 @@ POSTHOG_ENABLED = config("POSTHOG_ENABLED", default=False, cast=config.boolean)
 MAPBOX_ACCESS_TOKEN = config("MAPBOX_ACCESS_TOKEN", default="")
 
 PROFILE_IMAGES_S3_BUCKET = config("PROFILE_IMAGES_S3_BUCKET", default="")
-PROFILE_IMAGES_BASE_URL = (
-    f"https://{config('PROFILE_IMAGES_BASE_URL', default=PROFILE_IMAGES_S3_BUCKET)}"
-)
+# Profile images are the one media type served to clients as a permanent,
+# UNSIGNED public URL (GraphQL returns the stored string verbatim), so the
+# host must be publicly reachable:
+#   • prod/staging -> PROFILE_IMAGES_BASE_URL is the CDN host (images.terraso.org)
+#   • local silo   -> no CDN; serve straight from the path-style S3 endpoint
+#                     (<endpoint>/<bucket>). The silo bucket must allow anonymous
+#                     download for this to load (see docker-compose.s3.yml).
+_profile_images_base_url = config("PROFILE_IMAGES_BASE_URL", default="")
+if _profile_images_base_url:
+    PROFILE_IMAGES_BASE_URL = f"https://{_profile_images_base_url}"
+elif config("AWS_S3_ENDPOINT_URL", default=None):
+    PROFILE_IMAGES_BASE_URL = f"{config('AWS_S3_ENDPOINT_URL')}/{PROFILE_IMAGES_S3_BUCKET}"
+else:
+    PROFILE_IMAGES_BASE_URL = f"https://{PROFILE_IMAGES_S3_BUCKET}"
 
 DATA_ENTRY_FILE_S3_BUCKET = config("DATA_ENTRY_FILE_S3_BUCKET", default="")
 DATA_ENTRY_FILE_BASE_URL = (
@@ -417,6 +428,12 @@ EXPORT_PAGE_SIZE = config("EXPORT_PAGE_SIZE", default=50, cast=int)
 AWS_ACCESS_KEY_ID = config("AWS_ACCESS_KEY_ID", default="")
 AWS_SECRET_ACCESS_KEY = config("AWS_SECRET_ACCESS_KEY", default="")
 AWS_S3_REGION_NAME = config("AWS_S3_REGION_NAME", default="us-east-2")
+
+# Local S3 (MinIO/silo) support. Empty/None in production so boto3 targets real
+# AWS S3; a developer sets this in their local .env (e.g. http://<LAN-IP>:9000)
+# to point all S3 storage at a local, S3-compatible server. django-storages
+# passes this straight to boto3 as endpoint_url. See docs/local_s3_plan.md.
+AWS_S3_ENDPOINT_URL = config("AWS_S3_ENDPOINT_URL", default=None)
 
 # Set to "virtual" to force boto3 to use a consistent host for
 # both signature computation and URL generation. Without this, the endpoint

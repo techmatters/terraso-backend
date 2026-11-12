@@ -1,0 +1,82 @@
+# Local, dev-only S3-compatible object store for `make run`.
+#
+# Images: MinIO deleted its own minio/minio + minio/mc from Docker Hub (Sept
+# 2026), so we use pgsty/silo (a maintained MinIO fork) for BOTH the server and
+# the bucket-init — the silo image bundles the `mcli` client, curl, and a shell.
+#
+# This file is included by the Makefile ONLY when a developer sets
+# AWS_S3_ENDPOINT_URL in their .env (see the Makefile's LOCAL_S3_ENABLED block).
+# It is NOT used by Render: production builds the Dockerfile and never runs
+# compose. See docs/local_s3_plan.md for the full rationale.
+#
+# Values interpolate from the developer's .env via `--env-file` on the compose
+# command line (DC_FILE_ARG). The web container reaches this server at the LAN-IP
+# endpoint in AWS_S3_ENDPOINT_URL; the browser/mobile client must reach that same
+# address, which is why a LAN IP (not localhost) is used.
+services:
+  s3:
+    # Maintained MinIO fork — drop-in: same server command, MINIO_* vars, and
+    # the restored :9001 web console. Pin to a RELEASE.* tag; bump periodically.
+    image: pgsty/silo:RELEASE.2026-10-26T00-00-00Z
+    command: server /data --console-address ":9001"
+    labels:
+      org.techmatters.project: terraso_backend
+    environment:
+      # Reuse the app's AWS creds so MinIO's root user == what boto3 signs with.
+      # (MINIO_ROOT_USER must be >= 3 chars, MINIO_ROOT_PASSWORD >= 8 chars.)
+      - MINIO_ROOT_USER=${AWS_ACCESS_KEY_ID}
+      - MINIO_ROOT_PASSWORD=${AWS_SECRET_ACCESS_KEY}
+      # Dev-only: allow browser clients (e.g. the web client) to upload directly.
+      - MINIO_API_CORS_ALLOW_ORIGIN=*
+    ports:
+      - '9000:9000'   # S3 API — published so the host LAN IP reaches it
+      - '9001:9001'   # web console at http://localhost:9001
+    volumes:
+      - minio_data:/data
+    # silo preserves MinIO's /minio/* routes and the image ships curl, so this
+    # is a real readiness gate (s3-init waits for it via service_healthy).
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:9000/minio/health/live"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+      start_period: 5s
+
+  # One-shot: wait for S3, then create a bucket for EVERY *_S3_BUCKET in the
+  # developer's .env. This means the file needs no edit when a new bucket (e.g.
+  # COLOR_S3_BUCKET) is added — just set it in .env and it gets created.
+  #
+  # `env_file` loads the whole .env so the loop can see every *_S3_BUCKET; a
+  # shell `case` over `env` picks them out and runs `mcli mb` per value
+  # (`--ignore-existing` makes duplicates and re-runs no-ops). We avoid
+  # grep/cut/sed/awk — the minimal silo image ships none of them. s3-init waits
+  # for s3's healthcheck (depends_on: service_healthy), so it connects on the
+  # first try; the `mcli alias set` retry loop stays as a harmless safety net.
+  # It reaches the server over the internal compose network (s3:9000).
+  #
+  # The script is a YAML folded scalar (`>`): every line sits at the SAME indent
+  # so newlines fold to spaces into one `sh -c` command. Only single quotes are
+  # used inside (a double quote would end the folded arg), and `$$` escapes
+  # compose interpolation so a literal `$` reaches the container shell.
+  #
+  # NOTE: this discovers ALL *_S3_BUCKET vars, so non-content ones left at their
+  # defaults (DB_BACKUP_S3_BUCKET, CDN_STATIC_S3_BUCKET) also get a harmless,
+  # unused local bucket. Set them empty locally if you want to skip them.
+  s3-init:
+    # Same silo image as the server — it bundles the `mcli` client (MinIO's
+    # `mc`), so no separate client image is needed.
+    image: pgsty/silo:RELEASE.2026-10-26T00-00-00Z
+    depends_on:
+      s3:
+        condition: service_healthy
+    env_file: ${HOME}/secrets/terraso-backend/.env
+    entrypoint: >
+      /bin/sh -c "
+      until mcli alias set local http://s3:9000 $$AWS_ACCESS_KEY_ID $$AWS_SECRET_ACCESS_KEY; do echo 'waiting for s3...'; sleep 1; done;
+      env | while IFS= read -r kv; do case $$kv in *_S3_BUCKET=?*) mcli mb --ignore-existing local/$${kv#*=} ;; esac; done;
+      if [ -n \"$$PROFILE_IMAGES_S3_BUCKET\" ]; then mcli anonymous set download local/$$PROFILE_IMAGES_S3_BUCKET; fi;
+      echo 'buckets ready';
+      "
+
+volumes:
+  minio_data:

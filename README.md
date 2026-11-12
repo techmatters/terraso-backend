@@ -5,8 +5,8 @@ platform.
 
 ## Requirements
 
--   Docker: version 24 or better
--   Python: 3.12 or better
+- Docker: version 24 or better
+- Python: 3.12 or better
 
 ## Running locally with Docker
 
@@ -15,8 +15,13 @@ tools browsing the project can't read it incidentally):
 
 ```sh
 $ mkdir -p ~/secrets/terraso-backend
-$ cp .env.sample ~/secrets/terraso-backend/.env
+$ cp env.sample ~/secrets/terraso-backend/.env
 ```
+
+If you already have a `.env` and just want to pull in new keys/comments from
+an updated `env.sample`, run `python3 scripts/refresh_env.py` instead — it
+backs up your current `.env`, rebuilds it from the template, and re-applies
+your existing values.
 
 The Makefile and `docker-compose.base.yml` resolve `env_file:` paths
 against `$HOME/secrets/terraso-backend/.env`. Override the location by
@@ -24,11 +29,25 @@ setting `ENV_FILE=/some/other/path` before invoking `make`.
 
 In the env file
 
--   set values for `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET`based on what you have set up in console.cloud.google.com > APIs & Services > Credentials.
+- set values for `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` based on what you have set up in console.cloud.google.com > APIs & Services > Credentials.
 
--   set values for `APPLE_CLIENT_ID`, `APPLE_KEY_ID`, `APPLE_TEAM_ID`, `APPLE_PRIVATE_KEY` and based on what you have set up on developer.apple.com > Certificates, Identifiers & Profiles > Keys.
+- set values for `APPLE_CLIENT_ID`, `APPLE_KEY_ID`, `APPLE_TEAM_ID`, `APPLE_PRIVATE_KEY` based on what you have set up on developer.apple.com > Certificates, Identifiers & Profiles > Keys.
 
--   set values for `MICROSOFT_CLIENT_ID` and either `MICROSOFT_CLIENT_SECRET` (less secure) or both `MICROSOFT_PRIVATE_KEY` and `MICROSOFT_CERTIFICATE_THUMBPRINT` based on what you have set up on portal.azure.com > App Registrations > [App Name] > Certificates & Secrets
+- set values for `MICROSOFT_CLIENT_ID` and either `MICROSOFT_CLIENT_SECRET` (less secure) or both `MICROSOFT_PRIVATE_KEY` and `MICROSOFT_CERTIFICATE_THUMBPRINT` based on what you have set up on portal.azure.com > App Registrations > [App Name] > Certificates & Secrets
+
+- The env file provides options for which S3 buckets to use. For most use cases, we recommend using the local S3 server.
+  To do that, simply uncomment these two lines in your .env, and fill in the IP address of your machine.
+  Details can be found in the env.sample file.
+
+    ```
+    # AWS_S3_ENDPOINT_URL=http://<YOUR-LAN-IP>:9000
+    # AWS_S3_ADDRESSING_STYLE=path
+    ```
+
+    When you do `make run`, it will automatically start a local S3 server.
+
+- If you wish to use the AWS S3 buckets, uncomment the AWS config you want, fill in the credentials `AWS_ACCESS_KEY_ID` and
+  `AWS_SECRET_ACCESS_KEY`, and make sure the other sections are commented out.
 
 Start building the Docker images (make sure there's `requirements.txt`
 file created before building the images):
@@ -43,7 +62,7 @@ Run the database migrations before the first run:
 $ make migrate
 ```
 
-Than the run command can be executed:
+Then the run command can be executed:
 
 ```sh
 $ make run
@@ -237,8 +256,8 @@ $ make install-dev
 
 Your local machine needs:
 
--   Docker
--   Python
+- Docker
+- Python
 
 `make lock` requires GDAL and Cython:
 

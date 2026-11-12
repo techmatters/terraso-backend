@@ -21,6 +21,15 @@ endif
 ifeq ($(USE_LOCAL_SOILID),true)
 	DC_EXTRA_FILES += -f docker-compose.local-soilid.yml
 endif
+# Local S3: include a MinIO container only when the developer has opted in by
+# setting AWS_S3_ENDPOINT_URL in their .env (the same var the app uses to target
+# it, so container and app switch together). Unset -> no container, app uses the
+# real AWS dev buckets (current behavior). Explicit LOCAL_S3_ENABLED=false forces
+# it off even if the endpoint is set (e.g. pointing at a *remote* S3 endpoint).
+LOCAL_S3_ENABLED ?= $(if $(AWS_S3_ENDPOINT_URL),true,false)
+ifeq ($(LOCAL_S3_ENABLED),true)
+	DC_EXTRA_FILES += -f docker-compose.s3.yml
+endif
 DC_FILE_ARG = --env-file $(ENV_FILE) -f docker-compose.$(DC_ENV).yml $(DC_EXTRA_FILES)
 DC_RUN_CMD ?= docker compose $(DC_FILE_ARG) run --quiet-pull --rm web
 
