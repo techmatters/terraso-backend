@@ -38,7 +38,7 @@ host command line) and fed to `mcli alias set` inside it; this script prints onl
 env names, bucket names, and mcli's object listing — never secret values, so
 --dry-run output is safe to share. Region is auto-detected per bucket.
 
-Requirements: docker, and a RUNNING local silo (`make run-local-soilid`).
+Requirements: docker, and a RUNNING local silo (`make run` or `make run-local-soilid`).
 
 Usage:
   python3 scripts/copy_s3_to_local.py               # prompts for env, then copies
