@@ -19,9 +19,11 @@ from io import StringIO
 import pytest
 from django.core.management import call_command
 from django.db import InternalError
+from django.utils import timezone
 from mixer.backend.django import mixer
 from shapely.geometry import box
 
+from apps.collaboration.models import Membership
 from apps.core.models import User
 from apps.project_management.management.commands import project_site_areas
 from apps.project_management.management.commands.project_site_areas import (
@@ -266,3 +268,40 @@ def test_command_writes_csv_to_output_file(tmp_path):
     assert [row["project_id"] for row in rows] == [str(project.id)]
     square_ha = hull_area_ha(SQUARE)
     assert output.splitlines() == [f"Wrote 1 projects to {path}", *_totals(square_ha, square_ha)]
+
+
+@pytest.mark.django_db
+def test_command_leaves_out_member_emails_by_default():
+    _project_with_sites("Small", SQUARE).add_manager(mixer.blend(User, email="m@example.org"))
+
+    rows, _ = _parse_stdout(_run_command())
+
+    assert "member_emails" not in rows[0]
+
+
+@pytest.mark.django_db
+def test_command_lists_approved_members_with_roles_when_asked():
+    project = _project_with_sites("Members", SQUARE)
+    project.add_viewer(mixer.blend(User, email="b-viewer@example.org"))
+    project.add_manager(mixer.blend(User, email="a-manager@example.org"))
+    mixer.blend(
+        Membership,
+        membership_list=project.membership_list,
+        user=mixer.blend(User, email="pending@example.org"),
+        user_role="CONTRIBUTOR",
+        membership_status=Membership.PENDING,
+    )
+    project.add_contributor(mixer.blend(User, email="removed@example.org")).delete()
+    deleted_user = mixer.blend(User, email="deleted-user@example.org")
+    project.add_contributor(deleted_user)
+    # Set deleted_at directly: User.delete() would also soft-delete the membership, hiding whether the user filter works.
+    User.all_objects.filter(id=deleted_user.id).update(deleted_at=timezone.now())
+    _project_with_sites("No members", [])
+
+    rows, _ = _parse_stdout(_run_command(include_emails=True))
+
+    emails = {row["project_name"]: row["member_emails"] for row in rows}
+    assert emails == {
+        "Members": "a-manager@example.org (MANAGER); b-viewer@example.org (VIEWER)",
+        "No members": "",
+    }

@@ -15,11 +15,12 @@
 
 """Report the area covered by each project's sites, as CSV.
 
-A project's area is the convex hull around its sites (deleted and archived ones excluded), measured on the WGS84 ellipsoid. Projects with fewer than 3 distinct, non-collinear sites get 0. Sites with impossible coordinates are left out, with a warning on stderr. The output ends with two totals: the sum of all project areas (overlapping projects counted more than once) and the unique area covered (overlaps counted once).
+A project's area is the convex hull around its sites (deleted and archived ones excluded), measured on the WGS84 ellipsoid. Projects with fewer than 3 distinct, non-collinear sites get 0. Sites with impossible coordinates are left out, with a warning on stderr. With --include-emails, a member_emails column lists each project's approved members as "email (ROLE)". The output ends with two totals: the sum of all project areas (overlapping projects counted more than once) and the unique area covered (overlaps counted once).
 
 Usage:
     python manage.py project_site_areas                     # CSV to stdout
     python manage.py project_site_areas --output areas.csv  # CSV to a file
+    python manage.py project_site_areas --include-emails    # add project members' emails
 """
 
 import csv
@@ -34,6 +35,7 @@ from shapely.affinity import translate
 from shapely.geometry import MultiPoint, Polygon, box
 from shapely.geometry.polygon import orient
 
+from apps.collaboration.models import Membership
 from apps.core.management.read_only import read_only_session
 from apps.project_management.models import Project, Site
 
@@ -48,20 +50,27 @@ class Command(BaseCommand):
 
     def add_arguments(self, parser):
         parser.add_argument("--output", help="Write the CSV to this path instead of stdout")
+        # Opt-in so the default output contains no personal data and can be shared freely.
+        parser.add_argument(
+            "--include-emails",
+            action="store_true",
+            help="Add a member_emails column listing each project's approved members",
+        )
 
     def handle(self, *args, **options):
         with read_only_session():
             rows = project_areas()
+            member_emails = member_emails_by_project() if options["include_emails"] else None
         self._warn_about_invalid_sites(rows)
 
         output = options["output"]
         if output:
             # Not utf-8-sig: the BOM only helps Excel, and the CSV is mostly opened in Google Sheets.
             with open(output, "w", newline="", encoding="utf-8") as f:
-                write_csv(rows, f)
+                write_csv(rows, f, member_emails)
             self.stdout.write(f"Wrote {len(rows)} projects to {output}")
         else:
-            write_csv(rows, self.stdout)
+            write_csv(rows, self.stdout, member_emails)
             self.stdout.write("")
 
         # Sum the rounded values so the total matches what adding up the CSV column gives.
@@ -112,6 +121,25 @@ def project_areas():
         )
     rows.sort(key=lambda row: (-row["area_ha"], row["project_name"]))
     return rows
+
+
+def member_emails_by_project():
+    """Map of project ID to its approved members as "email (ROLE); …", sorted by email."""
+    project_by_membership_list = dict(Project.objects.values_list("membership_list_id", "id"))
+    memberships = (
+        Membership.objects.filter(
+            membership_list_id__in=list(project_by_membership_list),
+            membership_status=Membership.APPROVED,
+            user__isnull=False,
+            user__deleted_at__isnull=True,
+        )
+        .order_by("user__email")
+        .values_list("membership_list_id", "user__email", "user_role")
+    )
+    members = defaultdict(list)
+    for membership_list_id, email, role in memberships:
+        members[project_by_membership_list[membership_list_id]].append(f"{email} ({role})")
+    return {project_id: "; ".join(emails) for project_id, emails in members.items()}
 
 
 def is_valid_coordinate(lon, lat):
@@ -171,10 +199,17 @@ def unwrap_antimeridian(coords):
     return [(lon + 360 if lon <= cut else lon, lat) for lon, lat in coords]
 
 
-def write_csv(rows, out):
+def write_csv(rows, out, member_emails=None):
+    """Write rows as CSV, adding a member_emails column when member_emails is given."""
     writer = csv.writer(out, lineterminator="\n")
-    writer.writerow(CSV_COLUMNS)
+    writer.writerow(CSV_COLUMNS if member_emails is None else [*CSV_COLUMNS, "member_emails"])
     for row in rows:
-        writer.writerow(
-            [row["project_id"], row["project_name"], row["site_count"], f"{row['area_ha']:.2f}"]
-        )
+        values = [
+            row["project_id"],
+            row["project_name"],
+            row["site_count"],
+            f"{row['area_ha']:.2f}",
+        ]
+        if member_emails is not None:
+            values.append(member_emails.get(row["project_id"], ""))
+        writer.writerow(values)

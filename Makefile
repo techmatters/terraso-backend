@@ -130,8 +130,8 @@ generate-test-token:
 show-deletion-blockers:
 	$(DC_RUN_CMD) python terraso_backend/manage.py show_deletion_blockers $(user)
 
-# Usage: make project-site-areas [ARGS="--output areas.csv"]
-# CSV of the area (ha) each project's sites cover, plus the total. Use --output for a clean CSV, since make echoes the command into stdout.
+# Usage: make project-site-areas [ARGS="--output areas.csv --include-emails"]
+# CSV of the area (ha) each project's sites cover, plus the sum of project areas and the unique area covered. Use --output for a clean CSV, since make echoes the command into stdout. --include-emails adds each project's approved members as "email (ROLE)"; the output then contains personal data.
 project-site-areas:
 	$(DC_RUN_CMD) python terraso_backend/manage.py project_site_areas $(ARGS)
 
