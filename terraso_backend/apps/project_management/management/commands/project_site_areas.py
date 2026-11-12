@@ -15,12 +15,13 @@
 
 """Report the area covered by each project's sites, as CSV.
 
-A project's area is the convex hull around its sites (deleted and archived ones excluded), measured on the WGS84 ellipsoid. Projects with fewer than 3 distinct, non-collinear sites get 0. Sites with impossible coordinates are left out, with a warning on stderr. With --include-emails, a member_emails column lists each project's approved members as "email (ROLE)". The output ends with two totals: the sum of all project areas (overlapping projects counted more than once) and the unique area covered (overlaps counted once).
+A project's area is the convex hull around its sites (deleted and archived ones excluded), measured on the WGS84 ellipsoid. Projects with fewer than 3 distinct, non-collinear sites get 0. Sites with impossible coordinates are left out, with a warning on stderr. With --show-members, a member_emails column lists each project's approved members as "email (ROLE)". With --exclude-managers-file, projects with an approved manager listed in that CSV's "email" column are left out of the CSV and the totals. The output ends with two totals: the sum of all project areas (overlapping projects counted more than once) and the unique area covered (overlaps counted once).
 
 Usage:
     python manage.py project_site_areas                     # CSV to stdout
     python manage.py project_site_areas --output areas.csv  # CSV to a file
-    python manage.py project_site_areas --include-emails    # add project members' emails
+    python manage.py project_site_areas --show-members      # add project members' emails
+    python manage.py project_site_areas --exclude-managers-file /abs/path/excluded.csv
 """
 
 import csv
@@ -28,7 +29,8 @@ import math
 from collections import defaultdict
 from itertools import pairwise
 
-from django.core.management.base import BaseCommand
+from django.core.management.base import BaseCommand, CommandError
+from django.db.models.functions import Lower
 from pyproj import Geod
 from shapely import get_parts, segmentize, unary_union
 from shapely.affinity import translate
@@ -37,6 +39,7 @@ from shapely.geometry.polygon import orient
 
 from apps.collaboration.models import Membership
 from apps.core.management.read_only import read_only_session
+from apps.project_management.collaboration_roles import ProjectRole
 from apps.project_management.models import Project, Site
 
 CSV_COLUMNS = ["project_id", "project_name", "site_count", "area_ha"]
@@ -52,15 +55,25 @@ class Command(BaseCommand):
         parser.add_argument("--output", help="Write the CSV to this path instead of stdout")
         # Opt-in so the default output contains no personal data and can be shared freely.
         parser.add_argument(
-            "--include-emails",
+            "--show-members",
             action="store_true",
             help="Add a member_emails column listing each project's approved members",
         )
+        # A file rather than a list in code, because the emails mustn't be committed to this public repo.
+        parser.add_argument(
+            "--exclude-managers-file",
+            help="CSV with an 'email' column; leave out projects with an approved manager listed in it",
+        )
 
     def handle(self, *args, **options):
+        exclude_file = options["exclude_managers_file"]
+        excluded_emails = read_excluded_emails(exclude_file) if exclude_file else None
+
         with read_only_session():
             rows = project_areas()
-            member_emails = member_emails_by_project() if options["include_emails"] else None
+            if excluded_emails is not None:
+                rows = self._exclude_projects_managed_by(rows, excluded_emails)
+            member_emails = member_emails_by_project() if options["show_members"] else None
         self._warn_about_invalid_sites(rows)
 
         output = options["output"]
@@ -78,6 +91,16 @@ class Command(BaseCommand):
         self.stdout.write(f"Sum of project areas (ha): {project_area_sum:.2f}")
         unique_area = unique_area_ha([row["hull"] for row in rows])
         self.stdout.write(f"Unique area covered (ha): {unique_area:.2f}")
+
+    def _exclude_projects_managed_by(self, rows, emails):
+        project_ids, matched_emails = projects_managed_by(emails)
+        kept = [row for row in rows if row["project_id"] not in project_ids]
+        # Counts only, never emails, so the list stays out of terminals and logs.
+        self.stderr.write(f"Excluded {len(rows) - len(kept)} project(s) managed by listed emails")
+        unmatched = len(emails - matched_emails)
+        if unmatched:
+            self.stderr.write(f"{unmatched} listed email(s) don't match any project manager")
+        return kept
 
     def _warn_about_invalid_sites(self, rows):
         # stderr, so the warning doesn't end up inside CSV written to stdout.
@@ -123,23 +146,57 @@ def project_areas():
     return rows
 
 
+def read_excluded_emails(path):
+    """Lowercased emails from the 'email' column of a CSV file."""
+    try:
+        # utf-8-sig drops the byte-order mark some spreadsheet exports start with, which would otherwise be glued to the first header.
+        with open(path, newline="", encoding="utf-8-sig") as f:
+            reader = csv.DictReader(f)
+            reader.fieldnames = [name.strip().lower() for name in reader.fieldnames or []]
+            if "email" not in reader.fieldnames:
+                raise CommandError(f"{path} has no 'email' column")
+            emails = {(row["email"] or "").strip().lower() for row in reader} - {""}
+    except FileNotFoundError:
+        raise CommandError(f"{path} not found")
+    if not emails:
+        raise CommandError(f"{path} lists no emails")
+    return emails
+
+
+def projects_managed_by(emails):
+    """IDs of projects with an approved manager whose email, ignoring case, is in emails; and which of the emails matched."""
+    project_by_membership_list, memberships = _approved_project_memberships()
+    managers = list(
+        memberships.filter(user_role=ProjectRole.MANAGER)
+        .annotate(email_lower=Lower("user__email"))
+        .filter(email_lower__in=emails)
+        .values_list("membership_list_id", "email_lower")
+    )
+    project_ids = {project_by_membership_list[list_id] for list_id, _email in managers}
+    return project_ids, {email for _list_id, email in managers}
+
+
 def member_emails_by_project():
     """Map of project ID to its approved members as "email (ROLE); …", sorted by email."""
-    project_by_membership_list = dict(Project.objects.values_list("membership_list_id", "id"))
-    memberships = (
-        Membership.objects.filter(
-            membership_list_id__in=list(project_by_membership_list),
-            membership_status=Membership.APPROVED,
-            user__isnull=False,
-            user__deleted_at__isnull=True,
-        )
-        .order_by("user__email")
-        .values_list("membership_list_id", "user__email", "user_role")
-    )
+    project_by_membership_list, memberships = _approved_project_memberships()
     members = defaultdict(list)
-    for membership_list_id, email, role in memberships:
+    for membership_list_id, email, role in memberships.order_by("user__email").values_list(
+        "membership_list_id", "user__email", "user_role"
+    ):
         members[project_by_membership_list[membership_list_id]].append(f"{email} ({role})")
     return {project_id: "; ".join(emails) for project_id, emails in members.items()}
+
+
+def _approved_project_memberships():
+    """Map of membership list ID to project ID for live projects, and the approved memberships of live users in those lists."""
+    project_by_membership_list = dict(Project.objects.values_list("membership_list_id", "id"))
+    memberships = Membership.objects.filter(
+        membership_list_id__in=list(project_by_membership_list),
+        membership_status=Membership.APPROVED,
+        user__isnull=False,
+        user__deleted_at__isnull=True,
+    )
+    return project_by_membership_list, memberships
 
 
 def is_valid_coordinate(lon, lat):

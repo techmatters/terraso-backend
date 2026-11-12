@@ -17,7 +17,7 @@ import csv
 from io import StringIO
 
 import pytest
-from django.core.management import call_command
+from django.core.management import CommandError, call_command
 from django.db import InternalError
 from django.utils import timezone
 from mixer.backend.django import mixer
@@ -29,6 +29,7 @@ from apps.project_management.management.commands import project_site_areas
 from apps.project_management.management.commands.project_site_areas import (
     convex_hull,
     geodesic_area_ha,
+    read_excluded_emails,
     unique_area_ha,
     unwrap_antimeridian,
 )
@@ -298,10 +299,81 @@ def test_command_lists_approved_members_with_roles_when_asked():
     User.all_objects.filter(id=deleted_user.id).update(deleted_at=timezone.now())
     _project_with_sites("No members", [])
 
-    rows, _ = _parse_stdout(_run_command(include_emails=True))
+    rows, _ = _parse_stdout(_run_command(show_members=True))
 
     emails = {row["project_name"]: row["member_emails"] for row in rows}
     assert emails == {
         "Members": "a-manager@example.org (MANAGER); b-viewer@example.org (VIEWER)",
         "No members": "",
     }
+
+
+# ---------------------------------------------------------------------------
+# --exclude-managers-file
+# ---------------------------------------------------------------------------
+
+
+def _csv_file(tmp_path, text):
+    path = tmp_path / "excluded.csv"
+    path.write_text(text, encoding="utf-8")
+    return str(path)
+
+
+def test_read_excluded_emails_normalizes_values_and_ignores_other_columns(tmp_path):
+    # Leading byte-order mark and capitalized header, as some spreadsheet exports produce.
+    path = _csv_file(
+        tmp_path,
+        "\ufeffEmail,note\n Someone@Example.org ,test account\n,blank row\nother@example.org,\n",
+    )
+    assert read_excluded_emails(path) == {"someone@example.org", "other@example.org"}
+
+
+@pytest.mark.parametrize(
+    "text, message",
+    [
+        ("address,note\na@example.org,\n", "has no 'email' column"),
+        ("email,note\n,only a note\n", "lists no emails"),
+        ("", "has no 'email' column"),
+    ],
+    ids=["no email column", "no emails", "empty file"],
+)
+def test_read_excluded_emails_rejects_unusable_files(tmp_path, text, message):
+    with pytest.raises(CommandError, match=message):
+        read_excluded_emails(_csv_file(tmp_path, text))
+
+
+def test_read_excluded_emails_reports_missing_file(tmp_path):
+    with pytest.raises(CommandError, match="not found"):
+        read_excluded_emails(str(tmp_path / "missing.csv"))
+
+
+@pytest.mark.django_db
+def test_command_excludes_projects_with_listed_approved_manager(tmp_path):
+    excluded = _project_with_sites("Listed manager", SQUARE)
+    excluded.add_manager(mixer.blend(User, email="Listed-Manager@example.org"))
+    # Only managers count, so a listed contributor doesn't exclude their project.
+    contributor_project = _project_with_sites("Listed contributor", shifted(SQUARE, 1))
+    contributor_project.add_contributor(mixer.blend(User, email="contributor@example.org"))
+    pending_project = _project_with_sites("Pending manager", shifted(SQUARE, 2))
+    mixer.blend(
+        Membership,
+        membership_list=pending_project.membership_list,
+        user=mixer.blend(User, email="pending@example.org"),
+        user_role="MANAGER",
+        membership_status=Membership.PENDING,
+    )
+    path = _csv_file(
+        tmp_path,
+        "email\nlisted-manager@EXAMPLE.org\ncontributor@example.org\npending@example.org\nnobody@example.org\n",
+    )
+    err = StringIO()
+
+    rows, totals = _parse_stdout(_run_command(exclude_managers_file=path, stderr=err))
+
+    assert sorted(row["project_name"] for row in rows) == ["Listed contributor", "Pending manager"]
+    kept_ha = 2 * round(hull_area_ha(SQUARE), 2)
+    assert float(totals[0].split(": ")[1]) == pytest.approx(kept_ha, abs=0.02)
+    assert err.getvalue().splitlines() == [
+        "Excluded 1 project(s) managed by listed emails",
+        "3 listed email(s) don't match any project manager",
+    ]
