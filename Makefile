@@ -130,6 +130,15 @@ generate-test-token:
 show-deletion-blockers:
 	$(DC_RUN_CMD) python terraso_backend/manage.py show_deletion_blockers $(user)
 
+# Usage: make project-site-areas [exclude=/abs/path/excluded_managers.csv] [ARGS="--output areas.csv --show-members"]
+# For nonprofit reporting metrics
+# CSV of the area (ha) each project's sites cover, plus the sum of project areas and the unique area covered. Use --output for a clean CSV, since make echoes the command into stdout. --show-members adds each project's approved members as "email (ROLE)"; the output then contains personal data.
+# exclude= leaves out projects with an approved manager listed in that CSV's "email" column. Keep the file outside this public repo; it's mounted read-only into the container, which can't otherwise see it.
+project-site-areas:
+	$(if $(exclude),$(if $(wildcard $(exclude)),,$(error $(exclude) not found)))
+	docker compose $(DC_FILE_ARG) run --quiet-pull --rm $(if $(exclude),-v "$(abspath $(exclude)):/tmp/excluded_managers.csv:ro") web \
+		python terraso_backend/manage.py project_site_areas $(if $(exclude),--exclude-managers-file /tmp/excluded_managers.csv) $(ARGS)
+
 setup-git-hooks:
 	@pre-commit install
 
