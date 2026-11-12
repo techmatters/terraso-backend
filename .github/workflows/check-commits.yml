@@ -2,8 +2,8 @@ name: check-commits
 
 on:
   pull_request:
-    branches:
-      - main
+    # No `branches:` filter — fire on PRs targeting any branch so stacked
+    # PRs get commit-message linting too.
     types:
       - opened
       - edited

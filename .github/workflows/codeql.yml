@@ -15,8 +15,8 @@ on:
   push:
     branches: [ "main" ]
   pull_request:
-    # The branches below must be a subset of the branches above
-    branches: [ "main" ]
+    # No `branches:` filter — fire on PRs targeting any branch so stacked
+    # PRs get CodeQL too.
   schedule:
     - cron: '18 1 * * 2'
 
