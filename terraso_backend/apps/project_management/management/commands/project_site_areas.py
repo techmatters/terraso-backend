@@ -17,6 +17,8 @@
 
 A project's area is the convex hull around its sites (deleted and archived ones excluded), measured on the WGS84 ellipsoid. Projects with fewer than 3 distinct, non-collinear sites get 0. Sites with impossible coordinates are left out, with a warning on stderr. With --show-members, a member_emails column lists each project's approved members as "email (ROLE)". With --exclude-managers-file, projects with an approved manager listed in that CSV's "email" column are left out of the CSV and the totals. The output ends with two totals: the sum of all project areas (overlapping projects counted more than once) and the unique area covered (overlaps counted once).
 
+Download csv of internal users to exclude: https://docs.google.com/spreadsheets/d/1oLX5EdjwfXSjDplmmjNBTi6j1jsTymTo8klpYN4WCHc/edit?gid=0#gid=0
+
 Usage:
     python manage.py project_site_areas                     # CSV to stdout
     python manage.py project_site_areas --output areas.csv  # CSV to a file
