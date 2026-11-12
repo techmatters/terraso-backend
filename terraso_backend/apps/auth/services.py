@@ -241,7 +241,9 @@ class AccountService:
         user_id = str(user.id)
 
         try:
-            user.profile_image = profile_image_service.upload_url_get_path(user_id, profile_image_url)
+            user.profile_image = profile_image_service.upload_url_get_path(
+                user_id, profile_image_url
+            )
             user.save()
         except Exception:
             logger.exception("Failed to upload profile image. User ID: {}".format(user_id))
