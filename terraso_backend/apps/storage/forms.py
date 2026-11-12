@@ -37,7 +37,7 @@ class LandscapeProfileImageForm(forms.Form):
 
         if data_file:
             try:
-                data["url"] = profile_image_upload_service.upload_file(
+                data["url"] = profile_image_upload_service.upload_file_get_path(
                     data.get("landscape").id,
                     data["data_file"],
                     file_name=data.get("landscape").id,

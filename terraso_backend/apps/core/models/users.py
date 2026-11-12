@@ -99,7 +99,11 @@ class User(SafeDeleteModel, AbstractUser):
 
     username = None
     email = models.EmailField()
-    profile_image = models.URLField(blank=True, default="")
+    # Stores the S3 object KEY (e.g. "<id>/profile-image_2"), not a full URL.
+    # The servable URL is built on read from PROFILE_IMAGES_BASE_URL — see
+    # apps.storage.services.build_profile_image_url — so it follows the
+    # configured S3 target (local silo, CDN, …) instead of being frozen at upload.
+    profile_image = models.CharField(max_length=255, blank=True, default="")
     # Apple's stable per-(Apple ID, developer team) user identifier ("sub" claim
     # of the id_token). Recorded on first successful Apple sign-in so we can
     # look users up by sub on subsequent sign-ins where Apple omits the email

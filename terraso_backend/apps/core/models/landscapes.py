@@ -90,7 +90,10 @@ class Landscape(SlugModel, DirtyFieldsMixin):
     partnership_status = models.CharField(
         max_length=32, choices=MEMBERSHIP_TYPES, blank=True, default=PARTNERSHIP_STATUS_NONE
     )
-    profile_image = models.URLField(blank=True, default="")
+    # Stores the S3 object KEY (e.g. "<id>/profile-image"), not a full URL; the
+    # servable URL is built on read from PROFILE_IMAGES_BASE_URL (see
+    # apps.storage.services.build_profile_image_url).
+    profile_image = models.CharField(max_length=255, blank=True, default="")
     profile_image_description = models.TextField(blank=True, default="")
     center_coordinates = models.JSONField(blank=True, null=True)
 

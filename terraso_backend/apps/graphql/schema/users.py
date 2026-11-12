@@ -33,6 +33,7 @@ from apps.core.models.users import (
     request_account_deletion,
 )
 from apps.graphql.exceptions import GraphQLNotAllowedException
+from apps.storage.services import build_profile_image_url
 
 from .commons import (
     BaseAdminMutation,
@@ -115,6 +116,11 @@ class UserFilter(FilterSet):
 
 class UserNode(DjangoObjectType):
     id = graphene.ID(source="pk", required=True)
+    # profile_image stores a bare S3 key; resolve it to a full, servable URL
+    # using the current PROFILE_IMAGES_BASE_URL (see resolve_profile_image).
+    # required=True keeps the schema type String! (matching the old auto-mapped
+    # field); the resolver returns "" rather than None for an unset image.
+    profile_image = graphene.String(required=True)
 
     class Meta:
         model = User
@@ -122,6 +128,9 @@ class UserNode(DjangoObjectType):
         interfaces = (relay.Node,)
         connection_class = TerrasoConnection
         fields = ("email", "first_name", "last_name", "profile_image", "memberships", "preferences")
+
+    def resolve_profile_image(self, info):
+        return build_profile_image_url(self.profile_image)
 
     @classmethod
     def get_queryset(cls, queryset, info):

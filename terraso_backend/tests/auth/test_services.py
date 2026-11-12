@@ -39,9 +39,9 @@ def user():
 @mock.patch("urllib.request.urlopen", mock.mock_open(read_data="file content"))
 # Mocked Model get because of multithreading context
 @mock.patch("apps.storage.tasks.User.objects.get")
-@mock.patch("apps.storage.services.ProfileImageService.upload_url")
+@mock.patch("apps.storage.services.ProfileImageService.upload_url_get_path")
 def test_sign_up_with_google_creates_user(mock_upload, mock_get, respx_mock, access_tokens_google):
-    mock_upload.return_value = "https://test.com/user-id/image-path"
+    mock_upload.return_value = "user-id/profile-image"
     mock_get.return_value = User(id="test_id")
     respx_mock.post(GoogleProvider.GOOGLE_TOKEN_URI).mock(
         return_value=Response(200, json=access_tokens_google)
