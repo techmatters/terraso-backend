@@ -472,6 +472,27 @@ STORY_MAP_MEDIA_BASE_URL = (
     f"https://{config('STORY_MAP_MEDIA_BASE_URL', default=STORY_MAP_MEDIA_S3_BUCKET)}"
 )
 
+# Soil images (site + depth photos, e.g. JPG/DNG) uploaded by clients via a
+# presigned S3 PUT. Unlike the other media types, the client uploads directly
+# to S3 (bytes never transit the backend) and images are served back via
+# time-limited signed URLs, so there is no public BASE_URL here.
+SOIL_IMAGES_S3_BUCKET = config("SOIL_IMAGES_S3_BUCKET", default="")
+
+# Presigned PUT URL lifetime (seconds). Short-lived: the client requests one
+# immediately before uploading.
+SOIL_IMAGE_UPLOAD_URL_EXPIRATION = config(
+    "SOIL_IMAGE_UPLOAD_URL_EXPIRATION", default=3600, cast=int
+)
+
+# content-type -> canonical extension allow-list for soil image uploads. The
+# presigned URL binds this content-type, so the client MUST send a matching
+# Content-Type header on its PUT (otherwise S3 returns SignatureDoesNotMatch).
+# DNG is a raw TIFF variant; extend this map if clients label it differently.
+SOIL_IMAGE_ACCEPTED_CONTENT_TYPES = {
+    "image/jpeg": ".jpg",
+    "image/x-adobe-dng": ".dng",
+}
+
 PUBLIC_BASE_PATHS = [
     "/admin/",  # Authentication handled by Django
     "/oauth/",

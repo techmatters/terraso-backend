@@ -74,3 +74,7 @@ class ExactKeyWriteStorageMixin:
 
 class ProfileImageStorage(TerrasoFileStorage):
     bucket_name = settings.PROFILE_IMAGES_S3_BUCKET
+
+
+class SoilImageStorage(TerrasoFileStorage):
+    bucket_name = settings.SOIL_IMAGES_S3_BUCKET

@@ -37,6 +37,7 @@ from apps.project_management.graphql.site_notes import (
     SiteNoteDeleteMutation,
     SiteNoteUpdateMutation,
 )
+from apps.soil_id.graphql.soil_data.image_upload import SoilImageUploadUrlRequest
 from apps.soil_id.graphql.soil_data.mutations import (
     DepthDependentSoilDataUpdateMutation,
     SoilDataDeleteDepthIntervalMutation,
@@ -227,6 +228,7 @@ class Mutations(graphene.ObjectType):
     delete_soil_data_depth_interval = SoilDataDeleteDepthIntervalMutation.Field(
         deprecation_reason="Use push_user_data instead."
     )
+    request_soil_image_upload_url = SoilImageUploadUrlRequest.Field()
     update_soil_metadata = SoilMetadataUpdateMutation.Field(
         deprecation_reason="Use push_user_data instead."
     )
