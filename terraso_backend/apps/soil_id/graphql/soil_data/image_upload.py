@@ -40,8 +40,11 @@ class SoilImageUploadUrlRequest(BaseAuthenticatedMutation):
     # write a model of its own.
     model_class = Site
 
-    upload_url = graphene.String(required=True)
-    object_key = graphene.String(required=True)
+    # Nullable: on the error path the base mutation returns only `errors`, so
+    # these stay null. Marking them required would make GraphQL null the whole
+    # payload on error and surface a top-level non-null violation instead.
+    upload_url = graphene.String()
+    object_key = graphene.String()
 
     class Input:
         site_id = graphene.ID(required=True)

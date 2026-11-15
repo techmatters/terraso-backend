@@ -2683,8 +2683,8 @@ tentative follow-up and is intentionally not done here yet.
 """
 type SoilImageUploadUrlRequestPayload {
   errors: GenericScalar
-  uploadUrl: String!
-  objectKey: String!
+  uploadUrl: String
+  objectKey: String
   clientMutationId: String
 }
 
