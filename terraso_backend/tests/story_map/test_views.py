@@ -21,12 +21,168 @@ import pytest
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.urls import reverse
 from django.utils import timezone
+from graphene_django.utils.testing import graphql_query
 from mixer.backend.django import mixer
 
 from apps.collaboration.models import Membership, MembershipList
 from apps.story_map.collaboration_roles import ROLE_EDITOR
 
 pytestmark = pytest.mark.django_db
+
+
+@pytest.mark.parametrize("operation", ["add", "update"])
+@pytest.mark.parametrize("media_field", ["media", "mediaItems"])
+def test_save_and_read_chapter_uploads(operation, media_field, logged_client, users):
+    items = [
+        {
+            "id": f"image-{index}",
+            "contentId": f"upload-{index}",
+            "type": "image/jpeg",
+            "filename": f"photo-{index}.jpg",
+            "altText": f"Photo {index}",
+            "crop": {"position": {"x": 0.5, "y": 0.5}, "scale": 1},
+        }
+        for index in range(1 if media_field == "media" else 2)
+    ]
+    embedded = {"id": "embedded-1", "type": "embedded", "source": "youtube", "url": "embed"}
+    chapter = {
+        "id": "chapter-1",
+        "mediaPresentation": "gallery",
+        media_field: items[0] if media_field == "media" else [*items, embedded],
+    }
+    data = {
+        "title": "Uploaded Story",
+        "publish": "true",
+        "configuration": json.dumps({"chapters": [chapter]}),
+        "files": [
+            SimpleUploadedFile(item["contentId"], b"image", content_type="image/jpeg")
+            for item in items
+        ],
+    }
+    if operation == "update":
+        story = mixer.blend("story_map.StoryMap", created_by=users[0], configuration={})
+        data["id"] = story.pk
+    expected_items = [
+        {
+            **{key: value for key, value in item.items() if key != "contentId"},
+            "url": f"stored/{item['id']}",
+            "signedUrl": f"stored/{item['id']}?signed=save",
+        }
+        for item in items
+    ]
+    expected = {
+        **chapter,
+        media_field: expected_items[0] if media_field == "media" else [*expected_items, embedded],
+    }
+    with (
+        patch("apps.story_map.views.story_map_media_upload_service.upload_file_get_path") as upload,
+        patch("apps.story_map.views.story_map_media_upload_service.get_signed_url") as sign,
+    ):
+        upload.side_effect = [item["url"] for item in expected_items]
+        sign.side_effect = lambda path: f"{path}?signed=save"
+        response = logged_client.post(reverse(f"story_map:{operation}"), data=data)
+        assert response.status_code == 201
+        assert response.json()["configuration"]["chapters"] == [expected]
+        assert upload.call_count == len(items)
+
+        sign.side_effect = lambda path: f"{path}?signed=read"
+        read = graphql_query(
+            """query($id: ID!) {
+              storyMap(id: $id) { configuration publishedConfiguration }
+            }""",
+            variables={"id": response.json()["id"]},
+            client=logged_client,
+        ).json()
+    assert "errors" not in read
+    for field in ("configuration", "publishedConfiguration"):
+        result = json.loads(read["data"]["storyMap"][field])["chapters"][0]
+        for item in expected_items:
+            item["signedUrl"] = item["url"] + "?signed=read"
+        assert result == expected
+
+
+@pytest.mark.parametrize("operation", ["add", "update"])
+@pytest.mark.parametrize(
+    "chapter",
+    [
+        {"mediaItems": None},
+        {"mediaItems": {}},
+        {"mediaItems": "invalid"},
+        {"mediaItems": [None]},
+        {"mediaItems": [[]]},
+        {"mediaItems": [{}]},
+        {"mediaItems": [{"type": None}]},
+        {"mediaItems": [{"type": 1}]},
+        {"mediaItems": [{"type": "image"}, {"type": "movie/MOV"}]},
+        {"media": []},
+        {"media": {"type": "invalid"}},
+    ],
+)
+def test_save_rejects_invalid_chapter_media(operation, chapter, logged_client, users):
+    data = {
+        "title": "Invalid Story",
+        "publish": "false",
+        "configuration": json.dumps({"chapters": [{"media": {"type": "image"}, **chapter}]}),
+    }
+    if operation == "update":
+        data["id"] = mixer.blend("story_map.StoryMap", created_by=users[0]).pk
+    response = logged_client.post(reverse(f"story_map:{operation}"), data=data)
+    assert response.status_code == 400
+    assert response.json()["errors"][0]["message"][0]["code"] == "Invalid Media Type"
+
+
+@pytest.mark.parametrize("change", ["reorder", "remove", "empty"])
+def test_update_chapter_media_cleanup(change, logged_client, users):
+    retained = {"type": "image/jpeg", "url": "retained"}
+    published = {"type": "audio/mp3", "url": "published"}
+    removed = {"type": "video/mp4", "url": "removed"}
+    embedded = {"type": "embedded", "url": "embed"}
+    story = mixer.blend(
+        "story_map.StoryMap",
+        created_by=users[0],
+        is_published=True,
+        configuration={"chapters": [{"mediaItems": [retained, published, removed, embedded]}]},
+        published_configuration={"chapters": [{"media": published}]},
+    )
+    items = [embedded, removed, published, retained] if change == "reorder" else [retained]
+    chapter = {"mediaItems": [] if change == "empty" else items, "mediaPresentation": "carousel"}
+    if change == "empty":
+        chapter["media"] = {"type": "invalid", "contentId": "ignored", "url": "ignored"}
+    config = {"chapters": [chapter, {"media": retained}]}
+    with (
+        patch("apps.story_map.views.story_map_media_upload_service.delete_file") as delete,
+        patch("apps.story_map.views.story_map_media_upload_service.get_signed_url") as sign,
+        patch("apps.story_map.views.story_map_media_upload_service.upload_file_get_path") as upload,
+    ):
+        sign.side_effect = lambda path: path + "?signed"
+        response = logged_client.post(
+            reverse("story_map:update"),
+            data={
+                "id": story.pk,
+                "title": "Cleanup Story",
+                "publish": "false",
+                "configuration": json.dumps(config),
+            },
+        )
+        assert response.status_code == 201
+        if change == "reorder":
+            delete.assert_not_called()
+        else:
+            delete.assert_called_once_with("removed")
+        upload.assert_not_called()
+        read = graphql_query(
+            "query($id: ID!) { storyMap(id: $id) { configuration } }",
+            variables={"id": str(story.pk)},
+            client=logged_client,
+        ).json()
+    assert "errors" not in read
+    result = json.loads(read["data"]["storyMap"]["configuration"])["chapters"][0]
+    assert result["mediaPresentation"] == "carousel"
+    assert [item["url"] for item in result["mediaItems"]] == [
+        item["url"] for item in chapter["mediaItems"]
+    ]
+    if change == "empty":
+        assert result == chapter
 
 
 def test_add_form_valid(logged_client, users):
