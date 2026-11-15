@@ -23,18 +23,22 @@ from apps.storage.services import SoilImageService
 pytestmark = pytest.mark.unit
 
 
-def test_build_object_key_encodes_site_and_depth():
+def test_build_object_key_encodes_site_depth_and_name():
     key = SoilImageService().build_object_key(
-        site_id="abc123", depth_start=0, depth_end=10, extension=".jpg"
+        site_id="abc123", depth_start=0, depth_end=10, name="main", extension=".jpg"
     )
-    assert re.fullmatch(r"soil-images/abc123/0-10/[0-9a-f]{32}\.jpg", key)
+    assert re.fullmatch(r"soil-images/abc123/0-10/main-[0-9a-f]{32}\.jpg", key)
 
 
 def test_build_object_key_is_unique_per_call():
     service = SoilImageService()
-    first = service.build_object_key(site_id="s", depth_start=0, depth_end=10, extension=".dng")
-    second = service.build_object_key(site_id="s", depth_start=0, depth_end=10, extension=".dng")
-    assert first != second  # the uuid suffix allows many images per site/depth
+    first = service.build_object_key(
+        site_id="s", depth_start=0, depth_end=10, name="main", extension=".dng"
+    )
+    second = service.build_object_key(
+        site_id="s", depth_start=0, depth_end=10, name="main", extension=".dng"
+    )
+    assert first != second  # the uuid suffix allows many images per site/depth/name
 
 
 def test_create_presigned_put_url_binds_bucket_key_and_content_type():

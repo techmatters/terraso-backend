@@ -36,7 +36,7 @@ REQUEST_UPLOAD_URL_QUERY = """
 FAKE_URL = "https://silo.example/presigned-put"
 
 
-def _request(client, site_id, content_type="image/jpeg", start=0, end=10):
+def _request(client, site_id, content_type="image/jpeg", name="main", start=0, end=10):
     return graphql_query(
         REQUEST_UPLOAD_URL_QUERY,
         variables={
@@ -44,6 +44,7 @@ def _request(client, site_id, content_type="image/jpeg", start=0, end=10):
                 "siteId": str(site_id),
                 "depthInterval": {"start": start, "end": end},
                 "contentType": content_type,
+                "name": name,
             }
         },
         client=client,
@@ -57,12 +58,14 @@ def test_request_upload_url_returns_presigned_url_and_keyed_object(client, user,
         "create_presigned_put_url",
         return_value=FAKE_URL,
     ) as mock_put:
-        response = _request(client, site.id)
+        response = _request(client, site.id, name="secondary")
 
     payload = response.json()["data"]["requestSoilImageUploadUrl"]
     assert payload["errors"] is None
     assert payload["uploadUrl"] == FAKE_URL
-    assert re.fullmatch(rf"soil-images/{site.id}/0-10/[0-9a-f]{{32}}\.jpg", payload["objectKey"])
+    assert re.fullmatch(
+        rf"soil-images/{site.id}/0-10/secondary-[0-9a-f]{{32}}\.jpg", payload["objectKey"]
+    )
     # the presigned URL is minted for exactly the returned key + content-type
     mock_put.assert_called_once_with(payload["objectKey"], "image/jpeg")
 
@@ -86,6 +89,19 @@ def test_request_upload_url_rejects_unsupported_content_type(client, user, site)
         image_upload.soil_image_upload_service, "create_presigned_put_url"
     ) as mock_put:
         response = _request(client, site.id, content_type="image/png")
+
+    payload = response.json()["data"]["requestSoilImageUploadUrl"]
+    assert payload["uploadUrl"] is None
+    assert payload["errors"] is not None
+    mock_put.assert_not_called()
+
+
+def test_request_upload_url_rejects_invalid_name(client, user, site):
+    client.force_login(user)
+    with mock.patch.object(
+        image_upload.soil_image_upload_service, "create_presigned_put_url"
+    ) as mock_put:
+        response = _request(client, site.id, name="bad/name space")  # slash + space not allowed
 
     payload = response.json()["data"]["requestSoilImageUploadUrl"]
     assert payload["uploadUrl"] is None

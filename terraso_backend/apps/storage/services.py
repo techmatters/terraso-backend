@@ -141,8 +141,12 @@ class SoilImageService(UploadService):
     # not a permanent public base URL, so base_url is unused here.
     base_url = ""
 
-    def build_object_key(self, site_id, depth_start, depth_end, extension):
-        return f"soil-images/{site_id}/{depth_start}-{depth_end}/{uuid.uuid4().hex}{extension}"
+    def build_object_key(self, site_id, depth_start, depth_end, name, extension):
+        # `name` is a short client-chosen label (e.g. "main", "secondary"); the
+        # uuid keeps keys unique so there can be several images per name.
+        return (
+            f"soil-images/{site_id}/{depth_start}-{depth_end}/{name}-{uuid.uuid4().hex}{extension}"
+        )
 
     def create_presigned_put_url(self, object_key, content_type, expiration=None):
         """Mint a presigned S3 PUT URL for ``object_key``.

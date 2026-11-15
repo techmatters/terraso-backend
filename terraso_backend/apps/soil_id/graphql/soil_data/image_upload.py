@@ -13,6 +13,8 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see https://www.gnu.org/licenses/.
 
+import re
+
 import graphene
 from django.conf import settings
 
@@ -23,6 +25,10 @@ from apps.project_management.permission_rules import Context
 from apps.project_management.permission_table import SiteAction, check_site_permission
 from apps.soil_id.graphql.types import DepthIntervalInput
 from apps.storage.services import soil_image_upload_service
+
+# Short client-chosen label for the image slot (e.g. "main", "secondary"). Kept
+# strict so it drops cleanly into the S3 object key without escaping surprises.
+NAME_PATTERN = re.compile(r"[A-Za-z0-9_-]{1,32}")
 
 
 class SoilImageUploadUrlRequest(BaseAuthenticatedMutation):
@@ -50,9 +56,10 @@ class SoilImageUploadUrlRequest(BaseAuthenticatedMutation):
         site_id = graphene.ID(required=True)
         depth_interval = graphene.Field(DepthIntervalInput, required=True)
         content_type = graphene.String(required=True)
+        name = graphene.String(required=True)
 
     @classmethod
-    def mutate_and_get_payload(cls, root, info, site_id, depth_interval, content_type):
+    def mutate_and_get_payload(cls, root, info, site_id, depth_interval, content_type, name):
         site = cls.get_or_throw(Site, "id", site_id)
 
         user = info.context.user
@@ -64,10 +71,14 @@ class SoilImageUploadUrlRequest(BaseAuthenticatedMutation):
             accepted = ", ".join(sorted(settings.SOIL_IMAGE_ACCEPTED_CONTENT_TYPES))
             raise ValueError(f"Unsupported content type '{content_type}'. Accepted: {accepted}")
 
+        if not NAME_PATTERN.fullmatch(name):
+            raise ValueError(f"Invalid name '{name}'. Use 1-32 of: letters, digits, '-', '_'.")
+
         object_key = soil_image_upload_service.build_object_key(
             site_id=site.id,
             depth_start=depth_interval["start"],
             depth_end=depth_interval["end"],
+            name=name,
             extension=extension,
         )
         upload_url = soil_image_upload_service.create_presigned_put_url(object_key, content_type)

@@ -2692,6 +2692,7 @@ input SoilImageUploadUrlRequestInput {
   siteId: ID!
   depthInterval: DepthIntervalInput!
   contentType: String!
+  name: String!
   clientMutationId: String
 }
 
