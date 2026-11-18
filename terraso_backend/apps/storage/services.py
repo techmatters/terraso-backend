@@ -20,7 +20,7 @@ import uuid
 from django.conf import settings
 from django.core.files.base import ContentFile
 
-from .s3 import ProfileImageStorage
+from .s3 import ProfileImageStorage, SoilImageStorage
 
 
 class UploadService:
@@ -124,6 +124,52 @@ class ProfileImageService(UploadService):
 
 
 profile_image_upload_service = ProfileImageService()
+
+
+class SoilImageService(UploadService):
+    """Presigned direct-to-S3 uploads for soil images tied to a site + depth.
+
+    Unlike the other upload services, the client PUTs bytes straight to S3 using
+    a short-lived presigned URL minted here — the bytes never pass through the
+    backend (important for large DNG files). The object key encodes the site and
+    depth interval so images are findable by S3 prefix even before any database
+    record exists.
+    """
+
+    storage = SoilImageStorage()
+    # Soil images are served back via time-limited signed URLs (get_signed_url),
+    # not a permanent public base URL, so base_url is unused here.
+    base_url = ""
+
+    def build_object_key(self, site_id, depth_start, depth_end, name, extension):
+        # `name` is a short client-chosen label (e.g. "main", "secondary"); the
+        # uuid keeps keys unique so there can be several images per name.
+        return (
+            f"soil-images/{site_id}/{depth_start}-{depth_end}/{name}-{uuid.uuid4().hex}{extension}"
+        )
+
+    def create_presigned_put_url(self, object_key, content_type, expiration=None):
+        """Mint a presigned S3 PUT URL for ``object_key``.
+
+        The URL binds ``content_type``; the client must send a matching
+        Content-Type header on its PUT or S3 rejects the upload with
+        SignatureDoesNotMatch.
+        """
+        if expiration is None:
+            expiration = settings.SOIL_IMAGE_UPLOAD_URL_EXPIRATION
+        client = self.storage.connection.meta.client
+        return client.generate_presigned_url(
+            "put_object",
+            Params={
+                "Bucket": self.storage.bucket_name,
+                "Key": object_key,
+                "ContentType": content_type,
+            },
+            ExpiresIn=expiration,
+        )
+
+
+soil_image_upload_service = SoilImageService()
 
 
 def build_profile_image_url(stored_value):

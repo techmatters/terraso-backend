@@ -1797,6 +1797,18 @@ type Mutations {
   pushUserData(input: UserDataPushInput!): UserDataPushPayload!
   updateSoilDataDepthInterval(input: SoilDataUpdateDepthIntervalMutationInput!): SoilDataUpdateDepthIntervalMutationPayload! @deprecated(reason: "Use push_user_data instead.")
   deleteSoilDataDepthInterval(input: SoilDataDeleteDepthIntervalMutationInput!): SoilDataDeleteDepthIntervalMutationPayload! @deprecated(reason: "Use push_user_data instead.")
+
+  """
+  Mint a short-lived presigned S3 PUT URL for a soil image.
+  
+  Phase 1 of the site+depth image feature: the client requests a URL here
+  (authorized against the site), then PUTs the image bytes directly to S3 —
+  they never transit the backend. The returned ``object_key`` encodes site +
+  depth, so uploaded images are findable by S3 prefix without any database
+  record. Recording the key in the database (to list images later) is a
+  tentative follow-up and is intentionally not done here yet.
+  """
+  requestSoilImageUploadUrl(input: SoilImageUploadUrlRequestInput!): SoilImageUploadUrlRequestPayload!
   updateSoilMetadata(input: SoilMetadataUpdateMutationInput!): SoilMetadataUpdateMutationPayload! @deprecated(reason: "Use push_user_data instead.")
   updateProjectSoilSettings(input: ProjectSoilSettingsUpdateMutationInput!): ProjectSoilSettingsUpdateMutationPayload!
   updateProjectSoilSettingsDepthInterval(input: ProjectSoilSettingsUpdateDepthIntervalMutationInput!): ProjectSoilSettingsUpdateDepthIntervalMutationPayload!
@@ -2656,6 +2668,31 @@ type SoilDataDeleteDepthIntervalMutationPayload {
 input SoilDataDeleteDepthIntervalMutationInput {
   siteId: ID!
   depthInterval: DepthIntervalInput!
+  clientMutationId: String
+}
+
+"""
+Mint a short-lived presigned S3 PUT URL for a soil image.
+
+Phase 1 of the site+depth image feature: the client requests a URL here
+(authorized against the site), then PUTs the image bytes directly to S3 —
+they never transit the backend. The returned ``object_key`` encodes site +
+depth, so uploaded images are findable by S3 prefix without any database
+record. Recording the key in the database (to list images later) is a
+tentative follow-up and is intentionally not done here yet.
+"""
+type SoilImageUploadUrlRequestPayload {
+  errors: GenericScalar
+  uploadUrl: String
+  objectKey: String
+  clientMutationId: String
+}
+
+input SoilImageUploadUrlRequestInput {
+  siteId: ID!
+  depthInterval: DepthIntervalInput!
+  contentType: String!
+  name: String!
   clientMutationId: String
 }
 
