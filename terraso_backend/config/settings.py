@@ -159,6 +159,20 @@ DATABASES = {
 }
 del _primary_db_url
 
+# Optional second connection used ONLY by the one-off `merge_staging_to_prod`
+# management command, which reads rows from a staging DB and writes them into
+# the primary ("default") DB. It is configured only when STAGING_DATABASE_URL is
+# set, so normal dev/CI/prod runs (which never set it) are completely
+# unaffected — there is no router and nothing else references this alias.
+_staging_db_url = config("STAGING_DATABASE_URL", default="")
+if _staging_db_url:
+    DATABASES["staging"] = {
+        **parse_db_url(_staging_db_url),
+        "CONN_MAX_AGE": 0,
+        "CONN_HEALTH_CHECKS": True,
+    }
+del _staging_db_url
+
 AUTHENTICATION_BACKENDS = (
     "rules.permissions.ObjectPermissionBackend",
     "django.contrib.auth.backends.ModelBackend",
