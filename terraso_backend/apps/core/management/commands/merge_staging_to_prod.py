@@ -61,13 +61,14 @@ from apps.soil_id.models.depth_dependent_soil_data import DepthDependentSoilData
 from apps.soil_id.models.project_soil_settings import ProjectDepthInterval, ProjectSoilSettings
 from apps.soil_id.models.soil_data import SoilData, SoilDataDepthInterval
 from apps.soil_id.models.soil_data_history import SoilDataHistory
+from apps.soil_id.models.soil_metadata import SoilMetadata
 
 DEFAULT_CUTOFF = "2026-10-14"
 
 # Internal/testers excluded from the migration. Domains catch org accounts; the
 # explicit list is for testers on personal addresses. Extend as the team
 # confirms more (see the Phase 1 review list).
-EXCLUDED_DOMAINS = {"terraso.org", "techmatters.org", "schmidtparty.com"}
+EXCLUDED_DOMAINS = {"terraso.org", "techmatters.org"}
 EXCLUDED_EMAILS = {"derektestcaelin@gmail.com"}
 
 # Models whose auto timestamps must be frozen so we can write the staging values.
@@ -81,6 +82,7 @@ TIMESTAMP_MODELS = [
     ProjectSoilSettings,
     ProjectDepthInterval,
     SoilData,
+    SoilMetadata,
     SoilDataDepthInterval,
     DepthDependentSoilData,
     SiteNote,
@@ -385,6 +387,20 @@ class Command(BaseCommand):
         )
         soil_data_ids = {s.id for s in soil_data}
         self._copy(SoilData, soil_data, default, report, "soil_id_soildata")
+
+        # Soil metadata (user's soil-match ratings / selected match) — 1:1 with
+        # Site, no user FK, so the same site-scoped copy pattern as SoilData.
+        self._copy(
+            SoilMetadata,
+            list(
+                SoilMetadata.objects.using(staging).filter(
+                    site_id__in=scope_site_ids, deleted_at__isnull=True
+                )
+            ),
+            default,
+            report,
+            "soil_id_soilmetadata",
+        )
         self._copy(
             SoilDataDepthInterval,
             list(
