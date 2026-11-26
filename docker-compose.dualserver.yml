@@ -1,0 +1,50 @@
+# Two Terraso API servers at once, for staging->prod merge testing.
+#
+# Both share the single `db` container (from docker-compose.base.yml); each is
+# pinned to a different local DB copy via DATABASE_URL:
+#   web_staging -> terraso_staging   (default host port 8001)
+#   web_prod    -> terraso_prod       (default host port 8002)
+#
+# Override ports with STAGING_API_PORT / PROD_API_PORT. The `environment:`
+# DATABASE_URL overrides the one from the env_file, so each server is pinned to
+# its DB. SOIL_ID_DATABASE_URL is deliberately NOT overridden (it points at the
+# separate soil-id reference DB, unrelated to these copies).
+#
+# Start/stop with ./dualserver.sh up|down, or directly:
+#   docker compose --env-file ~/secrets/terraso-backend/.env \
+#     -f docker-compose.base.yml -f docker-compose.dev.yml -f docker-compose.dualserver.yml \
+#     up -d db web_staging web_prod
+#
+# Dev-only helper; not part of the normal `make run` stack.
+services:
+  web_staging:
+    image: '${TERRASO_BACKEND_WEB_DOCKER_IMAGE:-techmatters/terraso_backend}'
+    env_file: ${HOME}/secrets/terraso-backend/.env
+    environment:
+      - DATABASE_URL=postgres://postgres:postgres@db:5432/terraso_staging
+    command: python terraso_backend/manage.py runserver 0.0.0.0:${STAGING_API_PORT:-8001}
+    ports:
+      - '${STAGING_API_PORT:-8001}:${STAGING_API_PORT:-8001}'
+    volumes:
+      - .:/app:z
+    depends_on:
+      db:
+        condition: service_healthy
+    stdin_open: true
+    tty: true
+
+  web_prod:
+    image: '${TERRASO_BACKEND_WEB_DOCKER_IMAGE:-techmatters/terraso_backend}'
+    env_file: ${HOME}/secrets/terraso-backend/.env
+    environment:
+      - DATABASE_URL=postgres://postgres:postgres@db:5432/terraso_prod
+    command: python terraso_backend/manage.py runserver 0.0.0.0:${PROD_API_PORT:-8002}
+    ports:
+      - '${PROD_API_PORT:-8002}:${PROD_API_PORT:-8002}'
+    volumes:
+      - .:/app:z
+    depends_on:
+      db:
+        condition: service_healthy
+    stdin_open: true
+    tty: true
