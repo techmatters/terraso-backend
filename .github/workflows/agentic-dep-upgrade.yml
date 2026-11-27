@@ -8,11 +8,6 @@ on:
   schedule:
     - cron: "0 0 1 * *"
 
-  # REMOVE BEFORE MERGING.
-  push:
-    branches:
-      - ci/agentic-dep-upgrade
-
   workflow_dispatch:
     inputs:
       base_branch:
