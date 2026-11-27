@@ -16,6 +16,7 @@
 from typing import ClassVar
 
 from django.db import models
+from django.utils.text import slugify
 from rules.predicates import Predicate
 from safedelete.models import SOFT_DELETE
 
@@ -61,6 +62,20 @@ class StoryMap(SlugModel):
             "delete": perm_rules.allowed_to_delete_story_map,
             "view": perm_rules.allowed_to_view_story_map,
         }
+
+    def should_update_slug(self, *, publish=False):
+        return publish or self._state.adding or (
+            not self.is_published and self.published_configuration is None
+        )
+
+    def save(self, *args, update_slug=None, **kwargs):
+        update_fields = kwargs.get("update_fields")
+        if update_slug is None:
+            update_slug = self.should_update_slug()
+        if update_slug and (update_fields is None or "slug" in update_fields):
+            self.slug = slugify(self.title)
+        # Story maps retain their published slug across draft saves and unpublishing.
+        return BaseModel.save(self, *args, **kwargs)
 
     def to_dict(self):
         return {

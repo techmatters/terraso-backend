@@ -37,8 +37,9 @@ def _resolve_configuration(story_map, info, field):
         info.context.user
     )
 
-    if not story_map.is_published and not is_owner and not is_approved_member:
-        return None
+    if not is_owner and not is_approved_member:
+        if field == "configuration" or not story_map.is_published:
+            return None
 
     config = getattr(story_map, field)
 
@@ -60,6 +61,14 @@ class StoryMapFilterSet(django_filters.FilterSet):
             "story_map_id": ["exact"],
             "featured": ["exact"],
         }
+
+    def filter_queryset(self, queryset):
+        queryset = super().filter_queryset(queryset)
+        # django-filter treats an empty string as an omitted filter; here it is
+        # a valid part of a Story Map's public identity.
+        if self.data.get("slug") == "":
+            queryset = queryset.filter(slug="")
+        return queryset
 
     def filter_memberships_user_email_not(self, queryset, name, value):
         return queryset.exclude(
@@ -135,6 +144,9 @@ class StoryMapNode(DjangoObjectType):
 
 
 def get_visible_story_maps_queryset(queryset, info):
+    if info.context.user.is_anonymous:
+        return queryset.filter(is_published=True)
+
     user_pk = getattr(info.context.user, "pk", False)
 
     base_query = Q(is_published=True) | Q(created_by=user_pk)

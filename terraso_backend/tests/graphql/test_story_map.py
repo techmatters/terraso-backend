@@ -17,6 +17,7 @@ import json
 from unittest import mock
 
 import pytest
+from django.contrib.auth.models import AnonymousUser
 from django.urls import reverse
 from mixer.backend.django import mixer
 
@@ -63,6 +64,126 @@ def test_unpublished_map_is_hidden_from_visitors_but_remains_editable(
     node = owner_data["storyMaps"]["edges"][0]["node"]
     assert node["isPublished"] is False
     assert json.loads(node["configuration"])["title"] == "Draft"
+
+
+@pytest.mark.parametrize("access", ["owner", "approved", "pending", "nonmember", "anonymous"])
+@pytest.mark.parametrize("is_published", [True, False])
+@mock.patch("apps.story_map.services.story_map_media_upload_service.get_signed_url")
+def test_configuration_access_respects_membership(
+    signed_url, client_query, client_query_no_token, users, access, is_published
+):
+    membership_list = mixer.blend(MembershipList)
+    if access in ("approved", "pending"):
+        mixer.blend(
+            Membership,
+            membership_list=membership_list,
+            user=users[0],
+            membership_status=Membership.APPROVED if access == "approved" else Membership.PENDING,
+        )
+    story_map = mixer.blend(
+        StoryMap,
+        created_by=users[0] if access == "owner" else users[1],
+        membership_list=membership_list,
+        story_map_id="access01",
+        is_published=is_published,
+        configuration={"title": "Private draft", "featuredImage": {"url": "draft-key"}},
+        published_configuration={
+            "title": "Public snapshot",
+            "featuredImage": {"url": "public-key"},
+        },
+    )
+    signed_url.return_value = "signed"
+    query = """
+        query Access($id: String!) {
+          storyMaps(storyMapId: $id) {
+            edges { node { configuration publishedConfiguration } }
+          }
+        }
+    """
+    query_as_user = client_query_no_token if access == "anonymous" else client_query
+    body = query_as_user(query, variables={"id": story_map.story_map_id}).json()
+    assert "errors" not in body
+    edges = body["data"]["storyMaps"]["edges"]
+    if not is_published and access in ("nonmember", "anonymous"):
+        assert edges == []
+        return
+
+    node = edges[0]["node"]
+    can_edit = access in ("owner", "approved")
+    if can_edit:
+        assert json.loads(node["configuration"])["title"] == "Private draft"
+    else:
+        assert node["configuration"] is None
+    if is_published or can_edit:
+        assert json.loads(node["publishedConfiguration"])["title"] == "Public snapshot"
+    else:
+        assert node["publishedConfiguration"] is None
+    signed_keys = [call.args[0] for call in signed_url.call_args_list]
+    assert ("draft-key" in signed_keys) == can_edit
+    assert ("public-key" in signed_keys) == (is_published or can_edit)
+
+
+def test_public_slug_lookup_stays_on_published_version_until_republication(
+    logged_client, client_query_no_token, users
+):
+    published = {"title": "Public title", "chapters": []}
+    story_map = mixer.blend(
+        StoryMap,
+        created_by=users[0],
+        title="Public title",
+        configuration=published,
+        published_configuration=published,
+        is_published=True,
+    )
+    query = """
+        query MapByUrl($storyMapId: String!, $slug: String!) {
+          storyMaps(storyMapId: $storyMapId, slug: $slug) {
+            edges { node { id slug publishedConfiguration } }
+          }
+        }
+    """
+
+    def lookup(slug):
+        response = client_query_no_token(
+            query, variables={"storyMapId": story_map.story_map_id, "slug": slug}
+        )
+        return response.json()["data"]["storyMaps"]["edges"]
+
+    data = {
+        "id": story_map.pk,
+        "title": "Private revision",
+        "configuration": json.dumps({"title": "Private revision", "chapters": []}),
+        "publish": "false",
+    }
+    assert logged_client.post(reverse("story_map:update"), data=data).status_code == 201
+    node = lookup("public-title")[0]["node"]
+    assert json.loads(node["publishedConfiguration"]) == published
+    assert lookup("private-revision") == []
+
+    data["publish"] = "true"
+    assert logged_client.post(reverse("story_map:update"), data=data).status_code == 201
+    assert lookup("public-title") == []
+    assert lookup("private-revision")[0]["node"]["id"] == str(story_map.id)
+
+
+def test_empty_slug_filter_matches_only_empty_slug(client_query_no_token):
+    empty = mixer.blend(StoryMap, story_map_id="same-id", title="!!!", is_published=True)
+    slugged = mixer.blend(StoryMap, story_map_id="same-id", title="A map", is_published=True)
+    query = """
+        query Maps($id: String!, $slug: String) {
+          storyMaps(storyMapId: $id, slug: $slug) { edges { node { id } } }
+        }
+    """
+
+    def ids(variables):
+        edges = client_query_no_token(query, variables=variables).json()["data"]["storyMaps"][
+            "edges"
+        ]
+        return {edge["node"]["id"] for edge in edges}
+
+    assert ids({"id": "same-id", "slug": ""}) == {str(empty.id)}
+    assert ids({"id": "same-id", "slug": "a-map"}) == {str(slugged.id)}
+    assert ids({"id": "same-id"}) == {str(empty.id), str(slugged.id)}
 
 
 def test_story_maps_query(client_query, story_maps, users):
@@ -189,6 +310,41 @@ def test_story_maps_filter_by_can_change_by_email(client_query, story_maps, user
 
     assert len(story_maps_result) == 4
     assert str(users[0].email) not in story_maps_result
+
+
+def test_anonymous_cannot_see_ownerless_unpublished_story_map(client_query_no_token):
+    assert AnonymousUser().pk is None
+    draft = mixer.blend(
+        StoryMap,
+        title="Ownerless draft",
+        story_map_id="draft001",
+        created_by=None,
+        membership_list=None,
+        is_published=False,
+    )
+    published = mixer.blend(
+        StoryMap,
+        title="Ownerless published map",
+        story_map_id="publish001",
+        created_by=None,
+        membership_list=None,
+        is_published=True,
+    )
+    response = client_query_no_token(
+        """
+        query OwnerlessMaps($draftId: String!) {
+          storyMaps { edges { node { id } } }
+          draft: storyMaps(storyMapId: $draftId) { edges { node { id } } }
+        }
+        """,
+        variables={"draftId": draft.story_map_id},
+    )
+    body = response.json()
+    assert "errors" not in body
+    assert body["data"]["draft"]["edges"] == []
+    assert [edge["node"]["id"] for edge in body["data"]["storyMaps"]["edges"]] == [
+        str(published.pk)
+    ]
 
 
 def test_story_maps_anonymous_user(client_query_no_token, story_maps):

@@ -22,7 +22,7 @@ import rules
 import structlog
 from config.settings import MEDIA_UPLOAD_MAX_FILE_SIZE
 from django.core.exceptions import NON_FIELD_ERRORS, ValidationError
-from django.db import IntegrityError
+from django.db import IntegrityError, transaction
 from django.http import JsonResponse
 from django.utils import timezone
 from django.views.generic.edit import FormView
@@ -198,11 +198,25 @@ class StoryMapUpdateView(AuthenticationRequiredMixin, FormView):
             )
 
         try:
-            # Draft saves must not restore publication state read before an unpublish.
-            update_fields = ["title", "slug", "configuration", "updated_at"]
-            if publish:
-                update_fields.extend(["is_published", "published_at", "published_configuration"])
-            story_map.save(update_fields=update_fields)
+            # Recheck publication under a lock: a concurrent publish may have claimed
+            # the public slug while this draft's media was being processed.
+            with transaction.atomic():
+                current = StoryMap.objects.select_for_update().get(pk=story_map.pk)
+                current.title = story_map.title
+                current.configuration = story_map.configuration
+                update_fields = ["title", "configuration", "updated_at"]
+                update_slug = current.should_update_slug(publish=publish)
+                if update_slug:
+                    update_fields.append("slug")
+                if publish:
+                    current.is_published = True
+                    current.published_at = story_map.published_at
+                    current.published_configuration = story_map.published_configuration
+                    update_fields.extend(
+                        ["is_published", "published_at", "published_configuration"]
+                    )
+                current.save(update_fields=update_fields, update_slug=update_slug)
+                story_map = current
         except IntegrityError as exc:
             return handle_integrity_error(exc)
 

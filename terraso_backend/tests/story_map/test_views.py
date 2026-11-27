@@ -243,6 +243,177 @@ def test_draft_save_does_not_change_publication_or_restore_concurrent_unpublish(
     assert story_map.published_at is None
 
 
+def test_story_map_slug_tracks_publication_not_later_drafts(logged_client, users):
+    url = reverse("story_map:update")
+    story_map = mixer.blend(
+        "story_map.StoryMap",
+        created_by=users[0],
+        title="First draft",
+        configuration={"title": "First draft", "chapters": []},
+        published_configuration=None,
+        is_published=False,
+    )
+
+    def save(title, publish=False):
+        return logged_client.post(
+            url,
+            data={
+                "id": story_map.pk,
+                "title": title,
+                "configuration": json.dumps({"title": title, "chapters": []}),
+                "publish": str(publish).lower(),
+            },
+        )
+
+    assert save("Second draft").json()["slug"] == "second-draft"
+    assert save("Public title", publish=True).json()["slug"] == "public-title"
+    response = save("Private revision")
+    assert response.json()["slug"] == "public-title"
+    story_map.refresh_from_db()
+    assert story_map.slug == "public-title"
+    assert story_map.published_configuration["title"] == "Public title"
+    assert story_map.configuration["title"] == "Private revision"
+
+    response = logged_client.post(url, data={"id": story_map.pk, "unpublish": "true"})
+    assert response.status_code == 201
+    assert save("Unpublished revision").json()["slug"] == "public-title"
+    assert save("Republished title", publish=True).json()["slug"] == "republished-title"
+    story_map.refresh_from_db()
+    assert story_map.slug == "republished-title"
+    assert story_map.published_configuration["title"] == "Republished title"
+
+
+def test_model_save_keeps_published_slug_when_title_changes(users):
+    published = {"title": "Public title", "chapters": []}
+    story_map = mixer.blend(
+        "story_map.StoryMap",
+        created_by=users[0],
+        title="Public title",
+        configuration=published,
+        published_configuration=published,
+        is_published=True,
+    )
+    story_map.title = "Private revision"
+    story_map.save()
+    story_map.refresh_from_db()
+    assert story_map.slug == "public-title"
+
+
+def test_partial_draft_save_does_not_change_slug_unless_included(users):
+    story_map = mixer.blend(
+        "story_map.StoryMap",
+        created_by=users[0],
+        title="First draft",
+        is_published=False,
+        published_configuration=None,
+    )
+    story_map.title = "Revised draft"
+    story_map.save(update_fields=["title"])
+    assert story_map.slug == "first-draft"
+    story_map.refresh_from_db()
+    assert story_map.title == "Revised draft"
+    assert story_map.slug == "first-draft"
+
+    story_map.save(update_fields=["slug"])
+    story_map.refresh_from_db()
+    assert story_map.slug == "revised-draft"
+
+
+def test_draft_save_cannot_overwrite_slug_of_concurrent_publication(logged_client, users):
+    story_map = mixer.blend(
+        "story_map.StoryMap",
+        created_by=users[0],
+        title="First draft",
+        configuration={"title": "First draft", "chapters": []},
+        published_configuration=None,
+        is_published=False,
+    )
+    url = reverse("story_map:update")
+
+    def publish_during_save(config, instance, request):
+        with patch("apps.story_map.views.handle_config_media", return_value={"chapters": []}):
+            response = logged_client.post(
+                url,
+                data={
+                    "id": story_map.pk,
+                    "title": "Public title",
+                    "configuration": '{"chapters": []}',
+                    "publish": "true",
+                },
+            )
+        assert response.status_code == 201
+        return config
+
+    with patch("apps.story_map.views.handle_config_media", side_effect=publish_during_save):
+        response = logged_client.post(
+            url,
+            data={
+                "id": story_map.pk,
+                "title": "Private draft",
+                "configuration": '{"chapters": []}',
+                "publish": "false",
+            },
+        )
+    assert response.json()["slug"] == "public-title"
+    story_map.refresh_from_db()
+    assert story_map.is_published
+    assert story_map.slug == "public-title"
+    assert story_map.title == "Private draft"
+
+
+def test_publishing_conflicting_slug_and_id_fails_without_changing_story(logged_client, users):
+    mixer.blend("story_map.StoryMap", story_map_id="same-id", title="Public title")
+    story_map = mixer.blend(
+        "story_map.StoryMap",
+        story_map_id="same-id",
+        title="Other title",
+        created_by=users[0],
+        is_published=False,
+        published_configuration=None,
+    )
+    response = logged_client.post(
+        reverse("story_map:update"),
+        data={
+            "id": story_map.pk,
+            "title": "Public title",
+            "configuration": '{"chapters": []}',
+            "publish": "true",
+        },
+    )
+    assert response.status_code == 400
+    assert response.json()["errors"]
+    story_map.refresh_from_db()
+    assert story_map.slug == "other-title"
+    assert story_map.title == "Other title"
+    assert not story_map.is_published
+
+
+def test_same_published_slug_is_allowed_for_different_story_map_ids(logged_client, users):
+    mixer.blend("story_map.StoryMap", story_map_id="first-id", title="Public title")
+    story_map = mixer.blend(
+        "story_map.StoryMap",
+        story_map_id="second-id",
+        title="Draft title",
+        created_by=users[0],
+        is_published=False,
+        published_configuration=None,
+    )
+    response = logged_client.post(
+        reverse("story_map:update"),
+        data={
+            "id": story_map.pk,
+            "title": "Public title",
+            "configuration": '{"chapters": []}',
+            "publish": "true",
+        },
+    )
+    assert response.status_code == 201
+    assert response.json()["slug"] == "public-title"
+    story_map.refresh_from_db()
+    assert story_map.is_published
+    assert story_map.slug == "public-title"
+
+
 def test_update_upload_media(logged_client, users):
     story_map = mixer.blend("story_map.StoryMap", created_by=users[0])
     url = reverse("story_map:update")
