@@ -128,8 +128,8 @@ jobs:
         if: steps.agent.outcome == 'success'
         uses: actions/create-github-app-token@v2
         with:
-          app-id: ${{ vars.DEP_UPGRADER_APP_ID }}
-          private-key: ${{ secrets.DEP_UPGRADER_APP_PRIVATE_KEY }}
+          app-id: ${{ vars.TERRASO_BOT_APP_ID }}
+          private-key: ${{ secrets.TERRASO_BOT_APP_PRIVATE_KEY }}
           permission-contents: write
           permission-pull-requests: write
 
