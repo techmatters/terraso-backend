@@ -49,8 +49,8 @@ In the env file
 - If you wish to use the AWS S3 buckets, uncomment the AWS config you want, fill in the credentials `AWS_ACCESS_KEY_ID` and
   `AWS_SECRET_ACCESS_KEY`, and make sure the other sections are commented out.
 
-Start building the Docker images (make sure there's `requirements.txt`
-file created before building the images):
+Start building the Docker images (dependencies are declared in
+`pyproject.toml` and locked in `uv.lock`, both committed to the repo):
 
 ```sh
 $ make build
@@ -232,14 +232,8 @@ following command
 $ make lock
 ```
 
-It is also possible to lock development dependencies with:
-
-```sh
-$ make lock-dev
-```
-
-The lock process creates/updates the files `requirements.txt` and
-`requirements-dev.txt`. With these files in place it's possible to
+The lock process updates the `uv.lock` file, which pins both runtime
+and development dependencies. With the lock in place it's possible to
 install dependencies running:
 
 ```sh
