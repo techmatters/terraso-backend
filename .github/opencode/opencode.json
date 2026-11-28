@@ -1,0 +1,77 @@
+{
+  // CI-only OpenCode configuration, written against the v2 schema.
+  //
+  // This file lives under .github/ so it never shows up as an `opencode.json`
+  // in the repo root. The workflow activates it with:
+  //
+  //   OPENCODE_CONFIG_DIR=<repo>/.github/opencode
+  //
+  // OPENCODE_CONFIG_DIR is loaded after the global config and after any project
+  // `.opencode/`, so everything here wins for CI without affecting developer
+  // setups.
+  //
+  // Verified against @opencode/cli 2.0.24:
+  //   * `opencode debug config` resolves this file as written.
+  //   * `opencode debug agents` resolves the subagent below with the global
+  //     rules first and its own `subagent: deny` appended last, and the last
+  //     matching rule wins -- so it inherits allow-all and cannot nest.
+  //
+  // v2 key names differ from v1: `permissions` (a rule array, not an object) and
+  // `agents` (not `permission`/`agent`), with `shell`/`subagent` in place of
+  // `bash`/`task`. v2 still maps the v1 shape, but there is no reason to rely
+  // on that here.
+  //
+  // Note that v2 does NOT reject unknown keys or invalid enum values -- it was
+  // verified to accept `share: false` and `update: "nonsense"` without
+  // complaint. So a stale key here fails silently rather than loudly, and this
+  // file is worth re-checking whenever the pinned version moves.
+  "$schema": "https://opencode.ai/config.json",
+
+  // Pinned so a run cannot silently drift onto another model.
+  //
+  // `#max` is the reasoning-effort variant; this model advertises low/high/max.
+  // Nothing else pins a model -- scripts/agentic-dep-upgrade.sh deliberately does
+  // not pass --model -- so this line is the single source of truth for the agent
+  // and for every subagent it launches.
+  "model": "opencode-go/deepseek-v4.1-flash#max",
+
+  // Never self-upgrade inside CI: the workflow pins an exact version.
+  "update": "disable",
+
+  // Never publish session transcripts to a public URL.
+  "share": "disabled",
+
+  // Hosted web search. On the opencode-go provider this needs no additional key.
+  "websearch": { "provider": "random" },
+
+  // Concatenated with the built-in defaults rather than replacing them.
+  "instructions": [".github/opencode/instructions.md"],
+
+  // This runs unattended: there is nobody to answer a prompt, so every tool the
+  // agent needs is granted explicitly. `external_directory` is included on
+  // purpose because a headless run cannot answer the prompt it otherwise raises.
+  "permissions": [
+    { "action": "read", "resource": "*", "effect": "allow" },
+    { "action": "edit", "resource": "*", "effect": "allow" },
+    { "action": "shell", "resource": "*", "effect": "allow" },
+    { "action": "subagent", "resource": "*", "effect": "allow" },
+    { "action": "webfetch", "resource": "*", "effect": "allow" },
+    { "action": "websearch", "resource": "*", "effect": "allow" },
+    { "action": "external_directory", "resource": "*", "effect": "allow" }
+  ],
+
+  "agents": {
+    // Deliberately unambitious: it declares no model and, apart from the one
+    // deny below, no permissions of its own. Agent rules are appended after the
+    // global rules (rather than replacing them), so it inherits the allow-all
+    // policy above -- and then loses the ability to launch subagents of its own,
+    // which keeps the fan-out one level deep and the cost bounded.
+    "general-purpose": {
+      "description": "General purpose helper. Same permissions as the parent, but cannot launch subagents of its own. Use for reading changelogs and for multi-step implementation work.",
+      "mode": "subagent",
+      "permissions": [
+        { "action": "subagent", "resource": "*", "effect": "deny" }
+      ]
+    }
+  }
+}

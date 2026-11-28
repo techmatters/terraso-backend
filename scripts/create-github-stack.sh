@@ -1,0 +1,184 @@
+#!/usr/bin/env bash
+#
+# create-github-stack.sh -- create a GitHub PR stack out of a stack of branches.
+#
+# Usage:
+#   GH_TOKEN=... scripts/push-stack.sh <base-branch>
+#
+# Assumes that HEAD is checked out at the top of a stack of branches, each sitting
+# on the one below it, and the bottom one sitting on <base-branch>. Errors if that
+# is not true.
+set -euo pipefail
+
+BASE="${1:-}"
+if [ -z "$BASE" ]; then
+  echo "usage: $(basename "$0") <base-branch>" >&2
+  exit 2
+fi
+
+BRANCH_PREFIX="deps/"
+
+die() { printf '::error::%s\n' "$*" >&2; exit 1; }
+log() { printf '%s\n' "$*"; }
+
+: "${GH_TOKEN:?GH_TOKEN must be set}"
+: "${GITHUB_REPOSITORY:?GITHUB_REPOSITORY must be set}"
+REPO="$GITHUB_REPOSITORY"
+
+command -v gh >/dev/null 2>&1 || die "gh is not on PATH"
+command -v git >/dev/null 2>&1 || die "git is not on PATH"
+
+# Make `git push` use the app token: this installs gh as git's credential helper
+# in the global git config, and gh reads GH_TOKEN from the environment.
+gh auth setup-git
+
+head_branch="$(git rev-parse --abbrev-ref HEAD)"
+
+# A monthly run has no work to do more often than you would think: every pin is
+# already on a version that is at least a week old.
+if [ "$head_branch" = "$BASE" ]; then
+  log "Nothing to push: HEAD is ${BASE}."
+  exit 0
+fi
+
+case "$head_branch" in
+  "${BRANCH_PREFIX}"*) ;;
+  *) die "HEAD is ${head_branch}, which is not a ${BRANCH_PREFIX}* branch" ;;
+esac
+
+git rev-parse --verify --quiet "refs/heads/${BASE}" >/dev/null \
+  || die "base branch '${BASE}' does not exist locally"
+
+base_tip="$(git rev-parse "refs/heads/${BASE}")"
+top_tip="$(git rev-parse "refs/heads/${head_branch}")"
+
+git merge-base --is-ancestor "$base_tip" "$top_tip" \
+  || die "${head_branch} is not built on ${BASE}"
+
+# The walk below only ever sees the layers underneath HEAD, so it cannot tell on
+# its own that HEAD is the top. Check that directly: nothing else may sit above it.
+while IFS= read -r other; do
+  [ "$other" = "$head_branch" ] && continue
+  git merge-base --is-ancestor "$top_tip" "refs/heads/${other}" \
+    && die "HEAD is ${head_branch}, but ${other} is stacked above it; check out the top of the stack"
+done < <(git for-each-ref --format='%(refname:short)' 'refs/heads/')
+
+# Work out the stack. Every layer was created from the tip of the layer below it,
+# so walking the top branch's history from newest to oldest and picking out the
+# commits that have a branch pointing at them yields the layers in order, ending
+# when the base branch's tip is reached.
+declare -A branch_at_tip=()
+while read -r commit name; do
+  branch_at_tip["$commit"]="$name"
+done < <(git for-each-ref --format='%(objectname) %(refname:short)' 'refs/heads/')
+
+chain_rev=()  # top -> bottom
+while read -r commit; do
+  [ "$commit" = "$base_tip" ] && break
+  name="${branch_at_tip[$commit]:-}"
+  [ -n "$name" ] && chain_rev+=("$name")
+done < <(git rev-list --topo-order "$top_tip")
+
+[ "${#chain_rev[@]}" -gt 0 ] \
+  || die "no ${BRANCH_PREFIX}* branches between ${BASE} and ${head_branch}"
+[ "${chain_rev[0]}" = "$head_branch" ] \
+  || die "HEAD is ${head_branch}, but the top of the stack is ${chain_rev[0]}"
+
+chain=()  # bottom -> top
+for ((i = ${#chain_rev[@]} - 1; i >= 0; i--)); do
+  chain+=("${chain_rev[i]}")
+done
+
+log "base branch: ${BASE}"
+log "stack (bottom -> top): ${chain[*]}"
+
+# ---------------------------------------------------------------------------
+# Push each layer and open its pull request
+# ---------------------------------------------------------------------------
+pr_numbers=()
+pr_urls=()
+total="${#chain[@]}"
+
+for idx in "${!chain[@]}"; do
+  branch="${chain[$idx]}"
+  parent="$BASE"
+  if [ "$idx" -gt 0 ]; then
+    parent="${chain[$((idx - 1))]}"
+  fi
+  layer="$((idx + 1))"
+
+  log ""
+  log "-- layer ${layer}/${total}: ${branch}  (base: ${parent})"
+
+  git push --quiet origin "refs/heads/${branch}:refs/heads/${branch}" \
+    || die "could not push ${branch}: it already exists on the remote with different history"
+
+  # The PR title comes from the layer's earliest commit -- the one that introduced
+  # the pyproject/lock change -- so it describes the layer rather than the last fix
+  # that touched it.
+  title="$(git log --reverse --format='%s' \
+    "refs/heads/${parent}..refs/heads/${branch}" | sed -n 1p)"
+  title="${title:-update dependency group ${branch##*/}}"
+  # .github/workflows/check-commits.yml validates PR titles against a
+  # conventional-commit pattern, so synthesise a conforming one if needed.
+  if ! printf '%s' "$title" | grep -Eq '^[a-z]+(\([^)]+\))?!?:[[:space:]]+.+$'; then
+    title="chore(deps): ${title}"
+  fi
+  log "   title: ${title}"
+
+  # One level-4 heading per commit, with that commit's body printed directly
+  # under it -- bodies rewritten as a separate block cannot be attributed to a
+  # commit, and they lose their internal blank lines. `git log --format='%b'`
+  # emits the body verbatim (interior blank lines, indentation and trailing
+  # whitespace included), so nothing here may filter or re-wrap it; the old
+  # `sed '/^$/d'` pass deleted every blank line inside every body. `$(...)`
+  # trims only the trailing newlines, which is what lets the blank line before
+  # the next heading be printed deliberately.
+  body_file="$(mktemp)"
+  {
+    printf '### Commits\n\n'
+    while IFS= read -r commit; do
+      printf '#### %s\n\n' "$(git log -1 --format='%s' "$commit")"
+      commit_body="$(git log -1 --format='%b' "$commit")"
+      if [ -n "$commit_body" ]; then
+        printf '%s\n\n' "$commit_body"
+      fi
+    done < <(git rev-list --reverse "refs/heads/${parent}..refs/heads/${branch}")
+    printf -- '---\n\n'
+    printf 'Opened by the `agentic dependency upgrade` workflow.\n'
+  } > "$body_file"
+
+  url="$(gh pr create --repo "$REPO" --base "$parent" --head "$branch" \
+    --title "$title" --body-file "$body_file")" \
+    || die "could not open a pull request for ${branch}"
+  number="$(gh pr view --repo "$REPO" "$url" --json number --jq '.number')"
+  log "   opened PR #${number}: ${url}"
+
+  pr_numbers+=("$number")
+  pr_urls+=("$url")
+done
+
+# ---------------------------------------------------------------------------
+# Link the pull requests into a formal stack
+# ---------------------------------------------------------------------------
+# The PR bases already form a stack; this is what makes GitHub render it as one.
+if [ "${#pr_numbers[@]}" -lt 2 ]; then
+  log ""
+  log "only ${#pr_numbers[@]} layer, so there is no stack to form"
+else
+  # `-F` (--field, typed), not `-f` (--raw-field, always a string), and do not
+  # "simplify" this back: `-f` sends every value as a JSON string, so the pull
+  # request numbers arrive as "2112" and the endpoint rejects the whole array
+  # with a 422 ("is not of type integer") -- after the PRs are already open.
+  # `-F` runs the value through gh's magic type conversion (see
+  # pkg/cmd/api/fields.go: parseFields -> magicFieldValue -> strconv.Atoi)
+  # *before* the `key[]` array expansion, so each element is a real JSON number.
+  stack_args=()
+  for number in "${pr_numbers[@]}"; do
+    stack_args+=(-F "pull_requests[]=${number}")
+  done
+  out="$(gh api --method POST "repos/${REPO}/stacks" "${stack_args[@]}" 2>&1)" \
+    || die "failed to link the pull requests into a stack: ${out}"
+  log ""
+  log "created a stack of ${#pr_numbers[@]} layers"
+fi

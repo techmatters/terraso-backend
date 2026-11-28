@@ -11,11 +11,6 @@ repos:
         entry: make check_api_schema
         pass_filenames: false
 
--   repo: https://gitlab.com/vojko.pribudic.foss/pre-commit-update
-    rev: v0.10.0
-    hooks:
-    -   id: pre-commit-update
-
 -   repo: local
     hooks:
     -   id: ruff-check
